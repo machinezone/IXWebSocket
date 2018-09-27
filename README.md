@@ -55,7 +55,7 @@ If the remote end (server) breaks the connection, the code will try to perpetual
 
 ## Limitations
 
-* There is no per message compression support. That could be useful for retrieving large messages, but could also be implemented at the application level. However that would conflict with auto-serialiasation.
+* There is no per message compression support. That could be useful for retrieving large messages, but could also be implemented at the application level.
 * There is no text support for sending data, only the binary protocol is supported. Sending json or text over the binary protocol works well.
 * Automatic reconnection works at the TCP socket level, and will detect remote end disconnects. However, if the device/computer network become unreachable (by turning off wifi), it is quite hard to reliably and timely detect it at the socket level using `recv` and `send` error codes. [Here](https://stackoverflow.com/questions/14782143/linux-socket-how-to-detect-disconnected-network-in-a-client-program) is a good discussion on the subject. This behavior is consistent with other runtimes such as node.js. One way to detect a disconnected device with low level C code is to do a name resolution with DNS but this can be expensive. Mobile devices have good and reliable API to do that.
 
@@ -95,7 +95,7 @@ Here's a simplistic diagram which explains how the code is structured in term of
 
 ### Sending messages
 
-`websocket:send("foo")` will send a message.
+`websocket.send("foo")` will send a message.
 
 If the connection was closed and sending failed, the return value will be set to false.
 
@@ -159,5 +159,4 @@ The url can be set and queried after a websocket object has been created. You wi
 ```
 std::string url = 'wss://example.com'
 websocket.configure(url);
-assert(websocket:getUrl() == url)
 ```
