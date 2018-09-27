@@ -157,6 +157,6 @@ webSocket.setOnMessageCallback(
 The url can be set and queried after a websocket object has been created. You will have to call `stop` and `start` if you want to disconnect and connect to that new url.
 
 ```
-std::string url = 'wss://example.com'
+std::string url("wss://example.com");
 websocket.configure(url);
 ```
