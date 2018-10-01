@@ -9,6 +9,7 @@
 #include <string>
 #include <functional>
 #include <mutex>
+#include <atomic>
 
 namespace ix 
 {
