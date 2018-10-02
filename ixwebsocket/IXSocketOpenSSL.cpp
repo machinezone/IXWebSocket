@@ -242,6 +242,9 @@ namespace ix
                 return false;
             }
 
+            // SNI support
+            SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
+
             handshakeSuccessful = openSSLHandshake(errMsg);
         }
 
