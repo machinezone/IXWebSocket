@@ -138,10 +138,12 @@ webSocket.setOnMessageCallback(
     {
         if (messageType == ix::WebSocket_MessageType_Error)
         {
-            ss << "cmd_websocket_chat: Error ! " << error.reason     << std::endl;
-            ss << "#retries: "                   << event.retries    << std::endl;
-            ss << "Wait time(ms): "              << event.waitTime   << std::endl;
-            ss << "HTTP Status: "                << event.httpStatus << std::endl;
+            std::stringstream ss;
+            ss << "Error: "         << error.reason      << std::endl;
+            ss << "#retries: "      << event.retries     << std::endl;
+            ss << "Wait time(ms): " << event.wait_time   << std::endl;
+            ss << "HTTP Status: "   << event.http_status << std::endl;
+            std::cout << ss.str() << std::endl;
         }
     }
 );

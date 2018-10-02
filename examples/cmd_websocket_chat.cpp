@@ -117,7 +117,10 @@ namespace
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
                 {
-                    ss << "cmd_websocket_chat: Error ! " << error.reason;
+                    ss << "Connection error: " << error.reason      << std::endl;
+                    ss << "#retries: "         << error.retries     << std::endl;
+                    ss << "Wait time(ms): "    << error.wait_time   << std::endl;
+                    ss << "HTTP Status: "      << error.http_status << std::endl;
                     log(ss.str());
                 }
                 else
