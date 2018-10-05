@@ -36,7 +36,7 @@ webSocket.send("hello world");
 // ... finally ...
 
 // Stop the connection
-webSocket:stop()
+webSocket.stop()
 ```
 
 ## Implementation details
