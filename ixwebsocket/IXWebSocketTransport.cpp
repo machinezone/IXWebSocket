@@ -202,7 +202,9 @@ namespace ix {
         if (sscanf(line, "HTTP/1.0 %d", &status) == 1)
         {
             std::stringstream ss;
-            ss << "Server version is HTTP/1.0. Rejecting connection to " << host;
+            ss << "Server version is HTTP/1.0. Rejecting connection to " << host
+               << ", status: " << status
+               << ", HTTP Status line: " << line;
             return WebSocketInitResult(false, status, ss.str());
         }
 

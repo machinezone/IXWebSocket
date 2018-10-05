@@ -36,7 +36,11 @@ namespace ix
     private:
         std::string getSSLError(int ret);
         SSL_CTX* openSSLCreateContext(std::string& errMsg);
-        bool openSSLHandshake(std::string& errMsg);
+        bool openSSLHandshake(const std::string& hostname, std::string& errMsg);
+        bool openSSLCheckServerCert(SSL *ssl,
+                                    const std::string& hostname,
+                                    std::string& errMsg);
+        bool checkHost(const std::string& host, const char *pattern);
 
         SSL_CTX* _ssl_context;
         SSL* _ssl_connection;
