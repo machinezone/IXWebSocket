@@ -12,6 +12,7 @@
 
 #include <openssl/x509v3.h>
 
+#include <fnmatch.h>
 #include <errno.h>
 #define socketerrno errno
 
@@ -158,51 +159,10 @@ namespace ix
 
     /**
      * Check whether a hostname matches a pattern
-     *
-     * The pattern MUST contain at most a single, leading asterisk. This means that
-     * this function cannot serve as a generic validation function, as that would
-     * allow for partial wildcards, too. Also, this does not check whether the
-     * wildcard covers multiple levels of labels. For RTM, this suffices, as we
-     * are only interested in the main domain name.
-     *
-     * @param[in] hostname The hostname of the server
-     * @param[in] pattern The hostname pattern from a SSL certificate
-     * @return TRUE if the pattern matches, FALSE otherwise
      */
     bool SocketOpenSSL::checkHost(const std::string& host, const char *pattern)
     {
-        const char* hostname = host.c_str();
-
-        while (*pattern && *hostname)
-        {
-            if (*pattern == '*')
-            {
-                while (*hostname != '.' && *hostname) hostname++;
-                if (*(++pattern) != '.')
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                char p = *pattern;
-                char h = *hostname;
-                if ((p & ~32) >= 'A' && (p & ~32) <= 'Z')
-                {
-                    p &= ~32;
-                    h &= ~32;
-                }
-                if (*pattern != *hostname)
-                {
-                    return false;
-                }
-            }
-            pattern++;
-            hostname++;
-        }
-
-        bool success = !(*hostname || *pattern);
-        return success;
+        return fnmatch(pattern, host.c_str(), 0) != FNM_NOMATCH;
     }
 
     bool SocketOpenSSL::openSSLCheckServerCert(SSL *ssl,
@@ -353,6 +313,15 @@ namespace ix
 
             // SNI support
             SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
+
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+            // Support for server name verification
+            // (The docs say that this should work from 1.0.2, and is the default from
+            // 1.1.0, but it does not. To be on the safe side, the manual test below is
+            // enabled for all versions prior to 1.1.0.)
+            X509_VERIFY_PARAM *param = SSL_get0_param(_ssl_connection);
+            X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0);
+#endif
 
             handshakeSuccessful = openSSLHandshake(host, errMsg);
         }
