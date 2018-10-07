@@ -90,7 +90,5 @@ namespace ix
         std::atomic<bool> _automaticReconnection;
         std::thread _thread;
         std::mutex _writeMutex;
-
-        static int kHeartBeatPeriod;
     };
 }
