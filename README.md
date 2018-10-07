@@ -91,7 +91,7 @@ Here's a simplistic diagram which explains how the code is structured in term of
 +-----------------------+
 ```
 
-## Advanced usage
+## API
 
 ### Sending messages
 
