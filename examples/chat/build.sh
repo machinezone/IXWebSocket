@@ -5,10 +5,10 @@
 #
 
 clang++ --std=c++11 --stdlib=libc++ \
-    ../ixwebsocket/IXSocket.cpp	\
-    ../ixwebsocket/IXWebSocketTransport.cpp \
-    ../ixwebsocket/IXSocketAppleSSL.cpp	\
-    ../ixwebsocket/IXWebSocket.cpp \
+    ../../ixwebsocket/IXSocket.cpp	\
+    ../../ixwebsocket/IXWebSocketTransport.cpp \
+    ../../ixwebsocket/IXSocketAppleSSL.cpp	\
+    ../../ixwebsocket/IXWebSocket.cpp \
     cmd_websocket_chat.cpp \
     -o cmd_websocket_chat \
     -framework Security \

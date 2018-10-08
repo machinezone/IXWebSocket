@@ -12,7 +12,7 @@
 #include <iostream>
 #include <sstream>
 #include <queue>
-#include "../ixwebsocket/IXWebSocket.h"
+#include "../../ixwebsocket/IXWebSocket.h"
 
 #include "nlohmann/json.hpp"
 
