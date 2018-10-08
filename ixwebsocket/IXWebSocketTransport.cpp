@@ -11,10 +11,12 @@
 #include "IXWebSocketTransport.h"
 
 #include "IXSocket.h"
-#ifdef __APPLE__
-# include "IXSocketAppleSSL.h"
-#else
-# include "IXSocketOpenSSL.h"
+#ifdef IXWEBSOCKET_USE_TLS
+# ifdef __APPLE__
+#  include "IXSocketAppleSSL.h"
+# else
+#  include "IXSocketOpenSSL.h"
+# endif
 #endif
 
 #include <unistd.h>
@@ -140,10 +142,14 @@ namespace ix {
         if (protocol == "wss")
         {
             _socket.reset();
-#ifdef __APPLE__
-            _socket = std::make_shared<SocketAppleSSL>();
+#ifdef IXWEBSOCKET_USE_TLS
+# ifdef __APPLE__
+             _socket = std::make_shared<SocketAppleSSL>();
+# else
+             _socket = std::make_shared<SocketOpenSSL>();
+# endif
 #else
-            _socket = std::make_shared<SocketOpenSSL>();
+            return WebSocketInitResult(false, 0, "TLS is not supported.");
 #endif
         }
         else

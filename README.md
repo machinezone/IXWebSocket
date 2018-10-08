@@ -39,11 +39,15 @@ webSocket.send("hello world");
 webSocket.stop()
 ```
 
+## Build
+
+CMakefiles for the library and the examples are available. This library has few dependencies, so it is possible to just add the source files into your project.
+
 ## Implementation details
 
 ### TLS/SSL
 
-Connections can be optionally secured and encrypted with TLS/SSL when using a wss:// endpoint, or using normal un-encrypted socket with ws:// endpoints. AppleSSL is used on iOS and OpenSSL is used on Android.
+Connections can be optionally secured and encrypted with TLS/SSL when using a wss:// endpoint, or using normal un-encrypted socket with ws:// endpoints. AppleSSL is used on iOS and macOS, and OpenSSL is used on Android and Linux.
 
 ### Polling and background thread work
 

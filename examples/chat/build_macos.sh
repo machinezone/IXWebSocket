@@ -4,6 +4,8 @@
 # Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
 #
 
+# 'manual' way of building. You can also use cmake.
+
 clang++ --std=c++11 --stdlib=libc++ \
     ../../ixwebsocket/IXSocket.cpp	\
     ../../ixwebsocket/IXWebSocketTransport.cpp \
