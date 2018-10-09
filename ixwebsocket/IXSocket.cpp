@@ -152,7 +152,13 @@ namespace ix
     {
         int flag = 1;
         setsockopt(_sockfd, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof(flag)); // Disable Nagle's algorithm
+
+#ifdef _WIN32
+        unsigned long nonblocking = 1;
+        ioctlsocket(fd, FIONBIO, &nonblocking);
+#else
         fcntl(_sockfd, F_SETFL, O_NONBLOCK); // make socket non blocking
+#endif
 
 #ifdef SO_NOSIGPIPE
         int value = 1;
