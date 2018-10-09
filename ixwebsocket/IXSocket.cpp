@@ -301,4 +301,9 @@ namespace ix
         WSACleanup();
 #endif
     }
+
+    void Socket::secureSocket()
+    {
+        ;
+    }
 }

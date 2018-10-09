@@ -14,12 +14,11 @@
 #ifdef IXWEBSOCKET_USE_TLS
 # ifdef __APPLE__
 #  include "IXSocketAppleSSL.h"
-# else
+# elif defined(__linux__)
 #  include "IXSocketOpenSSL.h"
 # endif
 #endif
 
-// #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -145,7 +144,7 @@ namespace ix {
 #ifdef IXWEBSOCKET_USE_TLS
 # ifdef __APPLE__
              _socket = std::make_shared<SocketAppleSSL>();
-# else
+# elif defined(__linux__)
              _socket = std::make_shared<SocketOpenSSL>();
 # endif
 #else

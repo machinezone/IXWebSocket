@@ -40,6 +40,8 @@ namespace ix
         virtual int send(const std::string& buffer);
         virtual int recv(void* buffer, size_t length);
 
+        virtual void secureSocket(); // Windows
+
         int getErrno() const;
         static bool init(); // Required on Windows to initialize WinSocket
         static void cleanup(); // Required on Windows to cleanup WinSocket
