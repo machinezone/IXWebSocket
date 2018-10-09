@@ -69,8 +69,8 @@ If the remote end (server) breaks the connection, the code will try to perpetual
 2. Compile the example C++ code. `sh build.sh`
 3. Install node.js from [here](https://nodejs.org/en/download/).
 4. Type `npm install` to install the node.js dependencies. Then `node broadcast-server.js` to run the server.
-5. Bring up a second terminal. `env USER=bob ./cmd_websocket_chat`
-6. Bring up a third terminal. `env USER=bill ./cmd_websocket_chat`
+5. Bring up a second terminal. `./cmd_websocket_chat bob`
+6. Bring up a third terminal. `./cmd_websocket_chat bill`
 7. Start typing things in any of those terminals. Hopefully you should see your message being received on the other end.
 
 ## C++ code organization

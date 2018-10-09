@@ -6,22 +6,32 @@
 
 #include "IXSocket.h"
 
-#include <netdb.h>
-#include <netinet/tcp.h>
+#ifdef _WIN32
+# include <basetsd.h>
+# include <WinSock2.h>
+# include <ws2def.h>
+# include <WS2tcpip.h>
+# include <io.h>
+#else
+# include <unistd.h>
+# include <errno.h>
+# include <netdb.h>
+# include <netinet/tcp.h>
+# include <sys/socket.h>
+# include <sys/time.h>
+# include <sys/select.h>
+# include <sys/stat.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <sys/select.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <assert.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <sys/types.h>
+
+#include <algorithm>
 
 //
 // Linux/Android has a special type of virtual files. select(2) will react
@@ -35,7 +45,7 @@
 // cf Android/Kernel table here 
 // https://android.stackexchange.com/questions/51651/which-android-runs-which-linux-kernel
 //
-#ifndef __APPLE__
+#ifdef __linux__
 # include <sys/eventfd.h>
 #endif
 
@@ -51,7 +61,7 @@ namespace ix
         _sockfd(-1),
         _eventfd(-1)
     {
-#ifndef __APPLE__
+#ifdef __linux__
         _eventfd = eventfd(0, 0);
         assert(_eventfd != -1 && "Panic - eventfd not functioning on this platform");
 #endif
@@ -61,14 +71,14 @@ namespace ix
     {
         close();
 
-#ifndef __APPLE__
+#ifdef __linux__
         ::close(_eventfd);
 #endif
     }
 
-    bool connectToAddress(const struct addrinfo *address, 
-                          int& sockfd,
-                          std::string& errMsg)
+    bool Socket::connectToAddress(const struct addrinfo *address, 
+                                  int& sockfd,
+                                  std::string& errMsg)
     {
         sockfd = -1;
 
@@ -84,7 +94,7 @@ namespace ix
         int maxRetries = 3;
         for (int i = 0; i < maxRetries; ++i)
         {
-            if (connect(fd, address->ai_addr, address->ai_addrlen) != -1)
+            if (::connect(fd, address->ai_addr, address->ai_addrlen) != -1)
             {
                 sockfd = fd;
                 return true;
@@ -94,7 +104,7 @@ namespace ix
             if (errno != EINTR) break;
         }
 
-        ::close(fd);
+        closeSocket(fd);
         sockfd = -1;
         errMsg = strerror(errno);
         return false;
@@ -142,7 +152,13 @@ namespace ix
     {
         int flag = 1;
         setsockopt(_sockfd, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof(flag)); // Disable Nagle's algorithm
+
+#ifdef _WIN32
+        unsigned long nonblocking = 1;
+        ioctlsocket(_sockfd, FIONBIO, &nonblocking);
+#else
         fcntl(_sockfd, F_SETFL, O_NONBLOCK); // make socket non blocking
+#endif
 
 #ifdef SO_NOSIGPIPE
         int value = 1;
@@ -163,12 +179,12 @@ namespace ix
         FD_ZERO(&rfds);
         FD_SET(_sockfd, &rfds);
 
-#ifndef __APPLE__
+#ifdef __linux__
         FD_SET(_eventfd, &rfds);
 #endif
 
         int sockfd = _sockfd;
-        int nfds = std::max(sockfd, _eventfd);
+        int nfds = (std::max)(sockfd, _eventfd);
         select(nfds + 1, &rfds, nullptr, nullptr, nullptr);
 
         onPollCallback();
@@ -191,7 +207,7 @@ namespace ix
     {
 #ifdef __APPLE__
         wakeUpFromPollApple();
-#else
+#elif defined(__linux__)
         wakeUpFromPollLinux();
 #endif
     }
@@ -202,7 +218,7 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
-#ifndef __APPLE__
+#ifdef __linux__
         if (_eventfd == -1)
         {
             return false; // impossible to use this socket if eventfd is broken
@@ -219,7 +235,7 @@ namespace ix
 
         if (_sockfd == -1) return;
 
-        ::close(_sockfd);
+        closeSocket(_sockfd);
         _sockfd = -1;
     }
 
@@ -245,7 +261,44 @@ namespace ix
         flags = MSG_NOSIGNAL;
 #endif
 
-        return (int) ::recv(_sockfd, buffer, length, flags);
+        return (int) ::recv(_sockfd, (char*) buffer, length, flags);
     }
 
+    int Socket::getErrno() const
+    {
+#ifdef _WIN32
+        return WSAGetLastError();
+#else
+        return errno;
+#endif
+    }
+
+    void Socket::closeSocket(int fd)
+    {
+#ifdef _WIN32
+        closesocket(fd);
+#else
+        ::close(fd);
+#endif
+    }
+
+    bool Socket::init()
+    {
+#ifdef _WIN32
+        INT rc;
+        WSADATA wsaData;
+        
+        rc = WSAStartup(MAKEWORD(2, 2), &wsaData);
+        return rc != 0;
+#else
+        return true;
+#endif
+    }
+
+    void Socket::cleanup()
+    {
+#ifdef _WIN32
+        WSACleanup();
+#endif
+    }
 }
