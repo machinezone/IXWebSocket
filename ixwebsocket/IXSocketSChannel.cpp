@@ -12,6 +12,8 @@
 # include <WS2tcpip.h>
 # include <io.h>
 #else
+# error("This file should only be built on Windows")
+#endif
 
 namespace ix 
 {
