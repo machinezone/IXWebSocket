@@ -16,6 +16,8 @@
 #  include "IXSocketAppleSSL.h"
 # elif defined(__linux__)
 #  include "IXSocketOpenSSL.h"
+# elif defined(_WIN32)
+#  include "IXSocketSChannel.h"
 # endif
 #endif
 
@@ -146,6 +148,8 @@ namespace ix {
              _socket = std::make_shared<SocketAppleSSL>();
 # elif defined(__linux__)
              _socket = std::make_shared<SocketOpenSSL>();
+# elif defined(_WIN32)
+             _socket = std::make_shared<SocketSChannel>();
 # endif
 #else
             return WebSocketInitResult(false, 0, "TLS is not supported.");
