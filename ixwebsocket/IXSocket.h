@@ -38,6 +38,8 @@ namespace ix
         virtual int send(const std::string& buffer);
         virtual int recv(void* buffer, size_t length);
 
+        int getErrno() const;
+
     protected:
         void wakeUpFromPollApple();
         void wakeUpFromPollLinux();
