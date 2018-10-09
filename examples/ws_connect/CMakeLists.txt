@@ -19,7 +19,7 @@ if (APPLE AND USE_TLS)
 endif()
 
 if (WIN32)
-    target_link_libraries(cmd_websocket_chat wsock32 ws2_32)
+    target_link_libraries(ws_connect wsock32 ws2_32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
