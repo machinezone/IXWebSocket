@@ -11,7 +11,7 @@
 #include <mutex>
 #include <atomic>
 
-struct addrinfo;
+struct addrinfo*;
 
 namespace ix 
 {

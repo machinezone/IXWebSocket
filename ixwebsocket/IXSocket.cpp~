@@ -18,7 +18,6 @@
 # include <WinSock2.h>
 # include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32")
-# include <io.h>
 #else
 # include <unistd.h>
 # include <errno.h>

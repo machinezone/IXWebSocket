@@ -1,0 +1,296 @@
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -Aa 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -D__CLASSIC_C__ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -Aa 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -D__CLASSIC_C__ 
+
+The output was:
+The system cannot find the file specified
+
+
+Checking whether the C compiler is IAR using "" did not match "IAR .+ Compiler":
+Checking whether the C compiler is IAR using "" did not match "IAR .+ Compiler":
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --c++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --ec++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --c++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --ec++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Checking whether the CXX compiler is IAR using "" did not match "IAR .+ Compiler":
+Checking whether the CXX compiler is IAR using "" did not match "IAR .+ Compiler":
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -Aa 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -D__CLASSIC_C__ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -Aa 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -D__CLASSIC_C__ 
+
+The output was:
+The system cannot find the file specified
+
+
+Checking whether the C compiler is IAR using "" did not match "IAR .+ Compiler":
+Checking whether the C compiler is IAR using "" did not match "IAR .+ Compiler":
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --c++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --ec++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags:  
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: -c 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --c++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: cl 
+Build flags: 
+Id flags: --ec++ 
+
+The output was:
+The system cannot find the file specified
+
+
+Checking whether the CXX compiler is IAR using "" did not match "IAR .+ Compiler":
+Checking whether the CXX compiler is IAR using "" did not match "IAR .+ Compiler":
