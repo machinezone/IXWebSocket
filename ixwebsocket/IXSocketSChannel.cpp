@@ -10,6 +10,7 @@
 # include <WinSock2.h>
 # include <ws2def.h>
 # include <WS2tcpip.h>
+# include <schannel.h>
 # include <io.h>
 #else
 # error("This file should only be built on Windows")
