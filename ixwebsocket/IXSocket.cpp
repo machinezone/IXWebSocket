@@ -6,17 +6,12 @@
 
 #include "IXSocket.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <stdint.h>
-#include <fcntl.h>
-#include <sys/types.h>
-
 #ifdef _WIN32
+# include <basetsd.h>
 # include <WinSock2.h>
+# include <ws2def.h>
 # include <WS2tcpip.h>
+# include <io.h>
 #pragma comment(lib, "ws2_32")
 # include <io.h>
 #else
@@ -29,6 +24,14 @@
 # include <sys/select.h>
 # include <sys/stat.h>
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <sys/types.h>
 
 //
 // Linux/Android has a special type of virtual files. select(2) will react
