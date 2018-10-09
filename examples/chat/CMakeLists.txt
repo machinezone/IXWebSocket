@@ -19,5 +19,10 @@ if (APPLE AND USE_TLS)
     target_link_libraries(cmd_websocket_chat "-framework foundation" "-framework security")
 endif()
 
+if (WIN32)
+    target_link_libraries(cmd_websocket_chat wsock32 ws2_32)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 target_link_libraries(cmd_websocket_chat ixwebsocket)
 install(TARGETS cmd_websocket_chat DESTINATION bin)
