@@ -13,6 +13,7 @@
 #include <sstream>
 #include <queue>
 #include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXSocket.h>
 
 #include "nlohmann/json.hpp"
 
@@ -160,11 +161,9 @@ namespace
 
     void interactiveMain()
     {
-        std::string user(getenv("USER"));
-
-        WebSocketChat webSocketChat(user);
-
+        std::string user("foo");
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
+        WebSocketChat webSocketChat(user);
         webSocketChat.start();
 
         while (true)
@@ -188,6 +187,9 @@ namespace
 
 int main()
 {
+    std::cout << "main starting" << std::endl;
+    Socket::init();
+    std::cout << "socket initialized" << std::endl;
     interactiveMain();
     return 0;
 }

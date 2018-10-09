@@ -19,8 +19,9 @@
 # endif
 #endif
 
-#include <unistd.h>
+// #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <cstdlib>
 #include <vector>
@@ -272,7 +273,7 @@ namespace ix {
                 {
                     int N = (int) _rxbuf.size();
 
-                    ssize_t ret;
+                    int ret;
                     _rxbuf.resize(N + 1500);
                     ret = _socket->recv((char*)&_rxbuf[0] + N, 1500);
 

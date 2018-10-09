@@ -22,6 +22,8 @@ namespace ix
         Socket();
         virtual ~Socket();
 
+	static bool init();
+
         int hostname_connect(const std::string& hostname,
                              int port,
                              std::string& errMsg);

@@ -33,6 +33,8 @@
 #include <fcntl.h>
 #include <sys/types.h>
 
+#include <algorithm>
+
 //
 // Linux/Android has a special type of virtual files. select(2) will react
 // when reading/writing to those files, unlike closing sockets.
@@ -155,7 +157,7 @@ namespace ix
 
 #ifdef _WIN32
         unsigned long nonblocking = 1;
-        ioctlsocket(fd, FIONBIO, &nonblocking);
+        ioctlsocket(_sockfd, FIONBIO, &nonblocking);
 #else
         fcntl(_sockfd, F_SETFL, O_NONBLOCK); // make socket non blocking
 #endif
@@ -184,7 +186,7 @@ namespace ix
 #endif
 
         int sockfd = _sockfd;
-        int nfds = std::max(sockfd, _eventfd);
+        int nfds = (std::max)(sockfd, _eventfd);
         select(nfds + 1, &rfds, nullptr, nullptr, nullptr);
 
         onPollCallback();
@@ -261,7 +263,7 @@ namespace ix
         flags = MSG_NOSIGNAL;
 #endif
 
-        return (int) ::recv(_sockfd, buffer, length, flags);
+        return (int) ::recv(_sockfd, (char*) buffer, length, flags);
     }
 
     int Socket::getErrno() const
@@ -279,6 +281,18 @@ namespace ix
 	closesocket(fd);
 #else
         ::close(fd);
+#endif
+    }
+
+    // FIXME: need finalize
+    bool Socket::init()
+    {
+#ifdef _WIN32
+        INT rc;
+        WSADATA wsaData;
+        
+        rc = WSAStartup(MAKEWORD(2, 2), &wsaData);
+        return rc != 0;
 #endif
     }
 }
