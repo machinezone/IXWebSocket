@@ -11,8 +11,6 @@
 #include <mutex>
 #include <atomic>
 
-struct addrinfo;
-
 namespace ix 
 {
     class Socket {
@@ -45,11 +43,6 @@ namespace ix
     protected:
         void wakeUpFromPollApple();
         void wakeUpFromPollLinux();
-
-	void closeSocket(int fd);
-        bool connectToAddress(const struct addrinfo *address, 
-                              int& sockfd,
-                              std::string& errMsg);
 
         std::atomic<int> _sockfd;
         int _eventfd;
