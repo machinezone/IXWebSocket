@@ -20,7 +20,7 @@ namespace ix
         ;
     }
 
-    SocketSChanne::~SocketSChannel()
+    SocketSChannel::~SocketSChannel()
     {
         
     }
@@ -30,6 +30,19 @@ namespace ix
                                  std::string& errMsg)
     {
         return Socket::connect(host, port, errMsg);
+    }
+
+    
+    void SocketSChannel::secureSocket()
+    {
+        DWORD dwOptVal = SO_SEC_SSL;
+        DWORD dwBytes = 0;
+        SSLVALIDATECERTHOOK sslValidateFunc;
+
+        sockerror = setsockopt(_sockfd, SOL_SOCKET,
+                               SO_SECURE, (LPSTR)&dwOptVal, sizeof(dwOptVal));
+
+        // FIXME do something with sockerror
     }
 
     void SocketSChannel::close()

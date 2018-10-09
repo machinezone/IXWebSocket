@@ -13,13 +13,16 @@ namespace ix
     class SocketSChannel : public Socket 
     {
     public:
-        SocketAppleSSL();
-        ~SocketAppleSSL();
+        SocketSChannel();
+        ~SocketSChannel();
 
         virtual bool connect(const std::string& host, 
                              int port,
                              std::string& errMsg) final;
         virtual void close() final;
+
+        // The important override
+        virtual void secureSocket() final;
 
         virtual int send(char* buffer, size_t length) final;
         virtual int send(const std::string& buffer) final;
