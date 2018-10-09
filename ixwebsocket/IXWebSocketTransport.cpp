@@ -19,9 +19,9 @@
 # endif
 #endif
 
-#include <unistd.h>
-#include <errno.h>
+// #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <cstdlib>
 #include <vector>
@@ -273,12 +273,12 @@ namespace ix {
                 {
                     int N = (int) _rxbuf.size();
 
-                    ssize_t ret;
+                    int ret;
                     _rxbuf.resize(N + 1500);
                     ret = _socket->recv((char*)&_rxbuf[0] + N, 1500);
 
-                    if (ret < 0 && (errno == EWOULDBLOCK || 
-                                    errno == EAGAIN)) {
+                    if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
+                                    _socket->getErrno() == EAGAIN)) {
                         _rxbuf.resize(N);
                         break;
                     }
@@ -575,8 +575,8 @@ namespace ix {
         {
             int ret = _socket->send((char*)&_txbuf[0], _txbuf.size());
 
-            if (ret < 0 && (errno == EWOULDBLOCK || 
-                            errno == EAGAIN))
+            if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
+                            _socket->getErrno() == EAGAIN))
             {
                 break;
             }
