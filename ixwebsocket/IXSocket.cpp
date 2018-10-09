@@ -16,6 +16,9 @@
 
 #ifdef _WIN32
 # include <WinSock2.h>
+# include <WS2tcpip.h>
+#pragma comment(lib, "ws2_32")
+# include <io.h>
 #else
 # include <unistd.h>
 # include <errno.h>
@@ -70,9 +73,9 @@ namespace ix
 #endif
     }
 
-    bool connectToAddress(const struct addrinfo *address, 
-                          int& sockfd,
-                          std::string& errMsg)
+    bool Socket::connectToAddress(const struct addrinfo *address, 
+                                  int& sockfd,
+                                  std::string& errMsg)
     {
         sockfd = -1;
 
@@ -88,7 +91,7 @@ namespace ix
         int maxRetries = 3;
         for (int i = 0; i < maxRetries; ++i)
         {
-            if (connect(fd, address->ai_addr, address->ai_addrlen) != -1)
+            if (::connect(fd, address->ai_addr, address->ai_addrlen) != -1)
             {
                 sockfd = fd;
                 return true;
@@ -98,7 +101,7 @@ namespace ix
             if (errno != EINTR) break;
         }
 
-        ::close(fd);
+        closeSocket(fd);
         sockfd = -1;
         errMsg = strerror(errno);
         return false;
@@ -223,7 +226,7 @@ namespace ix
 
         if (_sockfd == -1) return;
 
-        ::close(_sockfd);
+        closeSocket(_sockfd);
         _sockfd = -1;
     }
 
@@ -258,6 +261,15 @@ namespace ix
         return WSAGetLastError();
 #else
         return errno;
+#endif
+    }
+
+    void Socket::closeSocket(int fd)
+    {
+#ifdef _WIN32
+	closesocket(fd);
+#else
+        ::close(fd);
 #endif
     }
 }

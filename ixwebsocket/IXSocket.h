@@ -11,6 +11,8 @@
 #include <mutex>
 #include <atomic>
 
+struct addrinfo;
+
 namespace ix 
 {
     class Socket {
@@ -20,9 +22,9 @@ namespace ix
         Socket();
         virtual ~Socket();
 
-        static int hostname_connect(const std::string& hostname,
-                                    int port,
-                                    std::string& errMsg);
+        int hostname_connect(const std::string& hostname,
+                             int port,
+                             std::string& errMsg);
         void configure();
 
         virtual void poll(const OnPollCallback& onPollCallback);
@@ -44,9 +46,16 @@ namespace ix
         void wakeUpFromPollApple();
         void wakeUpFromPollLinux();
 
+        void closeSocket(int fd);
+
         std::atomic<int> _sockfd;
         int _eventfd;
         std::mutex _socketMutex;
+
+    private:
+        bool connectToAddress(const struct addrinfo *address, 
+                              int& sockfd,
+                              std::string& errMsg);
     };
 
 }
