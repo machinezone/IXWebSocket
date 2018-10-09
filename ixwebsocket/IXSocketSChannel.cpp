@@ -2,6 +2,8 @@
  *  IXSocketSChannel.cpp
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
+ *
+ *  See https://docs.microsoft.com/en-us/windows/desktop/WinSock/using-secure-socket-extensions
  */
 #include "IXSocketSChannel.h"
 
@@ -13,6 +15,41 @@
 # include <schannel.h>
 # include <sslsock.h>
 # include <io.h>
+
+#define WIN32_LEAN_AND_MEAN
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+
+#include <windows.h>
+#include <winsock2.h>
+#include <mstcpip.h>
+#include <ws2tcpip.h>
+#include <rpc.h>
+#include <ntdsapi.h>
+#include <stdio.h>
+#include <tchar.h>
+
+#define RECV_DATA_BUF_SIZE 256
+
+// Link with ws2_32.lib
+#pragma comment(lib, "Ws2_32.lib")
+
+// link with fwpuclnt.lib for Winsock secure socket extensions
+#pragma comment(lib, "fwpuclnt.lib")
+
+// link with ntdsapi.lib for DsMakeSpn function
+#pragma comment(lib, "ntdsapi.lib")
+
+// The following function assumes that Winsock 
+// has already been initialized
+
+
+
+
+
+
 #else
 # error("This file should only be built on Windows")
 #endif
