@@ -4,6 +4,11 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  *
  *  See https://docs.microsoft.com/en-us/windows/desktop/WinSock/using-secure-socket-extensions
+ *
+ *  https://github.com/pauldotknopf/WindowsSDK7-Samples/blob/master/netds/winsock/securesocket/stcpclient/tcpclient.c
+ *
+ *  This is the right example to look at:
+ *  https://www.codeproject.com/Articles/1000189/A-Working-TCP-Client-and-Server-With-SSL
  */
 #include "IXSocketSChannel.h"
 
@@ -76,13 +81,7 @@ namespace ix
     
     void SocketSChannel::secureSocket()
     {
-        DWORD dwOptVal = SO_SEC_SSL;
-        DWORD dwBytes = 0;
-        SSLVALIDATECERTHOOK sslValidateFunc;
-
-        sockerror = setsockopt(_sockfd, SOL_SOCKET,
-                               SO_SECURE, (LPSTR)&dwOptVal, sizeof(dwOptVal));
-
+        // there will be a lot to do here ...
         // FIXME do something with sockerror
     }
 
