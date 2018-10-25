@@ -32,7 +32,9 @@ namespace ix
         WebSocket_MessageType_Message = 0,
         WebSocket_MessageType_Open = 1,
         WebSocket_MessageType_Close = 2,
-        WebSocket_MessageType_Error = 3
+        WebSocket_MessageType_Error = 3,
+        WebSocket_MessageType_Ping = 4,
+        WebSocket_MessageType_Pong = 5
     };
 
     struct WebSocketErrorInfo
@@ -56,6 +58,7 @@ namespace ix
         void start();
         void stop();
         bool send(const std::string& text);
+        bool ping(const std::string& text);
         void close();
 
         void setOnMessageCallback(const OnMessageCallback& callback);
@@ -69,6 +72,8 @@ namespace ix
 
     private:
         void run();
+
+        bool sendMessage(const std::string& text, bool ping);
 
         WebSocketInitResult connect();
         bool isConnected() const;

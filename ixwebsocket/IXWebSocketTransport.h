@@ -54,7 +54,15 @@ namespace ix
             OPEN
         };
 
-        using OnMessageCallback = std::function<void(const std::string&)>;
+        enum MessageKind
+        {
+            MSG,
+            PING,
+            PONG
+        };
+
+        using OnMessageCallback = std::function<void(const std::string&,
+                                                     MessageKind)>;
         using OnStateChangeCallback = std::function<void(ReadyStateValues)>;
 
         WebSocketTransport();
@@ -67,7 +75,7 @@ namespace ix
         void send(const std::string& message);
         void sendBinary(const std::string& message);
         void sendBinary(const std::vector<uint8_t>& message);
-        void sendPing();
+        void sendPing(const std::string& message);
         void close();
         ReadyStateValues getReadyState() const;
         void setReadyState(ReadyStateValues readyStateValue);
