@@ -172,3 +172,26 @@ The url can be set and queried after a websocket object has been created. You wi
 std::string url("wss://example.com");
 websocket.configure(url);
 ```
+
+### Ping/Pong support
+
+Ping/pong messages are used to implement keep-alive. 2 message types exists to identify ping and pong messages. Note that when a ping message is received, a pong is instantly send back as requested by the WebSocket spec.
+
+```
+webSocket.setOnMessageCallback(
+    [this](ix::WebSocketMessageType messageType, const std::string& str, ix::WebSocketErrorInfo error)
+    {
+        if (messageType == ix::WebSocket_MessageType_Ping ||
+            messageType == ix::WebSocket_MessageType_Pong)
+        {
+            std::cout << "pong data: " << str << std::endl;
+        }
+    }
+);
+```
+
+A ping message can be sent to the server, with an optional data string.
+
+```
+websocket.ping("ping data, optional (empty string is ok): limited to 125 bytes long");
+```
