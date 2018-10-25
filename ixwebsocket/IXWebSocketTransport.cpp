@@ -452,7 +452,7 @@ namespace ix {
                     // fire callback with a string message
                     std::string stringMessage(_receivedData.begin(),
                                               _receivedData.end());
-                    onMessageCallback(stringMessage);
+                    onMessageCallback(stringMessage, MSG);
 
                     _receivedData.clear();
                 }
@@ -470,10 +470,27 @@ namespace ix {
                 std::string pingData(_rxbuf.begin()+ws.header_size,
                                      _rxbuf.begin()+ws.header_size + (size_t) ws.N);
 
+                // Reply back right away
                 sendData(wsheader_type::PONG, pingData.size(),
                          pingData.begin(), pingData.end());
+
+                onMessageCallback(pingData, PING);
             }
-            else if (ws.opcode == wsheader_type::PONG) { }
+            else if (ws.opcode == wsheader_type::PONG)
+            {
+                if (ws.mask)
+                {
+                    for (size_t j = 0; j != ws.N; ++j)
+                    {
+                        _rxbuf[j+ws.header_size] ^= ws.masking_key[j&0x3];
+                    }
+                }
+
+                std::string pongData(_rxbuf.begin()+ws.header_size,
+                                     _rxbuf.begin()+ws.header_size + (size_t) ws.N);
+
+                onMessageCallback(pongData, PONG);
+            }
             else if (ws.opcode == wsheader_type::CLOSE) { close(); }
             else { close(); }
 
@@ -559,10 +576,9 @@ namespace ix {
         sendOnSocket();
     }
 
-    void WebSocketTransport::sendPing()
+    void WebSocketTransport::sendPing(const std::string& message)
     {
-        std::string empty;
-        sendData(wsheader_type::PING, empty.size(), empty.begin(), empty.end());
+        sendData(wsheader_type::PING, message.size(), message.begin(), message.end());
     }
 
     void WebSocketTransport::sendBinary(const std::string& message) 

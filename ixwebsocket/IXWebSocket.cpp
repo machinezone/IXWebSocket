@@ -177,8 +177,28 @@ namespace ix {
 
             // 3. Dispatch the incoming messages
             _ws.dispatch(
-                [this](const std::string& msg)
+                [this](const std::string& msg,
+                       WebSocketTransport::MessageKind messageKind)
                 {
+                    WebSocketMessageType webSocketMessageType;
+                    switch (messageKind)
+                    {
+                        case WebSocketTransport::MSG:
+                        {
+                            webSocketMessageType = WebSocket_MessageType_Message;
+                        } break;
+
+                        case WebSocketTransport::PING:
+                        {
+                            webSocketMessageType = WebSocket_MessageType_Ping;
+                        } break;
+
+                        case WebSocketTransport::PONG:
+                        {
+                            webSocketMessageType = WebSocket_MessageType_Pong;
+                        } break;
+                    }
+
                     _onMessageCallback(WebSocket_MessageType_Message, msg, WebSocketErrorInfo());
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
@@ -211,6 +231,20 @@ namespace ix {
 
     bool WebSocket::send(const std::string& text)
     {
+        return sendMessage(text, false);
+    }
+
+    bool WebSocket::ping(const std::string& text)
+    {
+        // Standard limit ping message size
+        constexpr size_t pingMaxPayloadSize = 125;
+        if (text.size() > pingMaxPayloadSize) return false;
+
+        return sendMessage(text, true);
+    }
+
+    bool WebSocket::sendMessage(const std::string& text, bool ping)
+    {
         if (!isConnected()) return false;
 
         //
@@ -223,7 +257,15 @@ namespace ix {
         // incoming messages are arriving / there's data to be received.
         //
         std::lock_guard<std::mutex> lock(_writeMutex);
-        _ws.sendBinary(text);
+
+        if (ping)
+        {
+            _ws.sendPing(text);
+        }
+        else
+        {
+            _ws.sendBinary(text);
+        }
 
         WebSocket::invokeTrafficTrackerCallback(text.size(), false);
 
