@@ -199,7 +199,7 @@ namespace ix {
                         } break;
                     }
 
-                    _onMessageCallback(WebSocket_MessageType_Message, msg, WebSocketErrorInfo());
+                    _onMessageCallback(webSocketMessageType, msg, WebSocketErrorInfo());
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });
