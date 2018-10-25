@@ -70,6 +70,18 @@ namespace
                        << str;
                     log(ss.str());
                 }
+                else if (messageType == ix::WebSocket_MessageType_Ping)
+                {
+                    ss << "ws_connect: received ping message: "
+                       << str;
+                    log(ss.str());
+                }
+                else if (messageType == ix::WebSocket_MessageType_Pong)
+                {
+                    ss << "ws_connect: received pong message: "
+                       << str;
+                    log(ss.str());
+                }
                 else if (messageType == ix::WebSocket_MessageType_Error)
                 {
                     ss << "Connection error: " << error.reason      << std::endl;
@@ -78,7 +90,7 @@ namespace
                     ss << "HTTP Status: "      << error.http_status << std::endl;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Pong)
+                else
                 {
                     ss << "Invalid ix::WebSocketMessageType";
                     log(ss.str());
