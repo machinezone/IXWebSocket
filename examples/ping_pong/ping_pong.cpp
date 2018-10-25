@@ -102,7 +102,11 @@ namespace
 
     void WebSocketPingPong::ping(const std::string& text)
     {
-        _webSocket.ping(text);
+        if (!_webSocket.ping(text))
+        {
+            std::cerr << "Failed to send ping message. Message too long (> 125 bytes) or endpoint is disconnected"
+                      << std::endl;
+        }
     }
 
     void interactiveMain(const std::string& url)
