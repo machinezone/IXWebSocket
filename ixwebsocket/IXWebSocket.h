@@ -45,7 +45,28 @@ namespace ix
         std::string reason;
     };
 
-    using OnMessageCallback = std::function<void(WebSocketMessageType, const std::string&, const WebSocketErrorInfo)>;
+    struct CloseInfo
+    {
+        uint16_t code;
+        std::string reason;
+
+        CloseInfo(uint64_t c, const std::string& r)
+        {
+            code = c;
+            reason = r;
+        }
+
+        CloseInfo()
+        {
+            code = 0;
+            reason = "";
+        }
+    };
+
+    using OnMessageCallback = std::function<void(WebSocketMessageType,
+                                                 const std::string&,
+                                                 const WebSocketErrorInfo,
+                                                 const CloseInfo)>;
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
     class WebSocket 
@@ -64,8 +85,6 @@ namespace ix
         void setOnMessageCallback(const OnMessageCallback& callback);
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
         static void resetTrafficTrackerCallback();
-
-        void setVerbose(bool verbose) { _verbose = verbose; }
 
         const std::string& getUrl() const;
         ReadyState getReadyState() const;
@@ -86,7 +105,6 @@ namespace ix
 
         std::string _url;
         mutable std::mutex _urlMutex;
-        bool _verbose;
 
         OnMessageCallback _onMessageCallback;
         static OnTrafficTrackerCallback _onTrafficTrackerCallback;

@@ -53,7 +53,10 @@ namespace
         log(std::string("Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback(
-            [this](ix::WebSocketMessageType messageType, const std::string& str, ix::WebSocketErrorInfo error)
+            [this](ix::WebSocketMessageType messageType,
+               const std::string& str,
+               const ix::WebSocketErrorInfo& error,
+               const ix::CloseInfo& closeInfo)
             {
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)

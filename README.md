@@ -25,7 +25,10 @@ webSocket.configure(url);
 
 // Setup a callback to be fired when a message or an event (open, close, error) is received
 webSocket.setOnMessageCallback(
-    [](ix::WebSocketMessageType messageType, const std::string& str, ix::WebSocketErrorInfo error)
+    [](ix::WebSocketMessageType messageType,
+       const std::string& str,
+       const ix::WebSocketErrorInfo& error,
+       const ix::CloseInfo& closeInfo)
     {
         if (messageType == ix::WebSocket_MessageType_Message)
         {
@@ -124,7 +127,7 @@ The onMessage event will be fired when the connection is opened or closed. This 
 
 ```
 webSocket.setOnMessageCallback(
-    [this](ix::WebSocketMessageType messageType, const std::string& str, ix::WebSocketErrorInfo error)
+    [this](ix::WebSocketMessageType messageType, const std::string& str, const ix::WebSocketErrorInfo& error, const ix::CloseInfo closeInfo&)
     {
         if (messageType == ix::WebSocket_MessageType_Open)
         {
@@ -133,6 +136,11 @@ webSocket.setOnMessageCallback(
         else if (messageType == ix::WebSocket_MessageType_Close)
         {
             puts("disconnected");
+
+            // The server can send an explicit code and reason for closing.
+            // This data can be accessed through the closeInfo object.
+            std::cout << closeInfo.code << std::endl;
+            std::cout << closeInfo.reason << std::endl;
         }
     }
 );
@@ -144,7 +152,7 @@ A message will be fired when there is an error with the connection. The message 
 
 ```
 webSocket.setOnMessageCallback(
-    [this](ix::WebSocketMessageType messageType, const std::string& str, ix::WebSocketErrorInfo error)
+    [this](ix::WebSocketMessageType messageType, const std::string& str, const ix::WebSocketErrorInfo& error, const ix::CloseInfo& closeInfo)
     {
         if (messageType == ix::WebSocket_MessageType_Error)
         {
@@ -179,7 +187,7 @@ Ping/pong messages are used to implement keep-alive. 2 message types exists to i
 
 ```
 webSocket.setOnMessageCallback(
-    [this](ix::WebSocketMessageType messageType, const std::string& str, ix::WebSocketErrorInfo error)
+    [this](ix::WebSocketMessageType messageType, const std::string& str, const ix::WebSocketErrorInfo& error, const ix::CloseInfo& closeInfo)
     {
         if (messageType == ix::WebSocket_MessageType_Ping ||
             messageType == ix::WebSocket_MessageType_Pong)

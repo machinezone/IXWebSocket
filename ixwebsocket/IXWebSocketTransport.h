@@ -63,7 +63,8 @@ namespace ix
 
         using OnMessageCallback = std::function<void(const std::string&,
                                                      MessageKind)>;
-        using OnStateChangeCallback = std::function<void(ReadyStateValues)>;
+        using OnCloseCallback = std::function<void(uint16_t,
+                                                   const std::string&)>;
 
         WebSocketTransport();
         ~WebSocketTransport();
@@ -79,7 +80,7 @@ namespace ix
         void close();
         ReadyStateValues getReadyState() const;
         void setReadyState(ReadyStateValues readyStateValue);
-        void setOnStateChangeCallback(const OnStateChangeCallback& onStateChangeCallback);
+        void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
         void dispatch(const OnMessageCallback& onMessageCallback);
 
         static void printUrl(const std::string& url);
@@ -120,7 +121,10 @@ namespace ix
 
         std::atomic<ReadyStateValues> _readyState;
 
-        OnStateChangeCallback _onStateChangeCallback;
+        OnCloseCallback _onCloseCallback;
+        uint16_t _closeCode;
+        std::string _closeReason;
+        mutable std::mutex _closeDataMutex;
 
         void sendOnSocket();
         void sendData(wsheader_type::opcode_type type, 
@@ -137,5 +141,6 @@ namespace ix
         void appendToSendBuffer(const std::vector<uint8_t>& buffer);
 
         unsigned getRandomUnsigned();
+        void unmaskReceiveBuffer(const wsheader_type& ws);
     };
 }
