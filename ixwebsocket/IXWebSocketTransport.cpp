@@ -255,13 +255,20 @@ namespace ix {
 
     void WebSocketTransport::setReadyState(ReadyStateValues readyStateValue)
     {
+        if (readyStateValue == CLOSED)
+        {
+            std::lock_guard<std::mutex> lock(_closeDataMutex);
+            _onCloseCallback(_closeCode, _closeReason);
+            _closeCode = 0;
+            _closeReason = std::string();
+        }
+
         _readyState = readyStateValue;
-        _onStateChangeCallback(readyStateValue);
     }
 
-    void WebSocketTransport::setOnStateChangeCallback(const OnStateChangeCallback& onStateChangeCallback)
+    void WebSocketTransport::setOnCloseCallback(const OnCloseCallback& onCloseCallback)
     {
-        _onStateChangeCallback = onStateChangeCallback; 
+        _onCloseCallback = onCloseCallback; 
     }
 
     void WebSocketTransport::poll()
@@ -334,6 +341,17 @@ namespace ix {
         _txbuf.insert(_txbuf.end(), buffer.begin(), buffer.end());
     }
 
+    void WebSocketTransport::unmaskReceiveBuffer(const wsheader_type& ws)
+    {
+        if (ws.mask)
+        {
+            for (size_t j = 0; j != ws.N; ++j)
+            {
+                _rxbuf[j+ws.header_size] ^= ws.masking_key[j&0x3];
+            }
+        }
+    }
+
     //
     // http://tools.ietf.org/html/rfc6455#section-5.2  Base Framing Protocol
     //
@@ -358,8 +376,8 @@ namespace ix {
     //
     void WebSocketTransport::dispatch(const OnMessageCallback& onMessageCallback)
     {
-        // TODO: consider acquiring a lock on _rxbuf...
-        while (true) {
+        while (true) 
+        {
             wsheader_type ws;
             if (_rxbuf.size() < 2) return; /* Need at least 2 */
             const uint8_t * data = (uint8_t *) &_rxbuf[0]; // peek, but don't consume
@@ -434,13 +452,7 @@ namespace ix {
                 || ws.opcode == wsheader_type::BINARY_FRAME
                 || ws.opcode == wsheader_type::CONTINUATION
             ) {
-                if (ws.mask)
-                {
-                    for (size_t j = 0; j != ws.N; ++j)
-                    {
-                        _rxbuf[j+ws.header_size] ^= ws.masking_key[j&0x3];
-                    }
-                }
+                unmaskReceiveBuffer(ws);
                 _receivedData.insert(_receivedData.end(),
                                      _rxbuf.begin()+ws.header_size,
                                      _rxbuf.begin()+ws.header_size+(size_t)ws.N);// just feed
@@ -456,14 +468,7 @@ namespace ix {
             }
             else if (ws.opcode == wsheader_type::PING)
             {
-                if (ws.mask)
-                {
-                    for (size_t j = 0; j != ws.N; ++j)
-                    {
-                        _rxbuf[j+ws.header_size] ^= ws.masking_key[j&0x3];
-                    }
-                }
-
+                unmaskReceiveBuffer(ws);
                 std::string pingData(_rxbuf.begin()+ws.header_size,
                                      _rxbuf.begin()+ws.header_size + (size_t) ws.N);
 
@@ -475,21 +480,37 @@ namespace ix {
             }
             else if (ws.opcode == wsheader_type::PONG)
             {
-                if (ws.mask)
-                {
-                    for (size_t j = 0; j != ws.N; ++j)
-                    {
-                        _rxbuf[j+ws.header_size] ^= ws.masking_key[j&0x3];
-                    }
-                }
-
+                unmaskReceiveBuffer(ws);
                 std::string pongData(_rxbuf.begin()+ws.header_size,
                                      _rxbuf.begin()+ws.header_size + (size_t) ws.N);
 
                 onMessageCallback(pongData, PONG);
             }
-            else if (ws.opcode == wsheader_type::CLOSE) { close(); }
-            else { close(); }
+            else if (ws.opcode == wsheader_type::CLOSE)
+            {
+                unmaskReceiveBuffer(ws);
+
+                // Extract the close code first, available as the first 2 bytes
+                uint16_t code = 0;
+                code |= ((uint64_t) _rxbuf[ws.header_size])   << 8;
+                code |= ((uint64_t) _rxbuf[ws.header_size+1]) << 0;
+
+                // Get the reason.
+                std::string reason(_rxbuf.begin()+ws.header_size + 2,
+                                   _rxbuf.begin()+ws.header_size + 2 + (size_t) ws.N);
+
+                {
+                    std::lock_guard<std::mutex> lock(_closeDataMutex);
+                    _closeCode = code;
+                    _closeReason = reason;
+                }
+
+                close();
+            }
+            else
+            {
+                close();
+            }
 
             _rxbuf.erase(_rxbuf.begin(),
                          _rxbuf.begin() + ws.header_size + (size_t) ws.N);

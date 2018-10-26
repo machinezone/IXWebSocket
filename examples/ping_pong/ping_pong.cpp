@@ -1,5 +1,5 @@
 /*
- *  ws_connect.cpp
+ *  ping_pong.cpp
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
  */
@@ -28,6 +28,7 @@ namespace
             void stop();
 
             void ping(const std::string& text);
+            void send(const std::string& text);
 
         private:
             std::string _url;
@@ -53,32 +54,39 @@ namespace
         log(std::string("Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback(
-            [this](ix::WebSocketMessageType messageType, const std::string& str, ix::WebSocketErrorInfo error)
+            [this](ix::WebSocketMessageType messageType,
+                   const std::string& str,
+                   const ix::WebSocketErrorInfo& error,
+                   const ix::CloseInfo& closeInfo)
             {
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
-                    log("ws_connect: connected");
+                    log("ping_pong: connected");
                 }
                 else if (messageType == ix::WebSocket_MessageType_Close)
                 {
-                    log("ws_connect: disconnected");
+                    ss << "ping_pong: disconnected:"
+                       << " code " << closeInfo.code
+                       << " reason " << closeInfo.reason
+                       << str;
+                    log(ss.str());
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
                 {
-                    ss << "ws_connect: received message: "
+                    ss << "ping_pong: received message: "
                        << str;
                     log(ss.str());
                 }
                 else if (messageType == ix::WebSocket_MessageType_Ping)
                 {
-                    ss << "ws_connect: received ping message: "
+                    ss << "ping_pong: received ping message: "
                        << str;
                     log(ss.str());
                 }
                 else if (messageType == ix::WebSocket_MessageType_Pong)
                 {
-                    ss << "ws_connect: received pong message: "
+                    ss << "ping_pong: received pong message: "
                        << str;
                     log(ss.str());
                 }
@@ -109,6 +117,11 @@ namespace
         }
     }
 
+    void WebSocketPingPong::send(const std::string& text)
+    {
+        _webSocket.send(text);
+    }
+
     void interactiveMain(const std::string& url)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
@@ -126,7 +139,14 @@ namespace
                 break;
             }
 
-            webSocketPingPong.ping(text);
+            if (text == "/close")
+            {
+                webSocketPingPong.send(text);
+            }
+            else
+            {
+                webSocketPingPong.ping(text);
+            }
         }
 
         std::cout << std::endl;

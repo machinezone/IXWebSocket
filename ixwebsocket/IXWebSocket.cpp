@@ -10,9 +10,8 @@
 #include <cmath>
 #include <cassert>
 
-namespace {
-
-    // FIXME: put this in a shared location, and use it in 
+namespace
+{
     uint64_t calculateRetryWaitMilliseconds(uint64_t retry_count)
     {
         // This will overflow quite fast for large value of retry_count
@@ -24,7 +23,6 @@ namespace {
         uint64_t tenSeconds = 10 * 1000;
         return (wait_time > tenSeconds || retry_count > 10) ? tenSeconds : wait_time;
     }
-
 }
 
 namespace ix {
@@ -32,7 +30,6 @@ namespace ix {
     OnTrafficTrackerCallback WebSocket::_onTrafficTrackerCallback = nullptr;
 
     WebSocket::WebSocket() :
-        _verbose(false),
         _onMessageCallback(OnMessageCallback()),
         _stop(false),
         _automaticReconnection(true)
@@ -83,20 +80,11 @@ namespace ix {
             _ws.configure(_url);
         }
 
-        _ws.setOnStateChangeCallback(
-            [this](WebSocketTransport::ReadyStateValues readyStateValue)
+        _ws.setOnCloseCallback(
+            [this](uint16_t code, const std::string& reason)
             {
-                if (readyStateValue == WebSocketTransport::CLOSED)
-                {
-                    _onMessageCallback(WebSocket_MessageType_Close, "", WebSocketErrorInfo());
-                }
-
-                if (_verbose)
-                {
-                    std::cout << "connection state changed -> " 
-                              << readyStateToString(getReadyState()) 
-                              << std::endl;
-                }
+                _onMessageCallback(WebSocket_MessageType_Close, "",
+                                   WebSocketErrorInfo(), CloseInfo(code, reason));
             }
         );
 
@@ -106,7 +94,8 @@ namespace ix {
             return status;
         }
 
-        _onMessageCallback(WebSocket_MessageType_Open, "", WebSocketErrorInfo());
+        _onMessageCallback(WebSocket_MessageType_Open, "",
+                           WebSocketErrorInfo(), CloseInfo());
         return status;
     }
 
@@ -150,9 +139,8 @@ namespace ix {
                 connectErr.wait_time = duration.count();
                 connectErr.reason = status.errorStr;
                 connectErr.http_status = status.http_status;
-                _onMessageCallback(WebSocket_MessageType_Error, "", connectErr);
-
-                if (_verbose) std::cout << "Sleeping for " << duration.count() << "ms" << std::endl;
+                _onMessageCallback(WebSocket_MessageType_Error, "",
+                                   connectErr, CloseInfo());
 
                 std::this_thread::sleep_for(duration);
             }
@@ -199,7 +187,8 @@ namespace ix {
                         } break;
                     }
 
-                    _onMessageCallback(webSocketMessageType, msg, WebSocketErrorInfo());
+                    _onMessageCallback(webSocketMessageType, msg,
+                                       WebSocketErrorInfo(), CloseInfo());
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });
