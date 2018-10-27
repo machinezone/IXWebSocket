@@ -19,6 +19,8 @@
 # endif
 #endif
 
+#include "libwshandshake.hpp"
+
 // #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -30,6 +32,8 @@
 #include <iostream>
 #include <sstream>
 #include <regex>
+#include <unordered_map>
+#include <random>
 
 
 namespace ix {
@@ -128,6 +132,28 @@ namespace ix {
         std::cout << "-------------------------------" << std::endl;
     }
 
+    std::string WebSocketTransport::genRandomString(const int len)
+    {
+        static const char alphanum[] =
+            "0123456789"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz";
+
+        std::random_device r;
+        std::default_random_engine e1(r());
+        std::uniform_int_distribution<int> dist(0, sizeof(alphanum) - 1);
+
+        std::string s;
+        s.resize(len);
+
+        for (int i = 0; i < len; ++i)
+        {
+            s[i] += alphanum[dist(e1)];
+        }
+
+        return s;
+    }
+
     WebSocketInitResult WebSocketTransport::init()
     {
         std::string protocol, host, path, query;
@@ -169,6 +195,16 @@ namespace ix {
             return WebSocketInitResult(false, 0, ss.str());
         }
 
+        //
+        // Generate a random 24 bytes string which looks like it is base64 encoded
+        // y3JJHMbDL1EzLkh9GBhXDw==
+        // 0cb3Vd9HkbpVVumoS3Noka==
+        //
+        // See https://stackoverflow.com/questions/18265128/what-is-sec-websocket-key-for
+        //
+        std::string secWebSocketKey = genRandomString(22);
+        secWebSocketKey += "==";
+
         char line[256];
         int status;
         int i;
@@ -177,12 +213,10 @@ namespace ix {
             "Host: %s:%d\r\n"
             "Upgrade: websocket\r\n"
             "Connection: Upgrade\r\n"
-            "Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n"
+            "Sec-WebSocket-Key: %s\r\n"
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n",
-            path.c_str(), host.c_str(), port);
-
-        // XXX: this should be done non-blocking,
+            path.c_str(), host.c_str(), port, secWebSocketKey.c_str());
 
         size_t lineSize = strlen(line);
         if (_socket->send(line, lineSize) != lineSize)
@@ -224,9 +258,12 @@ namespace ix {
             return WebSocketInitResult(false, status, ss.str());
         }
 
-        // TODO: verify response headers,
+        std::unordered_map<std::string, std::string> headers;
+
         while (true) 
         {
+            int colon = 0;
+
             for (i = 0;
                  i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n');
                  ++i)
@@ -235,11 +272,38 @@ namespace ix {
                 {
                     return WebSocketInitResult(false, status, std::string("Failed reading response header from ") + _url);
                 }
+
+                if (line[i] == ':' && colon == 0)
+                {
+                    colon = i;
+                }
             }
             if (line[0] == '\r' && line[1] == '\n')
             {
                 break;
             }
+
+            // line is a single header entry. split by ':', and add it to our
+            // header map. ignore lines with no colon.
+            if (colon > 0)
+            {
+                line[i] = '\0';
+                std::string lineStr(line);
+                // colon is ':', colon+1 is ' ', colon+2 is the start of the value.
+                // i is end of string (\0), i-colon is length of string minus key;
+                // subtract 1 for '\0', 1 for '\n', 1 for '\r',
+                // 1 for the ' ' after the ':', and total is -4
+                headers[lineStr.substr(0, colon)] =
+                    lineStr.substr(colon + 2, i - colon - 4);
+            }
+        }
+
+        char output[29] = {};
+        WebSocketHandshake::generate(secWebSocketKey.c_str(), output);
+        if (std::string(output) != headers["Sec-WebSocket-Accept"])
+        {
+            std::string errorMsg("Invalid Sec-WebSocket-Accept value");
+            return WebSocketInitResult(false, status, errorMsg);
         }
 
         _socket->configure();
