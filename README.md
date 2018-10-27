@@ -131,11 +131,11 @@ webSocket.setOnMessageCallback(
     {
         if (messageType == ix::WebSocket_MessageType_Open)
         {
-            puts("send greetings");
+            std::cout << "send greetings" << std::endl;
         }
         else if (messageType == ix::WebSocket_MessageType_Close)
         {
-            puts("disconnected");
+            std::cout << "disconnected" << std::endl;
 
             // The server can send an explicit code and reason for closing.
             // This data can be accessed through the closeInfo object.
