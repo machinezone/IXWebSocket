@@ -65,7 +65,10 @@ namespace
                 }
                 else if (messageType == ix::WebSocket_MessageType_Close)
                 {
-                    log("ws_connect: disconnected");
+                    ss << "ws_connect: connection closed:";
+                    ss << " code " << closeInfo.code;
+                    ss << " reason " << closeInfo.reason << std::endl;
+                    log(ss.str());
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
                 {
@@ -107,6 +110,20 @@ namespace
             std::string text;
             std::cout << "> " << std::flush;
             std::getline(std::cin, text);
+
+            if (text == "/stop")
+            {
+                std::cout << "Stopping connection..." << std::endl;
+                webSocketChat.stop();
+                continue;
+            }
+
+            if (text == "/start")
+            {
+                std::cout << "Starting connection..." << std::endl;
+                webSocketChat.start();
+                continue;
+            }
 
             if (!std::cin)
             {
