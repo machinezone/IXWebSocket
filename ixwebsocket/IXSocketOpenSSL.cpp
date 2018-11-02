@@ -150,6 +150,7 @@ namespace ix
         SSL_CTX* ctx = SSL_CTX_new(_ssl_method);
         if (ctx)
         {
+            // To skip verification, pass in SSL_VERIFY_NONE
             SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, openssl_verify_callback);
             SSL_CTX_set_verify_depth(ctx, 4);
             SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);

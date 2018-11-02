@@ -12,12 +12,14 @@ set (CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
 set( IXWEBSOCKET_SOURCES
+    ixwebsocket/IXEventFd.cpp
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketTransport.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
+    ixwebsocket/IXEventFd.h
     ixwebsocket/IXSocket.h
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketTransport.h

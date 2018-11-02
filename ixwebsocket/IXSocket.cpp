@@ -32,22 +32,7 @@
 #include <sys/types.h>
 
 #include <algorithm>
-
-//
-// Linux/Android has a special type of virtual files. select(2) will react
-// when reading/writing to those files, unlike closing sockets.
-//
-// https://linux.die.net/man/2/eventfd
-//
-// eventfd was added in Linux kernel 2.x, and our oldest Android (Kitkat 4.4)
-// is on Kernel 3.x
-//
-// cf Android/Kernel table here 
-// https://android.stackexchange.com/questions/51651/which-android-runs-which-linux-kernel
-//
-#ifdef __linux__
-# include <sys/eventfd.h>
-#endif
+#include <iostream>
 
 // Android needs extra headers for TCP_NODELAY and IPPROTO_TCP
 #ifdef ANDROID
@@ -58,22 +43,14 @@
 namespace ix 
 {
     Socket::Socket() : 
-        _sockfd(-1),
-        _eventfd(-1)
+        _sockfd(-1)
     {
-#ifdef __linux__
-        _eventfd = eventfd(0, 0);
-        assert(_eventfd != -1 && "Panic - eventfd not functioning on this platform");
-#endif
+
     }
 
     Socket::~Socket()
     {
         close();
-
-#ifdef __linux__
-        ::close(_eventfd);
-#endif
     }
 
     bool Socket::connectToAddress(const struct addrinfo *address, 
@@ -180,36 +157,20 @@ namespace ix
         FD_SET(_sockfd, &rfds);
 
 #ifdef __linux__
-        FD_SET(_eventfd, &rfds);
+        FD_SET(_eventfd.getFd(), &rfds);
 #endif
 
         int sockfd = _sockfd;
-        int nfds = (std::max)(sockfd, _eventfd);
+        int nfds = (std::max)(sockfd, _eventfd.getFd());
         select(nfds + 1, &rfds, nullptr, nullptr, nullptr);
 
         onPollCallback();
     }
 
-    void Socket::wakeUpFromPollApple()
-    {
-        close(); // All OS but Linux will wake up select
-                 // when closing the file descriptor watched by select
-    }
-
-    void Socket::wakeUpFromPollLinux()
-    {
-        std::string str("\n"); // this will wake up the thread blocked on select
-        const void* buf = reinterpret_cast<const void*>(str.c_str());
-        write(_eventfd, buf, str.size());
-    }
-
     void Socket::wakeUpFromPoll()
     {
-#ifdef __APPLE__
-        wakeUpFromPollApple();
-#elif defined(__linux__)
-        wakeUpFromPollLinux();
-#endif
+        // this will wake up the thread blocked on select, only needed on Linux
+        _eventfd.notify();
     }
 
     bool Socket::connect(const std::string& host,
@@ -218,12 +179,7 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
-#ifdef __linux__
-        if (_eventfd == -1)
-        {
-            return false; // impossible to use this socket if eventfd is broken
-        }
-#endif
+        if (!_eventfd.clear()) return false;
 
         _sockfd = Socket::hostname_connect(host, port, errMsg);
         return _sockfd != -1;

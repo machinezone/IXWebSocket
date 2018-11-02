@@ -34,6 +34,7 @@
 #include <regex>
 #include <unordered_map>
 #include <random>
+#include <algorithm>
 
 
 namespace ix {
@@ -293,14 +294,18 @@ namespace ix {
                 // i is end of string (\0), i-colon is length of string minus key;
                 // subtract 1 for '\0', 1 for '\n', 1 for '\r',
                 // 1 for the ' ' after the ':', and total is -4
-                headers[lineStr.substr(0, colon)] =
-                    lineStr.substr(colon + 2, i - colon - 4);
+                std::string name(lineStr.substr(0, colon));
+
+                // Make the name lower case.
+                std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+                headers[name] = lineStr.substr(colon + 2, i - colon - 4);
             }
         }
 
         char output[29] = {};
         WebSocketHandshake::generate(secWebSocketKey.c_str(), output);
-        if (std::string(output) != headers["Sec-WebSocket-Accept"])
+        if (std::string(output) != headers["sec-websocket-accept"])
         {
             std::string errorMsg("Invalid Sec-WebSocket-Accept value");
             return WebSocketInitResult(false, status, errorMsg);
@@ -319,6 +324,9 @@ namespace ix {
 
     void WebSocketTransport::setReadyState(ReadyStateValues readyStateValue)
     {
+        // No state change, return
+        if (_readyState == readyStateValue) return;
+
         if (readyStateValue == CLOSED)
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
@@ -707,6 +715,7 @@ namespace ix {
         sendOnSocket();
 
         _socket->wakeUpFromPoll();
+        _socket->close();
     }
 
 } // namespace ix
