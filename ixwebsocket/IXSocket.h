@@ -11,6 +11,8 @@
 #include <mutex>
 #include <atomic>
 
+#include "IXEventFd.h"
+
 struct addrinfo;
 
 namespace ix 
@@ -45,14 +47,11 @@ namespace ix
         static void cleanup(); // Required on Windows to cleanup WinSocket
 
     protected:
-        void wakeUpFromPollApple();
-        void wakeUpFromPollLinux();
-
         void closeSocket(int fd);
 
         std::atomic<int> _sockfd;
-        int _eventfd;
         std::mutex _socketMutex;
+        EventFd _eventfd;
 
     private:
         bool connectToAddress(const struct addrinfo *address, 
