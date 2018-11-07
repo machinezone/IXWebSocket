@@ -16,6 +16,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketTransport.cpp
+    ixwebsocket/IXWebSocketPerMessageDeflate.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
@@ -23,6 +24,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSocket.h
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketTransport.h
+    ixwebsocket/IXWebSocketPerMessageDeflate.h
 )
 
 if (USE_TLS)
@@ -41,6 +43,8 @@ add_library( ixwebsocket STATIC
     ${IXWEBSOCKET_SOURCES}
     ${IXWEBSOCKET_HEADERS}
 )
+
+target_link_libraries(ixwebsocket "z")
 
 set( IXWEBSOCKET_INCLUDE_DIRS
     .
