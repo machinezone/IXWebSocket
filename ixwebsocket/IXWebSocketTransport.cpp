@@ -454,6 +454,7 @@ namespace ix {
             if (_rxbuf.size() < 2) return; /* Need at least 2 */
             const uint8_t * data = (uint8_t *) &_rxbuf[0]; // peek, but don't consume
             ws.fin = (data[0] & 0x80) == 0x80;
+            ws.rsv1 = (data[0] & 0x40) == 0x40;
             ws.opcode = (wsheader_type::opcode_type) (data[0] & 0x0f);
             ws.mask = (data[1] & 0x80) == 0x80;
             ws.N0 = (data[1] & 0x7f);
