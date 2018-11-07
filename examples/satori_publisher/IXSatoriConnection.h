@@ -19,6 +19,7 @@ namespace ix
 {
     using SubscriptionCallback = std::function<void(const Json::Value&)>;
     using AuthenticatedCallback = std::function<void()>;
+    using ErrorCallback = std::function<void(const std::string& errorMsg)>;
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
     class SatoriConnection
@@ -40,8 +41,10 @@ namespace ix
         /// Reset the traffic tracker callback to an no-op one.
         static void resetTrafficTrackerCallback();
 
-        /// Reset the traffic tracker callback to an no-op one.
+        /// Set the authenticated callback
         void setAuthenticatedCallback(const AuthenticatedCallback& authenticatedCallback);
+        /// Set the error callback
+        void setErrorCallback(const ErrorCallback& errorCallback);
 
         /// Start the worker thread, used for background publishing
         void start();
@@ -67,8 +70,6 @@ namespace ix
 
         /// Returns true only if we're connected
         bool isConnected() const;
-
-        void logError(const std::string& error);
         
     private:
         bool sendHandshakeMessage();
@@ -83,8 +84,9 @@ namespace ix
         /// Invoke the traffic tracker callback
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
-        /// Invoke the authenticated callback
+        /// Invoke lifecycle callbacks
         void invokeAuthenticatedCallback();
+        void invokeErrorCallback(const std::string& errorMsg);
 
         ///
         /// Member variables
@@ -108,8 +110,9 @@ namespace ix
         /// Traffic tracker callback
         static OnTrafficTrackerCallback _onTrafficTrackerCallback;
 
-        /// Callback invoked when we are authenticated
+        /// Callbacks
         AuthenticatedCallback _authenticatedCallback;
+        ErrorCallback _errorCallback;
 
         /// Subscription callbacks, only one per channel
         std::unordered_map<std::string, SubscriptionCallback> _cbs;

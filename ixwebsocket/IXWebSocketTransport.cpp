@@ -21,7 +21,6 @@
 
 #include "libwshandshake.hpp"
 
-// #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -40,9 +39,10 @@
 namespace ix {
 
     WebSocketTransport::WebSocketTransport() :
-        _readyState(CLOSED)
+        _readyState(CLOSED),
+        _enablePerMessageDeflate(false)
     {
-        ;
+        _perMessageDeflate.init();
     }
 
     WebSocketTransport::~WebSocketTransport()
@@ -206,18 +206,27 @@ namespace ix {
         std::string secWebSocketKey = genRandomString(22);
         secWebSocketKey += "==";
 
-        char line[256];
+        std::string extensions;
+        if (_enablePerMessageDeflate)
+        {
+            // extensions = "Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_no_context_takeover\r\n";
+            extensions = "Sec-WebSocket-Extensions: permessage-deflate\r\n";
+        }
+
+        char line[512];
         int status;
         int i;
-        snprintf(line, 256,
+        snprintf(line, 512,
             "GET %s HTTP/1.1\r\n"
             "Host: %s:%d\r\n"
             "Upgrade: websocket\r\n"
             "Connection: Upgrade\r\n"
             "Sec-WebSocket-Key: %s\r\n"
             "Sec-WebSocket-Version: 13\r\n"
+            "%s"
             "\r\n",
-            path.c_str(), host.c_str(), port, secWebSocketKey.c_str());
+            path.c_str(), host.c_str(), port,
+            secWebSocketKey.c_str(), extensions.c_str());
 
         size_t lineSize = strlen(line);
         if (_socket->send(line, lineSize) != lineSize)
@@ -295,11 +304,13 @@ namespace ix {
                 // subtract 1 for '\0', 1 for '\n', 1 for '\r',
                 // 1 for the ' ' after the ':', and total is -4
                 std::string name(lineStr.substr(0, colon));
+                std::string value(lineStr.substr(colon + 2, i - colon - 4));
 
                 // Make the name lower case.
                 std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 
-                headers[name] = lineStr.substr(colon + 2, i - colon - 4);
+                headers[name] = value;
+                std::cout << name << " -> " << value << std::endl;
             }
         }
 
@@ -534,7 +545,33 @@ namespace ix {
                     // fire callback with a string message
                     std::string stringMessage(_receivedData.begin(),
                                               _receivedData.end());
-                    onMessageCallback(stringMessage, MSG);
+
+                    std::cout << "raw msg: " << stringMessage << std::endl;
+                    std::cout << "raw msg size: " << stringMessage.size() << std::endl;
+
+                    // ws.rsv1 means the message is compressed
+                    // FIXME hack hack
+                    std::string decompressedMessage;
+
+                    if (_enablePerMessageDeflate && ws.rsv1)
+                    {
+                        if (_perMessageDeflate.decompress(stringMessage,
+                                                      decompressedMessage))
+                        {
+                            std::cout << "decompressed msg: " << decompressedMessage << std::endl;
+                            std::cout << "msg size: " << decompressedMessage.size() << std::endl;
+                            onMessageCallback(decompressedMessage, MSG);
+                        }
+                        else
+                        {
+                            std::cout << "error decompressing msg !"<< std::endl;
+
+                        }
+                    }
+                    else
+                    {
+                        onMessageCallback(stringMessage, MSG);
+                    }
 
                     _receivedData.clear();
                 }
@@ -621,6 +658,13 @@ namespace ix {
                       (message_size >= 126 ? 2 : 0) +
                       (message_size >= 65536 ? 6 : 0) + 4, 0);
         header[0] = 0x80 | type;
+
+        // This bit indicate that the frame is compressed
+        if (_enablePerMessageDeflate)
+        {
+            header[0] |= 0x40;
+        }
+
         if (message_size < 126)
         {
             header[1] = (message_size & 0xff) | 0x80;
@@ -674,7 +718,27 @@ namespace ix {
 
     void WebSocketTransport::sendBinary(const std::string& message) 
     {
-        sendData(wsheader_type::BINARY_FRAME, message.size(), message.begin(), message.end());
+        if (_enablePerMessageDeflate)
+        {
+            // FIXME hack hack
+            std::string compressedMessage;
+            _perMessageDeflate.compress(message, compressedMessage);
+            std::cout << "uncompressedMessage " << message << std::endl;
+            std::cout << "uncompressedMessage.size() " << message.size() << std::endl;
+            std::cout << "compressedMessage.size() " << compressedMessage.size()
+                      << std::endl;
+
+            // sendData(wsheader_type::BINARY_FRAME, message.size(), message.begin(), message.end());
+            sendData(wsheader_type::BINARY_FRAME,
+                     compressedMessage.size(),
+                     compressedMessage.begin(),
+                     compressedMessage.end());
+        }
+        else
+        {
+            sendData(wsheader_type::BINARY_FRAME, message.size(),
+                     message.begin(), message.end());
+        }
     }
 
     void WebSocketTransport::sendOnSocket()

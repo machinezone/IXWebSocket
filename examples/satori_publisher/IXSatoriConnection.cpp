@@ -88,9 +88,18 @@ namespace ix
         }
     }
 
-    void SatoriConnection::logError(const std::string& error)
+    void SatoriConnection::setErrorCallback(const ErrorCallback& errorCallback)
     {
-        std::cerr << "SatoriConnection: " << error;
+        _errorCallback = errorCallback;
+    }
+
+    void SatoriConnection::invokeErrorCallback(const std::string& errorMsg)
+    {
+
+        if (_errorCallback)
+        {
+            _errorCallback(errorMsg);
+        }
     }
 
     void SatoriConnection::disconnect()
@@ -145,13 +154,13 @@ namespace ix
                     Json::Value data;
                     if (!parseJson(str, data))
                     {
-                        logError(std::string("Invalid json: ") + str);
+                        invokeErrorCallback(std::string("Invalid json: ") + str);
                         return;
                     }
 
                     if (!data.isMember("action"))
                     {
-                        logError("Missing action");
+                        invokeErrorCallback("Missing action");
                         return;
                     }
 
@@ -161,12 +170,12 @@ namespace ix
                     {
                         if (!handleHandshakeResponse(data))
                         {
-                            logError("Error extracting nonce from handshake response");
+                            invokeErrorCallback("Error extracting nonce from handshake response");
                         }
                     }
                     else if (action == "auth/handshake/error")
                     {
-                        logError("Handshake error."); // print full message ?
+                        invokeErrorCallback("Handshake error."); // print full message ?
                     }
                     else if (action == "auth/authenticate/ok")
                     {
@@ -176,7 +185,7 @@ namespace ix
                     }
                     else if (action == "auth/authenticate/error")
                     {
-                        logError("Authentication error."); // print full message ?
+                        invokeErrorCallback("Authentication error."); // print full message ?
                     }
                     else if (action == "rtm/subscription/data")
                     {
@@ -184,7 +193,7 @@ namespace ix
                     }
                     else
                     {
-                        logError(std::string("Un-handled message type: ") + action);
+                        invokeErrorCallback(std::string("Un-handled message type: ") + action);
                     }
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
@@ -194,7 +203,7 @@ namespace ix
                     ss << "#retries: "         << error.retries     << std::endl;
                     ss << "Wait time(ms): "    << error.wait_time   << std::endl;
                     ss << "HTTP Status: "      << error.http_status << std::endl;
-                    logError(ss.str());
+                    invokeErrorCallback(ss.str());
                 }
         });
     }

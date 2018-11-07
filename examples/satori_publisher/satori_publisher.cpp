@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
             std::ifstream f(path);
             if (!f.is_open())
             {
-                std::cerr << "error while opening file" << std::endl;
+                std::cerr << "Error while opening file: " << path << std::endl;
             }
 
             while (getline(f, line))
@@ -70,16 +70,23 @@ int main(int argc, char* argv[])
 
             if (f.bad())
             {
-                std::cerr << "error while reading file" << std::endl;
+                std::cerr << "Error while opening file: " << path << std::endl;
             }
 
+            done = true;
+        }
+    );
+    satoriConnection.setErrorCallback(
+        [&done](const std::string& errMsg)
+        {
+            std::cerr << "Satori Error received: " << errMsg << std::endl;
             done = true;
         }
     );
 
     while (!done)
     {
-        msleep(1000);
+        msleep(10);
     }
 
     std::cout << incomingBytes << std::endl;

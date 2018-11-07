@@ -17,6 +17,8 @@
 #include <mutex>
 #include <atomic>
 
+#include "IXWebSocketPerMessageDeflate.h"
+
 namespace ix 
 {
     class Socket;
@@ -121,11 +123,14 @@ namespace ix
         std::shared_ptr<Socket> _socket;
 
         std::atomic<ReadyStateValues> _readyState;
+        std::atomic<bool> _enablePerMessageDeflate;
 
         OnCloseCallback _onCloseCallback;
         uint16_t _closeCode;
         std::string _closeReason;
         mutable std::mutex _closeDataMutex;
+
+        WebSocketPerMessageDeflate _perMessageDeflate;
 
         void sendOnSocket();
         void sendData(wsheader_type::opcode_type type, 
