@@ -98,6 +98,7 @@ namespace ix
         struct wsheader_type {
             unsigned header_size;
             bool fin;
+            bool rsv1;
             bool mask;
             enum opcode_type {
                 CONTINUATION = 0x0,
