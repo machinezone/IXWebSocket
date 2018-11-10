@@ -48,16 +48,18 @@ namespace
 
     void WebSocketPingPong::start()
     {
-        _webSocket.configure(_url);
+        _webSocket.setUrl(_url);
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback(
             [this](ix::WebSocketMessageType messageType,
-                   const std::string& str,
-                   const ix::WebSocketErrorInfo& error,
-                   const ix::CloseInfo& closeInfo)
+               const std::string& str,
+               size_t wireSize,
+               const ix::WebSocketErrorInfo& error,
+               const ix::WebSocketCloseInfo& closeInfo,
+               const ix::WebSocketHttpHeaders& headers)
             {
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)
@@ -110,7 +112,7 @@ namespace
 
     void WebSocketPingPong::ping(const std::string& text)
     {
-        if (!_webSocket.ping(text))
+        if (!_webSocket.ping(text).success)
         {
             std::cerr << "Failed to send ping message. Message too long (> 125 bytes) or endpoint is disconnected"
                       << std::endl;

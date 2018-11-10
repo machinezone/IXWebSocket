@@ -17,7 +17,10 @@
 #include <mutex>
 #include <atomic>
 
+#include "IXWebSocketSendInfo.h"
 #include "IXWebSocketPerMessageDeflate.h"
+#include "IXWebSocketPerMessageDeflateOptions.h"
+#include "IXWebSocketHttpHeaders.h"
 
 namespace ix 
 {
@@ -28,12 +31,17 @@ namespace ix
         bool success;
         int http_status;
         std::string errorStr;
+        WebSocketHttpHeaders headers;
 
-        WebSocketInitResult(bool s, int h, std::string e)
+        WebSocketInitResult(bool s,
+                            int status,
+                            const std::string& e,
+                            WebSocketHttpHeaders h = WebSocketHttpHeaders())
         {
             success = s;
-            http_status = h;
+            http_status = status;
             errorStr = e;
+            headers = h;
         }
 
         // need to define a default
@@ -42,6 +50,7 @@ namespace ix
             success = false;
             http_status = 0;
             errorStr = "";
+            headers.clear();
         }
     };
 
@@ -64,21 +73,22 @@ namespace ix
         };
 
         using OnMessageCallback = std::function<void(const std::string&,
+                                                     size_t,
                                                      MessageKind)>;
         using OnCloseCallback = std::function<void(uint16_t,
-                                                   const std::string&)>;
+                                                   const std::string&,
+                                                   size_t)>;
 
         WebSocketTransport();
         ~WebSocketTransport();
 
-        void configure(const std::string& url);
+        void configure(const std::string& url,
+                       const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         WebSocketInitResult init();
 
         void poll();
-        void send(const std::string& message);
-        void sendBinary(const std::string& message);
-        void sendBinary(const std::vector<uint8_t>& message);
-        void sendPing(const std::string& message);
+        WebSocketSendInfo sendBinary(const std::string& message);
+        WebSocketSendInfo sendPing(const std::string& message);
         void close();
         ReadyStateValues getReadyState() const;
         void setReadyState(ReadyStateValues readyStateValue);
@@ -123,20 +133,25 @@ namespace ix
         std::shared_ptr<Socket> _socket;
 
         std::atomic<ReadyStateValues> _readyState;
-        std::atomic<bool> _enablePerMessageDeflate;
 
         OnCloseCallback _onCloseCallback;
         uint16_t _closeCode;
         std::string _closeReason;
+        size_t _closeWireSize;
         mutable std::mutex _closeDataMutex;
 
         WebSocketPerMessageDeflate _perMessageDeflate;
+        WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
+        std::atomic<bool> _enablePerMessageDeflate;
 
         void sendOnSocket();
-        void sendData(wsheader_type::opcode_type type, 
-                      uint64_t message_size, 
-                      std::string::const_iterator message_begin, 
-                      std::string::const_iterator message_end);
+        WebSocketSendInfo sendData(wsheader_type::opcode_type type, 
+                                   const std::string& message);
+
+        void emitMessage(MessageKind messageKind, 
+                         const std::string& message,
+                         const wsheader_type& ws,
+                         const OnMessageCallback& onMessageCallback);
 
         bool isSendBufferEmpty() const;
         void appendToSendBuffer(const std::vector<uint8_t>& header,

@@ -6,6 +6,9 @@
 cmake_minimum_required (VERSION 3.4.1)
 project (satori_publisher)
 
+# There's -Weverything too for clang
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wshorten-64-to-32")
+
 set (OPENSSL_PREFIX /usr/local/opt/openssl) # Homebrew openssl
 
 set (CMAKE_CXX_STANDARD 11)

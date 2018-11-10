@@ -41,10 +41,27 @@ namespace ix {
         stop();
     }
 
-    void WebSocket::configure(const std::string& url)
+    void WebSocket::setUrl(const std::string& url)
     {
-        std::lock_guard<std::mutex> lock(_urlMutex);
+        std::lock_guard<std::mutex> lock(_configMutex);
         _url = url;
+    }
+
+    const std::string& WebSocket::getUrl() const
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _url;
+    }
+
+    void WebSocket::setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
+    {
+        _perMessageDeflateOptions = perMessageDeflateOptions;
+    }
+
+    const WebSocketPerMessageDeflateOptions& WebSocket::getPerMessageDeflateOptions() const
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _perMessageDeflateOptions;
     }
 
     void WebSocket::start()
@@ -76,15 +93,17 @@ namespace ix {
     WebSocketInitResult WebSocket::connect()
     {
         {
-            std::lock_guard<std::mutex> lock(_urlMutex);
-            _ws.configure(_url);
+            std::lock_guard<std::mutex> lock(_configMutex);
+            _ws.configure(_url, _perMessageDeflateOptions);
         }
 
         _ws.setOnCloseCallback(
-            [this](uint16_t code, const std::string& reason)
+            [this](uint16_t code, const std::string& reason, size_t wireSize)
             {
-                _onMessageCallback(WebSocket_MessageType_Close, "",
-                                   WebSocketErrorInfo(), CloseInfo(code, reason));
+                _onMessageCallback(WebSocket_MessageType_Close, "", wireSize,
+                                   WebSocketErrorInfo(),
+                                   WebSocketCloseInfo(code, reason),
+                                   WebSocketHttpHeaders());
             }
         );
 
@@ -94,8 +113,9 @@ namespace ix {
             return status;
         }
 
-        _onMessageCallback(WebSocket_MessageType_Open, "",
-                           WebSocketErrorInfo(), CloseInfo());
+        _onMessageCallback(WebSocket_MessageType_Open, "", 0,
+                           WebSocketErrorInfo(), WebSocketCloseInfo(),
+                           status.headers);
         return status;
     }
 
@@ -139,8 +159,9 @@ namespace ix {
                 connectErr.wait_time = duration.count();
                 connectErr.reason = status.errorStr;
                 connectErr.http_status = status.http_status;
-                _onMessageCallback(WebSocket_MessageType_Error, "",
-                                   connectErr, CloseInfo());
+                _onMessageCallback(WebSocket_MessageType_Error, "", 0,
+                                   connectErr, WebSocketCloseInfo(),
+                                   WebSocketHttpHeaders());
 
                 std::this_thread::sleep_for(duration);
             }
@@ -166,6 +187,7 @@ namespace ix {
             // 3. Dispatch the incoming messages
             _ws.dispatch(
                 [this](const std::string& msg,
+                       size_t wireSize,
                        WebSocketTransport::MessageKind messageKind)
                 {
                     WebSocketMessageType webSocketMessageType;
@@ -187,8 +209,9 @@ namespace ix {
                         } break;
                     }
 
-                    _onMessageCallback(webSocketMessageType, msg,
-                                       WebSocketErrorInfo(), CloseInfo());
+                    _onMessageCallback(webSocketMessageType, msg, wireSize,
+                                       WebSocketErrorInfo(), WebSocketCloseInfo(),
+                                       WebSocketHttpHeaders());
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });
@@ -218,23 +241,23 @@ namespace ix {
         }
     }
 
-    bool WebSocket::send(const std::string& text)
+    WebSocketSendInfo WebSocket::send(const std::string& text)
     {
         return sendMessage(text, false);
     }
 
-    bool WebSocket::ping(const std::string& text)
+    WebSocketSendInfo WebSocket::ping(const std::string& text)
     {
         // Standard limit ping message size
         constexpr size_t pingMaxPayloadSize = 125;
-        if (text.size() > pingMaxPayloadSize) return false;
+        if (text.size() > pingMaxPayloadSize) return WebSocketSendInfo(false);
 
         return sendMessage(text, true);
     }
 
-    bool WebSocket::sendMessage(const std::string& text, bool ping)
+    WebSocketSendInfo WebSocket::sendMessage(const std::string& text, bool ping)
     {
-        if (!isConnected()) return false;
+        if (!isConnected()) return WebSocketSendInfo(false);
 
         //
         // It is OK to read and write on the same socket in 2 different threads.
@@ -246,19 +269,20 @@ namespace ix {
         // incoming messages are arriving / there's data to be received.
         //
         std::lock_guard<std::mutex> lock(_writeMutex);
+        WebSocketSendInfo webSocketSendInfo;
 
         if (ping)
         {
-            _ws.sendPing(text);
+            webSocketSendInfo = _ws.sendPing(text);
         }
         else
         {
-            _ws.sendBinary(text);
+            webSocketSendInfo = _ws.sendBinary(text);
         }
 
-        WebSocket::invokeTrafficTrackerCallback(text.size(), false);
+        WebSocket::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize, false);
 
-        return true;
+        return webSocketSendInfo;
     }
 
     ReadyState WebSocket::getReadyState() const
@@ -281,11 +305,5 @@ namespace ix {
             case WebSocket_ReadyState_Closing: return "CLOSING";
             case WebSocket_ReadyState_Closed: return "CLOSED";
         }
-    }
-
-    const std::string& WebSocket::getUrl() const
-    {
-        std::lock_guard<std::mutex> lock(_urlMutex);
-        return _url;
     }
 }

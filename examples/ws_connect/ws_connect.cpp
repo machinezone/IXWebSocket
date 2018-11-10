@@ -47,7 +47,7 @@ namespace
 
     void WebSocketConnect::start()
     {
-        _webSocket.configure(_url);
+        _webSocket.setUrl(_url);
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
@@ -55,8 +55,10 @@ namespace
         _webSocket.setOnMessageCallback(
             [this](ix::WebSocketMessageType messageType,
                const std::string& str,
+               size_t wireSize,
                const ix::WebSocketErrorInfo& error,
-               const ix::CloseInfo& closeInfo)
+               const ix::WebSocketCloseInfo& closeInfo,
+               const ix::WebSocketHttpHeaders& headers)
             {
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)

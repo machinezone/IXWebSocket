@@ -5,13 +5,14 @@
  */
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({ port: 5678, perMessageDeflate: false });
+let wss = new WebSocket.Server({ port: 5678, perMessageDeflate: true })
 
-let handshake = false
-let authenticated = false
+wss.on('connection', (ws) => {
 
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(data) {
+  let handshake = false
+  let authenticated = false
+
+  ws.on('message', (data) => {
 
     console.log(data.toString('utf-8'))
 
@@ -41,4 +42,4 @@ wss.on('connection', function connection(ws) {
       console.log(data)
     }
   });
-});
+})

@@ -77,7 +77,7 @@ namespace
     void WebSocketChat::start()
     {
         std::string url("ws://localhost:8080/");
-        _webSocket.configure(url);
+        _webSocket.setUrl(url);
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
@@ -85,8 +85,10 @@ namespace
         _webSocket.setOnMessageCallback(
             [this](ix::WebSocketMessageType messageType,
                const std::string& str,
+               size_t wireSize,
                const ix::WebSocketErrorInfo& error,
-               const ix::CloseInfo& closeInfo)
+               const ix::WebSocketCloseInfo& closeInfo,
+               const ix::WebSocketHttpHeaders& headers)
             {
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)

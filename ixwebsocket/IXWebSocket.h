@@ -15,8 +15,11 @@
 #include <atomic>
 
 #include "IXWebSocketTransport.h"
+#include "IXWebSocketSendInfo.h"
+#include "IXWebSocketPerMessageDeflateOptions.h"
+#include "IXWebSocketHttpHeaders.h"
 
-namespace ix 
+namespace ix
 {
     // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket#Ready_state_constants
     enum ReadyState 
@@ -45,18 +48,18 @@ namespace ix
         std::string reason;
     };
 
-    struct CloseInfo
+    struct WebSocketCloseInfo
     {
         uint16_t code;
         std::string reason;
 
-        CloseInfo(uint64_t c, const std::string& r)
+        WebSocketCloseInfo(uint64_t c, const std::string& r)
         {
             code = c;
             reason = r;
         }
 
-        CloseInfo()
+        WebSocketCloseInfo()
         {
             code = 0;
             reason = "";
@@ -65,8 +68,10 @@ namespace ix
 
     using OnMessageCallback = std::function<void(WebSocketMessageType,
                                                  const std::string&,
-                                                 const WebSocketErrorInfo,
-                                                 const CloseInfo)>;
+                                                 size_t wireSize,
+                                                 const WebSocketErrorInfo&,
+                                                 const WebSocketCloseInfo&,
+                                                 const WebSocketHttpHeaders&)>;
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
     class WebSocket 
@@ -75,24 +80,27 @@ namespace ix
         WebSocket();
         ~WebSocket();
 
-        void configure(const std::string& url);
+        void setUrl(const std::string& url);
+        void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
+
         void start();
         void stop();
-        bool send(const std::string& text);
-        bool ping(const std::string& text);
+        WebSocketSendInfo send(const std::string& text);
+        WebSocketSendInfo ping(const std::string& text);
         void close();
 
         void setOnMessageCallback(const OnMessageCallback& callback);
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
         static void resetTrafficTrackerCallback();
 
-        const std::string& getUrl() const;
         ReadyState getReadyState() const;
+        const std::string& getUrl() const;
+        const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
 
     private:
         void run();
 
-        bool sendMessage(const std::string& text, bool ping);
+        WebSocketSendInfo sendMessage(const std::string& text, bool ping);
 
         WebSocketInitResult connect();
         bool isConnected() const;
@@ -104,7 +112,8 @@ namespace ix
         WebSocketTransport _ws;
 
         std::string _url;
-        mutable std::mutex _urlMutex;
+        WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
+        mutable std::mutex _configMutex; // protect all config variables access
 
         OnMessageCallback _onMessageCallback;
         static OnTrafficTrackerCallback _onTrafficTrackerCallback;

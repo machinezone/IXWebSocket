@@ -14,12 +14,22 @@
 
 #include "jsoncpp/json/json.h"
 #include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
 
 namespace ix
 {
+    enum SatoriConnectionEventType
+    {
+        SatoriConnection_EventType_Authenticated = 0,
+        SatoriConnection_EventType_Error = 1,
+        SatoriConnection_EventType_Open = 2,
+        SatoriConnection_EventType_Closed = 3
+    };
+
     using SubscriptionCallback = std::function<void(const Json::Value&)>;
-    using AuthenticatedCallback = std::function<void()>;
-    using ErrorCallback = std::function<void(const std::string& errorMsg)>;
+    using OnEventCallback = std::function<void(SatoriConnectionEventType,
+                                               const std::string&,
+                                               const WebSocketHttpHeaders&)>;
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
     class SatoriConnection
@@ -33,7 +43,8 @@ namespace ix
         void configure(const std::string& appkey,
                        const std::string& endpoint,
                        const std::string& rolename,
-                       const std::string& rolesecret);
+                       const std::string& rolesecret,
+                       WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions);
 
         /// Set the traffic tracker callback
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
@@ -41,10 +52,8 @@ namespace ix
         /// Reset the traffic tracker callback to an no-op one.
         static void resetTrafficTrackerCallback();
 
-        /// Set the authenticated callback
-        void setAuthenticatedCallback(const AuthenticatedCallback& authenticatedCallback);
-        /// Set the error callback
-        void setErrorCallback(const ErrorCallback& errorCallback);
+        /// Set the closed callback
+        void setOnEventCallback(const OnEventCallback& onEventCallback);
 
         /// Start the worker thread, used for background publishing
         void start();
@@ -77,6 +86,8 @@ namespace ix
         bool sendAuthMessage(const std::string& nonce);
         bool handleSubscriptionData(const Json::Value& pdu);
 
+        void resetOnMessageCallback();
+
         bool publishMessage(const std::string& serializedJson);
         bool flushQueue();
         void enqueue(const std::string& msg);
@@ -84,8 +95,10 @@ namespace ix
         /// Invoke the traffic tracker callback
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
-        /// Invoke lifecycle callbacks
-        void invokeAuthenticatedCallback();
+        /// Invoke event callbacks
+        void invokeOnEventCallback(SatoriConnectionEventType eventType,
+                                   const std::string& errorMsg = std::string(),
+                                   const WebSocketHttpHeaders& headers = WebSocketHttpHeaders());
         void invokeErrorCallback(const std::string& errorMsg);
 
         ///
@@ -98,7 +111,6 @@ namespace ix
         std::string _endpoint;
         std::string _role_name;
         std::string _role_secret;
-        uint32_t _history;
 
         // Can be set on control+background thread, protecting with an atomic
         std::atomic<bool> _authenticated;
@@ -111,8 +123,7 @@ namespace ix
         static OnTrafficTrackerCallback _onTrafficTrackerCallback;
 
         /// Callbacks
-        AuthenticatedCallback _authenticatedCallback;
-        ErrorCallback _errorCallback;
+        OnEventCallback _onEventCallback;
 
         /// Subscription callbacks, only one per channel
         std::unordered_map<std::string, SubscriptionCallback> _cbs;
