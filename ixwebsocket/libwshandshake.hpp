@@ -32,7 +32,7 @@ class WebSocketHandshake {
 
     template <typename T>
     struct static_for<0, T> {
-        void operator()(uint32_t *a, uint32_t *hash) {}
+        void operator()(uint32_t * /*a*/, uint32_t * /*hash*/) {}
     };
 
     template <int state>

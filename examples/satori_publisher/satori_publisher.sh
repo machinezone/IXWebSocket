@@ -6,6 +6,6 @@ appkey="appkey"
 channel="foo"
 rolename="a_role"
 rolesecret="a_secret"
-path=events.jsonl
+filename=${FILENAME:=events.jsonl}
 
-build/satori_publisher $endpoint $appkey $channel $rolename $rolesecret $path
+build/satori_publisher $endpoint $appkey $channel $rolename $rolesecret $filename

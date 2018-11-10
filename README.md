@@ -27,8 +27,10 @@ webSocket.configure(url);
 webSocket.setOnMessageCallback(
     [](ix::WebSocketMessageType messageType,
        const std::string& str,
+       size_t wireSize,
        const ix::WebSocketErrorInfo& error,
-       const ix::CloseInfo& closeInfo)
+       const ix::WebSocketCloseInfo& closeInfo,
+       const ix::WebSocketHttpHeaders& headers)
     {
         if (messageType == ix::WebSocket_MessageType_Message)
         {
@@ -53,6 +55,10 @@ webSocket.stop()
 CMakefiles for the library and the examples are available. This library has few dependencies, so it is possible to just add the source files into your project.
 
 ## Implementation details
+
+### Per Message Deflate compression.
+
+The per message deflate compression option is supported. It can lead to very nice bandbwith savings (20x !) if your messages are similar, which is often the case for example for chat applications. All features of the spec should be supported.
 
 ### TLS/SSL
 
@@ -127,11 +133,23 @@ The onMessage event will be fired when the connection is opened or closed. This 
 
 ```
 webSocket.setOnMessageCallback(
-    [this](ix::WebSocketMessageType messageType, const std::string& str, const ix::WebSocketErrorInfo& error, const ix::CloseInfo closeInfo&)
+    [](ix::WebSocketMessageType messageType,
+       const std::string& str,
+       size_t wireSize,
+       const ix::WebSocketErrorInfo& error,
+       const ix::WebSocketCloseInfo& closeInfo,
+       const ix::WebSocketHttpHeaders& headers)
     {
         if (messageType == ix::WebSocket_MessageType_Open)
         {
             std::cout << "send greetings" << std::endl;
+
+            // Headers can be inspected (pairs of string/string)
+            std::cout << "Handshake Headers:" << std::endl;
+            for (auto it : headers)
+            {
+                std::cout << it.first << ": " << it.second << std::endl;
+            }
         }
         else if (messageType == ix::WebSocket_MessageType_Close)
         {
@@ -152,7 +170,12 @@ A message will be fired when there is an error with the connection. The message 
 
 ```
 webSocket.setOnMessageCallback(
-    [this](ix::WebSocketMessageType messageType, const std::string& str, const ix::WebSocketErrorInfo& error, const ix::CloseInfo& closeInfo)
+    [](ix::WebSocketMessageType messageType,
+       const std::string& str,
+       size_t wireSize,
+       const ix::WebSocketErrorInfo& error,
+       const ix::WebSocketCloseInfo& closeInfo,
+       const ix::WebSocketHttpHeaders& headers)
     {
         if (messageType == ix::WebSocket_MessageType_Error)
         {
@@ -187,7 +210,12 @@ Ping/pong messages are used to implement keep-alive. 2 message types exists to i
 
 ```
 webSocket.setOnMessageCallback(
-    [this](ix::WebSocketMessageType messageType, const std::string& str, const ix::WebSocketErrorInfo& error, const ix::CloseInfo& closeInfo)
+    [](ix::WebSocketMessageType messageType,
+       const std::string& str,
+       size_t wireSize,
+       const ix::WebSocketErrorInfo& error,
+       const ix::WebSocketCloseInfo& closeInfo,
+       const ix::WebSocketHttpHeaders& headers)
     {
         if (messageType == ix::WebSocket_MessageType_Ping ||
             messageType == ix::WebSocket_MessageType_Pong)

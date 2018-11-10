@@ -10,5 +10,5 @@
 
 namespace ix
 {
-    std::string base64_encode(const std::string& data, uint32_t len);
+    std::string base64_encode(const std::string& data, size_t len);
 }

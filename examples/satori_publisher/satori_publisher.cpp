@@ -20,6 +20,11 @@ void msleep(int ms)
 
 int main(int argc, char* argv[])
 {
+    if (argc != 7)
+    {
+        std::cerr << "Usage error: need 6 arguments." << std::endl;
+    }
+
     std::string endpoint = argv[1];
     std::string appkey = argv[2];
     std::string channel = argv[3];
@@ -45,51 +50,72 @@ int main(int argc, char* argv[])
 
     bool done = false;
     ix::SatoriConnection satoriConnection;
-    satoriConnection.configure(appkey, endpoint, rolename, rolesecret);
+    ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(
+        false, false, false, 15, 15);
+    satoriConnection.configure(appkey, endpoint, rolename, rolesecret,
+                               webSocketPerMessageDeflateOptions);
     satoriConnection.connect();
-    satoriConnection.setAuthenticatedCallback(
-        [&satoriConnection, channel, path, &done]()
+    satoriConnection.setOnEventCallback(
+        [&satoriConnection, channel, path, &done]
+        (ix::SatoriConnectionEventType eventType,
+         const std::string& errMsg,
+         const ix::WebSocketHttpHeaders& headers)
         {
-            std::cout << "Authenticated" << std::endl;;
-
-            std::string line;
-            std::ifstream f(path);
-            if (!f.is_open())
+            if (eventType == ix::SatoriConnection_EventType_Open)
             {
-                std::cerr << "Error while opening file: " << path << std::endl;
+                std::cout << "Handshake Headers:" << std::endl;
+                for (auto it : headers)
+                {
+                    std::cout << it.first << ": " << it.second << std::endl;
+                }
             }
-
-            while (getline(f, line))
+            else if (eventType == ix::SatoriConnection_EventType_Authenticated)
             {
-                Json::Value value;
-                Json::Reader reader;
-                reader.parse(line, value);
+                std::cout << "Authenticated" << std::endl;
 
-                satoriConnection.publish(channel, value);
+                std::string line;
+                std::ifstream f(path);
+                if (!f.is_open())
+                {
+                    std::cerr << "Error while opening file: " << path << std::endl;
+                }
+
+                int n = 0;
+                while (getline(f, line))
+                {
+                    Json::Value value;
+                    Json::Reader reader;
+                    reader.parse(line, value);
+
+                    satoriConnection.publish(channel, value);
+                    n++;
+                }
+                std::cerr << "#published messages: " << n << std::endl;
+
+                if (f.bad())
+                {
+                    std::cerr << "Error while opening file: " << path << std::endl;
+                }
+
+                done = true;
             }
-
-            if (f.bad())
+            else if (eventType == ix::SatoriConnection_EventType_Error)
             {
-                std::cerr << "Error while opening file: " << path << std::endl;
+                std::cerr << "Satori Error received: " << errMsg << std::endl;
+                done = true;
             }
-
-            done = true;
-        }
-    );
-    satoriConnection.setErrorCallback(
-        [&done](const std::string& errMsg)
-        {
-            std::cerr << "Satori Error received: " << errMsg << std::endl;
-            done = true;
+            else if (eventType == ix::SatoriConnection_EventType_Closed)
+            {
+                std::cerr << "Satori connection closed" << std::endl;
+            }
         }
     );
 
     while (!done)
     {
-        msleep(10);
+        msleep(1);
     }
 
-    std::cout << incomingBytes << std::endl;
     std::cout << "Incoming bytes: " << incomingBytes << std::endl;
     std::cout << "Outgoing bytes: " << outgoingBytes << std::endl;
 

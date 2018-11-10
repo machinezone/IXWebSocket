@@ -12,7 +12,6 @@
 #include <cmath>
 #include <cassert>
 #include <cstring>
-#include <iostream>
 
 namespace ix
 {
@@ -36,19 +35,10 @@ namespace ix
 
     SatoriConnection::SatoriConnection() :
         _authenticated(false),
-        _authenticatedCallback(nullptr)
+        _onEventCallback(nullptr)
     {
         _pdu["action"] = "rtm/publish";
-
-        _webSocket.setOnMessageCallback(
-            [](ix::WebSocketMessageType messageType,
-                   const std::string& str,
-                   const ix::WebSocketErrorInfo& error,
-                   const ix::CloseInfo& closeInfo)
-            {
-                ;
-            }
-        );
+        resetOnMessageCallback();
     }
 
     SatoriConnection::~SatoriConnection()
@@ -74,43 +64,42 @@ namespace ix
         }
     }
 
-    void SatoriConnection::setAuthenticatedCallback(const AuthenticatedCallback& authenticatedCallback)
+    void SatoriConnection::setOnEventCallback(const OnEventCallback& onEventCallback)
     {
-        _authenticatedCallback = authenticatedCallback;
+        _onEventCallback = onEventCallback;
     }
 
-    void SatoriConnection::invokeAuthenticatedCallback()
+    void SatoriConnection::invokeOnEventCallback(ix::SatoriConnectionEventType eventType,
+                                                 const std::string& errorMsg,
+                                                 const WebSocketHttpHeaders& headers)
     {
-
-        if (_authenticatedCallback)
+        if (_onEventCallback)
         {
-            _authenticatedCallback();
+            _onEventCallback(eventType, errorMsg, headers);
         }
-    }
-
-    void SatoriConnection::setErrorCallback(const ErrorCallback& errorCallback)
-    {
-        _errorCallback = errorCallback;
     }
 
     void SatoriConnection::invokeErrorCallback(const std::string& errorMsg)
     {
-
-        if (_errorCallback)
-        {
-            _errorCallback(errorMsg);
-        }
+        invokeOnEventCallback(ix::SatoriConnection_EventType_Error, errorMsg);
     }
 
     void SatoriConnection::disconnect()
     {
         _webSocket.stop();
 
+        resetOnMessageCallback();
+    }
+
+    void SatoriConnection::resetOnMessageCallback()
+    {
         _webSocket.setOnMessageCallback(
-            [](ix::WebSocketMessageType messageType,
-                   const std::string& str,
-                   const ix::WebSocketErrorInfo& error,
-                   const ix::CloseInfo& closeInfo)
+            [](ix::WebSocketMessageType,
+                   const std::string&,
+                   size_t,
+                   const ix::WebSocketErrorInfo&,
+                   const ix::WebSocketCloseInfo&,
+                   const ix::WebSocketHttpHeaders&)
             {
                 ;
             }
@@ -120,7 +109,8 @@ namespace ix
     void SatoriConnection::configure(const std::string& appkey,
                                      const std::string& endpoint,
                                      const std::string& rolename,
-                                     const std::string& rolesecret)
+                                     const std::string& rolesecret,
+                                     WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions)
     {
         _appkey = appkey;
         _endpoint = endpoint;
@@ -132,22 +122,37 @@ namespace ix
         ss << "/v2?appkey=";
         ss << appkey;
 
-        _webSocket.configure(ss.str());
+        std::string url = ss.str();
+        _webSocket.setUrl(url);
+        _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
 
         _webSocket.setOnMessageCallback(
             [this](ix::WebSocketMessageType messageType,
                    const std::string& str,
+                   size_t wireSize,
                    const ix::WebSocketErrorInfo& error,
-                   const ix::CloseInfo& closeInfo)
+                   const ix::WebSocketCloseInfo& closeInfo,
+                   const ix::WebSocketHttpHeaders& headers)
             {
+                SatoriConnection::invokeTrafficTrackerCallback(wireSize, true);
+
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
+                    invokeOnEventCallback(ix::SatoriConnection_EventType_Open,
+                                          std::string(),
+                                          headers);
                     sendHandshakeMessage();
                 }
                 else if (messageType == ix::WebSocket_MessageType_Close)
                 {
                     _authenticated = false;
+
+                    std::stringstream ss;
+                    ss << "Close code " << closeInfo.code;
+                    ss << " reason " << closeInfo.reason;
+                    invokeOnEventCallback(ix::SatoriConnection_EventType_Closed,
+                                          ss.str());
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
                 {
@@ -180,7 +185,7 @@ namespace ix
                     else if (action == "auth/authenticate/ok")
                     {
                         _authenticated = true;
-                        invokeAuthenticatedCallback();
+                        invokeOnEventCallback(ix::SatoriConnection_EventType_Authenticated);
                         flushQueue();
                     }
                     else if (action == "auth/authenticate/error")
@@ -238,7 +243,7 @@ namespace ix
         std::string serializedJson = writeJsonCompact(pdu);
         SatoriConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
 
-        return _webSocket.send(serializedJson);
+        return _webSocket.send(serializedJson).success;
     }
 
     // 
@@ -300,7 +305,7 @@ namespace ix
         std::string serializedJson = writeJsonCompact(pdu);
         SatoriConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
 
-        return _webSocket.send(serializedJson);
+        return _webSocket.send(serializedJson).success;
     }
 
 
@@ -455,8 +460,10 @@ namespace ix
 
     bool SatoriConnection::publishMessage(const std::string& serializedJson)
     {
-        SatoriConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
-        return _webSocket.send(serializedJson);
+        auto webSocketSendInfo = _webSocket.send(serializedJson);
+        SatoriConnection::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize,
+                                                       false);
+        return webSocketSendInfo.success;
     }
     
 } // namespace ix

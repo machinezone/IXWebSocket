@@ -34,12 +34,7 @@ namespace ix
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/";
     
-    static inline bool is_base64(unsigned char c)
-    {
-        return (isalnum(c) || (c == '+') || (c == '/'));
-    }
-    
-    std::string base64_encode(const std::string& data, uint32_t len)
+    std::string base64_encode(const std::string& data, size_t len)
     {
         std::string ret;
         int i = 0;

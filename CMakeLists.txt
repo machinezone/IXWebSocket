@@ -17,6 +17,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketTransport.cpp
     ixwebsocket/IXWebSocketPerMessageDeflate.cpp
+    ixwebsocket/IXWebSocketPerMessageDeflateOptions.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
@@ -25,6 +26,8 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/IXWebSocketPerMessageDeflate.h
+    ixwebsocket/IXWebSocketPerMessageDeflateOptions.h
+    ixwebsocket/IXWebSocketHttpHeaders.h
 )
 
 if (USE_TLS)
