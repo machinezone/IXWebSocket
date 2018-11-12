@@ -146,7 +146,8 @@ namespace ix
 
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type, 
-                                   const std::string& message);
+                                   const std::string& message,
+                                   bool compress);
 
         void emitMessage(MessageKind messageKind, 
                          const std::string& message,

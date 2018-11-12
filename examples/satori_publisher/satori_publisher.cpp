@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
     bool done = false;
     ix::SatoriConnection satoriConnection;
     ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(
-        false, false, false, 15, 15);
+        true, false, false, 15, 15);
     satoriConnection.configure(appkey, endpoint, rolename, rolesecret,
                                webSocketPerMessageDeflateOptions);
     satoriConnection.connect();
