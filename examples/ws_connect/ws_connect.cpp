@@ -49,6 +49,10 @@ namespace
     {
         _webSocket.setUrl(_url);
 
+        ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(
+            true, false, false, 15, 15);
+        _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
+
         std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
@@ -64,6 +68,11 @@ namespace
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
                     log("ws_connect: connected");
+                    std::cout << "Handshake Headers:" << std::endl;
+                    for (auto it : headers)
+                    {
+                        std::cout << it.first << ": " << it.second << std::endl;
+                    }
                 }
                 else if (messageType == ix::WebSocket_MessageType_Close)
                 {

@@ -578,7 +578,7 @@ namespace ix
                                      _rxbuf.begin()+ws.header_size + (size_t) ws.N);
 
                 // Reply back right away
-                sendData(wsheader_type::PONG, pingData);
+                sendData(wsheader_type::PONG, pingData, _enablePerMessageDeflate);
 
                 emitMessage(PING, pingData, ws, onMessageCallback);
             }
@@ -658,7 +658,8 @@ namespace ix
     }
 
     WebSocketSendInfo WebSocketTransport::sendData(wsheader_type::opcode_type type, 
-                                                   const std::string& message)
+                                                   const std::string& message,
+                                                   bool compress)
     {
         if (_readyState == CLOSING || _readyState == CLOSED)
         {
@@ -672,7 +673,7 @@ namespace ix
         std::string::const_iterator message_begin = message.begin();
         std::string::const_iterator message_end = message.end();
 
-        if (_enablePerMessageDeflate)
+        if (compress)
         {
             _perMessageDeflate.compress(message, compressedMessage);
             wireSize = compressedMessage.size();
@@ -697,7 +698,7 @@ namespace ix
         header[0] = 0x80 | type;
 
         // This bit indicate that the frame is compressed
-        if (_enablePerMessageDeflate)
+        if (compress)
         {
             header[0] |= 0x40;
         }
@@ -752,12 +753,12 @@ namespace ix
 
     WebSocketSendInfo WebSocketTransport::sendPing(const std::string& message)
     {
-        return sendData(wsheader_type::PING, message);
+        return sendData(wsheader_type::PING, message, _enablePerMessageDeflate);
     }
 
     WebSocketSendInfo WebSocketTransport::sendBinary(const std::string& message) 
     {
-        return sendData(wsheader_type::BINARY_FRAME, message);
+        return sendData(wsheader_type::BINARY_FRAME, message, _enablePerMessageDeflate);
     }
 
     void WebSocketTransport::sendOnSocket()
@@ -791,12 +792,17 @@ namespace ix
     {
         if (_readyState == CLOSING || _readyState == CLOSED) return;
 
+        // See list of close events here:
+        // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
+        // We use 1000: normal closure.
+        //
+        // >>> struct.pack('!H', 1000)
+        // b'\x03\xe8'
+        //
+        const std::string normalClosure = std::string("\x03\xe9");
+        bool compress = false;
+        sendData(wsheader_type::CLOSE, normalClosure, compress);
         setReadyState(CLOSING);
-        uint8_t closeFrame[6] = {0x88, 0x80, 0x00, 0x00, 0x00, 0x00}; // last 4 bytes are a masking key
-        std::vector<uint8_t> header(closeFrame, closeFrame+6);
-        appendToSendBuffer(header);
-
-        sendOnSocket();
 
         _socket->wakeUpFromPoll();
         _socket->close();

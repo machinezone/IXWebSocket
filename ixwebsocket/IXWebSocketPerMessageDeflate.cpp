@@ -1,11 +1,48 @@
 /*
- *  IXWebSocketPerMessageDeflate.cpp
+ * Copyright (c) 2015, Peter Thorson. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the WebSocket++ Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL PETER THORSON BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  *
- *  Per message Deflate RFC: https://tools.ietf.org/html/rfc7692
+ *  Adapted from websocketpp/extensions/permessage_deflate/enabled.hpp
+ *  (same license as MZ: https://opensource.org/licenses/BSD-3-Clause)
  *
+ *  - Reused zlib compression + decompression bits.
+ *  - Refactored to have 2 class for compression and decompression, to allow multi-threading
+ *    and make sure that _compressBuffer is not shared between threads.
+ *  - Original code wasn't working for some reason, I had to add checks 
+ *    for the presence of the kEmptyUncompressedBlock at the end of buffer so that servers
+ *    would start accepting receiving/decoding compressed messages. Original code was probably
+ *    modifying the passed in buffers before processing in enabled.hpp ?
+ *  - Added more documentation.
+ *
+ *  Per message Deflate RFC: https://tools.ietf.org/html/rfc7692
  *  Chrome websocket -> https://github.com/chromium/chromium/tree/2ca8c5037021c9d2ecc00b787d58a31ed8fc8bcb/net/websockets
+ *
  */
 
 #include "IXWebSocketPerMessageDeflate.h"
@@ -43,7 +80,7 @@ namespace ix
     }
 
     bool WebSocketPerMessageDeflateCompressor::init(uint8_t deflateBits,
-                                                    bool client_no_context_takeover)
+                                                    bool clientNoContextTakeOver)
     {
         int ret = deflateInit2(
             &_deflateState,
@@ -57,14 +94,9 @@ namespace ix
         if (ret != Z_OK) return false;
 
         _compressBuffer.reset(new unsigned char[_compressBufferSize]);
-        if (client_no_context_takeover)
-        {
-            _flush = Z_FULL_FLUSH;
-        }
-        else
-        {
-            _flush = Z_SYNC_FLUSH;
-        }
+        _flush = (clientNoContextTakeOver)
+                 ? Z_FULL_FLUSH
+                 : Z_SYNC_FLUSH;
 
         return true;
     }
@@ -79,6 +111,23 @@ namespace ix
     bool WebSocketPerMessageDeflateCompressor::compress(const std::string& in,
                                                         std::string& out)
     {
+        //
+        // 7.2.1.  Compression
+        // 
+        //    An endpoint uses the following algorithm to compress a message.
+        // 
+        //    1.  Compress all the octets of the payload of the message using
+        //        DEFLATE.
+        // 
+        //    2.  If the resulting data does not end with an empty DEFLATE block
+        //        with no compression (the "BTYPE" bits are set to 00), append an
+        //        empty DEFLATE block with no compression to the tail end.
+        // 
+        //    3.  Remove 4 octets (that are 0x00 0x00 0xff 0xff) from the tail end.
+        //        After this step, the last octet of the compressed data contains
+        //        (possibly part of) the DEFLATE header bits with the "BTYPE" bits
+        //        set to 00.
+        //
         size_t output;
 
         if (in.empty())
@@ -131,7 +180,7 @@ namespace ix
     }
 
     bool WebSocketPerMessageDeflateDecompressor::init(uint8_t inflateBits,
-                                                      bool client_no_context_takeover)
+                                                      bool clientNoContextTakeOver)
     {
         int ret = inflateInit2(
             &_inflateState,
@@ -141,14 +190,9 @@ namespace ix
         if (ret != Z_OK) return false;
 
         _compressBuffer.reset(new unsigned char[_compressBufferSize]);
-        if (client_no_context_takeover)
-        {
-            _flush = Z_FULL_FLUSH;
-        }
-        else
-        {
-            _flush = Z_SYNC_FLUSH;
-        }
+        _flush = (clientNoContextTakeOver)
+                 ? Z_FULL_FLUSH
+                 : Z_SYNC_FLUSH;
 
         return true;
     }
@@ -156,6 +200,16 @@ namespace ix
     bool WebSocketPerMessageDeflateDecompressor::decompress(const std::string& in,
                                                             std::string& out)
     {
+        //
+        // 7.2.2.  Decompression
+        // 
+        //    An endpoint uses the following algorithm to decompress a message.
+        // 
+        //    1.  Append 4 octets of 0x00 0x00 0xff 0xff to the tail end of the
+        //        payload of the message.
+        // 
+        //    2.  Decompress the resulting data using DEFLATE.
+        // 
         std::string inFixed(in);
         inFixed += kEmptyUncompressedBlock;
 
