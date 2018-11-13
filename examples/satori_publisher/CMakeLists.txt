@@ -18,11 +18,12 @@ option(USE_TLS "Add TLS support" ON)
 add_subdirectory(${PROJECT_SOURCE_DIR}/../.. ixwebsocket)
 
 include_directories(satori_publisher ${OPENSSL_PREFIX}/include)
+include_directories(satori_publisher .)
 
 add_executable(satori_publisher 
-  base64.cpp
   jsoncpp/jsoncpp.cpp
-  IXHMac.cpp
+  ixcrypto/IXHMac.cpp
+  ixcrypto/IXBase64.cpp
   IXSatoriConnection.cpp
   satori_publisher.cpp)
 
