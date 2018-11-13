@@ -24,6 +24,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSocket.h
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketTransport.h
+    ixwebsocket/IXWebSocketSendInfo.h
     ixwebsocket/IXWebSocketPerMessageDeflate.h
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.h
     ixwebsocket/IXWebSocketHttpHeaders.h

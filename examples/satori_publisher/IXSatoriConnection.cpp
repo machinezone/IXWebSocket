@@ -5,7 +5,7 @@
  */
 
 #include "IXSatoriConnection.h"
-#include "IXHMac.h"
+#include <ixcrypto/IXHMac.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -13,7 +13,7 @@
 #include <cassert>
 #include <cstring>
 
-namespace ix
+namespace
 {
     bool parseJson(const std::string& str, Json::Value& value)
     {

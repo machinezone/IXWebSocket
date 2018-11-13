@@ -4,7 +4,7 @@
  *  Copyright (c) 2018 Machine Zone. All rights reserved.
  */
 #include "IXHMac.h"
-#include "base64.h"
+#include "IXBase64.h"
 
 #include <openssl/hmac.h>
 

@@ -25,7 +25,7 @@
  
  */
 
-#include "base64.h"
+#include "IXBase64.h"
     
 namespace ix
 {
