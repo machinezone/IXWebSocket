@@ -578,7 +578,8 @@ namespace ix
                                      _rxbuf.begin()+ws.header_size + (size_t) ws.N);
 
                 // Reply back right away
-                sendData(wsheader_type::PONG, pingData, _enablePerMessageDeflate);
+                bool compress = false;
+                sendData(wsheader_type::PONG, pingData, compress);
 
                 emitMessage(PING, pingData, ws, onMessageCallback);
             }
@@ -627,15 +628,15 @@ namespace ix
                                          const wsheader_type& ws,
                                          const OnMessageCallback& onMessageCallback)
     {
-        // ws.rsv1 means the message is compressed
-        std::string decompressedMessage;
+        size_t wireSize = message.size();
 
+        // When the RSV1 bit is 1 it means the message is compressed
         if (_enablePerMessageDeflate && ws.rsv1)
         {
+            std::string decompressedMessage;
             if (_perMessageDeflate.decompress(message, decompressedMessage))
             {
-                onMessageCallback(decompressedMessage, decompressedMessage.size(),
-                                  messageKind);
+                onMessageCallback(decompressedMessage, wireSize, messageKind);
             }
             else
             {
@@ -644,7 +645,7 @@ namespace ix
         }
         else
         {
-            onMessageCallback(message, message.size(), messageKind);
+            onMessageCallback(message, wireSize, messageKind);
         }
     }
 
@@ -753,7 +754,8 @@ namespace ix
 
     WebSocketSendInfo WebSocketTransport::sendPing(const std::string& message)
     {
-        return sendData(wsheader_type::PING, message, _enablePerMessageDeflate);
+        bool compress = false;
+        return sendData(wsheader_type::PING, message, compress);
     }
 
     WebSocketSendInfo WebSocketTransport::sendBinary(const std::string& message) 
