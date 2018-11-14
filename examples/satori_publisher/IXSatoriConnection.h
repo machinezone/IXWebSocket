@@ -27,10 +27,10 @@ namespace ix
     };
 
     using SubscriptionCallback = std::function<void(const Json::Value&)>;
-    using OnEventCallback = std::function<void(SatoriConnectionEventType,
-                                               const std::string&,
-                                               const WebSocketHttpHeaders&)>;
-    using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
+    using EventCallback = std::function<void(SatoriConnectionEventType,
+                                             const std::string&,
+                                             const WebSocketHttpHeaders&)>;
+    using TrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
     class SatoriConnection
     {
@@ -47,13 +47,13 @@ namespace ix
                        WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions);
 
         /// Set the traffic tracker callback
-        static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
+        static void setTrafficTrackerCallback(const TrafficTrackerCallback& callback);
 
         /// Reset the traffic tracker callback to an no-op one.
         static void resetTrafficTrackerCallback();
 
         /// Set the closed callback
-        void setOnEventCallback(const OnEventCallback& onEventCallback);
+        void setEventCallback(const EventCallback& eventCallback);
 
         /// Start the worker thread, used for background publishing
         void start();
@@ -86,7 +86,7 @@ namespace ix
         bool sendAuthMessage(const std::string& nonce);
         bool handleSubscriptionData(const Json::Value& pdu);
 
-        void resetOnMessageCallback();
+        void resetWebSocketOnMessageCallback();
 
         bool publishMessage(const std::string& serializedJson);
         bool flushQueue();
@@ -96,9 +96,9 @@ namespace ix
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
         /// Invoke event callbacks
-        void invokeOnEventCallback(SatoriConnectionEventType eventType,
-                                   const std::string& errorMsg = std::string(),
-                                   const WebSocketHttpHeaders& headers = WebSocketHttpHeaders());
+        void invokeEventCallback(SatoriConnectionEventType eventType,
+                                 const std::string& errorMsg = std::string(),
+                                 const WebSocketHttpHeaders& headers = WebSocketHttpHeaders());
         void invokeErrorCallback(const std::string& errorMsg);
 
         ///
@@ -118,12 +118,13 @@ namespace ix
         // Keep some objects around
         Json::Value _body;
         Json::Value _pdu;
+        Json::FastWriter _jsonWriter;
 
         /// Traffic tracker callback
-        static OnTrafficTrackerCallback _onTrafficTrackerCallback;
+        static TrafficTrackerCallback _trafficTrackerCallback;
 
-        /// Callbacks
-        OnEventCallback _onEventCallback;
+        /// Satori events callbacks
+        EventCallback _eventCallback;
 
         /// Subscription callbacks, only one per channel
         std::unordered_map<std::string, SubscriptionCallback> _cbs;

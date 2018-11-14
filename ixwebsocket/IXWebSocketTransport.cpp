@@ -233,7 +233,7 @@ namespace ix
 
         }
 
-        char line[512];
+        char line[256];
         int i;
         for (i = 0; i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
         {
@@ -634,18 +634,12 @@ namespace ix
         if (_enablePerMessageDeflate && ws.rsv1)
         {
             std::string decompressedMessage;
-            if (_perMessageDeflate.decompress(message, decompressedMessage))
-            {
-                onMessageCallback(decompressedMessage, wireSize, messageKind);
-            }
-            else
-            {
-                std::cerr << "error decompressing msg !"<< std::endl;
-            }
+            bool success = _perMessageDeflate.decompress(message, decompressedMessage);
+            onMessageCallback(decompressedMessage, wireSize, not success, messageKind);
         }
         else
         {
-            onMessageCallback(message, wireSize, messageKind);
+            onMessageCallback(message, wireSize, false, messageKind);
         }
     }
 
@@ -670,13 +664,15 @@ namespace ix
         size_t payloadSize = message.size();
         size_t wireSize = message.size();
         std::string compressedMessage;
+        bool compressionError = false;
 
         std::string::const_iterator message_begin = message.begin();
         std::string::const_iterator message_end = message.end();
 
         if (compress)
         {
-            _perMessageDeflate.compress(message, compressedMessage);
+            bool success = _perMessageDeflate.compress(message, compressedMessage);
+            compressionError = !success;
             wireSize = compressedMessage.size();
 
             message_begin = compressedMessage.begin();
@@ -749,7 +745,7 @@ namespace ix
         // Now actually send this data
         sendOnSocket();
 
-        return WebSocketSendInfo(true, payloadSize, wireSize);
+        return WebSocketSendInfo(true, compressionError, payloadSize, wireSize);
     }
 
     WebSocketSendInfo WebSocketTransport::sendPing(const std::string& message)
@@ -776,7 +772,7 @@ namespace ix
             {
                 break;
             }
-            else if (ret <= 0) 
+            else if (ret <= 0)
             {
                 _socket->close();
 
@@ -801,7 +797,7 @@ namespace ix
         // >>> struct.pack('!H', 1000)
         // b'\x03\xe8'
         //
-        const std::string normalClosure = std::string("\x03\xe9");
+        const std::string normalClosure = std::string("\x03\xe8");
         bool compress = false;
         sendData(wsheader_type::CLOSE, normalClosure, compress);
         setReadyState(CLOSING);

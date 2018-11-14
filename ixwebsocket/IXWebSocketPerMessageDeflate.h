@@ -36,6 +36,7 @@
 
 #include "zlib.h"
 #include <string>
+#include <memory>
 
 namespace ix 
 {
