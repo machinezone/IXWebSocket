@@ -1,11 +1,11 @@
 /*
- *  cmd_websocket_chat.cpp
+ *  broadcast-server.js
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
  */
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 8080, perMessageDeflate: true });
 
 // Broadcast to all.
 wss.broadcast = function broadcast(data) {
