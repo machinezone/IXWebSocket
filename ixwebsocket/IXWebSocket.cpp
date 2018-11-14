@@ -188,6 +188,7 @@ namespace ix {
             _ws.dispatch(
                 [this](const std::string& msg,
                        size_t wireSize,
+                       bool decompressionError,
                        WebSocketTransport::MessageKind messageKind)
                 {
                     WebSocketMessageType webSocketMessageType;
@@ -209,8 +210,11 @@ namespace ix {
                         } break;
                     }
 
+                    WebSocketErrorInfo webSocketErrorInfo;
+                    webSocketErrorInfo.decompressionError = decompressionError;
+
                     _onMessageCallback(webSocketMessageType, msg, wireSize,
-                                       WebSocketErrorInfo(), WebSocketCloseInfo(),
+                                       webSocketErrorInfo, WebSocketCloseInfo(),
                                        WebSocketHttpHeaders());
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);

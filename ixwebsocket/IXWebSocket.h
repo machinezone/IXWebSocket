@@ -15,6 +15,7 @@
 #include <atomic>
 
 #include "IXWebSocketTransport.h"
+#include "IXWebSocketErrorInfo.h"
 #include "IXWebSocketSendInfo.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketHttpHeaders.h"
@@ -40,29 +41,16 @@ namespace ix
         WebSocket_MessageType_Pong = 5
     };
 
-    struct WebSocketErrorInfo
-    {
-        uint64_t retries;
-        double wait_time;
-        int http_status;
-        std::string reason;
-    };
-
     struct WebSocketCloseInfo
     {
         uint16_t code;
         std::string reason;
 
-        WebSocketCloseInfo(uint64_t c, const std::string& r)
+        WebSocketCloseInfo(uint64_t c = 0,
+                           const std::string& r = std::string())
         {
             code = c;
             reason = r;
-        }
-
-        WebSocketCloseInfo()
-        {
-            code = 0;
-            reason = "";
         }
     };
 

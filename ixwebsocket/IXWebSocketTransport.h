@@ -33,24 +33,15 @@ namespace ix
         std::string errorStr;
         WebSocketHttpHeaders headers;
 
-        WebSocketInitResult(bool s,
-                            int status,
-                            const std::string& e,
+        WebSocketInitResult(bool s = false,
+                            int status = 0,
+                            const std::string& e = std::string(),
                             WebSocketHttpHeaders h = WebSocketHttpHeaders())
         {
             success = s;
             http_status = status;
             errorStr = e;
             headers = h;
-        }
-
-        // need to define a default
-        WebSocketInitResult()
-        {
-            success = false;
-            http_status = 0;
-            errorStr = "";
-            headers.clear();
         }
     };
 
@@ -74,6 +65,7 @@ namespace ix
 
         using OnMessageCallback = std::function<void(const std::string&,
                                                      size_t,
+                                                     bool,
                                                      MessageKind)>;
         using OnCloseCallback = std::function<void(uint16_t,
                                                    const std::string&,
