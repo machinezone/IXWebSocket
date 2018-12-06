@@ -167,7 +167,8 @@ namespace ix
         if (!WebSocketTransport::parseUrl(_url, protocol, host,
                                           path, query, port))
         {
-            return WebSocketInitResult(false, 0, "Could not parse URL");
+            return WebSocketInitResult(false, 0,
+                                       std::string("Could not parse URL ") + _url);
         }
 
         if (protocol == "wss")
