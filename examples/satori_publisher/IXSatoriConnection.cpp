@@ -21,11 +21,12 @@ namespace ix
 
     SatoriConnection::SatoriConnection() :
         _authenticated(false),
-        _eventCallback(nullptr)
+        _eventCallback(nullptr),
+        _publishMode(SatoriConnection_PublishMode_Immediate)
     {
         _pdu["action"] = "rtm/publish";
 
-        resetWebSocketOnMessageCallback();
+        initWebSocketOnMessageCallback();
     }
 
     SatoriConnection::~SatoriConnection()
@@ -53,6 +54,7 @@ namespace ix
 
     void SatoriConnection::setEventCallback(const EventCallback& eventCallback)
     {
+        std::lock_guard<std::mutex> lock(_eventCallbackMutex);
         _eventCallback = eventCallback;
     }
 
@@ -60,6 +62,7 @@ namespace ix
                                                const std::string& errorMsg,
                                                const WebSocketHttpHeaders& headers)
     {
+        std::lock_guard<std::mutex> lock(_eventCallbackMutex);
         if (_eventCallback)
         {
             _eventCallback(eventType, errorMsg, headers);
@@ -73,46 +76,12 @@ namespace ix
 
     void SatoriConnection::disconnect()
     {
+        _authenticated = false;
         _webSocket.stop();
-
-        resetWebSocketOnMessageCallback();
     }
 
-    void SatoriConnection::resetWebSocketOnMessageCallback()
+    void SatoriConnection::initWebSocketOnMessageCallback()
     {
-        _webSocket.setOnMessageCallback(
-            [](ix::WebSocketMessageType,
-                   const std::string&,
-                   size_t,
-                   const ix::WebSocketErrorInfo&,
-                   const ix::WebSocketCloseInfo&,
-                   const ix::WebSocketHttpHeaders&)
-            {
-                ;
-            }
-        );
-    }
-
-    void SatoriConnection::configure(const std::string& appkey,
-                                     const std::string& endpoint,
-                                     const std::string& rolename,
-                                     const std::string& rolesecret,
-                                     WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions)
-    {
-        _appkey = appkey;
-        _endpoint = endpoint;
-        _role_name = rolename;
-        _role_secret = rolesecret;
-
-        std::stringstream ss;
-        ss << endpoint;
-        ss << "/v2?appkey=";
-        ss << appkey;
-
-        std::string url = ss.str();
-        _webSocket.setUrl(url);
-        _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
-
         _webSocket.setOnMessageCallback(
             [this](ix::WebSocketMessageType messageType,
                    const std::string& str,
@@ -201,6 +170,32 @@ namespace ix
         });
     }
 
+    void SatoriConnection::setPublishMode(SatoriConnectionPublishMode publishMode)
+    {
+        _publishMode = publishMode;
+    }
+
+    void SatoriConnection::configure(const std::string& appkey,
+                                     const std::string& endpoint,
+                                     const std::string& rolename,
+                                     const std::string& rolesecret,
+                                     WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions)
+    {
+        _appkey = appkey;
+        _endpoint = endpoint;
+        _role_name = rolename;
+        _role_secret = rolesecret;
+
+        std::stringstream ss;
+        ss << _endpoint;
+        ss << "/v2?appkey=";
+        ss << _appkey;
+
+        std::string url = ss.str();
+        _webSocket.setUrl(url);
+        _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
+    }
+
     //
     // Handshake message schema.
     //
@@ -228,7 +223,7 @@ namespace ix
         pdu["action"] = "auth/handshake";
         pdu["body"] = body;
 
-        std::string serializedJson = _jsonWriter.write(pdu);
+        std::string serializedJson = serializeJson(pdu);
         SatoriConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
 
         return _webSocket.send(serializedJson).success;
@@ -290,7 +285,7 @@ namespace ix
         pdu["action"] = "auth/authenticate";
         pdu["body"] = body;
 
-        std::string serializedJson = _jsonWriter.write(pdu);
+        std::string serializedJson = serializeJson(pdu);
         SatoriConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
 
         return _webSocket.send(serializedJson).success;
@@ -307,6 +302,7 @@ namespace ix
         if (!body.isMember("subscription_id")) return false;
         Json::Value subscriptionId = body["subscription_id"];
 
+        std::lock_guard<std::mutex> lock(_cbsMutex);
         auto cb = _cbs.find(subscriptionId.asString());
         if (cb == _cbs.end()) return false; // cannot find callback
 
@@ -333,17 +329,29 @@ namespace ix
         return _webSocket.getReadyState() == ix::WebSocket_ReadyState_Open;
     }
 
+    std::string SatoriConnection::serializeJson(const Json::Value& value)
+    {
+        std::lock_guard<std::mutex> lock(_jsonWriterMutex);
+        return _jsonWriter.write(value);
+    }
+
     //
     // publish is not thread safe as we are trying to reuse some Json objects.
     //
-    bool SatoriConnection::publish(const std::string& channel,
+    bool SatoriConnection::publish(const Json::Value& channels,
                                    const Json::Value& msg)
     {
-        _body["channel"] = channel;
+        _body["channels"] = channels;
         _body["message"] = msg;
         _pdu["body"] = _body;
 
-        std::string serializedJson = _jsonWriter.write(_pdu);
+        std::string serializedJson = serializeJson(_pdu);
+
+        if (_publishMode == SatoriConnection_PublishMode_Batch)
+        {
+            enqueue(serializedJson);
+            return true;
+        }
 
         //
         // Fast path. We are authenticated and the publishing succeed
@@ -452,6 +460,16 @@ namespace ix
         SatoriConnection::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize,
                                                        false);
         return webSocketSendInfo.success;
+    }
+
+    void SatoriConnection::suspend()
+    {
+        disconnect();
+    }
+
+    void SatoriConnection::resume()
+    {
+        connect();
     }
     
 } // namespace ix

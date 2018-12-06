@@ -55,6 +55,7 @@ namespace ix {
 
     void WebSocket::setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
     {
+        std::lock_guard<std::mutex> lock(_configMutex);
         _perMessageDeflateOptions = perMessageDeflateOptions;
     }
 

@@ -69,6 +69,8 @@ namespace ix
     WebSocketPerMessageDeflateCompressor::WebSocketPerMessageDeflateCompressor()
       : _compressBufferSize(kBufferSize)
     {
+        memset(&_deflateState, 0, sizeof(_deflateState));
+
         _deflateState.zalloc = Z_NULL;
         _deflateState.zfree = Z_NULL;
         _deflateState.opaque = Z_NULL;
@@ -167,6 +169,8 @@ namespace ix
     WebSocketPerMessageDeflateDecompressor::WebSocketPerMessageDeflateDecompressor()
       : _compressBufferSize(kBufferSize)
     {
+        memset(&_inflateState, 0, sizeof(_inflateState));
+
         _inflateState.zalloc = Z_NULL;
         _inflateState.zfree = Z_NULL;
         _inflateState.opaque = Z_NULL;

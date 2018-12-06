@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
     satoriConnection.configure(appkey, endpoint, rolename, rolesecret,
                                webSocketPerMessageDeflateOptions);
     satoriConnection.connect();
-    satoriConnection.setOnEventCallback(
+    satoriConnection.setEventCallback(
         [&satoriConnection, channel, path, &done]
         (ix::SatoriConnectionEventType eventType,
          const std::string& errMsg,

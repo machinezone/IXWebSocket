@@ -48,9 +48,10 @@ namespace ix
 
         WebSocketCloseInfo(uint64_t c = 0,
                            const std::string& r = std::string())
+            : code(c)
+            , reason(r)
         {
-            code = c;
-            reason = r;
+            ;
         }
     };
 
