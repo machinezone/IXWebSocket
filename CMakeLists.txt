@@ -13,6 +13,7 @@ set (CMAKE_CXX_EXTENSIONS OFF)
 set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXEventFd.cpp
     ixwebsocket/IXSocket.cpp
+    ixwebsocket/IXSocketConnect.cpp
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketTransport.cpp
     ixwebsocket/IXWebSocketPerMessageDeflate.cpp
@@ -22,6 +23,7 @@ set( IXWEBSOCKET_SOURCES
 set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXEventFd.h
     ixwebsocket/IXSocket.h
+    ixwebsocket/IXSocketConnect.h
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/IXWebSocketSendInfo.h
