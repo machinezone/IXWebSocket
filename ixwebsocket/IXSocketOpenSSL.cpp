@@ -7,6 +7,7 @@
  */
 
 #include "IXSocketOpenSSL.h"
+#include "IXSocketConnect.h"
 #include <cassert>
 #include <iostream>
 
@@ -285,7 +286,7 @@ namespace ix
                 return false;
             }
 
-            _sockfd = Socket::hostname_connect(host, port, errMsg);
+            _sockfd = SocketConnect::connect(host, port, errMsg);
             if (_sockfd == -1) return false;
 
             _ssl_context = openSSLCreateContext(errMsg);

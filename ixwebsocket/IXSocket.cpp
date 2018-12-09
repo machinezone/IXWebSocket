@@ -5,6 +5,7 @@
  */
 
 #include "IXSocket.h"
+#include "IXSocketConnect.h"
 
 #ifdef _WIN32
 # include <basetsd.h>
@@ -34,12 +35,6 @@
 #include <algorithm>
 #include <iostream>
 
-// Android needs extra headers for TCP_NODELAY and IPPROTO_TCP
-#ifdef ANDROID
-# include <linux/in.h>
-# include <linux/tcp.h>
-#endif
-
 namespace ix 
 {
     Socket::Socket() : 
@@ -51,97 +46,6 @@ namespace ix
     Socket::~Socket()
     {
         close();
-    }
-
-    bool Socket::connectToAddress(const struct addrinfo *address, 
-                                  int& sockfd,
-                                  std::string& errMsg)
-    {
-        sockfd = -1;
-
-        int fd = socket(address->ai_family,
-                        address->ai_socktype,
-                        address->ai_protocol);
-        if (fd < 0)
-        {
-            errMsg = "Cannot create a socket";
-            return false;
-        }
-
-        int maxRetries = 3;
-        for (int i = 0; i < maxRetries; ++i)
-        {
-            if (::connect(fd, address->ai_addr, address->ai_addrlen) != -1)
-            {
-                sockfd = fd;
-                return true;
-            }
-
-            // EINTR means we've been interrupted, in which case we try again.
-            if (errno != EINTR) break;
-        }
-
-        closeSocket(fd);
-        sockfd = -1;
-        errMsg = strerror(errno);
-        return false;
-    }
-
-    int Socket::hostname_connect(const std::string& hostname,
-                                 int port,
-                                 std::string& errMsg)
-    {
-        struct addrinfo hints;
-        memset(&hints, 0, sizeof(hints));
-        hints.ai_flags = AI_ADDRCONFIG | AI_NUMERICSERV;
-        hints.ai_family = AF_UNSPEC;
-        hints.ai_socktype = SOCK_STREAM;
-
-        std::string sport = std::to_string(port);
-
-        struct addrinfo *res = nullptr;
-        int getaddrinfo_result = getaddrinfo(hostname.c_str(), sport.c_str(), 
-                                             &hints, &res);
-        if (getaddrinfo_result)
-        {
-            errMsg = gai_strerror(getaddrinfo_result);
-            return -1;
-        }
-
-        int sockfd = -1;
-
-        // iterate through the records to find a working peer
-        struct addrinfo *address;
-        bool success = false;
-        for (address = res; address != nullptr; address = address->ai_next)
-        {
-            success = connectToAddress(address, sockfd, errMsg);
-            if (success)
-            {
-                break;
-            }
-        }
-        freeaddrinfo(res);
-        return sockfd;
-    }
-
-    void Socket::configure()
-    {
-        int flag = 1;
-        setsockopt(_sockfd, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof(flag)); // Disable Nagle's algorithm
-
-#ifdef _WIN32
-        unsigned long nonblocking = 1;
-        ioctlsocket(_sockfd, FIONBIO, &nonblocking);
-#else
-        fcntl(_sockfd, F_SETFL, O_NONBLOCK); // make socket non blocking
-#endif
-
-#ifdef SO_NOSIGPIPE
-        int value = 1;
-        setsockopt(_sockfd, SOL_SOCKET, SO_NOSIGPIPE, 
-                   (void *)&value, sizeof(value));
-#endif
     }
 
     void Socket::poll(const OnPollCallback& onPollCallback)
@@ -181,7 +85,7 @@ namespace ix
 
         if (!_eventfd.clear()) return false;
 
-        _sockfd = Socket::hostname_connect(host, port, errMsg);
+        _sockfd = SocketConnect::connect(host, port, errMsg);
         return _sockfd != -1;
     }
 

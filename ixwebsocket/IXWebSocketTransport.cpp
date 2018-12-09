@@ -231,14 +231,13 @@ namespace ix
         if (_socket->send(const_cast<char*>(request.c_str()), requestSize) != requestSize)
         {
             return WebSocketInitResult(false, 0, std::string("Failed sending GET request to ") + _url);
-
         }
 
         char line[256];
         int i;
         for (i = 0; i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
         {
-            if (_socket->recv(line+i, 1) == 0)
+            if (!readByte(line+i))
             {
                 return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + _url);
             } 
@@ -282,7 +281,7 @@ namespace ix
                  i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n');
                  ++i)
             {
-                if (_socket->recv(line+i, 1) == 0)
+                if (!readByte(line+i))
                 {
                     return WebSocketInitResult(false, status, std::string("Failed reading response header from ") + _url);
                 }
@@ -344,7 +343,6 @@ namespace ix
             }
         }
 
-        _socket->configure();
         setReadyState(OPEN);
 
         return WebSocketInitResult(true, status, "", headers);
@@ -805,6 +803,35 @@ namespace ix
 
         _socket->wakeUpFromPoll();
         _socket->close();
+    }
+
+    // Used by init
+    bool WebSocketTransport::readByte(void* buffer)
+    {
+        while (true) 
+        {
+            if (_readyState == CLOSING) return false;
+
+            int ret;
+            ret = _socket->recv(buffer, 1);
+
+            // We read one byte, as needed, all good.
+            if (ret == 1)
+            {
+                return true;
+            }
+            // There is possibly something to be read, try again
+            else if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
+                                 _socket->getErrno() == EAGAIN))
+            {
+                continue;
+            }
+            // There was an error during the read, abort
+            else 
+            {
+                return false;
+            }
+        }
     }
 
 } // namespace ix

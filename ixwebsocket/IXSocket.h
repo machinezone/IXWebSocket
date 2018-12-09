@@ -24,9 +24,6 @@ namespace ix
         Socket();
         virtual ~Socket();
 
-        int hostname_connect(const std::string& hostname,
-                             int port,
-                             std::string& errMsg);
         void configure();
 
         virtual void poll(const OnPollCallback& onPollCallback);
@@ -54,9 +51,6 @@ namespace ix
         EventFd _eventfd;
 
     private:
-        bool connectToAddress(const struct addrinfo *address, 
-                              int& sockfd,
-                              std::string& errMsg);
     };
 
 }

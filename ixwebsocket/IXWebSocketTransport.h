@@ -157,5 +157,7 @@ namespace ix
         unsigned getRandomUnsigned();
         void unmaskReceiveBuffer(const wsheader_type& ws);
         std::string genRandomString(const int len);
+
+        bool readByte(void* buffer);
     };
 }

@@ -6,6 +6,7 @@
  *  Adapted from Satori SDK Apple SSL code.
  */
 #include "IXSocketAppleSSL.h"
+#include "IXSocketConnect.h"
 
 #include <fcntl.h>
 #include <netdb.h>
@@ -162,7 +163,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_mutex);
 
-            _sockfd = Socket::hostname_connect(host, port, errMsg);
+            _sockfd = SocketConnect::connect(host, port, errMsg);
             if (_sockfd == -1) return false;
 
             _sslContext = SSLCreateContext(kCFAllocatorDefault, kSSLClientSide, kSSLStreamType);
