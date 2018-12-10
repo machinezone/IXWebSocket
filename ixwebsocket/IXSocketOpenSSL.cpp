@@ -7,7 +7,6 @@
  */
 
 #include "IXSocketOpenSSL.h"
-#include "IXSocketConnect.h"
 #include <cassert>
 #include <iostream>
 
@@ -275,7 +274,8 @@ namespace ix
     // No wait support
     bool SocketOpenSSL::connect(const std::string& host,
                                 int port,
-                                std::string& errMsg)
+                                std::string& errMsg,
+                                CancellationRequest isCancellationRequested)
     {
         bool handshakeSuccessful = false;
         {
@@ -286,7 +286,7 @@ namespace ix
                 return false;
             }
 
-            _sockfd = SocketConnect::connect(host, port, errMsg);
+            _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
             if (_sockfd == -1) return false;
 
             _ssl_context = openSSLCreateContext(errMsg);

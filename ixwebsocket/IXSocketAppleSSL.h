@@ -7,6 +7,7 @@
 #pragma once
 
 #include "IXSocket.h"
+#include "IXSocketConnect.h"
 
 #include <Security/Security.h>
 #include <Security/SecureTransport.h>
@@ -23,7 +24,8 @@ namespace ix
 
         virtual bool connect(const std::string& host, 
                              int port,
-                             std::string& errMsg) final;
+                             std::string& errMsg,
+                             CancellationRequest isCancellationRequested) final;
         virtual void close() final;
 
         virtual int send(char* buffer, size_t length) final;

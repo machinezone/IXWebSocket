@@ -6,7 +6,6 @@
  *  Adapted from Satori SDK Apple SSL code.
  */
 #include "IXSocketAppleSSL.h"
-#include "IXSocketConnect.h"
 
 #include <fcntl.h>
 #include <netdb.h>
@@ -157,13 +156,14 @@ namespace ix
     // No wait support
     bool SocketAppleSSL::connect(const std::string& host,
                                  int port,
-                                 std::string& errMsg)
+                                 std::string& errMsg,
+                                 CancellationRequest isCancellationRequested)
     {
         OSStatus status;
         {
             std::lock_guard<std::mutex> lock(_mutex);
 
-            _sockfd = SocketConnect::connect(host, port, errMsg);
+            _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
             if (_sockfd == -1) return false;
 
             _sslContext = SSLCreateContext(kCFAllocatorDefault, kSSLClientSide, kSSLStreamType);

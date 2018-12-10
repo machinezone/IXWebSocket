@@ -191,7 +191,12 @@ namespace ix
         }
 
         std::string errMsg;
-        bool success = _socket->connect(host, port, errMsg);
+        bool success = _socket->connect(host, port, errMsg,
+                [this]
+                {
+                    return _readyState == CLOSING;
+                }
+        );
         if (!success)
         {
             std::stringstream ss;

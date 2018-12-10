@@ -12,6 +12,7 @@
 #include <atomic>
 
 #include "IXEventFd.h"
+#include "IXSocketConnect.h"
 
 struct addrinfo;
 
@@ -32,7 +33,8 @@ namespace ix
         // Virtual methods
         virtual bool connect(const std::string& url, 
                              int port,
-                             std::string& errMsg);
+                             std::string& errMsg,
+                             CancellationRequest isCancellationRequested);
         virtual void close();
 
         virtual int send(char* buffer, size_t length);
