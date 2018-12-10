@@ -5,7 +5,6 @@
  */
 
 #include "IXSocket.h"
-#include "IXSocketConnect.h"
 
 #ifdef _WIN32
 # include <basetsd.h>
@@ -79,13 +78,14 @@ namespace ix
 
     bool Socket::connect(const std::string& host,
                          int port,
-                         std::string& errMsg)
+                         std::string& errMsg,
+                         CancellationRequest isCancellationRequested)
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
         if (!_eventfd.clear()) return false;
 
-        _sockfd = SocketConnect::connect(host, port, errMsg);
+        _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
         return _sockfd != -1;
     }
 

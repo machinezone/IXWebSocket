@@ -8,6 +8,7 @@ RUN apt-get -y install gdb
 RUN apt-get -y install screen
 RUN apt-get -y install procps
 RUN apt-get -y install lsof
+RUN apt-get -y install libz-dev
 
 COPY . .
 

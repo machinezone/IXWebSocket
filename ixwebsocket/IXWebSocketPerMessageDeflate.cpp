@@ -50,6 +50,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <string.h>
 
 namespace
 {

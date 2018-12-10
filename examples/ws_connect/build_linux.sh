@@ -13,8 +13,11 @@ g++ --std=c++11 \
     ../../ixwebsocket/IXSocket.cpp	\
     ../../ixwebsocket/IXWebSocketTransport.cpp \
     ../../ixwebsocket/IXWebSocket.cpp \
+    ../../ixwebsocket/IXSocketConnect.cpp \
     ../../ixwebsocket/IXSocketOpenSSL.cpp \
+    ../../ixwebsocket/IXWebSocketPerMessageDeflate.cpp \
+    ../../ixwebsocket/IXWebSocketPerMessageDeflateOptions.cpp \
     -I ../.. \
     ws_connect.cpp \
     -o ws_connect \
-    -lcrypto -lssl -lpthread
+    -lcrypto -lssl -lz -lpthread
