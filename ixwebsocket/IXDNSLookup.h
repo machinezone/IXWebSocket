@@ -16,6 +16,7 @@
 #include <thread>
 #include <atomic>
 #include <condition_variable>
+#include <set>
 
 struct addrinfo;
 
@@ -53,7 +54,12 @@ namespace ix
         std::atomic<bool> _done;
         std::thread _thread;
         std::condition_variable _condition;
-        std::mutex _mutex;
+        std::mutex _conditionVariableMutex;
+
+        std::atomic<uint64_t> _id;
+        static std::atomic<uint64_t> _nextId;
+        static std::set<uint64_t> _activeJobs;
+        static std::mutex _activeJobsMutex;
 
         const static int64_t kDefaultTimeout;
         const static int64_t kDefaultWait;
