@@ -7,7 +7,7 @@
 #pragma once
 
 #include "IXSocket.h"
-#include "IXSocketConnect.h"
+#include "IXCancellationRequest.h"
 
 #include <openssl/bio.h>
 #include <openssl/hmac.h>
@@ -28,7 +28,7 @@ namespace ix
         virtual bool connect(const std::string& host, 
                              int port,
                              std::string& errMsg,
-                             CancellationRequest isCancellationRequested) final;
+                             const CancellationRequest& isCancellationRequested) final;
         virtual void close() final;
 
         virtual int send(char* buffer, size_t length) final;

@@ -6,6 +6,7 @@
  *  Adapted from Satori SDK Apple SSL code.
  */
 #include "IXSocketAppleSSL.h"
+#include "IXSocketConnect.h"
 
 #include <fcntl.h>
 #include <netdb.h>
@@ -157,7 +158,7 @@ namespace ix
     bool SocketAppleSSL::connect(const std::string& host,
                                  int port,
                                  std::string& errMsg,
-                                 CancellationRequest isCancellationRequested)
+                                 const CancellationRequest& isCancellationRequested)
     {
         OSStatus status;
         {

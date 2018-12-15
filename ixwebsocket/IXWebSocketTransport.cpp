@@ -40,7 +40,10 @@ namespace ix
 {
     WebSocketTransport::WebSocketTransport() :
         _readyState(CLOSED),
-        _enablePerMessageDeflate(false)
+        _enablePerMessageDeflate(false),
+        _closeCode(0),
+        _closeWireSize(0),
+        _requestInitCancellation(false)
     {
 
     }
@@ -89,6 +92,12 @@ namespace ix
             else if (protocol == "wss")
             {
                 port = 443;
+            }
+            else
+            {
+                // Invalid protocol. Should be caught by regex check
+                // but this missing branch trigger cpplint linter.
+                return false;
             }
         }
         else
@@ -164,6 +173,8 @@ namespace ix
         std::string protocol, host, path, query;
         int port;
 
+        _requestInitCancellation = false;
+
         if (!WebSocketTransport::parseUrl(_url, protocol, host,
                                           path, query, port))
         {
@@ -192,9 +203,9 @@ namespace ix
 
         std::string errMsg;
         bool success = _socket->connect(host, port, errMsg,
-                [this]
+                [this]() -> bool
                 {
-                    return _readyState == CLOSING;
+                    return _requestInitCancellation;
                 }
         );
         if (!success)
@@ -231,9 +242,7 @@ namespace ix
 
         ss << "\r\n";
 
-        std::string request = ss.str();
-        int requestSize = (int) request.size();
-        if (_socket->send(const_cast<char*>(request.c_str()), requestSize) != requestSize)
+        if (!writeBytes(ss.str()))
         {
             return WebSocketInitResult(false, 0, std::string("Failed sending GET request to ") + _url);
         }
@@ -369,6 +378,7 @@ namespace ix
             _onCloseCallback(_closeCode, _closeReason, _closeWireSize);
             _closeCode = 0;
             _closeReason = std::string();
+            _closeWireSize = 0;
         }
 
         _readyState = readyStateValue;
@@ -792,6 +802,8 @@ namespace ix
 
     void WebSocketTransport::close()
     {
+        _requestInitCancellation = true;
+
         if (_readyState == CLOSING || _readyState == CLOSED) return;
 
         // See list of close events here:
@@ -810,10 +822,9 @@ namespace ix
         _socket->close();
     }
 
-    // Used by init
     bool WebSocketTransport::readByte(void* buffer)
     {
-        while (true) 
+        while (true)
         {
             if (_readyState == CLOSING) return false;
 
@@ -826,13 +837,43 @@ namespace ix
                 return true;
             }
             // There is possibly something to be read, try again
-            else if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
+            else if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
                                  _socket->getErrno() == EAGAIN))
             {
                 continue;
             }
             // There was an error during the read, abort
-            else 
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    bool WebSocketTransport::writeBytes(const std::string& str)
+    {
+        while (true)
+        {
+            if (_readyState == CLOSING) return false;
+
+            char* buffer = const_cast<char*>(str.c_str());
+            int len = (int) str.size();
+
+            int ret = _socket->send(buffer, len);
+
+            // We wrote some bytes, as needed, all good.
+            if (ret > 0)
+            {
+                return ret == len;
+            }
+            // There is possibly something to be write, try again
+            else if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
+                                 _socket->getErrno() == EAGAIN))
+            {
+                continue;
+            }
+            // There was an error during the write, abort
+            else
             {
                 return false;
             }

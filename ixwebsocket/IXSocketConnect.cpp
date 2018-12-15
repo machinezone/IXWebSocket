@@ -5,6 +5,7 @@
  */
 
 #include "IXSocketConnect.h"
+#include "IXDNSLookup.h"
 
 #ifdef _WIN32
 # include <basetsd.h>
@@ -47,10 +48,15 @@ namespace
 
 namespace ix 
 {
+    //
+    // This function can be cancelled every 50 ms
+    // This is important so that we don't block the main UI thread when shutting down a connection which is
+    // already trying to reconnect, and can be blocked waiting for ::connect to respond.
+    //
     bool SocketConnect::connectToAddress(const struct addrinfo *address, 
                                          int& sockfd,
                                          std::string& errMsg,
-                                         CancellationRequest isCancellationRequested)
+                                         const CancellationRequest& isCancellationRequested)
     {
         sockfd = -1;
 
@@ -64,19 +70,16 @@ namespace ix
         }
 
         // Set the socket to non blocking mode, so that slow responses cannot
-        // block us for too long while we are trying to shut-down.
+        // block us for too long
         SocketConnect::configure(fd);
 
         if (::connect(fd, address->ai_addr, address->ai_addrlen) == -1
             && errno != EINPROGRESS)
         {
             closeSocket(fd);
-            sockfd = -1;
             errMsg = strerror(errno);
             return false;
         }
-
-        // std::cout << "I WAS HERE A" << std::endl;
 
         //
         // If during a connection attempt the request remains idle for longer
@@ -95,7 +98,6 @@ namespace ix
             if (isCancellationRequested())
             {
                 closeSocket(fd);
-                sockfd = -1;
                 errMsg = "Cancelled";
                 return false;
             }
@@ -115,7 +117,7 @@ namespace ix
             if (!FD_ISSET(fd, &wfds)) continue;
 
             // Something was written to the socket
-            int optval;
+            int optval = -1;
             socklen_t optlen = sizeof(optval);
 
             // getsockopt() puts the errno value for connect into optval so 0
@@ -124,7 +126,6 @@ namespace ix
                 optval != 0)
             {
                 closeSocket(fd);
-                sockfd = -1;
                 errMsg = strerror(optval);
                 return false;
             }
@@ -137,33 +138,22 @@ namespace ix
         }
 
         closeSocket(fd);
-        sockfd = -1;
-        errMsg = strerror(errno);
+        errMsg = "connect timed out after 60 seconds";
         return false;
     }
 
     int SocketConnect::connect(const std::string& hostname,
                                int port,
                                std::string& errMsg,
-                               CancellationRequest isCancellationRequested)
+                               const CancellationRequest& isCancellationRequested)
     {
         //
         // First do DNS resolution
         //
-        struct addrinfo hints;
-        memset(&hints, 0, sizeof(hints));
-        hints.ai_flags = AI_ADDRCONFIG | AI_NUMERICSERV;
-        hints.ai_family = AF_UNSPEC;
-        hints.ai_socktype = SOCK_STREAM;
-
-        std::string sport = std::to_string(port);
-
-        struct addrinfo *res = nullptr;
-        int getaddrinfo_result = getaddrinfo(hostname.c_str(), sport.c_str(), 
-                                             &hints, &res);
-        if (getaddrinfo_result)
+        DNSLookup dnsLookup(hostname, port);
+        struct addrinfo *res = dnsLookup.resolve(errMsg, isCancellationRequested);
+        if (res == nullptr)
         {
-            errMsg = gai_strerror(getaddrinfo_result);
             return -1;
         }
 
@@ -183,15 +173,18 @@ namespace ix
                 break;
             }
         }
+
         freeaddrinfo(res);
         return sockfd;
     }
 
     void SocketConnect::configure(int sockfd)
     {
+        // 1. disable Nagle's algorithm
         int flag = 1;
-        setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof(flag)); // Disable Nagle's algorithm
+        setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char*) &flag, sizeof(flag));
 
+        // 2. make socket non blocking
 #ifdef _WIN32
         unsigned long nonblocking = 1;
         ioctlsocket(_sockfd, FIONBIO, &nonblocking);
@@ -199,6 +192,7 @@ namespace ix
         fcntl(sockfd, F_SETFL, O_NONBLOCK); // make socket non blocking
 #endif
 
+        // 3. (apple) prevent SIGPIPE from being emitted when the remote end disconnect
 #ifdef SO_NOSIGPIPE
         int value = 1;
         setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, 

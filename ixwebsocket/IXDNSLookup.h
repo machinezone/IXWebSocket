@@ -1,0 +1,61 @@
+/*
+ *  IXDNSLookup.h
+ *  Author: Benjamin Sergeant
+ *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
+ *
+ *  Resolve a hostname+port to a struct addrinfo obtained with getaddrinfo 
+ *  Does this in a background thread so that it can be cancelled, since
+ *  getaddrinfo is a blocking call, and we don't want to block the main thread on Mobile.
+ */
+
+#pragma once
+
+#include "IXCancellationRequest.h"
+
+#include <string>
+#include <thread>
+#include <atomic>
+#include <condition_variable>
+
+struct addrinfo;
+
+namespace ix 
+{
+    class DNSLookup {
+    public:
+        DNSLookup(const std::string& hostname,
+                  int port,
+                  int wait = DNSLookup::kDefaultWait);
+        ~DNSLookup();
+
+        struct addrinfo* resolve(std::string& errMsg,
+                                 const CancellationRequest& isCancellationRequested,
+                                 bool blocking = false);
+
+    private:
+        struct addrinfo* resolveAsync(std::string& errMsg,
+                                      const CancellationRequest& isCancellationRequested);
+        struct addrinfo* resolveBlocking(std::string& errMsg,
+                                         const CancellationRequest& isCancellationRequested);
+
+        static struct addrinfo* getAddrInfo(const std::string& hostname, 
+                                            int port,
+                                            std::string& errMsg);
+
+        void run(); // thread runner
+
+        std::string _hostname;
+        int _port;
+        int _wait;
+        std::string _errMsg;
+        struct addrinfo* _res;
+
+        std::atomic<bool> _done;
+        std::thread _thread;
+        std::condition_variable _condition;
+        std::mutex _mutex;
+
+        const static int64_t kDefaultTimeout;
+        const static int64_t kDefaultWait;
+    };
+}

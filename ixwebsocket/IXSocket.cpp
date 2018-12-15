@@ -5,6 +5,7 @@
  */
 
 #include "IXSocket.h"
+#include "IXSocketConnect.h"
 
 #ifdef _WIN32
 # include <basetsd.h>
@@ -79,7 +80,7 @@ namespace ix
     bool Socket::connect(const std::string& host,
                          int port,
                          std::string& errMsg,
-                         CancellationRequest isCancellationRequested)
+                         const CancellationRequest& isCancellationRequested)
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 

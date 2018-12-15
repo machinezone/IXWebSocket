@@ -7,6 +7,8 @@
  */
 
 #include "IXSocketOpenSSL.h"
+#include "IXSocketConnect.h"
+
 #include <cassert>
 #include <iostream>
 
@@ -275,7 +277,7 @@ namespace ix
     bool SocketOpenSSL::connect(const std::string& host,
                                 int port,
                                 std::string& errMsg,
-                                CancellationRequest isCancellationRequested)
+                                const CancellationRequest& isCancellationRequested)
     {
         bool handshakeSuccessful = false;
         {
@@ -415,10 +417,8 @@ namespace ix
             if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
             {
                 errno = EWOULDBLOCK;
-                return -1;
-            } else {
-                return -1;
             }
+            return -1;
         }
     }
 

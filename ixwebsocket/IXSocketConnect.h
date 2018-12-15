@@ -6,26 +6,26 @@
 
 #pragma once
 
+#include "IXCancellationRequest.h"
+
 #include <string>
-#include <functional>
 
 struct addrinfo;
 
 namespace ix 
 {
-    using CancellationRequest = std::function<bool()>;
-
     class SocketConnect {
     public:
         static int connect(const std::string& hostname,
                            int port,
                            std::string& errMsg,
-                           CancellationRequest isCancellationRequested);
+                           const CancellationRequest& isCancellationRequested);
 
+    private:
         static bool connectToAddress(const struct addrinfo *address, 
                                      int& sockfd,
                                      std::string& errMsg,
-                                     CancellationRequest isCancellationRequested);
+                                     const CancellationRequest& isCancellationRequested);
 
         static void configure(int sockfd);
     };

@@ -13,6 +13,7 @@ g++ --std=c++11 \
     ../../ixwebsocket/IXSocket.cpp	\
     ../../ixwebsocket/IXWebSocketTransport.cpp \
     ../../ixwebsocket/IXWebSocket.cpp \
+    ../../ixwebsocket/IXDNSLookup.cpp \
     ../../ixwebsocket/IXSocketConnect.cpp \
     ../../ixwebsocket/IXSocketOpenSSL.cpp \
     ../../ixwebsocket/IXWebSocketPerMessageDeflate.cpp \

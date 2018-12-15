@@ -136,6 +136,9 @@ namespace ix
         WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
         std::atomic<bool> _enablePerMessageDeflate;
 
+        // Used to cancel dns lookup + socket connect + http upgrade
+        std::atomic<bool> _requestInitCancellation;
+
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type, 
                                    const std::string& message,
@@ -158,6 +161,8 @@ namespace ix
         void unmaskReceiveBuffer(const wsheader_type& ws);
         std::string genRandomString(const int len);
 
+        // Non blocking versions of read/write, used during http upgrade
         bool readByte(void* buffer);
+        bool writeBytes(const std::string& str);
     };
 }
