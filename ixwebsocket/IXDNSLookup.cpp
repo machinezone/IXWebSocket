@@ -18,19 +18,26 @@ namespace ix
     const int64_t DNSLookup::kDefaultTimeout = 60 * 1000; // ms
     const int64_t DNSLookup::kDefaultWait = 10;           // ms
 
+    std::atomic<uint64_t> DNSLookup::_nextId(0);
+    std::set<uint64_t> DNSLookup::_activeJobs;
+    std::mutex DNSLookup::_activeJobsMutex;
+
     DNSLookup::DNSLookup(const std::string& hostname, int port, int wait) :
         _hostname(hostname),
         _port(port),
         _res(nullptr),
         _done(false),
-        _wait(wait)
+        _wait(wait),
+        _id(_nextId++)
     {
         
     }
 
     DNSLookup::~DNSLookup()
     {
-        ;
+        // Remove this job from the active jobs list
+        std::unique_lock<std::mutex> lock(_activeJobsMutex);
+        _activeJobs.erase(_id);
     }
 
     struct addrinfo* DNSLookup::getAddrInfo(const std::string& hostname, 
@@ -92,6 +99,12 @@ namespace ix
                             // if you need a second lookup.
         }
 
+        // Record job in the active Job set
+        {
+            std::unique_lock<std::mutex> lock(_activeJobsMutex);
+            _activeJobs.insert(_id);
+        }
+
         // 
         // Good resource on thread forced termination
         // https://www.bo-yang.net/2017/11/19/cpp-kill-detached-thread
@@ -100,7 +113,7 @@ namespace ix
         _thread.detach();
 
         int64_t timeout = kDefaultTimeout;
-        std::unique_lock<std::mutex> lock(_mutex);
+        std::unique_lock<std::mutex> lock(_conditionVariableMutex);
 
         while (!_done)
         {
@@ -140,7 +153,20 @@ namespace ix
 
     void DNSLookup::run()
     {
-        _res = getAddrInfo(_hostname, _port, _errMsg);
+        uint64_t id = _id;
+        std::string errMsg;
+        _res = getAddrInfo(_hostname, _port, errMsg);
+
+        // if this isn't an active job, and the control thread is gone
+        // there is not thing to do, and we don't want to touch the defunct
+        // object data structure such as _errMsg or _condition
+        std::unique_lock<std::mutex> lock(_activeJobsMutex);
+        if (_activeJobs.count(id) == 0)
+        {
+            return;
+        }
+
+        _errMsg = errMsg;
         _condition.notify_one();
         _done = true;
     }
