@@ -3,6 +3,7 @@
 #
 all: run
 
+.PHONY: docker
 docker:
 	docker build -t ws_connect:latest .
 

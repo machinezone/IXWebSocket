@@ -9,6 +9,7 @@ RUN apt-get -y install screen
 RUN apt-get -y install procps
 RUN apt-get -y install lsof
 RUN apt-get -y install libz-dev
+RUN apt-get -y install vim
 
 COPY . .
 
