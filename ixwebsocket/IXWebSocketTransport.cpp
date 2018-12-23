@@ -40,9 +40,9 @@ namespace ix
 {
     WebSocketTransport::WebSocketTransport() :
         _readyState(CLOSED),
-        _enablePerMessageDeflate(false),
         _closeCode(0),
         _closeWireSize(0),
+        _enablePerMessageDeflate(false),
         _requestInitCancellation(false)
     {
 
