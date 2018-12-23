@@ -8,4 +8,4 @@ rolename="a_role"
 rolesecret="a_secret"
 filename=${FILENAME:=events.jsonl}
 
-build/satori_publisher $endpoint $appkey $channel $rolename $rolesecret $filename
+build/cobra_publisher $endpoint $appkey $channel $rolename $rolesecret $filename

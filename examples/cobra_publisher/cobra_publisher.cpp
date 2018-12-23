@@ -1,5 +1,5 @@
 /*
- *  satori_publisher.cpp
+ *  cobra_publisher.cpp
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
@@ -9,7 +9,7 @@
 #include <fstream>
 #include <atomic>
 #include <ixwebsocket/IXWebSocket.h>
-#include "IXSatoriConnection.h"
+#include "IXCobraConnection.h"
 #include "jsoncpp/json/json.h"
 
 void msleep(int ms)
@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 
     std::atomic<size_t> incomingBytes(0);
     std::atomic<size_t> outgoingBytes(0);
-    ix::SatoriConnection::setTrafficTrackerCallback(
+    ix::CobraConnection::setTrafficTrackerCallback(
         [&incomingBytes, &outgoingBytes](size_t size, bool incoming)
         {
             if (incoming)
@@ -49,19 +49,19 @@ int main(int argc, char* argv[])
     );
 
     bool done = false;
-    ix::SatoriConnection satoriConnection;
+    ix::CobraConnection cobraConnection;
     ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(
         true, false, false, 15, 15);
-    satoriConnection.configure(appkey, endpoint, rolename, rolesecret,
+    cobraConnection.configure(appkey, endpoint, rolename, rolesecret,
                                webSocketPerMessageDeflateOptions);
-    satoriConnection.connect();
-    satoriConnection.setEventCallback(
-        [&satoriConnection, channel, path, &done]
-        (ix::SatoriConnectionEventType eventType,
+    cobraConnection.connect();
+    cobraConnection.setEventCallback(
+        [&cobraConnection, channel, path, &done]
+        (ix::CobraConnectionEventType eventType,
          const std::string& errMsg,
          const ix::WebSocketHttpHeaders& headers)
         {
-            if (eventType == ix::SatoriConnection_EventType_Open)
+            if (eventType == ix::CobraConnection_EventType_Open)
             {
                 std::cout << "Handshake Headers:" << std::endl;
                 for (auto it : headers)
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
                     std::cout << it.first << ": " << it.second << std::endl;
                 }
             }
-            else if (eventType == ix::SatoriConnection_EventType_Authenticated)
+            else if (eventType == ix::CobraConnection_EventType_Authenticated)
             {
                 std::cout << "Authenticated" << std::endl;
 
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
                     Json::Reader reader;
                     reader.parse(line, value);
 
-                    satoriConnection.publish(channel, value);
+                    cobraConnection.publish(channel, value);
                     n++;
                 }
                 std::cerr << "#published messages: " << n << std::endl;
@@ -99,14 +99,14 @@ int main(int argc, char* argv[])
 
                 done = true;
             }
-            else if (eventType == ix::SatoriConnection_EventType_Error)
+            else if (eventType == ix::CobraConnection_EventType_Error)
             {
-                std::cerr << "Satori Error received: " << errMsg << std::endl;
+                std::cerr << "Cobra Error received: " << errMsg << std::endl;
                 done = true;
             }
-            else if (eventType == ix::SatoriConnection_EventType_Closed)
+            else if (eventType == ix::CobraConnection_EventType_Closed)
             {
-                std::cerr << "Satori connection closed" << std::endl;
+                std::cerr << "Cobra connection closed" << std::endl;
             }
         }
     );

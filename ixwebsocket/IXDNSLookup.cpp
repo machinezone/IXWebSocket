@@ -22,7 +22,7 @@ namespace ix
     std::set<uint64_t> DNSLookup::_activeJobs;
     std::mutex DNSLookup::_activeJobsMutex;
 
-    DNSLookup::DNSLookup(const std::string& hostname, int port, int wait) :
+    DNSLookup::DNSLookup(const std::string& hostname, int port, int64_t wait) :
         _hostname(hostname),
         _port(port),
         _res(nullptr),
