@@ -11,6 +11,7 @@ g++ --std=c++11 \
     -g \
     ../../ixwebsocket/IXEventFd.cpp	\
     ../../ixwebsocket/IXSocket.cpp	\
+    ../../ixwebsocket/IXSetThreadName.cpp	\
     ../../ixwebsocket/IXWebSocketTransport.cpp \
     ../../ixwebsocket/IXWebSocket.cpp \
     ../../ixwebsocket/IXDNSLookup.cpp \

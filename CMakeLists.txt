@@ -14,6 +14,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXEventFd.cpp
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketConnect.cpp
+    ixwebsocket/IXSetThreadName.cpp
     ixwebsocket/IXDNSLookup.cpp
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketTransport.cpp
@@ -25,6 +26,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXEventFd.h
     ixwebsocket/IXSocket.h
     ixwebsocket/IXSocketConnect.h
+    ixwebsocket/IXSetThreadName.h
     ixwebsocket/IXDNSLookup.h
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketTransport.h

@@ -1,5 +1,5 @@
 /*
- *  IXSatoriConnection.h
+ *  IXCobraConnection.h
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2017-2018 Machine Zone. All rights reserved.
  */
@@ -18,31 +18,31 @@
 
 namespace ix
 {
-    enum SatoriConnectionEventType
+    enum CobraConnectionEventType
     {
-        SatoriConnection_EventType_Authenticated = 0,
-        SatoriConnection_EventType_Error = 1,
-        SatoriConnection_EventType_Open = 2,
-        SatoriConnection_EventType_Closed = 3
+        CobraConnection_EventType_Authenticated = 0,
+        CobraConnection_EventType_Error = 1,
+        CobraConnection_EventType_Open = 2,
+        CobraConnection_EventType_Closed = 3
     };
 
-    enum SatoriConnectionPublishMode
+    enum CobraConnectionPublishMode
     {
-        SatoriConnection_PublishMode_Immediate = 0,
-        SatoriConnection_PublishMode_Batch = 1
+        CobraConnection_PublishMode_Immediate = 0,
+        CobraConnection_PublishMode_Batch = 1
     };
 
     using SubscriptionCallback = std::function<void(const Json::Value&)>;
-    using EventCallback = std::function<void(SatoriConnectionEventType,
+    using EventCallback = std::function<void(CobraConnectionEventType,
                                              const std::string&,
                                              const WebSocketHttpHeaders&)>;
     using TrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
-    class SatoriConnection
+    class CobraConnection
     {
     public:
-        SatoriConnection();
-        ~SatoriConnection();
+        CobraConnection();
+        ~CobraConnection();
 
         /// Configuration / set keys, etc...
         /// All input data but the channel name is encrypted with rc4
@@ -79,7 +79,7 @@ namespace ix
         /// Close the connection
         void disconnect();
 
-        /// Connect to Satori and authenticate the connection
+        /// Connect to Cobra and authenticate the connection
         bool connect();
 
         /// Returns true only if we're connected
@@ -89,7 +89,7 @@ namespace ix
         bool flushQueue();
 
         /// Set the publish mode
-        void setPublishMode(SatoriConnectionPublishMode publishMode);
+        void setPublishMode(CobraConnectionPublishMode publishMode);
 
         /// Lifecycle management. Free resources when backgrounding
         void suspend();
@@ -111,7 +111,7 @@ namespace ix
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
         /// Invoke event callbacks
-        void invokeEventCallback(SatoriConnectionEventType eventType,
+        void invokeEventCallback(CobraConnectionEventType eventType,
                                  const std::string& errorMsg = std::string(),
                                  const WebSocketHttpHeaders& headers = WebSocketHttpHeaders());
         void invokeErrorCallback(const std::string& errorMsg);
@@ -126,7 +126,7 @@ namespace ix
         std::string _endpoint;
         std::string _role_name;
         std::string _role_secret;
-        std::atomic<SatoriConnectionPublishMode> _publishMode;
+        std::atomic<CobraConnectionPublishMode> _publishMode;
 
         // Can be set on control+background thread, protecting with an atomic
         std::atomic<bool> _authenticated;
@@ -140,7 +140,7 @@ namespace ix
         /// Traffic tracker callback
         static TrafficTrackerCallback _trafficTrackerCallback;
 
-        /// Satori events callbacks
+        /// Cobra events callbacks
         EventCallback _eventCallback;
         mutable std::mutex _eventCallbackMutex;
 

@@ -1,10 +1,10 @@
 /*
- *  IXSatoriConnection.cpp
+ *  IXCobraConnection.cpp
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2017-2018 Machine Zone. All rights reserved.
  */
 
-#include "IXSatoriConnection.h"
+#include "IXCobraConnection.h"
 #include <ixcrypto/IXHMac.h>
 
 #include <algorithm>
@@ -16,35 +16,35 @@
 
 namespace ix
 {
-    TrafficTrackerCallback SatoriConnection::_trafficTrackerCallback = nullptr;
-    constexpr size_t SatoriConnection::kQueueMaxSize;
+    TrafficTrackerCallback CobraConnection::_trafficTrackerCallback = nullptr;
+    constexpr size_t CobraConnection::kQueueMaxSize;
 
-    SatoriConnection::SatoriConnection() :
+    CobraConnection::CobraConnection() :
         _authenticated(false),
         _eventCallback(nullptr),
-        _publishMode(SatoriConnection_PublishMode_Immediate)
+        _publishMode(CobraConnection_PublishMode_Immediate)
     {
         _pdu["action"] = "rtm/publish";
 
         initWebSocketOnMessageCallback();
     }
 
-    SatoriConnection::~SatoriConnection()
+    CobraConnection::~CobraConnection()
     {
         disconnect();
     }
 
-    void SatoriConnection::setTrafficTrackerCallback(const TrafficTrackerCallback& callback)
+    void CobraConnection::setTrafficTrackerCallback(const TrafficTrackerCallback& callback)
     {
         _trafficTrackerCallback = callback;
     }
 
-    void SatoriConnection::resetTrafficTrackerCallback()
+    void CobraConnection::resetTrafficTrackerCallback()
     {
         setTrafficTrackerCallback(nullptr);
     }
 
-    void SatoriConnection::invokeTrafficTrackerCallback(size_t size, bool incoming)
+    void CobraConnection::invokeTrafficTrackerCallback(size_t size, bool incoming)
     {
         if (_trafficTrackerCallback)
         {
@@ -52,13 +52,13 @@ namespace ix
         }
     }
 
-    void SatoriConnection::setEventCallback(const EventCallback& eventCallback)
+    void CobraConnection::setEventCallback(const EventCallback& eventCallback)
     {
         std::lock_guard<std::mutex> lock(_eventCallbackMutex);
         _eventCallback = eventCallback;
     }
 
-    void SatoriConnection::invokeEventCallback(ix::SatoriConnectionEventType eventType,
+    void CobraConnection::invokeEventCallback(ix::CobraConnectionEventType eventType,
                                                const std::string& errorMsg,
                                                const WebSocketHttpHeaders& headers)
     {
@@ -69,18 +69,18 @@ namespace ix
         }
     }
 
-    void SatoriConnection::invokeErrorCallback(const std::string& errorMsg)
+    void CobraConnection::invokeErrorCallback(const std::string& errorMsg)
     {
-        invokeEventCallback(ix::SatoriConnection_EventType_Error, errorMsg);
+        invokeEventCallback(ix::CobraConnection_EventType_Error, errorMsg);
     }
 
-    void SatoriConnection::disconnect()
+    void CobraConnection::disconnect()
     {
         _authenticated = false;
         _webSocket.stop();
     }
 
-    void SatoriConnection::initWebSocketOnMessageCallback()
+    void CobraConnection::initWebSocketOnMessageCallback()
     {
         _webSocket.setOnMessageCallback(
             [this](ix::WebSocketMessageType messageType,
@@ -90,12 +90,12 @@ namespace ix
                    const ix::WebSocketCloseInfo& closeInfo,
                    const ix::WebSocketHttpHeaders& headers)
             {
-                SatoriConnection::invokeTrafficTrackerCallback(wireSize, true);
+                CobraConnection::invokeTrafficTrackerCallback(wireSize, true);
 
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
-                    invokeEventCallback(ix::SatoriConnection_EventType_Open,
+                    invokeEventCallback(ix::CobraConnection_EventType_Open,
                                         std::string(),
                                         headers);
                     sendHandshakeMessage();
@@ -107,7 +107,7 @@ namespace ix
                     std::stringstream ss;
                     ss << "Close code " << closeInfo.code;
                     ss << " reason " << closeInfo.reason;
-                    invokeEventCallback(ix::SatoriConnection_EventType_Closed,
+                    invokeEventCallback(ix::CobraConnection_EventType_Closed,
                                         ss.str());
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
@@ -142,7 +142,7 @@ namespace ix
                     else if (action == "auth/authenticate/ok")
                     {
                         _authenticated = true;
-                        invokeEventCallback(ix::SatoriConnection_EventType_Authenticated);
+                        invokeEventCallback(ix::CobraConnection_EventType_Authenticated);
                         flushQueue();
                     }
                     else if (action == "auth/authenticate/error")
@@ -170,12 +170,12 @@ namespace ix
         });
     }
 
-    void SatoriConnection::setPublishMode(SatoriConnectionPublishMode publishMode)
+    void CobraConnection::setPublishMode(CobraConnectionPublishMode publishMode)
     {
         _publishMode = publishMode;
     }
 
-    void SatoriConnection::configure(const std::string& appkey,
+    void CobraConnection::configure(const std::string& appkey,
                                      const std::string& endpoint,
                                      const std::string& rolename,
                                      const std::string& rolesecret,
@@ -210,7 +210,7 @@ namespace ix
     // }
     //
     //
-    bool SatoriConnection::sendHandshakeMessage()
+    bool CobraConnection::sendHandshakeMessage()
     {
         Json::Value data;
         data["role"] = _role_name;
@@ -224,7 +224,7 @@ namespace ix
         pdu["body"] = body;
 
         std::string serializedJson = serializeJson(pdu);
-        SatoriConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
+        CobraConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
 
         return _webSocket.send(serializedJson).success;
     }
@@ -243,7 +243,7 @@ namespace ix
     //     }
     // }
     //
-    bool SatoriConnection::handleHandshakeResponse(const Json::Value& pdu)
+    bool CobraConnection::handleHandshakeResponse(const Json::Value& pdu)
     {
         if (!pdu.isMember("body")) return false;
         Json::Value body = pdu["body"];
@@ -272,7 +272,7 @@ namespace ix
     //     },
     // }
     //
-    bool SatoriConnection::sendAuthMessage(const std::string& nonce)
+    bool CobraConnection::sendAuthMessage(const std::string& nonce)
     {
         Json::Value credentials;
         credentials["hash"] = hmac(nonce, _role_secret);
@@ -286,13 +286,13 @@ namespace ix
         pdu["body"] = body;
 
         std::string serializedJson = serializeJson(pdu);
-        SatoriConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
+        CobraConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
 
         return _webSocket.send(serializedJson).success;
     }
 
 
-    bool SatoriConnection::handleSubscriptionData(const Json::Value& pdu)
+    bool CobraConnection::handleSubscriptionData(const Json::Value& pdu)
     {
         if (!pdu.isMember("body")) return false;
         Json::Value body = pdu["body"];
@@ -318,18 +318,18 @@ namespace ix
         return true;
     }
 
-    bool SatoriConnection::connect()
+    bool CobraConnection::connect()
     {
         _webSocket.start();
         return true;
     }
 
-    bool SatoriConnection::isConnected() const
+    bool CobraConnection::isConnected() const
     {
         return _webSocket.getReadyState() == ix::WebSocket_ReadyState_Open;
     }
 
-    std::string SatoriConnection::serializeJson(const Json::Value& value)
+    std::string CobraConnection::serializeJson(const Json::Value& value)
     {
         std::lock_guard<std::mutex> lock(_jsonWriterMutex);
         return _jsonWriter.write(value);
@@ -338,7 +338,7 @@ namespace ix
     //
     // publish is not thread safe as we are trying to reuse some Json objects.
     //
-    bool SatoriConnection::publish(const Json::Value& channels,
+    bool CobraConnection::publish(const Json::Value& channels,
                                    const Json::Value& msg)
     {
         _body["channels"] = channels;
@@ -347,7 +347,7 @@ namespace ix
 
         std::string serializedJson = serializeJson(_pdu);
 
-        if (_publishMode == SatoriConnection_PublishMode_Batch)
+        if (_publishMode == CobraConnection_PublishMode_Batch)
         {
             enqueue(serializedJson);
             return true;
@@ -370,7 +370,7 @@ namespace ix
         }
     }
 
-    void SatoriConnection::subscribe(const std::string& channel,
+    void CobraConnection::subscribe(const std::string& channel,
                                      SubscriptionCallback cb)
     {
         // Create and send a subscribe pdu
@@ -388,7 +388,7 @@ namespace ix
         _cbs[channel] = cb;
     }
 
-    void SatoriConnection::unsubscribe(const std::string& channel)
+    void CobraConnection::unsubscribe(const std::string& channel)
     {
         {
             std::lock_guard<std::mutex> lock(_cbsMutex);
@@ -420,11 +420,11 @@ namespace ix
     // enqueue(D) -> [D, C, B] -- now we drop A, the oldest message,
     //                         -- and keep the 'fresh ones'
     //
-    void SatoriConnection::enqueue(const std::string& msg)
+    void CobraConnection::enqueue(const std::string& msg)
     {
         std::lock_guard<std::mutex> lock(_queueMutex);
 
-        if (_messageQueue.size() == SatoriConnection::kQueueMaxSize)
+        if (_messageQueue.size() == CobraConnection::kQueueMaxSize)
         {
             _messageQueue.pop_back();
         }
@@ -436,7 +436,7 @@ namespace ix
     // when sending them. If we fail to send something, we put it back in the queue
     // at the end we picked it up originally (at the end).
     //
-    bool SatoriConnection::flushQueue()
+    bool CobraConnection::flushQueue()
     {
         std::lock_guard<std::mutex> lock(_queueMutex);
 
@@ -454,20 +454,20 @@ namespace ix
         return true;
     }
 
-    bool SatoriConnection::publishMessage(const std::string& serializedJson)
+    bool CobraConnection::publishMessage(const std::string& serializedJson)
     {
         auto webSocketSendInfo = _webSocket.send(serializedJson);
-        SatoriConnection::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize,
+        CobraConnection::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize,
                                                        false);
         return webSocketSendInfo.success;
     }
 
-    void SatoriConnection::suspend()
+    void CobraConnection::suspend()
     {
         disconnect();
     }
 
-    void SatoriConnection::resume()
+    void CobraConnection::resume()
     {
         connect();
     }

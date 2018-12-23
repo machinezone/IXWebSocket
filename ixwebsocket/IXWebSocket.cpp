@@ -5,6 +5,7 @@
  */
 
 #include "IXWebSocket.h"
+#include "IXSetThreadName.h"
 
 #include <iostream>
 #include <cmath>
@@ -25,8 +26,8 @@ namespace
     }
 }
 
-namespace ix {
-
+namespace ix
+{
     OnTrafficTrackerCallback WebSocket::_onTrafficTrackerCallback = nullptr;
 
     WebSocket::WebSocket() :
@@ -171,6 +172,8 @@ namespace ix {
 
     void WebSocket::run()
     {
+        setThreadName(_url);
+
         while (true) 
         {
             if (_stop) return;

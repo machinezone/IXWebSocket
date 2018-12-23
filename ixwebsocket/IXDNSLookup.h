@@ -26,7 +26,7 @@ namespace ix
     public:
         DNSLookup(const std::string& hostname,
                   int port,
-                  int wait = DNSLookup::kDefaultWait);
+                  int64_t wait = DNSLookup::kDefaultWait);
         ~DNSLookup();
 
         struct addrinfo* resolve(std::string& errMsg,
@@ -47,7 +47,7 @@ namespace ix
 
         std::string _hostname;
         int _port;
-        int _wait;
+        int64_t _wait;
         std::string _errMsg;
         struct addrinfo* _res;
 
