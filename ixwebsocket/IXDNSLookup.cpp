@@ -25,9 +25,9 @@ namespace ix
     DNSLookup::DNSLookup(const std::string& hostname, int port, int64_t wait) :
         _hostname(hostname),
         _port(port),
+        _wait(wait),
         _res(nullptr),
         _done(false),
-        _wait(wait),
         _id(_nextId++)
     {
         
