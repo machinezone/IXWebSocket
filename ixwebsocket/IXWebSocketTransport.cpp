@@ -10,6 +10,7 @@
 
 #include "IXWebSocketTransport.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXSocketConnect.h" // for configure, cleanup, move it back to Socket
 
 #include "IXSocket.h"
 #ifdef IXWEBSOCKET_USE_TLS
@@ -221,6 +222,7 @@ namespace ix
         return s;
     }
 
+    // Client
     WebSocketInitResult WebSocketTransport::init()
     {
         std::string protocol, host, path, query;
@@ -380,12 +382,70 @@ namespace ix
         return WebSocketInitResult(true, status, "", headers);
     }
 
+    // Server
     WebSocketInitResult WebSocketTransport::initFromSocket(int fd)
     {
+        _requestInitCancellation = false;
+
         _socket.reset();
         _socket = std::make_shared<Socket>(fd);
 
-        WebSocketHttpHeaders headers;
+        // Read first line
+        char line[256];
+        int i;
+        for (i = 0; i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
+        {
+            if (!readByte(line+i))
+            {
+                return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + _url);
+            } 
+        }
+        line[i] = 0;
+        if (i == 255)
+        {
+            return WebSocketInitResult(false, 0, std::string("Got bad status line connecting to ") + _url);
+        }
+
+        std::cout << "initFromSocket::start" << std::endl;
+        std::cout << line << std::endl;
+
+        auto result = parseHttpHeaders();
+        auto headersValid = result.first;
+        auto headers = result.second;
+
+        if (!headersValid)
+        {
+            return WebSocketInitResult(false, 401, "Error parsing HTTP headers");
+        }
+
+        if (headers.find("sec-websocket-key") == headers.end())
+        {
+            std::string errorMsg("Missing Sec-WebSocket-Key value");
+            return WebSocketInitResult(false, 401, errorMsg);
+        }
+
+        std::cout << "FIXME perMessageDeflateOptions" << std::endl;
+
+        char output[29] = {};
+        WebSocketHandshake::generate(headers["sec-websocket-key"].c_str(), output);
+
+        std::stringstream ss;
+        ss << "HTTP/1.1 101\r\n";
+        ss << "Sec-WebSocket-Accept: " << std::string(output) << "\r\n";
+
+        ss << "\r\n";
+
+        std::string dest("remove host"); // FIXME
+
+        std::cout << ss.str() << std::endl;
+
+        if (!writeBytes(ss.str()))
+        {
+            return WebSocketInitResult(false, 0, std::string("Failed sending response to ") + dest);
+        }
+
+        std::cout << "initFromSocket::end" << std::endl;
+
         return WebSocketInitResult(true, 200, "", headers);
     }
 
