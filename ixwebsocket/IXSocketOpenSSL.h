@@ -22,7 +22,7 @@ namespace ix
     class SocketOpenSSL : public Socket 
     {
     public:
-        SocketOpenSSL();
+        SocketOpenSSL(int fd = -1);
         ~SocketOpenSSL();
 
         virtual bool connect(const std::string& host, 

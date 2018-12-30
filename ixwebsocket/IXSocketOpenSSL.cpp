@@ -74,7 +74,7 @@ SSL *openssl_create_connection(SSL_CTX *ctx, int socket)
 
 namespace ix 
 {
-    SocketOpenSSL::SocketOpenSSL() :
+    SocketOpenSSL::SocketOpenSSL(int fd) : Socket(fd),
         _ssl_connection(nullptr), 
         _ssl_context(nullptr)
     {

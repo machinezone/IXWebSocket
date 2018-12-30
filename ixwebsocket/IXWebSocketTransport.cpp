@@ -145,6 +145,59 @@ namespace ix
         std::cout << "-------------------------------" << std::endl;
     }
 
+    std::pair<bool, WebSocketHttpHeaders> WebSocketTransport::parseHttpHeaders()
+    {
+        WebSocketHttpHeaders headers;
+
+        char line[256];
+        int i;
+
+        while (true) 
+        {
+            int colon = 0;
+
+            for (i = 0;
+                 i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n');
+                 ++i)
+            {
+                if (!readByte(line+i))
+                {
+                    return std::make_pair(false, headers);
+                }
+
+                if (line[i] == ':' && colon == 0)
+                {
+                    colon = i;
+                }
+            }
+            if (line[0] == '\r' && line[1] == '\n')
+            {
+                break;
+            }
+
+            // line is a single header entry. split by ':', and add it to our
+            // header map. ignore lines with no colon.
+            if (colon > 0)
+            {
+                line[i] = '\0';
+                std::string lineStr(line);
+                // colon is ':', colon+1 is ' ', colon+2 is the start of the value.
+                // i is end of string (\0), i-colon is length of string minus key;
+                // subtract 1 for '\0', 1 for '\n', 1 for '\r',
+                // 1 for the ' ' after the ':', and total is -4
+                std::string name(lineStr.substr(0, colon));
+                std::string value(lineStr.substr(colon + 2, i - colon - 4));
+
+                // Make the name lower case.
+                std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+                headers[name] = value;
+            }
+        }
+
+        return std::make_pair(true, headers);
+    }
+
     std::string WebSocketTransport::genRandomString(const int len)
     {
         std::string alphanum = 
@@ -247,6 +300,7 @@ namespace ix
             return WebSocketInitResult(false, 0, std::string("Failed sending GET request to ") + _url);
         }
 
+        // Read first line
         char line[256];
         int i;
         for (i = 0; i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
@@ -285,49 +339,13 @@ namespace ix
             return WebSocketInitResult(false, status, ss.str());
         }
 
-        WebSocketHttpHeaders headers;
+        auto result = parseHttpHeaders();
+        auto headersValid = result.first;
+        auto headers = result.second;
 
-        while (true) 
+        if (!headersValid)
         {
-            int colon = 0;
-
-            for (i = 0;
-                 i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n');
-                 ++i)
-            {
-                if (!readByte(line+i))
-                {
-                    return WebSocketInitResult(false, status, std::string("Failed reading response header from ") + _url);
-                }
-
-                if (line[i] == ':' && colon == 0)
-                {
-                    colon = i;
-                }
-            }
-            if (line[0] == '\r' && line[1] == '\n')
-            {
-                break;
-            }
-
-            // line is a single header entry. split by ':', and add it to our
-            // header map. ignore lines with no colon.
-            if (colon > 0)
-            {
-                line[i] = '\0';
-                std::string lineStr(line);
-                // colon is ':', colon+1 is ' ', colon+2 is the start of the value.
-                // i is end of string (\0), i-colon is length of string minus key;
-                // subtract 1 for '\0', 1 for '\n', 1 for '\r',
-                // 1 for the ' ' after the ':', and total is -4
-                std::string name(lineStr.substr(0, colon));
-                std::string value(lineStr.substr(colon + 2, i - colon - 4));
-
-                // Make the name lower case.
-                std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-
-                headers[name] = value;
-            }
+            return WebSocketInitResult(false, status, "Error parsing HTTP headers");
         }
 
         char output[29] = {};
@@ -360,6 +378,15 @@ namespace ix
         setReadyState(OPEN);
 
         return WebSocketInitResult(true, status, "", headers);
+    }
+
+    WebSocketInitResult WebSocketTransport::initFromSocket(int fd)
+    {
+        _socket.reset();
+        _socket = std::make_shared<Socket>(fd);
+
+        WebSocketHttpHeaders headers;
+        return WebSocketInitResult(true, 200, "", headers);
     }
 
     WebSocketTransport::ReadyStateValues WebSocketTransport::getReadyState() const 
