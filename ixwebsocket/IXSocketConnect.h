@@ -21,13 +21,13 @@ namespace ix
                            std::string& errMsg,
                            const CancellationRequest& isCancellationRequested);
 
+        static void configure(int sockfd);
+
     private:
         static bool connectToAddress(const struct addrinfo *address, 
                                      int& sockfd,
                                      std::string& errMsg,
                                      const CancellationRequest& isCancellationRequested);
-
-        static void configure(int sockfd);
     };
 }
 
