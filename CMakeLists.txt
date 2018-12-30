@@ -14,7 +14,6 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXEventFd.cpp
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketConnect.cpp
-    ixwebsocket/IXSetThreadName.cpp
     ixwebsocket/IXDNSLookup.cpp
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketTransport.cpp
@@ -28,13 +27,23 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSocketConnect.h
     ixwebsocket/IXSetThreadName.h
     ixwebsocket/IXDNSLookup.h
+    ixwebsocket/IXCancellationRequest.h
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/IXWebSocketSendInfo.h
+    ixwebsocket/IXWebSocketErrorInfo.h
     ixwebsocket/IXWebSocketPerMessageDeflate.h
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.h
     ixwebsocket/IXWebSocketHttpHeaders.h
 )
+
+# Platform specific code
+if (APPLE)
+    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/apple/IXSetThreadName_apple.cpp)
+else()
+    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/linux/IXSetThreadName_linux.cpp)
+endif()
+
 
 if (USE_TLS)
     add_definitions(-DIXWEBSOCKET_USE_TLS)
@@ -42,6 +51,9 @@ if (USE_TLS)
     if (APPLE)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketAppleSSL.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketAppleSSL.cpp)
+    elseif (WIN32)
+        list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketSChannel.h)
+        list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketSChannel.cpp)
     else()
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketOpenSSL.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketOpenSSL.cpp)
