@@ -15,3 +15,10 @@ build:
 	(cd examples/chat ; mkdir -p build ; cd build ; cmake .. ; make)
 	(cd examples/ping_pong ; mkdir -p build ; cd build ; cmake .. ; make)
 	(cd examples/ws_connect ; mkdir -p build ; cd build ; cmake .. ; make)
+
+test_server:
+	(cd test && npm i ws && node broadcast-server.js)
+test:
+	(cd test && cmake . && make && ./ixwebsocket_unittest)
+
+.PHONY: test
