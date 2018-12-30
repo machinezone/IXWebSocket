@@ -37,8 +37,8 @@
 
 namespace ix 
 {
-    Socket::Socket() : 
-        _sockfd(-1)
+    Socket::Socket(int fd) : 
+        _sockfd(fd)
     {
 
     }

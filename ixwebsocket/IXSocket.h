@@ -22,7 +22,7 @@ namespace ix
     public:
         using OnPollCallback = std::function<void()>;
 
-        Socket();
+        Socket(int fd = -1);
         virtual ~Socket();
 
         void configure();

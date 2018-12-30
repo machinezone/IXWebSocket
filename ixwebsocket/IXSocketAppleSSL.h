@@ -19,7 +19,7 @@ namespace ix
     class SocketAppleSSL : public Socket 
     {
     public:
-        SocketAppleSSL();
+        SocketAppleSSL(int fd = -1);
         ~SocketAppleSSL();
 
         virtual bool connect(const std::string& host, 

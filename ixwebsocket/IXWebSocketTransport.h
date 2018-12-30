@@ -74,9 +74,13 @@ namespace ix
         WebSocketTransport();
         ~WebSocketTransport();
 
+        // Client
         void configure(const std::string& url,
                        const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         WebSocketInitResult init();
+
+        // Server
+        WebSocketInitResult initFromSocket(int fd);
 
         void poll();
         WebSocketSendInfo sendBinary(const std::string& message);
@@ -164,5 +168,8 @@ namespace ix
         // Non blocking versions of read/write, used during http upgrade
         bool readByte(void* buffer);
         bool writeBytes(const std::string& str);
+
+        // Parse HTTP headers
+        std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders();
     };
 }
