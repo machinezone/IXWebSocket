@@ -105,10 +105,10 @@ namespace ix
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
-            _ws.configure(_url, _perMessageDeflateOptions);
+            _ws.configure(_perMessageDeflateOptions);
         }
 
-        WebSocketInitResult status = _ws.init();
+        WebSocketInitResult status = _ws.connectToUrl(_url);
         if (!status.success)
         {
             return status;
@@ -120,9 +120,23 @@ namespace ix
         return status;
     }
 
-    void WebSocket::setSocketFileDescriptor(int fd)
+    WebSocketInitResult WebSocket::connectToSocket(int fd)
     {
-        _ws.initFromSocket(fd);
+        {
+            std::lock_guard<std::mutex> lock(_configMutex);
+            _ws.configure(_perMessageDeflateOptions);
+        }
+
+        WebSocketInitResult status = _ws.connectToSocket(fd);
+        if (!status.success)
+        {
+            return status;
+        }
+
+        _onMessageCallback(WebSocket_MessageType_Open, "", 0,
+                           WebSocketErrorInfo(), WebSocketCloseInfo(),
+                           status.headers);
+        return status;
     }
 
     bool WebSocket::isConnected() const

@@ -54,10 +54,8 @@ namespace ix
         ;
     }
 
-    void WebSocketTransport::configure(const std::string& url,
-                                       const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
+    void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
     {
-        _url = url;
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
     }
@@ -223,18 +221,18 @@ namespace ix
     }
 
     // Client
-    WebSocketInitResult WebSocketTransport::init()
+    WebSocketInitResult WebSocketTransport::connectToUrl(const std::string& url)
     {
         std::string protocol, host, path, query;
         int port;
 
         _requestInitCancellation = false;
 
-        if (!WebSocketTransport::parseUrl(_url, protocol, host,
+        if (!WebSocketTransport::parseUrl(url, protocol, host,
                                           path, query, port))
         {
             return WebSocketInitResult(false, 0,
-                                       std::string("Could not parse URL ") + _url);
+                                       std::string("Could not parse URL ") + url);
         }
 
         if (protocol == "wss")
@@ -299,7 +297,7 @@ namespace ix
 
         if (!writeBytes(ss.str()))
         {
-            return WebSocketInitResult(false, 0, std::string("Failed sending GET request to ") + _url);
+            return WebSocketInitResult(false, 0, std::string("Failed sending GET request to ") + url);
         }
 
         // Read first line
@@ -309,7 +307,7 @@ namespace ix
         {
             if (!readByte(line+i))
             {
-                return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + _url);
+                return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + url);
             } 
         }
         line[i] = 0;
@@ -383,7 +381,7 @@ namespace ix
     }
 
     // Server
-    WebSocketInitResult WebSocketTransport::initFromSocket(int fd)
+    WebSocketInitResult WebSocketTransport::connectToSocket(int fd)
     {
         _requestInitCancellation = false;
 
@@ -393,6 +391,8 @@ namespace ix
         _socket.reset();
         _socket = std::make_shared<Socket>(fd);
 
+        std::string remote = std::string("remote fd ") + std::to_string(fd);
+
         // Read first line
         char line[256];
         int i;
@@ -400,13 +400,13 @@ namespace ix
         {
             if (!readByte(line+i))
             {
-                return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + _url);
+                return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + remote);
             } 
         }
         line[i] = 0;
         if (i == 255)
         {
-            return WebSocketInitResult(false, 0, std::string("Got bad status line connecting to ") + _url);
+            return WebSocketInitResult(false, 0, std::string("Got bad status line connecting to ") + remote);
         }
 
         std::cout << "initFromSocket::start" << std::endl;
@@ -438,13 +438,9 @@ namespace ix
 
         ss << "\r\n";
 
-        std::string dest("remove host"); // FIXME
-
-        std::cout << ss.str() << std::endl;
-
         if (!writeBytes(ss.str()))
         {
-            return WebSocketInitResult(false, 0, std::string("Failed sending response to ") + dest);
+            return WebSocketInitResult(false, 0, std::string("Failed sending response to ") + remote);
         }
 
         setReadyState(OPEN);

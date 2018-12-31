@@ -74,13 +74,10 @@ namespace ix
         WebSocketTransport();
         ~WebSocketTransport();
 
-        // Client
-        void configure(const std::string& url,
-                       const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
-        WebSocketInitResult init();
+        void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
 
-        // Server
-        WebSocketInitResult initFromSocket(int fd);
+        WebSocketInitResult connectToUrl(const std::string& url); // Client
+        WebSocketInitResult connectToSocket(int fd);              // Server
 
         void poll();
         WebSocketSendInfo sendBinary(const std::string& message);
