@@ -8,6 +8,8 @@
 
 #include <utility> // pair
 #include <string>
+#include <vector>
+#include <thread>
 
 namespace ix 
 {
@@ -18,7 +20,11 @@ namespace ix
 
         std::pair<bool, std::string> run();
 
+        void handleConnection(int fd);
+
     private:
         int _port;
+
+        std::vector<std::thread> _workers;
     };
 }
