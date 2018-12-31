@@ -10,13 +10,20 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <functional>
+
+#include "IXWebSocket.h"
 
 namespace ix 
 {
+    using OnConnectionCallback = std::function<void(WebSocket&)>;
+
     class WebSocketServer {
     public:
         WebSocketServer(int port = 8080, int backlog = 5);
         virtual ~WebSocketServer();
+
+        void setOnConnectionCallback(const OnConnectionCallback& callback);
 
         std::pair<bool, std::string> listen();
         void run();
@@ -26,6 +33,8 @@ namespace ix
 
         int _port;
         int _backlog;
+
+        OnConnectionCallback _onConnectionCallback;
 
         // socket for accepting connections
         int _serverFd;

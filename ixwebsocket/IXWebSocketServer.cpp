@@ -9,7 +9,6 @@
 #include "IXWebSocket.h"
 
 #include <sstream>
-#include <iostream>
 
 #include <netdb.h>
 #include <stdio.h>
@@ -28,6 +27,11 @@ namespace ix
     WebSocketServer::~WebSocketServer()
     {
 
+    }
+
+    void WebSocketServer::setOnConnectionCallback(const OnConnectionCallback& callback)
+    {
+        _onConnectionCallback = callback;
     }
 
     std::pair<bool, std::string> WebSocketServer::listen()
@@ -102,8 +106,7 @@ namespace ix
             if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) == -1)
             {
                 std::cerr << "WebSocketServer::run() error accepting connection: "
-                          << strerror(errno)
-                          << std::endl;
+                          << strerror(errno);
                 continue;
             }
 
@@ -111,29 +114,18 @@ namespace ix
         }
     }
 
+    //
+    // FIXME: make sure we never run into reconnectPerpetuallyIfDisconnected
+    //
     void WebSocketServer::handleConnection(int fd)
     {
         ix::WebSocket webSocket;
         webSocket.setSocketFileDescriptor(fd);
-
-        webSocket.setOnMessageCallback(
-            [&webSocket](ix::WebSocketMessageType messageType,
-               const std::string& str,
-               size_t wireSize,
-               const ix::WebSocketErrorInfo& error,
-               const ix::WebSocketCloseInfo& closeInfo,
-               const ix::WebSocketHttpHeaders& headers)
-            {
-                if (messageType == ix::WebSocket_MessageType_Message)
-                {
-                    std::cout << str << std::endl;
-                    webSocket.send(str);
-                }
-            }
-        );
-
         webSocket.start();
 
+        _onConnectionCallback(webSocket);
+
+        // We can probably do better than this busy loop, with a condition variable.
         for (;;)
         {
             std::chrono::duration<double, std::milli> wait(10);
