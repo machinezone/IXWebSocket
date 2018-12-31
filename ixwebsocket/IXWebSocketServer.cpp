@@ -71,9 +71,8 @@ namespace ix
         // to allow that, but this is a bit of a pain. (this is what node or python would do).
         //
         // Using INADDR_LOOPBACK also does not work ... while it should.
-        // Using localhost or 127.0.0.1 seems to work.
         //
-        server.sin_addr.s_addr = inet_addr("localhost");
+        server.sin_addr.s_addr = inet_addr("127.0.0.1");
 
         if (bind(_serverFd, (struct sockaddr *)&server, sizeof(server)) < 0)
         {
@@ -103,17 +102,15 @@ namespace ix
     {
         for (;;)
         {
-            /*
-             * Accept a connection.
-             */
-            struct sockaddr_in client; /* client address information */
-            int clientFd;              /* socket connected to client */
+            // Accept a connection.
+            struct sockaddr_in client; // client address information
+            int clientFd;              // socket connected to client
             socklen_t addressLen = sizeof(socklen_t);
 
             if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) == -1)
             {
                 std::cerr << "WebSocketServer::run() error accepting connection: "
-                          << strerror(errno);
+                    << strerror(errno);
                 continue;
             }
 
@@ -127,10 +124,10 @@ namespace ix
     void WebSocketServer::handleConnection(int fd)
     {
         ix::WebSocket webSocket;
-        webSocket.setSocketFileDescriptor(fd);
-        webSocket.start();
-
         _onConnectionCallback(webSocket);
+
+        webSocket.start();
+        webSocket.connectToSocket(fd); // FIXME: we ignore the return value
 
         // We can probably do better than this busy loop, with a condition variable.
         for (;;)

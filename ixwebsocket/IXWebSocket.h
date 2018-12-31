@@ -100,6 +100,7 @@ namespace ix
 
         // Server
         void setSocketFileDescriptor(int fd);
+        WebSocketInitResult connectToSocket(int fd);
 
         WebSocketTransport _ws;
 

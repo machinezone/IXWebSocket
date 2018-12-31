@@ -31,9 +31,18 @@ int main(int argc, char** argv)
                    const ix::WebSocketCloseInfo& closeInfo,
                    const ix::WebSocketHttpHeaders& headers)
                 {
-                    if (messageType == ix::WebSocket_MessageType_Message)
+                    if (messageType == ix::WebSocket_MessageType_Open)
                     {
-                        std::cout << str << std::endl;
+                        std::cout << "New connection" << std::endl;
+                        std::cout << "Headers:" << std::endl;
+                        for (auto it : headers)
+                        {
+                            std::cerr << it.first << ": " << it.second << std::endl;
+                        }
+                    }
+                    else if (messageType == ix::WebSocket_MessageType_Message)
+                    {
+                        std::cerr << str << std::endl;
                         webSocket.send(str);
                     }
                 }
