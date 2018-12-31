@@ -30,10 +30,8 @@ namespace ix
     std::pair<bool, std::string> WebSocketServer::run()
     {
         // https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.3.0/com.ibm.zos.v2r3.hala001/server.htm
-        struct sockaddr_in client; /* client address information          */
         struct sockaddr_in server; /* server address information          */
         int s;                     /* socket for accepting connections    */
-        int ns;                    /* socket connected to client          */
 
         /*
          * Get a socket for accepting connections.
@@ -67,20 +65,35 @@ namespace ix
             return std::make_pair(false, errMsg);
         }
 
-        /*
-         * Accept a connection.
-         */
-        socklen_t address_len = sizeof(socklen_t);
-        if ((ns = accept(s, (struct sockaddr *)&client, &address_len)) == -1)
+        for (;;)
         {
-            std::string errMsg = "Accept()";
-            return std::make_pair(false, errMsg);
+            /*
+             * Accept a connection.
+             */
+            struct sockaddr_in client; /* client address information          */
+            int clientFd; /* socket connected to client */
+
+            socklen_t address_len = sizeof(socklen_t);
+            if ((clientFd = accept(s, (struct sockaddr *)&client, &address_len)) == -1)
+            {
+                std::string errMsg = "Accept()";
+                return std::make_pair(false, errMsg);
+            }
+
+            _workers.push_back(std::thread(&WebSocketServer::handleConnection, this, clientFd));
+
+            // handleConnection(clientFd);
         }
 
+        return std::make_pair(true, "");
+    }
+
+    void WebSocketServer::handleConnection(int fd)
+    {
         // We only handle one connection so far, and we just 'print received message from it'
         ix::WebSocketTransport webSocketTransport;
-        SocketConnect::configure(ns); // We could/should do this inside initFromSocket
-        webSocketTransport.initFromSocket(ns);
+        SocketConnect::configure(fd); // We could/should do this inside initFromSocket
+        webSocketTransport.initFromSocket(fd);
 
         for (;;)
         {
@@ -88,7 +101,7 @@ namespace ix
 
             // 1. Dispatch the incoming messages
             webSocketTransport.dispatch(
-                [this](const std::string& msg,
+                [&webSocketTransport](const std::string& msg,
                        size_t wireSize,
                        bool decompressionError,
                        WebSocketTransport::MessageKind messageKind)
@@ -122,12 +135,11 @@ namespace ix
                     // WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
 
                     std::cout << "received: " << msg << std::endl;
+                    webSocketTransport.sendBinary(msg);
                 });
 
             std::chrono::duration<double, std::milli> wait(10);
             std::this_thread::sleep_for(wait);
         }
-
-        return std::make_pair(true, "");
     }
 }

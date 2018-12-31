@@ -444,6 +444,7 @@ namespace ix
             return WebSocketInitResult(false, 0, std::string("Failed sending response to ") + dest);
         }
 
+        setReadyState(OPEN);
         std::cout << "initFromSocket::end" << std::endl;
 
         return WebSocketInitResult(true, 200, "", headers);
