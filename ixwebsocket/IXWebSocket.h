@@ -98,6 +98,9 @@ namespace ix
         std::string readyStateToString(ReadyState readyState);
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
+        // Server
+        void setSocketFileDescriptor(int fd);
+
         WebSocketTransport _ws;
 
         std::string _url;
@@ -111,5 +114,7 @@ namespace ix
         std::atomic<bool> _automaticReconnection;
         std::thread _thread;
         std::mutex _writeMutex;
+
+        friend class WebSocketServer;
     };
 }

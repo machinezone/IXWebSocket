@@ -35,6 +35,15 @@ namespace ix
         _stop(false),
         _automaticReconnection(true)
     {
+        _ws.setOnCloseCallback(
+            [this](uint16_t code, const std::string& reason, size_t wireSize)
+            {
+                _onMessageCallback(WebSocket_MessageType_Close, "", wireSize,
+                                   WebSocketErrorInfo(),
+                                   WebSocketCloseInfo(code, reason),
+                                   WebSocketHttpHeaders());
+            }
+        );
     }
 
     WebSocket::~WebSocket() 
@@ -99,16 +108,6 @@ namespace ix
             _ws.configure(_url, _perMessageDeflateOptions);
         }
 
-        _ws.setOnCloseCallback(
-            [this](uint16_t code, const std::string& reason, size_t wireSize)
-            {
-                _onMessageCallback(WebSocket_MessageType_Close, "", wireSize,
-                                   WebSocketErrorInfo(),
-                                   WebSocketCloseInfo(code, reason),
-                                   WebSocketHttpHeaders());
-            }
-        );
-
         WebSocketInitResult status = _ws.init();
         if (!status.success)
         {
@@ -119,6 +118,11 @@ namespace ix
                            WebSocketErrorInfo(), WebSocketCloseInfo(),
                            status.headers);
         return status;
+    }
+
+    void WebSocket::setSocketFileDescriptor(int fd)
+    {
+        _ws.initFromSocket(fd);
     }
 
     bool WebSocket::isConnected() const

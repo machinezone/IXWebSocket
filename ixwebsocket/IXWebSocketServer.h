@@ -15,16 +15,22 @@ namespace ix
 {
     class WebSocketServer {
     public:
-        WebSocketServer(int port = 8080);
+        WebSocketServer(int port = 8080, int backlog = 5);
         virtual ~WebSocketServer();
 
-        std::pair<bool, std::string> run();
-
-        void handleConnection(int fd);
+        std::pair<bool, std::string> listen();
+        void run();
 
     private:
-        int _port;
+        void handleConnection(int fd);
 
+        int _port;
+        int _backlog;
+
+        // socket for accepting connections
+        int _serverFd;
+
+        // FIXME: we never reclaim space in this array ...
         std::vector<std::thread> _workers;
     };
 }

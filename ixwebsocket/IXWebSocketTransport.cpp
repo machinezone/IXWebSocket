@@ -10,7 +10,7 @@
 
 #include "IXWebSocketTransport.h"
 #include "IXWebSocketHttpHeaders.h"
-#include "IXSocketConnect.h" // for configure, cleanup, move it back to Socket
+#include "IXSocketConnect.h"
 
 #include "IXSocket.h"
 #ifdef IXWEBSOCKET_USE_TLS
@@ -386,6 +386,9 @@ namespace ix
     WebSocketInitResult WebSocketTransport::initFromSocket(int fd)
     {
         _requestInitCancellation = false;
+
+        // Set the socket to non blocking mode + other tweaks
+        SocketConnect::configure(fd);
 
         _socket.reset();
         _socket = std::make_shared<Socket>(fd);
