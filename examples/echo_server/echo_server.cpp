@@ -19,11 +19,14 @@ int main(int argc, char** argv)
     }
 
     ix::WebSocketServer server(port);
-    auto res = server.run();
+    auto res = server.listen();
     if (!res.first)
     {
         std::cerr << res.second << std::endl;
+        return 1;
     }
+
+    server.run();
 
     return 0;
 }
