@@ -33,12 +33,16 @@ int main(int argc, char** argv)
                 {
                     if (messageType == ix::WebSocket_MessageType_Open)
                     {
-                        std::cout << "New connection" << std::endl;
-                        std::cout << "Headers:" << std::endl;
+                        std::cerr << "New connection" << std::endl;
+                        std::cerr << "Headers:" << std::endl;
                         for (auto it : headers)
                         {
                             std::cerr << it.first << ": " << it.second << std::endl;
                         }
+                    }
+                    else if (messageType == ix::WebSocket_MessageType_Close)
+                    {
+                        std::cerr << "Closed connection" << std::endl;
                     }
                     else if (messageType == ix::WebSocket_MessageType_Message)
                     {
