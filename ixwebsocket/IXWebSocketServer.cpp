@@ -65,8 +65,15 @@ namespace ix
          */
         server.sin_family = AF_INET;
         server.sin_port   = htons(_port);
-        server.sin_addr.s_addr = INADDR_ANY;
-        // server.sin_addr.s_addr = INADDR_LOOPBACK;
+
+        // Using INADDR_ANY trigger a pop-up box as binding to any address is detected 
+        // by the osx firewall. We need to codesign the binary with a self-signed cert
+        // to allow that, but this is a bit of a pain. (this is what node or python would do).
+        //
+        // Using INADDR_LOOPBACK also does not work ... while it should.
+        // Using localhost or 127.0.0.1 seems to work.
+        //
+        server.sin_addr.s_addr = inet_addr("localhost");
 
         if (bind(_serverFd, (struct sockaddr *)&server, sizeof(server)) < 0)
         {
