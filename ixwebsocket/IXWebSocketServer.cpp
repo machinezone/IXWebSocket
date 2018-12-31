@@ -114,7 +114,7 @@ namespace ix
                 continue;
             }
 
-            _workers.push_back(std::thread(&WebSocketServer::handleConnection, this, clientFd));
+            _workers[clientFd] = std::thread(&WebSocketServer::handleConnection, this, clientFd);
         }
     }
 

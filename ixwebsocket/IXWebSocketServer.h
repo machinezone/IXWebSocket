@@ -8,7 +8,7 @@
 
 #include <utility> // pair
 #include <string>
-#include <vector>
+#include <map>
 #include <thread>
 #include <functional>
 
@@ -39,7 +39,6 @@ namespace ix
         // socket for accepting connections
         int _serverFd;
 
-        // FIXME: we never reclaim space in this array ...
-        std::vector<std::thread> _workers;
+        std::map<int, std::thread> _workers;
     };
 }
