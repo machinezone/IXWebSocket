@@ -409,8 +409,7 @@ namespace ix
             return WebSocketInitResult(false, 0, std::string("Got bad status line connecting to ") + remote);
         }
 
-        std::cout << "initFromSocket::start" << std::endl;
-        std::cout << line << std::endl;
+        // FIXME: Validate line content (GET /)
 
         auto result = parseHttpHeaders();
         auto headersValid = result.first;
@@ -427,7 +426,8 @@ namespace ix
             return WebSocketInitResult(false, 401, errorMsg);
         }
 
-        std::cout << "FIXME perMessageDeflateOptions" << std::endl;
+        // FIXME perMessageDeflate support.
+        _enablePerMessageDeflate = false;
 
         char output[29] = {};
         WebSocketHandshake::generate(headers["sec-websocket-key"].c_str(), output);
@@ -435,7 +435,6 @@ namespace ix
         std::stringstream ss;
         ss << "HTTP/1.1 101\r\n";
         ss << "Sec-WebSocket-Accept: " << std::string(output) << "\r\n";
-
         ss << "\r\n";
 
         if (!writeBytes(ss.str()))
@@ -444,8 +443,6 @@ namespace ix
         }
 
         setReadyState(OPEN);
-        std::cout << "initFromSocket::end" << std::endl;
-
         return WebSocketInitResult(true, 200, "", headers);
     }
 
