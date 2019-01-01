@@ -22,7 +22,9 @@ namespace ix
 
     class WebSocketServer {
     public:
-        WebSocketServer(int port = 8080, int backlog = 5);
+        WebSocketServer(int port = 8080,
+                        const std::string& host = WebSocketServer::kDefaultHost,
+                        int backlog = 5);
         virtual ~WebSocketServer();
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
@@ -30,13 +32,13 @@ namespace ix
         std::pair<bool, std::string> listen();
         void run();
 
-        // FIXME: need mutex
-        std::set<std::shared_ptr<WebSocket>> getClients() { return _clients; }
+        // Get all the connected clients
+        std::set<std::shared_ptr<WebSocket>> getClients();
 
     private:
-        void handleConnection(int fd);
-
+        // Member variables
         int _port;
+        std::string _host;
         int _backlog;
 
         OnConnectionCallback _onConnectionCallback;
@@ -44,6 +46,18 @@ namespace ix
         // socket for accepting connections
         int _serverFd;
 
+        std::mutex _clientsMutex;
         std::set<std::shared_ptr<WebSocket>> _clients;
+
+        std::mutex _logMutex;
+
+        const static std::string kDefaultHost;
+
+        // Methods
+        void handleConnection(int fd);
+
+        // Logging
+        void logError(const std::string& str);
+        void logInfo(const std::string& str);
     };
 }
