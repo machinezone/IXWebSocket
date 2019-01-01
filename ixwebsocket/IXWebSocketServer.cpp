@@ -23,14 +23,15 @@ namespace ix
     WebSocketServer::WebSocketServer(int port, const std::string& host, int backlog) :
         _port(port),
         _host(host),
-        _backlog(backlog)
+        _backlog(backlog),
+        _stop(false)
     {
 
     }
 
     WebSocketServer::~WebSocketServer()
     {
-
+        stop();
     }
 
     void WebSocketServer::setOnConnectionCallback(const OnConnectionCallback& callback)
@@ -110,6 +111,21 @@ namespace ix
         }
 
         return std::make_pair(true, "");
+    }
+
+    void WebSocketServer::start()
+    {
+        if (_thread.joinable()) return; // we've already been started
+
+        _thread = std::thread(&WebSocketServer::run, this);
+    }
+
+    // FIXME: we should cancel all the async per connections tasks
+    void WebSocketServer::stop()
+    {
+        _stop = true;
+        _thread.join();
+        _stop = false;
     }
 
     void WebSocketServer::run()
