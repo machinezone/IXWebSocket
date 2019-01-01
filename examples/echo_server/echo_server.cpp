@@ -46,7 +46,6 @@ int main(int argc, char** argv)
                     }
                     else if (messageType == ix::WebSocket_MessageType_Message)
                     {
-
                         for (auto&& client : server.getClients())
                         {
                             if (client != webSocket)
