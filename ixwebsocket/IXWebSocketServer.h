@@ -28,9 +28,9 @@ namespace ix
         virtual ~WebSocketServer();
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
+        void start();
 
         std::pair<bool, std::string> listen();
-        void run();
 
         // Get all the connected clients
         std::set<std::shared_ptr<WebSocket>> getClients();
@@ -51,9 +51,14 @@ namespace ix
 
         std::mutex _logMutex;
 
+        std::atomic<bool> _stop;
+        std::thread _thread;
+
         const static std::string kDefaultHost;
 
         // Methods
+        void run();
+        void stop();
         void handleConnection(int fd);
 
         // Logging
