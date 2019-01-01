@@ -21,10 +21,10 @@ int main(int argc, char** argv)
     ix::WebSocketServer server(port);
 
     server.setOnConnectionCallback(
-        [](ix::WebSocket& webSocket)
+        [&server](ix::WebSocket& webSocket)
         {
             webSocket.setOnMessageCallback(
-                [&webSocket](ix::WebSocketMessageType messageType,
+                [&webSocket, &server](ix::WebSocketMessageType messageType,
                    const std::string& str,
                    size_t wireSize,
                    const ix::WebSocketErrorInfo& error,
@@ -46,8 +46,14 @@ int main(int argc, char** argv)
                     }
                     else if (messageType == ix::WebSocket_MessageType_Message)
                     {
-                        std::cerr << str << std::endl;
-                        webSocket.send(str);
+
+                        for (auto&& client : server.getClients())
+                        {
+                            if (client != &webSocket)
+                            {
+                                client->send(str);
+                            }
+                        }
                     }
                 }
             );
