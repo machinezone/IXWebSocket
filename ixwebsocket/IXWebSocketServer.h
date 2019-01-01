@@ -12,12 +12,13 @@
 #include <thread>
 #include <mutex>
 #include <functional>
+#include <memory>
 
 #include "IXWebSocket.h"
 
 namespace ix 
 {
-    using OnConnectionCallback = std::function<void(WebSocket&)>;
+    using OnConnectionCallback = std::function<void(std::shared_ptr<WebSocket>)>;
 
     class WebSocketServer {
     public:
@@ -30,7 +31,7 @@ namespace ix
         void run();
 
         // FIXME: need mutex
-        std::set<WebSocket*> getClients() { return _clients; }
+        std::set<std::shared_ptr<WebSocket>> getClients() { return _clients; }
 
     private:
         void handleConnection(int fd);
@@ -43,6 +44,6 @@ namespace ix
         // socket for accepting connections
         int _serverFd;
 
-        std::set<WebSocket*> _clients;
+        std::set<std::shared_ptr<WebSocket>> _clients;
     };
 }
