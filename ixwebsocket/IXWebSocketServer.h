@@ -8,8 +8,9 @@
 
 #include <utility> // pair
 #include <string>
-#include <map>
+#include <set>
 #include <thread>
+#include <mutex>
 #include <functional>
 
 #include "IXWebSocket.h"
@@ -28,6 +29,9 @@ namespace ix
         std::pair<bool, std::string> listen();
         void run();
 
+        // FIXME: need mutex
+        std::set<WebSocket*> getClients() { return _clients; }
+
     private:
         void handleConnection(int fd);
 
@@ -39,6 +43,6 @@ namespace ix
         // socket for accepting connections
         int _serverFd;
 
-        std::map<int, std::thread> _workers;
+        std::set<WebSocket*> _clients;
     };
 }

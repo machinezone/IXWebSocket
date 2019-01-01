@@ -9,6 +9,7 @@
 #include "IXWebSocket.h"
 
 #include <sstream>
+#include <future>
 
 #include <netdb.h>
 #include <stdio.h>
@@ -100,6 +101,8 @@ namespace ix
 
     void WebSocketServer::run()
     {
+        std::future<void> f;
+
         for (;;)
         {
             // Accept a connection.
@@ -109,12 +112,18 @@ namespace ix
 
             if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) == -1)
             {
+                // FIXME: that error should be propagated
                 std::cerr << "WebSocketServer::run() error accepting connection: "
-                    << strerror(errno);
+                          << strerror(errno)
+                          << std::endl;
                 continue;
             }
 
-            _workers[clientFd] = std::thread(&WebSocketServer::handleConnection, this, clientFd);
+            // Launch the handleConnection work asynchronously in its own thread.
+            //
+            // the destructor of a future returned by std::async blocks, 
+            // so we need to declare it outside of this loop
+            f = std::async(std::launch::async, &WebSocketServer::handleConnection, this, clientFd);
         }
     }
 
@@ -126,14 +135,27 @@ namespace ix
         ix::WebSocket webSocket;
         _onConnectionCallback(webSocket);
 
+        _clients.insert(&webSocket);
+
         webSocket.start();
-        webSocket.connectToSocket(fd); // FIXME: we ignore the return value
+        auto status = webSocket.connectToSocket(fd);
+        if (!status.success)
+        {
+            std::cerr << "WebSocketServer::handleConnection() error: "
+                      << status.errorStr
+                      << std::endl;
+            return;
+        }
 
         // We can probably do better than this busy loop, with a condition variable.
-        for (;;)
+        while (webSocket.isConnected())
         {
             std::chrono::duration<double, std::milli> wait(10);
             std::this_thread::sleep_for(wait);
         }
+
+        _clients.erase(&webSocket);
+
+        std::cerr << "WebSocketServer::handleConnection() done" << std::endl;
     }
 }
