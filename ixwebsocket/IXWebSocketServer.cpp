@@ -132,13 +132,13 @@ namespace ix
     //
     void WebSocketServer::handleConnection(int fd)
     {
-        ix::WebSocket webSocket;
+        std::shared_ptr<WebSocket> webSocket(new WebSocket);
         _onConnectionCallback(webSocket);
 
-        _clients.insert(&webSocket);
+        _clients.insert(webSocket);
 
-        webSocket.start();
-        auto status = webSocket.connectToSocket(fd);
+        webSocket->start();
+        auto status = webSocket->connectToSocket(fd);
         if (!status.success)
         {
             std::cerr << "WebSocketServer::handleConnection() error: "
@@ -148,13 +148,13 @@ namespace ix
         }
 
         // We can probably do better than this busy loop, with a condition variable.
-        while (webSocket.isConnected())
+        while (webSocket->isConnected())
         {
             std::chrono::duration<double, std::milli> wait(10);
             std::this_thread::sleep_for(wait);
         }
 
-        _clients.erase(&webSocket);
+        _clients.erase(webSocket);
 
         std::cerr << "WebSocketServer::handleConnection() done" << std::endl;
     }
