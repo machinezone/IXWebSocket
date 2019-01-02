@@ -16,6 +16,8 @@ build:
 	(cd examples/ping_pong ; mkdir -p build ; cd build ; cmake .. ; make)
 	(cd examples/ws_connect ; mkdir -p build ; cd build ; cmake .. ; make)
 
+# That target is used to start a node server, but isn't required as we have 
+# a builtin C++ server started in the unittest now
 test_server:
 	(cd test && npm i ws && node broadcast-server.js)
 test:
