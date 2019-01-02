@@ -20,7 +20,9 @@
 
 namespace ix 
 {
+    const int WebSocketServer::kDefaultPort(8080);
     const std::string WebSocketServer::kDefaultHost("127.0.0.1");
+    const int WebSocketServer::kDefaultTcpBacklog(5);
 
     WebSocketServer::WebSocketServer(int port, const std::string& host, int backlog) :
         _port(port),
