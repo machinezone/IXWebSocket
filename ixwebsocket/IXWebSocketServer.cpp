@@ -7,6 +7,7 @@
 #include "IXWebSocketServer.h"
 #include "IXWebSocketTransport.h"
 #include "IXWebSocket.h"
+#include "IXSocketConnect.h"
 
 #include <sstream>
 #include <future>
@@ -120,32 +121,53 @@ namespace ix
         _thread = std::thread(&WebSocketServer::run, this);
     }
 
+    void WebSocketServer::wait()
+    {
+        std::unique_lock<std::mutex> lock(_conditionVariableMutex);
+        _conditionVariable.wait(lock);
+    }
+
     // FIXME: we should cancel all the async per connections tasks
     void WebSocketServer::stop()
     {
         _stop = true;
         _thread.join();
         _stop = false;
+
+        _conditionVariable.notify_one();
     }
 
     void WebSocketServer::run()
     {
+        // Set the socket to non blocking mode, so that accept calls are not blocking
+        SocketConnect::configure(_serverFd);
+
         std::future<void> f;
 
         for (;;)
         {
+            if (_stop) return;
+
             // Accept a connection.
             struct sockaddr_in client; // client address information
             int clientFd;              // socket connected to client
             socklen_t addressLen = sizeof(socklen_t);
 
-            if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) == -1)
+            if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) < 0)
             {
-                // FIXME: that error should be propagated
-                std::stringstream ss;
-                ss << "WebSocketServer::run() error accepting connection: "
-                   << strerror(errno);
-                logError(ss.str());
+                if (errno == EWOULDBLOCK)
+                {
+                    std::chrono::duration<double, std::milli> wait(10);
+                    std::this_thread::sleep_for(wait);
+                }
+                else
+                {
+                    // FIXME: that error should be propagated
+                    std::stringstream ss;
+                    ss << "WebSocketServer::run() error accepting connection: "
+                       << strerror(errno);
+                    logError(ss.str());
+                }
                 continue;
             }
 
