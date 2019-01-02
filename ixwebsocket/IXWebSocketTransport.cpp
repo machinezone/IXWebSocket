@@ -367,8 +367,8 @@ namespace ix
             {
                 _enablePerMessageDeflate = false;
             }
-
-            if (!_perMessageDeflate.init(webSocketPerMessageDeflateOptions))
+            // Otherwise try to initialize the deflate engine (zlib)
+            else if (!_perMessageDeflate.init(webSocketPerMessageDeflateOptions))
             {
                 return WebSocketInitResult(
                     false, 0,"Failed to initialize per message deflate engine");
@@ -431,15 +431,30 @@ namespace ix
             return WebSocketInitResult(false, 401, errorMsg);
         }
 
-        // FIXME perMessageDeflate support.
-        _enablePerMessageDeflate = false;
-
         char output[29] = {};
         WebSocketHandshake::generate(headers["sec-websocket-key"].c_str(), output);
 
         std::stringstream ss;
         ss << "HTTP/1.1 101\r\n";
         ss << "Sec-WebSocket-Accept: " << std::string(output) << "\r\n";
+
+        // Parse the client headers. Does it support deflate ?
+        std::string header = headers["sec-websocket-extensions"];
+        WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(header);
+
+        // If the client has requested that extension, enable it.
+        if (webSocketPerMessageDeflateOptions.enabled())
+        {
+            _enablePerMessageDeflate = true;
+
+            if (!_perMessageDeflate.init(webSocketPerMessageDeflateOptions))
+            {
+                return WebSocketInitResult(
+                    false, 0,"Failed to initialize per message deflate engine");
+            }
+            ss << webSocketPerMessageDeflateOptions.generateHeader();
+        }
+
         ss << "\r\n";
 
         if (!_socket->writeBytes(ss.str(), isCancellationRequested))
