@@ -23,9 +23,9 @@ namespace ix
 
     class WebSocketServer {
     public:
-        WebSocketServer(int port = 8080,
+        WebSocketServer(int port = WebSocketServer::kDefaultPort,
                         const std::string& host = WebSocketServer::kDefaultHost,
-                        int backlog = 5);
+                        int backlog = WebSocketServer::kDefaultTcpBacklog);
         virtual ~WebSocketServer();
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
@@ -59,7 +59,9 @@ namespace ix
         std::condition_variable _conditionVariable;
         std::mutex _conditionVariableMutex;
 
+        const static int kDefaultPort;
         const static std::string kDefaultHost;
+        const static int kDefaultTcpBacklog;
 
         // Methods
         void run();
