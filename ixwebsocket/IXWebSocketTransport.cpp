@@ -144,7 +144,7 @@ namespace ix
         std::cout << "-------------------------------" << std::endl;
     }
 
-    std::pair<bool, WebSocketHttpHeaders> WebSocketTransport::parseHttpHeaders()
+    std::pair<bool, WebSocketHttpHeaders> WebSocketTransport::parseHttpHeaders(const CancellationRequest& isCancellationRequested)
     {
         WebSocketHttpHeaders headers;
 
@@ -159,7 +159,7 @@ namespace ix
                  i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n');
                  ++i)
             {
-                if (!readByte(line+i))
+                if (!_socket->readByte(line+i, isCancellationRequested))
                 {
                     return std::make_pair(false, headers);
                 }
@@ -254,13 +254,13 @@ namespace ix
             _socket = std::make_shared<Socket>();
         }
 
+        auto isCancellationRequested = [this]() -> bool
+        {
+            return _requestInitCancellation;
+        };
+
         std::string errMsg;
-        bool success = _socket->connect(host, port, errMsg,
-                [this]() -> bool
-                {
-                    return _requestInitCancellation;
-                }
-        );
+        bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
         if (!success)
         {
             std::stringstream ss;
@@ -295,7 +295,7 @@ namespace ix
 
         ss << "\r\n";
 
-        if (!writeBytes(ss.str()))
+        if (!_socket->writeBytes(ss.str(), isCancellationRequested))
         {
             return WebSocketInitResult(false, 0, std::string("Failed sending GET request to ") + url);
         }
@@ -305,7 +305,7 @@ namespace ix
         int i;
         for (i = 0; i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
         {
-            if (!readByte(line+i))
+            if (!_socket->readByte(line+i, isCancellationRequested))
             {
                 return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + url);
             } 
@@ -339,7 +339,7 @@ namespace ix
             return WebSocketInitResult(false, status, ss.str());
         }
 
-        auto result = parseHttpHeaders();
+        auto result = parseHttpHeaders(isCancellationRequested);
         auto headersValid = result.first;
         auto headers = result.second;
 
@@ -391,6 +391,11 @@ namespace ix
         _socket.reset();
         _socket = std::make_shared<Socket>(fd);
 
+        auto isCancellationRequested = [this]() -> bool
+        {
+            return _requestInitCancellation;
+        };
+
         std::string remote = std::string("remote fd ") + std::to_string(fd);
 
         // Read first line
@@ -398,7 +403,7 @@ namespace ix
         int i;
         for (i = 0; i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
         {
-            if (!readByte(line+i))
+            if (!_socket->readByte(line+i, isCancellationRequested))
             {
                 return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + remote);
             } 
@@ -411,7 +416,7 @@ namespace ix
 
         // FIXME: Validate line content (GET /)
 
-        auto result = parseHttpHeaders();
+        auto result = parseHttpHeaders(isCancellationRequested);
         auto headersValid = result.first;
         auto headers = result.second;
 
@@ -437,7 +442,7 @@ namespace ix
         ss << "Sec-WebSocket-Accept: " << std::string(output) << "\r\n";
         ss << "\r\n";
 
-        if (!writeBytes(ss.str()))
+        if (!_socket->writeBytes(ss.str(), isCancellationRequested))
         {
             return WebSocketInitResult(false, 0, std::string("Failed sending response to ") + remote);
         }
@@ -904,64 +909,6 @@ namespace ix
 
         _socket->wakeUpFromPoll();
         _socket->close();
-    }
-
-    bool WebSocketTransport::readByte(void* buffer)
-    {
-        while (true)
-        {
-            if (_readyState == CLOSING) return false;
-
-            int ret;
-            ret = _socket->recv(buffer, 1);
-
-            // We read one byte, as needed, all good.
-            if (ret == 1)
-            {
-                return true;
-            }
-            // There is possibly something to be read, try again
-            else if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
-                                 _socket->getErrno() == EAGAIN))
-            {
-                continue;
-            }
-            // There was an error during the read, abort
-            else
-            {
-                return false;
-            }
-        }
-    }
-
-    bool WebSocketTransport::writeBytes(const std::string& str)
-    {
-        while (true)
-        {
-            if (_readyState == CLOSING) return false;
-
-            char* buffer = const_cast<char*>(str.c_str());
-            int len = (int) str.size();
-
-            int ret = _socket->send(buffer, len);
-
-            // We wrote some bytes, as needed, all good.
-            if (ret > 0)
-            {
-                return ret == len;
-            }
-            // There is possibly something to be write, try again
-            else if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
-                                 _socket->getErrno() == EAGAIN))
-            {
-                continue;
-            }
-            // There was an error during the write, abort
-            else
-            {
-                return false;
-            }
-        }
     }
 
 } // namespace ix

@@ -162,4 +162,64 @@ namespace ix
         WSACleanup();
 #endif
     }
+
+    bool Socket::readByte(void* buffer,
+                          const CancellationRequest& isCancellationRequested)
+    {
+        while (true)
+        {
+            if (isCancellationRequested()) return false;
+
+            int ret;
+            ret = recv(buffer, 1);
+
+            // We read one byte, as needed, all good.
+            if (ret == 1)
+            {
+                return true;
+            }
+            // There is possibly something to be read, try again
+            else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
+                                 getErrno() == EAGAIN))
+            {
+                continue;
+            }
+            // There was an error during the read, abort
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    bool Socket::writeBytes(const std::string& str,
+                            const CancellationRequest& isCancellationRequested)
+    {
+        while (true)
+        {
+            if (isCancellationRequested()) return false;
+
+            char* buffer = const_cast<char*>(str.c_str());
+            int len = (int) str.size();
+
+            int ret = send(buffer, len);
+
+            // We wrote some bytes, as needed, all good.
+            if (ret > 0)
+            {
+                return ret == len;
+            }
+            // There is possibly something to be write, try again
+            else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
+                                 getErrno() == EAGAIN))
+            {
+                continue;
+            }
+            // There was an error during the write, abort
+            else
+            {
+                return false;
+            }
+        }
+    }
 }
