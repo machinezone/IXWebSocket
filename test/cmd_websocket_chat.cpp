@@ -250,6 +250,8 @@ TEST_CASE("Websocket chat", "[websocket_chat]")
             ix::msleep(10);
         }
 
+        REQUIRE(server.getClients().size() == 2);
+
         // Add a bit of extra time, for the subscription to be active
         ix::msleep(200);
 
@@ -268,6 +270,10 @@ TEST_CASE("Websocket chat", "[websocket_chat]")
 
         REQUIRE(chatA.getReceivedMessagesCount() == 2);
         REQUIRE(chatB.getReceivedMessagesCount() == 3);
+
+        // Give us 500ms for the server to notice that clients went away
+        ix::msleep(500);
+        REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
     }
