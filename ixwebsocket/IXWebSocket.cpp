@@ -84,13 +84,16 @@ namespace ix
 
     void WebSocket::stop()
     {
+        bool automaticReconnection = _automaticReconnection;
+
+        // This value needs to be forced when shutting down, it is restored later
         _automaticReconnection = false;
 
         close();
 
         if (!_thread.joinable())
         {
-            _automaticReconnection = true;
+            _automaticReconnection = automaticReconnection;
             return;
         }
 
@@ -98,7 +101,7 @@ namespace ix
         _thread.join();
         _stop = false;
 
-        _automaticReconnection = true;
+        _automaticReconnection = automaticReconnection;
     }
 
     WebSocketInitResult WebSocket::connect()
@@ -241,6 +244,11 @@ namespace ix
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });
+
+            // 4. In blocking mode, getting out of this function is triggered by
+            //    an explicit disconnection from the callback, or by the remote end
+            //    closing the connection, ie isConnected() == false.
+            if (!_thread.joinable() && !isConnected() && !_automaticReconnection) return;
         }
     }
 
@@ -331,5 +339,15 @@ namespace ix
             case WebSocket_ReadyState_Closing: return "CLOSING";
             case WebSocket_ReadyState_Closed: return "CLOSED";
         }
+    }
+
+    void WebSocket::enableAutomaticReconnection()
+    {
+        _automaticReconnection = true;
+    }
+
+    void WebSocket::disableAutomaticReconnection()
+    {
+        _automaticReconnection = false;
     }
 }

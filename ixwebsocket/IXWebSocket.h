@@ -72,8 +72,14 @@ namespace ix
         void setUrl(const std::string& url);
         void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
 
+        // Run asynchronously, by calling start and stop.
         void start();
         void stop();
+
+        // Run in blocking mode, by connecting first manually, and then calling run.
+        WebSocketInitResult connect();
+        void run();
+
         WebSocketSendInfo send(const std::string& text);
         WebSocketSendInfo ping(const std::string& text);
         void close();
@@ -86,12 +92,13 @@ namespace ix
         const std::string& getUrl() const;
         const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
 
+        void enableAutomaticReconnection();
+        void disableAutomaticReconnection();
+
     private:
-        void run();
 
         WebSocketSendInfo sendMessage(const std::string& text, bool ping);
 
-        WebSocketInitResult connect();
         bool isConnected() const;
         bool isClosing() const;
         void reconnectPerpetuallyIfDisconnected();

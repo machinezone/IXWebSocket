@@ -130,10 +130,15 @@ namespace ix
         _conditionVariable.wait(lock);
     }
 
-    // FIXME: we should cancel all the async per connections tasks
     void WebSocketServer::stop()
     {
         if (!_thread.joinable()) return; // nothing to do
+
+        auto clients = getClients();
+        for (auto client : clients)
+        {
+            client->close();
+        }
 
         _stop = true;
         _thread.join();
@@ -187,20 +192,19 @@ namespace ix
         }
     }
 
-    //
-    // FIXME: make sure we never run into reconnectPerpetuallyIfDisconnected
-    //
     void WebSocketServer::handleConnection(int fd)
     {
         std::shared_ptr<WebSocket> webSocket(new WebSocket);
         _onConnectionCallback(webSocket);
 
+        webSocket->disableAutomaticReconnection();
+
+        // Add this client to our client set
         {
             std::lock_guard<std::mutex> lock(_clientsMutex);
             _clients.insert(webSocket);
         }
 
-        webSocket->start();
         auto status = webSocket->connectToSocket(fd);
         if (!status.success)
         {
@@ -211,16 +215,17 @@ namespace ix
             return;
         }
 
-        // We can do better than this busy loop, with a condition variable.
-        while (webSocket->isConnected())
-        {
-            std::chrono::duration<double, std::milli> wait(10);
-            std::this_thread::sleep_for(wait);
-        }
+        // Process incoming messages and execute callbacks 
+        // until the connection is closed
+        webSocket->run();
 
+        // Remove this client from our client set
         {
             std::lock_guard<std::mutex> lock(_clientsMutex);
-            _clients.erase(webSocket);
+            if (_clients.erase(webSocket) != 1)
+            {
+                logError("Cannot delete client");
+            }
         }
 
         logInfo("WebSocketServer::handleConnection() done");
