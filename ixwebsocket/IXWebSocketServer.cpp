@@ -130,6 +130,8 @@ namespace ix
     // FIXME: we should cancel all the async per connections tasks
     void WebSocketServer::stop()
     {
+        if (!_thread.joinable()) return; // nothing to do
+
         _stop = true;
         _thread.join();
         _stop = false;
