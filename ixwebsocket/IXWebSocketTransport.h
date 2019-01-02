@@ -21,6 +21,7 @@
 #include "IXWebSocketPerMessageDeflate.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXCancellationRequest.h"
 
 namespace ix 
 {
@@ -162,11 +163,7 @@ namespace ix
         void unmaskReceiveBuffer(const wsheader_type& ws);
         std::string genRandomString(const int len);
 
-        // Non blocking versions of read/write, used during http upgrade
-        bool readByte(void* buffer);
-        bool writeBytes(const std::string& str);
-
         // Parse HTTP headers
-        std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders();
+        std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(const CancellationRequest& isCancellationRequested);
     };
 }
