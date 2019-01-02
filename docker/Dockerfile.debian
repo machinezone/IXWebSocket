@@ -10,8 +10,11 @@ RUN apt-get -y install procps
 RUN apt-get -y install lsof
 RUN apt-get -y install libz-dev
 RUN apt-get -y install vim
+RUN apt-get -y install make
+RUN apt-get -y install cmake
 
 COPY . .
 
-WORKDIR examples/ws_connect
-RUN ["sh", "build_linux.sh"]
+#WORKDIR examples/ws_connect
+#RUN ["sh", "build_linux.sh"]
+RUN ["make", "test"]

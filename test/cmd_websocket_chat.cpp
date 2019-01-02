@@ -13,6 +13,7 @@
 #include <sstream>
 #include <queue>
 #include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXWebSocketServer.h>
 #include "msgpack11.hpp"
 
 #include "IXTest.h"
@@ -171,6 +172,58 @@ namespace
     {
         _webSocket.send(encodeMessage(text));
     }
+
+    bool startServer(ix::WebSocketServer& server)
+    {
+        server.setOnConnectionCallback(
+            [&server](std::shared_ptr<ix::WebSocket> webSocket)
+            {
+                webSocket->setOnMessageCallback(
+                    [webSocket, &server](ix::WebSocketMessageType messageType,
+                       const std::string& str,
+                       size_t wireSize,
+                       const ix::WebSocketErrorInfo& error,
+                       const ix::WebSocketCloseInfo& closeInfo,
+                       const ix::WebSocketHttpHeaders& headers)
+                    {
+                        if (messageType == ix::WebSocket_MessageType_Open)
+                        {
+                            std::cerr << "New connection" << std::endl;
+                            std::cerr << "Headers:" << std::endl;
+                            for (auto it : headers)
+                            {
+                                std::cerr << it.first << ": " << it.second << std::endl;
+                            }
+                        }
+                        else if (messageType == ix::WebSocket_MessageType_Close)
+                        {
+                            std::cerr << "Closed connection" << std::endl;
+                        }
+                        else if (messageType == ix::WebSocket_MessageType_Message)
+                        {
+                            for (auto&& client : server.getClients())
+                            {
+                                if (client != webSocket)
+                                {
+                                    client->send(str);
+                                }
+                            }
+                        }
+                    }
+                );
+            }
+        );
+
+        auto res = server.listen();
+        if (!res.first)
+        {
+            std::cerr << res.second << std::endl;
+            return false;
+        }
+
+        server.start();
+        return true;
+    }
 }
 
 TEST_CASE("Websocket chat", "[websocket_chat]")
@@ -178,6 +231,10 @@ TEST_CASE("Websocket chat", "[websocket_chat]")
     SECTION("Exchange and count sent/received messages.")
     {
         ix::setupWebSocketTrafficTrackerCallback();
+
+        int port = 8080;
+        ix::WebSocketServer server(port);
+        startServer(server);
 
         std::string session = ix::generateSessionId();
         WebSocketChat chatA("jean", session);
