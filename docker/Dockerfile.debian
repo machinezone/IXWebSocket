@@ -15,6 +15,5 @@ RUN apt-get -y install cmake
 
 COPY . .
 
-#WORKDIR examples/ws_connect
-#RUN ["sh", "build_linux.sh"]
-RUN ["make", "test"]
+WORKDIR test
+RUN ["sh", "build_linux.sh"]

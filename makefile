@@ -21,6 +21,6 @@ build:
 test_server:
 	(cd test && npm i ws && node broadcast-server.js)
 test:
-	(cd test && cmake . && make && ./ixwebsocket_unittest)
+	(cd test && sh run.sh)
 
 .PHONY: test
