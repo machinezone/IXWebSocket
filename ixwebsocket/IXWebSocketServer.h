@@ -13,6 +13,7 @@
 #include <mutex>
 #include <functional>
 #include <memory>
+#include <condition_variable>
 
 #include "IXWebSocket.h"
 
@@ -29,6 +30,7 @@ namespace ix
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
         void start();
+        void wait();
 
         std::pair<bool, std::string> listen();
 
@@ -53,6 +55,9 @@ namespace ix
 
         std::atomic<bool> _stop;
         std::thread _thread;
+
+        std::condition_variable _conditionVariable;
+        std::mutex _conditionVariableMutex;
 
         const static std::string kDefaultHost;
 
