@@ -152,25 +152,38 @@ namespace ix
         // Set the socket to non blocking mode, so that accept calls are not blocking
         SocketConnect::configure(_serverFd);
 
+        // Return value of std::async, ignored
         std::future<void> f;
+
+        // Select arguments
+        fd_set rfds;
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 10 * 1000; // 10ms
 
         for (;;)
         {
             if (_stop) return;
 
+            FD_ZERO(&rfds);
+            FD_SET(_serverFd, &rfds);
+            select(_serverFd + 1, &rfds, nullptr, nullptr, &timeout);
+
+            if (!FD_ISSET(_serverFd, &rfds))
+            {
+                // We reached the select timeout, and no new connections are pending
+                continue;
+            }
+
             // Accept a connection.
             struct sockaddr_in client; // client address information
             int clientFd;              // socket connected to client
             socklen_t addressLen = sizeof(socklen_t);
+            memset(&client, 0, sizeof(client));
 
             if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) < 0)
             {
-                if (errno == EWOULDBLOCK)
-                {
-                    std::chrono::duration<double, std::milli> wait(10);
-                    std::this_thread::sleep_for(wait);
-                }
-                else
+                if (errno != EWOULDBLOCK)
                 {
                     // FIXME: that error should be propagated
                     std::stringstream ss;
