@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <string.h>
 
 namespace ix 
 {
