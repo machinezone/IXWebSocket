@@ -83,7 +83,7 @@ namespace
 
     void WebSocketChat::start()
     {
-        std::string url("ws://localhost:8080/");
+        std::string url("ws://localhost:8090/");
         _webSocket.setUrl(url);
 
         std::stringstream ss;
@@ -232,9 +232,9 @@ TEST_CASE("Websocket chat", "[websocket_chat]")
     {
         ix::setupWebSocketTrafficTrackerCallback();
 
-        int port = 8080;
+        int port = 8090;
         ix::WebSocketServer server(port);
-        startServer(server);
+        REQUIRE(startServer(server));
 
         std::string session = ix::generateSessionId();
         WebSocketChat chatA("jean", session);
