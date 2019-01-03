@@ -16,6 +16,7 @@
 #include <atomic>
 #include <chrono>
 #include <memory>
+#include <tuple>
 
 namespace ix 
 {
@@ -67,6 +68,8 @@ namespace ix
         std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(const CancellationRequest& isCancellationRequested);
         WebSocketInitResult sendErrorResponse(int code, const std::string& reason);
 
+        std::tuple<std::string, std::string, std::string> parseRequestLine(const std::string& line);
+
         std::atomic<bool>& _requestInitCancellation;
         std::shared_ptr<Socket> _socket;
         WebSocketPerMessageDeflate& _perMessageDeflate;
@@ -74,4 +77,3 @@ namespace ix
         std::atomic<bool>& _enablePerMessageDeflate;
     };
 }
-

@@ -155,7 +155,13 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         bool success = socket.connect(host, port, errMsg, isCancellationRequested);
         REQUIRE(success);
 
-        socket.writeBytes("GET /\r\nSec-WebSocket-Key: foobar\r\n\r\n", isCancellationRequested);
+        socket.writeBytes("GET / HTTP/1.1\r\n"
+                          "Upgrade: websocket\r\n"
+                          "Sec-WebSocket-Version: 13\r\n"
+                          "Sec-WebSocket-Key: foobar\r\n"
+                          "\r\n",
+                          isCancellationRequested);
+
         auto lineResult = socket.readLine(isCancellationRequested);
         auto lineValid = lineResult.first;
         auto line = lineResult.second;
