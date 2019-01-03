@@ -19,7 +19,7 @@ include_directories(
 add_executable(ixwebsocket_unittest 
   test_runner.cpp
   cmd_websocket_chat.cpp
-  IXTestWebSocketServer.cpp
+  IXWebSocketServerTest.cpp
   IXTest.cpp
   msgpack11.cpp
 )
