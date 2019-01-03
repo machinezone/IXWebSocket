@@ -116,6 +116,49 @@ namespace ix
         std::cout << "-------------------------------" << std::endl;
     }
 
+    std::string trim(const std::string& str)
+    {
+        std::string out(str);
+        out.erase(std::remove(out.begin(), out.end(), ' '), out.end());
+        out.erase(std::remove(out.begin(), out.end(), '\r'), out.end());
+        out.erase(std::remove(out.begin(), out.end(), '\n'), out.end());
+        return out;
+    }
+
+    std::tuple<std::string, std::string, std::string> WebSocketHandshake::parseRequestLine(const std::string& line)
+    {
+        // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
+        std::string token;
+        std::stringstream tokenStream(line);
+        std::vector<std::string> tokens;
+
+        // Split by ' '
+        while (std::getline(tokenStream, token, ' '))
+        {
+            tokens.push_back(token);
+        }
+
+        std::string method;
+        if (tokens.size() >= 1)
+        {
+            method = trim(tokens[0]);
+        }
+
+        std::string requestUri;
+        if (tokens.size() >= 2)
+        {
+            requestUri = trim(tokens[1]);
+        }
+
+        std::string httpVersion;
+        if (tokens.size() >= 3)
+        {
+            httpVersion = trim(tokens[2]);
+        }
+
+        return std::make_tuple(method, requestUri, httpVersion);
+    }
+
     std::string WebSocketHandshake::genRandomString(const int len)
     {
         std::string alphanum = 
@@ -363,8 +406,23 @@ namespace ix
             return sendErrorResponse(400, "Error reading HTTP request line");
         }
         
-        // FIXME: Validate line content (GET /)
+        // Validate request line (GET /foo HTTP/1.1\r\n)
+        auto requestLine = parseRequestLine(line);
+        auto method      = std::get<0>(requestLine);
+        auto uri         = std::get<1>(requestLine);
+        auto httpVersion = std::get<2>(requestLine);
 
+        if (method != "GET")
+        {
+            return sendErrorResponse(400, "Invalid HTTP method, need GET, got " + method);
+        }
+
+        if (httpVersion != "HTTP/1.1")
+        {
+            return sendErrorResponse(400, "Invalid HTTP version, need HTTP/1.1, got: " + httpVersion);
+        }
+
+        // Retrieve and validate HTTP headers
         auto result = parseHttpHeaders(isCancellationRequested);
         auto headersValid = result.first;
         auto headers = result.second;
@@ -377,6 +435,29 @@ namespace ix
         if (headers.find("sec-websocket-key") == headers.end())
         {
             return sendErrorResponse(400, "Missing Sec-WebSocket-Key value");
+        }
+
+        if (headers["upgrade"] != "websocket")
+        {
+            return sendErrorResponse(400, "Invalid or missing Upgrade header");
+        }
+
+        if (headers.find("sec-websocket-version") == headers.end())
+        {
+            return sendErrorResponse(400, "Missing Sec-WebSocket-Version value");
+        }
+
+        {
+            std::stringstream ss;
+            ss << headers["sec-websocket-version"];
+            int version;
+            ss >> version;
+
+            if (version != 13)
+            {
+                return sendErrorResponse(400, "Invalid Sec-WebSocket-Version, "
+                                              "need 13, got" + ss.str());
+            }
         }
 
         char output[29] = {};
