@@ -226,7 +226,7 @@ namespace
     }
 }
 
-TEST_CASE("Websocket chat", "[websocket_chat]")
+TEST_CASE("Websocket_chat", "[websocket_chat]")
 {
     SECTION("Exchange and count sent/received messages.")
     {

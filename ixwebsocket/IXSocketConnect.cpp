@@ -53,20 +53,19 @@ namespace ix
     // This is important so that we don't block the main UI thread when shutting down a connection which is
     // already trying to reconnect, and can be blocked waiting for ::connect to respond.
     //
-    bool SocketConnect::connectToAddress(const struct addrinfo *address, 
-                                         int& sockfd,
-                                         std::string& errMsg,
-                                         const CancellationRequest& isCancellationRequested)
+    int SocketConnect::connectToAddress(const struct addrinfo *address,
+                                        std::string& errMsg,
+                                        const CancellationRequest& isCancellationRequested)
     {
-        sockfd = -1;
-
+        errMsg = "no error";
+        
         int fd = socket(address->ai_family,
                         address->ai_socktype,
                         address->ai_protocol);
         if (fd < 0)
         {
             errMsg = "Cannot create a socket";
-            return false;
+            return -1;
         }
 
         // Set the socket to non blocking mode, so that slow responses cannot
@@ -78,7 +77,7 @@ namespace ix
         {
             closeSocket(fd);
             errMsg = strerror(errno);
-            return false;
+            return -1;
         }
 
         //
@@ -127,19 +126,18 @@ namespace ix
             {
                 closeSocket(fd);
                 errMsg = strerror(optval);
-                return false;
+                return -1;
             }
             else
             {
                 // Success !
-                sockfd = fd;
-                return true;
+                return fd;
             }
         }
 
         closeSocket(fd);
         errMsg = "connect timed out after 60 seconds";
-        return false;
+        return -1;
     }
 
     int SocketConnect::connect(const std::string& hostname,
@@ -161,14 +159,13 @@ namespace ix
 
         // iterate through the records to find a working peer
         struct addrinfo *address;
-        bool success = false;
         for (address = res; address != nullptr; address = address->ai_next)
         {
             //
             // Second try to connect to the remote host
             //
-            success = connectToAddress(address, sockfd, errMsg, isCancellationRequested);
-            if (success)
+            sockfd = connectToAddress(address, errMsg, isCancellationRequested);
+            if (sockfd != -1)
             {
                 break;
             }

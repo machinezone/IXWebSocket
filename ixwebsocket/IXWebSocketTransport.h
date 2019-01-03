@@ -22,29 +22,11 @@
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketHttpHeaders.h"
 #include "IXCancellationRequest.h"
+#include "IXWebSocketHandshake.h"
 
 namespace ix 
 {
     class Socket;
-
-    struct WebSocketInitResult
-    {
-        bool success;
-        int http_status;
-        std::string errorStr;
-        WebSocketHttpHeaders headers;
-
-        WebSocketInitResult(bool s = false,
-                            int status = 0,
-                            const std::string& e = std::string(),
-                            WebSocketHttpHeaders h = WebSocketHttpHeaders())
-        {
-            success = s;
-            http_status = status;
-            errorStr = e;
-            headers = h;
-        }
-    };
 
     class WebSocketTransport
     {
@@ -88,14 +70,6 @@ namespace ix
         void setReadyState(ReadyStateValues readyStateValue);
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
         void dispatch(const OnMessageCallback& onMessageCallback);
-
-        static void printUrl(const std::string& url);
-        static bool parseUrl(const std::string& url,
-                             std::string& protocol,
-                             std::string& host,
-                             std::string& path,
-                             std::string& query,
-                             int& port);
 
     private:
         std::string _url;
@@ -161,11 +135,5 @@ namespace ix
 
         unsigned getRandomUnsigned();
         void unmaskReceiveBuffer(const wsheader_type& ws);
-        std::string genRandomString(const int len);
-
-        // Parse HTTP headers
-        std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(const CancellationRequest& isCancellationRequested);
-
-        WebSocketInitResult sendErrorResponse(int code, std::string reason);
     };
 }

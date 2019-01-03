@@ -24,10 +24,9 @@ namespace ix
         static void configure(int sockfd);
 
     private:
-        static bool connectToAddress(const struct addrinfo *address, 
-                                     int& sockfd,
-                                     std::string& errMsg,
-                                     const CancellationRequest& isCancellationRequested);
+        static int connectToAddress(const struct addrinfo *address,
+                                    std::string& errMsg,
+                                    const CancellationRequest& isCancellationRequested);
     };
 }
 
