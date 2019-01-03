@@ -20,6 +20,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketServer.cpp
     ixwebsocket/IXWebSocketTransport.cpp
+    ixwebsocket/IXWebSocketHandshake.cpp
     ixwebsocket/IXWebSocketPerMessageDeflate.cpp
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.cpp
 )
@@ -34,6 +35,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketServer.h
     ixwebsocket/IXWebSocketTransport.h
+    ixwebsocket/IXWebSocketHandshake.h
     ixwebsocket/IXWebSocketSendInfo.h
     ixwebsocket/IXWebSocketErrorInfo.h
     ixwebsocket/IXWebSocketPerMessageDeflate.h

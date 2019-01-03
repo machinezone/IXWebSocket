@@ -6,6 +6,7 @@
 
 #include "IXWebSocket.h"
 #include "IXSetThreadName.h"
+#include "IXWebSocketHandshake.h"
 
 #include <iostream>
 #include <cmath>

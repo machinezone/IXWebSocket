@@ -57,8 +57,5 @@ namespace ix
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;
         EventFd _eventfd;
-
-    private:
     };
-
 }
