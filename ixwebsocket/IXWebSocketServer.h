@@ -31,6 +31,7 @@ namespace ix
         void setOnConnectionCallback(const OnConnectionCallback& callback);
         void start();
         void wait();
+        void stop();
 
         std::pair<bool, std::string> listen();
 
@@ -65,7 +66,6 @@ namespace ix
 
         // Methods
         void run();
-        void stop();
         void handleConnection(int fd);
 
         // Logging

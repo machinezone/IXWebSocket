@@ -254,9 +254,20 @@ namespace ix
             _socket = std::make_shared<Socket>();
         }
 
-        auto isCancellationRequested = [this]() -> bool
+        // FIXME: timeout should be configurable
+        auto start = std::chrono::system_clock::now();
+        auto timeout = std::chrono::seconds(10);
+
+        auto isCancellationRequested = [this, start, timeout]() -> bool
         {
-            return _requestInitCancellation;
+            // Was an explicit cancellation requested ?
+            if (_requestInitCancellation) return true;
+            
+            auto now = std::chrono::system_clock::now();
+            if ((now - start) > timeout) return true;
+
+            // No cancellation request
+            return false;
         };
 
         std::string errMsg;
@@ -300,27 +311,22 @@ namespace ix
             return WebSocketInitResult(false, 0, std::string("Failed sending GET request to ") + url);
         }
 
-        // Read first line
-        char line[256];
-        int i;
-        for (i = 0; i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
+        // Read HTTP status line
+        auto lineResult = _socket->readLine(isCancellationRequested);
+        auto lineValid = lineResult.first;
+        auto line = lineResult.second;
+
+        if (!lineValid)
         {
-            if (!_socket->readByte(line+i, isCancellationRequested))
-            {
-                return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + url);
-            } 
-        }
-        line[i] = 0;
-        if (i == 255)
-        {
-            return WebSocketInitResult(false, 0, std::string("Got bad status line connecting to ") + _url);
+            return WebSocketInitResult(false, 0,
+                                       std::string("Failed reading HTTP status line from ") + url);
         }
 
         // Validate status
         int status;
 
         // HTTP/1.0 is too old.
-        if (sscanf(line, "HTTP/1.0 %d", &status) == 1)
+        if (sscanf(line.c_str(), "HTTP/1.0 %d", &status) == 1)
         {
             std::stringstream ss;
             ss << "Server version is HTTP/1.0. Rejecting connection to " << host
@@ -330,7 +336,7 @@ namespace ix
         }
 
         // We want an 101 HTTP status
-        if (sscanf(line, "HTTP/1.1 %d", &status) != 1 || status != 101)
+        if (sscanf(line.c_str(), "HTTP/1.1 %d", &status) != 1 || status != 101)
         {
             std::stringstream ss;
             ss << "Got bad status connecting to " << host
@@ -380,6 +386,28 @@ namespace ix
         return WebSocketInitResult(true, status, "", headers);
     }
 
+    WebSocketInitResult WebSocketTransport::sendErrorResponse(int code, std::string reason)
+    {
+        std::stringstream ss;
+        ss << "HTTP/1.1 ";
+        ss << code;
+        ss << "\r\n";
+        ss << reason;
+        ss << "\r\n";
+
+        auto isCancellationRequested = [this]() -> bool
+        {
+            return _requestInitCancellation;
+        };
+
+        if (!_socket->writeBytes(ss.str(), isCancellationRequested))
+        {
+            return WebSocketInitResult(false, 500, "Failed sending response");
+        }
+
+        return WebSocketInitResult(false, code, reason);
+    }
+
     // Server
     WebSocketInitResult WebSocketTransport::connectToSocket(int fd)
     {
@@ -391,28 +419,28 @@ namespace ix
         _socket.reset();
         _socket = std::make_shared<Socket>(fd);
 
-        auto isCancellationRequested = [this]() -> bool
+        // FIXME: timeout should be configurable
+        auto start = std::chrono::system_clock::now();
+        auto timeout = std::chrono::seconds(3);
+
+        auto isCancellationRequested = [this, start, timeout]() -> bool
         {
-            return _requestInitCancellation;
+            // Was an explicit cancellation requested ?
+            if (_requestInitCancellation) return true;
+            
+            auto now = std::chrono::system_clock::now();
+            if ((now - start) > timeout) return true;
+
+            // No cancellation request
+            return false;
         };
 
         std::string remote = std::string("remote fd ") + std::to_string(fd);
 
         // Read first line
-        char line[256];
-        int i;
-        for (i = 0; i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
-        {
-            if (!_socket->readByte(line+i, isCancellationRequested))
-            {
-                return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + remote);
-            } 
-        }
-        line[i] = 0;
-        if (i == 255)
-        {
-            return WebSocketInitResult(false, 0, std::string("Got bad status line connecting to ") + remote);
-        }
+        auto lineResult = _socket->readLine(isCancellationRequested);
+        auto lineValid = lineResult.first;
+        auto line = lineResult.second;
 
         // FIXME: Validate line content (GET /)
 
@@ -422,13 +450,12 @@ namespace ix
 
         if (!headersValid)
         {
-            return WebSocketInitResult(false, 401, "Error parsing HTTP headers");
+            return sendErrorResponse(400, "Error parsing HTTP headers");
         }
 
         if (headers.find("sec-websocket-key") == headers.end())
         {
-            std::string errorMsg("Missing Sec-WebSocket-Key value");
-            return WebSocketInitResult(false, 401, errorMsg);
+            return sendErrorResponse(400, "Missing Sec-WebSocket-Key value");
         }
 
         char output[29] = {};
