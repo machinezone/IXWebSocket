@@ -14,9 +14,7 @@
 
 namespace ix 
 {
-    // 60s timeout, see IXSocketConnect.cpp
-    const int64_t DNSLookup::kDefaultTimeout = 60 * 1000; // ms
-    const int64_t DNSLookup::kDefaultWait = 10;           // ms
+    const int64_t DNSLookup::kDefaultWait = 10; // ms
 
     std::atomic<uint64_t> DNSLookup::_nextId(0);
     std::set<uint64_t> DNSLookup::_activeJobs;
@@ -112,7 +110,6 @@ namespace ix
         _thread = std::thread(&DNSLookup::run, this);
         _thread.detach();
 
-        int64_t timeout = kDefaultTimeout;
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
 
         while (!_done)
@@ -129,14 +126,6 @@ namespace ix
             if (isCancellationRequested())
             {
                 errMsg = "cancellation requested";
-                return nullptr;
-            }
-
-            // Have we exceeded the timeout ?
-            timeout -= _wait;
-            if (timeout <= 0)
-            {
-                errMsg = "dns lookup timed out after 60 seconds";
                 return nullptr;
             }
         }

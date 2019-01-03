@@ -203,18 +203,10 @@ namespace ix
         ss << reason;
         ss << "\r\n";
 
-        // FIXME refactoring
-        auto start = std::chrono::system_clock::now();
-        auto timeout = std::chrono::seconds(1);
-
-        auto isCancellationRequested = [start, timeout]() -> bool
-        {
-            auto now = std::chrono::system_clock::now();
-            if ((now - start) > timeout) return true;
-
-            // No cancellation request
-            return false;
-        };
+        // Socket write can only be cancelled through a timeout here, not manually.
+        static std::atomic<bool> requestInitCancellation(false);
+        auto isCancellationRequested =
+            makeCancellationRequestWithTimeout(1, requestInitCancellation);
 
         if (!_socket->writeBytes(ss.str(), isCancellationRequested))
         {
@@ -231,21 +223,8 @@ namespace ix
     {
         _requestInitCancellation = false;
 
-        // FIXME: timeout should be configurable
-        auto start = std::chrono::system_clock::now();
-        auto timeout = std::chrono::seconds(10);
-
-        auto isCancellationRequested = [this, start, timeout]() -> bool
-        {
-            // Was an explicit cancellation requested ?
-            if (_requestInitCancellation) return true;
-            
-            auto now = std::chrono::system_clock::now();
-            if ((now - start) > timeout) return true;
-
-            // No cancellation request
-            return false;
-        };
+        auto isCancellationRequested = 
+            makeCancellationRequestWithTimeout(60, _requestInitCancellation);
 
         std::string errMsg;
         bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
@@ -369,20 +348,8 @@ namespace ix
         SocketConnect::configure(fd);
 
         // FIXME: timeout should be configurable
-        auto start = std::chrono::system_clock::now();
-        auto timeout = std::chrono::seconds(3);
-
-        auto isCancellationRequested = [this, start, timeout]() -> bool
-        {
-            // Was an explicit cancellation requested ?
-            if (_requestInitCancellation) return true;
-            
-            auto now = std::chrono::system_clock::now();
-            if ((now - start) > timeout) return true;
-
-            // No cancellation request
-            return false;
-        };
+        auto isCancellationRequested = 
+            makeCancellationRequestWithTimeout(3, _requestInitCancellation);
 
         std::string remote = std::string("remote fd ") + std::to_string(fd);
 
