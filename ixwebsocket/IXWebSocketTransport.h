@@ -165,5 +165,7 @@ namespace ix
 
         // Parse HTTP headers
         std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(const CancellationRequest& isCancellationRequested);
+
+        WebSocketInitResult sendErrorResponse(int code, std::string reason);
     };
 }

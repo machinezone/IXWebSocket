@@ -45,6 +45,7 @@ namespace ix
                       const CancellationRequest& isCancellationRequested);
         bool writeBytes(const std::string& str,
                         const CancellationRequest& isCancellationRequested);
+        std::pair<bool, std::string> readLine(const CancellationRequest& isCancellationRequested);
 
         int getErrno() const;
         static bool init(); // Required on Windows to initialize WinSocket

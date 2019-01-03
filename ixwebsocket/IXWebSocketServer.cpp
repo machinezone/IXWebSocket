@@ -219,18 +219,21 @@ namespace ix
         }
 
         auto status = webSocket->connectToSocket(fd);
-        if (!status.success)
+        if (status.success)
+        {
+            // Process incoming messages and execute callbacks 
+            // until the connection is closed
+            webSocket->run();
+        }
+        else
         {
             std::stringstream ss;
             ss << "WebSocketServer::handleConnection() error: "
+               << status.http_status
+               << " error: "
                << status.errorStr;
             logError(ss.str());
-            return;
         }
-
-        // Process incoming messages and execute callbacks 
-        // until the connection is closed
-        webSocket->run();
 
         // Remove this client from our client set
         {

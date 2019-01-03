@@ -222,4 +222,30 @@ namespace ix
             }
         }
     }
+
+    std::pair<bool, std::string> Socket::readLine(const CancellationRequest& isCancellationRequested)
+    {
+        // FIXME: N should be a parameter
+
+        // Read first line
+        const int N = 255;
+        char line[N+1];
+        int i;
+        for (i = 0; i < 2 || (i < N && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
+        {
+            if (!readByte(line+i, isCancellationRequested))
+            {
+                return std::make_pair(false, std::string());
+            } 
+        }
+
+        if (i == N)
+        {
+            return std::make_pair(false, std::string());
+        }
+
+        line[i] = 0;
+
+        return std::make_pair(true, std::string(line));
+    }
 }

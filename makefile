@@ -20,6 +20,8 @@ build:
 # a builtin C++ server started in the unittest now
 test_server:
 	(cd test && npm i ws && node broadcast-server.js)
+
+# env TEST=Websocket_server make test
 test:
 	(cd test && sh run.sh)
 
