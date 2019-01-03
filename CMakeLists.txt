@@ -17,6 +17,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketConnect.cpp
     ixwebsocket/IXDNSLookup.cpp
+    ixwebsocket/IXCancellationRequest.cpp
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketServer.cpp
     ixwebsocket/IXWebSocketTransport.cpp

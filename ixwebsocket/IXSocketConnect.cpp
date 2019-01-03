@@ -80,21 +80,9 @@ namespace ix
             return -1;
         }
 
-        //
-        // If during a connection attempt the request remains idle for longer
-        // than the timeout interval, the request is considered to have timed
-        // out. The default timeout interval is 60 seconds.
-        //
-        // See https://developer.apple.com/documentation/foundation/nsmutableurlrequest/1414063-timeoutinterval?language=objc
-        //
-        // 60 seconds timeout, each time we wait for 50ms with select -> 1200 attempts
-        //
-        int selectTimeOut = 50 * 1000; // In micro-seconds => 50ms
-        int maxRetries = 60 * 1000 * 1000 / selectTimeOut;
-
-        for (int i = 0; i < maxRetries; ++i)
+        for (;;)
         {
-            if (isCancellationRequested())
+            if (isCancellationRequested()) // Must handle timeout as well
             {
                 closeSocket(fd);
                 errMsg = "Cancelled";
@@ -105,10 +93,10 @@ namespace ix
             FD_ZERO(&wfds);
             FD_SET(fd, &wfds);
 
-            // 50ms timeout
+            // 50ms select timeout
             struct timeval timeout;
             timeout.tv_sec = 0;
-            timeout.tv_usec = selectTimeOut;
+            timeout.tv_usec = 50 * 1000;
 
             select(fd + 1, nullptr, &wfds, nullptr, &timeout);
 
@@ -175,6 +163,7 @@ namespace ix
         return sockfd;
     }
 
+    // FIXME: configure is a terrible name
     void SocketConnect::configure(int sockfd)
     {
         // 1. disable Nagle's algorithm
