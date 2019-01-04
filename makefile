@@ -15,6 +15,8 @@ build:
 	(cd examples/chat ; mkdir -p build ; cd build ; cmake .. ; make)
 	(cd examples/ping_pong ; mkdir -p build ; cd build ; cmake .. ; make)
 	(cd examples/ws_connect ; mkdir -p build ; cd build ; cmake .. ; make)
+	(cd examples/echo_server ; mkdir -p build ; cd build ; cmake .. ; make)
+	(cd examples/broadcast_server ; mkdir -p build ; cd build ; cmake .. ; make)
 
 # That target is used to start a node server, but isn't required as we have 
 # a builtin C++ server started in the unittest now
@@ -26,3 +28,4 @@ test:
 	(cd test && sh run.sh)
 
 .PHONY: test
+.PHONY: build

@@ -87,8 +87,8 @@ namespace
                const std::string& str,
                size_t wireSize,
                const ix::WebSocketErrorInfo& error,
-               const ix::WebSocketCloseInfo& closeInfo,
-               const ix::WebSocketHttpHeaders& headers)
+               const ix::WebSocketOpenInfo& openInfo,
+               const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)

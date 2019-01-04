@@ -4,11 +4,6 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
-// TODO
-// pass to callback PATH
-// pass connection success too to callback
-//
-
 #pragma once
 
 #include <utility> // pair
