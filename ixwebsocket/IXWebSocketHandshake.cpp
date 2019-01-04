@@ -262,12 +262,13 @@ namespace ix
     WebSocketInitResult WebSocketHandshake::clientHandshake(const std::string& url,
                                                             const std::string& host,
                                                             const std::string& path,
-                                                            int port)
+                                                            int port,
+                                                            int timeoutSecs)
     {
         _requestInitCancellation = false;
 
         auto isCancellationRequested = 
-            makeCancellationRequestWithTimeout(60, _requestInitCancellation);
+            makeCancellationRequestWithTimeout(timeoutSecs, _requestInitCancellation);
 
         std::string errMsg;
         bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
@@ -383,16 +384,15 @@ namespace ix
         return WebSocketInitResult(true, status, "", headers, path);
     }
 
-    WebSocketInitResult WebSocketHandshake::serverHandshake(int fd)
+    WebSocketInitResult WebSocketHandshake::serverHandshake(int fd, int timeoutSecs)
     {
         _requestInitCancellation = false;
 
         // Set the socket to non blocking mode + other tweaks
         SocketConnect::configure(fd);
 
-        // FIXME: timeout should be configurable
         auto isCancellationRequested = 
-            makeCancellationRequestWithTimeout(3, _requestInitCancellation);
+            makeCancellationRequestWithTimeout(timeoutSecs, _requestInitCancellation);
 
         std::string remote = std::string("remote fd ") + std::to_string(fd);
 

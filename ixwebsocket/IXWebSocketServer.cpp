@@ -24,15 +24,18 @@ namespace ix
     const std::string WebSocketServer::kDefaultHost("127.0.0.1");
     const int WebSocketServer::kDefaultTcpBacklog(5);
     const size_t WebSocketServer::kDefaultMaxConnections(32);
+    const int WebSocketServer::kDefaultHandShakeTimeoutSecs(3); // 3 seconds
 
     WebSocketServer::WebSocketServer(int port,
                                      const std::string& host,
                                      int backlog,
-                                     size_t maxConnections) :
+                                     size_t maxConnections,
+                                     int handshakeTimeoutSecs) :
         _port(port),
         _host(host),
         _backlog(backlog),
         _maxConnections(maxConnections),
+        _handshakeTimeoutSecs(handshakeTimeoutSecs),
         _stop(false)
     {
 
@@ -236,7 +239,7 @@ namespace ix
             _clients.insert(webSocket);
         }
 
-        auto status = webSocket->connectToSocket(fd);
+        auto status = webSocket->connectToSocket(fd, _handshakeTimeoutSecs);
         if (status.success)
         {
             // Process incoming messages and execute callbacks 

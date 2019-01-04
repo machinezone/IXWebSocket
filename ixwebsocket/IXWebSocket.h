@@ -86,13 +86,14 @@ namespace ix
 
         void setUrl(const std::string& url);
         void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
+        void setHandshakeTimeout(int _handshakeTimeoutSecs);
 
         // Run asynchronously, by calling start and stop.
         void start();
         void stop();
 
         // Run in blocking mode, by connecting first manually, and then calling run.
-        WebSocketInitResult connect();
+        WebSocketInitResult connect(int timeoutSecs);
         void run();
 
         WebSocketSendInfo send(const std::string& text);
@@ -122,7 +123,7 @@ namespace ix
 
         // Server
         void setSocketFileDescriptor(int fd);
-        WebSocketInitResult connectToSocket(int fd);
+        WebSocketInitResult connectToSocket(int fd, int timeoutSecs);
 
         WebSocketTransport _ws;
 
@@ -137,6 +138,9 @@ namespace ix
         std::atomic<bool> _automaticReconnection;
         std::thread _thread;
         std::mutex _writeMutex;
+
+        std::atomic<int> _handshakeTimeoutSecs;
+        static const int kDefaultHandShakeTimeoutSecs;
 
         friend class WebSocketServer;
     };

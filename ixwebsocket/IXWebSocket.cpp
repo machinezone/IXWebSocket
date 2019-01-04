@@ -30,11 +30,13 @@ namespace
 namespace ix
 {
     OnTrafficTrackerCallback WebSocket::_onTrafficTrackerCallback = nullptr;
+    const int WebSocket::kDefaultHandShakeTimeoutSecs(60);
 
     WebSocket::WebSocket() :
         _onMessageCallback(OnMessageCallback()),
         _stop(false),
-        _automaticReconnection(true)
+        _automaticReconnection(true),
+        _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs)
     {
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize)
@@ -104,14 +106,14 @@ namespace ix
         _automaticReconnection = automaticReconnection;
     }
 
-    WebSocketInitResult WebSocket::connect()
+    WebSocketInitResult WebSocket::connect(int timeoutSecs)
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(_perMessageDeflateOptions);
         }
 
-        WebSocketInitResult status = _ws.connectToUrl(_url);
+        WebSocketInitResult status = _ws.connectToUrl(_url, timeoutSecs);
         if (!status.success)
         {
             return status;
@@ -124,14 +126,14 @@ namespace ix
         return status;
     }
 
-    WebSocketInitResult WebSocket::connectToSocket(int fd)
+    WebSocketInitResult WebSocket::connectToSocket(int fd, int timeoutSecs)
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(_perMessageDeflateOptions);
         }
 
-        WebSocketInitResult status = _ws.connectToSocket(fd);
+        WebSocketInitResult status = _ws.connectToSocket(fd, timeoutSecs);
         if (!status.success)
         {
             return status;
@@ -174,7 +176,7 @@ namespace ix
                 break;
             }
 
-            status = connect();
+            status = connect(_handshakeTimeoutSecs);
 
             if (!status.success && !_stop)
             {

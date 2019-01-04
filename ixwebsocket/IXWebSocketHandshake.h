@@ -53,8 +53,11 @@ namespace ix
         WebSocketInitResult clientHandshake(const std::string& url,
                                             const std::string& host,
                                             const std::string& path,
-                                            int port);
-        WebSocketInitResult serverHandshake(int fd);
+                                            int port,
+                                            int timeoutSecs);
+
+        WebSocketInitResult serverHandshake(int fd,
+                                            int timeoutSecs);
 
         static bool parseUrl(const std::string& url,
                              std::string& protocol,

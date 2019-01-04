@@ -26,7 +26,8 @@ namespace ix
         WebSocketServer(int port = WebSocketServer::kDefaultPort,
                         const std::string& host = WebSocketServer::kDefaultHost,
                         int backlog = WebSocketServer::kDefaultTcpBacklog,
-                        size_t maxConnections = WebSocketServer::kDefaultMaxConnections);
+                        size_t maxConnections = WebSocketServer::kDefaultMaxConnections,
+                        int handshakeTimeoutSecs = WebSocketServer::kDefaultHandShakeTimeoutSecs);
         virtual ~WebSocketServer();
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
@@ -45,6 +46,7 @@ namespace ix
         std::string _host;
         int _backlog;
         size_t _maxConnections;
+        int _handshakeTimeoutSecs;
 
         OnConnectionCallback _onConnectionCallback;
 
@@ -66,6 +68,7 @@ namespace ix
         const static std::string kDefaultHost;
         const static int kDefaultTcpBacklog;
         const static size_t kDefaultMaxConnections;
+        const static int kDefaultHandShakeTimeoutSecs;
 
         // Methods
         void run();

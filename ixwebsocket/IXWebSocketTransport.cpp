@@ -55,7 +55,8 @@ namespace ix
     }
 
     // Client
-    WebSocketInitResult WebSocketTransport::connectToUrl(const std::string& url)
+    WebSocketInitResult WebSocketTransport::connectToUrl(const std::string& url,
+                                                         int timeoutSecs)
     {
         std::string protocol, host, path, query;
         int port;
@@ -92,7 +93,8 @@ namespace ix
                                               _perMessageDeflateOptions,
                                               _enablePerMessageDeflate);
 
-        auto result = webSocketHandshake.clientHandshake(url, host, path, port);
+        auto result = webSocketHandshake.clientHandshake(url, host, path, port,
+                                                         timeoutSecs);
         if (result.success)
         {
             setReadyState(OPEN);
@@ -101,7 +103,7 @@ namespace ix
     }
 
     // Server
-    WebSocketInitResult WebSocketTransport::connectToSocket(int fd)
+    WebSocketInitResult WebSocketTransport::connectToSocket(int fd, int timeoutSecs)
     {
         _socket.reset();
         _socket = std::make_shared<Socket>(fd);
@@ -112,7 +114,7 @@ namespace ix
                                               _perMessageDeflateOptions,
                                               _enablePerMessageDeflate);
 
-        auto result = webSocketHandshake.serverHandshake(fd);
+        auto result = webSocketHandshake.serverHandshake(fd, timeoutSecs);
         if (result.success)
         {
             setReadyState(OPEN);
