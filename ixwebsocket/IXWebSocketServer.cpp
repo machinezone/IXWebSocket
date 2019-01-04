@@ -23,11 +23,16 @@ namespace ix
     const int WebSocketServer::kDefaultPort(8080);
     const std::string WebSocketServer::kDefaultHost("127.0.0.1");
     const int WebSocketServer::kDefaultTcpBacklog(5);
+    const size_t WebSocketServer::kDefaultMaxConnections(32);
 
-    WebSocketServer::WebSocketServer(int port, const std::string& host, int backlog) :
+    WebSocketServer::WebSocketServer(int port,
+                                     const std::string& host,
+                                     int backlog,
+                                     size_t maxConnections) :
         _port(port),
         _host(host),
         _backlog(backlog),
+        _maxConnections(maxConnections),
         _stop(false)
     {
 
@@ -194,6 +199,19 @@ namespace ix
                 continue;
             }
 
+            if (getConnectedClientsCount() >= _maxConnections)
+            {
+                std::stringstream ss;
+                ss << "WebSocketServer::run() reached max connections = "
+                   << _maxConnections << ". "
+                   << "Not accepting connection";
+                logError(ss.str());
+
+                ::close(clientFd);
+
+                continue;
+            }
+
             // Launch the handleConnection work asynchronously in its own thread.
             //
             // the destructor of a future returned by std::async blocks, 
@@ -251,5 +269,10 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_clientsMutex);
         return _clients;
+    }
+
+    size_t WebSocketServer::getConnectedClientsCount()
+    {
+        return getClients().size();
     }
 }

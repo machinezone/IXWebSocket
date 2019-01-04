@@ -4,6 +4,11 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
+// TODO
+// pass to callback PATH
+// pass connection success too to callback
+//
+
 #pragma once
 
 #include <utility> // pair
@@ -25,7 +30,8 @@ namespace ix
     public:
         WebSocketServer(int port = WebSocketServer::kDefaultPort,
                         const std::string& host = WebSocketServer::kDefaultHost,
-                        int backlog = WebSocketServer::kDefaultTcpBacklog);
+                        int backlog = WebSocketServer::kDefaultTcpBacklog,
+                        size_t maxConnections = WebSocketServer::kDefaultMaxConnections);
         virtual ~WebSocketServer();
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
@@ -43,6 +49,7 @@ namespace ix
         int _port;
         std::string _host;
         int _backlog;
+        size_t _maxConnections;
 
         OnConnectionCallback _onConnectionCallback;
 
@@ -63,10 +70,12 @@ namespace ix
         const static int kDefaultPort;
         const static std::string kDefaultHost;
         const static int kDefaultTcpBacklog;
+        const static size_t kDefaultMaxConnections;
 
         // Methods
         void run();
         void handleConnection(int fd);
+        size_t getConnectedClientsCount();
 
         // Logging
         void logError(const std::string& str);
