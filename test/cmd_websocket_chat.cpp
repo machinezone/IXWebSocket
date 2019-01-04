@@ -13,6 +13,7 @@
 #include <sstream>
 #include <queue>
 #include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXWebSocketServer.h>
 #include "msgpack11.hpp"
 
 #include "IXTest.h"
@@ -82,7 +83,7 @@ namespace
 
     void WebSocketChat::start()
     {
-        std::string url("ws://localhost:8080/");
+        std::string url("ws://localhost:8090/");
         _webSocket.setUrl(url);
 
         std::stringstream ss;
@@ -93,8 +94,8 @@ namespace
                    const std::string& str,
                    size_t wireSize,
                    const ix::WebSocketErrorInfo& error,
-                   const ix::WebSocketCloseInfo& closeInfo,
-                   const ix::WebSocketHttpHeaders& headers)
+                   const ix::WebSocketOpenInfo& openInfo,
+                   const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)
@@ -171,13 +172,70 @@ namespace
     {
         _webSocket.send(encodeMessage(text));
     }
+
+    bool startServer(ix::WebSocketServer& server)
+    {
+        server.setOnConnectionCallback(
+            [&server](std::shared_ptr<ix::WebSocket> webSocket)
+            {
+                webSocket->setOnMessageCallback(
+                    [webSocket, &server](ix::WebSocketMessageType messageType,
+                       const std::string& str,
+                       size_t wireSize,
+                       const ix::WebSocketErrorInfo& error,
+                       const ix::WebSocketOpenInfo& openInfo,
+                       const ix::WebSocketCloseInfo& closeInfo)
+                    {
+                        if (messageType == ix::WebSocket_MessageType_Open)
+                        {
+                            std::cerr << "New connection" << std::endl;
+                            std::cerr << "Uri: " << openInfo.uri << std::endl;
+                            std::cerr << "Headers:" << std::endl;
+                            for (auto it : openInfo.headers)
+                            {
+                                std::cerr << it.first << ": " << it.second << std::endl;
+                            }
+                        }
+                        else if (messageType == ix::WebSocket_MessageType_Close)
+                        {
+                            std::cerr << "Closed connection" << std::endl;
+                        }
+                        else if (messageType == ix::WebSocket_MessageType_Message)
+                        {
+                            for (auto&& client : server.getClients())
+                            {
+                                if (client != webSocket)
+                                {
+                                    client->send(str);
+                                }
+                            }
+                        }
+                    }
+                );
+            }
+        );
+
+        auto res = server.listen();
+        if (!res.first)
+        {
+            std::cerr << res.second << std::endl;
+            return false;
+        }
+
+        server.start();
+        return true;
+    }
 }
 
-TEST_CASE("Websocket chat", "[websocket_chat]")
+TEST_CASE("Websocket_chat", "[websocket_chat]")
 {
     SECTION("Exchange and count sent/received messages.")
     {
         ix::setupWebSocketTrafficTrackerCallback();
+
+        int port = 8090;
+        ix::WebSocketServer server(port);
+        REQUIRE(startServer(server));
 
         std::string session = ix::generateSessionId();
         WebSocketChat chatA("jean", session);
@@ -192,6 +250,8 @@ TEST_CASE("Websocket chat", "[websocket_chat]")
             if (chatA.isReady() && chatB.isReady()) break;
             ix::msleep(10);
         }
+
+        REQUIRE(server.getClients().size() == 2);
 
         // Add a bit of extra time, for the subscription to be active
         ix::msleep(200);
@@ -211,6 +271,10 @@ TEST_CASE("Websocket chat", "[websocket_chat]")
 
         REQUIRE(chatA.getReceivedMessagesCount() == 2);
         REQUIRE(chatB.getReceivedMessagesCount() == 3);
+
+        // Give us 500ms for the server to notice that clients went away
+        ix::msleep(500);
+        REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
     }

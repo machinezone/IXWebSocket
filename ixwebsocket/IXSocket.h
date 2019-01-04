@@ -14,15 +14,13 @@
 #include "IXEventFd.h"
 #include "IXCancellationRequest.h"
 
-struct addrinfo;
-
 namespace ix 
 {
     class Socket {
     public:
         using OnPollCallback = std::function<void()>;
 
-        Socket();
+        Socket(int fd = -1);
         virtual ~Socket();
 
         void configure();
@@ -41,6 +39,14 @@ namespace ix
         virtual int send(const std::string& buffer);
         virtual int recv(void* buffer, size_t length);
 
+        // Blocking and cancellable versions, working with socket that can be set
+        // to non blocking mode. Used during HTTP upgrade.
+        bool readByte(void* buffer,
+                      const CancellationRequest& isCancellationRequested);
+        bool writeBytes(const std::string& str,
+                        const CancellationRequest& isCancellationRequested);
+        std::pair<bool, std::string> readLine(const CancellationRequest& isCancellationRequested);
+
         int getErrno() const;
         static bool init(); // Required on Windows to initialize WinSocket
         static void cleanup(); // Required on Windows to cleanup WinSocket
@@ -51,8 +57,5 @@ namespace ix
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;
         EventFd _eventfd;
-
-    private:
     };
-
 }

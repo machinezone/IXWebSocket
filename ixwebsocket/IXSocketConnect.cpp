@@ -53,20 +53,19 @@ namespace ix
     // This is important so that we don't block the main UI thread when shutting down a connection which is
     // already trying to reconnect, and can be blocked waiting for ::connect to respond.
     //
-    bool SocketConnect::connectToAddress(const struct addrinfo *address, 
-                                         int& sockfd,
-                                         std::string& errMsg,
-                                         const CancellationRequest& isCancellationRequested)
+    int SocketConnect::connectToAddress(const struct addrinfo *address,
+                                        std::string& errMsg,
+                                        const CancellationRequest& isCancellationRequested)
     {
-        sockfd = -1;
-
+        errMsg = "no error";
+        
         int fd = socket(address->ai_family,
                         address->ai_socktype,
                         address->ai_protocol);
         if (fd < 0)
         {
             errMsg = "Cannot create a socket";
-            return false;
+            return -1;
         }
 
         // Set the socket to non blocking mode, so that slow responses cannot
@@ -78,24 +77,12 @@ namespace ix
         {
             closeSocket(fd);
             errMsg = strerror(errno);
-            return false;
+            return -1;
         }
 
-        //
-        // If during a connection attempt the request remains idle for longer
-        // than the timeout interval, the request is considered to have timed
-        // out. The default timeout interval is 60 seconds.
-        //
-        // See https://developer.apple.com/documentation/foundation/nsmutableurlrequest/1414063-timeoutinterval?language=objc
-        //
-        // 60 seconds timeout, each time we wait for 50ms with select -> 1200 attempts
-        //
-        int selectTimeOut = 50 * 1000; // In micro-seconds => 50ms
-        int maxRetries = 60 * 1000 * 1000 / selectTimeOut;
-
-        for (int i = 0; i < maxRetries; ++i)
+        for (;;)
         {
-            if (isCancellationRequested())
+            if (isCancellationRequested()) // Must handle timeout as well
             {
                 closeSocket(fd);
                 errMsg = "Cancelled";
@@ -106,10 +93,10 @@ namespace ix
             FD_ZERO(&wfds);
             FD_SET(fd, &wfds);
 
-            // 50ms timeout
+            // 50ms select timeout
             struct timeval timeout;
             timeout.tv_sec = 0;
-            timeout.tv_usec = selectTimeOut;
+            timeout.tv_usec = 50 * 1000;
 
             select(fd + 1, nullptr, &wfds, nullptr, &timeout);
 
@@ -127,19 +114,18 @@ namespace ix
             {
                 closeSocket(fd);
                 errMsg = strerror(optval);
-                return false;
+                return -1;
             }
             else
             {
                 // Success !
-                sockfd = fd;
-                return true;
+                return fd;
             }
         }
 
         closeSocket(fd);
         errMsg = "connect timed out after 60 seconds";
-        return false;
+        return -1;
     }
 
     int SocketConnect::connect(const std::string& hostname,
@@ -161,14 +147,13 @@ namespace ix
 
         // iterate through the records to find a working peer
         struct addrinfo *address;
-        bool success = false;
         for (address = res; address != nullptr; address = address->ai_next)
         {
             //
             // Second try to connect to the remote host
             //
-            success = connectToAddress(address, sockfd, errMsg, isCancellationRequested);
-            if (success)
+            sockfd = connectToAddress(address, errMsg, isCancellationRequested);
+            if (sockfd != -1)
             {
                 break;
             }
@@ -178,6 +163,7 @@ namespace ix
         return sockfd;
     }
 
+    // FIXME: configure is a terrible name
     void SocketConnect::configure(int sockfd)
     {
         // 1. disable Nagle's algorithm

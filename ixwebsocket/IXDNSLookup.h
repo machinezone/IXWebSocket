@@ -61,7 +61,6 @@ namespace ix
         static std::set<uint64_t> _activeJobs;
         static std::mutex _activeJobsMutex;
 
-        const static int64_t kDefaultTimeout;
         const static int64_t kDefaultWait;
     };
 }

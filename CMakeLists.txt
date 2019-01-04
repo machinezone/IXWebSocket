@@ -10,13 +10,18 @@ set (CMAKE_CXX_STANDARD 11)
 set (CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wshorten-64-to-32")
+
 set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXEventFd.cpp
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketConnect.cpp
     ixwebsocket/IXDNSLookup.cpp
+    ixwebsocket/IXCancellationRequest.cpp
     ixwebsocket/IXWebSocket.cpp
+    ixwebsocket/IXWebSocketServer.cpp
     ixwebsocket/IXWebSocketTransport.cpp
+    ixwebsocket/IXWebSocketHandshake.cpp
     ixwebsocket/IXWebSocketPerMessageDeflate.cpp
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.cpp
 )
@@ -29,7 +34,9 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXDNSLookup.h
     ixwebsocket/IXCancellationRequest.h
     ixwebsocket/IXWebSocket.h
+    ixwebsocket/IXWebSocketServer.h
     ixwebsocket/IXWebSocketTransport.h
+    ixwebsocket/IXWebSocketHandshake.h
     ixwebsocket/IXWebSocketSendInfo.h
     ixwebsocket/IXWebSocketErrorInfo.h
     ixwebsocket/IXWebSocketPerMessageDeflate.h

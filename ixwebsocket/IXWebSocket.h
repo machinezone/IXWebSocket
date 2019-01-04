@@ -41,6 +41,20 @@ namespace ix
         WebSocket_MessageType_Pong = 5
     };
 
+    struct WebSocketOpenInfo
+    {
+        std::string uri;
+        WebSocketHttpHeaders headers;
+
+        WebSocketOpenInfo(const std::string& u = std::string(),
+                          const WebSocketHttpHeaders& h = WebSocketHttpHeaders())
+            : uri(u)
+            , headers(h)
+        {
+            ;
+        }
+    };
+
     struct WebSocketCloseInfo
     {
         uint16_t code;
@@ -59,8 +73,9 @@ namespace ix
                                                  const std::string&,
                                                  size_t wireSize,
                                                  const WebSocketErrorInfo&,
-                                                 const WebSocketCloseInfo&,
-                                                 const WebSocketHttpHeaders&)>;
+                                                 const WebSocketOpenInfo&,
+                                                 const WebSocketCloseInfo&)>;
+
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
     class WebSocket 
@@ -71,9 +86,16 @@ namespace ix
 
         void setUrl(const std::string& url);
         void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
+        void setHandshakeTimeout(int _handshakeTimeoutSecs);
 
+        // Run asynchronously, by calling start and stop.
         void start();
         void stop();
+
+        // Run in blocking mode, by connecting first manually, and then calling run.
+        WebSocketInitResult connect(int timeoutSecs);
+        void run();
+
         WebSocketSendInfo send(const std::string& text);
         WebSocketSendInfo ping(const std::string& text);
         void close();
@@ -86,17 +108,22 @@ namespace ix
         const std::string& getUrl() const;
         const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
 
+        void enableAutomaticReconnection();
+        void disableAutomaticReconnection();
+
     private:
-        void run();
 
         WebSocketSendInfo sendMessage(const std::string& text, bool ping);
 
-        WebSocketInitResult connect();
         bool isConnected() const;
         bool isClosing() const;
         void reconnectPerpetuallyIfDisconnected();
         std::string readyStateToString(ReadyState readyState);
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
+
+        // Server
+        void setSocketFileDescriptor(int fd);
+        WebSocketInitResult connectToSocket(int fd, int timeoutSecs);
 
         WebSocketTransport _ws;
 
@@ -111,5 +138,10 @@ namespace ix
         std::atomic<bool> _automaticReconnection;
         std::thread _thread;
         std::mutex _writeMutex;
+
+        std::atomic<int> _handshakeTimeoutSecs;
+        static const int kDefaultHandShakeTimeoutSecs;
+
+        friend class WebSocketServer;
     };
 }

@@ -37,8 +37,8 @@
 
 namespace ix 
 {
-    Socket::Socket() : 
-        _sockfd(-1)
+    Socket::Socket(int fd) : 
+        _sockfd(fd)
     {
 
     }
@@ -161,5 +161,95 @@ namespace ix
 #ifdef _WIN32
         WSACleanup();
 #endif
+    }
+
+    bool Socket::readByte(void* buffer,
+                          const CancellationRequest& isCancellationRequested)
+    {
+        while (true)
+        {
+            if (isCancellationRequested()) return false;
+
+            int ret;
+            ret = recv(buffer, 1);
+
+            // We read one byte, as needed, all good.
+            if (ret == 1)
+            {
+                return true;
+            }
+            // There is possibly something to be read, try again
+            else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
+                                 getErrno() == EAGAIN))
+            {
+                // Wait with a timeout until something is written.
+                // This way we are not busy looping
+                fd_set rfds;
+                struct timeval timeout;
+                timeout.tv_sec = 0;
+                timeout.tv_usec = 1 * 1000; // 1ms
+
+                FD_ZERO(&rfds);
+                FD_SET(_sockfd, &rfds);
+                select(_sockfd + 1, &rfds, nullptr, nullptr, &timeout);
+
+                continue;
+            }
+            // There was an error during the read, abort
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    bool Socket::writeBytes(const std::string& str,
+                            const CancellationRequest& isCancellationRequested)
+    {
+        while (true)
+        {
+            if (isCancellationRequested()) return false;
+
+            char* buffer = const_cast<char*>(str.c_str());
+            int len = (int) str.size();
+
+            int ret = send(buffer, len);
+
+            // We wrote some bytes, as needed, all good.
+            if (ret > 0)
+            {
+                return ret == len;
+            }
+            // There is possibly something to be write, try again
+            else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
+                                 getErrno() == EAGAIN))
+            {
+                continue;
+            }
+            // There was an error during the write, abort
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    std::pair<bool, std::string> Socket::readLine(const CancellationRequest& isCancellationRequested)
+    {
+        char c;
+        std::string line;
+        line.reserve(64);
+
+        for (int i = 0; i < 2 || (line[i-2] != '\r' && line[i-1] != '\n'); ++i)
+        {
+            if (!readByte(&c, isCancellationRequested))
+            {
+                return std::make_pair(false, std::string());
+            }
+
+            line += c;
+        }
+
+        return std::make_pair(true, line);
     }
 }

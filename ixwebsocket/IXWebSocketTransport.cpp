@@ -9,9 +9,9 @@
 //
 
 #include "IXWebSocketTransport.h"
+#include "IXWebSocketHandshake.h"
 #include "IXWebSocketHttpHeaders.h"
 
-#include "IXSocket.h"
 #ifdef IXWEBSOCKET_USE_TLS
 # ifdef __APPLE__
 #  include "IXSocketAppleSSL.h"
@@ -19,8 +19,6 @@
 #  include "IXSocketOpenSSL.h"
 # endif
 #endif
-
-#include "libwshandshake.hpp"
 
 #include <string.h>
 #include <stdlib.h>
@@ -31,9 +29,6 @@
 #include <cstdarg>
 #include <iostream>
 #include <sstream>
-#include <regex>
-#include <random>
-#include <algorithm>
 
 
 namespace ix
@@ -53,133 +48,24 @@ namespace ix
         ;
     }
 
-    void WebSocketTransport::configure(const std::string& url,
-                                       const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
+    void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
     {
-        _url = url;
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
     }
 
-    bool WebSocketTransport::parseUrl(const std::string& url,
-                                      std::string& protocol,
-                                      std::string& host,
-                                      std::string& path,
-                                      std::string& query,
-                                      int& port)
-    {
-        std::regex ex("(ws|wss)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-        std::cmatch what;
-        if (!regex_match(url.c_str(), what, ex))
-        {
-            return false;
-        }
-
-        std::string portStr;
-
-        protocol = std::string(what[1].first, what[1].second);
-        host     = std::string(what[2].first, what[2].second);
-        portStr  = std::string(what[3].first, what[3].second);
-        path     = std::string(what[4].first, what[4].second);
-        query    = std::string(what[5].first, what[5].second);
-
-        if (portStr.empty())
-        {
-            if (protocol == "ws")
-            {
-                port = 80;
-            }
-            else if (protocol == "wss")
-            {
-                port = 443;
-            }
-            else
-            {
-                // Invalid protocol. Should be caught by regex check
-                // but this missing branch trigger cpplint linter.
-                return false;
-            }
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << portStr;
-            ss >> port;
-        }
-
-        if (path.empty())
-        {
-            path = "/";
-        }
-        else if (path[0] != '/')
-        {
-            path = '/' + path;
-        }
-
-        if (!query.empty())
-        {
-            path += "?";
-            path += query;
-        }
-
-        return true;
-    }
-
-    void WebSocketTransport::printUrl(const std::string& url)
-    {
-        std::string protocol, host, path, query;
-        int port {0};
-
-        if (!WebSocketTransport::parseUrl(url, protocol, host,
-                                          path, query, port))
-        {
-            return;
-        }
-
-        std::cout << "[" << url << "]" << std::endl;
-        std::cout << protocol << std::endl;
-        std::cout << host << std::endl;
-        std::cout << port << std::endl;
-        std::cout << path << std::endl;
-        std::cout << query << std::endl;
-        std::cout << "-------------------------------" << std::endl;
-    }
-
-    std::string WebSocketTransport::genRandomString(const int len)
-    {
-        std::string alphanum = 
-            "0123456789"
-            "ABCDEFGH"
-            "abcdefgh";
-
-        std::random_device r;
-        std::default_random_engine e1(r());
-        std::uniform_int_distribution<int> dist(0, (int) alphanum.size() - 1);
-
-        std::string s;
-        s.resize(len);
-
-        for (int i = 0; i < len; ++i)
-        {
-            int x = dist(e1);
-            s[i] = alphanum[x];
-        }
-
-        return s;
-    }
-
-    WebSocketInitResult WebSocketTransport::init()
+    // Client
+    WebSocketInitResult WebSocketTransport::connectToUrl(const std::string& url,
+                                                         int timeoutSecs)
     {
         std::string protocol, host, path, query;
         int port;
 
-        _requestInitCancellation = false;
-
-        if (!WebSocketTransport::parseUrl(_url, protocol, host,
+        if (!WebSocketHandshake::parseUrl(url, protocol, host,
                                           path, query, port))
         {
             return WebSocketInitResult(false, 0,
-                                       std::string("Could not parse URL ") + _url);
+                                       std::string("Could not parse URL ") + url);
         }
 
         if (protocol == "wss")
@@ -201,165 +87,39 @@ namespace ix
             _socket = std::make_shared<Socket>();
         }
 
-        std::string errMsg;
-        bool success = _socket->connect(host, port, errMsg,
-                [this]() -> bool
-                {
-                    return _requestInitCancellation;
-                }
-        );
-        if (!success)
+        WebSocketHandshake webSocketHandshake(_requestInitCancellation,
+                                              _socket,
+                                              _perMessageDeflate,
+                                              _perMessageDeflateOptions,
+                                              _enablePerMessageDeflate);
+
+        auto result = webSocketHandshake.clientHandshake(url, host, path, port,
+                                                         timeoutSecs);
+        if (result.success)
         {
-            std::stringstream ss;
-            ss << "Unable to connect to " << host
-               << " on port " << port
-               << ", error: " << errMsg;
-            return WebSocketInitResult(false, 0, ss.str());
+            setReadyState(OPEN);
         }
+        return result;
+    }
 
-        //
-        // Generate a random 24 bytes string which looks like it is base64 encoded
-        // y3JJHMbDL1EzLkh9GBhXDw==
-        // 0cb3Vd9HkbpVVumoS3Noka==
-        //
-        // See https://stackoverflow.com/questions/18265128/what-is-sec-websocket-key-for
-        //
-        std::string secWebSocketKey = genRandomString(22);
-        secWebSocketKey += "==";
+    // Server
+    WebSocketInitResult WebSocketTransport::connectToSocket(int fd, int timeoutSecs)
+    {
+        _socket.reset();
+        _socket = std::make_shared<Socket>(fd);
 
-        std::stringstream ss;
-        ss << "GET " << path << " HTTP/1.1\r\n";
-        ss << "Host: "<< host << ":" << port << "\r\n";
-        ss << "Upgrade: websocket\r\n";
-        ss << "Connection: Upgrade\r\n";
-        ss << "Sec-WebSocket-Version: 13\r\n";
-        ss << "Sec-WebSocket-Key: " << secWebSocketKey << "\r\n";
+        WebSocketHandshake webSocketHandshake(_requestInitCancellation,
+                                              _socket,
+                                              _perMessageDeflate,
+                                              _perMessageDeflateOptions,
+                                              _enablePerMessageDeflate);
 
-        if (_enablePerMessageDeflate)
+        auto result = webSocketHandshake.serverHandshake(fd, timeoutSecs);
+        if (result.success)
         {
-            ss << _perMessageDeflateOptions.generateHeader();
+            setReadyState(OPEN);
         }
-
-        ss << "\r\n";
-
-        if (!writeBytes(ss.str()))
-        {
-            return WebSocketInitResult(false, 0, std::string("Failed sending GET request to ") + _url);
-        }
-
-        char line[256];
-        int i;
-        for (i = 0; i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
-        {
-            if (!readByte(line+i))
-            {
-                return WebSocketInitResult(false, 0, std::string("Failed reading HTTP status line from ") + _url);
-            } 
-        }
-        line[i] = 0;
-        if (i == 255)
-        {
-            return WebSocketInitResult(false, 0, std::string("Got bad status line connecting to ") + _url);
-        }
-
-        // Validate status
-        int status;
-
-        // HTTP/1.0 is too old.
-        if (sscanf(line, "HTTP/1.0 %d", &status) == 1)
-        {
-            std::stringstream ss;
-            ss << "Server version is HTTP/1.0. Rejecting connection to " << host
-               << ", status: " << status
-               << ", HTTP Status line: " << line;
-            return WebSocketInitResult(false, status, ss.str());
-        }
-
-        // We want an 101 HTTP status
-        if (sscanf(line, "HTTP/1.1 %d", &status) != 1 || status != 101)
-        {
-            std::stringstream ss;
-            ss << "Got bad status connecting to " << host
-               << ", status: " << status
-               << ", HTTP Status line: " << line;
-            return WebSocketInitResult(false, status, ss.str());
-        }
-
-        WebSocketHttpHeaders headers;
-
-        while (true) 
-        {
-            int colon = 0;
-
-            for (i = 0;
-                 i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n');
-                 ++i)
-            {
-                if (!readByte(line+i))
-                {
-                    return WebSocketInitResult(false, status, std::string("Failed reading response header from ") + _url);
-                }
-
-                if (line[i] == ':' && colon == 0)
-                {
-                    colon = i;
-                }
-            }
-            if (line[0] == '\r' && line[1] == '\n')
-            {
-                break;
-            }
-
-            // line is a single header entry. split by ':', and add it to our
-            // header map. ignore lines with no colon.
-            if (colon > 0)
-            {
-                line[i] = '\0';
-                std::string lineStr(line);
-                // colon is ':', colon+1 is ' ', colon+2 is the start of the value.
-                // i is end of string (\0), i-colon is length of string minus key;
-                // subtract 1 for '\0', 1 for '\n', 1 for '\r',
-                // 1 for the ' ' after the ':', and total is -4
-                std::string name(lineStr.substr(0, colon));
-                std::string value(lineStr.substr(colon + 2, i - colon - 4));
-
-                // Make the name lower case.
-                std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-
-                headers[name] = value;
-            }
-        }
-
-        char output[29] = {};
-        WebSocketHandshake::generate(secWebSocketKey.c_str(), output);
-        if (std::string(output) != headers["sec-websocket-accept"])
-        {
-            std::string errorMsg("Invalid Sec-WebSocket-Accept value");
-            return WebSocketInitResult(false, status, errorMsg);
-        }
-
-        if (_enablePerMessageDeflate)
-        {
-            // Parse the server response. Does it support deflate ?
-            std::string header = headers["sec-websocket-extensions"];
-            WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(header);
-
-            // If the server does not support that extension, disable it.
-            if (!webSocketPerMessageDeflateOptions.enabled())
-            {
-                _enablePerMessageDeflate = false;
-            }
-
-            if (!_perMessageDeflate.init(webSocketPerMessageDeflateOptions))
-            {
-                return WebSocketInitResult(
-                    false, 0,"Failed to initialize per message deflate engine");
-            }
-        }
-
-        setReadyState(OPEN);
-
-        return WebSocketInitResult(true, status, "", headers);
+        return result;
     }
 
     WebSocketTransport::ReadyStateValues WebSocketTransport::getReadyState() const 
@@ -820,64 +580,6 @@ namespace ix
 
         _socket->wakeUpFromPoll();
         _socket->close();
-    }
-
-    bool WebSocketTransport::readByte(void* buffer)
-    {
-        while (true)
-        {
-            if (_readyState == CLOSING) return false;
-
-            int ret;
-            ret = _socket->recv(buffer, 1);
-
-            // We read one byte, as needed, all good.
-            if (ret == 1)
-            {
-                return true;
-            }
-            // There is possibly something to be read, try again
-            else if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
-                                 _socket->getErrno() == EAGAIN))
-            {
-                continue;
-            }
-            // There was an error during the read, abort
-            else
-            {
-                return false;
-            }
-        }
-    }
-
-    bool WebSocketTransport::writeBytes(const std::string& str)
-    {
-        while (true)
-        {
-            if (_readyState == CLOSING) return false;
-
-            char* buffer = const_cast<char*>(str.c_str());
-            int len = (int) str.size();
-
-            int ret = _socket->send(buffer, len);
-
-            // We wrote some bytes, as needed, all good.
-            if (ret > 0)
-            {
-                return ret == len;
-            }
-            // There is possibly something to be write, try again
-            else if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
-                                 _socket->getErrno() == EAGAIN))
-            {
-                continue;
-            }
-            // There was an error during the write, abort
-            else
-            {
-                return false;
-            }
-        }
     }
 
 } // namespace ix

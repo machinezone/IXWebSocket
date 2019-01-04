@@ -6,6 +6,7 @@
 
 #include "IXWebSocket.h"
 #include "IXSetThreadName.h"
+#include "IXWebSocketHandshake.h"
 
 #include <iostream>
 #include <cmath>
@@ -29,12 +30,22 @@ namespace
 namespace ix
 {
     OnTrafficTrackerCallback WebSocket::_onTrafficTrackerCallback = nullptr;
+    const int WebSocket::kDefaultHandShakeTimeoutSecs(60);
 
     WebSocket::WebSocket() :
         _onMessageCallback(OnMessageCallback()),
         _stop(false),
-        _automaticReconnection(true)
+        _automaticReconnection(true),
+        _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs)
     {
+        _ws.setOnCloseCallback(
+            [this](uint16_t code, const std::string& reason, size_t wireSize)
+            {
+                _onMessageCallback(WebSocket_MessageType_Close, "", wireSize,
+                                   WebSocketErrorInfo(), WebSocketOpenInfo(),
+                                   WebSocketCloseInfo(code, reason));
+            }
+        );
     }
 
     WebSocket::~WebSocket() 
@@ -75,13 +86,16 @@ namespace ix
 
     void WebSocket::stop()
     {
+        bool automaticReconnection = _automaticReconnection;
+
+        // This value needs to be forced when shutting down, it is restored later
         _automaticReconnection = false;
 
         close();
 
         if (!_thread.joinable())
         {
-            _automaticReconnection = true;
+            _automaticReconnection = automaticReconnection;
             return;
         }
 
@@ -89,35 +103,46 @@ namespace ix
         _thread.join();
         _stop = false;
 
-        _automaticReconnection = true;
+        _automaticReconnection = automaticReconnection;
     }
 
-    WebSocketInitResult WebSocket::connect()
+    WebSocketInitResult WebSocket::connect(int timeoutSecs)
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
-            _ws.configure(_url, _perMessageDeflateOptions);
+            _ws.configure(_perMessageDeflateOptions);
         }
 
-        _ws.setOnCloseCallback(
-            [this](uint16_t code, const std::string& reason, size_t wireSize)
-            {
-                _onMessageCallback(WebSocket_MessageType_Close, "", wireSize,
-                                   WebSocketErrorInfo(),
-                                   WebSocketCloseInfo(code, reason),
-                                   WebSocketHttpHeaders());
-            }
-        );
-
-        WebSocketInitResult status = _ws.init();
+        WebSocketInitResult status = _ws.connectToUrl(_url, timeoutSecs);
         if (!status.success)
         {
             return status;
         }
 
         _onMessageCallback(WebSocket_MessageType_Open, "", 0,
-                           WebSocketErrorInfo(), WebSocketCloseInfo(),
-                           status.headers);
+                           WebSocketErrorInfo(), 
+                           WebSocketOpenInfo(status.uri, status.headers),
+                           WebSocketCloseInfo());
+        return status;
+    }
+
+    WebSocketInitResult WebSocket::connectToSocket(int fd, int timeoutSecs)
+    {
+        {
+            std::lock_guard<std::mutex> lock(_configMutex);
+            _ws.configure(_perMessageDeflateOptions);
+        }
+
+        WebSocketInitResult status = _ws.connectToSocket(fd, timeoutSecs);
+        if (!status.success)
+        {
+            return status;
+        }
+
+        _onMessageCallback(WebSocket_MessageType_Open, "", 0,
+                           WebSocketErrorInfo(), 
+                           WebSocketOpenInfo(status.uri, status.headers),
+                           WebSocketCloseInfo());
         return status;
     }
 
@@ -151,7 +176,7 @@ namespace ix
                 break;
             }
 
-            status = connect();
+            status = connect(_handshakeTimeoutSecs);
 
             if (!status.success && !_stop)
             {
@@ -162,8 +187,8 @@ namespace ix
                 connectErr.reason = status.errorStr;
                 connectErr.http_status = status.http_status;
                 _onMessageCallback(WebSocket_MessageType_Error, "", 0,
-                                   connectErr, WebSocketCloseInfo(),
-                                   WebSocketHttpHeaders());
+                                   connectErr, WebSocketOpenInfo(),
+                                   WebSocketCloseInfo());
 
                 std::this_thread::sleep_for(duration);
             }
@@ -218,11 +243,16 @@ namespace ix
                     webSocketErrorInfo.decompressionError = decompressionError;
 
                     _onMessageCallback(webSocketMessageType, msg, wireSize,
-                                       webSocketErrorInfo, WebSocketCloseInfo(),
-                                       WebSocketHttpHeaders());
+                                       webSocketErrorInfo, WebSocketOpenInfo(),
+                                       WebSocketCloseInfo());
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });
+
+            // 4. In blocking mode, getting out of this function is triggered by
+            //    an explicit disconnection from the callback, or by the remote end
+            //    closing the connection, ie isConnected() == false.
+            if (!_thread.joinable() && !isConnected() && !_automaticReconnection) return;
         }
     }
 
@@ -313,5 +343,15 @@ namespace ix
             case WebSocket_ReadyState_Closing: return "CLOSING";
             case WebSocket_ReadyState_Closed: return "CLOSED";
         }
+    }
+
+    void WebSocket::enableAutomaticReconnection()
+    {
+        _automaticReconnection = true;
+    }
+
+    void WebSocket::disableAutomaticReconnection()
+    {
+        _automaticReconnection = false;
     }
 }
