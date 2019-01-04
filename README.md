@@ -3,7 +3,7 @@
 ## Introduction
 
 [*WebSocket*](https://en.wikipedia.org/wiki/WebSocket) is a computer communications protocol, providing full-duplex
-communication channels over a single TCP connection. *IXWebSocket* is a C++ library for Websocket communication. The code is derived from [easywsclient](https://github.com/dhbaird/easywsclient) and from the [Satori C SDK](https://github.com/satori-com/satori-rtm-sdk-c). It has been tested on the following platforms.
+communication channels over a single TCP connection. *IXWebSocket* is a C++ library for client and server Websocket communication. The code is derived from [easywsclient](https://github.com/dhbaird/easywsclient) and from the [Satori C SDK](https://github.com/satori-com/satori-rtm-sdk-c). It has been tested on the following platforms.
 
 * macOS
 * iOS
@@ -15,7 +15,7 @@ communication channels over a single TCP connection. *IXWebSocket* is a C++ libr
 
 The examples folder countains a simple chat program, using a node.js broadcast server.
 
-Here is what the API looks like.
+Here is what the client API looks like.
 
 ```
 ix::WebSocket webSocket;
@@ -50,9 +50,65 @@ webSocket.send("hello world");
 webSocket.stop()
 ```
 
+Here is what the server API looks like. Note that server support is very recent and subject to changes.
+
+```
+// Run a server on localhost at a given port.
+// Bound host name, max connections and listen backlog can also be passed in as parameters.
+ix::WebSocketServer server(port);
+
+server.setOnConnectionCallback(
+    [&server](std::shared_ptr<ix::WebSocket> webSocket)
+    {
+        webSocket->setOnMessageCallback(
+            [webSocket, &server](ix::WebSocketMessageType messageType,
+               const std::string& str,
+               size_t wireSize,
+               const ix::WebSocketErrorInfo& error,
+               const ix::WebSocketOpenInfo& openInfo,
+               const ix::WebSocketCloseInfo& closeInfo)
+            {
+                if (messageType == ix::WebSocket_MessageType_Open)
+                {
+                    std::cerr << "New connection" << std::endl;
+                    std::cerr << "Uri: " << openInfo.uri << std::endl;
+                    std::cerr << "Headers:" << std::endl;
+                    for (auto it : openInfo.headers)
+                    {
+                        std::cerr << it.first << ": " << it.second << std::endl;
+                    }
+                }
+                else if (messageType == ix::WebSocket_MessageType_Message)
+                {
+                    // For an echo server, we just send back to the client whatever was received by the client
+                    // All connected clients are available in an std::set. See the broadcast cpp example.
+                    webSocket->send(str);
+                }
+            }
+        );
+    }
+);
+
+auto res = server.listen();
+if (!res.first)
+{
+    // Error handling
+    return 1;
+}
+
+// Run the server in the background. Server can be stoped by calling server.stop()
+server.start();
+
+// Block until server.stop() is called.
+server.wait();
+
+```
+
 ## Build
 
 CMakefiles for the library and the examples are available. This library has few dependencies, so it is possible to just add the source files into your project.
+
+There is a Dockerfile for running some code on Linux, and a unittest which can be executed by typing `make test`.
 
 ## Implementation details
 
@@ -76,6 +132,7 @@ If the remote end (server) breaks the connection, the code will try to perpetual
 
 * There is no text support for sending data, only the binary protocol is supported. Sending json or text over the binary protocol works well.
 * Automatic reconnection works at the TCP socket level, and will detect remote end disconnects. However, if the device/computer network become unreachable (by turning off wifi), it is quite hard to reliably and timely detect it at the socket level using `recv` and `send` error codes. [Here](https://stackoverflow.com/questions/14782143/linux-socket-how-to-detect-disconnected-network-in-a-client-program) is a good discussion on the subject. This behavior is consistent with other runtimes such as node.js. One way to detect a disconnected device with low level C code is to do a name resolution with DNS but this can be expensive. Mobile devices have good and reliable API to do that.
+* The server code is using select to detect incoming data, and creates one OS thread per connection. This isn't as scalable as strategies using epoll or kqueue.
 
 ## Examples
 
@@ -92,13 +149,22 @@ If the remote end (server) breaks the connection, the code will try to perpetual
 Here's a simplistic diagram which explains how the code is structured in term of class/modules.
 
 ```
-+-----------------------+
++-----------------------+ --- Public
 |                       | Start the receiving Background thread. Auto reconnection. Simple websocket Ping.
 |  IXWebSocket          | Interface used by C++ test clients. No IX dependencies.
 |                       | 
 +-----------------------+
 |                       |
+|  IXWebSocketServer    | Run a server and give each connections its own WebSocket object.
+|                       | Each connection is handled in a new OS thread.
+|                       |
++-----------------------+ --- Private 
+|                       |
 |  IXWebSocketTransport | Low level websocket code, framing, managing raw socket. Adapted from easywsclient.
+|                       |
++-----------------------+
+|                       |
+|  IXWebSocketHandshake | Establish the connection between client and server.
 |                       |
 +-----------------------+
 |                       |
@@ -106,6 +172,14 @@ Here's a simplistic diagram which explains how the code is structured in term of
 |  IXWebSocketAppleSSL  | wss:// TLS encrypted Socket AppleSSL handler. Used on iOS and macOS
 |  IXWebSocketOpenSSL   | wss:// TLS encrypted Socket OpenSSL handler.  Used on Android and Linux
 |                       |                                               Can be used on macOS too.
++-----------------------+
+|                       |
+|  IXSocketConnect      | Connect to the remote host (client).
+|                       |
++-----------------------+
+|                       |
+|  IXDNSLookup          | Does DNS resolution asynchronously so that it can be interrupted.
+|                       |
 +-----------------------+
 ```
 
