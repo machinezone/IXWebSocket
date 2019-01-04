@@ -236,27 +236,20 @@ namespace ix
 
     std::pair<bool, std::string> Socket::readLine(const CancellationRequest& isCancellationRequested)
     {
-        // FIXME: N should be a parameter
+        char c;
+        std::string line;
+        line.reserve(64);
 
-        // Read first line
-        const int N = 255;
-        char line[N+1];
-        int i;
-        for (i = 0; i < 2 || (i < N && line[i-2] != '\r' && line[i-1] != '\n'); ++i)
+        for (int i = 0; i < 2 || (line[i-2] != '\r' && line[i-1] != '\n'); ++i)
         {
-            if (!readByte(line+i, isCancellationRequested))
+            if (!readByte(&c, isCancellationRequested))
             {
                 return std::make_pair(false, std::string());
-            } 
+            }
+
+            line += c;
         }
 
-        if (i == N)
-        {
-            return std::make_pair(false, std::string());
-        }
-
-        line[i] = 0;
-
-        return std::make_pair(true, std::string(line));
+        return std::make_pair(true, line);
     }
 }
