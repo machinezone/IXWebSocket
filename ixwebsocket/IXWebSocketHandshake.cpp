@@ -380,7 +380,7 @@ namespace ix
             }
         }
 
-        return WebSocketInitResult(true, status, "", headers);
+        return WebSocketInitResult(true, status, "", headers, path);
     }
 
     WebSocketInitResult WebSocketHandshake::serverHandshake(int fd)
@@ -491,6 +491,6 @@ namespace ix
             return WebSocketInitResult(false, 0, std::string("Failed sending response to ") + remote);
         }
 
-        return WebSocketInitResult(true, 200, "", headers);
+        return WebSocketInitResult(true, 200, "", headers, uri);
     }
 }

@@ -28,14 +28,15 @@ int main(int argc, char** argv)
                    const std::string& str,
                    size_t wireSize,
                    const ix::WebSocketErrorInfo& error,
-                   const ix::WebSocketCloseInfo& closeInfo,
-                   const ix::WebSocketHttpHeaders& headers)
+                   const ix::WebSocketOpenInfo& openInfo,
+                   const ix::WebSocketCloseInfo& closeInfo)
                 {
                     if (messageType == ix::WebSocket_MessageType_Open)
                     {
                         std::cerr << "New connection" << std::endl;
+                        std::cerr << "Uri: " << openInfo.uri << std::endl;
                         std::cerr << "Headers:" << std::endl;
-                        for (auto it : headers)
+                        for (auto it : openInfo.headers)
                         {
                             std::cerr << it.first << ": " << it.second << std::endl;
                         }

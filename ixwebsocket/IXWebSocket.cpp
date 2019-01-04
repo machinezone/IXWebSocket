@@ -40,9 +40,8 @@ namespace ix
             [this](uint16_t code, const std::string& reason, size_t wireSize)
             {
                 _onMessageCallback(WebSocket_MessageType_Close, "", wireSize,
-                                   WebSocketErrorInfo(),
-                                   WebSocketCloseInfo(code, reason),
-                                   WebSocketHttpHeaders());
+                                   WebSocketErrorInfo(), WebSocketOpenInfo(),
+                                   WebSocketCloseInfo(code, reason));
             }
         );
     }
@@ -119,8 +118,9 @@ namespace ix
         }
 
         _onMessageCallback(WebSocket_MessageType_Open, "", 0,
-                           WebSocketErrorInfo(), WebSocketCloseInfo(),
-                           status.headers);
+                           WebSocketErrorInfo(), 
+                           WebSocketOpenInfo(status.uri, status.headers),
+                           WebSocketCloseInfo());
         return status;
     }
 
@@ -138,8 +138,9 @@ namespace ix
         }
 
         _onMessageCallback(WebSocket_MessageType_Open, "", 0,
-                           WebSocketErrorInfo(), WebSocketCloseInfo(),
-                           status.headers);
+                           WebSocketErrorInfo(), 
+                           WebSocketOpenInfo(status.uri, status.headers),
+                           WebSocketCloseInfo());
         return status;
     }
 
@@ -184,8 +185,8 @@ namespace ix
                 connectErr.reason = status.errorStr;
                 connectErr.http_status = status.http_status;
                 _onMessageCallback(WebSocket_MessageType_Error, "", 0,
-                                   connectErr, WebSocketCloseInfo(),
-                                   WebSocketHttpHeaders());
+                                   connectErr, WebSocketOpenInfo(),
+                                   WebSocketCloseInfo());
 
                 std::this_thread::sleep_for(duration);
             }
@@ -240,8 +241,8 @@ namespace ix
                     webSocketErrorInfo.decompressionError = decompressionError;
 
                     _onMessageCallback(webSocketMessageType, msg, wireSize,
-                                       webSocketErrorInfo, WebSocketCloseInfo(),
-                                       WebSocketHttpHeaders());
+                                       webSocketErrorInfo, WebSocketOpenInfo(),
+                                       WebSocketCloseInfo());
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });

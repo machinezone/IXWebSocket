@@ -61,15 +61,16 @@ namespace
                const std::string& str,
                size_t wireSize,
                const ix::WebSocketErrorInfo& error,
-               const ix::WebSocketCloseInfo& closeInfo,
-               const ix::WebSocketHttpHeaders& headers)
+               const ix::WebSocketOpenInfo& openInfo,
+               const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
                     log("ws_connect: connected");
+                    std::cout << "Uri: " << openInfo.uri << std::endl;
                     std::cout << "Handshake Headers:" << std::endl;
-                    for (auto it : headers)
+                    for (auto it : openInfo.headers)
                     {
                         std::cout << it.first << ": " << it.second << std::endl;
                     }

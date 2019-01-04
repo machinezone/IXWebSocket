@@ -41,6 +41,20 @@ namespace ix
         WebSocket_MessageType_Pong = 5
     };
 
+    struct WebSocketOpenInfo
+    {
+        std::string uri;
+        WebSocketHttpHeaders headers;
+
+        WebSocketOpenInfo(const std::string& u = std::string(),
+                          const WebSocketHttpHeaders& h = WebSocketHttpHeaders())
+            : uri(u)
+            , headers(h)
+        {
+            ;
+        }
+    };
+
     struct WebSocketCloseInfo
     {
         uint16_t code;
@@ -59,8 +73,9 @@ namespace ix
                                                  const std::string&,
                                                  size_t wireSize,
                                                  const WebSocketErrorInfo&,
-                                                 const WebSocketCloseInfo&,
-                                                 const WebSocketHttpHeaders&)>;
+                                                 const WebSocketOpenInfo&,
+                                                 const WebSocketCloseInfo&)>;
+
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
     class WebSocket 
