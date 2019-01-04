@@ -82,7 +82,6 @@ namespace ix
     void SocketSChannel::secureSocket()
     {
         // there will be a lot to do here ...
-        // FIXME do something with sockerror
     }
 
     void SocketSChannel::close()
