@@ -182,6 +182,17 @@ namespace ix
             else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
                                  getErrno() == EAGAIN))
             {
+                // Wait with a timeout until something is written.
+                // This way we are not busy looping
+                fd_set rfds;
+                struct timeval timeout;
+                timeout.tv_sec = 0;
+                timeout.tv_usec = 1 * 1000; // 1ms
+
+                FD_ZERO(&rfds);
+                FD_SET(_sockfd, &rfds);
+                select(_sockfd + 1, &rfds, nullptr, nullptr, &timeout);
+
                 continue;
             }
             // There was an error during the read, abort

@@ -59,8 +59,10 @@ namespace ix
 
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
 
-        WebSocketInitResult connectToUrl(const std::string& url); // Client
-        WebSocketInitResult connectToSocket(int fd);              // Server
+        WebSocketInitResult connectToUrl(const std::string& url, // Client
+                                         int timeoutSecs);
+        WebSocketInitResult connectToSocket(int fd,              // Server
+                                            int timeoutSecs);
 
         void poll();
         WebSocketSendInfo sendBinary(const std::string& message);
