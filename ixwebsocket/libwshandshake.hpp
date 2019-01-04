@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <cstddef>
 
-class WebSocketHandshake {
+class WebSocketHandshakeKeyGen {
     template <int N, typename T>
     struct static_for {
         void operator()(uint32_t *a, uint32_t *b) {
