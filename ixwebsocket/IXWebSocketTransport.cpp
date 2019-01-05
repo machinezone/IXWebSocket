@@ -409,7 +409,7 @@ namespace ix
         {
             std::string decompressedMessage;
             bool success = _perMessageDeflate.decompress(message, decompressedMessage);
-            onMessageCallback(decompressedMessage, wireSize, not success, messageKind);
+            onMessageCallback(decompressedMessage, wireSize, !success, messageKind);
         }
         else
         {
