@@ -18,14 +18,24 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/Catch2/single_include
 )
 
-add_executable(ixwebsocket_unittest 
+# Shared sources
+set (SOURCES 
   test_runner.cpp
-  cmd_websocket_chat.cpp
-  IXWebSocketServerTest.cpp
-  IXSocketTest.cpp
+  IXDNSLookupTest.cpp
   IXTest.cpp
   msgpack11.cpp
 )
+
+# Some unittest don't work on windows yet
+if (NOT WIN32)
+  list(APPEND SOURCES 
+    IXWebSocketServerTest.cpp
+    cmd_websocket_chat.cpp
+    IXSocketTest.cpp
+  )
+endif()
+
+add_executable(ixwebsocket_unittest ${SOURCES})
 
 if (APPLE AND USE_TLS)
     target_link_libraries(ixwebsocket_unittest "-framework foundation" "-framework security")
