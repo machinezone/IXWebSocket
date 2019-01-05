@@ -57,7 +57,5 @@ shutil.copy(os.path.join(
     'bin',
     'zlib.dll'), '.')
 
-# unittest broken on Windows
-if osName != 'Windows':
-    testCommand = '{} {}'.format(testBinary, os.getenv('TEST', ''))
-    os.system(testCommand)
+testCommand = '{} {}'.format(testBinary, os.getenv('TEST', ''))
+os.system(testCommand)
