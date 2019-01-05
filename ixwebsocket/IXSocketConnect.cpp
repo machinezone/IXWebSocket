@@ -104,7 +104,11 @@ namespace ix
             if (!FD_ISSET(fd, &wfds)) continue;
 
             // Something was written to the socket
+#ifdef _WIN32
+            char optval = -1;
+#else
             int optval = -1;
+#endif
             socklen_t optlen = sizeof(optval);
 
             // getsockopt() puts the errno value for connect into optval so 0
@@ -173,7 +177,7 @@ namespace ix
         // 2. make socket non blocking
 #ifdef _WIN32
         unsigned long nonblocking = 1;
-        ioctlsocket(_sockfd, FIONBIO, &nonblocking);
+        ioctlsocket(sockfd, FIONBIO, &nonblocking);
 #else
         fcntl(sockfd, F_SETFL, O_NONBLOCK); // make socket non blocking
 #endif

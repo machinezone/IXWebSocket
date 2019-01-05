@@ -125,7 +125,7 @@ namespace ix
         return (int) ::recv(_sockfd, (char*) buffer, length, flags);
     }
 
-    int Socket::getErrno() const
+    int Socket::getErrno()
     {
 #ifdef _WIN32
         return WSAGetLastError();

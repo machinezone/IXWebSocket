@@ -8,7 +8,9 @@ project (ixwebsocket_unittest)
 
 set (CMAKE_CXX_STANDARD 11)
 
-option(USE_TLS "Add TLS support" ON)
+if (NOT WIN32)
+  option(USE_TLS "Add TLS support" ON)
+endif()
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/.. ixwebsocket)
 

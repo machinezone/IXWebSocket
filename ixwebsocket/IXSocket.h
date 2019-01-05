@@ -47,7 +47,7 @@ namespace ix
                         const CancellationRequest& isCancellationRequested);
         std::pair<bool, std::string> readLine(const CancellationRequest& isCancellationRequested);
 
-        int getErrno() const;
+        static int getErrno();
         static bool init(); // Required on Windows to initialize WinSocket
         static void cleanup(); // Required on Windows to cleanup WinSocket
 
