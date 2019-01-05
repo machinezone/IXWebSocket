@@ -27,5 +27,12 @@ test_server:
 test:
 	python test/run.py
 
+# For the fork that is configured with appveyor
+rebase_upstream:
+	git fetch upstream
+	git checkout master
+	git reset --hard upstream/master
+	git push origin master --force
+
 .PHONY: test
 .PHONY: build
