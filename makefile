@@ -25,7 +25,7 @@ test_server:
 
 # env TEST=Websocket_server make test
 test:
-	(cd test && sh run.sh)
+	python test/run.py
 
 .PHONY: test
 .PHONY: build

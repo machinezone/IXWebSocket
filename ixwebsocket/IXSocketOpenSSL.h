@@ -44,8 +44,8 @@ namespace ix
                                     std::string& errMsg);
         bool checkHost(const std::string& host, const char *pattern);
 
-        SSL_CTX* _ssl_context;
         SSL* _ssl_connection;
+        SSL_CTX* _ssl_context;
         const SSL_METHOD* _ssl_method;
         mutable std::mutex _mutex;  // OpenSSL routines are not thread-safe
     };
