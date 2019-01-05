@@ -12,10 +12,20 @@
 #include <sstream>
 #include <future>
 
-#include <netdb.h>
-#include <stdio.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
+#ifdef _WIN32
+# include <basetsd.h>
+# include <WinSock2.h>
+# include <ws2def.h>
+# include <WS2tcpip.h>
+# include <io.h>
+#else
+# include <unistd.h>
+# include <netdb.h>
+# include <stdio.h>
+# include <arpa/inet.h>
+# include <sys/socket.h>
+#endif
+
 #include <string.h>
 
 namespace ix 
@@ -72,14 +82,15 @@ namespace ix
         {
             std::stringstream ss;
             ss << "WebSocketServer::listen() error creating socket): "
-               << strerror(errno);
+               << strerror(Socket::getErrno());
 
             return std::make_pair(false, ss.str());
         }
 
         // Make that socket reusable. (allow restarting this server at will)
         int enable = 1;
-        if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+        if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR,
+                       (char*) &enable, sizeof(enable)) < 0)
         {
             std::stringstream ss;
             ss << "WebSocketServer::listen() error calling setsockopt(SO_REUSEADDR): "
@@ -105,7 +116,7 @@ namespace ix
         {
             std::stringstream ss;
             ss << "WebSocketServer::listen() error calling bind: "
-               << strerror(errno);
+               << strerror(Socket::getErrno());
 
             return std::make_pair(false, ss.str());
         }
@@ -117,7 +128,7 @@ namespace ix
         {
             std::stringstream ss;
             ss << "WebSocketServer::listen() error calling listen: "
-               << strerror(errno);
+               << strerror(Socket::getErrno());
 
             return std::make_pair(false, ss.str());
         }
@@ -191,12 +202,12 @@ namespace ix
 
             if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) < 0)
             {
-                if (errno != EWOULDBLOCK)
+                if (Socket::getErrno() != EWOULDBLOCK)
                 {
                     // FIXME: that error should be propagated
                     std::stringstream ss;
                     ss << "WebSocketServer::run() error accepting connection: "
-                       << strerror(errno);
+                       << strerror(Socket::getErrno());
                     logError(ss.str());
                 }
                 continue;
