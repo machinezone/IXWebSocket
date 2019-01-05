@@ -4,6 +4,10 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
+//
+// http://itamarst.org/writings/win32sockets.html
+//
+
 #include "IXSocketConnect.h"
 #include "IXDNSLookup.h"
 

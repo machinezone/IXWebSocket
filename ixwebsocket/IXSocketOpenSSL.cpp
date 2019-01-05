@@ -18,72 +18,34 @@
 #include <errno.h>
 #define socketerrno errno
 
-namespace {
-
-std::mutex initMutex;
-bool openSSLInitialized = false;
-bool openSSLInitializationSuccessful = false;
-
-bool openSSLInitialize(std::string& errMsg)
-{
-    std::lock_guard<std::mutex> lock(initMutex);
-
-    if (openSSLInitialized)
-    {
-        return openSSLInitializationSuccessful;
-    }
-
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-    if (!OPENSSL_init_ssl(OPENSSL_INIT_LOAD_CONFIG, nullptr))
-    {
-        errMsg = "OPENSSL_init_ssl failure";
-
-        openSSLInitializationSuccessful = false;
-        openSSLInitialized = true;
-        return false;
-    }
-#else
-    (void) OPENSSL_config(nullptr);
-#endif
-
-    (void) OpenSSL_add_ssl_algorithms();
-    (void) SSL_load_error_strings();
-
-    openSSLInitializationSuccessful = true;
-    return true;
-}
-
-int openssl_verify_callback(int preverify, X509_STORE_CTX *x509_ctx)
-{
-    return preverify;
-}
-
-/* create new SSL connection state object */
-SSL *openssl_create_connection(SSL_CTX *ctx, int socket)
-{
-    assert(ctx != nullptr);
-    assert(socket > 0);
-
-    SSL *ssl = SSL_new(ctx);
-    if (ssl)
-        SSL_set_fd(ssl, socket);
-    return ssl;
-}
-
-} // anonymous namespace
-
 namespace ix 
 {
+    std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
+
     SocketOpenSSL::SocketOpenSSL(int fd) : Socket(fd),
         _ssl_connection(nullptr), 
         _ssl_context(nullptr)
     {
-        ;
+        std::call_once(_openSSLInitFlag, &SocketOpenSSL::openSSLInitialize, this);
     }
 
     SocketOpenSSL::~SocketOpenSSL()
     {
         SocketOpenSSL::close();
+    }
+
+    void SocketOpenSSL::openSSLInitialize()
+    {
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+        if (!OPENSSL_init_ssl(OPENSSL_INIT_LOAD_CONFIG, nullptr)) return;
+#else
+        (void) OPENSSL_config(nullptr);
+#endif
+
+        (void) OpenSSL_add_ssl_algorithms();
+        (void) SSL_load_error_strings();
+
+        _openSSLInitializationSuccessful = true;
     }
 
     std::string SocketOpenSSL::getSSLError(int ret)
@@ -153,7 +115,12 @@ namespace ix
         if (ctx)
         {
             // To skip verification, pass in SSL_VERIFY_NONE
-            SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, openssl_verify_callback);
+            SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER,
+                               [](int preverify, X509_STORE_CTX*) -> int
+                               {
+                                   return preverify;
+                               });
+
             SSL_CTX_set_verify_depth(ctx, 4);
             SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
         }
@@ -283,8 +250,9 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_mutex);
 
-            if (!openSSLInitialize(errMsg))
+            if (!_openSSLInitializationSuccessful)
             {
+                errMsg = "OPENSSL_init_ssl failure";
                 return false;
             }
 
@@ -306,14 +274,15 @@ namespace ix
                 errMsg += ERR_error_string(ssl_err, nullptr);
             }
 
-            _ssl_connection = openssl_create_connection(_ssl_context, _sockfd);
-            if (nullptr == _ssl_connection)
+            _ssl_connection = SSL_new(_ssl_context);
+            if (_ssl_connection == nullptr)
             {
                 errMsg = "OpenSSL failed to connect";
                 SSL_CTX_free(_ssl_context);
                 _ssl_context = nullptr;
                 return false;
             }
+            SSL_set_fd(_ssl_connection, _sockfd);
 
             // SNI support
             SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
