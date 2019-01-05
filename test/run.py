@@ -42,9 +42,10 @@ def findFiles(prefix):
 
     return paths
 
-for path in findFiles('.'):
-    print(path)
+#for path in findFiles('.'):
+#    print(path)
 
+# We need to copy the zlib DLL in the current work directory
 shutil.copy(os.path.join(
     '..',
     '..',
@@ -56,7 +57,7 @@ shutil.copy(os.path.join(
     'bin',
     'zlib.dll'), '.')
 
-
 # unittest broken on Windows
 if osName != 'Windows':
-    os.system(testBinary)
+    testCommand = '{} {}'.format(testBinary, os.getenv('TEST', ''))
+    os.system(testCommand)

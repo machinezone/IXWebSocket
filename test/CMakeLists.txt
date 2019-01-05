@@ -22,6 +22,7 @@ add_executable(ixwebsocket_unittest
   test_runner.cpp
   cmd_websocket_chat.cpp
   IXWebSocketServerTest.cpp
+  IXSocketTest.cpp
   IXTest.cpp
   msgpack11.cpp
 )
