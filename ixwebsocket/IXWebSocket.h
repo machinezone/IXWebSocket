@@ -60,7 +60,7 @@ namespace ix
         uint16_t code;
         std::string reason;
 
-        WebSocketCloseInfo(uint64_t c = 0,
+        WebSocketCloseInfo(uint16_t c = 0,
                            const std::string& r = std::string())
             : code(c)
             , reason(r)

@@ -35,9 +35,9 @@ namespace ix
                              const CancellationRequest& isCancellationRequested);
         virtual void close();
 
-        virtual int send(char* buffer, size_t length);
-        virtual int send(const std::string& buffer);
-        virtual int recv(void* buffer, size_t length);
+        virtual ssize_t send(char* buffer, size_t length);
+        virtual ssize_t send(const std::string& buffer);
+        virtual ssize_t recv(void* buffer, size_t length);
 
         // Blocking and cancellable versions, working with socket that can be set
         // to non blocking mode. Used during HTTP upgrade.
