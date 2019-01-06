@@ -79,7 +79,7 @@ namespace ix
         if (::connect(fd, address->ai_addr, address->ai_addrlen) == -1)
         {
 #ifdef _WIN32
-            if (Socket::getErrno() == EWOULDBLOCK) errno = EINPROGRESS;
+            if (WSAGetLastError() == WSAEWOULDBLOCK) errno = EINPROGRESS;
 #endif
             if (errno != EINPROGRESS)
             {
