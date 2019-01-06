@@ -6,23 +6,7 @@
 
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
-
-#ifdef _WIN32
-# include <basetsd.h>
-# include <WinSock2.h>
-# include <ws2def.h>
-# include <WS2tcpip.h>
-# include <io.h>
-#else
-# include <unistd.h>
-# include <errno.h>
-# include <netdb.h>
-# include <netinet/tcp.h>
-# include <sys/socket.h>
-# include <sys/time.h>
-# include <sys/select.h>
-# include <sys/stat.h>
-#endif
+#include "IXNetSystem.h"
 
 #include <stdio.h>
 #include <stdlib.h>
