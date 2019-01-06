@@ -84,7 +84,7 @@ namespace ix
             if (errno != EINPROGRESS)
             {
                 closeSocket(fd);
-                errMsg = strerror(errno);
+                errMsg = std::string("Connect error in ::connect:") + strerror(errno);
                 return -1;
             }
         }
@@ -126,7 +126,7 @@ namespace ix
                 optval != 0)
             {
                 closeSocket(fd);
-                errMsg = strerror(optval);
+                errMsg = std::string("Connect error in getsockopt:") + strerror(optval);
                 return -1;
             }
             else
