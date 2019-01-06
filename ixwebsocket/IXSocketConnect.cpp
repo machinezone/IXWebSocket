@@ -76,12 +76,17 @@ namespace ix
         // block us for too long
         SocketConnect::configure(fd);
 
-        if (::connect(fd, address->ai_addr, address->ai_addrlen) == -1
-            && errno != EINPROGRESS)
+        if (::connect(fd, address->ai_addr, address->ai_addrlen) == -1)
         {
-            closeSocket(fd);
-            errMsg = strerror(errno);
-            return -1;
+#ifdef _WIN32
+            if (Socket::getErrno() == EWOULDBLOCK) errno = EINPROGRESS;
+#endif
+            if (errno != EINPROGRESS)
+            {
+                closeSocket(fd);
+                errMsg = strerror(errno);
+                return -1;
+            }
         }
 
         for (;;)
