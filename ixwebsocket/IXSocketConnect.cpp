@@ -116,27 +116,20 @@ namespace ix
             // Nothing was written to the socket, wait again.
             if (!FD_ISSET(fd, &wfds)) continue;
 
-            // Something was written to the socket
-#ifdef _WIN32
-            if (FD_ISSET(fd, &efds))
-            {
-                closeSocket(fd);
-                errMsg = std::string("Connect error in getsockopt:") + strerror(optval);
-                return -1;
-            }
-            else
-            {
-                // Success !
-                return fd;
-            }
-#else
+            // Something was written to the socket. Check for errors.
+
             int optval = -1;
             socklen_t optlen = sizeof(optval);
 
+#ifdef _WIN32
+            // 
+            if (FD_ISSET(fd, &efds))
+#else
             // getsockopt() puts the errno value for connect into optval so 0
             // means no-error.
             if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &optval, &optlen) == -1 ||
                 optval != 0)
+#endif
             {
                 closeSocket(fd);
                 errMsg = std::string("Connect error in getsockopt:") + strerror(optval);
@@ -147,7 +140,6 @@ namespace ix
                 // Success !
                 return fd;
             }
-#endif
         }
 
         closeSocket(fd);
