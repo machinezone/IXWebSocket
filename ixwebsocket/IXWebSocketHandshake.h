@@ -75,6 +75,7 @@ namespace ix
         WebSocketInitResult sendErrorResponse(int code, const std::string& reason);
 
         std::tuple<std::string, std::string, std::string> parseRequestLine(const std::string& line);
+        std::string trim(const std::string& str);
 
         std::atomic<bool>& _requestInitCancellation;
         std::shared_ptr<Socket> _socket;

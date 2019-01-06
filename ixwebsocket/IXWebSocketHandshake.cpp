@@ -116,7 +116,7 @@ namespace ix
         std::cout << "-------------------------------" << std::endl;
     }
 
-    std::string trim(const std::string& str)
+    std::string WebSocketHandshake::trim(const std::string& str)
     {
         std::string out(str);
         out.erase(std::remove(out.begin(), out.end(), ' '), out.end());
