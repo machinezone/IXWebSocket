@@ -48,6 +48,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketPerMessageDeflateCodec.h
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.h
     ixwebsocket/IXWebSocketHttpHeaders.h
+    ixwebsocket/libwshandshake.hpp
 )
 
 # Platform specific code
@@ -59,17 +60,12 @@ else()
     list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/linux/IXSetThreadName_linux.cpp)
 endif()
 
-set (OPENSSL_PREFIX /usr/local/opt/openssl) # Homebrew openssl
-include_directories(ixwebsocket ${OPENSSL_PREFIX}/include)
-
 if (USE_TLS)
     add_definitions(-DIXWEBSOCKET_USE_TLS)
 
     if (APPLE)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketAppleSSL.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketAppleSSL.cpp)
-        list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketOpenSSL.h)
-        list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketOpenSSL.cpp)
     elseif (WIN32)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketSChannel.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketSChannel.cpp)
