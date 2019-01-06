@@ -11,6 +11,11 @@
 #include <mutex>
 #include <atomic>
 
+#ifdef _WIN32
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #include "IXEventFd.h"
 #include "IXCancellationRequest.h"
 
