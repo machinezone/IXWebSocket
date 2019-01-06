@@ -65,7 +65,7 @@ TEST_CASE("socket", "[socket]")
         int port = 80;
         std::string request("GET / HTTP/1.1\r\n\r\n");
         int expectedStatus = 200;
-        int timeoutSecs = 1;
+        int timeoutSecs = 3;
 
         testSocket(host, port, request, socket, expectedStatus, timeoutSecs);
     }
@@ -82,7 +82,7 @@ TEST_CASE("socket", "[socket]")
         int port = 443;
         std::string request("GET / HTTP/1.1\r\n\r\n");
         int expectedStatus = 200;
-        int timeoutSecs = 1;
+        int timeoutSecs = 3;
 
         testSocket(host, port, request, socket, expectedStatus, timeoutSecs);
     }

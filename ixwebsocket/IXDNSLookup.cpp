@@ -5,18 +5,7 @@
  */
 
 #include "IXDNSLookup.h"
-
-#ifdef _WIN32
-# include <basetsd.h>
-# include <WinSock2.h>
-# include <ws2def.h>
-# include <WS2tcpip.h>
-# include <io.h>
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#endif
+#include "IXNetSystem.h"
 
 #include <string.h>
 #include <chrono>

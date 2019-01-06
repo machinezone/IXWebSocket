@@ -4,29 +4,9 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
-//
-// http://itamarst.org/writings/win32sockets.html
-//
-
 #include "IXSocketConnect.h"
 #include "IXDNSLookup.h"
-
-#ifdef _WIN32
-# include <basetsd.h>
-# include <WinSock2.h>
-# include <ws2def.h>
-# include <WS2tcpip.h>
-# include <io.h>
-#else
-# include <unistd.h>
-# include <errno.h>
-# include <netdb.h>
-# include <netinet/tcp.h>
-# include <sys/socket.h>
-# include <sys/time.h>
-# include <sys/select.h>
-# include <sys/stat.h>
-#endif
+#include "IXNetSystem.h"
 
 #include <string.h>
 #include <fcntl.h>
@@ -89,6 +69,7 @@ namespace ix
             }
         }
 
+        // Use select to see if the connect did succeed.
         fd_set wfds;
         FD_ZERO(&wfds);
         FD_SET(fd, &wfds);
@@ -122,7 +103,7 @@ namespace ix
             socklen_t optlen = sizeof(optval);
 
 #ifdef _WIN32
-            // 
+            // On connect error, in async mode, windows will write to the exceptions fds
             if (FD_ISSET(fd, &efds))
 #else
             // getsockopt() puts the errno value for connect into optval so 0
@@ -143,7 +124,7 @@ namespace ix
         }
 
         closeSocket(fd);
-        errMsg = "connect timed out after 60 seconds";
+        errMsg = "connect timed out";
         return -1;
     }
 

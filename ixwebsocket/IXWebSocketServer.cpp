@@ -8,24 +8,10 @@
 #include "IXWebSocketTransport.h"
 #include "IXWebSocket.h"
 #include "IXSocketConnect.h"
+#include "IXNetSystem.h"
 
 #include <sstream>
 #include <future>
-
-#ifdef _WIN32
-# include <basetsd.h>
-# include <WinSock2.h>
-# include <ws2def.h>
-# include <WS2tcpip.h>
-# include <io.h>
-#else
-# include <unistd.h>
-# include <netdb.h>
-# include <stdio.h>
-# include <arpa/inet.h>
-# include <sys/socket.h>
-#endif
-
 #include <string.h>
 
 namespace ix 
