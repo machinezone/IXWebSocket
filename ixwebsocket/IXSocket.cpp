@@ -154,7 +154,7 @@ namespace ix
         {
             if (isCancellationRequested()) return false;
 
-            int ret;
+            ssize_t ret;
             ret = recv(buffer, 1);
 
             // We read one byte, as needed, all good.
@@ -197,7 +197,7 @@ namespace ix
             char* buffer = const_cast<char*>(str.c_str());
             int len = (int) str.size();
 
-            int ret = send(buffer, len);
+            ssize_t ret = send(buffer, len);
 
             // We wrote some bytes, as needed, all good.
             if (ret > 0)
