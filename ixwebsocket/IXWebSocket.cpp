@@ -331,6 +331,7 @@ namespace ix
             case ix::WebSocketTransport::CONNECTING: return WebSocket_ReadyState_Connecting;
             case ix::WebSocketTransport::CLOSING: return WebSocket_ReadyState_Closing;
             case ix::WebSocketTransport::CLOSED: return WebSocket_ReadyState_Closed;
+            default: return WebSocket_ReadyState_Closed;
         }
     }
 
@@ -342,6 +343,7 @@ namespace ix
             case WebSocket_ReadyState_Connecting: return "CONNECTING";
             case WebSocket_ReadyState_Closing: return "CLOSING";
             case WebSocket_ReadyState_Closed: return "CLOSED";
+            default: return "CLOSED";
         }
     }
 
