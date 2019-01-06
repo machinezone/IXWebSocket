@@ -17,6 +17,7 @@ endif()
 set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXEventFd.cpp
     ixwebsocket/IXSocket.cpp
+    ixwebsocket/IXSocketServer.cpp
     ixwebsocket/IXSocketConnect.cpp
     ixwebsocket/IXDNSLookup.cpp
     ixwebsocket/IXCancellationRequest.cpp
@@ -32,6 +33,7 @@ set( IXWEBSOCKET_SOURCES
 set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXEventFd.h
     ixwebsocket/IXSocket.h
+    ixwebsocket/IXSocketServer.h
     ixwebsocket/IXSocketConnect.h
     ixwebsocket/IXSetThreadName.h
     ixwebsocket/IXDNSLookup.h

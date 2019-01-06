@@ -16,67 +16,40 @@
 #include <condition_variable>
 
 #include "IXWebSocket.h"
+#include "IXSocketServer.h"
 
 namespace ix 
 {
     using OnConnectionCallback = std::function<void(std::shared_ptr<WebSocket>)>;
 
-    class WebSocketServer {
+    class WebSocketServer : public SocketServer {
     public:
-        WebSocketServer(int port = WebSocketServer::kDefaultPort,
-                        const std::string& host = WebSocketServer::kDefaultHost,
-                        int backlog = WebSocketServer::kDefaultTcpBacklog,
-                        size_t maxConnections = WebSocketServer::kDefaultMaxConnections,
+        WebSocketServer(int port = SocketServer::kDefaultPort,
+                        const std::string& host = SocketServer::kDefaultHost,
+                        int backlog = SocketServer::kDefaultTcpBacklog,
+                        size_t maxConnections = SocketServer::kDefaultMaxConnections,
                         int handshakeTimeoutSecs = WebSocketServer::kDefaultHandShakeTimeoutSecs);
         virtual ~WebSocketServer();
+        virtual void stop() final;
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
-        void start();
-        void wait();
-        void stop();
-
-        std::pair<bool, std::string> listen();
 
         // Get all the connected clients
         std::set<std::shared_ptr<WebSocket>> getClients();
 
     private:
         // Member variables
-        int _port;
-        std::string _host;
-        int _backlog;
-        size_t _maxConnections;
         int _handshakeTimeoutSecs;
 
         OnConnectionCallback _onConnectionCallback;
 
-        // socket for accepting connections
-        int _serverFd;
-
         std::mutex _clientsMutex;
         std::set<std::shared_ptr<WebSocket>> _clients;
 
-        std::mutex _logMutex;
-
-        std::atomic<bool> _stop;
-        std::thread _thread;
-
-        std::condition_variable _conditionVariable;
-        std::mutex _conditionVariableMutex;
-
-        const static int kDefaultPort;
-        const static std::string kDefaultHost;
-        const static int kDefaultTcpBacklog;
-        const static size_t kDefaultMaxConnections;
         const static int kDefaultHandShakeTimeoutSecs;
 
         // Methods
-        void run();
-        void handleConnection(int fd);
-        size_t getConnectedClientsCount();
-
-        // Logging
-        void logError(const std::string& str);
-        void logInfo(const std::string& str);
+        virtual void handleConnection(int fd) final;
+        virtual size_t getConnectedClientsCount() final;
     };
 }

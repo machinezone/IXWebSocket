@@ -237,7 +237,7 @@ namespace ix
             status = SSLRead(_sslContext, buf, nbyte, &processed);
 
             if (processed > 0)
-                return (int) processed;
+                return (ssize_t) processed;
 
             // The connection was reset, inform the caller that this 
             // Socket should close
