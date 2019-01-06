@@ -13,6 +13,7 @@
 #include <mutex>
 #include <functional>
 #include <memory>
+#include <atomic>
 #include <condition_variable>
 
 namespace ix 
