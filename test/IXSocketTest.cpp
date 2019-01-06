@@ -42,7 +42,7 @@ namespace ix
         std::cout << "Sending request: " << request
                   << "to " << host << ":" << port
                   << std::endl;
-        socket->writeBytes(request, isCancellationRequested);
+        REQUIRE(socket->writeBytes(request, isCancellationRequested));
 
         auto lineResult = socket->readLine(isCancellationRequested);
         auto lineValid = lineResult.first;

@@ -43,9 +43,9 @@ namespace ix
     {
         errMsg = "no error";
         
-        auto fd = socket(address->ai_family,
-                         address->ai_socktype,
-                         address->ai_protocol);
+        int fd = (int) socket(address->ai_family,
+                              address->ai_socktype,
+                              address->ai_protocol);
         if (fd < 0)
         {
             errMsg = "Cannot create a socket";
