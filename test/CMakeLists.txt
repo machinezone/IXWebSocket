@@ -21,9 +21,11 @@ include_directories(
 # Shared sources
 set (SOURCES 
   test_runner.cpp
-  IXDNSLookupTest.cpp
   IXTest.cpp
   msgpack11.cpp
+
+  IXDNSLookupTest.cpp
+  IXSocketTest.cpp
 )
 
 # Some unittest don't work on windows yet
@@ -31,7 +33,6 @@ if (NOT WIN32)
   list(APPEND SOURCES 
     IXWebSocketServerTest.cpp
     cmd_websocket_chat.cpp
-    IXSocketTest.cpp
   )
 endif()
 
