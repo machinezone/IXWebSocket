@@ -326,7 +326,7 @@ namespace ix
         Socket::close();
     }
 
-    int SocketOpenSSL::send(char* buf, size_t nbyte)
+    ssize_t SocketOpenSSL::send(char* buf, size_t nbyte)
     {
         ssize_t sent = 0;
 
@@ -340,7 +340,7 @@ namespace ix
             }
 
             ERR_clear_error();
-            int write_result = SSL_write(_ssl_connection, buf + sent, (int) nbyte);
+            ssize_t write_result = SSL_write(_ssl_connection, buf + sent, (int) nbyte);
             int reason = SSL_get_error(_ssl_connection, write_result);
 
             if (reason == SSL_ERROR_NONE) {
@@ -353,16 +353,16 @@ namespace ix
                 return -1;
             }
         }
-        return (int) sent;
+        return sent;
     }
 
-    int SocketOpenSSL::send(const std::string& buffer)
+    ssize_t SocketOpenSSL::send(const std::string& buffer)
     {
         return send((char*)&buffer[0], buffer.size());
     }
 
     // No wait support
-    int SocketOpenSSL::recv(void* buf, size_t nbyte)
+    ssize_t SocketOpenSSL::recv(void* buf, size_t nbyte)
     {
         while (true)
         {
@@ -374,7 +374,7 @@ namespace ix
             }
 
             ERR_clear_error();
-            int read_result = SSL_read(_ssl_connection, buf, (int) nbyte);
+            ssize_t read_result = SSL_read(_ssl_connection, buf, (int) nbyte);
 
             if (read_result > 0)
             {

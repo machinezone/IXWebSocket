@@ -203,7 +203,7 @@ namespace ix
         Socket::close();
     }
 
-    int SocketAppleSSL::send(char* buf, size_t nbyte)
+    ssize_t SocketAppleSSL::send(char* buf, size_t nbyte)
     {
         ssize_t ret = 0;
         OSStatus status;
@@ -218,16 +218,16 @@ namespace ix
 
         if (ret == 0 && errSSLClosedAbort != status)
             ret = -1;
-        return (int) ret;
+        return ret;
     }
 
-    int SocketAppleSSL::send(const std::string& buffer)
+    ssize_t SocketAppleSSL::send(const std::string& buffer)
     {
         return send((char*)&buffer[0], buffer.size());
     }
 
     // No wait support
-    int SocketAppleSSL::recv(void* buf, size_t nbyte)
+    ssize_t SocketAppleSSL::recv(void* buf, size_t nbyte)
     {
         OSStatus status = errSSLWouldBlock;
         while (errSSLWouldBlock == status) 

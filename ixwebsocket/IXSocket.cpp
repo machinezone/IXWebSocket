@@ -84,29 +84,29 @@ namespace ix
         _sockfd = -1;
     }
 
-    int Socket::send(char* buffer, size_t length)
+    ssize_t Socket::send(char* buffer, size_t length)
     {
         int flags = 0;
 #ifdef MSG_NOSIGNAL
         flags = MSG_NOSIGNAL;
 #endif
 
-        return (int) ::send(_sockfd, buffer, length, flags);
+        return ::send(_sockfd, buffer, length, flags);
     }
 
-    int Socket::send(const std::string& buffer)
+    ssize_t Socket::send(const std::string& buffer)
     {
         return send((char*)&buffer[0], buffer.size());
     }
 
-    int Socket::recv(void* buffer, size_t length)
+    ssize_t Socket::recv(void* buffer, size_t length)
     {
         int flags = 0;
 #ifdef MSG_NOSIGNAL
         flags = MSG_NOSIGNAL;
 #endif
 
-        return (int) ::recv(_sockfd, (char*) buffer, length, flags);
+        return ::recv(_sockfd, (char*) buffer, length, flags);
     }
 
     int Socket::getErrno()
