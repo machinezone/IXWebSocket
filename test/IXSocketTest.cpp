@@ -48,6 +48,8 @@ namespace ix
         auto lineValid = lineResult.first;
         auto line = lineResult.second;
 
+        std::cout << "read error: " << strerror(Socket::getErrno()) << std::endl;
+
         REQUIRE(lineValid);
 
         int status = -1;
