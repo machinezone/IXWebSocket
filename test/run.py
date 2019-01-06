@@ -58,4 +58,5 @@ shutil.copy(os.path.join(
     'zlib.dll'), '.')
 
 testCommand = '{} {}'.format(testBinary, os.getenv('TEST', ''))
-os.system(testCommand)
+ret = os.system(testCommand)
+assert ret == 0, 'Test command failed'
