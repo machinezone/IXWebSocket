@@ -89,6 +89,19 @@ namespace ix
             }
         }
 
+        fd_set wfds;
+        FD_ZERO(&wfds);
+        FD_SET(fd, &wfds);
+
+        fd_set efds;
+        FD_ZERO(&efds);
+        FD_SET(fd, &efds);
+
+        // 50ms select timeout
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 50 * 1000;
+
         for (;;)
         {
             if (isCancellationRequested()) // Must handle timeout as well
@@ -98,26 +111,26 @@ namespace ix
                 return false;
             }
 
-            fd_set wfds;
-            FD_ZERO(&wfds);
-            FD_SET(fd, &wfds);
-
-            // 50ms select timeout
-            struct timeval timeout;
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 50 * 1000;
-
-            select(fd + 1, nullptr, &wfds, nullptr, &timeout);
+            select(fd + 1, nullptr, &wfds, &efds, &timeout);
 
             // Nothing was written to the socket, wait again.
             if (!FD_ISSET(fd, &wfds)) continue;
 
             // Something was written to the socket
 #ifdef _WIN32
-            char optval = -1;
+            if (FD_ISSET(fd, &efds))
+            {
+                closeSocket(fd);
+                errMsg = std::string("Connect error in getsockopt:") + strerror(optval);
+                return -1;
+            }
+            else
+            {
+                // Success !
+                return fd;
+            }
 #else
             int optval = -1;
-#endif
             socklen_t optlen = sizeof(optval);
 
             // getsockopt() puts the errno value for connect into optval so 0
@@ -134,6 +147,7 @@ namespace ix
                 // Success !
                 return fd;
             }
+#endif
         }
 
         closeSocket(fd);
