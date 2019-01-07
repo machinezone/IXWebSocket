@@ -105,7 +105,7 @@ namespace ix
         // Good resource on thread forced termination
         // https://www.bo-yang.net/2017/11/19/cpp-kill-detached-thread
         //
-        _thread = std::thread(&DNSLookup::run, this);
+        _thread = std::thread(&DNSLookup::run, this, _hostname, _port);
         _thread.detach();
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
@@ -138,11 +138,11 @@ namespace ix
         return _res;
     }
 
-    void DNSLookup::run()
+    void DNSLookup::run(const std::string& hostname, int port) // thread runner
     {
         uint64_t id = _id;
         std::string errMsg;
-        _res = getAddrInfo(_hostname, _port, errMsg);
+        _res = getAddrInfo(hostname, port, errMsg);
 
         // if this isn't an active job, and the control thread is gone
         // there is not thing to do, and we don't want to touch the defunct
