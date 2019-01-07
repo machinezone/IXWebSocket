@@ -43,7 +43,7 @@ namespace ix
                                             int port,
                                             std::string& errMsg);
 
-        void run(); // thread runner
+        void run(const std::string& hostname, int port); // thread runner
 
         std::string _hostname;
         int _port;
