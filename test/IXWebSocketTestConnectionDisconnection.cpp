@@ -16,7 +16,8 @@ using namespace ix;
 
 namespace
 {
-    const std::string WEBSOCKET_DOT_ORG_URL("wss://echo.websocket.org");
+    // const std::string WEBSOCKET_DOT_ORG_URL("wss://echo.websocket.org");
+    const std::string WEBSOCKET_DOT_ORG_URL("wss://api.cobra.mobilewar-online.com/v2?appkey=ADdc208AB26B911F4cB05bFeedD8EbBA");
     const std::string GOOGLE_URL("wss://google.com");
     const std::string UNKNOWN_URL("wss://asdcasdcaasdcasdcasdcasdcasdcasdcasassdd.com");
 

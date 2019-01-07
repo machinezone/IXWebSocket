@@ -43,9 +43,9 @@ namespace ix
     {
         errMsg = "no error";
         
-        int fd = (int) socket(address->ai_family,
-                              address->ai_socktype,
-                              address->ai_protocol);
+        int fd = socket(address->ai_family,
+                        address->ai_socktype,
+                        address->ai_protocol);
         if (fd < 0)
         {
             errMsg = "Cannot create a socket";
@@ -56,32 +56,13 @@ namespace ix
         // block us for too long
         SocketConnect::configure(fd);
 
-        if (::connect(fd, address->ai_addr, address->ai_addrlen) == -1)
+        if (::connect(fd, address->ai_addr, address->ai_addrlen) == -1
+            && errno != EINPROGRESS)
         {
-#ifdef _WIN32
-            if (WSAGetLastError() == WSAEWOULDBLOCK) errno = EINPROGRESS;
-#endif
-            if (errno != EINPROGRESS)
-            {
-                closeSocket(fd);
-                errMsg = std::string("Connect error in ::connect:") + strerror(errno);
-                return -1;
-            }
+            closeSocket(fd);
+            errMsg = strerror(errno);
+            return -1;
         }
-
-        // Use select to see if the connect did succeed.
-        fd_set wfds;
-        FD_ZERO(&wfds);
-        FD_SET(fd, &wfds);
-
-        fd_set efds;
-        FD_ZERO(&efds);
-        FD_SET(fd, &efds);
-
-        // 50ms select timeout
-        struct timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 50 * 1000;
 
         for (;;)
         {
@@ -91,14 +72,31 @@ namespace ix
                 errMsg = "Cancelled";
                 return -1;
             }
+            
+            // Use select to check the status of the new connection
+            struct timeval timeout;
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 10 * 1000; // 10ms timeout
+            fd_set wfds;
+            fd_set efds;
 
-            select(fd + 1, nullptr, &wfds, &efds, &timeout);
+            FD_ZERO(&wfds);
+            FD_SET(fd, &wfds);
+            FD_ZERO(&efds);
+            FD_SET(fd, &efds);
+
+            if (select(fd + 1, nullptr, &wfds, &efds, &timeout) < 0 &&
+                (errno == EBADF || errno == EINVAL))
+            {
+                closeSocket(fd);
+                errMsg = std::string("Connect error, select error: ") + strerror(errno);
+                return -1;
+            }
 
             // Nothing was written to the socket, wait again.
             if (!FD_ISSET(fd, &wfds)) continue;
 
             // Something was written to the socket. Check for errors.
-
             int optval = -1;
             socklen_t optlen = sizeof(optval);
 
@@ -113,7 +111,7 @@ namespace ix
 #endif
             {
                 closeSocket(fd);
-                errMsg = std::string("Connect error in getsockopt:") + strerror(optval);
+                errMsg = strerror(optval);
                 return -1;
             }
             else
@@ -124,7 +122,7 @@ namespace ix
         }
 
         closeSocket(fd);
-        errMsg = "connect timed out";
+        errMsg = "connect timed out after 60 seconds";
         return -1;
     }
 

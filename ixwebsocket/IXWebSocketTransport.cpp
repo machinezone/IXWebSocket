@@ -158,9 +158,8 @@ namespace ix
                 {
                     int N = (int) _rxbuf.size();
 
-                    int ret;
                     _rxbuf.resize(N + 1500);
-                    ret = _socket->recv((char*)&_rxbuf[0] + N, 1500);
+                    ssize_t ret = _socket->recv((char*)&_rxbuf[0] + N, 1500);
 
                     if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
                                     _socket->getErrno() == EAGAIN)) {

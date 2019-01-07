@@ -171,11 +171,16 @@ namespace ix
                 fd_set rfds;
                 struct timeval timeout;
                 timeout.tv_sec = 0;
-                timeout.tv_usec = 1 * 1000; // 1ms
+                timeout.tv_usec = 1 * 1000; // 1ms timeout
 
                 FD_ZERO(&rfds);
                 FD_SET(_sockfd, &rfds);
-                select(_sockfd + 1, &rfds, nullptr, nullptr, &timeout);
+
+                if (select(_sockfd + 1, &rfds, nullptr, nullptr, &timeout) < 0 &&
+                    (errno == EBADF || errno == EINVAL))
+                {
+                    return false;
+                }
 
                 continue;
             }
