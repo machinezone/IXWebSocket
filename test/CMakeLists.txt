@@ -3,6 +3,9 @@
 # Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
 #
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../third_party/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
+find_package(Sanitizers)
+
 cmake_minimum_required (VERSION 3.4.1)
 project (ixwebsocket_unittest)
 
@@ -38,6 +41,7 @@ if (NOT WIN32)
 endif()
 
 add_executable(ixwebsocket_unittest ${SOURCES})
+add_sanitizers(ixwebsocket_unittest)
 
 if (APPLE AND USE_TLS)
     target_link_libraries(ixwebsocket_unittest "-framework foundation" "-framework security")

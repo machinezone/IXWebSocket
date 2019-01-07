@@ -22,7 +22,20 @@ else:
     make = 'make'
     testBinary ='./ixwebsocket_unittest' 
 
-os.system('cmake -DCMAKE_BUILD_TYPE=Debug {} ..'.format(generator))
+sanitizersFlags = {
+    'asan': '-DSANITIZE_ADDRESS=On',
+    'ubsan': '-DSANITIZE_UNDEFINED=On',
+    'tsan': '-DSANITIZE_THREAD=On',
+    'none': ''
+}
+sanitizer = 'tsan'
+sanitizerFlags = sanitizersFlags[sanitizer]
+
+cmakeCmd = 'cmake -DCMAKE_BUILD_TYPE=Debug {} {} ..'.format(generator, sanitizerFlags)
+print(cmakeCmd)
+ret = os.system(cmakeCmd)
+assert ret == 0, 'CMake failed, exiting'
+
 ret = os.system(make)
 assert ret == 0, 'Make failed, exiting'
 
