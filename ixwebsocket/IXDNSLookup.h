@@ -56,7 +56,7 @@ namespace ix
         std::condition_variable _condition;
         std::mutex _conditionVariableMutex;
 
-        std::atomic<uint64_t> _id;
+        uint64_t _id;
         static std::atomic<uint64_t> _nextId;
         static std::set<uint64_t> _activeJobs;
         static std::mutex _activeJobsMutex;
