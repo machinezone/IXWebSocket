@@ -89,7 +89,7 @@ namespace ix
             {
                 closeSocket(fd);
                 errMsg = "Cancelled";
-                return false;
+                return -1;
             }
 
             select(fd + 1, nullptr, &wfds, &efds, &timeout);
