@@ -146,19 +146,28 @@ namespace ix
         // Return value of std::async, ignored
         std::future<void> f;
 
-        // Select arguments
-        fd_set rfds;
-        struct timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 10 * 1000; // 10ms
-
         for (;;)
         {
             if (_stop) return;
 
+            // Use select to check whether a new connection is in progress
+            fd_set rfds;
+            struct timeval timeout;
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 10 * 1000; // 10ms timeout
+
             FD_ZERO(&rfds);
             FD_SET(_serverFd, &rfds);
-            select(_serverFd + 1, &rfds, nullptr, nullptr, &timeout);
+
+            if (select(_serverFd + 1, &rfds, nullptr, nullptr, &timeout) < 0 &&
+                (errno == EBADF || errno == EINVAL))
+            {
+                std::stringstream ss;
+                ss << "SocketServer::run() error in select: "
+                   << strerror(Socket::getErrno());
+                logError(ss.str());
+                continue;
+            }
 
             if (!FD_ISSET(_serverFd, &rfds))
             {
