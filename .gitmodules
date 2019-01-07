@@ -1,3 +1,0 @@
-[submodule "third_party/sanitizers-cmake"]
-	path = third_party/sanitizers-cmake
-	url = git://github.com/arsenm/sanitizers-cmake.git
