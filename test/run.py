@@ -29,6 +29,9 @@ sanitizersFlags = {
     'none': ''
 }
 sanitizer = 'tsan'
+if osName == 'Linux':
+    sanitizer = 'asan'
+
 sanitizerFlags = sanitizersFlags[sanitizer]
 
 cmakeCmd = 'cmake -DCMAKE_BUILD_TYPE=Debug {} {} ..'.format(generator, sanitizerFlags)
