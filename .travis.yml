@@ -5,5 +5,5 @@ compiler:
   - clang
 #   - gcc
 
-# os: osx
+os: osx
 script: make test
