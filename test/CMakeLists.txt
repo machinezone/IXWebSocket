@@ -2,12 +2,11 @@
 # Author: Benjamin Sergeant
 # Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
 #
+cmake_minimum_required (VERSION 3.4.1)
+project (ixwebsocket_unittest)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../third_party/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
 find_package(Sanitizers)
-
-cmake_minimum_required (VERSION 3.4.1)
-project (ixwebsocket_unittest)
 
 set (CMAKE_CXX_STANDARD 11)
 

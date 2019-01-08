@@ -43,8 +43,6 @@ namespace
             std::pair<std::string, std::string> decodeMessage(const std::string& str);
 
         private:
-            void log(const std::string& msg);
-
             std::string _user;
             std::string _session;
 
@@ -74,11 +72,6 @@ namespace
     void WebSocketChat::stop()
     {
         _webSocket.stop();
-    }
-
-    void WebSocketChat::log(const std::string& msg)
-    {
-        std::cerr << msg << std::endl;
     }
 
     void WebSocketChat::start()
@@ -188,17 +181,17 @@ namespace
                     {
                         if (messageType == ix::WebSocket_MessageType_Open)
                         {
-                            std::cerr << "New connection" << std::endl;
-                            std::cerr << "Uri: " << openInfo.uri << std::endl;
-                            std::cerr << "Headers:" << std::endl;
+                            Logger() << "New connection";
+                            Logger() << "Uri: " << openInfo.uri;
+                            Logger() << "Headers:";
                             for (auto it : openInfo.headers)
                             {
-                                std::cerr << it.first << ": " << it.second << std::endl;
+                                Logger() << it.first << ": " << it.second;
                             }
                         }
                         else if (messageType == ix::WebSocket_MessageType_Close)
                         {
-                            std::cerr << "Closed connection" << std::endl;
+                            log("Closed connection");
                         }
                         else if (messageType == ix::WebSocket_MessageType_Message)
                         {
@@ -218,7 +211,7 @@ namespace
         auto res = server.listen();
         if (!res.first)
         {
-            std::cerr << res.second << std::endl;
+            log(res.second);
             return false;
         }
 

@@ -19,11 +19,6 @@ namespace
     const std::string WEBSOCKET_DOT_ORG_URL("wss://echo.websocket.org");
     const std::string GOOGLE_URL("wss://google.com");
     const std::string UNKNOWN_URL("wss://asdcasdcaasdcasdcasdcasdcasdcasdcasassdd.com");
-
-    void log(const std::string& msg)
-    {
-        std::cout << msg << std::endl;
-    }
 }
 
 namespace
