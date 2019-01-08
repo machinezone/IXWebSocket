@@ -1,3 +1,4 @@
 language: cpp
-dist: xenial
+# dist: xenial
+os: osx
 script: make test
