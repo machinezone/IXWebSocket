@@ -1,5 +1,7 @@
 # General
 
+![Alt text](https://travis-ci.org/machinezone/IXWebSocket.svg?branch=master)
+
 ## Introduction
 
 [*WebSocket*](https://en.wikipedia.org/wiki/WebSocket) is a computer communications protocol, providing full-duplex
