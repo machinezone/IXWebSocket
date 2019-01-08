@@ -32,17 +32,17 @@ namespace ix
                     {
                         if (messageType == ix::WebSocket_MessageType_Open)
                         {
-                            std::cerr << "New connection" << std::endl;
-                            std::cerr << "Uri: " << openInfo.uri << std::endl;
-                            std::cerr << "Headers:" << std::endl;
+                            Logger() << "New connection";
+                            Logger() << "Uri: " << openInfo.uri;
+                            Logger() << "Headers:";
                             for (auto it : openInfo.headers)
                             {
-                                std::cerr << it.first << ": " << it.second << std::endl;
+                                Logger() << it.first << ": " << it.second;
                             }
                         }
                         else if (messageType == ix::WebSocket_MessageType_Close)
                         {
-                            std::cerr << "Closed connection" << std::endl;
+                            Logger() << "Closed connection";
                         }
                         else if (messageType == ix::WebSocket_MessageType_Message)
                         {
@@ -62,7 +62,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            std::cerr << res.second << std::endl;
+            Logger() << res.second;
             return false;
         }
 
@@ -121,7 +121,7 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         bool success = socket.connect(host, port, errMsg, isCancellationRequested);
         REQUIRE(success);
 
-        std::cout << "writeBytes" << std::endl;
+        Logger() << "writeBytes";
         socket.writeBytes("GET /\r\n", isCancellationRequested);
 
         auto lineResult = socket.readLine(isCancellationRequested);

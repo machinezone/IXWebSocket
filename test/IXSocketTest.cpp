@@ -36,7 +36,7 @@ namespace ix
             makeCancellationRequestWithTimeout(timeoutSecs, requestInitCancellation);
 
         bool success = socket->connect(host, port, errMsg, isCancellationRequested);
-        std::cerr << "errMsg: " << errMsg << std::endl;
+        Logger() << "errMsg: " << errMsg;
         REQUIRE(success);
 
         std::cout << "Sending request: " << request

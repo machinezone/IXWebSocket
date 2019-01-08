@@ -9,6 +9,7 @@
 
 #include <chrono>
 #include <thread>
+#include <mutex>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -18,6 +19,7 @@ namespace ix
 {
     std::atomic<size_t> incomingBytes(0);
     std::atomic<size_t> outgoingBytes(0);
+    std::mutex Logger::_mutex;
 
     void setupWebSocketTrafficTrackerCallback()
     {
@@ -38,9 +40,9 @@ namespace ix
 
     void reportWebSocketTraffic()
     {
-        std::cout << incomingBytes << std::endl;
-        std::cout << "Incoming bytes: " << incomingBytes << std::endl;
-        std::cout << "Outgoing bytes: " << outgoingBytes << std::endl;
+        Logger() << incomingBytes;
+        Logger() << "Incoming bytes: " << incomingBytes;
+        Logger() << "Outgoing bytes: " << outgoingBytes;
     }
 
     void msleep(int ms)
@@ -58,4 +60,10 @@ namespace ix
 
         return std::to_string(seconds);
     }
+
+    void log(const std::string& msg)
+    {
+        Logger() << msg;
+    }
+
 }
