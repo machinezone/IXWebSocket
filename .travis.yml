@@ -1,4 +1,9 @@
 language: cpp
-# dist: xenial
-os: osx
+dist: xenial
+
+compiler:
+  - clang
+#   - gcc
+
+# os: osx
 script: make test
