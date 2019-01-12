@@ -54,7 +54,7 @@ namespace ix
         bool decompress(const std::string& in, std::string& out);
 
     private:
-        std::shared_ptr<WebSocketPerMessageDeflateCompressor> _compressor;
-        std::shared_ptr<WebSocketPerMessageDeflateDecompressor> _decompressor;
+        std::unique_ptr<WebSocketPerMessageDeflateCompressor> _compressor;
+        std::unique_ptr<WebSocketPerMessageDeflateDecompressor> _decompressor;
     };
 }

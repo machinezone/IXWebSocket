@@ -6,7 +6,7 @@
 cmake_minimum_required (VERSION 3.4.1)
 project (ping_pong)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 14)
 
 option(USE_TLS "Add TLS support" ON)
 

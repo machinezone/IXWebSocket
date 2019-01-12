@@ -51,16 +51,16 @@
 
 namespace ix
 {
-    WebSocketPerMessageDeflate::WebSocketPerMessageDeflate()
+    WebSocketPerMessageDeflate::WebSocketPerMessageDeflate() :
+        _compressor(std::make_unique<WebSocketPerMessageDeflateCompressor>()),
+        _decompressor(std::make_unique<WebSocketPerMessageDeflateDecompressor>())
     {
-        _compressor.reset(new WebSocketPerMessageDeflateCompressor());
-        _decompressor.reset(new WebSocketPerMessageDeflateDecompressor());
+        ;
     }
 
     WebSocketPerMessageDeflate::~WebSocketPerMessageDeflate()
     {
-        _compressor.reset();
-        _decompressor.reset();
+        ;
     }
 
     bool WebSocketPerMessageDeflate::init(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)

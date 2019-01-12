@@ -8,7 +8,7 @@ project (ixwebsocket_unittest)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../third_party/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
 find_package(Sanitizers)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 14)
 
 if (NOT WIN32)
   option(USE_TLS "Add TLS support" ON)

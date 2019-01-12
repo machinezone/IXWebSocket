@@ -51,7 +51,7 @@ namespace ix
 
     void WebSocketServer::handleConnection(int fd)
     {
-        std::shared_ptr<WebSocket> webSocket(new WebSocket);
+        auto webSocket = std::make_shared<WebSocket>();
         _onConnectionCallback(webSocket);
 
         webSocket->disableAutomaticReconnection();
@@ -99,6 +99,7 @@ namespace ix
 
     size_t WebSocketServer::getConnectedClientsCount()
     {
-        return getClients().size();
+        std::lock_guard<std::mutex> lock(_clientsMutex);
+        return _clients.size();
     }
 }
