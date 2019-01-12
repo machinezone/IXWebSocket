@@ -55,7 +55,8 @@ namespace ix
 
         if (ret != Z_OK) return false;
 
-        _compressBuffer.reset(new unsigned char[_compressBufferSize]);
+        _compressBuffer = std::make_unique<unsigned char[]>(_compressBufferSize);
+
         _flush = (clientNoContextTakeOver)
                  ? Z_FULL_FLUSH
                  : Z_SYNC_FLUSH;
@@ -153,7 +154,8 @@ namespace ix
 
         if (ret != Z_OK) return false;
 
-        _compressBuffer.reset(new unsigned char[_compressBufferSize]);
+        _compressBuffer = std::make_unique<unsigned char[]>(_compressBufferSize);
+
         _flush = (clientNoContextTakeOver)
                  ? Z_FULL_FLUSH
                  : Z_SYNC_FLUSH;
