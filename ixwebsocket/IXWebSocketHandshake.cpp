@@ -354,6 +354,14 @@ namespace ix
             return WebSocketInitResult(false, status, "Error parsing HTTP headers");
         }
 
+        // Check the presence of the Upgrade field
+        if (headers.find("connection") == headers.end() ||
+            headers["connection"] != "Upgrade")
+        {
+            std::string errorMsg("Invalid or missing connection value");
+            return WebSocketInitResult(false, status, errorMsg);
+        }
+
         char output[29] = {};
         WebSocketHandshakeKeyGen::generate(secWebSocketKey.c_str(), output);
         if (std::string(output) != headers["sec-websocket-accept"])
@@ -467,7 +475,7 @@ namespace ix
         ss << "HTTP/1.1 101\r\n";
         ss << "Sec-WebSocket-Accept: " << std::string(output) << "\r\n";
         ss << "Upgrade: websocket\r\n";
-        ss << "Connection: websocket\r\n";
+        ss << "Connection: Upgrade\r\n";
 
         // Parse the client headers. Does it support deflate ?
         std::string header = headers["sec-websocket-extensions"];
