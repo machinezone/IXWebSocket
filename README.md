@@ -82,7 +82,7 @@ server.setOnConnectionCallback(
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
                 {
-                    // For an echo server, we just send back to the client whatever was received by the client
+                    // For an echo server, we just send back to the client whatever was received by the server
                     // All connected clients are available in an std::set. See the broadcast cpp example.
                     webSocket->send(str);
                 }
