@@ -466,6 +466,8 @@ namespace ix
         std::stringstream ss;
         ss << "HTTP/1.1 101\r\n";
         ss << "Sec-WebSocket-Accept: " << std::string(output) << "\r\n";
+        ss << "Upgrade: websocket\r\n";
+        ss << "Connection: websocket\r\n";
 
         // Parse the client headers. Does it support deflate ?
         std::string header = headers["sec-websocket-extensions"];
