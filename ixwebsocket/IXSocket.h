@@ -21,16 +21,24 @@ typedef SSIZE_T ssize_t;
 
 namespace ix 
 {
+    enum PollResultType
+    {
+        PollResultType_ReadyForRead = 0,
+        PollResultType_Timeout = 1,
+        PollResultType_Error = 2
+    };
+
     class Socket {
     public:
-        using OnPollCallback = std::function<void()>;
+        using OnPollCallback = std::function<void(PollResultType)>;
 
         Socket(int fd = -1);
         virtual ~Socket();
 
         void configure();
 
-        virtual void poll(const OnPollCallback& onPollCallback);
+        virtual void poll(const OnPollCallback& onPollCallback,
+                          int timeoutSecs = kDefaultPollTimeout);
         virtual void wakeUpFromPoll();
 
         // Virtual methods
@@ -62,5 +70,9 @@ namespace ix
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;
         EventFd _eventfd;
+
+    private:
+        static const int kDefaultPollTimeout;
+        static const int kDefaultPollNoTimeout;
     };
 }

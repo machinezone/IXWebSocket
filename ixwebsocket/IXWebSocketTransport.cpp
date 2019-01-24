@@ -33,12 +33,16 @@
 
 namespace ix
 {
+    const std::string WebSocketTransport::kHeartBeatPingMessage("ixwebsocket::hearbeat");
+    const int WebSocketTransport::kDefaultHeartBeatPeriod(-1);
+
     WebSocketTransport::WebSocketTransport() :
         _readyState(CLOSED),
         _closeCode(0),
         _closeWireSize(0),
         _enablePerMessageDeflate(false),
-        _requestInitCancellation(false)
+        _requestInitCancellation(false),
+        _heartBeatPeriod(kDefaultHeartBeatPeriod)
     {
 
     }
@@ -48,10 +52,12 @@ namespace ix
         ;
     }
 
-    void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
+    void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
+                                       int hearBeatPeriod)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
+        _heartBeatPeriod = hearBeatPeriod;
     }
 
     // Client
@@ -152,8 +158,14 @@ namespace ix
     void WebSocketTransport::poll()
     {
         _socket->poll(
-            [this]()
+            [this](PollResultType pollResult)
             {
+                if (pollResult == PollResultType_Timeout)
+                {
+                    sendPing(kHeartBeatPingMessage);
+                    return;
+                }
+
                 while (true) 
                 {
                     int N = (int) _rxbuf.size();
@@ -185,7 +197,8 @@ namespace ix
                     _socket->close();
                     setReadyState(CLOSED);
                 }
-            });
+            },
+            _heartBeatPeriod);
     }
 
     bool WebSocketTransport::isSendBufferEmpty() const

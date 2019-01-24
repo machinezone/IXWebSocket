@@ -86,7 +86,8 @@ namespace ix
 
         void setUrl(const std::string& url);
         void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
-        void setHandshakeTimeout(int _handshakeTimeoutSecs);
+        void setHandshakeTimeout(int handshakeTimeoutSecs);
+        void setHeartBeatPeriod(int hearBeatPeriod);
 
         // Run asynchronously, by calling start and stop.
         void start();
@@ -107,6 +108,7 @@ namespace ix
         ReadyState getReadyState() const;
         const std::string& getUrl() const;
         const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
+        int getHeartBeatPeriod() const;
 
         void enableAutomaticReconnection();
         void disableAutomaticReconnection();
@@ -141,6 +143,10 @@ namespace ix
 
         std::atomic<int> _handshakeTimeoutSecs;
         static const int kDefaultHandShakeTimeoutSecs;
+
+        // Optional Heartbeat
+        int _heartBeatPeriod;
+        static const int kDefaultHeartBeatPeriod;
 
         friend class WebSocketServer;
     };
