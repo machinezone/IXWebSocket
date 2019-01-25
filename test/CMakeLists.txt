@@ -34,6 +34,7 @@ set (SOURCES
 if (NOT WIN32)
   list(APPEND SOURCES 
     IXWebSocketServerTest.cpp
+    IXWebSocketHeartBeatTest.cpp
     cmd_websocket_chat.cpp
     IXWebSocketTestConnectionDisconnection.cpp
   )
