@@ -162,7 +162,9 @@ namespace ix
             {
                 if (pollResult == PollResultType_Timeout)
                 {
-                    sendPing(kHeartBeatPingMessage);
+                    std::stringstream ss;
+                    ss << kHeartBeatPingMessage << "::" << _heartBeatPeriod << "s";
+                    sendPing(ss.str());
                     return;
                 }
 
