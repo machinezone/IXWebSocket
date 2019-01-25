@@ -4,11 +4,6 @@
  *  Copyright (c) 2017 Machine Zone. All rights reserved.
  */
 
-//
-// Simple chat program that talks to the node.js server at
-// websocket_chat_server/broacast-server.js
-//
-
 #include <iostream>
 #include <sstream>
 #include <queue>
