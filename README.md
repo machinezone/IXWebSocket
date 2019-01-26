@@ -23,7 +23,11 @@ Here is what the client API looks like.
 ix::WebSocket webSocket;
 
 std::string url("ws://localhost:8080/");
-webSocket.configure(url);
+webSocket.setUrl(url);
+
+// Optional heart beat, sent every 45 seconds when there isn't any traffic
+// to make sure that load balancers do not kill an idle connection.
+webSocket.setHeartBeatPeriod(45);
 
 // Setup a callback to be fired when a message or an event (open, close, error) is received
 webSocket.setOnMessageCallback(
@@ -305,4 +309,13 @@ A ping message can be sent to the server, with an optional data string.
 
 ```
 websocket.ping("ping data, optional (empty string is ok): limited to 125 bytes long");
+
+### Heartbeat.
+
+You can configure an optional heart beat / keep-alive, sent every 45 seconds
+when there isn't any traffic to make sure that load balancers do not kill an
+idle connection.
+
+```
+webSocket.setHeartBeatPeriod(45);
 ```

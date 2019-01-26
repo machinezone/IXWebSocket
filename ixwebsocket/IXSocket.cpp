@@ -21,6 +21,9 @@
 
 namespace ix 
 {
+    const int Socket::kDefaultPollNoTimeout = -1; // No poll timeout by default
+    const int Socket::kDefaultPollTimeout = kDefaultPollNoTimeout;
+
     Socket::Socket(int fd) : 
         _sockfd(fd)
     {
@@ -32,14 +35,8 @@ namespace ix
         close();
     }
 
-    void Socket::poll(const OnPollCallback& onPollCallback)
+    void Socket::poll(const OnPollCallback& onPollCallback, int timeoutSecs)
     {
-        if (_sockfd == -1)
-        {
-            onPollCallback();
-            return;
-        }
-
         fd_set rfds;
         FD_ZERO(&rfds);
         FD_SET(_sockfd, &rfds);
@@ -48,11 +45,26 @@ namespace ix
         FD_SET(_eventfd.getFd(), &rfds);
 #endif
 
+        struct timeval timeout;
+        timeout.tv_sec = timeoutSecs;
+        timeout.tv_usec = 0;
+
         int sockfd = _sockfd;
         int nfds = (std::max)(sockfd, _eventfd.getFd());
-        select(nfds + 1, &rfds, nullptr, nullptr, nullptr);
+        int ret = select(nfds + 1, &rfds, nullptr, nullptr,
+                         (timeoutSecs == kDefaultPollNoTimeout) ? nullptr : &timeout);
 
-        onPollCallback();
+        PollResultType pollResult = PollResultType_ReadyForRead;
+        if (ret < 0)
+        {
+            pollResult = PollResultType_Error;
+        }
+        else if (ret == 0)
+        {
+            pollResult = PollResultType_Timeout;
+        }
+
+        onPollCallback(pollResult);
     }
 
     void Socket::wakeUpFromPoll()

@@ -31,12 +31,14 @@ namespace ix
 {
     OnTrafficTrackerCallback WebSocket::_onTrafficTrackerCallback = nullptr;
     const int WebSocket::kDefaultHandShakeTimeoutSecs(60);
+    const int WebSocket::kDefaultHeartBeatPeriod(-1);
 
     WebSocket::WebSocket() :
         _onMessageCallback(OnMessageCallback()),
         _stop(false),
         _automaticReconnection(true),
-        _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs)
+        _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs),
+        _heartBeatPeriod(kDefaultHeartBeatPeriod)
     {
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize)
@@ -77,6 +79,18 @@ namespace ix
         return _perMessageDeflateOptions;
     }
 
+    void WebSocket::setHeartBeatPeriod(int hearBeatPeriod)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _heartBeatPeriod = hearBeatPeriod;
+    }
+
+    int WebSocket::getHeartBeatPeriod() const
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _heartBeatPeriod;
+    }
+
     void WebSocket::start()
     {
         if (_thread.joinable()) return; // we've already been started
@@ -110,7 +124,8 @@ namespace ix
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
-            _ws.configure(_perMessageDeflateOptions);
+            _ws.configure(_perMessageDeflateOptions,
+                          _heartBeatPeriod);
         }
 
         WebSocketInitResult status = _ws.connectToUrl(_url, timeoutSecs);
@@ -130,7 +145,7 @@ namespace ix
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
-            _ws.configure(_perMessageDeflateOptions);
+            _ws.configure(_perMessageDeflateOptions, _heartBeatPeriod);
         }
 
         WebSocketInitResult status = _ws.connectToSocket(fd, timeoutSecs);

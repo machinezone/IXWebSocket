@@ -19,7 +19,7 @@ if osName == 'Windows':
     testBinary ='ixwebsocket_unittest.exe'
 else:
     generator = ''
-    make = 'make'
+    make = 'make -j6'
     testBinary ='./ixwebsocket_unittest' 
 
 sanitizersFlags = {
