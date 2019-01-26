@@ -42,7 +42,8 @@ namespace ix
         _closeWireSize(0),
         _enablePerMessageDeflate(false),
         _requestInitCancellation(false),
-        _heartBeatPeriod(kDefaultHeartBeatPeriod)
+        _heartBeatPeriod(kDefaultHeartBeatPeriod),
+        _lastSendTimePoint(std::chrono::steady_clock::now())
     {
 
     }
@@ -155,12 +156,23 @@ namespace ix
         _onCloseCallback = onCloseCallback; 
     }
 
+    bool WebSocketTransport::exceedSendHeartBeatTimeOut()
+    {
+        std::lock_guard<std::mutex> lock(_lastSendTimePointMutex);
+        auto now = std::chrono::steady_clock::now();
+        return now - _lastSendTimePoint > std::chrono::seconds(_heartBeatPeriod);
+    }
+
     void WebSocketTransport::poll()
     {
         _socket->poll(
             [this](PollResultType pollResult)
             {
-                if (pollResult == PollResultType_Timeout)
+                // If (1) heartbeat is enabled, and (2) no data was received or
+                // send for a duration exceeding our heart-beat period, send a
+                // ping to the server.
+                if (pollResult == PollResultType_Timeout && 
+                    exceedSendHeartBeatTimeOut())
                 {
                     std::stringstream ss;
                     ss << kHeartBeatPingMessage << "::" << _heartBeatPeriod << "s";
@@ -572,6 +584,9 @@ namespace ix
                 _txbuf.erase(_txbuf.begin(), _txbuf.begin() + ret);
             }
         }
+
+        std::lock_guard<std::mutex> lck(_lastSendTimePointMutex);
+        _lastSendTimePoint = std::chrono::steady_clock::now();
     }
 
     void WebSocketTransport::close()

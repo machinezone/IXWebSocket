@@ -27,6 +27,7 @@ namespace
             void start();
             void stop();
             bool isReady() const;
+            void sendMessage(const std::string& text);
 
         private:
             ix::WebSocket _webSocket;
@@ -103,6 +104,11 @@ namespace
                     ss << "Received ping message " << str;
                     log(ss.str());
                 }
+                else if (messageType == ix::WebSocket_MessageType_Message)
+                {
+                    ss << "Received message " << str;
+                    log(ss.str());
+                }
                 else
                 {
                     ss << "Invalid ix::WebSocketMessageType";
@@ -113,8 +119,14 @@ namespace
         _webSocket.start();
     }
 
+    void WebSocketClient::sendMessage(const std::string& text)
+    {
+        _webSocket.send(text);
+    }
+
     bool startServer(ix::WebSocketServer& server, std::atomic<int>& receivedPingMessages)
     {
+        // A dev/null server
         server.setOnConnectionCallback(
             [&server, &receivedPingMessages](std::shared_ptr<ix::WebSocket> webSocket)
             {
@@ -128,7 +140,7 @@ namespace
                     {
                         if (messageType == ix::WebSocket_MessageType_Open)
                         {
-                            Logger() << "New connection";
+                            Logger() << "New server connection";
                             Logger() << "Uri: " << openInfo.uri;
                             Logger() << "Headers:";
                             for (auto it : openInfo.headers)
@@ -138,22 +150,12 @@ namespace
                         }
                         else if (messageType == ix::WebSocket_MessageType_Close)
                         {
-                            log("Closed connection");
+                            log("Server closed connection");
                         }
                         else if (messageType == ix::WebSocket_MessageType_Ping)
                         {
-                            log("Received a ping");
+                            log("Server received a ping");
                             receivedPingMessages++;
-                        }
-                        else if (messageType == ix::WebSocket_MessageType_Message)
-                        {
-                            for (auto&& client : server.getClients())
-                            {
-                                if (client != webSocket)
-                                {
-                                    client->send(str);
-                                }
-                            }
                         }
                     }
                 );
@@ -178,7 +180,7 @@ TEST_CASE("Websocket_heartbeat", "[heartbeat]")
     {
         ix::setupWebSocketTrafficTrackerCallback();
 
-        int port = 8092;
+        int port = 8093;
         ix::WebSocketServer server(port);
         std::atomic<int> serverReceivedPingMessages(0);
         REQUIRE(startServer(server, serverReceivedPingMessages));
@@ -199,12 +201,17 @@ TEST_CASE("Websocket_heartbeat", "[heartbeat]")
 
         REQUIRE(server.getClients().size() == 2);
 
-        ix::msleep(3000);
+        ix::msleep(900);
+        webSocketClientB.sendMessage("hello world");
+        ix::msleep(900);
+        webSocketClientB.sendMessage("hello world");
+        ix::msleep(900);
 
         webSocketClientA.stop();
         webSocketClientB.stop();
 
-        REQUIRE(serverReceivedPingMessages >= 4);
+        REQUIRE(serverReceivedPingMessages >= 2);
+        REQUIRE(serverReceivedPingMessages <= 4);
 
         // Give us 500ms for the server to notice that clients went away
         ix::msleep(500);

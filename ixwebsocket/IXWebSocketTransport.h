@@ -122,6 +122,11 @@ namespace ix
         int _heartBeatPeriod;
         static const int kDefaultHeartBeatPeriod;
         const static std::string kHeartBeatPingMessage;
+        mutable std::mutex _lastSendTimePointMutex;
+        std::chrono::time_point<std::chrono::steady_clock> _lastSendTimePoint;
+
+        // No data was send through the socket for longer that the hearbeat period
+        bool exceedSendHeartBeatTimeOut();
 
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type, 

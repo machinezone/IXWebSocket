@@ -309,4 +309,13 @@ A ping message can be sent to the server, with an optional data string.
 
 ```
 websocket.ping("ping data, optional (empty string is ok): limited to 125 bytes long");
+
+### Heartbeat.
+
+You can configure an optional heart beat / keep-alive, sent every 45 seconds
+when there isn't any traffic to make sure that load balancers do not kill an
+idle connection.
+
+```
+webSocket.setHeartBeatPeriod(45);
 ```
