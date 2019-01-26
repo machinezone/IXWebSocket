@@ -125,6 +125,16 @@ namespace ix
         return out;
     }
 
+    bool WebSocketHandshake::insensitiveStringCompare(const std::string& a, const std::string& b)
+    {
+        return std::equal(a.begin(), a.end(),
+                          b.begin(), b.end(),
+                          [](char a, char b)
+                          {
+                              return tolower(a) == tolower(b);
+                          });
+    }
+
     std::tuple<std::string, std::string, std::string> WebSocketHandshake::parseRequestLine(const std::string& line)
     {
         // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
@@ -354,12 +364,21 @@ namespace ix
             return WebSocketInitResult(false, status, "Error parsing HTTP headers");
         }
 
-        // Check the presence of the Upgrade field
-        if (headers.find("connection") == headers.end() ||
-            headers["connection"] != "Upgrade")
+        // Check the presence of the connection field
+        if (headers.find("connection") == headers.end())
         {
-            std::string errorMsg("Invalid or missing connection value");
+            std::string errorMsg("Missing connection value");
             return WebSocketInitResult(false, status, errorMsg);
+        }
+
+        // Check the value of the connection field
+        // Some websocket servers (Go/Gorilla?) send lowercase values for the 
+        // connection header, so do a case insensitive comparison
+        if (!insensitiveStringCompare(headers["connection"], "Upgrade"))
+        {
+            std::stringstream ss;
+            ss << "Invalid connection value: " << headers["connection"];
+            return WebSocketInitResult(false, status, ss.str());
         }
 
         char output[29] = {};
