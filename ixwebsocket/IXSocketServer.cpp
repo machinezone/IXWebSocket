@@ -71,9 +71,11 @@ namespace ix
                        (char*) &enable, sizeof(enable)) < 0)
         {
             std::stringstream ss;
-            ss << "SocketServer::listen() error calling setsockopt(SO_REUSEADDR): "
-               << strerror(errno);
+            ss << "SocketServer::listen() error calling setsockopt(SO_REUSEADDR) "
+               << "at address " << _host << ":" << _port
+               << " : " << strerror(Socket::getErrno());
 
+            ::close(_serverFd);
             return std::make_pair(false, ss.str());
         }
 
@@ -93,21 +95,25 @@ namespace ix
         if (bind(_serverFd, (struct sockaddr *)&server, sizeof(server)) < 0)
         {
             std::stringstream ss;
-            ss << "SocketServer::listen() error calling bind: "
-               << strerror(Socket::getErrno());
+            ss << "SocketServer::listen() error calling bind "
+               << "at address " << _host << ":" << _port
+               << " : " << strerror(Socket::getErrno());
 
+            ::close(_serverFd);
             return std::make_pair(false, ss.str());
         }
 
-        /*
-         * Listen for connections. Specify the tcp backlog.
-         */
-        if (::listen(_serverFd, _backlog) != 0)
+        //
+        // Listen for connections. Specify the tcp backlog.
+        //
+        if (::listen(_serverFd, _backlog) < 0)
         {
             std::stringstream ss;
-            ss << "SocketServer::listen() error calling listen: "
-               << strerror(Socket::getErrno());
+            ss << "SocketServer::listen() error calling listen "
+               << "at address " << _host << ":" << _port
+               << " : " << strerror(Socket::getErrno());
 
+            ::close(_serverFd);
             return std::make_pair(false, ss.str());
         }
 
@@ -136,6 +142,7 @@ namespace ix
         _stop = false;
 
         _conditionVariable.notify_one();
+        ::close(_serverFd);
     }
 
     void SocketServer::run()
