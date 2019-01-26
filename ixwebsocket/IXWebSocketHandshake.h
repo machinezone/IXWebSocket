@@ -76,6 +76,7 @@ namespace ix
 
         std::tuple<std::string, std::string, std::string> parseRequestLine(const std::string& line);
         std::string trim(const std::string& str);
+        bool insensitiveStringCompare(const std::string& a, const std::string& b);
 
         std::atomic<bool>& _requestInitCancellation;
         std::shared_ptr<Socket> _socket;
