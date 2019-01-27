@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <poll.h>
 
 #include <algorithm>
 #include <iostream>
@@ -37,22 +38,27 @@ namespace ix
 
     void Socket::poll(const OnPollCallback& onPollCallback, int timeoutSecs)
     {
-        fd_set rfds;
-        FD_ZERO(&rfds);
-        FD_SET(_sockfd, &rfds);
+        if (_sockfd == -1)
+        {
+            onPollCallback(PollResultType_Error);
+            return;
+        }
 
 #ifdef __linux__
-        FD_SET(_eventfd.getFd(), &rfds);
+        constexpr int nfds = 2;
+#else
+        constexpr int nfds = 1;
 #endif
 
-        struct timeval timeout;
-        timeout.tv_sec = timeoutSecs;
-        timeout.tv_usec = 0;
+        struct pollfd fds[nfds];
+        fds[0].fd = _sockfd;
+        fds[0].events = POLLIN;
 
-        int sockfd = _sockfd;
-        int nfds = (std::max)(sockfd, _eventfd.getFd());
-        int ret = select(nfds + 1, &rfds, nullptr, nullptr,
-                         (timeoutSecs == kDefaultPollNoTimeout) ? nullptr : &timeout);
+#ifdef __linux__
+        fds[1].fd = _eventfd.getFd();
+        fds[1].events = POLLIN;
+#endif
+        int ret = ::poll(fds, nfds, timeoutSecs * 1000);
 
         PollResultType pollResult = PollResultType_ReadyForRead;
         if (ret < 0)
@@ -65,6 +71,7 @@ namespace ix
         }
 
         onPollCallback(pollResult);
+
     }
 
     void Socket::wakeUpFromPoll()
