@@ -45,14 +45,20 @@ namespace ix
         }
 
 #ifdef __linux__
-        FD_SET(_eventfd.getFd(), &rfds);
+        int nfds = 2;
+#else
+        int nfds = 1;
 #endif
-        struct pollfd fds[1];
+
+        struct pollfd fds[nfds];
         fds[0].fd = _sockfd;
         fds[0].events = POLLIN | POLLHUP | POLLERR;
 
-        int timeout_msecs = timeoutSecs * 1000;
-        int ret = ::poll(fds, 1, timeout_msecs);
+#ifdef __linux__
+        fds[1].fd = _eventfd.getFd();
+        fds[1].events = POLLIN | POLLHUP | POLLERR;
+#endif
+        int ret = ::poll(fds, nfds, timeoutSecs * 1000);
 
         PollResultType pollResult = PollResultType_ReadyForRead;
         if (ret < 0)
