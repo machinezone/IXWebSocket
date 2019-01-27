@@ -7,4 +7,5 @@ compiler:
 
 os: osx
 os: windows
-script: make test
+# script: make test
+script: python test/run.py
