@@ -45,9 +45,9 @@ namespace ix
         }
 
 #ifdef __linux__
-        int nfds = 2;
+        constexpr int nfds = 2;
 #else
-        int nfds = 1;
+        constexpr int nfds = 1;
 #endif
 
         struct pollfd fds[nfds];
