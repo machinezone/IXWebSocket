@@ -93,9 +93,6 @@ namespace ix
 
         if (_sockfd == -1) return;
 
-#if 1
-        ::shutdown(_sockfd, SHUT_RDWR);
-#endif
         closeSocket(_sockfd);
         _sockfd = -1;
     }
