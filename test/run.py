@@ -30,7 +30,7 @@ sanitizersFlags = {
 }
 sanitizer = 'tsan'
 if osName == 'Linux':
-    sanitizer = 'asan'
+    sanitizer = 'none'
 
 sanitizerFlags = sanitizersFlags[sanitizer]
 
