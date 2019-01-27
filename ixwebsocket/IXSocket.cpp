@@ -52,11 +52,11 @@ namespace ix
 
         struct pollfd fds[nfds];
         fds[0].fd = _sockfd;
-        fds[0].events = POLLIN | POLLHUP | POLLERR;
+        fds[0].events = POLLIN;
 
 #ifdef __linux__
         fds[1].fd = _eventfd.getFd();
-        fds[1].events = POLLIN | POLLHUP | POLLERR;
+        fds[1].events = POLLIN;
 #endif
         int ret = ::poll(fds, nfds, timeoutSecs * 1000);
 
