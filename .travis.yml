@@ -1,8 +1,8 @@
 language: cpp
 dist: xenial
 
-compiler:
-  - clang
+# compiler:
+#  - clang
 #   - gcc
 
 os: osx

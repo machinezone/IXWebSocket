@@ -34,9 +34,9 @@ if osName == 'Linux':
 
 sanitizerFlags = sanitizersFlags[sanitizer]
 
-if osName == 'Windows':
-    os.environ['CC'] = 'clang-cl'
-    os.environ['CXX'] = 'clang-cl'
+# if osName == 'Windows':
+#     os.environ['CC'] = 'clang-cl'
+#     os.environ['CXX'] = 'clang-cl'
 
 cmakeCmd = 'cmake -DCMAKE_BUILD_TYPE=Debug {} {} ..'.format(generator, sanitizerFlags)
 print(cmakeCmd)
