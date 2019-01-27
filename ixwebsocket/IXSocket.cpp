@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <poll.h>
 
 #include <algorithm>
 #include <iostream>
@@ -37,22 +38,21 @@ namespace ix
 
     void Socket::poll(const OnPollCallback& onPollCallback, int timeoutSecs)
     {
-        fd_set rfds;
-        FD_ZERO(&rfds);
-        FD_SET(_sockfd, &rfds);
+        if (_sockfd == -1)
+        {
+            onPollCallback(PollResultType_Error);
+            return;
+        }
 
 #ifdef __linux__
         FD_SET(_eventfd.getFd(), &rfds);
 #endif
+        struct pollfd fds[1];
+        fds[0].fd = _sockfd;
+        fds[0].events = POLLIN | POLLHUP | POLLERR;
 
-        struct timeval timeout;
-        timeout.tv_sec = timeoutSecs;
-        timeout.tv_usec = 0;
-
-        int sockfd = _sockfd;
-        int nfds = (std::max)(sockfd, _eventfd.getFd());
-        int ret = select(nfds + 1, &rfds, nullptr, nullptr,
-                         (timeoutSecs == kDefaultPollNoTimeout) ? nullptr : &timeout);
+        int timeout_msecs = timeoutSecs * 1000;
+        int ret = ::poll(fds, 1, timeout_msecs);
 
         PollResultType pollResult = PollResultType_ReadyForRead;
         if (ret < 0)
@@ -65,6 +65,7 @@ namespace ix
         }
 
         onPollCallback(pollResult);
+
     }
 
     void Socket::wakeUpFromPoll()
@@ -92,6 +93,9 @@ namespace ix
 
         if (_sockfd == -1) return;
 
+#if 1
+        ::shutdown(_sockfd, SHUT_RDWR);
+#endif
         closeSocket(_sockfd);
         _sockfd = -1;
     }
