@@ -180,7 +180,7 @@ TEST_CASE("Websocket_heartbeat", "[heartbeat]")
     {
         ix::setupWebSocketTrafficTrackerCallback();
 
-        int port = 8093;
+        int port = getFreePort();
         ix::WebSocketServer server(port);
         std::atomic<int> serverReceivedPingMessages(0);
         REQUIRE(startServer(server, serverReceivedPingMessages));

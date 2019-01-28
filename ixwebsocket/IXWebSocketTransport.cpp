@@ -156,7 +156,9 @@ namespace ix
         _onCloseCallback = onCloseCallback; 
     }
 
-    bool WebSocketTransport::exceedSendHeartBeatTimeOut()
+    // Only consider send time points for that computation.
+    // The receive time points is taken into account in Socket::poll (second parameter).
+    bool WebSocketTransport::heartBeatPeriodExceeded()
     {
         std::lock_guard<std::mutex> lock(_lastSendTimePointMutex);
         auto now = std::chrono::steady_clock::now();
@@ -172,7 +174,7 @@ namespace ix
                 // send for a duration exceeding our heart-beat period, send a
                 // ping to the server.
                 if (pollResult == PollResultType_Timeout && 
-                    exceedSendHeartBeatTimeOut())
+                    heartBeatPeriodExceeded())
                 {
                     std::stringstream ss;
                     ss << kHeartBeatPingMessage << "::" << _heartBeatPeriod << "s";
