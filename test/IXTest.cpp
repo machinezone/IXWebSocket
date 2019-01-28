@@ -69,7 +69,7 @@ namespace ix
         Logger() << msg;
     }
 
-    int getFreePort()
+    int getAnyFreePort()
     {
         int defaultPort = 8090;
 
@@ -116,5 +116,24 @@ namespace ix
         ::close(sockfd);
 
         return port;
+    }
+
+    int getFreePort()
+    {
+        while (true)
+        {
+            int port = getAnyFreePort();
+
+            //
+            // Only port above 1024 can be used by non root users, but for some
+            // reason I got port 7 returned with macOS when binding on port 0...
+            //
+            if (port > 1024)
+            {
+                return port;
+            }
+        }
+
+        return -1;
     }
 }
