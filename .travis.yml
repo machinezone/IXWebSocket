@@ -1,11 +1,11 @@
 language: cpp
 dist: xenial
 
-# compiler:
-#  - clang
+compiler:
+  - clang
 #   - gcc
 
 os: osx
-os: windows
+# os: windows
 # script: make test
 script: python test/run.py

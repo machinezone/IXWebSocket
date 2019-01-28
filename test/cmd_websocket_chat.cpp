@@ -4,6 +4,11 @@
  *  Copyright (c) 2017 Machine Zone. All rights reserved.
  */
 
+//
+// Simple chat program that talks to the node.js server at
+// websocket_chat_server/broacast-server.js
+//
+
 #include <iostream>
 #include <sstream>
 #include <queue>
@@ -24,7 +29,8 @@ namespace
     {
         public:
             WebSocketChat(const std::string& user,
-                       const std::string& session);
+                          const std::string& session,
+                          int port);
 
             void subscribe(const std::string& channel);
             void start();
@@ -40,6 +46,7 @@ namespace
         private:
             std::string _user;
             std::string _session;
+            int _port;
 
             ix::WebSocket _webSocket;
 
@@ -47,9 +54,11 @@ namespace
     };
 
     WebSocketChat::WebSocketChat(const std::string& user,
-                                 const std::string& session) :
+                                 const std::string& session,
+                                 int port) :
         _user(user),
-        _session(session)
+        _session(session),
+        _port(port)
     {
         ;
     }
@@ -71,7 +80,16 @@ namespace
 
     void WebSocketChat::start()
     {
-        std::string url("ws://localhost:8090/");
+        std::string url;
+        {
+            std::stringstream ss;
+            ss << "ws://localhost:"
+               << _port 
+               << "/";
+
+            url = ss.str();
+        }
+
         _webSocket.setUrl(url);
 
         std::stringstream ss;
@@ -226,8 +244,8 @@ TEST_CASE("Websocket_chat", "[websocket_chat]")
         REQUIRE(startServer(server));
 
         std::string session = ix::generateSessionId();
-        WebSocketChat chatA("jean", session);
-        WebSocketChat chatB("paul", session);
+        WebSocketChat chatA("jean", session, port);
+        WebSocketChat chatB("paul", session, port);
 
         chatA.start();
         chatB.start();

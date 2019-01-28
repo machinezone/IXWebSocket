@@ -75,7 +75,7 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 {
     SECTION("Connect to the server, do not send anything. Should timeout and return 400")
     {
-        int port = 8091;
+        int port = getFreePort();
         ix::WebSocketServer server(port);
         REQUIRE(startServer(server));
 
@@ -107,7 +107,7 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 
     SECTION("Connect to the server. Send GET request without header. Should return 400")
     {
-        int port = 8092;
+        int port = getFreePort();
         ix::WebSocketServer server(port);
         REQUIRE(startServer(server));
 
@@ -142,7 +142,7 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 
     SECTION("Connect to the server. Send GET request with correct header")
     {
-        int port = 8093;
+        int port = getFreePort();
         ix::WebSocketServer server(port);
         REQUIRE(startServer(server));
 
