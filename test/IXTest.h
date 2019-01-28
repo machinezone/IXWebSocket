@@ -51,4 +51,7 @@ namespace ix
     };
 
     void log(const std::string& msg);
+
+    bool computeFreePorts(int count);
+    int getFreePort();
 }

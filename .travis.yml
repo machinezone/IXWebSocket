@@ -5,5 +5,5 @@ compiler:
   - clang
 #   - gcc
 
-    # os: osx
-script: make test
+# os: osx
+script: python test/run.py

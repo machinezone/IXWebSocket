@@ -126,7 +126,7 @@ namespace ix
         std::chrono::time_point<std::chrono::steady_clock> _lastSendTimePoint;
 
         // No data was send through the socket for longer that the hearbeat period
-        bool exceedSendHeartBeatTimeOut();
+        bool heartBeatPeriodExceeded();
 
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type, 
