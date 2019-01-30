@@ -2,8 +2,16 @@ language: cpp
 dist: xenial
 
 compiler:
+  - gcc
   - clang
-#   - gcc
+os:
+  - linux
+  - osx
 
-# os: osx
+matrix:
+  exclude:
+    # GCC fails on recent Travis OSX images.
+    - compiler: gcc
+      os: osx
+
 script: python test/run.py
