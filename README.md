@@ -309,6 +309,7 @@ A ping message can be sent to the server, with an optional data string.
 
 ```
 websocket.ping("ping data, optional (empty string is ok): limited to 125 bytes long");
+```
 
 ### Heartbeat.
 
