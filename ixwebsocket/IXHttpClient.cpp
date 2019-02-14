@@ -61,8 +61,6 @@ namespace ix
 
         std::cout << "first line: " << line << std::endl;
 
-        std::cout << "read error: " << strerror(Socket::getErrno()) << std::endl;
-
         int status = -1;
         sscanf(line.c_str(), "HTTP/1.1 %d", &status) == 1;
 
