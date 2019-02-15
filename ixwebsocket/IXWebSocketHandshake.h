@@ -59,19 +59,10 @@ namespace ix
         WebSocketInitResult serverHandshake(int fd,
                                             int timeoutSecs);
 
-        static bool parseUrl(const std::string& url,
-                             std::string& protocol,
-                             std::string& host,
-                             std::string& path,
-                             std::string& query,
-                             int& port);
-
     private:
-        static void printUrl(const std::string& url);
         std::string genRandomString(const int len);
 
         // Parse HTTP headers
-        std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(const CancellationRequest& isCancellationRequested);
         WebSocketInitResult sendErrorResponse(int code, const std::string& reason);
 
         std::tuple<std::string, std::string, std::string> parseRequestLine(const std::string& line);

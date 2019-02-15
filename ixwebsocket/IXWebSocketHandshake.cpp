@@ -6,6 +6,7 @@
 
 #include "IXWebSocketHandshake.h"
 #include "IXSocketConnect.h"
+#include "IXUrlParser.h"
 
 #include "libwshandshake.hpp"
 
@@ -30,90 +31,6 @@ namespace ix
         _enablePerMessageDeflate(enablePerMessageDeflate)
     {
 
-    }
-
-    bool WebSocketHandshake::parseUrl(const std::string& url,
-                                      std::string& protocol,
-                                      std::string& host,
-                                      std::string& path,
-                                      std::string& query,
-                                      int& port)
-    {
-        std::regex ex("(ws|wss)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-        std::cmatch what;
-        if (!regex_match(url.c_str(), what, ex))
-        {
-            return false;
-        }
-
-        std::string portStr;
-
-        protocol = std::string(what[1].first, what[1].second);
-        host     = std::string(what[2].first, what[2].second);
-        portStr  = std::string(what[3].first, what[3].second);
-        path     = std::string(what[4].first, what[4].second);
-        query    = std::string(what[5].first, what[5].second);
-
-        if (portStr.empty())
-        {
-            if (protocol == "ws")
-            {
-                port = 80;
-            }
-            else if (protocol == "wss")
-            {
-                port = 443;
-            }
-            else
-            {
-                // Invalid protocol. Should be caught by regex check
-                // but this missing branch trigger cpplint linter.
-                return false;
-            }
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << portStr;
-            ss >> port;
-        }
-
-        if (path.empty())
-        {
-            path = "/";
-        }
-        else if (path[0] != '/')
-        {
-            path = '/' + path;
-        }
-
-        if (!query.empty())
-        {
-            path += "?";
-            path += query;
-        }
-
-        return true;
-    }
-
-    void WebSocketHandshake::printUrl(const std::string& url)
-    {
-        std::string protocol, host, path, query;
-        int port {0};
-
-        if (!WebSocketHandshake::parseUrl(url, protocol, host,
-                                          path, query, port))
-        {
-            return;
-        }
-
-        std::cout << "[" << url << "]" << std::endl;
-        std::cout << protocol << std::endl;
-        std::cout << host << std::endl;
-        std::cout << port << std::endl;
-        std::cout << path << std::endl;
-        std::cout << query << std::endl;
-        std::cout << "-------------------------------" << std::endl;
     }
 
     std::string WebSocketHandshake::trim(const std::string& str)
@@ -190,61 +107,6 @@ namespace ix
         }
 
         return s;
-    }
-
-
-    std::pair<bool, WebSocketHttpHeaders> WebSocketHandshake::parseHttpHeaders(
-        const CancellationRequest& isCancellationRequested)
-    {
-        WebSocketHttpHeaders headers;
-
-        char line[256];
-        int i;
-
-        while (true) 
-        {
-            int colon = 0;
-
-            for (i = 0;
-                 i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n');
-                 ++i)
-            {
-                if (!_socket->readByte(line+i, isCancellationRequested))
-                {
-                    return std::make_pair(false, headers);
-                }
-
-                if (line[i] == ':' && colon == 0)
-                {
-                    colon = i;
-                }
-            }
-            if (line[0] == '\r' && line[1] == '\n')
-            {
-                break;
-            }
-
-            // line is a single header entry. split by ':', and add it to our
-            // header map. ignore lines with no colon.
-            if (colon > 0)
-            {
-                line[i] = '\0';
-                std::string lineStr(line);
-                // colon is ':', colon+1 is ' ', colon+2 is the start of the value.
-                // i is end of string (\0), i-colon is length of string minus key;
-                // subtract 1 for '\0', 1 for '\n', 1 for '\r',
-                // 1 for the ' ' after the ':', and total is -4
-                std::string name(lineStr.substr(0, colon));
-                std::string value(lineStr.substr(colon + 2, i - colon - 4));
-
-                // Make the name lower case.
-                std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-
-                headers[name] = value;
-            }
-        }
-
-        return std::make_pair(true, headers);
     }
 
     WebSocketInitResult WebSocketHandshake::sendErrorResponse(int code, const std::string& reason)
@@ -355,7 +217,7 @@ namespace ix
             return WebSocketInitResult(false, status, ss.str());
         }
 
-        auto result = parseHttpHeaders(isCancellationRequested);
+        auto result = parseHttpHeaders(_socket, isCancellationRequested);
         auto headersValid = result.first;
         auto headers = result.second;
 
@@ -450,7 +312,7 @@ namespace ix
         }
 
         // Retrieve and validate HTTP headers
-        auto result = parseHttpHeaders(isCancellationRequested);
+        auto result = parseHttpHeaders(_socket, isCancellationRequested);
         auto headersValid = result.first;
         auto headers = result.second;
 

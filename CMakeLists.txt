@@ -28,7 +28,9 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXWebSocketPerMessageDeflate.cpp
     ixwebsocket/IXWebSocketPerMessageDeflateCodec.cpp
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.cpp
+    ixwebsocket/IXWebSocketHttpHeaders.cpp
     ixwebsocket/IXHttpClient.cpp
+    ixwebsocket/IXUrlParser.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
@@ -51,6 +53,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketHttpHeaders.h
     ixwebsocket/libwshandshake.hpp
     ixwebsocket/IXHttpClient.h
+    ixwebsocket/IXUrlParser.h
 )
 
 # Platform specific code

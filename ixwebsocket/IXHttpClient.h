@@ -11,13 +11,14 @@
 #include <mutex>
 #include <atomic>
 #include <tuple>
+#include <memory>
 
 #include "IXSocket.h"
 #include "IXWebSocketHttpHeaders.h"
 
 namespace ix 
 {
-    using HttpResponse = std::tuple<int, WebSocketHttpHeaders, std::string>;
+    using HttpResponse = std::tuple<int, WebSocketHttpHeaders, std::string, std::string>;
 
     class HttpClient {
     public:
@@ -25,10 +26,9 @@ namespace ix
         ~HttpClient();
 
         // Static methods ?
-        HttpResponse get(const std::string& url);
-        HttpResponse post(const std::string& url);
+        HttpResponse get(const std::string& url, bool verbose);
 
     private:
-        Socket _socket;
+        std::shared_ptr<Socket> _socket;
     };
 }

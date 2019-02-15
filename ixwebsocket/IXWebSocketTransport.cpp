@@ -11,6 +11,7 @@
 #include "IXWebSocketTransport.h"
 #include "IXWebSocketHandshake.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXUrlParser.h"
 
 #ifdef IXWEBSOCKET_USE_TLS
 # ifdef __APPLE__
@@ -68,8 +69,7 @@ namespace ix
         std::string protocol, host, path, query;
         int port;
 
-        if (!WebSocketHandshake::parseUrl(url, protocol, host,
-                                          path, query, port))
+        if (!parseUrl(url, protocol, host, path, query, port))
         {
             return WebSocketInitResult(false, 0,
                                        std::string("Could not parse URL ") + url);
