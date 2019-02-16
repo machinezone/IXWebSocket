@@ -136,6 +136,7 @@ If the remote end (server) breaks the connection, the code will try to perpetual
 
 ## Limitations
 
+* Sending large messages are not supported yet (see feature/send_large_message). This is a bug and will be fixed.
 * There is no text support for sending data, only the binary protocol is supported. Sending json or text over the binary protocol works well.
 * Automatic reconnection works at the TCP socket level, and will detect remote end disconnects. However, if the device/computer network become unreachable (by turning off wifi), it is quite hard to reliably and timely detect it at the socket level using `recv` and `send` error codes. [Here](https://stackoverflow.com/questions/14782143/linux-socket-how-to-detect-disconnected-network-in-a-client-program) is a good discussion on the subject. This behavior is consistent with other runtimes such as node.js. One way to detect a disconnected device with low level C code is to do a name resolution with DNS but this can be expensive. Mobile devices have good and reliable API to do that.
 * The server code is using select to detect incoming data, and creates one OS thread per connection. This isn't as scalable as strategies using epoll or kqueue.
