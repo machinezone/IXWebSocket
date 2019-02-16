@@ -133,6 +133,14 @@ namespace ix
                                    const std::string& message,
                                    bool compress);
 
+        // https://stackoverflow.com/questions/47122719/whats-the-difference-between-websocket-fragmentation-and-tcp-fragmentation
+        WebSocketSendInfo sendFragment(wsheader_type::opcode_type type, 
+                                       std::string::const_iterator begin,
+                                       std::string::const_iterator end,
+                                       uint64_t message_size,
+                                       uint64_t wireSize,
+                                       bool compress);
+
         void emitMessage(MessageKind messageKind, 
                          const std::string& message,
                          const wsheader_type& ws,

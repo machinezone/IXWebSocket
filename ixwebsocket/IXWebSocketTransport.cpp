@@ -473,8 +473,15 @@ namespace ix
 
         if (compress)
         {
-            bool success = _perMessageDeflate.compress(message, compressedMessage);
-            compressionError = !success;
+            if (!_perMessageDeflate.compress(message, compressedMessage))
+            {
+                bool success = false;
+                compressionError = true;
+                payloadSize = 0;
+                wireSize = 0;
+                return WebSocketSendInfo(success, compressionError, payloadSize, wireSize);
+            }
+            compressionError = false;
             wireSize = compressedMessage.size();
 
             message_begin = compressedMessage.begin();
@@ -482,7 +489,16 @@ namespace ix
         }
 
         uint64_t message_size = wireSize;
+        return sendFragment(type, message_begin, message_end, message_size, wireSize, compress);
+    }
 
+    WebSocketSendInfo WebSocketTransport::sendFragment(wsheader_type::opcode_type type, 
+                                                       std::string::const_iterator message_begin,
+                                                       std::string::const_iterator message_end,
+                                                       uint64_t message_size,
+                                                       uint64_t wireSize,
+                                                       bool compress)
+    {
         unsigned x = getRandomUnsigned();
         uint8_t masking_key[4] = {};
         masking_key[0] = (x >> 24);
@@ -547,7 +563,8 @@ namespace ix
         // Now actually send this data
         sendOnSocket();
 
-        return WebSocketSendInfo(true, compressionError, payloadSize, wireSize);
+        bool compressionError = false;
+        return WebSocketSendInfo(true, compressionError, message_size, wireSize);
     }
 
     WebSocketSendInfo WebSocketTransport::sendPing(const std::string& message)
