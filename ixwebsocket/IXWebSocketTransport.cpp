@@ -488,9 +488,35 @@ namespace ix
             message_end = compressedMessage.end();
         }
 
-        for (int i = 0 ; i < 1; ++i)
+        int chunkSize = 512 * 10;
+        if (wireSize < chunkSize)
         {
-            sendFragment(type, true, message_begin, message_end, wireSize, compress);
+            sendFragment(type, true, 
+                         message_begin, message_end, compress);
+        }
+        else
+        {
+            int steps = wireSize / chunkSize;
+
+            for (int i = 0 ; i < steps; ++i)
+            {
+                message_end = message_begin + chunkSize;
+
+                uint64_t size = chunkSize;
+
+                if ((i+1) == steps) // last or first step
+                {
+                    sendFragment(type, true, 
+                                 message_begin, message_end, compress);
+                }
+                else
+                {
+                    sendFragment(wsheader_type::CONTINUATION, false, 
+                                 message_begin, message_end, compress);
+                }
+
+                message_begin += chunkSize;
+            }
         }
 
         return WebSocketSendInfo(true, compressionError, payloadSize, wireSize);
@@ -500,9 +526,10 @@ namespace ix
                                           bool fin,
                                           std::string::const_iterator message_begin,
                                           std::string::const_iterator message_end,
-                                          uint64_t message_size,
                                           bool compress)
     {
+        auto message_size = message_end - message_begin;
+
         unsigned x = getRandomUnsigned();
         uint8_t masking_key[4] = {};
         masking_key[0] = (x >> 24);

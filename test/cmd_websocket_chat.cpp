@@ -295,11 +295,13 @@ TEST_CASE("Websocket_chat", "[websocket_chat]")
 
         // FIXME: cannot handle large message, we need to break them down
         //        into small one at the websocket layer (using CONTINUATION opcode)
-        size_t size = 512 * 1000; // 512K is OK, larger is not !!
+        size_t size = 512 * 2 * 1000 * 2; // can send 2M messages now
         std::string bigMessage(size, 'a');
         chatB.sendMessage(bigMessage);
 
-        // Wait until all messages are received. 10s timeout
+        log("Sent all messages");
+
+        // Wait until all messages are received. 20s timeout
         int attempts = 0;
         while (chatA.getReceivedMessagesCount() != 3 ||
                chatB.getReceivedMessagesCount() != 3)
