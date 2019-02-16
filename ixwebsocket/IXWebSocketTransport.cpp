@@ -499,8 +499,8 @@ namespace ix
             // Large messages need to be fragmented
             //
             // Rules:
-            // First and last message needs to specify a proper type (BINARY or TEXT)
-            // Intermediary messages needs to be of type CONTINUATION
+            // First message needs to specify a proper type (BINARY or TEXT)
+            // Intermediary and last message needs to be of type CONTINUATION
             // Last message must set the fin byte.
             //
             auto steps = wireSize / chunkSize;
@@ -521,7 +521,7 @@ namespace ix
                 }
 
                 auto opcodeType = type;
-                if (!firstStep && !lastStep)
+                if (!firstStep)
                 {
                     opcodeType = wsheader_type::CONTINUATION;
                 }
