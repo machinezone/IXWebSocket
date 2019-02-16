@@ -11,7 +11,8 @@
 
 #include <iostream>
 #include <sstream>
-#include <queue>
+#include <vector>
+#include <mutex>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXWebSocketServer.h>
 #include "msgpack11.hpp"
@@ -39,9 +40,11 @@ namespace
 
             void sendMessage(const std::string& text);
             size_t getReceivedMessagesCount() const;
+            const std::vector<std::string>& getReceivedMessages() const;
 
             std::string encodeMessage(const std::string& text);
             std::pair<std::string, std::string> decodeMessage(const std::string& str);
+            void appendMessage(const std::string& message);
 
         private:
             std::string _user;
@@ -50,7 +53,8 @@ namespace
 
             ix::WebSocket _webSocket;
 
-            std::queue<std::string> _receivedQueue;
+            std::vector<std::string> _receivedMessages;
+            mutable std::mutex _mutex;
     };
 
     WebSocketChat::WebSocketChat(const std::string& user,
@@ -65,7 +69,20 @@ namespace
 
     size_t WebSocketChat::getReceivedMessagesCount() const
     {
-        return _receivedQueue.size();
+        std::lock_guard<std::mutex> lock(_mutex);
+        return _receivedMessages.size();
+    }
+
+    const std::vector<std::string>& WebSocketChat::getReceivedMessages() const
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        return _receivedMessages;
+    }
+
+    void WebSocketChat::appendMessage(const std::string& message) 
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _receivedMessages.push_back(message);
     }
 
     bool WebSocketChat::isReady() const
@@ -85,7 +102,8 @@ namespace
             std::stringstream ss;
             ss << "ws://localhost:"
                << _port 
-               << "/";
+               << "/"
+               << _user;
 
             url = ss.str();
         }
@@ -127,10 +145,16 @@ namespace
                     // as we do for the satori chat example.
 
                     // store text
-                    _receivedQueue.push(result.second);
+                    appendMessage(result.second);
+
+                    std::string payload = result.second;
+                    if (payload.size() > 2000)
+                    {
+                        payload = "<message too large>"; 
+                    }
 
                     ss << std::endl 
-                       << result.first << " > " << result.second
+                       << result.first << " > " << payload
                        << std::endl
                        << _user << " > ";
                     log(ss.str());
@@ -269,14 +293,34 @@ TEST_CASE("Websocket_chat", "[websocket_chat]")
         chatB.sendMessage("from B1");
         chatB.sendMessage("from B2");
 
-        // Give us 1s for all messages to be received
-        ix::msleep(1000);
+        // FIXME: cannot handle large message, we need to break them down
+        //        into small one at the websocket layer (using CONTINUATION opcode)
+        size_t size = 512 * 1000; // 512K is OK, larger is not !!
+        std::string bigMessage(size, 'a');
+        chatB.sendMessage(bigMessage);
+
+        // Wait until all messages are received. 10s timeout
+        int attempts = 0;
+        while (chatA.getReceivedMessagesCount() != 3 ||
+               chatB.getReceivedMessagesCount() != 3)
+        {
+            REQUIRE(attempts++ < 10);
+            ix::msleep(1000);
+        }
 
         chatA.stop();
         chatB.stop();
 
-        REQUIRE(chatA.getReceivedMessagesCount() == 2);
+        REQUIRE(chatA.getReceivedMessagesCount() == 3);
         REQUIRE(chatB.getReceivedMessagesCount() == 3);
+
+        REQUIRE(chatB.getReceivedMessages()[0] == "from A1");
+        REQUIRE(chatB.getReceivedMessages()[1] == "from A2");
+        REQUIRE(chatB.getReceivedMessages()[2] == "from A3");
+
+        REQUIRE(chatA.getReceivedMessages()[0] == "from B1");
+        REQUIRE(chatA.getReceivedMessages()[1] == "from B2");
+        REQUIRE(chatA.getReceivedMessages()[2].size() == bigMessage.size());
 
         // Give us 500ms for the server to notice that clients went away
         ix::msleep(500);
