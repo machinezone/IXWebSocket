@@ -488,46 +488,48 @@ namespace ix
             message_end = compressedMessage.end();
         }
 
-        int chunkSize = 512 * 10;
+        uint64_t chunkSize = 1 << 15; // 32K
         if (wireSize < chunkSize)
         {
-            sendFragment(type, true, 
-                         message_begin, message_end, compress);
+            sendFragment(type, true, message_begin, message_end, compress);
         }
         else
         {
-            int steps = wireSize / chunkSize;
-            int reminder = wireSize % chunkSize;
+            //
+            // Large messages need to be fragmented
+            //
+            // Rules:
+            // First and last message needs to specify a proper type (BINARY or TEXT)
+            // Intermediary messages needs to be of type CONTINUATION
+            // Last message must set the fin byte.
+            //
+            auto steps = wireSize / chunkSize;
 
-            for (int i = 0 ; i < steps; ++i)
+            std::string::const_iterator begin = message_begin;
+            std::string::const_iterator end = message_end;
+
+            for (uint64_t i = 0 ; i < steps; ++i)
             {
                 bool firstStep = i == 0;
                 bool lastStep = (i+1) == steps;
-
                 bool fin = lastStep;
 
-                // if (lastStep && reminder != 0)
-                // {
-                //     message_end = message_begin + reminder;
-                // }
-                // else
-                // {
-                //     message_end = message_begin + chunkSize;
-                // }
-                message_end = message_begin + chunkSize;
-
-                if (firstStep || lastStep) // last or first step
+                end = begin + chunkSize;
+                if (lastStep)
                 {
-                    sendFragment(type, fin, 
-                                 message_begin, message_end, compress);
-                }
-                else
-                {
-                    sendFragment(wsheader_type::CONTINUATION, fin, 
-                                 message_begin, message_end, compress);
+                    end = message_end;
                 }
 
-                message_begin += chunkSize;
+                auto opcodeType = type;
+                if (!firstStep && !lastStep)
+                {
+                    opcodeType = wsheader_type::CONTINUATION;
+                }
+
+                // Send message
+                sendFragment(opcodeType, fin, begin, end, compress);
+
+                begin += chunkSize;
             }
         }
 
