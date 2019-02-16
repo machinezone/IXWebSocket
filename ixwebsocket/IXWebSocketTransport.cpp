@@ -488,16 +488,20 @@ namespace ix
             message_end = compressedMessage.end();
         }
 
-        uint64_t message_size = wireSize;
-        return sendFragment(type, message_begin, message_end, message_size, wireSize, compress);
+        for (int i = 0 ; i < 1; ++i)
+        {
+            sendFragment(type, true, message_begin, message_end, wireSize, compress);
+        }
+
+        return WebSocketSendInfo(true, compressionError, payloadSize, wireSize);
     }
 
-    WebSocketSendInfo WebSocketTransport::sendFragment(wsheader_type::opcode_type type, 
-                                                       std::string::const_iterator message_begin,
-                                                       std::string::const_iterator message_end,
-                                                       uint64_t message_size,
-                                                       uint64_t wireSize,
-                                                       bool compress)
+    void WebSocketTransport::sendFragment(wsheader_type::opcode_type type,
+                                          bool fin,
+                                          std::string::const_iterator message_begin,
+                                          std::string::const_iterator message_end,
+                                          uint64_t message_size,
+                                          bool compress)
     {
         unsigned x = getRandomUnsigned();
         uint8_t masking_key[4] = {};
@@ -510,7 +514,13 @@ namespace ix
         header.assign(2 +
                       (message_size >= 126 ? 2 : 0) +
                       (message_size >= 65536 ? 6 : 0) + 4, 0);
-        header[0] = 0x80 | type;
+        header[0] = type;
+        
+        // The fin bit indicate that this is the last fragment. Fin is French for end.
+        if (fin)
+        {
+            header[0] |= 0x80;
+        }
 
         // This bit indicate that the frame is compressed
         if (compress)
@@ -527,7 +537,7 @@ namespace ix
             header[4] = masking_key[2];
             header[5] = masking_key[3];
         }
-        else if (message_size < 65536) 
+        else if (message_size < 65536)
         {
             header[1] = 126 | 0x80;
             header[2] = (message_size >> 8) & 0xff;
@@ -562,9 +572,6 @@ namespace ix
 
         // Now actually send this data
         sendOnSocket();
-
-        bool compressionError = false;
-        return WebSocketSendInfo(true, compressionError, message_size, wireSize);
     }
 
     WebSocketSendInfo WebSocketTransport::sendPing(const std::string& message)
