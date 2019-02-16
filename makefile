@@ -24,7 +24,7 @@ test_server:
 	(cd test && npm i ws && node broadcast-server.js)
 
 # env TEST=Websocket_server make test
-# env TEST=websocket_server make test
+# env TEST=Websocket_chat make test
 # env TEST=heartbeat make test
 test:
 	python test/run.py
