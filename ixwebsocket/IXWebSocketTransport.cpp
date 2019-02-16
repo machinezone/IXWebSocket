@@ -497,21 +497,33 @@ namespace ix
         else
         {
             int steps = wireSize / chunkSize;
+            int reminder = wireSize % chunkSize;
 
             for (int i = 0 ; i < steps; ++i)
             {
+                bool firstStep = i == 0;
+                bool lastStep = (i+1) == steps;
+
+                bool fin = lastStep;
+
+                // if (lastStep && reminder != 0)
+                // {
+                //     message_end = message_begin + reminder;
+                // }
+                // else
+                // {
+                //     message_end = message_begin + chunkSize;
+                // }
                 message_end = message_begin + chunkSize;
 
-                uint64_t size = chunkSize;
-
-                if ((i+1) == steps) // last or first step
+                if (firstStep || lastStep) // last or first step
                 {
-                    sendFragment(type, true, 
+                    sendFragment(type, fin, 
                                  message_begin, message_end, compress);
                 }
                 else
                 {
-                    sendFragment(wsheader_type::CONTINUATION, false, 
+                    sendFragment(wsheader_type::CONTINUATION, fin, 
                                  message_begin, message_end, compress);
                 }
 

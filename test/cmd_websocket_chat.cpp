@@ -295,7 +295,7 @@ TEST_CASE("Websocket_chat", "[websocket_chat]")
 
         // FIXME: cannot handle large message, we need to break them down
         //        into small one at the websocket layer (using CONTINUATION opcode)
-        size_t size = 512 * 2 * 1000 * 2; // can send 2M messages now
+        size_t size = 512 * 2 * 1000 * 1; // can send 2M messages now
         std::string bigMessage(size, 'a');
         chatB.sendMessage(bigMessage);
 
