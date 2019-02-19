@@ -96,6 +96,8 @@ namespace ix
             uint8_t masking_key[4];
         };
 
+        int _fragmentIdx;
+        std::vector<uint8_t> _readbuf;
         std::vector<uint8_t> _rxbuf;
         std::vector<uint8_t> _txbuf;
         mutable std::mutex _txbufMutex;

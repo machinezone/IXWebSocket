@@ -29,6 +29,8 @@
 #include <cstdarg>
 #include <iostream>
 #include <sstream>
+#include <chrono>
+#include <thread>
 
 
 namespace ix
@@ -45,7 +47,8 @@ namespace ix
         _heartBeatPeriod(kDefaultHeartBeatPeriod),
         _lastSendTimePoint(std::chrono::steady_clock::now())
     {
-
+        _readbuf.resize(1 << 17);
+        _fragmentIdx = 0;
     }
 
     WebSocketTransport::~WebSocketTransport()
@@ -184,27 +187,25 @@ namespace ix
 
                 while (true) 
                 {
-                    int N = (int) _rxbuf.size();
-
-                    _rxbuf.resize(N + 1500);
-                    ssize_t ret = _socket->recv((char*)&_rxbuf[0] + N, 1500);
+                    ssize_t ret = _socket->recv((char*)&_readbuf[0], _readbuf.size());
 
                     if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
-                                    _socket->getErrno() == EAGAIN)) {
-                        _rxbuf.resize(N);
+                                    _socket->getErrno() == EAGAIN))
+                    {
                         break;
                     }
                     else if (ret <= 0) 
                     {
-                        _rxbuf.resize(N);
-
+                        _rxbuf.clear();
                         _socket->close();
                         setReadyState(CLOSED);
                         break;
                     }
                     else 
                     {
-                        _rxbuf.resize(N + ret);
+                        _rxbuf.insert(_rxbuf.end(),
+                                      _readbuf.begin(),
+                                      _readbuf.begin() + ret);
                     }
                 }
 
@@ -359,6 +360,11 @@ namespace ix
                 || ws.opcode == wsheader_type::BINARY_FRAME
                 || ws.opcode == wsheader_type::CONTINUATION
             ) {
+                std::cerr << "Receiving intermediary fragment: " 
+                          << _fragmentIdx++ 
+                          << " buffer size: " << _receivedData.size()
+                          << std::endl;
+
                 unmaskReceiveBuffer(ws);
                 _receivedData.insert(_receivedData.end(),
                                      _rxbuf.begin()+ws.header_size,
@@ -371,6 +377,9 @@ namespace ix
 
                     emitMessage(MSG, stringMessage, ws, onMessageCallback);
                     _receivedData.clear();
+                    
+                    std::cerr << "Receiving final fragment" << std::endl;
+                    _fragmentIdx = 0;
                 }
             }
             else if (ws.opcode == wsheader_type::PING)
@@ -488,7 +497,7 @@ namespace ix
             message_end = compressedMessage.end();
         }
 
-        uint64_t chunkSize = 1 << 15; // 32K
+        uint64_t chunkSize = 1 << 17; // 32K
         if (wireSize < chunkSize)
         {
             sendFragment(type, true, message_begin, message_end, compress);
@@ -500,7 +509,7 @@ namespace ix
             //
             // Rules:
             // First message needs to specify a proper type (BINARY or TEXT)
-            // Intermediary and last message needs to be of type CONTINUATION
+            // Intermediary and last messages need to be of type CONTINUATION
             // Last message must set the fin byte.
             //
             auto steps = wireSize / chunkSize;
@@ -528,6 +537,14 @@ namespace ix
 
                 // Send message
                 sendFragment(opcodeType, fin, begin, end, compress);
+
+                std::cerr << "Sent intermediary fragment: " 
+                          << i
+                          << " buffer size " << i * chunkSize
+                          << std::endl;
+
+                // std::chrono::duration<double, std::milli> duration(1);
+                // std::this_thread::sleep_for(duration);
 
                 begin += chunkSize;
             }
@@ -637,6 +654,11 @@ namespace ix
             if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
                             _socket->getErrno() == EAGAIN))
             {
+                break;
+            }
+            else if (ret < 0 && (_socket->getErrno() == ENOBUFS))
+            {
+                std::cerr << "ENOBUFS !!" << std::endl;
                 break;
             }
             else if (ret <= 0)

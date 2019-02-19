@@ -8,6 +8,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <condition_variable>
+#include <mutex>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixcrypto/IXUuid.h>
@@ -33,8 +35,8 @@ namespace
             void start();
             void stop();
 
-            bool isConnected();
-            bool isMessageAcked();
+            void waitForConnection();
+            void waitForAck();
 
             void sendMessage(const std::string& filename);
 
@@ -42,12 +44,13 @@ namespace
             std::string _url;
             std::string _id;
             ix::WebSocket _webSocket;
-            std::atomic<bool> _messageAcked;
+
+            std::mutex _conditionVariableMutex;
+            std::condition_variable _condition;
     };
 
     WebSocketSender::WebSocketSender(const std::string& url) :
-        _url(url),
-        _messageAcked(false)
+        _url(url)
     {
         ;
     }
@@ -57,14 +60,20 @@ namespace
         _webSocket.stop();
     }
 
-    bool WebSocketSender::isConnected()
+    void WebSocketSender::waitForConnection()
     {
-        return _webSocket.getReadyState() == ix::WebSocket_ReadyState_Open;
+        std::cout << "Connecting..." << std::endl;
+
+        std::unique_lock<std::mutex> lock(_conditionVariableMutex);
+        _condition.wait(lock);
     }
 
-    bool WebSocketSender::isMessageAcked()
+    void WebSocketSender::waitForAck()
     {
-        return _messageAcked;
+        std::cout << "Waiting for ack..." << std::endl;
+
+        std::unique_lock<std::mutex> lock(_conditionVariableMutex);
+        _condition.wait(lock);
     }
 
     // FIXME: read directly to a string
@@ -108,6 +117,8 @@ namespace
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
+                    _condition.notify_one();
+
                     log("ws_send: connected");
                     std::cout << "Uri: " << openInfo.uri << std::endl;
                     std::cout << "Handshake Headers:" << std::endl;
@@ -125,10 +136,11 @@ namespace
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
                 {
+                    _condition.notify_one();
+
                     ss << "ws_send: received message: "
                        << str;
                     log(ss.str());
-                    _messageAcked = true;
 
                     Json::Value data;
                     Json::Reader reader;
@@ -179,20 +191,15 @@ namespace
     void wsSend(const std::string& url,
                 const std::string& path)
     {
-        std::cout << "Connecting..." << std::endl;
         WebSocketSender webSocketSender(url);
         webSocketSender.start();
 
-        // FIXME: use condition variables to wait
-        while (!webSocketSender.isConnected()) ;
+        webSocketSender.waitForConnection();
 
         std::cout << "Sending..." << std::endl;
         webSocketSender.sendMessage(path);
 
-        std::cout << "Waiting for acknowledgement..." << std::endl;
-
-        // FIXME: use condition variables to wait
-        while (!webSocketSender.isMessageAcked()) ;
+        webSocketSender.waitForAck();
 
         std::cout << "Done !" << std::endl;
         webSocketSender.stop();
