@@ -59,8 +59,8 @@ namespace ix
     }
 
     void CobraConnection::invokeEventCallback(ix::CobraConnectionEventType eventType,
-                                               const std::string& errorMsg,
-                                               const WebSocketHttpHeaders& headers)
+                                              const std::string& errorMsg,
+                                              const WebSocketHttpHeaders& headers)
     {
         std::lock_guard<std::mutex> lock(_eventCallbackMutex);
         if (_eventCallback)
@@ -176,10 +176,10 @@ namespace ix
     }
 
     void CobraConnection::configure(const std::string& appkey,
-                                     const std::string& endpoint,
-                                     const std::string& rolename,
-                                     const std::string& rolesecret,
-                                     WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions)
+                                    const std::string& endpoint,
+                                    const std::string& rolename,
+                                    const std::string& rolesecret,
+                                    WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions)
     {
         _appkey = appkey;
         _endpoint = endpoint;
@@ -339,7 +339,7 @@ namespace ix
     // publish is not thread safe as we are trying to reuse some Json objects.
     //
     bool CobraConnection::publish(const Json::Value& channels,
-                                   const Json::Value& msg)
+                                  const Json::Value& msg)
     {
         _body["channels"] = channels;
         _body["message"] = msg;
@@ -371,7 +371,7 @@ namespace ix
     }
 
     void CobraConnection::subscribe(const std::string& channel,
-                                     SubscriptionCallback cb)
+                                    SubscriptionCallback cb)
     {
         // Create and send a subscribe pdu
         Json::Value body;

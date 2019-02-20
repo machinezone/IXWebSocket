@@ -294,9 +294,10 @@ namespace ix
         }
     }
 
-    WebSocketSendInfo WebSocket::send(const std::string& text)
+    WebSocketSendInfo WebSocket::send(const std::string& text,
+                                      const OnProgressCallback& onProgressCallback)
     {
-        return sendMessage(text, false);
+        return sendMessage(text, false, onProgressCallback);
     }
 
     WebSocketSendInfo WebSocket::ping(const std::string& text)
@@ -308,7 +309,9 @@ namespace ix
         return sendMessage(text, true);
     }
 
-    WebSocketSendInfo WebSocket::sendMessage(const std::string& text, bool ping)
+    WebSocketSendInfo WebSocket::sendMessage(const std::string& text,
+                                             bool ping,
+                                             const OnProgressCallback& onProgressCallback)
     {
         if (!isConnected()) return WebSocketSendInfo(false);
 
@@ -330,7 +333,7 @@ namespace ix
         }
         else
         {
-            webSocketSendInfo = _ws.sendBinary(text);
+            webSocketSendInfo = _ws.sendBinary(text, onProgressCallback);
         }
 
         WebSocket::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize, false);

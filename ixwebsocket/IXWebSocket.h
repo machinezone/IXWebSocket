@@ -19,6 +19,7 @@
 #include "IXWebSocketSendInfo.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXProgressCallback.h"
 
 namespace ix
 {
@@ -97,7 +98,8 @@ namespace ix
         WebSocketInitResult connect(int timeoutSecs);
         void run();
 
-        WebSocketSendInfo send(const std::string& text);
+        WebSocketSendInfo send(const std::string& text,
+                               const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo ping(const std::string& text);
         void close();
 
@@ -115,7 +117,9 @@ namespace ix
 
     private:
 
-        WebSocketSendInfo sendMessage(const std::string& text, bool ping);
+        WebSocketSendInfo sendMessage(const std::string& text,
+                                      bool ping,
+                                      const OnProgressCallback& callback = nullptr);
 
         bool isConnected() const;
         bool isClosing() const;

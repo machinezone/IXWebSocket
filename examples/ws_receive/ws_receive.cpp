@@ -34,6 +34,64 @@ namespace
     }
 }
 
+namespace ix
+{
+    void errorHandler(const std::string& errMsg,
+                      const std::string& id,
+                      std::shared_ptr<ix::WebSocket> webSocket) 
+    {
+        Json::Value pdu;
+        pdu["kind"] = "error";
+        pdu["id"] = id;
+        pdu["message"] = errMsg;
+        webSocket->send(pdu.toStyledString());
+    }
+
+    void messageHandler(const std::string& str,
+                        std::shared_ptr<ix::WebSocket> webSocket) 
+    {
+        std::cerr << "Received message: " << str.size() << std::endl;
+
+        Json::Value data;
+        Json::Reader reader;
+        if (!reader.parse(str, data))
+        {
+            errorHandler("Invalid JSON", std::string(), webSocket);
+            return;
+        }
+
+        std::cout << "id: " << data["id"].asString() << std::endl;
+
+        std::string content = ix::base64_decode(data["content"].asString());
+        std::cout << "Content size: " << content.size() << std::endl;
+
+        // Validate checksum
+        uint64_t cksum = ix::djb2Hash(data["content"].asString());
+        uint64_t cksumRef = data["djb2_hash"].asUInt64();
+
+        std::cout << "Computed hash: " << cksum << std::endl;
+        std::cout << "Reference hash: " << cksumRef << std::endl;
+
+        if (cksum != cksumRef)
+        {
+            errorHandler("Hash mismatch.", std::string(), webSocket);
+            return;
+        }
+
+        std::string filename = data["filename"].asString();
+        filename = extractFilename(filename);
+
+        std::ofstream out(filename);
+        out << content;
+        out.close();
+
+        Json::Value pdu;
+        pdu["ack"] = true;
+        pdu["id"] = data["id"];
+        pdu["filename"] = data["filename"];
+        webSocket->send(pdu.toStyledString());
+    }
+}
 
 int main(int argc, char** argv)
 {
@@ -45,29 +103,18 @@ int main(int argc, char** argv)
         ss >> port;
     }
 
-    auto errorHandler = [](const std::string& errMsg,
-                           const std::string& id,
-                           std::shared_ptr<ix::WebSocket> webSocket) 
-    {
-        Json::Value pdu;
-        pdu["kind"] = "error";
-        pdu["id"] = id;
-        pdu["message"] = errMsg;
-        webSocket->send(pdu.toStyledString());
-    };
-
     ix::WebSocketServer server(port);
 
     server.setOnConnectionCallback(
-        [&server, &errorHandler](std::shared_ptr<ix::WebSocket> webSocket)
+        [&server](std::shared_ptr<ix::WebSocket> webSocket)
         {
             webSocket->setOnMessageCallback(
-                [webSocket, &server, &errorHandler](ix::WebSocketMessageType messageType,
-                   const std::string& str,
-                   size_t wireSize,
-                   const ix::WebSocketErrorInfo& error,
-                   const ix::WebSocketOpenInfo& openInfo,
-                   const ix::WebSocketCloseInfo& closeInfo)
+                [webSocket, &server](ix::WebSocketMessageType messageType,
+                                     const std::string& str,
+                                     size_t wireSize,
+                                     const ix::WebSocketErrorInfo& error,
+                                     const ix::WebSocketOpenInfo& openInfo,
+                                     const ix::WebSocketCloseInfo& closeInfo)
                 {
                     if (messageType == ix::WebSocket_MessageType_Open)
                     {
@@ -85,46 +132,7 @@ int main(int argc, char** argv)
                     }
                     else if (messageType == ix::WebSocket_MessageType_Message)
                     {
-                        std::cerr << "Received message: " << str.size() << std::endl;
-
-                        Json::Value data;
-                        Json::Reader reader;
-                        if (!reader.parse(str, data))
-                        {
-                            errorHandler("Invalid JSON", std::string(), webSocket);
-                            return;
-                        }
-
-                        std::cout << "id: " << data["id"].asString() << std::endl;
-
-                        std::string content = ix::base64_decode(data["content"].asString());
-                        std::cout << "Content size: " << content.size() << std::endl;
-
-                        // Checksum check
-                        uint64_t cksum = ix::djb2Hash(content);
-                        uint64_t cksumRef = data["djb2_hash"].asUInt64();
-
-                        std::cout << "Computed hash: " << cksum << std::endl;
-                        std::cout << "Reference hash: " << cksumRef << std::endl;
-
-                        if (cksum != cksumRef)
-                        {
-                            errorHandler("Hash mismatch.", std::string(), webSocket);
-                            return;
-                        }
-
-                        std::string filename = data["filename"].asString();
-                        filename = extractFilename(filename);
-
-                        std::ofstream out(filename);
-                        out << content;
-                        out.close();
-
-                        Json::Value pdu;
-                        pdu["ack"] = true;
-                        pdu["id"] = data["id"];
-                        pdu["filename"] = data["filename"];
-                        webSocket->send(pdu.toStyledString());
+                        messageHandler(str, webSocket);
                     }
                 }
             );

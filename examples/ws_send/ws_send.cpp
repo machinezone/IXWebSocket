@@ -10,6 +10,7 @@
 #include <vector>
 #include <condition_variable>
 #include <mutex>
+#include <chrono>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixcrypto/IXUuid.h>
@@ -29,7 +30,8 @@ namespace
     class WebSocketSender
     {
         public:
-            WebSocketSender(const std::string& _url);
+            WebSocketSender(const std::string& _url,
+                            bool enablePerMessageDeflate);
 
             void subscribe(const std::string& channel);
             void start();
@@ -38,19 +40,22 @@ namespace
             void waitForConnection();
             void waitForAck();
 
-            void sendMessage(const std::string& filename);
+            void sendMessage(const std::string& filename, bool throttle);
 
         private:
             std::string _url;
             std::string _id;
             ix::WebSocket _webSocket;
+            bool _enablePerMessageDeflate;
 
             std::mutex _conditionVariableMutex;
             std::condition_variable _condition;
     };
 
-    WebSocketSender::WebSocketSender(const std::string& url) :
-        _url(url)
+    WebSocketSender::WebSocketSender(const std::string& url,
+                                     bool enablePerMessageDeflate) :
+        _url(url),
+        _enablePerMessageDeflate(enablePerMessageDeflate)
     {
         ;
     }
@@ -76,10 +81,10 @@ namespace
         _condition.wait(lock);
     }
 
-    // FIXME: read directly to a string
     std::string load(const std::string& path)
     {   
-        std::vector<uint8_t> memblock;
+        // std::vector<uint8_t> memblock;
+        std::string str;
             
         std::ifstream file(path);
         if (!file.is_open()) return std::string();
@@ -88,19 +93,18 @@ namespace
         std::streamoff size = file.tellg();
         file.seekg(0, file.beg);
                     
-        memblock.resize(size);
-        file.read((char*)&memblock.front(), static_cast<std::streamsize>(size));
+        str.resize(size);
+        file.read((char*)&str.front(), static_cast<std::streamsize>(size));
 
-        return std::string(memblock.begin(), memblock.end());
+        return str;
     }
 
     void WebSocketSender::start()
     {
         _webSocket.setUrl(_url);
 
-        // Disable zlib compression / TODO: make this configurable
         ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(
-            false, false, false, 15, 15);
+            _enablePerMessageDeflate, false, false, 15, 15);
         _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
 
         std::stringstream ss;
@@ -174,30 +178,82 @@ namespace
         _webSocket.start();
     }
 
-    void WebSocketSender::sendMessage(const std::string& filename)
+    class Bench
     {
-        std::string content = load(filename);
+        public:
+            Bench(const std::string& description) :
+                _description(description),
+                _start(std::chrono::system_clock::now())
+            {
+                ;
+            }
+
+            ~Bench()
+            {
+                auto now = std::chrono::system_clock::now();
+                auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _start);
+
+                std::cout << _description << " completed in "
+                          << milliseconds.count() << "ms" << std::endl;
+            }
+
+        private:
+            std::string _description;
+            std::chrono::time_point<std::chrono::system_clock> _start;
+    };
+
+    void WebSocketSender::sendMessage(const std::string& filename,
+                                      bool throttle)
+    {
+        std::string content;
+        {
+            Bench bench("load file from disk");
+            content = load(filename);
+        }
+
         _id = uuid4();
+
+        std::string b64Content;
+        {
+            Bench bench("base 64 encode file");
+            b64Content = base64_encode(content, content.size());
+        }
 
         Json::Value pdu;
         pdu["kind"] = "send";
         pdu["id"] = _id;
-        pdu["content"] = base64_encode(content, content.size());
-        pdu["djb2_hash"] = djb2Hash(content);
+        pdu["content"] = b64Content;
+        pdu["djb2_hash"] = djb2Hash(b64Content);
         pdu["filename"] = filename;
-        _webSocket.send(pdu.toStyledString());
+
+        Bench bench("Sending file through websocket");
+        _webSocket.send(pdu.toStyledString(),
+                        [throttle](int current, int total) -> bool
+        {
+            std::cout << "Step " << current << " out of " << total << std::endl;
+
+            if (throttle)
+            {
+                std::chrono::duration<double, std::milli> duration(10);
+                std::this_thread::sleep_for(duration);
+            }
+
+            return true;
+        });
     }
 
     void wsSend(const std::string& url,
-                const std::string& path)
+                const std::string& path,
+                bool enablePerMessageDeflate,
+                bool throttle)
     {
-        WebSocketSender webSocketSender(url);
+        WebSocketSender webSocketSender(url, enablePerMessageDeflate);
         webSocketSender.start();
 
         webSocketSender.waitForConnection();
 
         std::cout << "Sending..." << std::endl;
-        webSocketSender.sendMessage(path);
+        webSocketSender.sendMessage(path, throttle);
 
         webSocketSender.waitForAck();
 
@@ -216,7 +272,10 @@ int main(int argc, char** argv)
     std::string url = argv[1];
     std::string path = argv[2];
 
+    bool throttle = false;
+    bool enablePerMessageDeflate = false;
+
     Socket::init();
-    wsSend(url, path);
+    wsSend(url, path, enablePerMessageDeflate, throttle);
     return 0;
 }

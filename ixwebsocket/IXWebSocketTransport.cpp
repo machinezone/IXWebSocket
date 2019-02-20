@@ -48,7 +48,6 @@ namespace ix
         _lastSendTimePoint(std::chrono::steady_clock::now())
     {
         _readbuf.resize(1 << 17);
-        _fragmentIdx = 0;
     }
 
     WebSocketTransport::~WebSocketTransport()
@@ -201,7 +200,7 @@ namespace ix
                         setReadyState(CLOSED);
                         break;
                     }
-                    else 
+                    else
                     {
                         _rxbuf.insert(_rxbuf.end(),
                                       _readbuf.begin(),
@@ -360,26 +359,36 @@ namespace ix
                 || ws.opcode == wsheader_type::BINARY_FRAME
                 || ws.opcode == wsheader_type::CONTINUATION
             ) {
-                std::cerr << "Receiving intermediary fragment: " 
-                          << _fragmentIdx++ 
-                          << " buffer size: " << _receivedData.size()
-                          << std::endl;
-
                 unmaskReceiveBuffer(ws);
-                _receivedData.insert(_receivedData.end(),
-                                     _rxbuf.begin()+ws.header_size,
-                                     _rxbuf.begin()+ws.header_size+(size_t)ws.N);// just feed
-                if (ws.fin)
-                {
-                    // fire callback with a string message
-                    std::string stringMessage(_receivedData.begin(),
-                                              _receivedData.end());
 
-                    emitMessage(MSG, stringMessage, ws, onMessageCallback);
-                    _receivedData.clear();
-                    
-                    std::cerr << "Receiving final fragment" << std::endl;
-                    _fragmentIdx = 0;
+                //
+                // Usual case. Small unfragmented messages
+                //
+                if (ws.fin && _chunks.empty())
+                {
+                    emitMessage(MSG,
+                                std::string(_rxbuf.begin()+ws.header_size,
+                                            _rxbuf.begin()+ws.header_size+(size_t) ws.N),
+                                ws,
+                                onMessageCallback);
+                }
+                else
+                {
+                    //
+                    // Add intermediary message to our chunk list.
+                    // We use a chunk list instead of a big buffer because resizing
+                    // large buffer can be very costly when we need to re-allocate 
+                    // the internal buffer which is slow and can let the internal OS
+                    // receive buffer fill out.
+                    //
+                    _chunks.emplace_back(
+                        std::vector<uint8_t>(_rxbuf.begin()+ws.header_size,
+                                             _rxbuf.begin()+ws.header_size+(size_t)ws.N));
+                    if (ws.fin)
+                    {
+                        emitMessage(MSG, getMergedChunks(), ws, onMessageCallback);
+                        _chunks.clear();
+                    }
                 }
             }
             else if (ws.opcode == wsheader_type::PING)
@@ -429,9 +438,30 @@ namespace ix
                 close();
             }
 
+            // Erase the message that has been processed from the input/read buffer
             _rxbuf.erase(_rxbuf.begin(),
                          _rxbuf.begin() + ws.header_size + (size_t) ws.N);
         }
+    }
+
+    std::string WebSocketTransport::getMergedChunks() const
+    {
+        size_t length = 0;
+        for (auto&& chunk : _chunks)
+        {
+            length += chunk.size();
+        }
+
+        std::string msg;
+        msg.reserve(length);
+
+        for (auto&& chunk : _chunks)
+        {
+            std::string str(chunk.begin(), chunk.end());
+            msg += str;
+        }
+
+        return msg;
     }
 
     void WebSocketTransport::emitMessage(MessageKind messageKind, 
@@ -463,9 +493,11 @@ namespace ix
         return static_cast<unsigned>(seconds);
     }
 
-    WebSocketSendInfo WebSocketTransport::sendData(wsheader_type::opcode_type type, 
-                                                   const std::string& message,
-                                                   bool compress)
+    WebSocketSendInfo WebSocketTransport::sendData(
+        wsheader_type::opcode_type type, 
+        const std::string& message,
+        bool compress,
+        const OnProgressCallback& onProgressCallback)
     {
         if (_readyState == CLOSING || _readyState == CLOSED)
         {
@@ -538,13 +570,10 @@ namespace ix
                 // Send message
                 sendFragment(opcodeType, fin, begin, end, compress);
 
-                std::cerr << "Sent intermediary fragment: " 
-                          << i
-                          << " buffer size " << i * chunkSize
-                          << std::endl;
-
-                // std::chrono::duration<double, std::milli> duration(1);
-                // std::this_thread::sleep_for(duration);
+                if (onProgressCallback && !onProgressCallback(i, steps))
+                {
+                    break;
+                }
 
                 begin += chunkSize;
             }
@@ -638,9 +667,13 @@ namespace ix
         return sendData(wsheader_type::PING, message, compress);
     }
 
-    WebSocketSendInfo WebSocketTransport::sendBinary(const std::string& message) 
+    WebSocketSendInfo WebSocketTransport::sendBinary(
+        const std::string& message,
+        const OnProgressCallback& onProgressCallback)
+
     {
-        return sendData(wsheader_type::BINARY_FRAME, message, _enablePerMessageDeflate);
+        return sendData(wsheader_type::BINARY_FRAME, message,
+                        _enablePerMessageDeflate, onProgressCallback);
     }
 
     void WebSocketTransport::sendOnSocket()

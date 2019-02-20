@@ -16,6 +16,7 @@
 #include <memory>
 #include <mutex>
 #include <atomic>
+#include <list>
 
 #include "IXWebSocketSendInfo.h"
 #include "IXWebSocketPerMessageDeflate.h"
@@ -23,6 +24,7 @@
 #include "IXWebSocketHttpHeaders.h"
 #include "IXCancellationRequest.h"
 #include "IXWebSocketHandshake.h"
+#include "IXProgressCallback.h"
 
 namespace ix 
 {
@@ -66,7 +68,8 @@ namespace ix
                                             int timeoutSecs);
 
         void poll();
-        WebSocketSendInfo sendBinary(const std::string& message);
+        WebSocketSendInfo sendBinary(const std::string& message,
+                                     const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendPing(const std::string& message);
         void close();
         ReadyStateValues getReadyState() const;
@@ -96,12 +99,13 @@ namespace ix
             uint8_t masking_key[4];
         };
 
-        int _fragmentIdx;
         std::vector<uint8_t> _readbuf;
         std::vector<uint8_t> _rxbuf;
         std::vector<uint8_t> _txbuf;
         mutable std::mutex _txbufMutex;
-        std::vector<uint8_t> _receivedData;
+
+        // Hold fragments for multi-fragments messages
+        std::list<std::vector<uint8_t>> _chunks;
 
         std::shared_ptr<Socket> _socket;
 
@@ -133,7 +137,8 @@ namespace ix
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type, 
                                    const std::string& message,
-                                   bool compress);
+                                   bool compress,
+                                   const OnProgressCallback& onProgressCallback = nullptr);
 
         void sendFragment(wsheader_type::opcode_type type, 
                           bool fin,
@@ -156,5 +161,7 @@ namespace ix
 
         unsigned getRandomUnsigned();
         void unmaskReceiveBuffer(const wsheader_type& ws);
+
+        std::string getMergedChunks() const;
     };
 }
