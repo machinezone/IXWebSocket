@@ -57,7 +57,7 @@ namespace ix
     std::string generateSessionId()
     {
         auto now = std::chrono::system_clock::now();
-        auto seconds = 
+        auto seconds =
             std::chrono::duration_cast<std::chrono::seconds>(
                 now.time_since_epoch()).count();
 
@@ -73,7 +73,7 @@ namespace ix
     {
         int defaultPort = 8090;
 
-        int sockfd; 
+        int sockfd;
         if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             log("Cannot compute a free port. socket error.");

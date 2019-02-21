@@ -19,12 +19,12 @@
 #include <algorithm>
 #include <iostream>
 
-namespace ix 
+namespace ix
 {
     const int Socket::kDefaultPollNoTimeout = -1; // No poll timeout by default
     const int Socket::kDefaultPollTimeout = kDefaultPollNoTimeout;
 
-    Socket::Socket(int fd) : 
+    Socket::Socket(int fd) :
         _sockfd(fd)
     {
 
@@ -150,7 +150,7 @@ namespace ix
 #ifdef _WIN32
         INT rc;
         WSADATA wsaData;
-        
+
         rc = WSAStartup(MAKEWORD(2, 2), &wsaData);
         return rc != 0;
 #else

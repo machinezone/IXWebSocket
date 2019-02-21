@@ -14,7 +14,7 @@
 #include <future>
 #include <string.h>
 
-namespace ix 
+namespace ix
 {
     const int SocketServer::kDefaultPort(8080);
     const std::string SocketServer::kDefaultHost("127.0.0.1");
@@ -83,7 +83,7 @@ namespace ix
         server.sin_family = AF_INET;
         server.sin_port   = htons(_port);
 
-        // Using INADDR_ANY trigger a pop-up box as binding to any address is detected 
+        // Using INADDR_ANY trigger a pop-up box as binding to any address is detected
         // by the osx firewall. We need to codesign the binary with a self-signed cert
         // to allow that, but this is a bit of a pain. (this is what node or python would do).
         //
@@ -216,7 +216,7 @@ namespace ix
 
             // Launch the handleConnection work asynchronously in its own thread.
             //
-            // the destructor of a future returned by std::async blocks, 
+            // the destructor of a future returned by std::async blocks,
             // so we need to declare it outside of this loop
             f = std::async(std::launch::async,
                            &SocketServer::handleConnection,

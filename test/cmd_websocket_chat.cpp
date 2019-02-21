@@ -79,7 +79,7 @@ namespace
         return _receivedMessages;
     }
 
-    void WebSocketChat::appendMessage(const std::string& message) 
+    void WebSocketChat::appendMessage(const std::string& message)
     {
         std::lock_guard<std::mutex> lock(_mutex);
         _receivedMessages.push_back(message);
@@ -101,7 +101,7 @@ namespace
         {
             std::stringstream ss;
             ss << "ws://localhost:"
-               << _port 
+               << _port
                << "/"
                << _user;
 
@@ -150,10 +150,10 @@ namespace
                     std::string payload = result.second;
                     if (payload.size() > 2000)
                     {
-                        payload = "<message too large>"; 
+                        payload = "<message too large>";
                     }
 
-                    ss << std::endl 
+                    ss << std::endl
                        << result.first << " > " << payload
                        << std::endl
                        << _user << " > ";

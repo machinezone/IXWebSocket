@@ -30,7 +30,7 @@ namespace
     }
 }
 
-namespace ix 
+namespace ix
 {
     //
     // This function can be cancelled every 50 ms
@@ -42,7 +42,7 @@ namespace ix
                                         const CancellationRequest& isCancellationRequested)
     {
         errMsg = "no error";
-        
+
         int fd = socket(address->ai_family,
                         address->ai_socktype,
                         address->ai_protocol);
@@ -72,7 +72,7 @@ namespace ix
                 errMsg = "Cancelled";
                 return -1;
             }
-            
+
             // Use select to check the status of the new connection
             struct timeval timeout;
             timeout.tv_sec = 0;
@@ -179,7 +179,7 @@ namespace ix
         // 3. (apple) prevent SIGPIPE from being emitted when the remote end disconnect
 #ifdef SO_NOSIGPIPE
         int value = 1;
-        setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, 
+        setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE,
                    (void *)&value, sizeof(value));
 #endif
     }

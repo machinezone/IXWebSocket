@@ -36,7 +36,7 @@ namespace ix
         _serverMaxWindowBits = serverMaxWindowBits;
     }
 
-    // 
+    //
     // Four extension parameters are defined for "permessage-deflate" to
     // help endpoints manage per-connection resource usage.
     //
@@ -88,9 +88,9 @@ namespace ix
                 int x;
                 ss >> x;
 
-                // Sanitize values to be in the proper range [8, 15] in 
+                // Sanitize values to be in the proper range [8, 15] in
                 // case a server would give us bogus values
-                _serverMaxWindowBits = 
+                _serverMaxWindowBits =
                     std::min(maxServerMaxWindowBits,
                         std::max(x, minServerMaxWindowBits));
             }
@@ -103,9 +103,9 @@ namespace ix
                 int x;
                 ss >> x;
 
-                // Sanitize values to be in the proper range [8, 15] in 
+                // Sanitize values to be in the proper range [8, 15] in
                 // case a server would give us bogus values
-                _clientMaxWindowBits = 
+                _clientMaxWindowBits =
                     std::min(maxClientMaxWindowBits,
                         std::max(x, minClientMaxWindowBits));
             }
@@ -162,7 +162,7 @@ namespace ix
     std::string WebSocketPerMessageDeflateOptions::removeSpaces(const std::string& str)
     {
         std::string out(str);
-        out.erase(std::remove_if(out.begin(), 
+        out.erase(std::remove_if(out.begin(),
                                  out.end(),
                                  [](unsigned char x){ return std::isspace(x); }),
                   out.end());

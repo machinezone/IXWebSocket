@@ -47,7 +47,7 @@
 // link with ntdsapi.lib for DsMakeSpn function
 #pragma comment(lib, "ntdsapi.lib")
 
-// The following function assumes that Winsock 
+// The following function assumes that Winsock
 // has already been initialized
 
 
@@ -59,7 +59,7 @@
 # error("This file should only be built on Windows")
 #endif
 
-namespace ix 
+namespace ix
 {
     SocketSChannel::SocketSChannel()
     {
@@ -68,7 +68,7 @@ namespace ix
 
     SocketSChannel::~SocketSChannel()
     {
-        
+
     }
 
     bool SocketSChannel::connect(const std::string& host,
@@ -78,7 +78,7 @@ namespace ix
         return Socket::connect(host, port, errMsg);
     }
 
-    
+
     void SocketSChannel::secureSocket()
     {
         // there will be a lot to do here ...

@@ -50,7 +50,7 @@ OSStatus read_from_socket(SSLConnectionRef connection, void *data, size_t *len)
         else
             return noErr;
     }
-    else if (0 == status) 
+    else if (0 == status)
     {
         *len = 0;
         return errSSLClosedGraceful;
@@ -102,7 +102,7 @@ OSStatus write_to_socket(SSLConnectionRef connection, const void *data, size_t *
     else
     {
         *len = 0;
-        if (EAGAIN == errno) 
+        if (EAGAIN == errno)
         {
             return errSSLWouldBlock;
         }
@@ -141,7 +141,7 @@ std::string getSSLErrorDescription(OSStatus status)
 
 } // anonymous namespace
 
-namespace ix 
+namespace ix
 {
     SocketAppleSSL::SocketAppleSSL(int fd) : Socket(fd),
         _sslContext(nullptr)
@@ -176,11 +176,11 @@ namespace ix
 
             do {
                 status = SSLHandshake(_sslContext);
-            } while (errSSLWouldBlock == status || 
+            } while (errSSLWouldBlock == status ||
                      errSSLServerAuthCompleted == status);
         }
 
-        if (noErr != status) 
+        if (noErr != status)
         {
             errMsg = getSSLErrorDescription(status);
             close();
@@ -230,7 +230,7 @@ namespace ix
     ssize_t SocketAppleSSL::recv(void* buf, size_t nbyte)
     {
         OSStatus status = errSSLWouldBlock;
-        while (errSSLWouldBlock == status) 
+        while (errSSLWouldBlock == status)
         {
             size_t processed = 0;
             std::lock_guard<std::mutex> lock(_mutex);
@@ -239,7 +239,7 @@ namespace ix
             if (processed > 0)
                 return (ssize_t) processed;
 
-            // The connection was reset, inform the caller that this 
+            // The connection was reset, inform the caller that this
             // Socket should close
             if (status == errSSLClosedGraceful ||
                 status == errSSLClosedNoNotify ||

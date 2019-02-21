@@ -47,7 +47,7 @@ namespace ix
         _cd = (_cd & 0x3FFFFFFFFFFFFFFFULL) | 0x8000000000000000ULL;
     }
 
-    std::string Uuid::toString() const 
+    std::string Uuid::toString() const
     {
         std::stringstream ss;
         ss << std::hex << std::nouppercase << std::setfill('0');

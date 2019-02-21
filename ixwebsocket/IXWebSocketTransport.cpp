@@ -132,7 +132,7 @@ namespace ix
         return result;
     }
 
-    WebSocketTransport::ReadyStateValues WebSocketTransport::getReadyState() const 
+    WebSocketTransport::ReadyStateValues WebSocketTransport::getReadyState() const
     {
         return _readyState;
     }
@@ -156,7 +156,7 @@ namespace ix
 
     void WebSocketTransport::setOnCloseCallback(const OnCloseCallback& onCloseCallback)
     {
-        _onCloseCallback = onCloseCallback; 
+        _onCloseCallback = onCloseCallback;
     }
 
     // Only consider send time points for that computation.
@@ -176,7 +176,7 @@ namespace ix
                 // If (1) heartbeat is enabled, and (2) no data was received or
                 // send for a duration exceeding our heart-beat period, send a
                 // ping to the server.
-                if (pollResult == PollResultType_Timeout && 
+                if (pollResult == PollResultType_Timeout &&
                     heartBeatPeriodExceeded())
                 {
                     std::stringstream ss;
@@ -185,16 +185,16 @@ namespace ix
                     return;
                 }
 
-                while (true) 
+                while (true)
                 {
                     ssize_t ret = _socket->recv((char*)&_readbuf[0], _readbuf.size());
 
-                    if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
+                    if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
                                     _socket->getErrno() == EAGAIN))
                     {
                         break;
                     }
-                    else if (ret <= 0) 
+                    else if (ret <= 0)
                     {
                         _rxbuf.clear();
                         _socket->close();
@@ -209,7 +209,7 @@ namespace ix
                     }
                 }
 
-                if (isSendBufferEmpty() && _readyState == CLOSING) 
+                if (isSendBufferEmpty() && _readyState == CLOSING)
                 {
                     _socket->close();
                     setReadyState(CLOSED);
@@ -283,7 +283,7 @@ namespace ix
     //
     void WebSocketTransport::dispatch(const OnMessageCallback& onMessageCallback)
     {
-        while (true) 
+        while (true)
         {
             wsheader_type ws;
             if (_rxbuf.size() < 2) return; /* Need at least 2 */
@@ -295,7 +295,7 @@ namespace ix
             ws.N0 = (data[1] & 0x7f);
             ws.header_size = 2 + (ws.N0 == 126? 2 : 0) + (ws.N0 == 127? 8 : 0) + (ws.mask? 4 : 0);
             if (_rxbuf.size() < ws.header_size) return; /* Need: ws.header_size - _rxbuf.size() */
-            
+
             //
             // Calculate payload length:
             // 0-125 mean the payload is that long.
@@ -333,7 +333,7 @@ namespace ix
                 // invalid payload length according to the spec. bail out
                 return;
             }
-            
+
             if (ws.mask)
             {
                 ws.masking_key[0] = ((uint8_t) data[i+0]) << 0;
@@ -356,7 +356,7 @@ namespace ix
 
             // We got a whole message, now do something with it:
             if (
-                   ws.opcode == wsheader_type::TEXT_FRAME 
+                   ws.opcode == wsheader_type::TEXT_FRAME
                 || ws.opcode == wsheader_type::BINARY_FRAME
                 || ws.opcode == wsheader_type::CONTINUATION
             ) {
@@ -378,7 +378,7 @@ namespace ix
                     //
                     // Add intermediary message to our chunk list.
                     // We use a chunk list instead of a big buffer because resizing
-                    // large buffer can be very costly when we need to re-allocate 
+                    // large buffer can be very costly when we need to re-allocate
                     // the internal buffer which is slow and can let the internal OS
                     // receive buffer fill out.
                     //
@@ -465,7 +465,7 @@ namespace ix
         return msg;
     }
 
-    void WebSocketTransport::emitMessage(MessageKind messageKind, 
+    void WebSocketTransport::emitMessage(MessageKind messageKind,
                                          const std::string& message,
                                          const wsheader_type& ws,
                                          const OnMessageCallback& onMessageCallback)
@@ -488,7 +488,7 @@ namespace ix
     unsigned WebSocketTransport::getRandomUnsigned()
     {
         auto now = std::chrono::system_clock::now();
-        auto seconds = 
+        auto seconds =
             std::chrono::duration_cast<std::chrono::seconds>(
                 now.time_since_epoch()).count();
         return static_cast<unsigned>(seconds);
@@ -685,7 +685,7 @@ namespace ix
         {
             ssize_t ret = _socket->send((char*)&_txbuf[0], _txbuf.size());
 
-            if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
+            if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
                             _socket->getErrno() == EAGAIN))
             {
                 break;

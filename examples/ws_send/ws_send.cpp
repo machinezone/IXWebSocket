@@ -82,17 +82,17 @@ namespace
     }
 
     std::string load(const std::string& path)
-    {   
+    {
         // std::vector<uint8_t> memblock;
         std::string str;
-            
+
         std::ifstream file(path);
         if (!file.is_open()) return std::string();
-                
+
         file.seekg(0, file.end);
         std::streamoff size = file.tellg();
         file.seekg(0, file.beg);
-                    
+
         str.resize(size);
         file.read((char*)&str.front(), static_cast<std::streamsize>(size));
 

@@ -38,7 +38,7 @@ namespace ix
 {
     void errorHandler(const std::string& errMsg,
                       const std::string& id,
-                      std::shared_ptr<ix::WebSocket> webSocket) 
+                      std::shared_ptr<ix::WebSocket> webSocket)
     {
         Json::Value pdu;
         pdu["kind"] = "error";
@@ -48,7 +48,7 @@ namespace ix
     }
 
     void messageHandler(const std::string& str,
-                        std::shared_ptr<ix::WebSocket> webSocket) 
+                        std::shared_ptr<ix::WebSocket> webSocket)
     {
         std::cerr << "Received message: " << str.size() << std::endl;
 
