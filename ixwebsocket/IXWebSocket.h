@@ -24,7 +24,7 @@
 namespace ix
 {
     // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket#Ready_state_constants
-    enum ReadyState 
+    enum ReadyState
     {
         WebSocket_ReadyState_Connecting = 0,
         WebSocket_ReadyState_Open = 1,
@@ -79,7 +79,7 @@ namespace ix
 
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
-    class WebSocket 
+    class WebSocket
     {
     public:
         WebSocket();

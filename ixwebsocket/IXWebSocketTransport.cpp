@@ -37,6 +37,7 @@ namespace ix
 {
     const std::string WebSocketTransport::kHeartBeatPingMessage("ixwebsocket::hearbeat");
     const int WebSocketTransport::kDefaultHeartBeatPeriod(-1);
+    constexpr size_t WebSocketTransport::kChunkSize;
 
     WebSocketTransport::WebSocketTransport() :
         _readyState(CLOSED),
@@ -47,7 +48,7 @@ namespace ix
         _heartBeatPeriod(kDefaultHeartBeatPeriod),
         _lastSendTimePoint(std::chrono::steady_clock::now())
     {
-        _readbuf.resize(1 << 17);
+        _readbuf.resize(kChunkSize);
     }
 
     WebSocketTransport::~WebSocketTransport()
@@ -494,7 +495,7 @@ namespace ix
     }
 
     WebSocketSendInfo WebSocketTransport::sendData(
-        wsheader_type::opcode_type type, 
+        wsheader_type::opcode_type type,
         const std::string& message,
         bool compress,
         const OnProgressCallback& onProgressCallback)
@@ -529,8 +530,8 @@ namespace ix
             message_end = compressedMessage.end();
         }
 
-        uint64_t chunkSize = 1 << 17; // 32K
-        if (wireSize < chunkSize)
+        // Common case for most message. No fragmentation required.
+        if (wireSize < kChunkSize)
         {
             sendFragment(type, true, message_begin, message_end, compress);
         }
@@ -544,7 +545,7 @@ namespace ix
             // Intermediary and last messages need to be of type CONTINUATION
             // Last message must set the fin byte.
             //
-            auto steps = wireSize / chunkSize;
+            auto steps = wireSize / kChunkSize;
 
             std::string::const_iterator begin = message_begin;
             std::string::const_iterator end = message_end;
@@ -555,7 +556,7 @@ namespace ix
                 bool lastStep = (i+1) == steps;
                 bool fin = lastStep;
 
-                end = begin + chunkSize;
+                end = begin + kChunkSize;
                 if (lastStep)
                 {
                     end = message_end;
@@ -575,7 +576,7 @@ namespace ix
                     break;
                 }
 
-                begin += chunkSize;
+                begin += kChunkSize;
             }
         }
 
@@ -602,7 +603,7 @@ namespace ix
                       (message_size >= 126 ? 2 : 0) +
                       (message_size >= 65536 ? 6 : 0) + 4, 0);
         header[0] = type;
-        
+
         // The fin bit indicate that this is the last fragment. Fin is French for end.
         if (fin)
         {
@@ -687,11 +688,6 @@ namespace ix
             if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
                             _socket->getErrno() == EAGAIN))
             {
-                break;
-            }
-            else if (ret < 0 && (_socket->getErrno() == ENOBUFS))
-            {
-                std::cerr << "ENOBUFS !!" << std::endl;
                 break;
             }
             else if (ret <= 0)

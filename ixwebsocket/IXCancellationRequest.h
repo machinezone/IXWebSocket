@@ -9,7 +9,7 @@
 #include <functional>
 #include <atomic>
 
-namespace ix 
+namespace ix
 {
     using CancellationRequest = std::function<bool()>;
 

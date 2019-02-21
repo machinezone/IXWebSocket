@@ -183,23 +183,42 @@ namespace
         public:
             Bench(const std::string& description) :
                 _description(description),
-                _start(std::chrono::system_clock::now())
+                _start(std::chrono::system_clock::now()),
+                _reported(false)
             {
                 ;
             }
 
             ~Bench()
             {
+                if (!_reported)
+                {
+                    report();
+                }
+            }
+
+            void report()
+            {
                 auto now = std::chrono::system_clock::now();
                 auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _start);
 
+                _ms = milliseconds.count();
                 std::cout << _description << " completed in "
-                          << milliseconds.count() << "ms" << std::endl;
+                          << _ms << "ms" << std::endl;
+
+                _reported = true;
+            }
+
+            uint64_t getDuration() const
+            {
+                return _ms;
             }
 
         private:
             std::string _description;
             std::chrono::time_point<std::chrono::system_clock> _start;
+            uint64_t _ms;
+            bool _reported;
     };
 
     void WebSocketSender::sendMessage(const std::string& filename,
@@ -240,6 +259,12 @@ namespace
 
             return true;
         });
+
+        bench.report();
+        auto duration = bench.getDuration();
+        auto transferRate = 1000 * b64Content.size() / duration;
+        transferRate /= (1024 * 1024);
+        std::cout << "Send transfer rate: " << transferRate << "MB/s" << std::endl;
     }
 
     void wsSend(const std::string& url,

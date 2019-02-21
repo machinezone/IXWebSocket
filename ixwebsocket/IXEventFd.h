@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace ix 
+namespace ix
 {
     class EventFd {
     public:

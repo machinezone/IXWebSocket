@@ -9,7 +9,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace ix 
+namespace ix
 {
     using WebSocketHttpHeaders = std::unordered_map<std::string, std::string>;
 }

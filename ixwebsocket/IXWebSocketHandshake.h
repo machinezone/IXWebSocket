@@ -18,7 +18,7 @@
 #include <memory>
 #include <tuple>
 
-namespace ix 
+namespace ix
 {
     struct WebSocketInitResult
     {

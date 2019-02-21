@@ -42,13 +42,13 @@ namespace ix
     void SocketServer::logError(const std::string& str)
     {
         std::lock_guard<std::mutex> lock(_logMutex);
-        fprintf(stderr, "%s\n", str.c_str());
+        std::cerr << str << std::endl;
     }
 
     void SocketServer::logInfo(const std::string& str)
     {
         std::lock_guard<std::mutex> lock(_logMutex);
-        fprintf(stderr, "%s\n", str.c_str());
+        std::cout << str << std::endl;
     }
 
     std::pair<bool, std::string> SocketServer::listen()

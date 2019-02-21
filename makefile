@@ -10,6 +10,10 @@ docker:
 run: docker
 	docker run --cap-add sys_ptrace -it ws_connect:latest bash
 
+# this is helpful to remove trailing whitespaces
+trail:
+	sh third_party/remote_trailing_whitespaces.sh
+
 build:
 	(cd examples/satori_publisher ; mkdir -p build ; cd build ; cmake .. ; make)
 	(cd examples/chat ; mkdir -p build ; cd build ; cmake .. ; make)

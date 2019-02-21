@@ -3,7 +3,7 @@
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  *
- *  Resolve a hostname+port to a struct addrinfo obtained with getaddrinfo 
+ *  Resolve a hostname+port to a struct addrinfo obtained with getaddrinfo
  *  Does this in a background thread so that it can be cancelled, since
  *  getaddrinfo is a blocking call, and we don't want to block the main thread on Mobile.
  */
@@ -20,7 +20,7 @@
 
 struct addrinfo;
 
-namespace ix 
+namespace ix
 {
     class DNSLookup {
     public:
@@ -39,7 +39,7 @@ namespace ix
         struct addrinfo* resolveBlocking(std::string& errMsg,
                                          const CancellationRequest& isCancellationRequested);
 
-        static struct addrinfo* getAddrInfo(const std::string& hostname, 
+        static struct addrinfo* getAddrInfo(const std::string& hostname,
                                             int port,
                                             std::string& errMsg);
 

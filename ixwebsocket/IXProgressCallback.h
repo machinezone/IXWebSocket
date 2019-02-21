@@ -8,7 +8,7 @@
 
 #include <functional>
 
-namespace ix 
+namespace ix
 {
     using OnProgressCallback = std::function<bool(int current, int total)>;
 }
