@@ -10,7 +10,7 @@
 #include <string.h>
 #include <chrono>
 
-namespace ix 
+namespace ix
 {
     const int64_t DNSLookup::kDefaultWait = 10; // ms
 
@@ -26,7 +26,7 @@ namespace ix
         _done(false),
         _id(_nextId++)
     {
-        
+
     }
 
     DNSLookup::~DNSLookup()
@@ -36,7 +36,7 @@ namespace ix
         _activeJobs.erase(_id);
     }
 
-    struct addrinfo* DNSLookup::getAddrInfo(const std::string& hostname, 
+    struct addrinfo* DNSLookup::getAddrInfo(const std::string& hostname,
                                             int port,
                                             std::string& errMsg)
     {
@@ -49,7 +49,7 @@ namespace ix
         std::string sport = std::to_string(port);
 
         struct addrinfo* res;
-        int getaddrinfo_result = getaddrinfo(hostname.c_str(), sport.c_str(), 
+        int getaddrinfo_result = getaddrinfo(hostname.c_str(), sport.c_str(),
                                              &hints, &res);
         if (getaddrinfo_result)
         {
@@ -101,7 +101,7 @@ namespace ix
             _activeJobs.insert(_id);
         }
 
-        // 
+        //
         // Good resource on thread forced termination
         // https://www.bo-yang.net/2017/11/19/cpp-kill-detached-thread
         //
@@ -141,7 +141,7 @@ namespace ix
     void DNSLookup::run(uint64_t id, const std::string& hostname, int port) // thread runner
     {
         // We don't want to read or write into members variables of an object that could be
-        // gone, so we use temporary variables (res) or we pass in by copy everything that 
+        // gone, so we use temporary variables (res) or we pass in by copy everything that
         // getAddrInfo needs to work.
         std::string errMsg;
         struct addrinfo* res = getAddrInfo(hostname, port, errMsg);

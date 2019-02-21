@@ -38,6 +38,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSetThreadName.h
     ixwebsocket/IXDNSLookup.h
     ixwebsocket/IXCancellationRequest.h
+    ixwebsocket/IXProgressCallback.h
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketServer.h
     ixwebsocket/IXWebSocketTransport.h

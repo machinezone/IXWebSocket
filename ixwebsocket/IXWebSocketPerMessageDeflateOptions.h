@@ -8,7 +8,7 @@
 
 #include <string>
 
-namespace ix 
+namespace ix
 {
     class WebSocketPerMessageDeflateOptions
     {

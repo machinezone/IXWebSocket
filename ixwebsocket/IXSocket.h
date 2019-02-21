@@ -19,7 +19,7 @@ typedef SSIZE_T ssize_t;
 #include "IXEventFd.h"
 #include "IXCancellationRequest.h"
 
-namespace ix 
+namespace ix
 {
     enum PollResultType
     {
@@ -42,7 +42,7 @@ namespace ix
         virtual void wakeUpFromPoll();
 
         // Virtual methods
-        virtual bool connect(const std::string& url, 
+        virtual bool connect(const std::string& url,
                              int port,
                              std::string& errMsg,
                              const CancellationRequest& isCancellationRequested);

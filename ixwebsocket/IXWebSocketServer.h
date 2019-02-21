@@ -18,7 +18,7 @@
 #include "IXWebSocket.h"
 #include "IXSocketServer.h"
 
-namespace ix 
+namespace ix
 {
     using OnConnectionCallback = std::function<void(std::shared_ptr<WebSocket>)>;
 

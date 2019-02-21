@@ -18,12 +18,12 @@
 #include <errno.h>
 #define socketerrno errno
 
-namespace ix 
+namespace ix
 {
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
 
     SocketOpenSSL::SocketOpenSSL(int fd) : Socket(fd),
-        _ssl_connection(nullptr), 
+        _ssl_connection(nullptr),
         _ssl_context(nullptr)
     {
         std::call_once(_openSSLInitFlag, &SocketOpenSSL::openSSLInitialize, this);
@@ -80,7 +80,7 @@ namespace ix
                 return "OpenSSL failed - underlying BIO reported an I/O error";
             }
         }
-        else if (err == SSL_ERROR_SSL) 
+        else if (err == SSL_ERROR_SSL)
         {
             e = ERR_get_error();
             std::string errMsg("OpenSSL failed - ");
@@ -149,7 +149,7 @@ namespace ix
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
         // Check server name
         bool hostname_verifies_ok = false;
-        STACK_OF(GENERAL_NAME) *san_names = 
+        STACK_OF(GENERAL_NAME) *san_names =
             (STACK_OF(GENERAL_NAME)*) X509_get_ext_d2i((X509 *)server_cert,
                                                        NID_subject_alt_name, NULL, NULL);
         if (san_names)
@@ -160,8 +160,8 @@ namespace ix
                 if (sk_name->type == GEN_DNS)
                 {
                     char *name = (char *)ASN1_STRING_data(sk_name->d.dNSName);
-                    if ((size_t)ASN1_STRING_length(sk_name->d.dNSName) == strlen(name) && 
-                        checkHost(hostname, name)) 
+                    if ((size_t)ASN1_STRING_length(sk_name->d.dNSName) == strlen(name) &&
+                        checkHost(hostname, name))
                     {
                         hostname_verifies_ok = true;
                         break;
@@ -185,8 +185,8 @@ namespace ix
                     ASN1_STRING *cn_asn1 = X509_NAME_ENTRY_get_data(cn_entry);
                     char *cn = (char *)ASN1_STRING_data(cn_asn1);
 
-                    if ((size_t)ASN1_STRING_length(cn_asn1) == strlen(cn) && 
-                       checkHost(hostname, cn)) 
+                    if ((size_t)ASN1_STRING_length(cn_asn1) == strlen(cn) &&
+                       checkHost(hostname, cn))
                     {
                         hostname_verifies_ok = true;
                     }
@@ -205,7 +205,7 @@ namespace ix
         return true;
     }
 
-    bool SocketOpenSSL::openSSLHandshake(const std::string& host, std::string& errMsg) 
+    bool SocketOpenSSL::openSSLHandshake(const std::string& host, std::string& errMsg)
     {
         while (true)
         {
