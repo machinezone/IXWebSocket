@@ -9,7 +9,7 @@
 #include <string>
 #include <iostream>
 
-namespace ix 
+namespace ix
 {
     struct WebSocketSendInfo
     {

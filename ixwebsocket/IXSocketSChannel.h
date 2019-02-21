@@ -8,15 +8,15 @@
 
 #include "IXSocket.h"
 
-namespace ix 
+namespace ix
 {
-    class SocketSChannel : public Socket 
+    class SocketSChannel : public Socket
     {
     public:
         SocketSChannel();
         ~SocketSChannel();
 
-        virtual bool connect(const std::string& host, 
+        virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg) final;
         virtual void close() final;

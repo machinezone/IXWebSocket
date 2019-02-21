@@ -50,7 +50,7 @@ namespace ix
         );
     }
 
-    WebSocket::~WebSocket() 
+    WebSocket::~WebSocket()
     {
         stop();
     }
@@ -135,7 +135,7 @@ namespace ix
         }
 
         _onMessageCallback(WebSocket_MessageType_Open, "", 0,
-                           WebSocketErrorInfo(), 
+                           WebSocketErrorInfo(),
                            WebSocketOpenInfo(status.uri, status.headers),
                            WebSocketCloseInfo());
         return status;
@@ -155,7 +155,7 @@ namespace ix
         }
 
         _onMessageCallback(WebSocket_MessageType_Open, "", 0,
-                           WebSocketErrorInfo(), 
+                           WebSocketErrorInfo(),
                            WebSocketOpenInfo(status.uri, status.headers),
                            WebSocketCloseInfo());
         return status;
@@ -184,7 +184,7 @@ namespace ix
         using millis = std::chrono::duration<double, std::milli>;
         millis duration;
 
-        while (true) 
+        while (true)
         {
             if (isConnected() || isClosing() || _stop || !_automaticReconnection)
             {
@@ -214,7 +214,7 @@ namespace ix
     {
         setThreadName(_url);
 
-        while (true) 
+        while (true)
         {
             if (_stop) return;
 
@@ -223,7 +223,7 @@ namespace ix
 
             if (_stop) return;
 
-            // 2. Poll to see if there's any new data available 
+            // 2. Poll to see if there's any new data available
             _ws.poll();
 
             if (_stop) return;
@@ -273,7 +273,7 @@ namespace ix
 
     void WebSocket::setOnMessageCallback(const OnMessageCallback& callback)
     {
-        _onMessageCallback = callback; 
+        _onMessageCallback = callback;
     }
 
     void WebSocket::setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback)
@@ -294,9 +294,10 @@ namespace ix
         }
     }
 
-    WebSocketSendInfo WebSocket::send(const std::string& text)
+    WebSocketSendInfo WebSocket::send(const std::string& text,
+                                      const OnProgressCallback& onProgressCallback)
     {
-        return sendMessage(text, false);
+        return sendMessage(text, false, onProgressCallback);
     }
 
     WebSocketSendInfo WebSocket::ping(const std::string& text)
@@ -308,7 +309,9 @@ namespace ix
         return sendMessage(text, true);
     }
 
-    WebSocketSendInfo WebSocket::sendMessage(const std::string& text, bool ping)
+    WebSocketSendInfo WebSocket::sendMessage(const std::string& text,
+                                             bool ping,
+                                             const OnProgressCallback& onProgressCallback)
     {
         if (!isConnected()) return WebSocketSendInfo(false);
 
@@ -330,7 +333,7 @@ namespace ix
         }
         else
         {
-            webSocketSendInfo = _ws.sendBinary(text);
+            webSocketSendInfo = _ws.sendBinary(text, onProgressCallback);
         }
 
         WebSocket::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize, false);
@@ -340,7 +343,7 @@ namespace ix
 
     ReadyState WebSocket::getReadyState() const
     {
-        switch (_ws.getReadyState()) 
+        switch (_ws.getReadyState())
         {
             case ix::WebSocketTransport::OPEN: return WebSocket_ReadyState_Open;
             case ix::WebSocketTransport::CONNECTING: return WebSocket_ReadyState_Connecting;

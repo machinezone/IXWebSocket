@@ -8,7 +8,7 @@
 
 #include <chrono>
 
-namespace ix 
+namespace ix
 {
     CancellationRequest makeCancellationRequestWithTimeout(int secs,
                                                            std::atomic<bool>& requestInitCancellation)
@@ -20,7 +20,7 @@ namespace ix
         {
             // Was an explicit cancellation requested ?
             if (requestInitCancellation) return true;
-            
+
             auto now = std::chrono::system_clock::now();
             if ((now - start) > timeout) return true;
 

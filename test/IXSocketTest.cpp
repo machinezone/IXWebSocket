@@ -16,7 +16,7 @@
 # endif
 #endif
 
-#include "IXTest.h" 
+#include "IXTest.h"
 #include "catch.hpp"
 
 using namespace ix;

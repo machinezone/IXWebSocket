@@ -9,7 +9,7 @@
 
 #include <ixwebsocket/IXSocket.h>
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
     ix::Socket::init(); // for Windows
 

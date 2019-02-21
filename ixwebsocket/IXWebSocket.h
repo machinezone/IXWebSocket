@@ -19,11 +19,12 @@
 #include "IXWebSocketSendInfo.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXProgressCallback.h"
 
 namespace ix
 {
     // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket#Ready_state_constants
-    enum ReadyState 
+    enum ReadyState
     {
         WebSocket_ReadyState_Connecting = 0,
         WebSocket_ReadyState_Open = 1,
@@ -78,7 +79,7 @@ namespace ix
 
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
-    class WebSocket 
+    class WebSocket
     {
     public:
         WebSocket();
@@ -97,7 +98,8 @@ namespace ix
         WebSocketInitResult connect(int timeoutSecs);
         void run();
 
-        WebSocketSendInfo send(const std::string& text);
+        WebSocketSendInfo send(const std::string& text,
+                               const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo ping(const std::string& text);
         void close();
 
@@ -115,7 +117,9 @@ namespace ix
 
     private:
 
-        WebSocketSendInfo sendMessage(const std::string& text, bool ping);
+        WebSocketSendInfo sendMessage(const std::string& text,
+                                      bool ping,
+                                      const OnProgressCallback& callback = nullptr);
 
         bool isConnected() const;
         bool isClosing() const;

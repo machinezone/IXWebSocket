@@ -14,7 +14,7 @@
 #include <future>
 #include <string.h>
 
-namespace ix 
+namespace ix
 {
     const int WebSocketServer::kDefaultHandShakeTimeoutSecs(3); // 3 seconds
 
@@ -65,7 +65,7 @@ namespace ix
         auto status = webSocket->connectToSocket(fd, _handshakeTimeoutSecs);
         if (status.success)
         {
-            // Process incoming messages and execute callbacks 
+            // Process incoming messages and execute callbacks
             // until the connection is closed
             webSocket->run();
         }

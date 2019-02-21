@@ -20,7 +20,7 @@ if osName == 'Windows':
 else:
     generator = ''
     make = 'make -j6'
-    testBinary ='./ixwebsocket_unittest' 
+    testBinary ='./ixwebsocket_unittest'
 
 sanitizersFlags = {
     'asan': '-DSANITIZE_ADDRESS=On',

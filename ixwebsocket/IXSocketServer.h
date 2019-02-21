@@ -16,7 +16,7 @@
 #include <atomic>
 #include <condition_variable>
 
-namespace ix 
+namespace ix
 {
     class SocketServer {
     public:

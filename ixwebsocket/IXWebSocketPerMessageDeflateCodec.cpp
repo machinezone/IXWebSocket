@@ -14,7 +14,7 @@
 namespace
 {
     // The passed in size (4) is important, without it the string litteral
-    // is treated as a char* and the null termination (\x00) makes it 
+    // is treated as a char* and the null termination (\x00) makes it
     // look like an empty string.
     const std::string kEmptyUncompressedBlock = std::string("\x00\x00\xff\xff", 4);
 
@@ -76,16 +76,16 @@ namespace ix
     {
         //
         // 7.2.1.  Compression
-        // 
+        //
         //    An endpoint uses the following algorithm to compress a message.
-        // 
+        //
         //    1.  Compress all the octets of the payload of the message using
         //        DEFLATE.
-        // 
+        //
         //    2.  If the resulting data does not end with an empty DEFLATE block
         //        with no compression (the "BTYPE" bits are set to 00), append an
         //        empty DEFLATE block with no compression to the tail end.
-        // 
+        //
         //    3.  Remove 4 octets (that are 0x00 0x00 0xff 0xff) from the tail end.
         //        After this step, the last octet of the compressed data contains
         //        (possibly part of) the DEFLATE header bits with the "BTYPE" bits
@@ -168,14 +168,14 @@ namespace ix
     {
         //
         // 7.2.2.  Decompression
-        // 
+        //
         //    An endpoint uses the following algorithm to decompress a message.
-        // 
+        //
         //    1.  Append 4 octets of 0x00 0x00 0xff 0xff to the tail end of the
         //        payload of the message.
-        // 
+        //
         //    2.  Decompress the resulting data using DEFLATE.
-        // 
+        //
         std::string inFixed(in);
         inFixed += kEmptyUncompressedBlock;
 

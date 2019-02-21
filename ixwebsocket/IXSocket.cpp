@@ -15,17 +15,16 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <sys/types.h>
-#include <poll.h>
 
 #include <algorithm>
 #include <iostream>
 
-namespace ix 
+namespace ix
 {
     const int Socket::kDefaultPollNoTimeout = -1; // No poll timeout by default
     const int Socket::kDefaultPollTimeout = kDefaultPollNoTimeout;
 
-    Socket::Socket(int fd) : 
+    Socket::Socket(int fd) :
         _sockfd(fd)
     {
 
@@ -44,21 +43,22 @@ namespace ix
             return;
         }
 
-#ifdef __linux__
-        constexpr int nfds = 2;
-#else
-        constexpr int nfds = 1;
-#endif
-
-        struct pollfd fds[nfds];
-        fds[0].fd = _sockfd;
-        fds[0].events = POLLIN;
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET(_sockfd, &rfds);
 
 #ifdef __linux__
-        fds[1].fd = _eventfd.getFd();
-        fds[1].events = POLLIN;
+        FD_SET(_eventfd.getFd(), &rfds);
 #endif
-        int ret = ::poll(fds, nfds, timeoutSecs * 1000);
+
+        struct timeval timeout;
+        timeout.tv_sec = timeoutSecs;
+        timeout.tv_usec = 0;
+
+        int sockfd = _sockfd;
+        int nfds = (std::max)(sockfd, _eventfd.getFd());
+        int ret = select(nfds + 1, &rfds, nullptr, nullptr,
+                         (timeoutSecs < 0) ? nullptr : &timeout);
 
         PollResultType pollResult = PollResultType_ReadyForRead;
         if (ret < 0)
@@ -71,7 +71,6 @@ namespace ix
         }
 
         onPollCallback(pollResult);
-
     }
 
     void Socket::wakeUpFromPoll()
@@ -151,7 +150,7 @@ namespace ix
 #ifdef _WIN32
         INT rc;
         WSADATA wsaData;
-        
+
         rc = WSAStartup(MAKEWORD(2, 2), &wsaData);
         return rc != 0;
 #else

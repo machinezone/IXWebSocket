@@ -115,7 +115,7 @@ namespace
                     // store text
                     _receivedQueue.push(result.second);
 
-                    ss << std::endl 
+                    ss << std::endl
                        << result.first << " > " << result.second
                        << std::endl
                        << _user << " > ";
