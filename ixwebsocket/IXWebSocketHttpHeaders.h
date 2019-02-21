@@ -13,7 +13,7 @@
 #include <memory>
 #include <algorithm>
 
-namespace ix 
+namespace ix
 {
     class Socket;
 

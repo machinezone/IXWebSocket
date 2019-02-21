@@ -12,7 +12,7 @@
 
 struct addrinfo;
 
-namespace ix 
+namespace ix
 {
     class SocketConnect {
     public:

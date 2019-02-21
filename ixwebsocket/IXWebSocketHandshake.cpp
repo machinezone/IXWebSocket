@@ -17,7 +17,7 @@
 #include <algorithm>
 
 
-namespace ix 
+namespace ix
 {
     WebSocketHandshake::WebSocketHandshake(std::atomic<bool>& requestInitCancellation,
                                            std::shared_ptr<Socket> socket,
@@ -88,7 +88,7 @@ namespace ix
 
     std::string WebSocketHandshake::genRandomString(const int len)
     {
-        std::string alphanum = 
+        std::string alphanum =
             "0123456789"
             "ABCDEFGH"
             "abcdefgh";
@@ -139,7 +139,7 @@ namespace ix
     {
         _requestInitCancellation = false;
 
-        auto isCancellationRequested = 
+        auto isCancellationRequested =
             makeCancellationRequestWithTimeout(timeoutSecs, _requestInitCancellation);
 
         std::string errMsg;
@@ -234,7 +234,7 @@ namespace ix
         }
 
         // Check the value of the connection field
-        // Some websocket servers (Go/Gorilla?) send lowercase values for the 
+        // Some websocket servers (Go/Gorilla?) send lowercase values for the
         // connection header, so do a case insensitive comparison
         if (!insensitiveStringCompare(headers["connection"], "Upgrade"))
         {
@@ -280,7 +280,7 @@ namespace ix
         // Set the socket to non blocking mode + other tweaks
         SocketConnect::configure(fd);
 
-        auto isCancellationRequested = 
+        auto isCancellationRequested =
             makeCancellationRequestWithTimeout(timeoutSecs, _requestInitCancellation);
 
         std::string remote = std::string("remote fd ") + std::to_string(fd);
@@ -294,7 +294,7 @@ namespace ix
         {
             return sendErrorResponse(400, "Error reading HTTP request line");
         }
-        
+
         // Validate request line (GET /foo HTTP/1.1\r\n)
         auto requestLine = parseRequestLine(line);
         auto method      = std::get<0>(requestLine);

@@ -14,7 +14,7 @@
 // eventfd was added in Linux kernel 2.x, and our oldest Android (Kitkat 4.4)
 // is on Kernel 3.x
 //
-// cf Android/Kernel table here 
+// cf Android/Kernel table here
 // https://android.stackexchange.com/questions/51651/which-android-runs-which-linux-kernel
 //
 
@@ -28,9 +28,9 @@
 #include <unistd.h> // for write
 #endif
 
-namespace ix 
+namespace ix
 {
-    EventFd::EventFd() : 
+    EventFd::EventFd() :
         _eventfd(-1)
     {
 #ifdef __linux__
@@ -65,7 +65,7 @@ namespace ix
 #if defined(__linux__)
         if (_eventfd == -1) return false;
 
-        // 0 is a special value ; select will not wake up 
+        // 0 is a special value ; select will not wake up
         uint64_t value = 0;
 
         // we should write 8 bytes for an uint64_t

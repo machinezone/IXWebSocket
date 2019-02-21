@@ -17,15 +17,15 @@
 
 #include <mutex>
 
-namespace ix 
+namespace ix
 {
-    class SocketOpenSSL : public Socket 
+    class SocketOpenSSL : public Socket
     {
     public:
         SocketOpenSSL(int fd = -1);
         ~SocketOpenSSL();
 
-        virtual bool connect(const std::string& host, 
+        virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg,
                              const CancellationRequest& isCancellationRequested) final;

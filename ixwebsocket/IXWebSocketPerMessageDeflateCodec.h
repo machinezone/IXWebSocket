@@ -10,7 +10,7 @@
 #include <string>
 #include <memory>
 
-namespace ix 
+namespace ix
 {
     class WebSocketPerMessageDeflateCompressor
     {

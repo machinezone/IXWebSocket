@@ -34,7 +34,7 @@
  *  - Reused zlib compression + decompression bits.
  *  - Refactored to have 2 class for compression and decompression, to allow multi-threading
  *    and make sure that _compressBuffer is not shared between threads.
- *  - Original code wasn't working for some reason, I had to add checks 
+ *  - Original code wasn't working for some reason, I had to add checks
  *    for the presence of the kEmptyUncompressedBlock at the end of buffer so that servers
  *    would start accepting receiving/decoding compressed messages. Original code was probably
  *    modifying the passed in buffers before processing in enabled.hpp ?
@@ -65,13 +65,13 @@ namespace ix
 
     bool WebSocketPerMessageDeflate::init(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
     {
-        bool clientNoContextTakeover = 
+        bool clientNoContextTakeover =
             perMessageDeflateOptions.getClientNoContextTakeover();
 
         uint8_t deflateBits = perMessageDeflateOptions.getClientMaxWindowBits();
         uint8_t inflateBits = perMessageDeflateOptions.getServerMaxWindowBits();
 
-        return _compressor->init(deflateBits, clientNoContextTakeover) && 
+        return _compressor->init(deflateBits, clientNoContextTakeover) &&
                _decompressor->init(inflateBits, clientNoContextTakeover);
     }
 

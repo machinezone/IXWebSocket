@@ -34,7 +34,7 @@ namespace
             int _port;
     };
 
-    WebSocketClient::WebSocketClient(int port) 
+    WebSocketClient::WebSocketClient(int port)
         : _port(port)
     {
         ;
@@ -56,7 +56,7 @@ namespace
         {
             std::stringstream ss;
             ss << "ws://localhost:"
-               << _port 
+               << _port
                << "/";
 
             url = ss.str();
@@ -64,7 +64,7 @@ namespace
 
         _webSocket.setUrl(url);
 
-        // The important bit for this test. 
+        // The important bit for this test.
         // Set a 1 second hearbeat ; if no traffic is present on the connection for 1 second
         // a ping message will be sent by the client.
         _webSocket.setHeartBeatPeriod(1);
