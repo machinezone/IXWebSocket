@@ -3,6 +3,9 @@
 #
 all: run
 
+brew:
+	mkdir -p ws/build && (cd ws/build ; cmake .. ; make)
+
 .PHONY: docker
 docker:
 	docker build -t broadcast_server:latest .
