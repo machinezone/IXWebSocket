@@ -83,22 +83,21 @@ namespace ix
         _condition.wait(lock);
     }
 
-    std::string load(const std::string& path)
+    std::vector<uint8_t> load(const std::string& path)
     {
-        // std::vector<uint8_t> memblock;
-        std::string str;
+        std::vector<uint8_t> memblock;
 
         std::ifstream file(path);
-        if (!file.is_open()) return std::string();
+        if (!file.is_open()) return memblock;
 
         file.seekg(0, file.end);
         std::streamoff size = file.tellg();
         file.seekg(0, file.beg);
 
-        str.resize(size);
-        file.read((char*)&str.front(), static_cast<std::streamsize>(size));
+        memblock.resize(size);
+        file.read((char*)&memblock.front(), static_cast<std::streamsize>(size));
 
-        return str;
+        return memblock;
     }
 
     void WebSocketSender::start()
@@ -144,7 +143,7 @@ namespace ix
                 {
                     _condition.notify_one();
 
-                    ss << "ws_send: received message of size " << wireSize;
+                    ss << "ws_send: received message (" << wireSize << " bytes)";
                     log(ss.str());
 
                     std::string errMsg;
@@ -225,7 +224,7 @@ namespace ix
     void WebSocketSender::sendMessage(const std::string& filename,
                                       bool throttle)
     {
-        std::string content;
+        std::vector<uint8_t> content;
         {
             Bench bench("load file from disk");
             content = load(filename);
@@ -233,17 +232,11 @@ namespace ix
 
         _id = uuid4();
 
-        std::string b64Content;
-        {
-            Bench bench("base 64 encode file");
-            b64Content = base64_encode(content, content.size());
-        }
-
         std::map<MsgPack, MsgPack> pdu;
         pdu["kind"] = "send";
         pdu["id"] = _id;
-        pdu["content"] = b64Content;
-        auto hash = djb2Hash(b64Content);
+        pdu["content"] = content;
+        auto hash = djb2Hash(content);
         pdu["djb2_hash"] = std::to_string(hash);
         pdu["filename"] = filename;
 
@@ -266,7 +259,7 @@ namespace ix
 
         bench.report();
         auto duration = bench.getDuration();
-        auto transferRate = 1000 * b64Content.size() / duration;
+        auto transferRate = 1000 * content.size() / duration;
         transferRate /= (1024 * 1024);
         std::cout << "Send transfer rate: " << transferRate << "MB/s" << std::endl;
     }

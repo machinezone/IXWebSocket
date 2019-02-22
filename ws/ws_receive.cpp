@@ -87,7 +87,6 @@ namespace ix
     // We should cleanup the file name and full path further to remove .. as well
     std::string WebSocketReceiver::extractFilename(const std::string& path)
     {
-        std::string filename("filename.conf");
         std::string::size_type idx;
 
         idx = path.rfind('/');
@@ -98,7 +97,7 @@ namespace ix
         }
         else
         {
-            return std::string();
+            return path;
         }
     }
 
@@ -128,11 +127,11 @@ namespace ix
 
         std::cout << "id: " << data["id"].string_value() << std::endl;
 
-        std::string content = ix::base64_decode(data["content"].string_value());
+        std::vector<uint8_t> content = data["content"].binary_items();
         std::cout << "Content size: " << content.size() << std::endl;
 
         // Validate checksum
-        uint64_t cksum = ix::djb2Hash(data["content"].string_value());
+        uint64_t cksum = ix::djb2Hash(content);
         auto cksumRef = data["djb2_hash"].string_value();
 
         std::cout << "Computed hash: " << cksum << std::endl;
@@ -147,8 +146,9 @@ namespace ix
         std::string filename = data["filename"].string_value();
         filename = extractFilename(filename);
 
+        std::cout << "Writing to disk: " << filename << std::endl;
         std::ofstream out(filename);
-        out << content;
+        out.write((char*)&content.front(), content.size());
         out.close();
 
         std::map<MsgPack, MsgPack> pdu;
