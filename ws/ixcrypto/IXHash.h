@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <string>
+#include <vector>
 
 namespace ix
 {
-    uint64_t djb2Hash(const std::string& data);
+    uint64_t djb2Hash(const std::vector<uint8_t>& data);
 }
 

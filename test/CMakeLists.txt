@@ -18,13 +18,14 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/.. ixwebsocket)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/Catch2/single_include
+  ../third_party/msgpack11
 )
 
 # Shared sources
 set (SOURCES 
   test_runner.cpp
   IXTest.cpp
-  msgpack11.cpp
+  ../third_party/msgpack11/msgpack11.cpp
 
   IXDNSLookupTest.cpp
   IXSocketTest.cpp

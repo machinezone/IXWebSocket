@@ -16,17 +16,12 @@
 #include <ixcrypto/IXUuid.h>
 #include <ixcrypto/IXBase64.h>
 #include <ixcrypto/IXHash.h>
-#include <jsoncpp/json/json.h>
+#include <msgpack11/msgpack11.hpp>
 
-using namespace ix;
+using msgpack11::MsgPack;
 
-namespace
+namespace ix
 {
-    void log(const std::string& msg)
-    {
-        std::cout << msg << std::endl;
-    }
-
     class WebSocketSender
     {
         public:
@@ -50,6 +45,8 @@ namespace
 
             std::mutex _conditionVariableMutex;
             std::condition_variable _condition;
+
+            void log(const std::string& msg);
     };
 
     WebSocketSender::WebSocketSender(const std::string& url,
@@ -63,6 +60,11 @@ namespace
     void WebSocketSender::stop()
     {
         _webSocket.stop();
+    }
+
+    void WebSocketSender::log(const std::string& msg)
+    {
+        std::cout << msg << std::endl;
     }
 
     void WebSocketSender::waitForConnection()
@@ -81,22 +83,21 @@ namespace
         _condition.wait(lock);
     }
 
-    std::string load(const std::string& path)
+    std::vector<uint8_t> load(const std::string& path)
     {
-        // std::vector<uint8_t> memblock;
-        std::string str;
+        std::vector<uint8_t> memblock;
 
         std::ifstream file(path);
-        if (!file.is_open()) return std::string();
+        if (!file.is_open()) return memblock;
 
         file.seekg(0, file.end);
         std::streamoff size = file.tellg();
         file.seekg(0, file.beg);
 
-        str.resize(size);
-        file.read((char*)&str.front(), static_cast<std::streamsize>(size));
+        memblock.resize(size);
+        file.read((char*)&memblock.front(), static_cast<std::streamsize>(size));
 
-        return str;
+        return memblock;
     }
 
     void WebSocketSender::start()
@@ -142,19 +143,18 @@ namespace
                 {
                     _condition.notify_one();
 
-                    ss << "ws_send: received message: "
-                       << str;
+                    ss << "ws_send: received message (" << wireSize << " bytes)";
                     log(ss.str());
 
-                    Json::Value data;
-                    Json::Reader reader;
-                    if (!reader.parse(str, data))
+                    std::string errMsg;
+                    MsgPack data = MsgPack::parse(str, errMsg);
+                    if (!errMsg.empty())
                     {
-                        std::cerr << "Invalid JSON response" << std::endl;
+                        std::cerr << "Invalid MsgPack response" << std::endl;
                         return;
                     }
 
-                    std::string id = data["id"].asString();
+                    std::string id = data["id"].string_value();
                     if (_id != id)
                     {
                         std::cerr << "Invalid id" << std::endl;
@@ -224,7 +224,7 @@ namespace
     void WebSocketSender::sendMessage(const std::string& filename,
                                       bool throttle)
     {
-        std::string content;
+        std::vector<uint8_t> content;
         {
             Bench bench("load file from disk");
             content = load(filename);
@@ -232,21 +232,18 @@ namespace
 
         _id = uuid4();
 
-        std::string b64Content;
-        {
-            Bench bench("base 64 encode file");
-            b64Content = base64_encode(content, content.size());
-        }
-
-        Json::Value pdu;
+        std::map<MsgPack, MsgPack> pdu;
         pdu["kind"] = "send";
         pdu["id"] = _id;
-        pdu["content"] = b64Content;
-        pdu["djb2_hash"] = djb2Hash(b64Content);
+        pdu["content"] = content;
+        auto hash = djb2Hash(content);
+        pdu["djb2_hash"] = std::to_string(hash);
         pdu["filename"] = filename;
 
+        MsgPack msg(pdu);
+
         Bench bench("Sending file through websocket");
-        _webSocket.send(pdu.toStyledString(),
+        _webSocket.send(msg.dump(),
                         [throttle](int current, int total) -> bool
         {
             std::cout << "Step " << current << " out of " << total << std::endl;
@@ -262,7 +259,7 @@ namespace
 
         bench.report();
         auto duration = bench.getDuration();
-        auto transferRate = 1000 * b64Content.size() / duration;
+        auto transferRate = 1000 * content.size() / duration;
         transferRate /= (1024 * 1024);
         std::cout << "Send transfer rate: " << transferRate << "MB/s" << std::endl;
     }
@@ -285,22 +282,15 @@ namespace
         std::cout << "Done !" << std::endl;
         webSocketSender.stop();
     }
-}
 
-int main(int argc, char** argv)
-{
-    if (argc != 3)
+    int ws_send_main(const std::string& url,
+                     const std::string& path)
     {
-        std::cerr << "Usage: ws_send <url> <path>" << std::endl;
-        return 1;
+        bool throttle = false;
+        bool enablePerMessageDeflate = false;
+
+        Socket::init();
+        wsSend(url, path, enablePerMessageDeflate, throttle);
+        return 0;
     }
-    std::string url = argv[1];
-    std::string path = argv[2];
-
-    bool throttle = false;
-    bool enablePerMessageDeflate = false;
-
-    Socket::init();
-    wsSend(url, path, enablePerMessageDeflate, throttle);
-    return 0;
 }
