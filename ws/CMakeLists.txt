@@ -34,3 +34,4 @@ if (APPLE AND USE_TLS)
 endif()
 
 target_link_libraries(ws ixwebsocket)
+install(TARGETS ws RUNTIME DESTINATION bin)
