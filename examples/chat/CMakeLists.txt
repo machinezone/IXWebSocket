@@ -11,8 +11,6 @@ set (CMAKE_CXX_STANDARD 14)
 
 option(USE_TLS "Add TLS support" ON)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/../.. ixwebsocket)
-
 add_executable(cmd_websocket_chat cmd_websocket_chat.cpp)
 
 if (APPLE AND USE_TLS)

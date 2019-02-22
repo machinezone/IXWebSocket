@@ -13,8 +13,6 @@ set (CMAKE_CXX_STANDARD 14)
 
 option(USE_TLS "Add TLS support" ON)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/.. ixwebsocket)
-
 include_directories(ws .)
 include_directories(ws ../third_party)
 
