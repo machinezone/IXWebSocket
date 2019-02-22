@@ -15,8 +15,6 @@ set (CMAKE_CXX_STANDARD 14)
 
 option(USE_TLS "Add TLS support" ON)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/../.. ixwebsocket)
-
 include_directories(cobra_publisher ${OPENSSL_PREFIX}/include)
 include_directories(cobra_publisher .)
 

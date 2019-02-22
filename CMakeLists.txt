@@ -118,3 +118,6 @@ set( IXWEBSOCKET_INCLUDE_DIRS
     .
     ../../shared/OpenSSL/include)
 target_include_directories( ixwebsocket PUBLIC ${IXWEBSOCKET_INCLUDE_DIRS} )
+
+add_subdirectory(ws)
+add_subdirectory(examples)
