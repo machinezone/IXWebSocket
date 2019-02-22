@@ -18,15 +18,8 @@
 #include <ixcrypto/IXHash.h>
 #include <jsoncpp/json/json.h>
 
-using namespace ix;
-
-namespace
+namespace ix
 {
-    void log(const std::string& msg)
-    {
-        std::cout << msg << std::endl;
-    }
-
     class WebSocketSender
     {
         public:
@@ -50,6 +43,8 @@ namespace
 
             std::mutex _conditionVariableMutex;
             std::condition_variable _condition;
+
+            void log(const std::string& msg);
     };
 
     WebSocketSender::WebSocketSender(const std::string& url,
@@ -63,6 +58,11 @@ namespace
     void WebSocketSender::stop()
     {
         _webSocket.stop();
+    }
+
+    void WebSocketSender::log(const std::string& msg)
+    {
+        std::cout << msg << std::endl;
     }
 
     void WebSocketSender::waitForConnection()
@@ -285,22 +285,15 @@ namespace
         std::cout << "Done !" << std::endl;
         webSocketSender.stop();
     }
-}
 
-int main(int argc, char** argv)
-{
-    if (argc != 3)
+    int ws_send_main(const std::string& url,
+                     const std::string& path)
     {
-        std::cerr << "Usage: ws_send <url> <path>" << std::endl;
-        return 1;
+        bool throttle = false;
+        bool enablePerMessageDeflate = false;
+
+        Socket::init();
+        wsSend(url, path, enablePerMessageDeflate, throttle);
+        return 0;
     }
-    std::string url = argv[1];
-    std::string path = argv[2];
-
-    bool throttle = false;
-    bool enablePerMessageDeflate = false;
-
-    Socket::init();
-    wsSend(url, path, enablePerMessageDeflate, throttle);
-    return 0;
 }
