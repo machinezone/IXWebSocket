@@ -12,7 +12,7 @@ namespace ix
 {
     int ws_transfer_main(int port)
     {
-        std::cout << "Listening to port " << port << std::endl;
+        std::cout << "Listening on port " << port << std::endl;
 
         ix::WebSocketServer server(port);
 

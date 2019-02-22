@@ -12,6 +12,8 @@
 #include <sstream>
 #include <iostream>
 
+#include <cli11/CLI11.hpp>
+
 namespace ix
 {
     int ws_receive_main(const std::string& url,
@@ -25,53 +27,42 @@ namespace ix
 
 int main(int argc, char** argv)
 {
-    if (argc < 2)
-    {
-        std::cerr << "Usage: ws [transfer|send|receive]" << std::endl;
-        return 1;
-    }
+    CLI::App app{"ws is a websocket tool"};
+    app.require_subcommand();
 
-    std::string subCommand(argv[1]);
-    std::cout << "ws running in " << subCommand << " mode" << std::endl;
+    std::string url;
+    std::string path;
+    int port = 8080;
 
-    if (subCommand == "transfer")
+    CLI::App* sendApp = app.add_subcommand("send", "Send a file");
+    sendApp->add_option("url", url, "Connection url")->required();
+    sendApp->add_option("path", path, "Path to the file to send")->required();
+
+    CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
+    receiveApp->add_option("url", url, "Connection url")->required();
+
+    CLI::App* transferApp = app.add_subcommand("transfer", "Broadcasting server");
+    transferApp->add_option("--port", port, "Connection url");
+
+    CLI11_PARSE(app, argc, argv);
+
+    if (app.got_subcommand("transfer"))
     {
-        int port = 8080;
-        if (argc == 3)
-        {
-            std::stringstream ss;
-            ss << argv[2];
-            ss >> port;
-        }
         return ix::ws_transfer_main(port);
     }
-
-    if (subCommand == "send")
+    else if (app.got_subcommand("send"))
     {
-        if (argc != 4)
-        {
-            std::cerr << "Usage: ws_send <url> <path>" << std::endl;
-            return 1;
-        }
-        std::string url = argv[2];
-        std::string path = argv[3];
-
         return ix::ws_send_main(url, path);
     }
-
-    if (subCommand == "receive")
+    else if (app.got_subcommand("receive"))
     {
-        if (argc != 3)
-        {
-            std::cerr << "Usage: ws_receive <url>" << std::endl;
-            return 1;
-        }
-        std::string url = argv[2];
-
         bool enablePerMessageDeflate = false;
         return ix::ws_receive_main(url, enablePerMessageDeflate);
     }
+    else
+    {
+        assert(false);
+    }
 
-    std::cerr << "Unknown sub command: " << subCommand << std::endl;
     return 1;
 }
