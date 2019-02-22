@@ -16,7 +16,9 @@
 #include <ixcrypto/IXUuid.h>
 #include <ixcrypto/IXBase64.h>
 #include <ixcrypto/IXHash.h>
-#include <jsoncpp/json/json.h>
+#include <msgpack11/msgpack11.hpp>
+
+using msgpack11::MsgPack;
 
 namespace ix
 {
@@ -142,19 +144,18 @@ namespace ix
                 {
                     _condition.notify_one();
 
-                    ss << "ws_send: received message: "
-                       << str;
+                    ss << "ws_send: received message of size " << wireSize;
                     log(ss.str());
 
-                    Json::Value data;
-                    Json::Reader reader;
-                    if (!reader.parse(str, data))
+                    std::string errMsg;
+                    MsgPack data = MsgPack::parse(str, errMsg);
+                    if (!errMsg.empty())
                     {
-                        std::cerr << "Invalid JSON response" << std::endl;
+                        std::cerr << "Invalid MsgPack response" << std::endl;
                         return;
                     }
 
-                    std::string id = data["id"].asString();
+                    std::string id = data["id"].string_value();
                     if (_id != id)
                     {
                         std::cerr << "Invalid id" << std::endl;
@@ -238,15 +239,18 @@ namespace ix
             b64Content = base64_encode(content, content.size());
         }
 
-        Json::Value pdu;
+        std::map<MsgPack, MsgPack> pdu;
         pdu["kind"] = "send";
         pdu["id"] = _id;
         pdu["content"] = b64Content;
-        pdu["djb2_hash"] = djb2Hash(b64Content);
+        auto hash = djb2Hash(b64Content);
+        pdu["djb2_hash"] = std::to_string(hash);
         pdu["filename"] = filename;
 
+        MsgPack msg(pdu);
+
         Bench bench("Sending file through websocket");
-        _webSocket.send(pdu.toStyledString(),
+        _webSocket.send(msg.dump(),
                         [throttle](int current, int total) -> bool
         {
             std::cout << "Step " << current << " out of " << total << std::endl;

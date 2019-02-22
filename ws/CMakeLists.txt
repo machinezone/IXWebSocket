@@ -19,7 +19,7 @@ include_directories(ws .)
 include_directories(ws ../third_party)
 
 add_executable(ws 
-  ../third_party/jsoncpp/jsoncpp.cpp
+  ../third_party/msgpack11/msgpack11.cpp
   ixcrypto/IXBase64.cpp
   ixcrypto/IXHash.cpp
   ixcrypto/IXUuid.cpp

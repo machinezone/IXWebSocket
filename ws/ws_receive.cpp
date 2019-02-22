@@ -16,7 +16,9 @@
 #include <ixcrypto/IXUuid.h>
 #include <ixcrypto/IXBase64.h>
 #include <ixcrypto/IXHash.h>
-#include <jsoncpp/json/json.h>
+#include <msgpack11/msgpack11.hpp>
+
+using msgpack11::MsgPack;
 
 namespace ix
 {
@@ -103,55 +105,59 @@ namespace ix
     void WebSocketReceiver::handleError(const std::string& errMsg,
                                         const std::string& id)
     {
-        Json::Value pdu;
+        std::map<MsgPack, MsgPack> pdu;
         pdu["kind"] = "error";
         pdu["id"] = id;
         pdu["message"] = errMsg;
-        _webSocket.send(pdu.toStyledString());
+
+        MsgPack msg(pdu);
+        _webSocket.send(msg.dump());
     }
 
     void WebSocketReceiver::handleMessage(const std::string& str)
     {
         std::cerr << "Received message: " << str.size() << std::endl;
 
-        Json::Value data;
-        Json::Reader reader;
-        if (!reader.parse(str, data))
+        std::string errMsg;
+        MsgPack data = MsgPack::parse(str, errMsg);
+        if (!errMsg.empty())
         {
-            handleError("Invalid JSON", std::string());
+            handleError("Invalid MsgPack", std::string());
             return;
         }
 
-        std::cout << "id: " << data["id"].asString() << std::endl;
+        std::cout << "id: " << data["id"].string_value() << std::endl;
 
-        std::string content = ix::base64_decode(data["content"].asString());
+        std::string content = ix::base64_decode(data["content"].string_value());
         std::cout << "Content size: " << content.size() << std::endl;
 
         // Validate checksum
-        uint64_t cksum = ix::djb2Hash(data["content"].asString());
-        uint64_t cksumRef = data["djb2_hash"].asUInt64();
+        uint64_t cksum = ix::djb2Hash(data["content"].string_value());
+        auto cksumRef = data["djb2_hash"].string_value();
 
         std::cout << "Computed hash: " << cksum << std::endl;
         std::cout << "Reference hash: " << cksumRef << std::endl;
 
-        if (cksum != cksumRef)
+        if (std::to_string(cksum) != cksumRef)
         {
             handleError("Hash mismatch.", std::string());
             return;
         }
 
-        std::string filename = data["filename"].asString();
+        std::string filename = data["filename"].string_value();
         filename = extractFilename(filename);
 
         std::ofstream out(filename);
         out << content;
         out.close();
 
-        Json::Value pdu;
+        std::map<MsgPack, MsgPack> pdu;
         pdu["ack"] = true;
         pdu["id"] = data["id"];
         pdu["filename"] = data["filename"];
-        _webSocket.send(pdu.toStyledString());
+
+        MsgPack msg(pdu);
+        _webSocket.send(msg.dump());
     }
 
     void WebSocketReceiver::start()
