@@ -15,5 +15,8 @@ RUN apt-get -y install cmake
 
 COPY . .
 
-WORKDIR test
-RUN ["sh", "build_linux.sh"]
+WORKDIR ws
+RUN ["sh", "docker_build.sh"]
+
+EXPOSE 8765
+CMD ["/ws/ws", "transfer", "8765"]

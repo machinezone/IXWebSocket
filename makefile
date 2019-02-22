@@ -5,14 +5,14 @@ all: run
 
 .PHONY: docker
 docker:
-	docker build -t ws_connect:latest .
+	docker build -t broadcast_server:latest .
 
-run: docker
-	docker run --cap-add sys_ptrace -it ws_connect:latest bash
+run:
+	docker run --cap-add sys_ptrace -it broadcast_server:latest bash
 
 # this is helpful to remove trailing whitespaces
 trail:
-	sh third_party/remote_trailing_whitespaces.sh
+	sh third_party/remove_trailing_whitespaces.sh
 
 build:
 	(cd examples/satori_publisher ; mkdir -p build ; cd build ; cmake .. ; make)
