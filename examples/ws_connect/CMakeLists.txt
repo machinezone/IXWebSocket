@@ -10,8 +10,6 @@ set (CMAKE_CXX_STANDARD 14)
 
 option(USE_TLS "Add TLS support" ON)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/../.. ixwebsocket)
-
 add_executable(ws_connect ws_connect.cpp)
 
 if (APPLE AND USE_TLS)
