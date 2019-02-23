@@ -1,7 +1,7 @@
 /*
- *  ping_pong.cpp
+ *  ws_ping_pong.cpp
  *  Author: Benjamin Sergeant
- *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2018-2019 Machine Zone, Inc. All rights reserved.
  */
 
 #include <iostream>
@@ -9,15 +9,8 @@
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXSocket.h>
 
-using namespace ix;
-
-namespace
+namespace ix
 {
-    void log(const std::string& msg)
-    {
-        std::cout << msg << std::endl;
-    }
-
     class WebSocketPingPong
     {
         public:
@@ -33,12 +26,19 @@ namespace
         private:
             std::string _url;
             ix::WebSocket _webSocket;
+
+            void log(const std::string& msg);
     };
 
     WebSocketPingPong::WebSocketPingPong(const std::string& url) :
         _url(url)
     {
         ;
+    }
+
+    void WebSocketPingPong::log(const std::string& msg)
+    {
+        std::cout << msg << std::endl;
     }
 
     void WebSocketPingPong::stop()
@@ -124,7 +124,7 @@ namespace
         _webSocket.send(text);
     }
 
-    void interactiveMain(const std::string& url)
+    int ws_ping_pong_main(const std::string& url)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketPingPong webSocketPingPong(url);
@@ -154,18 +154,4 @@ namespace
         std::cout << std::endl;
         webSocketPingPong.stop();
     }
-}
-
-int main(int argc, char** argv)
-{
-    if (argc != 2)
-    {
-        std::cerr << "Usage: ping_pong <url>" << std::endl;
-        return 1;
-    }
-    std::string url = argv[1];
-
-    Socket::init();
-    interactiveMain(url);
-    return 0;
 }

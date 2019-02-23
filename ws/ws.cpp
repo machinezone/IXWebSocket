@@ -13,9 +13,12 @@
 #include <iostream>
 
 #include <cli11/CLI11.hpp>
+#include <ixwebsocket/IXSocket.h>
 
 namespace ix
 {
+    int ws_ping_pong_main(const std::string& url);
+
     int ws_echo_server_main(int port);
 
     int ws_broadcast_server_main(int port);
@@ -39,7 +42,7 @@ int main(int argc, char** argv)
     CLI::App app{"ws is a websocket tool"};
     app.require_subcommand();
 
-    std::string url;
+    std::string url("ws://127.0.0.1:8080");
     std::string path;
     std::string user;
     int port = 8080;
@@ -67,7 +70,12 @@ int main(int argc, char** argv)
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
     broadcastServerApp->add_option("--port", port, "Connection url");
 
+    CLI::App* pingPongApp = app.add_subcommand("ping", "Ping pong");
+    pingPongApp->add_option("url", url, "Connection url")->required();
+
     CLI11_PARSE(app, argc, argv);
+
+    ix::Socket::init();
 
     if (app.got_subcommand("transfer"))
     {
@@ -97,6 +105,10 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("broadcast_server"))
     {
         return ix::ws_broadcast_server_main(port);
+    }
+    else if (app.got_subcommand("ping"))
+    {
+        return ix::ws_ping_pong_main(url);
     }
     else
     {
