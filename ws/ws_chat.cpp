@@ -7,8 +7,7 @@
 //
 // Simple chat program that talks to the node.js server at
 // websocket_chat_server/broacast-server.js
-//
-
+// 
 #include <iostream>
 #include <sstream>
 #include <queue>
@@ -165,8 +164,8 @@ namespace ix
         _webSocket.send(encodeMessage(text));
     }
 
-    void interactiveMain(const std::string& url,
-                         const std::string& user)
+    int ws_chat_main(const std::string& url,
+                     const std::string& user)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketChat webSocketChat(url, user);
@@ -189,13 +188,4 @@ namespace ix
         std::cout << std::endl;
         webSocketChat.stop();
     }
-
-    int ws_chat_main(const std::string& url,
-                     const std::string& user)
-    {
-        Socket::init();
-        interactiveMain(url, user);
-        return 0;
-    }
 }
-
