@@ -16,6 +16,10 @@
 
 namespace ix
 {
+    int ws_echo_server_main(int port);
+
+    int ws_broadcast_server_main(int port);
+
     int ws_chat_main(const std::string& url,
                      const std::string& user);
 
@@ -57,6 +61,12 @@ int main(int argc, char** argv)
     chatApp->add_option("url", url, "Connection url")->required();
     chatApp->add_option("user", user, "User name")->required();
 
+    CLI::App* echoServerApp = app.add_subcommand("echo_server", "Echo server");
+    echoServerApp->add_option("--port", port, "Connection url");
+
+    CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
+    broadcastServerApp->add_option("--port", port, "Connection url");
+
     CLI11_PARSE(app, argc, argv);
 
     if (app.got_subcommand("transfer"))
@@ -79,6 +89,14 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("chat"))
     {
         return ix::ws_chat_main(url, user);
+    }
+    else if (app.got_subcommand("echo_server"))
+    {
+        return ix::ws_echo_server_main(port);
+    }
+    else if (app.got_subcommand("broadcast_server"))
+    {
+        return ix::ws_broadcast_server_main(port);
     }
     else
     {
