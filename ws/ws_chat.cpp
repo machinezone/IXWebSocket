@@ -1,7 +1,7 @@
 /*
- *  cmd_websocket_chat.cpp
+ *  ws_chat.cpp
  *  Author: Benjamin Sergeant
- *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2017-2019 Machine Zone, Inc. All rights reserved.
  */
 
 //
@@ -20,19 +20,13 @@
 // for convenience
 using json = nlohmann::json;
 
-using namespace ix;
-
-namespace
+namespace ix
 {
-    void log(const std::string& msg)
-    {
-        std::cout << msg << std::endl;
-    }
-
     class WebSocketChat
     {
         public:
-            WebSocketChat(const std::string& user);
+            WebSocketChat(const std::string& url,
+                          const std::string& user);
 
             void subscribe(const std::string& channel);
             void start();
@@ -46,17 +40,25 @@ namespace
             std::pair<std::string, std::string> decodeMessage(const std::string& str);
 
         private:
+            std::string _url;
             std::string _user;
-
             ix::WebSocket _webSocket;
-
             std::queue<std::string> _receivedQueue;
+
+            void log(const std::string& msg);
     };
 
-    WebSocketChat::WebSocketChat(const std::string& user) :
+    WebSocketChat::WebSocketChat(const std::string& url,
+                                 const std::string& user) :
+        _url(url),
         _user(user)
     {
         ;
+    }
+
+    void WebSocketChat::log(const std::string& msg)
+    {
+        std::cout << msg << std::endl;
     }
 
     size_t WebSocketChat::getReceivedMessagesCount() const
@@ -76,11 +78,10 @@ namespace
 
     void WebSocketChat::start()
     {
-        std::string url("ws://localhost:8080/");
-        _webSocket.setUrl(url);
+        _webSocket.setUrl(_url);
 
         std::stringstream ss;
-        log(std::string("Connecting to url: ") + url);
+        log(std::string("Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback(
             [this](ix::WebSocketMessageType messageType,
@@ -164,10 +165,11 @@ namespace
         _webSocket.send(encodeMessage(text));
     }
 
-    void interactiveMain(const std::string& user)
+    void interactiveMain(const std::string& url,
+                         const std::string& user)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
-        WebSocketChat webSocketChat(user);
+        WebSocketChat webSocketChat(url, user);
         webSocketChat.start();
 
         while (true)
@@ -187,17 +189,13 @@ namespace
         std::cout << std::endl;
         webSocketChat.stop();
     }
-}
 
-int main(int argc, char** argv)
-{
-    std::string user("user");
-    if (argc == 2)
+    int ws_chat_main(const std::string& url,
+                     const std::string& user)
     {
-        user = argv[1];
+        Socket::init();
+        interactiveMain(url, user);
+        return 0;
     }
-
-    Socket::init();
-    interactiveMain(user);
-    return 0;
 }
+

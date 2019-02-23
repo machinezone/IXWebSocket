@@ -1,10 +1,10 @@
 #
 # This makefile is just used to easily work with docker (linux build)
 #
-all: run
+all: brew
 
 brew:
-	mkdir -p ws/build && (cd ws/build ; cmake .. ; make)
+	mkdir -p build && (cd build ; cmake .. ; make)
 
 .PHONY: docker
 docker:
