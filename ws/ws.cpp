@@ -17,6 +17,8 @@
 
 namespace ix
 {
+    int ws_http_client_main(const std::string& url);
+
     int ws_ping_pong_main(const std::string& url);
 
     int ws_echo_server_main(int port);
@@ -73,6 +75,9 @@ int main(int argc, char** argv)
     CLI::App* pingPongApp = app.add_subcommand("ping", "Ping pong");
     pingPongApp->add_option("url", url, "Connection url")->required();
 
+    CLI::App* httpClientApp = app.add_subcommand("http_client", "HTTP Client");
+    httpClientApp->add_option("url", url, "Connection url")->required();
+
     CLI11_PARSE(app, argc, argv);
 
     ix::Socket::init();
@@ -109,6 +114,10 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("ping"))
     {
         return ix::ws_ping_pong_main(url);
+    }
+    else if (app.got_subcommand("http_client"))
+    {
+        return ix::ws_http_client_main(url);
     }
 
     return 1;
