@@ -110,10 +110,6 @@ int main(int argc, char** argv)
     {
         return ix::ws_ping_pong_main(url);
     }
-    else
-    {
-        assert(false);
-    }
 
     return 1;
 }
