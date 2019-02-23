@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 3.4.1)
 project (ws)
 
 # There's -Weverything too for clang
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wshorten-64-to-32")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 
 set (CMAKE_CXX_STANDARD 14)
 
@@ -23,6 +23,8 @@ add_executable(ws
   ixcrypto/IXHash.cpp
   ixcrypto/IXUuid.cpp
 
+  ws_broadcast_server.cpp
+  ws_echo_server.cpp
   ws_chat.cpp
   ws_connect.cpp
   ws_transfer.cpp
