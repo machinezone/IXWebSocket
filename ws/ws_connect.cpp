@@ -9,15 +9,8 @@
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXSocket.h>
 
-using namespace ix;
-
-namespace
+namespace ix
 {
-    void log(const std::string& msg)
-    {
-        std::cout << msg << std::endl;
-    }
-
     class WebSocketConnect
     {
         public:
@@ -32,12 +25,19 @@ namespace
         private:
             std::string _url;
             ix::WebSocket _webSocket;
+
+            void log(const std::string& msg);
     };
 
     WebSocketConnect::WebSocketConnect(const std::string& url) :
         _url(url)
     {
         ;
+    }
+
+    void WebSocketConnect::log(const std::string& msg)
+    {
+        std::cout << msg << std::endl;
     }
 
     void WebSocketConnect::stop()
@@ -148,18 +148,12 @@ namespace
         std::cout << std::endl;
         webSocketChat.stop();
     }
-}
 
-int main(int argc, char** argv)
-{
-    if (argc != 2)
+    int ws_connect_main(const std::string& url)
     {
-        std::cerr << "Usage: ws_connect <url>" << std::endl;
-        return 1;
+        Socket::init();
+        interactiveMain(url);
+        return 0;
     }
-    std::string url = argv[1];
-
-    Socket::init();
-    interactiveMain(url);
-    return 0;
 }
+
