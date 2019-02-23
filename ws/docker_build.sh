@@ -28,6 +28,8 @@ g++ --std=c++14 \
     ixcrypto/IXBase64.cpp \
     ixcrypto/IXHash.cpp \
     ixcrypto/IXUuid.cpp \
+    ws_chat.cpp \
+    ws_connect.cpp \
     ws_transfer.cpp \
     ws_send.cpp \
     ws_receive.cpp \

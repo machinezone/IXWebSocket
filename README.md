@@ -15,7 +15,7 @@ communication channels over a single TCP connection. *IXWebSocket* is a C++ libr
 
 ## Examples
 
-The examples folder countains a simple chat program, using a node.js broadcast server.
+The ws folder countains many interactive programs for chat and file transfers demonstrating client and server usage.
 
 Here is what the client API looks like.
 
@@ -143,16 +143,6 @@ Large frames are broken up into smaller chunks or messages to avoid filling up t
 * There is no text support for sending data, only the binary protocol is supported. Sending json or text over the binary protocol works well.
 * Automatic reconnection works at the TCP socket level, and will detect remote end disconnects. However, if the device/computer network become unreachable (by turning off wifi), it is quite hard to reliably and timely detect it at the socket level using `recv` and `send` error codes. [Here](https://stackoverflow.com/questions/14782143/linux-socket-how-to-detect-disconnected-network-in-a-client-program) is a good discussion on the subject. This behavior is consistent with other runtimes such as node.js. One way to detect a disconnected device with low level C code is to do a name resolution with DNS but this can be expensive. Mobile devices have good and reliable API to do that.
 * The server code is using select to detect incoming data, and creates one OS thread per connection. This isn't as scalable as strategies using epoll or kqueue.
-
-## Examples
-
-1. Bring up a terminal and jump to the examples folder.
-2. Compile the example C++ code. `sh build.sh`
-3. Install node.js from [here](https://nodejs.org/en/download/).
-4. Type `npm install` to install the node.js dependencies. Then `node broadcast-server.js` to run the server.
-5. Bring up a second terminal. `./cmd_websocket_chat bob`
-6. Bring up a third terminal. `./cmd_websocket_chat bill`
-7. Start typing things in any of those terminals. Hopefully you should see your message being received on the other end.
 
 ## C++ code organization
 

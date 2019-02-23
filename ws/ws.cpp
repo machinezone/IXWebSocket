@@ -16,13 +16,18 @@
 
 namespace ix
 {
+    int ws_chat_main(const std::string& url,
+                     const std::string& user);
+
+    int ws_connect_main(const std::string& url);
+
     int ws_receive_main(const std::string& url,
                         bool enablePerMessageDeflate);
 
-    extern int ws_transfer_main(int port);
+    int ws_transfer_main(int port);
 
-    extern int ws_send_main(const std::string& url,
-                            const std::string& path);
+    int ws_send_main(const std::string& url,
+                     const std::string& path);
 }
 
 int main(int argc, char** argv)
@@ -32,6 +37,7 @@ int main(int argc, char** argv)
 
     std::string url;
     std::string path;
+    std::string user;
     int port = 8080;
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
@@ -43,6 +49,13 @@ int main(int argc, char** argv)
 
     CLI::App* transferApp = app.add_subcommand("transfer", "Broadcasting server");
     transferApp->add_option("--port", port, "Connection url");
+
+    CLI::App* connectApp = app.add_subcommand("connect", "Connect to a remote server");
+    connectApp->add_option("url", url, "Connection url")->required();
+
+    CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
+    chatApp->add_option("url", url, "Connection url")->required();
+    chatApp->add_option("user", user, "User name")->required();
 
     CLI11_PARSE(app, argc, argv);
 
@@ -58,6 +71,14 @@ int main(int argc, char** argv)
     {
         bool enablePerMessageDeflate = false;
         return ix::ws_receive_main(url, enablePerMessageDeflate);
+    }
+    else if (app.got_subcommand("connect"))
+    {
+        return ix::ws_connect_main(url);
+    }
+    else if (app.got_subcommand("chat"))
+    {
+        return ix::ws_chat_main(url, user);
     }
     else
     {

@@ -14,6 +14,7 @@ set (CMAKE_CXX_STANDARD 14)
 option(USE_TLS "Add TLS support" ON)
 
 include_directories(ws .)
+include_directories(ws ..)
 include_directories(ws ../third_party)
 
 add_executable(ws 
@@ -22,6 +23,8 @@ add_executable(ws
   ixcrypto/IXHash.cpp
   ixcrypto/IXUuid.cpp
 
+  ws_chat.cpp
+  ws_connect.cpp
   ws_transfer.cpp
   ws_send.cpp
   ws_receive.cpp
