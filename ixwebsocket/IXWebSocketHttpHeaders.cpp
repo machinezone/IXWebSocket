@@ -10,7 +10,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace ix 
+namespace ix
 {
     std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(
         std::shared_ptr<Socket> socket,
@@ -21,7 +21,7 @@ namespace ix
         char line[1024];
         int i;
 
-        while (true) 
+        while (true)
         {
             int colon = 0;
 

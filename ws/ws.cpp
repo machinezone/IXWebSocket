@@ -17,7 +17,8 @@
 
 namespace ix
 {
-    int ws_http_client_main(const std::string& url);
+    int ws_http_client_main(const std::string& url,
+                            const std::string& data);
 
     int ws_ping_pong_main(const std::string& url);
 
@@ -47,11 +48,13 @@ int main(int argc, char** argv)
     std::string url("ws://127.0.0.1:8080");
     std::string path;
     std::string user;
+    std::string data;
     int port = 8080;
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
-    sendApp->add_option("path", path, "Path to the file to send")->required();
+    sendApp->add_option("path", path, "Path to the file to send")
+        ->required()->check(CLI::ExistingPath);
 
     CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
     receiveApp->add_option("url", url, "Connection url")->required();
@@ -77,6 +80,8 @@ int main(int argc, char** argv)
 
     CLI::App* httpClientApp = app.add_subcommand("http_client", "HTTP Client");
     httpClientApp->add_option("url", url, "Connection url")->required();
+    httpClientApp->add_option("-d", data, "Form data")->join();
+    httpClientApp->add_option("-F", data, "Form data")->join();
 
     CLI11_PARSE(app, argc, argv);
 
@@ -117,7 +122,8 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("http_client"))
     {
-        return ix::ws_http_client_main(url);
+        std::cout << "data: " << data << std::endl;
+        return ix::ws_http_client_main(url, data);
     }
 
     return 1;

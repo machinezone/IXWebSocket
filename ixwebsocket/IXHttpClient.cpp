@@ -18,9 +18,10 @@
 
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 #include <vector>
 
-namespace ix 
+namespace ix
 {
     HttpClient::HttpClient()
     {
@@ -32,8 +33,11 @@ namespace ix
 
     }
 
-    HttpResponse HttpClient::get(const std::string& url,
-                                 bool verbose)
+    HttpResponse HttpClient::request(
+        const std::string& url,
+        const std::string& verb,
+        const HttpParameters& httpParameters,
+        bool verbose)
     {
         int code = 0;
         WebSocketHttpHeaders headers;
@@ -68,17 +72,47 @@ namespace ix
             return std::make_tuple(code, headers, payload, errorMsg);
         }
 
-        // FIXME: missing url parsing
+        std::string body;
+        if (verb == "POST")
+        {
+            std::stringstream ss;
+            size_t count = httpParameters.size();
+            size_t i = 0;
+
+            for (auto&& it : httpParameters)
+            {
+                ss << urlEncode(it.first)
+                   << "="
+                   << urlEncode(it.second);
+
+                if (i++ < (count-1))
+                {
+                   ss << "&";
+                }
+            }
+            body = ss.str();
+        }
 
         std::stringstream ss;
-        ss << "GET " << path << " HTTP/1.1\r\n";
+        ss << verb << " " << path << " HTTP/1.1\r\n";
         ss << "Host: " << host << "\r\n";
         ss << "User-Agent: ixwebsocket/1.0.0" << "\r\n";
         ss << "Accept: */*" << "\r\n";
-        ss << "\r\n";
+        if (verb == "POST")
+        {
+            ss << "Content-Length: " << body.size() << "\r\n";
+            ss << "Content-Type: application/x-www-form-urlencoded" << "\r\n";
+            ss << "\r\n";
+            ss << body;
+        }
+        else
+        {
+            ss << "\r\n";
+        }
+
         std::string request(ss.str());
 
-        int timeoutSecs = 3;
+        int timeoutSecs = 10;
 
         std::string errMsg;
         static std::atomic<bool> requestInitCancellation(false);
@@ -95,8 +129,12 @@ namespace ix
 
         if (verbose)
         {
-            std::cout << "Sending request: " << request
-                      << "to " << host << ":" << port
+            std::cout << "Sending " << verb << " request "
+                      << "to " << host << ":" << port << std::endl
+                      << "request size: " << request.size() << " bytes"
+                      << "=============" << std::endl
+                      << request
+                      << "=============" << std::endl
                       << std::endl;
         }
 
@@ -174,24 +212,66 @@ namespace ix
 
         return std::make_tuple(code, headers, payload, "");
     }
+
+    HttpResponse HttpClient::get(
+        const std::string& url,
+        bool verbose)
+    {
+        return request(url, "GET", HttpParameters(), verbose);
+    }
+
+    HttpResponse HttpClient::post(
+        const std::string& url,
+        const HttpParameters& httpParameters,
+        bool verbose)
+    {
+        return request(url, "POST", httpParameters, verbose);
+    }
+
+    std::string HttpClient::urlEncode(const std::string& value)
+    {
+        std::ostringstream escaped;
+        escaped.fill('0');
+        escaped << std::hex;
+
+        for (std::string::const_iterator i = value.begin(), n = value.end();
+             i != n; ++i)
+        {
+            std::string::value_type c = (*i);
+
+            // Keep alphanumeric and other accepted characters intact
+            if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
+            {
+                escaped << c;
+                continue;
+            }
+
+            // Any other characters are percent-encoded
+            escaped << std::uppercase;
+            escaped << '%' << std::setw(2) << int((unsigned char) c);
+            escaped << std::nouppercase;
+        }
+
+        return escaped.str();
+    }
 }
 
 #if 0
         std::vector<uint8_t> rxbuf;
 
-        while (true) 
+        while (true)
         {
             int N = (int) _rxbuf.size();
 
             _rxbuf.resize(N + 1500);
             ssize_t ret = _socket->recv((char*)&_rxbuf[0] + N, 1500);
 
-            if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK || 
+            if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
                             _socket->getErrno() == EAGAIN)) {
                 _rxbuf.resize(N);
                 break;
             }
-            else if (ret <= 0) 
+            else if (ret <= 0)
             {
                 _rxbuf.resize(N);
 
@@ -199,7 +279,7 @@ namespace ix
                 setReadyState(CLOSED);
                 break;
             }
-            else 
+            else
             {
                 _rxbuf.resize(N + ret);
             }

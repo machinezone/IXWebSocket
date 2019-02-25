@@ -8,7 +8,7 @@
 
 #include <string>
 
-namespace ix 
+namespace ix
 {
     bool parseUrl(const std::string& url,
                   std::string& protocol,
