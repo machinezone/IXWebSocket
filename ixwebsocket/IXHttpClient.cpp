@@ -117,7 +117,7 @@ namespace ix
             ss << "\r\n";
         }
 
-        std::string request(ss.str());
+        std::string req(ss.str());
 
         int timeoutSecs = 10;
 
@@ -138,14 +138,14 @@ namespace ix
         {
             std::cout << "Sending " << verb << " request "
                       << "to " << host << ":" << port << std::endl
-                      << "request size: " << request.size() << " bytes"
+                      << "request size: " << req.size() << " bytes"
                       << "=============" << std::endl
-                      << request
+                      << req
                       << "=============" << std::endl
                       << std::endl;
         }
 
-        if (!_socket->writeBytes(request, isCancellationRequested))
+        if (!_socket->writeBytes(req, isCancellationRequested))
         {
             code = 0; // 0 ?
             std::string errorMsg("Cannot send request");
@@ -187,34 +187,102 @@ namespace ix
             return std::make_tuple(code, headers, payload, errorMsg);
         }
 
-        // Parse response:
-        // http://bryce-thomas.blogspot.com/2012/01/technical-parsing-http-to-extract.html
-        if (headers.find("content-length") == headers.end())
+        // Redirect ?
+        if (code == 301)
         {
-            code = 0; // 0 ?
-            std::string errorMsg("No content length header");
-            return std::make_tuple(code, headers, payload, errorMsg);
-        }
-
-        ssize_t contentLength = -1;
-        ss.str("");
-        ss << headers["content-length"];
-        ss >> contentLength;
-
-        payload.reserve(contentLength);
-
-        // FIXME: very inefficient way to read bytes, but it works...
-        for (int i = 0; i < contentLength; ++i)
-        {
-            char c;
-            if (!_socket->readByte(&c, isCancellationRequested))
+            if (headers.find("location") == headers.end())
             {
-                ss.str("");
-                ss << "Cannot read byte";
-                return std::make_tuple(-1, headers, payload, ss.str());
+                code = 0; // 0 ?
+                std::string errorMsg("Missing location header for redirect");
+                return std::make_tuple(code, headers, payload, errorMsg);
+
             }
 
-            payload += c;
+            std::string location = headers["location"];
+            return request(location, verb, extraHeaders, httpParameters, verbose);
+        }
+
+        // Parse response:
+        // http://bryce-thomas.blogspot.com/2012/01/technical-parsing-http-to-extract.html
+        if (headers.find("content-length") != headers.end())
+        {
+            ssize_t contentLength = -1;
+            ss.str("");
+            ss << headers["content-length"];
+            ss >> contentLength;
+
+            payload.reserve(contentLength);
+
+            // FIXME: very inefficient way to read bytes, but it works...
+            for (int i = 0; i < contentLength; ++i)
+            {
+                char c;
+                if (!_socket->readByte(&c, isCancellationRequested))
+                {
+                    ss.str("");
+                    ss << "Cannot read byte";
+                    return std::make_tuple(-1, headers, payload, ss.str());
+                }
+
+                payload += c;
+            }
+        }
+        else if (headers.find("transfer-encoding") != headers.end() &&
+                 headers["transfer-encoding"] == "chunked")
+        {
+            std::stringstream ss;
+
+            while (true)
+            {
+                lineResult = _socket->readLine(isCancellationRequested);
+                line = lineResult.second;
+
+                if (!lineResult.first)
+                {
+                    code = 0; // 0 ?
+                    std::string errorMsg("Cannot read http body");
+                    return std::make_tuple(code, headers, payload, errorMsg);
+                }
+
+                uint64_t chunkSize;
+                ss.str("");
+                ss << std::hex << line;
+                ss >> chunkSize;
+
+                payload.reserve(payload.size() + chunkSize);
+
+                // Read another line
+
+                for (uint64_t i = 0; i < chunkSize; ++i)
+                {
+                    char c;
+                    if (!_socket->readByte(&c, isCancellationRequested))
+                    {
+                        ss.str("");
+                        ss << "Cannot read byte";
+                        return std::make_tuple(-1, headers, payload, ss.str());
+                    }
+
+                    payload += c;
+                }
+
+                lineResult = _socket->readLine(isCancellationRequested);
+
+                if (!lineResult.first)
+                {
+                    code = 0; // 0 ?
+                    std::string errorMsg("Cannot read http body");
+                    return std::make_tuple(code, headers, payload, errorMsg);
+                }
+
+                if (chunkSize == 0) break;
+            }
+        }
+        else
+        {
+            code = 0; // 0 ?
+            std::string errorMsg("Cannot read http body");
+            return std::make_tuple(code, headers, payload, errorMsg);
         }
 
         return std::make_tuple(code, headers, payload, "");

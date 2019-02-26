@@ -67,7 +67,8 @@ namespace ix
 
     int ws_http_client_main(const std::string& url,
                             const std::string& headersData,
-                            const std::string& data)
+                            const std::string& data,
+                            bool headersOnly)
     {
         HttpParameters httpParameters = parsePostParameters(data);
         WebSocketHttpHeaders headers = parseHeaders(headersData);
@@ -99,7 +100,10 @@ namespace ix
             std::cout << "error message: " << errorMsg << std::endl;
         }
 
-        std::cout << "payload: " << payload << std::endl;
+        if (!headersOnly)
+        {
+            std::cout << "payload: " << payload << std::endl;
+        }
 
         return 0;
     }
