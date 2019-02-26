@@ -7,9 +7,35 @@
 #include <iostream>
 #include <sstream>
 #include <ixwebsocket/IXHttpClient.h>
+#include <ixwebsocket/IXWebSocketHttpHeaders.h>
 
 namespace ix
 {
+    WebSocketHttpHeaders parseHeaders(const std::string& data)
+    {
+        WebSocketHttpHeaders headers;
+
+        // Split by \n
+        std::string token;
+        std::stringstream tokenStream(data);
+
+        while (std::getline(tokenStream, token))
+        {
+            std::size_t pos = token.rfind(':');
+
+            // Bail out if last '.' is found
+            if (pos == std::string::npos) continue;
+
+            auto key = token.substr(0, pos);
+            auto val = token.substr(pos+2);
+
+            std::cout << key << ": " << val << std::endl;
+            headers[key] = val;
+        }
+
+        return headers;
+    }
+
     //
     // Useful endpoint to test HTTP post
     // https://postman-echo.com/post
@@ -18,7 +44,7 @@ namespace ix
     {
         HttpParameters httpParameters;
 
-        // Split by ;
+        // Split by \n
         std::string token;
         std::stringstream tokenStream(data);
 
@@ -40,27 +66,29 @@ namespace ix
     }
 
     int ws_http_client_main(const std::string& url,
+                            const std::string& headersData,
                             const std::string& data)
     {
         HttpParameters httpParameters = parsePostParameters(data);
+        WebSocketHttpHeaders headers = parseHeaders(headersData);
 
         HttpClient httpClient;
         bool verbose = true;
         HttpResponse out;
         if (data.empty())
         {
-            out = httpClient.get(url, verbose);
+            out = httpClient.get(url, headers, verbose);
         }
         else
         {
-            out = httpClient.post(url, httpParameters, verbose);
+            out = httpClient.post(url, headers, httpParameters, verbose);
         }
         auto errorCode = std::get<0>(out);
-        auto headers = std::get<1>(out);
+        auto responseHeaders = std::get<1>(out);
         auto payload = std::get<2>(out);
         auto errorMsg = std::get<3>(out);
 
-        for (auto it : headers)
+        for (auto it : responseHeaders)
         {
             std::cout << it.first << ": " << it.second << std::endl;
         }

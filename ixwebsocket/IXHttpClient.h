@@ -28,14 +28,18 @@ namespace ix
         ~HttpClient();
 
         // Static methods ?
-        HttpResponse get(const std::string& url, bool verbose);
+        HttpResponse get(const std::string& url,
+                         const WebSocketHttpHeaders& extraHeaders,
+                         bool verbose);
         HttpResponse post(const std::string& url,
+                          const WebSocketHttpHeaders& extraHeaders,
                           const HttpParameters& httpParameters,
                           bool verbose);
 
     private:
         HttpResponse request(const std::string& url,
                              const std::string& verb,
+                             const WebSocketHttpHeaders& extraHeaders,
                              const HttpParameters& httpParameters,
                              bool verbose);
 

@@ -36,6 +36,7 @@ namespace ix
     HttpResponse HttpClient::request(
         const std::string& url,
         const std::string& verb,
+        const WebSocketHttpHeaders& extraHeaders,
         const HttpParameters& httpParameters,
         bool verbose)
     {
@@ -98,6 +99,12 @@ namespace ix
         ss << "Host: " << host << "\r\n";
         ss << "User-Agent: ixwebsocket/1.0.0" << "\r\n";
         ss << "Accept: */*" << "\r\n";
+
+        for (auto&& it : extraHeaders)
+        {
+            ss << it.first << ": " << urlEncode(it.second) << "\r\n";
+        }
+
         if (verb == "POST")
         {
             ss << "Content-Length: " << body.size() << "\r\n";
@@ -196,7 +203,7 @@ namespace ix
 
         payload.reserve(contentLength);
 
-        // very inefficient way to read bytes, but it works...
+        // FIXME: very inefficient way to read bytes, but it works...
         for (int i = 0; i < contentLength; ++i)
         {
             char c;
@@ -215,17 +222,19 @@ namespace ix
 
     HttpResponse HttpClient::get(
         const std::string& url,
+        const WebSocketHttpHeaders& extraHeaders,
         bool verbose)
     {
-        return request(url, "GET", HttpParameters(), verbose);
+        return request(url, "GET", extraHeaders, HttpParameters(), verbose);
     }
 
     HttpResponse HttpClient::post(
         const std::string& url,
+        const WebSocketHttpHeaders& extraHeaders,
         const HttpParameters& httpParameters,
         bool verbose)
     {
-        return request(url, "POST", httpParameters, verbose);
+        return request(url, "POST", extraHeaders, httpParameters, verbose);
     }
 
     std::string HttpClient::urlEncode(const std::string& value)
@@ -255,48 +264,3 @@ namespace ix
         return escaped.str();
     }
 }
-
-#if 0
-        std::vector<uint8_t> rxbuf;
-
-        while (true)
-        {
-            int N = (int) _rxbuf.size();
-
-            _rxbuf.resize(N + 1500);
-            ssize_t ret = _socket->recv((char*)&_rxbuf[0] + N, 1500);
-
-            if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
-                            _socket->getErrno() == EAGAIN)) {
-                _rxbuf.resize(N);
-                break;
-            }
-            else if (ret <= 0)
-            {
-                _rxbuf.resize(N);
-
-                _socket->close();
-                setReadyState(CLOSED);
-                break;
-            }
-            else
-            {
-                _rxbuf.resize(N + ret);
-            }
-        }
-        ssize_t ret = _socket->recv((char*)&rxbuf[0], contentLength);
-        payload = std::string(rxbuf.begin(), rxbuf.end());
-        std::cerr << "socket->recv: " << ret << std::endl;
-
-        if (ret != contentLength)
-        {
-            ss.str("");
-            ss << "Cannot retrieve all bytes"
-               << " want: " << contentLength
-               << ", got: " << ret;
-            std::cerr << "adscasdcadcasdc" << std::endl;
-            std::cerr << ss.str() << std::endl;
-
-            return std::make_tuple(-1, headers, payload, ss.str());
-        }
-#endif
