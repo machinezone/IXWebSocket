@@ -30,10 +30,18 @@ namespace ix
         // Static methods ?
         HttpResponse get(const std::string& url,
                          const WebSocketHttpHeaders& extraHeaders,
+                         bool followRedirects,
                          bool verbose);
+
         HttpResponse post(const std::string& url,
                           const WebSocketHttpHeaders& extraHeaders,
                           const HttpParameters& httpParameters,
+                          bool followRedirects,
+                          bool verbose);
+
+        HttpResponse head(const std::string& url,
+                          const WebSocketHttpHeaders& extraHeaders,
+                          bool followRedirects,
                           bool verbose);
 
     private:
@@ -41,6 +49,7 @@ namespace ix
                              const std::string& verb,
                              const WebSocketHttpHeaders& extraHeaders,
                              const HttpParameters& httpParameters,
+                             bool followRedirects,
                              bool verbose);
 
         std::string urlEncode(const std::string& value);

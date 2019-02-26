@@ -68,7 +68,8 @@ namespace ix
     int ws_http_client_main(const std::string& url,
                             const std::string& headersData,
                             const std::string& data,
-                            bool headersOnly)
+                            bool headersOnly,
+                            bool followRedirects)
     {
         HttpParameters httpParameters = parsePostParameters(data);
         WebSocketHttpHeaders headers = parseHeaders(headersData);
@@ -76,13 +77,22 @@ namespace ix
         HttpClient httpClient;
         bool verbose = true;
         HttpResponse out;
-        if (data.empty())
+        if (headersOnly)
         {
-            out = httpClient.get(url, headers, verbose);
+            out = httpClient.head(url, headers,
+                                  followRedirects, verbose);
+        }
+        else if (data.empty())
+        {
+            out = httpClient.get(url, headers,
+                                 followRedirects, verbose);
         }
         else
         {
-            out = httpClient.post(url, headers, httpParameters, verbose);
+            out = httpClient.post(url, headers,
+                                  httpParameters,
+                                  followRedirects,
+                                  verbose);
         }
         auto errorCode = std::get<0>(out);
         auto responseHeaders = std::get<1>(out);

@@ -38,6 +38,7 @@ namespace ix
         const std::string& verb,
         const WebSocketHttpHeaders& extraHeaders,
         const HttpParameters& httpParameters,
+        bool followRedirects,
         bool verbose)
     {
         int code = 0;
@@ -188,18 +189,22 @@ namespace ix
         }
 
         // Redirect ?
-        if (code == 301)
+        if (code == 301 && followRedirects)
         {
             if (headers.find("location") == headers.end())
             {
                 code = 0; // 0 ?
                 std::string errorMsg("Missing location header for redirect");
                 return std::make_tuple(code, headers, payload, errorMsg);
-
             }
 
             std::string location = headers["location"];
-            return request(location, verb, extraHeaders, httpParameters, verbose);
+            return request(location, verb, extraHeaders, httpParameters, followRedirects, verbose);
+        }
+
+        if (verb == "HEAD")
+        {
+            return std::make_tuple(code, headers, payload, std::string());
         }
 
         // Parse response:
@@ -291,18 +296,35 @@ namespace ix
     HttpResponse HttpClient::get(
         const std::string& url,
         const WebSocketHttpHeaders& extraHeaders,
+        bool followRedirects,
         bool verbose)
     {
-        return request(url, "GET", extraHeaders, HttpParameters(), verbose);
+        return request(url, "GET", extraHeaders,
+                       HttpParameters(), followRedirects,
+                       verbose);
     }
 
     HttpResponse HttpClient::post(
         const std::string& url,
         const WebSocketHttpHeaders& extraHeaders,
         const HttpParameters& httpParameters,
+        bool followRedirects,
         bool verbose)
     {
-        return request(url, "POST", extraHeaders, httpParameters, verbose);
+        return request(url, "POST", extraHeaders,
+                       httpParameters, followRedirects,
+                       verbose);
+    }
+
+    HttpResponse HttpClient::head(
+        const std::string& url,
+        const WebSocketHttpHeaders& extraHeaders,
+        bool followRedirects,
+        bool verbose)
+    {
+        return request(url, "HEAD", extraHeaders,
+                       HttpParameters(), followRedirects,
+                       verbose);
     }
 
     std::string HttpClient::urlEncode(const std::string& value)

@@ -20,7 +20,8 @@ namespace ix
     int ws_http_client_main(const std::string& url,
                             const std::string& headers,
                             const std::string& data,
-                            bool headersOnly);
+                            bool headersOnly,
+                            bool followRedirects);
 
     int ws_ping_pong_main(const std::string& url);
 
@@ -53,6 +54,7 @@ int main(int argc, char** argv)
     std::string data;
     std::string headers;
     bool headersOnly = false;
+    bool followRedirects = false;
     int port = 8080;
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
@@ -88,6 +90,7 @@ int main(int argc, char** argv)
     httpClientApp->add_option("-F", data, "Form data")->join();
     httpClientApp->add_option("-H", headers, "Header")->join();
     httpClientApp->add_flag("-I", headersOnly, "Header");
+    httpClientApp->add_flag("-L", followRedirects, "Header");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -129,7 +132,7 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("http_client"))
     {
         std::cout << "data: " << data << std::endl;
-        return ix::ws_http_client_main(url, headers, data, headersOnly);
+        return ix::ws_http_client_main(url, headers, data, headersOnly, followRedirects);
     }
 
     return 1;
