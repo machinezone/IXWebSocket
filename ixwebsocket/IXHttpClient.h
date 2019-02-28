@@ -30,6 +30,7 @@ namespace ix
         int timeoutSecs;
         bool followRedirects;
         bool verbose;
+        bool compress;
     };
 
     class HttpClient {
@@ -53,6 +54,10 @@ namespace ix
         std::string serializeHttpParameters(const HttpParameters& httpParameters);
 
         std::string urlEncode(const std::string& value);
+
+        bool gzipInflate(
+            const std::string& in,
+            std::string& out);
 
         std::shared_ptr<Socket> _socket;
     };

@@ -17,7 +17,8 @@ namespace ix
                             bool followRedirects,
                             bool verbose,
                             bool save,
-                            const std::string& output);
+                            const std::string& output,
+                            bool compress);
 
     int ws_ping_pong_main(const std::string& url);
 

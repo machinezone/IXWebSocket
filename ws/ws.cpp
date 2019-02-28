@@ -31,6 +31,7 @@ int main(int argc, char** argv)
     bool followRedirects = false;
     bool verbose = false;
     bool save = false;
+    bool compress = false;
     int port = 8080;
     int connectTimeOutSeconds = 3;
 
@@ -71,6 +72,7 @@ int main(int argc, char** argv)
     httpClientApp->add_flag("-L", followRedirects, "Header");
     httpClientApp->add_flag("-v", verbose, "Verbose");
     httpClientApp->add_flag("-O", save, "Save to disk");
+    httpClientApp->add_flag("--compress", compress, "gzip compression");
     httpClientApp->add_option("--connect-timeout", connectTimeOutSeconds, "Connection timeout");
 
     CLI11_PARSE(app, argc, argv);
@@ -114,7 +116,8 @@ int main(int argc, char** argv)
     {
         return ix::ws_http_client_main(url, headers, data,
                                        headersOnly, connectTimeOutSeconds,
-                                       followRedirects, verbose, save, output);
+                                       followRedirects, verbose, save, output,
+                                       compress);
     }
 
     return 1;

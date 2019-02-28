@@ -57,9 +57,6 @@ namespace ix
                 std::string name(lineStr.substr(0, colon));
                 std::string value(lineStr.substr(colon + 2, i - colon - 4));
 
-                // Make the name lower case.
-                std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-
                 headers[name] = value;
             }
         }

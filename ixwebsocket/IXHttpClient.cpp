@@ -14,6 +14,8 @@
 #include <iomanip>
 #include <vector>
 
+#include <zlib.h>
+
 namespace ix
 {
     HttpClient::HttpClient()
@@ -70,6 +72,11 @@ namespace ix
         ss << "Host: " << host << "\r\n";
         ss << "User-Agent: ixwebsocket/1.0.0" << "\r\n";
         ss << "Accept: */*" << "\r\n";
+
+        if (args.compress)
+        {
+            ss << "Accept-Encoding: gzip" << "\r\n";
+        }
 
         // Append extra headers
         for (auto&& it : args.extraHeaders)
@@ -193,11 +200,13 @@ namespace ix
                 {
                     ss.str("");
                     ss << "Cannot read byte";
-                    return std::make_tuple(-1, headers, payload, ss.str());
+                    return std::make_tuple(-1, headers, payload, "Cannot read byte");
                 }
 
                 payload += c;
             }
+
+            std::cout << "I WAS HERE" << std::endl;
         }
         else if (headers.find("transfer-encoding") != headers.end() &&
                  headers["transfer-encoding"] == "chunked")
@@ -264,7 +273,21 @@ namespace ix
         {
             code = 0; // 0 ?
             std::string errorMsg("Cannot read http body");
-            return std::make_tuple(code, headers, payload, errorMsg);
+            return std::make_tuple(-1, headers, payload, errorMsg);
+        }
+
+        // If the content was compressed with gzip, decode it
+        if (headers["Content-Encoding"] == "gzip")
+        {
+            if (args.verbose) std::cout << "Decoding gzip..." << std::endl;
+
+            std::string decompressedPayload;
+            if (!gzipInflate(payload, decompressedPayload))
+            {
+                std::string errorMsg("Error decompressing payload");
+                return std::make_tuple(-1, headers, payload, errorMsg);
+            }
+            payload = decompressedPayload;
         }
 
         return std::make_tuple(code, headers, payload, "");
@@ -337,5 +360,54 @@ namespace ix
             }
         }
         return ss.str();
+    }
+
+    bool HttpClient::gzipInflate(
+        const std::string& in,
+        std::string& out)
+    {
+        z_stream inflateState;
+        memset(&inflateState, 0, sizeof(inflateState));
+
+        inflateState.zalloc = Z_NULL;
+        inflateState.zfree = Z_NULL;
+        inflateState.opaque = Z_NULL;
+        inflateState.avail_in = 0;
+        inflateState.next_in = Z_NULL;
+
+        if (inflateInit2(&inflateState, 16+MAX_WBITS) != Z_OK)
+        {
+            return false;
+        }
+
+        inflateState.avail_in = (uInt) in.size();
+        inflateState.next_in = (unsigned char *)(const_cast<char *>(in.data()));
+
+        const int kBufferSize = 1 << 14;
+
+        std::unique_ptr<unsigned char[]> compressBuffer = 
+            std::make_unique<unsigned char[]>(kBufferSize);
+
+        do
+        {
+            inflateState.avail_out = (uInt) kBufferSize;
+            inflateState.next_out = compressBuffer.get();
+
+            int ret = inflate(&inflateState, Z_SYNC_FLUSH);
+
+            if (ret == Z_NEED_DICT || ret == Z_DATA_ERROR || ret == Z_MEM_ERROR)
+            {
+                inflateEnd(&inflateState);
+                return false;
+            }
+
+            out.append(
+                reinterpret_cast<char *>(compressBuffer.get()),
+                kBufferSize - inflateState.avail_out
+            );
+        } while (inflateState.avail_out == 0);
+
+        inflateEnd(&inflateState);
+        return true;
     }
 }

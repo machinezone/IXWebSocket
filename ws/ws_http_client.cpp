@@ -90,7 +90,8 @@ namespace ix
                             bool followRedirects,
                             bool verbose,
                             bool save,
-                            const std::string& output)
+                            const std::string& output,
+                            bool compress)
     {
         HttpRequestArgs args;
         args.url = url;
@@ -98,6 +99,7 @@ namespace ix
         args.timeoutSecs = timeoutSecs;
         args.followRedirects = followRedirects;
         args.verbose = verbose;
+        args.compress = compress;
 
         HttpParameters httpParameters = parsePostParameters(data);
 
@@ -127,24 +129,13 @@ namespace ix
         }
 
         std::cerr << "error code: " << errorCode << std::endl;
-        if (!errorMsg.empty())
+        if (errorCode != 200)
         {
             std::cerr << "error message: " << errorMsg << std::endl;
         }
 
         if (!headersOnly && errorCode == 200)
         {
-            if (responseHeaders["Content-Type"] != "application/octet-stream")
-            {
-                std::cout << "payload: " << payload << std::endl;
-            }
-            else
-            {
-                std::cerr << "Binary output can mess up your terminal." << std::endl;
-                std::cerr << "Use the -O flag to save the file to disk." << std::endl;
-                std::cerr << "You can also use the --output option to specify a filename." << std::endl;
-            }
-
             if (save || !output.empty())
             {
                 // FIMXE we should decode the url first
@@ -158,6 +149,19 @@ namespace ix
                 std::ofstream out(filename);
                 out.write((char*)&payload.front(), payload.size());
                 out.close();
+            }
+            else
+            {
+                if (responseHeaders["Content-Type"] != "application/octet-stream")
+                {
+                    std::cout << "payload: " << payload << std::endl;
+                }
+                else
+                {
+                    std::cerr << "Binary output can mess up your terminal." << std::endl;
+                    std::cerr << "Use the -O flag to save the file to disk." << std::endl;
+                    std::cerr << "You can also use the --output option to specify a filename." << std::endl;
+                }
             }
         }
 
