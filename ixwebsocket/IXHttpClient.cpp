@@ -7,14 +7,7 @@
 #include "IXHttpClient.h"
 #include "IXUrlParser.h"
 #include "IXWebSocketHttpHeaders.h"
-
-#if defined(__APPLE__) or defined(__linux__)
-# ifdef __APPLE__
-#  include <ixwebsocket/IXSocketAppleSSL.h>
-# else
-#  include <ixwebsocket/IXSocketOpenSSL.h>
-# endif
-#endif
+#include "IXSocketFactory.h"
 
 #include <iostream>
 #include <sstream>
@@ -34,12 +27,9 @@ namespace ix
     }
 
     HttpResponse HttpClient::request(
-        const std::string& url,
         const std::string& verb,
-        const WebSocketHttpHeaders& extraHeaders,
-        const HttpParameters& httpParameters,
-        bool followRedirects,
-        bool verbose)
+        const std::string& body,
+        HttpRequestArgs args)
     {
         int code = 0;
         WebSocketHttpHeaders headers;
@@ -48,68 +38,54 @@ namespace ix
         std::string protocol, host, path, query;
         int port;
 
-        if (!parseUrl(url, protocol, host, path, query, port))
-        {
-            code = 0; // 0 ?
-            std::string errorMsg("Cannot parse url");
-            return std::make_tuple(code, headers, payload, errorMsg);
-        }
-
-        if (protocol == "http")
-        {
-            _socket = std::make_shared<Socket>();
-        }
-        else if (protocol == "https")
-        {
-# ifdef __APPLE__
-            _socket = std::make_shared<SocketAppleSSL>();
-# else
-            _socket = std::make_shared<SocketOpenSSL>();
-# endif
-        }
-        else
-        {
-            code = 0; // 0 ?
-            std::string errorMsg("Bad protocol");
-            return std::make_tuple(code, headers, payload, errorMsg);
-        }
-
-        std::string body;
-        if (verb == "POST")
+        if (!parseUrl(args.url, protocol, host, path, query, port))
         {
             std::stringstream ss;
-            size_t count = httpParameters.size();
-            size_t i = 0;
-
-            for (auto&& it : httpParameters)
-            {
-                ss << urlEncode(it.first)
-                   << "="
-                   << urlEncode(it.second);
-
-                if (i++ < (count-1))
-                {
-                   ss << "&";
-                }
-            }
-            body = ss.str();
+            ss << "Cannot parse url: " << args.url;
+            return std::make_tuple(code, headers, payload, ss.str());
         }
 
+        if (protocol != "http" && protocol != "https")
+        {
+            std::stringstream ss;
+            ss << "Invalid protocol: " << protocol
+               << " for url " << args.url
+               << " . Supported protocols are http and https";
+
+            return std::make_tuple(code, headers, payload, ss.str());
+        }
+
+        bool tls = protocol == "https";
+        std::string errorMsg;
+        _socket = createSocket(tls, errorMsg);
+
+        if (!_socket)
+        {
+            return std::make_tuple(code, headers, payload, errorMsg);
+        }
+
+        // Build request string
         std::stringstream ss;
         ss << verb << " " << path << " HTTP/1.1\r\n";
         ss << "Host: " << host << "\r\n";
         ss << "User-Agent: ixwebsocket/1.0.0" << "\r\n";
         ss << "Accept: */*" << "\r\n";
 
-        for (auto&& it : extraHeaders)
+        // Append extra headers
+        for (auto&& it : args.extraHeaders)
         {
-            ss << it.first << ": " << urlEncode(it.second) << "\r\n";
+            ss << it.first << ": " << it.second << "\r\n";
         }
 
         if (verb == "POST")
         {
             ss << "Content-Length: " << body.size() << "\r\n";
-            ss << "Content-Type: application/x-www-form-urlencoded" << "\r\n";
+
+            // Set default Content-Type if unspecified
+            if (args.extraHeaders.find("Content-Type") == args.extraHeaders.end())
+            {
+                ss << "Content-Type: application/x-www-form-urlencoded" << "\r\n";
+            }
             ss << "\r\n";
             ss << body;
         }
@@ -120,26 +96,24 @@ namespace ix
 
         std::string req(ss.str());
 
-        int timeoutSecs = 10;
-
         std::string errMsg;
-        static std::atomic<bool> requestInitCancellation(false);
+        std::atomic<bool> requestInitCancellation(false);
         auto isCancellationRequested =
-            makeCancellationRequestWithTimeout(timeoutSecs, requestInitCancellation);
+            makeCancellationRequestWithTimeout(args.timeoutSecs, requestInitCancellation);
 
         bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
         if (!success)
         {
-            code = 0; // 0 ?
-            std::string errorMsg("Cannot connect to url");
-            return std::make_tuple(code, headers, payload, errorMsg);
+            std::stringstream ss;
+            ss << "Cannot connect to url: " << args.url;
+            return std::make_tuple(code, headers, payload, ss.str());
         }
 
-        if (verbose)
+        if (args.verbose)
         {
-            std::cout << "Sending " << verb << " request "
+            std::cerr << "Sending " << verb << " request "
                       << "to " << host << ":" << port << std::endl
-                      << "request size: " << req.size() << " bytes"
+                      << "request size: " << req.size() << " bytes" << std::endl
                       << "=============" << std::endl
                       << req
                       << "=============" << std::endl
@@ -148,7 +122,6 @@ namespace ix
 
         if (!_socket->writeBytes(req, isCancellationRequested))
         {
-            code = 0; // 0 ?
             std::string errorMsg("Cannot send request");
             return std::make_tuple(code, headers, payload, errorMsg);
         }
@@ -159,20 +132,12 @@ namespace ix
 
         if (!lineValid)
         {
-            code = 0; // 0 ?
             std::string errorMsg("Cannot retrieve status line");
             return std::make_tuple(code, headers, payload, errorMsg);
         }
 
-        if (verbose)
-        {
-            std::cout << "first line: " << line << std::endl;
-        }
-
-        code = -1;
         if (sscanf(line.c_str(), "HTTP/1.1 %d", &code) != 1)
         {
-            code = 0; // 0 ?
             std::string errorMsg("Cannot parse response code from status line");
             return std::make_tuple(code, headers, payload, errorMsg);
         }
@@ -189,7 +154,8 @@ namespace ix
         }
 
         // Redirect ?
-        if (code == 301 && followRedirects)
+        // FIXME wrong conditional
+        if ((code == 301 || code == 308) && args.followRedirects)
         {
             if (headers.find("location") == headers.end())
             {
@@ -198,8 +164,9 @@ namespace ix
                 return std::make_tuple(code, headers, payload, errorMsg);
             }
 
+            // Recurse
             std::string location = headers["location"];
-            return request(location, verb, extraHeaders, httpParameters, followRedirects, verbose);
+            return request(verb, body, args);
         }
 
         if (verb == "HEAD")
@@ -254,6 +221,12 @@ namespace ix
                 ss << std::hex << line;
                 ss >> chunkSize;
 
+                if (args.verbose)
+                {
+                    std::cerr << "Reading " << chunkSize << " bytes"
+                              << std::endl;
+                }
+
                 payload.reserve(payload.size() + chunkSize);
 
                 // Read another line
@@ -283,6 +256,10 @@ namespace ix
                 if (chunkSize == 0) break;
             }
         }
+        else if (code == 204)
+        {
+            ; // 204 is NoContent response code
+        }
         else
         {
             code = 0; // 0 ?
@@ -293,38 +270,26 @@ namespace ix
         return std::make_tuple(code, headers, payload, "");
     }
 
-    HttpResponse HttpClient::get(
-        const std::string& url,
-        const WebSocketHttpHeaders& extraHeaders,
-        bool followRedirects,
-        bool verbose)
+    HttpResponse HttpClient::get(HttpRequestArgs args)
     {
-        return request(url, "GET", extraHeaders,
-                       HttpParameters(), followRedirects,
-                       verbose);
+        return request("GET", std::string(), args);
     }
 
-    HttpResponse HttpClient::post(
-        const std::string& url,
-        const WebSocketHttpHeaders& extraHeaders,
-        const HttpParameters& httpParameters,
-        bool followRedirects,
-        bool verbose)
+    HttpResponse HttpClient::head(HttpRequestArgs args)
     {
-        return request(url, "POST", extraHeaders,
-                       httpParameters, followRedirects,
-                       verbose);
+        return request("HEAD", std::string(), args);
     }
 
-    HttpResponse HttpClient::head(
-        const std::string& url,
-        const WebSocketHttpHeaders& extraHeaders,
-        bool followRedirects,
-        bool verbose)
+    HttpResponse HttpClient::post(const HttpParameters& httpParameters,
+                                  HttpRequestArgs args)
     {
-        return request(url, "HEAD", extraHeaders,
-                       HttpParameters(), followRedirects,
-                       verbose);
+        return request("POST", serializeHttpParameters(httpParameters), args);
+    }
+
+    HttpResponse HttpClient::post(const std::string& body,
+                                  HttpRequestArgs args)
+    {
+        return request("POST", body, args);
     }
 
     std::string HttpClient::urlEncode(const std::string& value)
@@ -352,5 +317,25 @@ namespace ix
         }
 
         return escaped.str();
+    }
+
+    std::string HttpClient::serializeHttpParameters(const HttpParameters& httpParameters)
+    {
+        std::stringstream ss;
+        size_t count = httpParameters.size();
+        size_t i = 0;
+
+        for (auto&& it : httpParameters)
+        {
+            ss << urlEncode(it.first)
+               << "="
+               << urlEncode(it.second);
+
+            if (i++ < (count-1))
+            {
+               ss << "&";
+            }
+        }
+        return ss.str();
     }
 }

@@ -1,12 +1,13 @@
 /*
  *  ws.cpp
  *  Author: Benjamin Sergeant
- *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
 //
-// Main drive for websocket utilities
+// Main driver for websocket utilities
 //
+#include "ws.h"
 
 #include <string>
 #include <sstream>
@@ -14,34 +15,6 @@
 
 #include <cli11/CLI11.hpp>
 #include <ixwebsocket/IXSocket.h>
-
-namespace ix
-{
-    int ws_http_client_main(const std::string& url,
-                            const std::string& headers,
-                            const std::string& data,
-                            bool headersOnly,
-                            bool followRedirects);
-
-    int ws_ping_pong_main(const std::string& url);
-
-    int ws_echo_server_main(int port);
-
-    int ws_broadcast_server_main(int port);
-
-    int ws_chat_main(const std::string& url,
-                     const std::string& user);
-
-    int ws_connect_main(const std::string& url);
-
-    int ws_receive_main(const std::string& url,
-                        bool enablePerMessageDeflate);
-
-    int ws_transfer_main(int port);
-
-    int ws_send_main(const std::string& url,
-                     const std::string& path);
-}
 
 int main(int argc, char** argv)
 {
@@ -53,9 +26,13 @@ int main(int argc, char** argv)
     std::string user;
     std::string data;
     std::string headers;
+    std::string output;
     bool headersOnly = false;
     bool followRedirects = false;
+    bool verbose = false;
+    bool save = false;
     int port = 8080;
+    int connectTimeOutSeconds = 3;
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
@@ -84,13 +61,17 @@ int main(int argc, char** argv)
     CLI::App* pingPongApp = app.add_subcommand("ping", "Ping pong");
     pingPongApp->add_option("url", url, "Connection url")->required();
 
-    CLI::App* httpClientApp = app.add_subcommand("http_client", "HTTP Client");
+    CLI::App* httpClientApp = app.add_subcommand("curl", "HTTP Client");
     httpClientApp->add_option("url", url, "Connection url")->required();
     httpClientApp->add_option("-d", data, "Form data")->join();
     httpClientApp->add_option("-F", data, "Form data")->join();
     httpClientApp->add_option("-H", headers, "Header")->join();
+    httpClientApp->add_option("--output", output, "Output file");
     httpClientApp->add_flag("-I", headersOnly, "Header");
     httpClientApp->add_flag("-L", followRedirects, "Header");
+    httpClientApp->add_flag("-v", verbose, "Verbose");
+    httpClientApp->add_flag("-O", save, "Save to disk");
+    httpClientApp->add_option("--connect-timeout", connectTimeOutSeconds, "Connection timeout");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -129,10 +110,11 @@ int main(int argc, char** argv)
     {
         return ix::ws_ping_pong_main(url);
     }
-    else if (app.got_subcommand("http_client"))
+    else if (app.got_subcommand("curl"))
     {
-        std::cout << "data: " << data << std::endl;
-        return ix::ws_http_client_main(url, headers, data, headersOnly, followRedirects);
+        return ix::ws_http_client_main(url, headers, data,
+                                       headersOnly, connectTimeOutSeconds,
+                                       followRedirects, verbose, save, output);
     }
 
     return 1;

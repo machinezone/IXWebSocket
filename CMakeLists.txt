@@ -20,6 +20,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketServer.cpp
     ixwebsocket/IXSocketConnect.cpp
+    ixwebsocket/IXSocketFactory.cpp
     ixwebsocket/IXDNSLookup.cpp
     ixwebsocket/IXCancellationRequest.cpp
     ixwebsocket/IXWebSocket.cpp
@@ -39,6 +40,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSocket.h
     ixwebsocket/IXSocketServer.h
     ixwebsocket/IXSocketConnect.h
+    ixwebsocket/IXSocketFactory.h
     ixwebsocket/IXSetThreadName.h
     ixwebsocket/IXDNSLookup.h
     ixwebsocket/IXCancellationRequest.h

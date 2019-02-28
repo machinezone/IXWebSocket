@@ -6,11 +6,28 @@
 
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <ixwebsocket/IXHttpClient.h>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 
 namespace ix
 {
+    std::string extractFilename(const std::string& path)
+    {
+        std::string::size_type idx;
+
+        idx = path.rfind('/');
+        if (idx != std::string::npos)
+        {
+            std::string filename = path.substr(idx+1);
+            return filename;
+        }
+        else
+        {
+            return path;
+        }
+    }
+
     WebSocketHttpHeaders parseHeaders(const std::string& data)
     {
         WebSocketHttpHeaders headers;
@@ -29,7 +46,7 @@ namespace ix
             auto key = token.substr(0, pos);
             auto val = token.substr(pos+2);
 
-            std::cout << key << ": " << val << std::endl;
+            std::cerr << key << ": " << val << std::endl;
             headers[key] = val;
         }
 
@@ -58,7 +75,7 @@ namespace ix
             auto key = token.substr(0, pos);
             auto val = token.substr(pos+1);
 
-            std::cout << key << ": " << val << std::endl;
+            std::cerr << key << ": " << val << std::endl;
             httpParameters[key] = val;
         }
 
@@ -69,31 +86,36 @@ namespace ix
                             const std::string& headersData,
                             const std::string& data,
                             bool headersOnly,
-                            bool followRedirects)
+                            int timeoutSecs,
+                            bool followRedirects,
+                            bool verbose,
+                            bool save,
+                            const std::string& output)
     {
+        HttpRequestArgs args;
+        args.url = url;
+        args.extraHeaders = parseHeaders(headersData);
+        args.timeoutSecs = timeoutSecs;
+        args.followRedirects = followRedirects;
+        args.verbose = verbose;
+
         HttpParameters httpParameters = parsePostParameters(data);
-        WebSocketHttpHeaders headers = parseHeaders(headersData);
 
         HttpClient httpClient;
-        bool verbose = true;
         HttpResponse out;
         if (headersOnly)
         {
-            out = httpClient.head(url, headers,
-                                  followRedirects, verbose);
+            out = httpClient.head(args);
         }
         else if (data.empty())
         {
-            out = httpClient.get(url, headers,
-                                 followRedirects, verbose);
+            out = httpClient.get(args);
         }
         else
         {
-            out = httpClient.post(url, headers,
-                                  httpParameters,
-                                  followRedirects,
-                                  verbose);
+            out = httpClient.post(httpParameters, args);
         }
+
         auto errorCode = std::get<0>(out);
         auto responseHeaders = std::get<1>(out);
         auto payload = std::get<2>(out);
@@ -101,18 +123,42 @@ namespace ix
 
         for (auto it : responseHeaders)
         {
-            std::cout << it.first << ": " << it.second << std::endl;
+            std::cerr << it.first << ": " << it.second << std::endl;
         }
 
-        std::cout << "error code: " << errorCode << std::endl;
+        std::cerr << "error code: " << errorCode << std::endl;
         if (!errorMsg.empty())
         {
-            std::cout << "error message: " << errorMsg << std::endl;
+            std::cerr << "error message: " << errorMsg << std::endl;
         }
 
-        if (!headersOnly)
+        if (!headersOnly && errorCode == 200)
         {
-            std::cout << "payload: " << payload << std::endl;
+            if (responseHeaders["Content-Type"] != "application/octet-stream")
+            {
+                std::cout << "payload: " << payload << std::endl;
+            }
+            else
+            {
+                std::cerr << "Binary output can mess up your terminal." << std::endl;
+                std::cerr << "Use the -O flag to save the file to disk." << std::endl;
+                std::cerr << "You can also use the --output option to specify a filename." << std::endl;
+            }
+
+            if (save || !output.empty())
+            {
+                // FIMXE we should decode the url first
+                std::string filename = extractFilename(url);
+                if (!output.empty())
+                {
+                    filename = output;
+                }
+
+                std::cout << "Writing to disk: " << filename << std::endl;
+                std::ofstream out(filename);
+                out.write((char*)&payload.front(), payload.size());
+                out.close();
+            }
         }
 
         return 0;

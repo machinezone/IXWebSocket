@@ -22,35 +22,35 @@ namespace ix
     using HttpResponse = std::tuple<int, WebSocketHttpHeaders, std::string, std::string>;
     using HttpParameters = std::map<std::string, std::string>;
 
+    struct HttpRequestArgs
+    {
+        std::string url;
+        WebSocketHttpHeaders extraHeaders;
+        std::string body;
+        int timeoutSecs;
+        bool followRedirects;
+        bool verbose;
+    };
+
     class HttpClient {
     public:
         HttpClient();
         ~HttpClient();
 
-        // Static methods ?
-        HttpResponse get(const std::string& url,
-                         const WebSocketHttpHeaders& extraHeaders,
-                         bool followRedirects,
-                         bool verbose);
+        HttpResponse get(HttpRequestArgs args);
+        HttpResponse head(HttpRequestArgs args);
 
-        HttpResponse post(const std::string& url,
-                          const WebSocketHttpHeaders& extraHeaders,
-                          const HttpParameters& httpParameters,
-                          bool followRedirects,
-                          bool verbose);
-
-        HttpResponse head(const std::string& url,
-                          const WebSocketHttpHeaders& extraHeaders,
-                          bool followRedirects,
-                          bool verbose);
+        HttpResponse post(const HttpParameters& httpParameters,
+                          HttpRequestArgs args);
+        HttpResponse post(const std::string& body,
+                          HttpRequestArgs args);
 
     private:
-        HttpResponse request(const std::string& url,
-                             const std::string& verb,
-                             const WebSocketHttpHeaders& extraHeaders,
-                             const HttpParameters& httpParameters,
-                             bool followRedirects,
-                             bool verbose);
+        HttpResponse request(const std::string& verb,
+                             const std::string& body,
+                             HttpRequestArgs args);
+
+        std::string serializeHttpParameters(const HttpParameters& httpParameters);
 
         std::string urlEncode(const std::string& value);
 
