@@ -7,15 +7,25 @@
 #pragma once
 
 #include <string>
+#include <regex>
 
 namespace ix
 {
-    bool parseUrl(const std::string& url,
-                  std::string& protocol,
-                  std::string& host,
-                  std::string& path,
-                  std::string& query,
-                  int& port);
+    class UrlParser
+    {
+    public:
+        static bool parse(const std::string& url,
+                          std::string& protocol,
+                          std::string& host,
+                          std::string& path,
+                          std::string& query,
+                          int& port,
+                          bool websocket);
 
-    void printUrl(const std::string& url);
+        static void printUrl(const std::string& url, bool websocket);
+
+    private:
+        static std::regex _httpRegex;
+        static std::regex _webSocketRegex;
+    };
 }

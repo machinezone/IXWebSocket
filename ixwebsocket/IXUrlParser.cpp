@@ -6,23 +6,29 @@
 
 #include "IXUrlParser.h"
 
-#include <regex>
 #include <iostream>
 #include <sstream>
 
 
 namespace ix
 {
-    bool parseUrl(const std::string& url,
-                  std::string& protocol,
-                  std::string& host,
-                  std::string& path,
-                  std::string& query,
-                  int& port)
+    //
+    // The only difference between those 2 regex is the protocol
+    //
+    std::regex UrlParser::_httpRegex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+    std::regex UrlParser::_webSocketRegex("(ws|wss)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+
+    bool UrlParser::parse(const std::string& url,
+                          std::string& protocol,
+                          std::string& host,
+                          std::string& path,
+                          std::string& query,
+                          int& port,
+                          bool websocket)
     {
-        std::regex ex("(ws|wss|http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
         std::cmatch what;
-        if (!regex_match(url.c_str(), what, ex))
+        if (!regex_match(url.c_str(), what,
+                         websocket ? _webSocketRegex : _httpRegex))
         {
             return false;
         }
@@ -77,12 +83,12 @@ namespace ix
         return true;
     }
 
-    void printUrl(const std::string& url)
+    void UrlParser::printUrl(const std::string& url, bool websocket)
     {
         std::string protocol, host, path, query;
         int port {0};
 
-        if (!parseUrl(url, protocol, host, path, query, port))
+        if (!parse(url, protocol, host, path, query, port, websocket))
         {
             return;
         }

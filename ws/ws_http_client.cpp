@@ -86,20 +86,27 @@ namespace ix
                             const std::string& headersData,
                             const std::string& data,
                             bool headersOnly,
-                            int timeoutSecs,
+                            int connectTimeout,
+                            int transferTimeout,
                             bool followRedirects,
+                            int maxRedirects,
                             bool verbose,
                             bool save,
                             const std::string& output,
                             bool compress)
     {
         HttpRequestArgs args;
-        args.url = url;
         args.extraHeaders = parseHeaders(headersData);
-        args.timeoutSecs = timeoutSecs;
+        args.connectTimeout = connectTimeout;
+        args.transferTimeout = transferTimeout;
         args.followRedirects = followRedirects;
+        args.maxRedirects = maxRedirects;
         args.verbose = verbose;
         args.compress = compress;
+        args.logger = [](const std::string& msg)
+        {
+            std::cout << msg;
+        };
 
         HttpParameters httpParameters = parsePostParameters(data);
 
@@ -107,34 +114,40 @@ namespace ix
         HttpResponse out;
         if (headersOnly)
         {
-            out = httpClient.head(args);
+            out = httpClient.head(url, args);
         }
         else if (data.empty())
         {
-            out = httpClient.get(args);
+            out = httpClient.get(url, args);
         }
         else
         {
-            out = httpClient.post(httpParameters, args);
+            out = httpClient.post(url, httpParameters, args);
         }
 
-        auto errorCode = std::get<0>(out);
-        auto responseHeaders = std::get<1>(out);
-        auto payload = std::get<2>(out);
-        auto errorMsg = std::get<3>(out);
+        auto statusCode = std::get<0>(out);
+        auto errorCode = std::get<1>(out);
+        auto responseHeaders = std::get<2>(out);
+        auto payload = std::get<3>(out);
+        auto errorMsg = std::get<4>(out);
+        auto uploadSize = std::get<5>(out);
+        auto downloadSize = std::get<6>(out);
 
         for (auto it : responseHeaders)
         {
             std::cerr << it.first << ": " << it.second << std::endl;
         }
 
-        std::cerr << "error code: " << errorCode << std::endl;
-        if (errorCode != 200)
+        std::cerr << "Upload size: " << uploadSize << std::endl;
+        std::cerr << "Download size: " << downloadSize << std::endl;
+
+        std::cerr << "Status: " << statusCode << std::endl;
+        if (errorCode != HttpErrorCode_Ok)
         {
             std::cerr << "error message: " << errorMsg << std::endl;
         }
 
-        if (!headersOnly && errorCode == 200)
+        if (!headersOnly && errorCode == HttpErrorCode_Ok)
         {
             if (save || !output.empty())
             {

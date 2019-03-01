@@ -33,7 +33,9 @@ int main(int argc, char** argv)
     bool save = false;
     bool compress = false;
     int port = 8080;
-    int connectTimeOutSeconds = 3;
+    int connectTimeOut = 60;
+    int transferTimeout = 1800;
+    int maxRedirects = 5;
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
@@ -68,12 +70,14 @@ int main(int argc, char** argv)
     httpClientApp->add_option("-F", data, "Form data")->join();
     httpClientApp->add_option("-H", headers, "Header")->join();
     httpClientApp->add_option("--output", output, "Output file");
-    httpClientApp->add_flag("-I", headersOnly, "Header");
-    httpClientApp->add_flag("-L", followRedirects, "Header");
+    httpClientApp->add_flag("-I", headersOnly, "Send a HEAD request");
+    httpClientApp->add_flag("-L", followRedirects, "Follow redirects");
+    httpClientApp->add_option("--max-redirects", maxRedirects, "Max Redirects");
     httpClientApp->add_flag("-v", verbose, "Verbose");
-    httpClientApp->add_flag("-O", save, "Save to disk");
-    httpClientApp->add_flag("--compress", compress, "gzip compression");
-    httpClientApp->add_option("--connect-timeout", connectTimeOutSeconds, "Connection timeout");
+    httpClientApp->add_flag("-O", save, "Save output to disk");
+    httpClientApp->add_flag("--compress", compress, "Enable gzip compression");
+    httpClientApp->add_option("--connect-timeout", connectTimeOut, "Connection timeout");
+    httpClientApp->add_option("--transfer-timeout", transferTimeout, "Transfer timeout");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -114,10 +118,10 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("curl"))
     {
-        return ix::ws_http_client_main(url, headers, data,
-                                       headersOnly, connectTimeOutSeconds,
-                                       followRedirects, verbose, save, output,
-                                       compress);
+        return ix::ws_http_client_main(url, headers, data, headersOnly,
+                                       connectTimeOut, transferTimeout,
+                                       followRedirects, maxRedirects, verbose,
+                                       save, output, compress);
     }
 
     return 1;
