@@ -9,6 +9,10 @@
 //
 #include "ws.h"
 
+//
+// Main drive for websocket utilities
+//
+
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -41,7 +45,6 @@ int main(int argc, char** argv)
     sendApp->add_option("url", url, "Connection url")->required();
     sendApp->add_option("path", path, "Path to the file to send")
         ->required()->check(CLI::ExistingPath);
-
     CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
     receiveApp->add_option("url", url, "Connection url")->required();
 

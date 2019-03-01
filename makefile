@@ -15,10 +15,6 @@ run:
 
 # this is helpful to remove trailing whitespaces
 trail:
-	sh third_party/remove_trailing_whitespaces.sh
-
-# this is helpful to remove trailing whitespaces
-trail:
 	sh third_party/remote_trailing_whitespaces.sh
 
 build:
