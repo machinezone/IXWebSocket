@@ -23,6 +23,7 @@ add_executable(ws
   ixcrypto/IXHash.cpp
   ixcrypto/IXUuid.cpp
 
+  ws_http_client.cpp
   ws_ping_pong.cpp
   ws_broadcast_server.cpp
   ws_echo_server.cpp

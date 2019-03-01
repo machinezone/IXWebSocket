@@ -11,6 +11,8 @@
 #include "IXWebSocketTransport.h"
 #include "IXWebSocketHandshake.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXUrlParser.h"
+#include "IXSocketFactory.h"
 
 #ifdef IXWEBSOCKET_USE_TLS
 # ifdef __APPLE__
@@ -70,31 +72,31 @@ namespace ix
     {
         std::string protocol, host, path, query;
         int port;
+        bool websocket = true;
 
-        if (!WebSocketHandshake::parseUrl(url, protocol, host,
-                                          path, query, port))
+        if (!UrlParser::parse(url, protocol, host, path, query, port, websocket))
         {
             return WebSocketInitResult(false, 0,
                                        std::string("Could not parse URL ") + url);
         }
 
-        if (protocol == "wss")
+        if (protocol != "ws" && protocol != "wss")
         {
-            _socket.reset();
-#ifdef IXWEBSOCKET_USE_TLS
-# ifdef __APPLE__
-             _socket = std::make_shared<SocketAppleSSL>();
-# else
-             _socket = std::make_shared<SocketOpenSSL>();
-# endif
-#else
-            return WebSocketInitResult(false, 0, "TLS is not supported.");
-#endif
+            std::stringstream ss;
+            ss << "Invalid protocol: " << protocol
+               << " for url " << url
+               << " . Supported protocols are ws and wss";
+
+            return WebSocketInitResult(false, 0, ss.str());
         }
-        else
+
+        bool tls = protocol == "wss";
+        std::string errorMsg;
+        _socket = createSocket(tls, errorMsg);
+
+        if (!_socket)
         {
-            _socket.reset();
-            _socket = std::make_shared<Socket>();
+            return WebSocketInitResult(false, 0, errorMsg);
         }
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,

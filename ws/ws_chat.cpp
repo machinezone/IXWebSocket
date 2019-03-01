@@ -5,9 +5,10 @@
  */
 
 //
-// Simple chat program that talks to the node.js server at
-// websocket_chat_server/broacast-server.js
-// 
+// Simple chat program that talks to a broadcast server
+// Broadcast server can be ran with `ws broadcast_server`
+//
+
 #include <iostream>
 #include <sstream>
 #include <queue>
