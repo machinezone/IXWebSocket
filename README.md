@@ -5,7 +5,7 @@
 ## Introduction
 
 [*WebSocket*](https://en.wikipedia.org/wiki/WebSocket) is a computer communications protocol, providing full-duplex
-communication channels over a single TCP connection. *IXWebSocket* is a C++ library for client and server Websocket communication. The code is derived from [easywsclient](https://github.com/dhbaird/easywsclient) and from the [Satori C SDK](https://github.com/satori-com/satori-rtm-sdk-c). It has been tested on the following platforms.
+communication channels over a single TCP connection. *IXWebSocket* is a C++ library for client and server Websocket communication, and for client HTTP communication. The code is derived from [easywsclient](https://github.com/dhbaird/easywsclient) and from the [Satori C SDK](https://github.com/satori-com/satori-rtm-sdk-c). It has been tested on the following platforms.
 
 * macOS
 * iOS
@@ -15,7 +15,7 @@ communication channels over a single TCP connection. *IXWebSocket* is a C++ libr
 
 ## Examples
 
-The ws folder countains many interactive programs for chat and file transfers demonstrating client and server usage.
+The [*ws*](https://github.com/machinezone/IXWebSocket/tree/master/ws) folder countains many interactive programs for chat, [file transfers](https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_send.cpp), [curl like](https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_http_client.cpp) http clients, demonstrating client and server usage.
 
 Here is what the client API looks like.
 
@@ -108,6 +108,68 @@ server.start();
 // Block until server.stop() is called.
 server.wait();
 
+```
+
+Here is what the HTTP client API looks like. Note that HTTP client support is very recent and subject to changes.
+
+```
+//
+// Preparation
+//
+HttpClient httpClient;
+HttpRequestArgs args;
+
+// Custom headers can be set
+WebSocketHttpHeaders headers;
+headers["Foo"] = "bar";
+args.extraHeaders = parseHeaders(headersData);
+
+// Timeout options
+args.connectTimeout = connectTimeout;
+args.transferTimeout = transferTimeout;
+
+// Redirect options
+args.followRedirects = followRedirects;
+args.maxRedirects = maxRedirects;
+
+// Misc
+args.compress = compress; // Enable gzip compression
+args.verbose = verbose;
+args.logger = [](const std::string& msg)
+{
+    std::cout << msg;
+};
+
+//
+// Request
+//
+HttpResponse out;
+std::string url = "https://www.google.com";
+
+// HEAD request
+out = httpClient.head(url, args);
+
+// GET request
+out = httpClient.get(url, args);
+
+// POST request with parameters
+HttpParameters httpParameters;
+httpParameters["foo"] = "bar";
+out = httpClient.post(url, httpParameters, args);
+
+// POST request with a body
+out = httpClient.post(url, std::string("foo=bar"), args);
+
+//
+// Result
+//
+auto statusCode = std::get<0>(out);
+auto errorCode = std::get<1>(out);
+auto responseHeaders = std::get<2>(out);
+auto payload = std::get<3>(out);
+auto errorMsg = std::get<4>(out);
+auto uploadSize = std::get<5>(out);
+auto downloadSize = std::get<6>(out);
 ```
 
 ## Build
