@@ -2,6 +2,26 @@
 
 ws is a command line tool that should exercise most of the IXWebSocket code, and provide example code.
 
+```
+$ ws --help
+ws is a websocket tool
+Usage: ws [OPTIONS] SUBCOMMAND
+
+Options:
+  -h,--help                   Print this help message and exit
+
+Subcommands:
+  send                        Send a file
+  receive                     Receive a file
+  transfer                    Broadcasting server
+  connect                     Connect to a remote server
+  chat                        Group chat
+  echo_server                 Echo server
+  broadcast_server            Broadcasting server
+  ping                        Ping pong
+  curl                        HTTP Client
+```
+
 ## file transfer
 
 ```
