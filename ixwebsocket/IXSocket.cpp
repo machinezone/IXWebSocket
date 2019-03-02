@@ -165,6 +165,37 @@ namespace ix
 #endif
     }
 
+    bool Socket::writeBytes(const std::string& str,
+                            const CancellationRequest& isCancellationRequested)
+    {
+        while (true)
+        {
+            if (isCancellationRequested()) return false;
+
+            char* buffer = const_cast<char*>(str.c_str());
+            int len = (int) str.size();
+
+            ssize_t ret = send(buffer, len);
+
+            // We wrote some bytes, as needed, all good.
+            if (ret > 0)
+            {
+                return ret == len;
+            }
+            // There is possibly something to be write, try again
+            else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
+                                 getErrno() == EAGAIN))
+            {
+                continue;
+            }
+            // There was an error during the write, abort
+            else
+            {
+                return false;
+            }
+        }
+    }
+
     bool Socket::readByte(void* buffer,
                           const CancellationRequest& isCancellationRequested)
     {
@@ -210,38 +241,8 @@ namespace ix
         }
     }
 
-    bool Socket::writeBytes(const std::string& str,
-                            const CancellationRequest& isCancellationRequested)
-    {
-        while (true)
-        {
-            if (isCancellationRequested()) return false;
-
-            char* buffer = const_cast<char*>(str.c_str());
-            int len = (int) str.size();
-
-            ssize_t ret = send(buffer, len);
-
-            // We wrote some bytes, as needed, all good.
-            if (ret > 0)
-            {
-                return ret == len;
-            }
-            // There is possibly something to be write, try again
-            else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
-                                 getErrno() == EAGAIN))
-            {
-                continue;
-            }
-            // There was an error during the write, abort
-            else
-            {
-                return false;
-            }
-        }
-    }
-
-    std::pair<bool, std::string> Socket::readLine(const CancellationRequest& isCancellationRequested)
+    std::pair<bool, std::string> Socket::readLine(
+        const CancellationRequest& isCancellationRequested)
     {
         char c;
         std::string line;
@@ -265,10 +266,29 @@ namespace ix
         size_t length,
         const CancellationRequest& isCancellationRequested)
     {
-        char c;
         std::string buffer;
         buffer.reserve(length);
 
+#if 1
+        while (buffer.size() != length)
+        {
+            ssize_t ret;
+            std::string buf;
+            ret = recv((char*)&buf.front(), std::min((size_t) 1024, length));
+
+            if (ret <= 0 && (getErrno() != EWOULDBLOCK &&
+                             getErrno() != EAGAIN))
+            {
+                // error case
+                // Return what we were able to read
+                return std::make_pair(false, buffer);
+            }
+            else
+            {
+                buffer += buf;
+            }
+        }
+#else
         for (size_t i = 0; i < length; ++i)
         {
             if (!readByte(&c, isCancellationRequested))
@@ -279,6 +299,7 @@ namespace ix
 
             buffer += c;
         }
+#endif
 
         return std::make_pair(true, buffer);
     }
