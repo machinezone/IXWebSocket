@@ -178,6 +178,13 @@ CMakefiles for the library and the examples are available. This library has few 
 
 There is a Dockerfile for running some code on Linux, and a unittest which can be executed by typing `make test`.
 
+You can build and install the ws command line tool with Homebrew.
+
+```
+brew create --cmake https://github.com/machinezone/IXWebSocket/archive/v1.1.0.tar.gz
+brew install IXWebSocket
+```
+
 ## Implementation details
 
 ### Per Message Deflate compression.
