@@ -251,12 +251,35 @@ namespace ix
         {
             if (!readByte(&c, isCancellationRequested))
             {
-                return std::make_pair(false, std::string());
+                // Return what we were able to read
+                return std::make_pair(false, line);
             }
 
             line += c;
         }
 
         return std::make_pair(true, line);
+    }
+
+    std::pair<bool, std::string> Socket::readBytes(
+        size_t length,
+        const CancellationRequest& isCancellationRequested)
+    {
+        char c;
+        std::string buffer;
+        buffer.reserve(length);
+
+        for (size_t i = 0; i < length; ++i)
+        {
+            if (!readByte(&c, isCancellationRequested))
+            {
+                // Return what we were able to read
+                return std::make_pair(false, buffer);
+            }
+
+            buffer += c;
+        }
+
+        return std::make_pair(true, buffer);
     }
 }

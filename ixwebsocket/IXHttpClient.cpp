@@ -231,19 +231,15 @@ namespace ix
 
             payload.reserve(contentLength);
 
-            // FIXME: very inefficient way to read bytes, but it works...
-            for (int i = 0; i < contentLength; ++i)
+            auto chunkResult = _socket->readBytes(contentLength, isCancellationRequested);
+            if (!chunkResult.first)
             {
-                char c;
-                if (!_socket->readByte(&c, isCancellationRequested))
-                {
-                    return std::make_tuple(code, HttpErrorCode_ReadError,
-                                           headers, payload, "Cannot read byte",
-                                           uploadSize, downloadSize);
-                }
-
-                payload += c;
+                errorMsg = "Cannot read chunk";
+                return std::make_tuple(code, HttpErrorCode_ChunkReadError,
+                                       headers, payload, errorMsg,
+                                       uploadSize, downloadSize);
             }
+            payload += chunkResult.second;
         }
         else if (headers.find("Transfer-Encoding") != headers.end() &&
                  headers["Transfer-Encoding"] == "chunked")
@@ -277,22 +273,18 @@ namespace ix
 
                 payload.reserve(payload.size() + chunkSize);
 
-                // Read another line
-
-                for (uint64_t i = 0; i < chunkSize; ++i)
+                // Read a chunk
+                auto chunkResult = _socket->readBytes(chunkSize, isCancellationRequested);
+                if (!chunkResult.first)
                 {
-                    char c;
-                    if (!_socket->readByte(&c, isCancellationRequested))
-                    {
-                        errorMsg = "Cannot read byte";
-                        return std::make_tuple(code, HttpErrorCode_ChunkReadError,
-                                               headers, payload, errorMsg,
-                                               uploadSize, downloadSize);
-                    }
-
-                    payload += c;
+                    errorMsg = "Cannot read chunk";
+                    return std::make_tuple(code, HttpErrorCode_ChunkReadError,
+                                           headers, payload, errorMsg,
+                                           uploadSize, downloadSize);
                 }
+                payload += chunkResult.second;
 
+                // Read the line that terminates the chunk (\r\n)
                 lineResult = _socket->readLine(isCancellationRequested);
 
                 if (!lineResult.first)
