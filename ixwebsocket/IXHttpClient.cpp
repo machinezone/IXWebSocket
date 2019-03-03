@@ -231,7 +231,9 @@ namespace ix
 
             payload.reserve(contentLength);
 
-            auto chunkResult = _socket->readBytes(contentLength, isCancellationRequested);
+            auto chunkResult = _socket->readBytes(contentLength,
+                                                  args.onProgressCallback,
+                                                  isCancellationRequested);
             if (!chunkResult.first)
             {
                 errorMsg = "Cannot read chunk";
@@ -274,7 +276,9 @@ namespace ix
                 payload.reserve(payload.size() + chunkSize);
 
                 // Read a chunk
-                auto chunkResult = _socket->readBytes(chunkSize, isCancellationRequested);
+                auto chunkResult = _socket->readBytes(chunkSize,
+                                                      args.onProgressCallback,
+                                                      isCancellationRequested);
                 if (!chunkResult.first)
                 {
                     errorMsg = "Cannot read chunk";
