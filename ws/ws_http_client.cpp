@@ -107,6 +107,12 @@ namespace ix
         {
             std::cout << msg;
         };
+        args.onProgressCallback = [](int current, int total) -> bool
+        {
+            std::cerr << "\r" << "Downloaded "
+                      << current << " bytes out of " << total;
+            return true;
+        };
 
         HttpParameters httpParameters = parsePostParameters(data);
 
@@ -124,6 +130,8 @@ namespace ix
         {
             out = httpClient.post(url, httpParameters, args);
         }
+
+        std::cerr << std::endl;
 
         auto statusCode = std::get<0>(out);
         auto errorCode = std::get<1>(out);

@@ -61,6 +61,7 @@ namespace ix
         bool verbose;
         bool compress;
         Logger logger;
+        OnProgressCallback onProgressCallback;
     };
 
     class HttpClient {

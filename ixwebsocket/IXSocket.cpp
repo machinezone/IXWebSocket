@@ -23,11 +23,12 @@ namespace ix
 {
     const int Socket::kDefaultPollNoTimeout = -1; // No poll timeout by default
     const int Socket::kDefaultPollTimeout = kDefaultPollNoTimeout;
+    constexpr size_t Socket::kChunkSize;
 
     Socket::Socket(int fd) :
         _sockfd(fd)
     {
-
+        _readBuffer.resize(kChunkSize);
     }
 
     Socket::~Socket()
@@ -39,7 +40,7 @@ namespace ix
     {
         if (_sockfd == -1)
         {
-            onPollCallback(PollResultType_Error);
+            if (onPollCallback) onPollCallback(PollResultType_Error);
             return;
         }
 
@@ -70,7 +71,7 @@ namespace ix
             pollResult = PollResultType_Timeout;
         }
 
-        onPollCallback(pollResult);
+        if (onPollCallback) onPollCallback(pollResult);
     }
 
     void Socket::wakeUpFromPoll()
@@ -215,23 +216,8 @@ namespace ix
             else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
                                  getErrno() == EAGAIN))
             {
-                // Wait with a timeout until something is written.
-                // This way we are not busy looping
-                fd_set rfds;
-                struct timeval timeout;
-                timeout.tv_sec = 0;
-                timeout.tv_usec = 1 * 1000; // 1ms timeout
-
-                FD_ZERO(&rfds);
-                FD_SET(_sockfd, &rfds);
-
-                if (select(_sockfd + 1, &rfds, nullptr, nullptr, &timeout) < 0 &&
-                    (errno == EBADF || errno == EINVAL))
-                {
-                    return false;
-                }
-
-                continue;
+                // wait with 1 ms timeout
+                poll(nullptr, 1);
             }
             // There was an error during the read, abort
             else
@@ -264,43 +250,37 @@ namespace ix
 
     std::pair<bool, std::string> Socket::readBytes(
         size_t length,
+        const OnProgressCallback& onProgressCallback,
         const CancellationRequest& isCancellationRequested)
     {
-        std::string buffer;
-        buffer.reserve(length);
-
-#if 1
-        while (buffer.size() != length)
+        std::vector<uint8_t> output;
+        while (output.size() != length)
         {
-            ssize_t ret;
-            std::string buf;
-            ret = recv((char*)&buf.front(), std::min((size_t) 1024, length));
+            if (isCancellationRequested()) return std::make_pair(false, std::string());
+
+            int size = std::min(kChunkSize, length - output.size());
+            ssize_t ret = recv((char*)&_readBuffer[0], size);
 
             if (ret <= 0 && (getErrno() != EWOULDBLOCK &&
                              getErrno() != EAGAIN))
             {
-                // error case
-                // Return what we were able to read
-                return std::make_pair(false, buffer);
+                // Error
+                return std::make_pair(false, std::string());
             }
-            else
+            else if (ret > 0)
             {
-                buffer += buf;
-            }
-        }
-#else
-        for (size_t i = 0; i < length; ++i)
-        {
-            if (!readByte(&c, isCancellationRequested))
-            {
-                // Return what we were able to read
-                return std::make_pair(false, buffer);
+                output.insert(output.end(),
+                              _readBuffer.begin(),
+                              _readBuffer.begin() + ret);
             }
 
-            buffer += c;
-        }
-#endif
+            if (onProgressCallback) onProgressCallback((int) output.size(), (int) length);
 
-        return std::make_pair(true, buffer);
+            // Error
+            poll(nullptr, 10);
+        }
+
+        return std::make_pair(true, std::string(output.begin(),
+                                                output.end()));
     }
 }

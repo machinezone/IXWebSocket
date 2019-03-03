@@ -10,6 +10,7 @@
 #include <functional>
 #include <mutex>
 #include <atomic>
+#include <vector>
 
 #ifdef _WIN32
 #include <BaseTsd.h>
@@ -18,6 +19,7 @@ typedef SSIZE_T ssize_t;
 
 #include "IXEventFd.h"
 #include "IXCancellationRequest.h"
+#include "IXProgressCallback.h"
 
 namespace ix
 {
@@ -63,6 +65,7 @@ namespace ix
             const CancellationRequest& isCancellationRequested);
         std::pair<bool, std::string> readBytes(
             size_t length,
+            const OnProgressCallback& onProgressCallback,
             const CancellationRequest& isCancellationRequested);
 
         static int getErrno();
@@ -79,5 +82,9 @@ namespace ix
     private:
         static const int kDefaultPollTimeout;
         static const int kDefaultPollNoTimeout;
+
+        // Buffer for reading from our socket. That buffer is never resized.
+        std::vector<uint8_t> _readBuffer;
+        static constexpr size_t kChunkSize = 1 << 15;
     };
 }

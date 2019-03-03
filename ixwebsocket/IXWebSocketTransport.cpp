@@ -573,7 +573,7 @@ namespace ix
                 // Send message
                 sendFragment(opcodeType, fin, begin, end, compress);
 
-                if (onProgressCallback && !onProgressCallback(i, steps))
+                if (onProgressCallback && !onProgressCallback((int)i, (int) steps))
                 {
                     break;
                 }
