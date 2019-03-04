@@ -17,10 +17,10 @@ namespace ix
         ix::WebSocketServer server(port);
 
         server.setOnConnectionCallback(
-            [&server](std::shared_ptr<ix::WebSocket> webSocket)
+            [](std::shared_ptr<ix::WebSocket> webSocket)
             {
                 webSocket->setOnMessageCallback(
-                    [webSocket, &server](ix::WebSocketMessageType messageType,
+                    [webSocket](ix::WebSocketMessageType messageType,
                        const std::string& str,
                        size_t wireSize,
                        const ix::WebSocketErrorInfo& error,
@@ -39,7 +39,18 @@ namespace ix
                         }
                         else if (messageType == ix::WebSocket_MessageType_Close)
                         {
-                            std::cerr << "Closed connection" << std::endl;
+                            std::cerr << "Closed connection"
+                                      << " code " << closeInfo.code
+                                      << " reason " << closeInfo.reason << std::endl;
+                        }
+                        else if (messageType == ix::WebSocket_MessageType_Error)
+                        {
+                            std::stringstream ss;
+                            ss << "Connection error: " << error.reason      << std::endl;
+                            ss << "#retries: "         << error.retries     << std::endl;
+                            ss << "Wait time(ms): "    << error.wait_time   << std::endl;
+                            ss << "HTTP Status: "      << error.http_status << std::endl;
+                            std::cerr << ss.str();
                         }
                         else if (messageType == ix::WebSocket_MessageType_Message)
                         {

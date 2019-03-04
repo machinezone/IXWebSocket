@@ -94,16 +94,26 @@ namespace ix
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
-                    ss << "cmd_websocket_chat: user "
+                    log("ws chat: connected");
+                    std::cout << "Uri: " << openInfo.uri << std::endl;
+                    std::cout << "Handshake Headers:" << std::endl;
+                    for (auto it : openInfo.headers)
+                    {
+                        std::cout << it.first << ": " << it.second << std::endl;
+                    }
+
+                    ss << "ws chat: user "
                        << _user
                        << " Connected !";
                        log(ss.str());
                 }
                 else if (messageType == ix::WebSocket_MessageType_Close)
                 {
-                    ss << "cmd_websocket_chat: user "
+                    ss << "ws chat: user "
                        << _user
-                       << " disconnected !";
+                       << " disconnected !"
+                       << " code " << closeInfo.code
+                       << " reason " << closeInfo.reason;
                        log(ss.str());
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
@@ -117,7 +127,7 @@ namespace ix
                     _receivedQueue.push(result.second);
 
                     ss << std::endl
-                       << result.first << " > " << result.second
+                       << result.first << "(" << wireSize << " bytes)" << " > " << result.second
                        << std::endl
                        << _user << " > ";
                     log(ss.str());
@@ -188,5 +198,7 @@ namespace ix
 
         std::cout << std::endl;
         webSocketChat.stop();
+
+        return 0;
     }
 }
