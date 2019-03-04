@@ -84,6 +84,8 @@ namespace ix
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
                 {
+                    std::cerr << "Received " << wireSize << " bytes" << std::endl;
+
                     ss << "ws_connect: received message: "
                        << str;
                     log(ss.str());

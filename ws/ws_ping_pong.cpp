@@ -61,10 +61,19 @@ namespace ix
                const ix::WebSocketOpenInfo& openInfo,
                const ix::WebSocketCloseInfo& closeInfo)
             {
+                std::cerr << "Received " << wireSize << " bytes" << std::endl;
+
                 std::stringstream ss;
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
                     log("ping_pong: connected");
+
+                    std::cout << "Uri: " << openInfo.uri << std::endl;
+                    std::cout << "Handshake Headers:" << std::endl;
+                    for (auto it : openInfo.headers)
+                    {
+                        std::cout << it.first << ": " << it.second << std::endl;
+                    }
                 }
                 else if (messageType == ix::WebSocket_MessageType_Close)
                 {
@@ -153,5 +162,7 @@ namespace ix
 
         std::cout << std::endl;
         webSocketPingPong.stop();
+
+        return 0;
     }
 }
