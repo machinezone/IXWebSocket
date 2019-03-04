@@ -28,7 +28,7 @@ namespace ix
     Socket::Socket(int fd) :
         _sockfd(fd)
     {
-        _readBuffer.resize(kChunkSize);
+        ;
     }
 
     Socket::~Socket()
@@ -44,22 +44,7 @@ namespace ix
             return;
         }
 
-        fd_set rfds;
-        FD_ZERO(&rfds);
-        FD_SET(_sockfd, &rfds);
-
-#ifdef __linux__
-        FD_SET(_eventfd.getFd(), &rfds);
-#endif
-
-        struct timeval timeout;
-        timeout.tv_sec = timeoutSecs;
-        timeout.tv_usec = 0;
-
-        int sockfd = _sockfd;
-        int nfds = (std::max)(sockfd, _eventfd.getFd());
-        int ret = select(nfds + 1, &rfds, nullptr, nullptr,
-                         (timeoutSecs < 0) ? nullptr : &timeout);
+        int ret = select(timeoutSecs, 0);
 
         PollResultType pollResult = PollResultType_ReadyForRead;
         if (ret < 0)
@@ -72,6 +57,27 @@ namespace ix
         }
 
         if (onPollCallback) onPollCallback(pollResult);
+    }
+
+    int Socket::select(int timeoutSecs, int timeoutMs)
+    {
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET(_sockfd, &rfds);
+
+#ifdef __linux__
+        FD_SET(_eventfd.getFd(), &rfds);
+#endif
+
+        struct timeval timeout;
+        timeout.tv_sec = timeoutSecs;
+        timeout.tv_usec = 1000 * timeoutMs;
+
+        int sockfd = _sockfd;
+        int nfds = (std::max)(sockfd, _eventfd.getFd());
+        int ret = ::select(nfds + 1, &rfds, nullptr, nullptr,
+                           (timeoutSecs < 0) ? nullptr : &timeout);
+        return ret;
     }
 
     void Socket::wakeUpFromPoll()
@@ -216,8 +222,13 @@ namespace ix
             else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
                                  getErrno() == EAGAIN))
             {
-                // wait with 1 ms timeout
-                poll(nullptr, 1);
+                // Wait with a timeout until something is ready to read.
+                // This way we are not busy looping
+                int res = select(0, 1);
+                if (res < 0 && (errno == EBADF || errno == EINVAL))
+                {
+                    return false;
+                }
             }
             // There was an error during the read, abort
             else
@@ -253,6 +264,11 @@ namespace ix
         const OnProgressCallback& onProgressCallback,
         const CancellationRequest& isCancellationRequested)
     {
+        if (_readBuffer.empty())
+        {
+            _readBuffer.resize(kChunkSize);
+        }
+
         std::vector<uint8_t> output;
         while (output.size() != length)
         {
@@ -276,8 +292,9 @@ namespace ix
 
             if (onProgressCallback) onProgressCallback((int) output.size(), (int) length);
 
-            // Error
-            poll(nullptr, 10);
+            // Wait with a timeout until something is ready to read.
+            // This way we are not busy looping
+            select(0, 1);
         }
 
         return std::make_pair(true, std::string(output.begin(),

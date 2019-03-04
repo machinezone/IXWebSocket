@@ -39,6 +39,7 @@ namespace ix
 
         void configure();
 
+        int select(int timeoutSecs, int timeoutMs);
         virtual void poll(const OnPollCallback& onPollCallback,
                           int timeoutSecs = kDefaultPollTimeout);
         virtual void wakeUpFromPoll();
