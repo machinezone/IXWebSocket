@@ -71,8 +71,14 @@ namespace ix
 
     int getAnyFreePort()
     {
+        // ASAN complains about getsockname
+#if defined(__has_feature)
+# if __has_feature(address_sanitizer)
+        static int defaultPort = 8090;
+        return defaultPort++;
+# endif
+#else
         int defaultPort = 8090;
-
         int sockfd;
         if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
@@ -116,6 +122,7 @@ namespace ix
         ::close(sockfd);
 
         return port;
+#endif
     }
 
     int getFreePort()
