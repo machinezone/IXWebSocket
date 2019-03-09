@@ -69,13 +69,14 @@ namespace ix
         Logger() << msg;
     }
 
-    int getAnyFreePort()
+    int getAnyFreePortSimple()
     {
-        // ASAN complains about getsockname
-#if defined(__has_feature) && __has_feature(address_sanitizer)
         static int defaultPort = 8090;
         return defaultPort++;
-#else
+    }
+
+    int getAnyFreePort()
+    {
         int defaultPort = 8090;
         int sockfd;
         if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -120,15 +121,21 @@ namespace ix
         ::close(sockfd);
 
         return port;
-#endif
     }
 
     int getFreePort()
     {
         while (true)
         {
+#if defined(__has_feature)
+# if __has_feature(address_sanitizer)
+            int port = getAnyFreePortSimple();
+# else
             int port = getAnyFreePort();
-
+# endif
+#else
+            int port = getAnyFreePort();
+#endif
             //
             // Only port above 1024 can be used by non root users, but for some
             // reason I got port 7 returned with macOS when binding on port 0...
