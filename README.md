@@ -77,7 +77,10 @@ server.setOnConnectionCallback(
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
                     std::cerr << "New connection" << std::endl;
+
+                    // The uri the client did connect to.
                     std::cerr << "Uri: " << openInfo.uri << std::endl;
+
                     std::cerr << "Headers:" << std::endl;
                     for (auto it : openInfo.headers)
                     {

@@ -18,6 +18,7 @@
 
 #include "IXTest.h"
 #include "catch.hpp"
+#include <string.h>
 
 using namespace ix;
 
