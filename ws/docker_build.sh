@@ -13,6 +13,7 @@ g++ --std=c++14 \
     ../ixwebsocket/IXSocket.cpp \
     ../ixwebsocket/IXSocketServer.cpp \
     ../ixwebsocket/IXSocketConnect.cpp \
+    ../ixwebsocket/IXSocketFactory.cpp \
     ../ixwebsocket/IXDNSLookup.cpp \
     ../ixwebsocket/IXCancellationRequest.cpp \
     ../ixwebsocket/IXWebSocket.cpp \
@@ -22,12 +23,16 @@ g++ --std=c++14 \
     ../ixwebsocket/IXWebSocketPerMessageDeflate.cpp \
     ../ixwebsocket/IXWebSocketPerMessageDeflateCodec.cpp \
     ../ixwebsocket/IXWebSocketPerMessageDeflateOptions.cpp \
+    ../ixwebsocket/IXWebSocketHttpHeaders.cpp \
+    ../ixwebsocket/IXHttpClient.cpp \
+    ../ixwebsocket/IXUrlParser.cpp \
     ../ixwebsocket/IXSocketOpenSSL.cpp \
     ../ixwebsocket/linux/IXSetThreadName_linux.cpp \
-    ../third_party/jsoncpp/jsoncpp.cpp \
+    ../third_party/msgpack11/msgpack11.cpp \
     ixcrypto/IXBase64.cpp \
     ixcrypto/IXHash.cpp \
     ixcrypto/IXUuid.cpp \
+    ws_http_client.cpp \
     ws_ping_pong.cpp \
     ws_broadcast_server.cpp \
     ws_echo_server.cpp \

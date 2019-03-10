@@ -19,4 +19,4 @@ WORKDIR ws
 RUN ["sh", "docker_build.sh"]
 
 EXPOSE 8765
-CMD ["/ws/ws", "transfer", "8765"]
+CMD ["/ws/ws", "transfer", "--port", "8765", "--hostname", "0.0.0.0"]
