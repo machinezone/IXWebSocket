@@ -26,7 +26,7 @@ namespace ix
 
     int ws_echo_server_main(int port);
 
-    int ws_broadcast_server_main(int port);
+    int ws_broadcast_server_main(int port, const std::string& hostname);
 
     int ws_chat_main(const std::string& url,
                      const std::string& user);

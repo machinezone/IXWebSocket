@@ -31,6 +31,7 @@ int main(int argc, char** argv)
     std::string data;
     std::string headers;
     std::string output;
+    std::string hostname;
     bool headersOnly = false;
     bool followRedirects = false;
     bool verbose = false;
@@ -63,6 +64,7 @@ int main(int argc, char** argv)
 
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
     broadcastServerApp->add_option("--port", port, "Connection url");
+    broadcastServerApp->add_option("--hostname", hostname, "Hostname");
 
     CLI::App* pingPongApp = app.add_subcommand("ping", "Ping pong");
     pingPongApp->add_option("url", url, "Connection url")->required();
@@ -113,7 +115,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("broadcast_server"))
     {
-        return ix::ws_broadcast_server_main(port);
+        return ix::ws_broadcast_server_main(port, hostname);
     }
     else if (app.got_subcommand("ping"))
     {
