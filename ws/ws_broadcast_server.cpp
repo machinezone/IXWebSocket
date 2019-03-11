@@ -52,6 +52,10 @@ namespace ix
                             ss << "HTTP Status: "      << error.http_status << std::endl;
                             std::cerr << ss.str();
                         }
+                        else if (messageType == ix::WebSocket_MessageType_Fragment)
+                        {
+                            std::cerr << "Received message fragment" << std::endl;
+                        }
                         else if (messageType == ix::WebSocket_MessageType_Message)
                         {
                             std::cerr << "Received " << wireSize << " bytes" << std::endl;

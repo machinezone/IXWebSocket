@@ -392,6 +392,10 @@ namespace ix
                         emitMessage(MSG, getMergedChunks(), ws, onMessageCallback);
                         _chunks.clear();
                     }
+                    else
+                    {
+                        emitMessage(FRAGMENT, std::string(), ws, onMessageCallback);
+                    }
                 }
             }
             else if (ws.opcode == wsheader_type::PING)
@@ -475,7 +479,7 @@ namespace ix
         size_t wireSize = message.size();
 
         // When the RSV1 bit is 1 it means the message is compressed
-        if (_enablePerMessageDeflate && ws.rsv1)
+        if (_enablePerMessageDeflate && ws.rsv1 && messageKind != FRAGMENT)
         {
             std::string decompressedMessage;
             bool success = _perMessageDeflate.decompress(message, decompressedMessage);

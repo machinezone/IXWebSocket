@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     std::string data;
     std::string headers;
     std::string output;
-    std::string hostname;
+    std::string hostname("127.0.0.1");
     bool headersOnly = false;
     bool followRedirects = false;
     bool verbose = false;
