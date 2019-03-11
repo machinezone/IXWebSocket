@@ -252,6 +252,11 @@ namespace ix
                         {
                             webSocketMessageType = WebSocket_MessageType_Pong;
                         } break;
+
+                        case WebSocketTransport::FRAGMENT:
+                        {
+                            webSocketMessageType = WebSocket_MessageType_Fragment;
+                        } break;
                     }
 
                     WebSocketErrorInfo webSocketErrorInfo;

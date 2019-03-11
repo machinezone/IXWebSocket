@@ -39,7 +39,8 @@ namespace ix
         WebSocket_MessageType_Close = 2,
         WebSocket_MessageType_Error = 3,
         WebSocket_MessageType_Ping = 4,
-        WebSocket_MessageType_Pong = 5
+        WebSocket_MessageType_Pong = 5,
+        WebSocket_MessageType_Fragment = 6
     };
 
     struct WebSocketOpenInfo

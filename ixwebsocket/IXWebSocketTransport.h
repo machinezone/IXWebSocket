@@ -45,7 +45,8 @@ namespace ix
         {
             MSG,
             PING,
-            PONG
+            PONG,
+            FRAGMENT
         };
 
         using OnMessageCallback = std::function<void(const std::string&,
