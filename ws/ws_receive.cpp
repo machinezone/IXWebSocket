@@ -206,6 +206,11 @@ namespace ix
                     handleMessage(str);
                     _condition.notify_one();
                 }
+                else if (messageType == ix::WebSocket_MessageType_Fragment)
+                {
+                    ss << "ws_receive: received fragment";
+                    log(ss.str());
+                }
                 else if (messageType == ix::WebSocket_MessageType_Error)
                 {
                     ss << "Connection error: " << error.reason      << std::endl;
