@@ -63,7 +63,13 @@ namespace ix
                             {
                                 if (client != webSocket)
                                 {
-                                    client->send(str);
+                                    client->send(str,
+                                                 [](int current, int total) -> bool
+                                    {
+                                        std::cerr << "Step " << current
+                                                  << " out of " << total << std::endl;
+                                        return true;
+                                    });
                                 }
                             }
                         }

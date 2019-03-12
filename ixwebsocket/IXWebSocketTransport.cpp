@@ -586,6 +586,12 @@ namespace ix
             }
         }
 
+        // Make sure we send all the buffered data ; there can be a lot of it
+        // for large messages.
+        // TODO / this will block the sending thread ; we need to eval whether
+        //        this is the right fix
+        while (!isSendBufferEmpty()) sendOnSocket();
+
         return WebSocketSendInfo(true, compressionError, payloadSize, wireSize);
     }
 
