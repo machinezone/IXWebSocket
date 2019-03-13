@@ -28,7 +28,8 @@ namespace ix
     Socket::Socket(int fd) :
         _sockfd(fd)
     {
-        ;
+        _fildes[0] = -1;
+        _fildes[1] = -1;
     }
 
     Socket::~Socket()
@@ -69,21 +70,49 @@ namespace ix
         FD_SET(_eventfd.getFd(), &rfds);
 #endif
 
+        if (_fildes[0] != -1)
+        {
+            FD_SET(_fildes[0], &rfds);
+        }
+
         struct timeval timeout;
         timeout.tv_sec = timeoutSecs;
         timeout.tv_usec = 1000 * timeoutMs;
 
-        int sockfd = _sockfd;
-        int nfds = (std::max)(sockfd, _eventfd.getFd());
+        // int sockfd = _sockfd;
+        // int nfds = (std::max)(sockfd, _eventfd.getFd());
+
+        std::vector<int> fds = { _sockfd, _eventfd.getFd(), _fildes[0] };
+        int nfds = -1;
+        for (auto fd : fds)
+        {
+            if (fd >= nfds)
+            {
+                nfds = fd;
+            }
+        }
+
         int ret = ::select(nfds + 1, &rfds, nullptr, nullptr,
                            (timeoutSecs < 0) ? nullptr : &timeout);
+
+        if (_fildes[0] != -1 && FD_ISSET(_fildes[0], &rfds))
+        {
+            fprintf(stderr, "something wrote to the pipe\n");
+
+            uint64_t value = 0;
+            read(_fildes[0], &value, sizeof(value));
+        }
+
         return ret;
     }
 
     void Socket::wakeUpFromPoll()
     {
         // this will wake up the thread blocked on select, only needed on Linux
-        _eventfd.notify();
+        // _eventfd.notify();
+
+        uint64_t value = 0;
+        write(_fildes[1], &value, sizeof(value));
     }
 
     bool Socket::connect(const std::string& host,
@@ -94,6 +123,10 @@ namespace ix
         std::lock_guard<std::mutex> lock(_socketMutex);
 
         if (!_eventfd.clear()) return false;
+        if (pipe(_fildes) < 0) return false;
+
+        fcntl(_fildes[0], F_SETFL, O_NONBLOCK);
+        fcntl(_fildes[1], F_SETFL, O_NONBLOCK);
 
         _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
         return _sockfd != -1;
@@ -107,6 +140,11 @@ namespace ix
 
         closeSocket(_sockfd);
         _sockfd = -1;
+
+        ::close(_fildes[0]);
+        ::close(_fildes[1]);
+        _fildes[0] = -1;
+        _fildes[1] = -1;
     }
 
     ssize_t Socket::send(char* buffer, size_t length)

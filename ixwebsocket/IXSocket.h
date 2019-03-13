@@ -11,6 +11,7 @@
 #include <mutex>
 #include <atomic>
 #include <vector>
+#include <unistd.h> // pipe
 
 #ifdef _WIN32
 #include <BaseTsd.h>
@@ -87,5 +88,7 @@ namespace ix
         // Buffer for reading from our socket. That buffer is never resized.
         std::vector<uint8_t> _readBuffer;
         static constexpr size_t kChunkSize = 1 << 15;
+
+        int _fildes[2];
     };
 }
