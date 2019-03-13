@@ -79,9 +79,8 @@ namespace ix
         timeout.tv_sec = timeoutSecs;
         timeout.tv_usec = 1000 * timeoutMs;
 
-        // int sockfd = _sockfd;
-        // int nfds = (std::max)(sockfd, _eventfd.getFd());
-
+        // Compute the highest fd.
+        // FIXME / cleanup
         std::vector<int> fds = { _sockfd, _eventfd.getFd(), _fildes[0] };
         int nfds = -1;
         for (auto fd : fds)
@@ -108,9 +107,6 @@ namespace ix
 
     void Socket::wakeUpFromPoll()
     {
-        // this will wake up the thread blocked on select, only needed on Linux
-        // _eventfd.notify();
-
         uint64_t value = 0;
         write(_fildes[1], &value, sizeof(value));
     }

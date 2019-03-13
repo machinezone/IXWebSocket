@@ -187,6 +187,10 @@ namespace ix
                     return;
                 }
 
+                // Make sure we send all the buffered data
+                // there can be a lot of it for large messages.
+                while (!isSendBufferEmpty() && !_requestInitCancellation) sendOnSocket();
+
                 while (true)
                 {
                     ssize_t ret = _socket->recv((char*)&_readbuf[0], _readbuf.size());
@@ -586,11 +590,7 @@ namespace ix
             }
         }
 
-        // Make sure we send all the buffered data ; there can be a lot of it
-        // for large messages.
-        // TODO / this will block the sending thread ; we need to eval whether
-        //        this is the right fix
-        while (!isSendBufferEmpty()) sendOnSocket();
+        _socket->wakeUpFromPoll();
 
         return WebSocketSendInfo(true, compressionError, payloadSize, wireSize);
     }

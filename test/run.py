@@ -78,6 +78,7 @@ shutil.copy(os.path.join(
     'zlib.dll'), '.')
 
 lldb = "lldb --batch -o 'run' -k 'thread backtrace all' -k 'quit 1'"
+lldb = ""  # Disabled for now
 testCommand = '{} {} {}'.format(lldb, testBinary, os.getenv('TEST', ''))
 ret = os.system(testCommand)
 assert ret == 0, 'Test command failed'
