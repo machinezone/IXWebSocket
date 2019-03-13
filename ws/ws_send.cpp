@@ -257,6 +257,15 @@ namespace ix
             return true;
         });
 
+        do
+        {
+            size_t bufferedAmount = _webSocket.bufferedAmount();
+            std::cout << bufferedAmount << " bytes left to be sent" << std::endl;
+
+            std::chrono::duration<double, std::milli> duration(10);
+            std::this_thread::sleep_for(duration);
+        } while (_webSocket.bufferedAmount() != 0);
+
         bench.report();
         auto duration = bench.getDuration();
         auto transferRate = 1000 * content.size() / duration;

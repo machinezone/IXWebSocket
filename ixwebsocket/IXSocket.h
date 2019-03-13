@@ -18,7 +18,6 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-#include "IXEventFd.h"
 #include "IXCancellationRequest.h"
 #include "IXProgressCallback.h"
 
@@ -28,7 +27,9 @@ namespace ix
     {
         PollResultType_ReadyForRead = 0,
         PollResultType_Timeout = 1,
-        PollResultType_Error = 2
+        PollResultType_Error = 2,
+        PollResultType_SendRequest = 3,
+        PollResultType_CloseRequest = 4
     };
 
     class Socket {
@@ -40,10 +41,10 @@ namespace ix
 
         void configure();
 
-        int select(int timeoutSecs, int timeoutMs);
+        PollResultType select(int timeoutSecs, int timeoutMs);
         virtual void poll(const OnPollCallback& onPollCallback,
                           int timeoutSecs = kDefaultPollTimeout);
-        virtual void wakeUpFromPoll();
+        virtual bool wakeUpFromPoll(int wakeUpCode);
 
         // Virtual methods
         virtual bool connect(const std::string& url,
@@ -74,12 +75,15 @@ namespace ix
         static bool init(); // Required on Windows to initialize WinSocket
         static void cleanup(); // Required on Windows to cleanup WinSocket
 
+        // Used as special codes for pipe communication
+        static const int kSendRequest;
+        static const int kCloseRequest;
+
     protected:
         void closeSocket(int fd);
 
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;
-        EventFd _eventfd;
 
     private:
         static const int kDefaultPollTimeout;
@@ -89,6 +93,9 @@ namespace ix
         std::vector<uint8_t> _readBuffer;
         static constexpr size_t kChunkSize = 1 << 15;
 
+        // Store file descriptors used by the communication pipe. Communication
+        // happens between a control thread and a background thread, which is
+        // blocked on select.
         int _fildes[2];
     };
 }

@@ -23,6 +23,8 @@ namespace ix
 {
     const int Socket::kDefaultPollNoTimeout = -1; // No poll timeout by default
     const int Socket::kDefaultPollTimeout = kDefaultPollNoTimeout;
+    const int Socket::kSendRequest = 1;
+    const int Socket::kCloseRequest = 2;
     constexpr size_t Socket::kChunkSize;
 
     Socket::Socket(int fd) :
@@ -45,31 +47,18 @@ namespace ix
             return;
         }
 
-        int ret = select(timeoutSecs, 0);
-
-        PollResultType pollResult = PollResultType_ReadyForRead;
-        if (ret < 0)
-        {
-            pollResult = PollResultType_Error;
-        }
-        else if (ret == 0)
-        {
-            pollResult = PollResultType_Timeout;
-        }
+        PollResultType pollResult = select(timeoutSecs, 0);
 
         if (onPollCallback) onPollCallback(pollResult);
     }
 
-    int Socket::select(int timeoutSecs, int timeoutMs)
+    PollResultType Socket::select(int timeoutSecs, int timeoutMs)
     {
         fd_set rfds;
         FD_ZERO(&rfds);
         FD_SET(_sockfd, &rfds);
 
-#ifdef __linux__
-        FD_SET(_eventfd.getFd(), &rfds);
-#endif
-
+        // File descriptor at index 0 in _fildes is the read end of the pipe
         if (_fildes[0] != -1)
         {
             FD_SET(_fildes[0], &rfds);
@@ -80,35 +69,47 @@ namespace ix
         timeout.tv_usec = 1000 * timeoutMs;
 
         // Compute the highest fd.
-        // FIXME / cleanup
-        std::vector<int> fds = { _sockfd, _eventfd.getFd(), _fildes[0] };
-        int nfds = -1;
-        for (auto fd : fds)
-        {
-            if (fd >= nfds)
-            {
-                nfds = fd;
-            }
-        }
+        int sockfd = _sockfd;
+        int nfds = (std::max)(sockfd, _fildes[0]);
 
         int ret = ::select(nfds + 1, &rfds, nullptr, nullptr,
                            (timeoutSecs < 0) ? nullptr : &timeout);
 
-        if (_fildes[0] != -1 && FD_ISSET(_fildes[0], &rfds))
+        PollResultType pollResult = PollResultType_ReadyForRead;
+        if (ret < 0)
         {
-            fprintf(stderr, "something wrote to the pipe\n");
-
+            pollResult = PollResultType_Error;
+        }
+        else if (ret == 0)
+        {
+            pollResult = PollResultType_Timeout;
+        }
+        else if (_fildes[0] != -1 && FD_ISSET(_fildes[0], &rfds))
+        {
             uint64_t value = 0;
             read(_fildes[0], &value, sizeof(value));
+
+            if (value == kSendRequest)
+            {
+                pollResult = PollResultType_SendRequest;
+            }
+            else if (value == kCloseRequest)
+            {
+                pollResult = PollResultType_CloseRequest;
+            }
         }
 
-        return ret;
+        return pollResult;
     }
 
-    void Socket::wakeUpFromPoll()
+    // Wake up from poll/select by writing to the pipe which is is watched by select
+    bool Socket::wakeUpFromPoll(int wakeUpCode)
     {
-        uint64_t value = 0;
-        write(_fildes[1], &value, sizeof(value));
+        // File descriptor at index 1 in _fildes is the write end of the pipe
+        if (_fildes[1] == -1) return false;
+
+        int value = wakeUpCode;
+        return ::write(_fildes[1], &value, sizeof(value)) == 4;
     }
 
     bool Socket::connect(const std::string& host,
@@ -118,7 +119,6 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
-        if (!_eventfd.clear()) return false;
         if (pipe(_fildes) < 0) return false;
 
         fcntl(_fildes[0], F_SETFL, O_NONBLOCK);

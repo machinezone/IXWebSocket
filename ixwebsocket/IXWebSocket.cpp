@@ -379,4 +379,9 @@ namespace ix
     {
         _automaticReconnection = false;
     }
+
+    size_t WebSocket::bufferedAmount() const
+    {
+        return _ws.bufferedAmount();
+    }
 }

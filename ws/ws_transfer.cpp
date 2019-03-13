@@ -70,6 +70,15 @@ namespace ix
                                                   << " out of " << total << std::endl;
                                         return true;
                                     });
+
+                                    do
+                                    {
+                                        size_t bufferedAmount = client->bufferedAmount();
+                                        std::cerr << bufferedAmount << " bytes left to be sent" << std::endl;
+
+                                        std::chrono::duration<double, std::milli> duration(10);
+                                        std::this_thread::sleep_for(duration);
+                                    } while (client->bufferedAmount() != 0);
                                 }
                             }
                         }
