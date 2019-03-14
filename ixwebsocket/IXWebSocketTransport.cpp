@@ -198,6 +198,12 @@ namespace ix
                     while (!isSendBufferEmpty() && !_requestInitCancellation)
                     {
                         sendOnSocket();
+
+                        // Sleep 10ms between each send so that we dont busy loop
+                        // A better strategy would be to select on the socket to 
+                        // check whether we can write to it without blocking
+                        std::chrono::duration<double, std::micro> duration(10);
+                        std::this_thread::sleep_for(duration);
                     }
                 }
                 else if (pollResult == PollResultType_ReadyForRead)
