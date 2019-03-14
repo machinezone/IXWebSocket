@@ -28,6 +28,10 @@ namespace ix
         // happens between a control thread and a background thread, which is
         // blocked on select.
         int _fildes[2];
+
+        // Used to identify the read/write idx
+        static const int kPipeReadIndex;
+        static const int kPipeWriteIndex;
 #endif
     };
 }
