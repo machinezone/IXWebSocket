@@ -96,16 +96,6 @@ namespace ix
                                        std::string("Could not parse URL ") + url);
         }
 
-        if (protocol != "ws" && protocol != "wss")
-        {
-            std::stringstream ss;
-            ss << "Invalid protocol: " << protocol
-               << " for url " << url
-               << " . Supported protocols are ws and wss";
-
-            return WebSocketInitResult(false, 0, ss.str());
-        }
-
         bool tls = protocol == "wss";
         std::string errorMsg;
         _socket = createSocket(tls, errorMsg);
