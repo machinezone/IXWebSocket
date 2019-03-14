@@ -23,6 +23,8 @@ namespace ix
 {
     const int Socket::kDefaultPollNoTimeout = -1; // No poll timeout by default
     const int Socket::kDefaultPollTimeout = kDefaultPollNoTimeout;
+    const uint8_t Socket::kSendRequest = 1;
+    const uint8_t Socket::kCloseRequest = 2;
     constexpr size_t Socket::kChunkSize;
 
     Socket::Socket(int fd) :
@@ -44,7 +46,34 @@ namespace ix
             return;
         }
 
-        int ret = select(timeoutSecs, 0);
+        PollResultType pollResult = select(timeoutSecs, 0);
+
+        if (onPollCallback) onPollCallback(pollResult);
+    }
+
+    PollResultType Socket::select(int timeoutSecs, int timeoutMs)
+    {
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET(_sockfd, &rfds);
+
+        // File descriptor at index 0 in _fildes is the read end of the pipe
+        int eventfd = _eventfd.getFd();
+        if (eventfd != -1)
+        {
+            FD_SET(eventfd, &rfds);
+        }
+
+        struct timeval timeout;
+        timeout.tv_sec = timeoutSecs;
+        timeout.tv_usec = 1000 * timeoutMs;
+
+        // Compute the highest fd.
+        int sockfd = _sockfd;
+        int nfds = (std::max)(sockfd, eventfd);
+
+        int ret = ::select(nfds + 1, &rfds, nullptr, nullptr,
+                           (timeoutSecs < 0) ? nullptr : &timeout);
 
         PollResultType pollResult = PollResultType_ReadyForRead;
         if (ret < 0)
@@ -55,35 +84,27 @@ namespace ix
         {
             pollResult = PollResultType_Timeout;
         }
+        else if (eventfd != -1 && FD_ISSET(eventfd, &rfds))
+        {
+            uint8_t value = _eventfd.read();
 
-        if (onPollCallback) onPollCallback(pollResult);
+            if (value == kSendRequest)
+            {
+                pollResult = PollResultType_SendRequest;
+            }
+            else if (value == kCloseRequest)
+            {
+                pollResult = PollResultType_CloseRequest;
+            }
+        }
+
+        return pollResult;
     }
 
-    int Socket::select(int timeoutSecs, int timeoutMs)
+    // Wake up from poll/select by writing to the pipe which is watched by select
+    bool Socket::wakeUpFromPoll(uint8_t wakeUpCode)
     {
-        fd_set rfds;
-        FD_ZERO(&rfds);
-        FD_SET(_sockfd, &rfds);
-
-#ifdef __linux__
-        FD_SET(_eventfd.getFd(), &rfds);
-#endif
-
-        struct timeval timeout;
-        timeout.tv_sec = timeoutSecs;
-        timeout.tv_usec = 1000 * timeoutMs;
-
-        int sockfd = _sockfd;
-        int nfds = (std::max)(sockfd, _eventfd.getFd());
-        int ret = ::select(nfds + 1, &rfds, nullptr, nullptr,
-                           (timeoutSecs < 0) ? nullptr : &timeout);
-        return ret;
-    }
-
-    void Socket::wakeUpFromPoll()
-    {
-        // this will wake up the thread blocked on select, only needed on Linux
-        _eventfd.notify();
+        return _eventfd.notify(wakeUpCode);
     }
 
     bool Socket::connect(const std::string& host,

@@ -66,7 +66,13 @@ TEST_CASE("socket", "[socket]")
         std::shared_ptr<Socket> socket(new Socket);
         std::string host("www.google.com");
         int port = 80;
-        std::string request("GET / HTTP/1.1\r\n\r\n");
+
+        std::stringstream ss;
+        ss << "GET / HTTP/1.1\r\n";
+        ss << "Host: " << host << "\r\n";
+        ss << "\r\n";
+        std::string request(ss.str());
+
         int expectedStatus = 200;
         int timeoutSecs = 3;
 

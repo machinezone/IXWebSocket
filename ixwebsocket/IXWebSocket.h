@@ -112,6 +112,7 @@ namespace ix
         const std::string& getUrl() const;
         const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
         int getHeartBeatPeriod() const;
+        size_t bufferedAmount() const;
 
         void enableAutomaticReconnection();
         void disableAutomaticReconnection();

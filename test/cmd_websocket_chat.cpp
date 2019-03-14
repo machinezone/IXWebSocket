@@ -164,10 +164,21 @@ namespace
                     ss << "cmd_websocket_chat: Error ! " << error.reason;
                     log(ss.str());
                 }
+                else if (messageType == ix::WebSocket_MessageType_Ping)
+                {
+                    log("cmd_websocket_chat: received ping message");
+                }
+                else if (messageType == ix::WebSocket_MessageType_Pong)
+                {
+                    log("cmd_websocket_chat: received pong message");
+                }
+                else if (messageType == ix::WebSocket_MessageType_Fragment)
+                {
+                    log("cmd_websocket_chat: received message fragment");
+                }
                 else
                 {
-                    // FIXME: missing ping/pong messages
-                    ss << "Invalid ix::WebSocketMessageType";
+                    ss << "Unexpected ix::WebSocketMessageType";
                     log(ss.str());
                 }
             });

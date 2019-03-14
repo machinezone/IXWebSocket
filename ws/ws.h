@@ -24,9 +24,9 @@ namespace ix
 
     int ws_ping_pong_main(const std::string& url);
 
-    int ws_echo_server_main(int port);
-
+    int ws_echo_server_main(int port, const std::string& hostname);
     int ws_broadcast_server_main(int port, const std::string& hostname);
+    int ws_transfer_main(int port, const std::string& hostname);
 
     int ws_chat_main(const std::string& url,
                      const std::string& user);
@@ -35,8 +35,6 @@ namespace ix
 
     int ws_receive_main(const std::string& url,
                         bool enablePerMessageDeflate);
-
-    int ws_transfer_main(int port);
 
     int ws_send_main(const std::string& url,
                      const std::string& path);
