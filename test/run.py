@@ -6,10 +6,10 @@ osName = platform.system()
 print('os name = {}'.format(osName))
 
 root = os.path.dirname(os.path.realpath(__file__))
-buildDir = os.path.join(root, 'build')
+buildDir = os.path.join(root, 'build', osName)
 
 if not os.path.exists(buildDir):
-    os.mkdir(buildDir)
+    os.makedirs(buildDir)
 
 os.chdir(buildDir)
 
@@ -38,7 +38,7 @@ sanitizerFlags = sanitizersFlags[sanitizer]
 #     os.environ['CC'] = 'clang-cl'
 #     os.environ['CXX'] = 'clang-cl'
 
-cmakeCmd = 'cmake -DCMAKE_BUILD_TYPE=Debug {} {} ..'.format(generator, sanitizerFlags)
+cmakeCmd = 'cmake -DCMAKE_BUILD_TYPE=Debug {} {} ../..'.format(generator, sanitizerFlags)
 print(cmakeCmd)
 ret = os.system(cmakeCmd)
 assert ret == 0, 'CMake failed, exiting'
@@ -67,6 +67,7 @@ def findFiles(prefix):
 
 # We need to copy the zlib DLL in the current work directory
 shutil.copy(os.path.join(
+    '..',
     '..',
     '..',
     'third_party',
