@@ -16,6 +16,8 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <fstream>
+#include <unistd.h>
 
 #include <cli11/CLI11.hpp>
 #include <ixwebsocket/IXSocket.h>
@@ -32,6 +34,7 @@ int main(int argc, char** argv)
     std::string headers;
     std::string output;
     std::string hostname("127.0.0.1");
+    std::string pidfile;
     bool headersOnly = false;
     bool followRedirects = false;
     bool verbose = false;
@@ -52,6 +55,7 @@ int main(int argc, char** argv)
     CLI::App* transferApp = app.add_subcommand("transfer", "Broadcasting server");
     transferApp->add_option("--port", port, "Connection url");
     transferApp->add_option("--host", hostname, "Hostname");
+    transferApp->add_option("--pidfile", pidfile, "Pid file");
 
     CLI::App* connectApp = app.add_subcommand("connect", "Connect to a remote server");
     connectApp->add_option("url", url, "Connection url")->required();
@@ -90,8 +94,20 @@ int main(int argc, char** argv)
 
     ix::Socket::init();
 
+    // pid file handling
+
     if (app.got_subcommand("transfer"))
     {
+        if (!pidfile.empty())
+        {
+            unlink(pidfile.c_str());
+
+            std::ofstream f;
+            f.open(pidfile);
+            f << getpid();
+            f.close();
+        }
+
         return ix::ws_transfer_main(port, hostname);
     }
     else if (app.got_subcommand("send"))

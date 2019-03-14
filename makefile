@@ -36,6 +36,9 @@ test_server:
 test:
 	python test/run.py
 
+ws_test:
+	(cd ws ; sh test_ws.sh)
+
 # For the fork that is configured with appveyor
 rebase_upstream:
 	git fetch upstream

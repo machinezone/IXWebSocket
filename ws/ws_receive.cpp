@@ -146,10 +146,15 @@ namespace ix
         std::string filename = data["filename"].string_value();
         filename = extractFilename(filename);
 
-        std::cout << "Writing to disk: " << filename << std::endl;
-        std::ofstream out(filename);
+        std::string filenameTmp = filename + ".tmp";
+
+        std::cout << "Writing to disk: " << filenameTmp << std::endl;
+        std::ofstream out(filenameTmp);
         out.write((char*)&content.front(), content.size());
         out.close();
+
+        std::cout << "Renaming " << filenameTmp << " to " << filename << std::endl;
+        rename(filenameTmp.c_str(), filename.c_str());
 
         std::map<MsgPack, MsgPack> pdu;
         pdu["ack"] = true;

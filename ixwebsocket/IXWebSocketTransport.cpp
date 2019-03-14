@@ -605,7 +605,11 @@ namespace ix
             }
         }
 
-        _socket->wakeUpFromPoll(Socket::kSendRequest);
+        // Request to flush the send buffer on the background thread if it isn't empty
+        if (!isSendBufferEmpty())
+        {
+            _socket->wakeUpFromPoll(Socket::kSendRequest);
+        }
 
         return WebSocketSendInfo(true, compressionError, payloadSize, wireSize);
     }
