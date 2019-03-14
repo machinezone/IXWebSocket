@@ -11,7 +11,6 @@ communication channels over a single TCP connection. *IXWebSocket* is a C++ libr
 * iOS
 * Linux
 * Android 
-* Windows (no TLS support yet)
 
 ## Examples
 
