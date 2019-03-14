@@ -766,6 +766,7 @@ namespace ix
         _socket->close();
 
         _closeCode = 1000;
+        _closeReason = "Normal Closure";
         setReadyState(CLOSED);
     }
 
