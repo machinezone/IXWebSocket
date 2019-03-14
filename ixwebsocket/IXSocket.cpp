@@ -23,8 +23,8 @@ namespace ix
 {
     const int Socket::kDefaultPollNoTimeout = -1; // No poll timeout by default
     const int Socket::kDefaultPollTimeout = kDefaultPollNoTimeout;
-    const uint8_t Socket::kSendRequest = 1;
-    const uint8_t Socket::kCloseRequest = 2;
+    const uint64_t Socket::kSendRequest = 1;
+    const uint64_t Socket::kCloseRequest = 2;
     constexpr size_t Socket::kChunkSize;
 
     Socket::Socket(int fd) :
@@ -86,7 +86,7 @@ namespace ix
         }
         else if (eventfd != -1 && FD_ISSET(eventfd, &rfds))
         {
-            uint8_t value = _eventfd.read();
+            uint64_t value = _eventfd.read();
 
             if (value == kSendRequest)
             {

@@ -31,6 +31,11 @@
 
 namespace ix
 {
+    // File descriptor at index 0 in _fildes is the read end of the pipe
+    // File descriptor at index 1 in _fildes is the write end of the pipe
+    const int EventFd::kPipeReadIndex = 0;
+    const int EventFd::kPipeWriteIndex = 1;
+
     EventFd::EventFd()
     {
 #ifdef __linux__
@@ -38,12 +43,12 @@ namespace ix
         _eventfd = eventfd(0, 0);
         fcntl(_eventfd, F_SETFL, O_NONBLOCK);
 #else
-        _fildes[0] = -1;
-        _fildes[1] = -1;
+        _fildes[kPipeReadIndex] = -1;
+        _fildes[kPipeWriteIndex] = -1;
 
         pipe(_fildes);
-        fcntl(_fildes[0], F_SETFL, O_NONBLOCK);
-        fcntl(_fildes[1], F_SETFL, O_NONBLOCK);
+        fcntl(_fildes[kPipeReadIndex], F_SETFL, O_NONBLOCK);
+        fcntl(_fildes[kPipeWriteIndex], F_SETFL, O_NONBLOCK);
 #endif
     }
 
@@ -52,10 +57,10 @@ namespace ix
 #ifdef __linux__
         ::close(_eventfd);
 #else
-        ::close(_fildes[0]);
-        ::close(_fildes[1]);
-        _fildes[0] = -1;
-        _fildes[1] = -1;
+        ::close(_fildes[kPipeReadIndex]);
+        ::close(_fildes[kPipeWriteIndex]);
+        _fildes[kPipeReadIndex] = -1;
+        _fildes[kPipeWriteIndex] = -1;
 #endif
     }
 
@@ -66,8 +71,7 @@ namespace ix
 #if defined(__linux__)
         fd = _eventfd;
 #else
-        // File descriptor at index 1 in _fildes is the write end of the pipe
-        fd = _fildes[1];
+        fd = _fildes[kPipeWriteIndex];
 #endif
 
         if (fd == -1) return false;
@@ -84,7 +88,7 @@ namespace ix
 #if defined(__linux__)
         fd = _eventfd;
 #else
-        fd = _fildes[0];
+        fd = _fildes[kPipeReadIndex];
 #endif
         uint64_t value = 0;
         ::read(fd, &value, sizeof(value));
@@ -111,7 +115,7 @@ namespace ix
 #if defined(__linux__)
         return _eventfd;
 #else
-        return _fildes[0];
+        return _fildes[kPipeReadIndex];
 #endif
     }
 }

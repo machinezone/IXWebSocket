@@ -76,8 +76,8 @@ namespace ix
         static void cleanup(); // Required on Windows to cleanup WinSocket
 
         // Used as special codes for pipe communication
-        static const uint8_t kSendRequest;
-        static const uint8_t kCloseRequest;
+        static const uint64_t kSendRequest;
+        static const uint64_t kCloseRequest;
 
     protected:
         void closeSocket(int fd);
