@@ -8,10 +8,10 @@ brew:
 
 .PHONY: docker
 docker:
-	docker build -t broadcast_server:latest .
+	docker build -t ws:latest .
 
 run:
-	docker run --cap-add sys_ptrace -it broadcast_server:latest bash
+	docker run --cap-add sys_ptrace -it ws:latest
 
 # this is helpful to remove trailing whitespaces
 trail:
@@ -42,6 +42,10 @@ rebase_upstream:
 	git checkout master
 	git reset --hard upstream/master
 	git push origin master --force
+
+install_cmake_for_linux:
+	mkdir -p /tmp/cmake
+	(cd /tmp/cmake ; curl -L -O https://github.com/Kitware/CMake/releases/download/v3.14.0-rc4/cmake-3.14.0-rc4-Linux-x86_64.tar.gz ; tar zxf cmake-3.14.0-rc4-Linux-x86_64.tar.gz)
 
 .PHONY: test
 .PHONY: build

@@ -20,6 +20,7 @@ typedef SSIZE_T ssize_t;
 
 #include "IXCancellationRequest.h"
 #include "IXProgressCallback.h"
+#include "IXEventFd.h"
 
 namespace ix
 {
@@ -44,7 +45,7 @@ namespace ix
         PollResultType select(int timeoutSecs, int timeoutMs);
         virtual void poll(const OnPollCallback& onPollCallback,
                           int timeoutSecs = kDefaultPollTimeout);
-        virtual bool wakeUpFromPoll(int wakeUpCode);
+        virtual bool wakeUpFromPoll(uint8_t wakeUpCode);
 
         // Virtual methods
         virtual bool connect(const std::string& url,
@@ -76,8 +77,8 @@ namespace ix
         static void cleanup(); // Required on Windows to cleanup WinSocket
 
         // Used as special codes for pipe communication
-        static const int kSendRequest;
-        static const int kCloseRequest;
+        static const uint8_t kSendRequest;
+        static const uint8_t kCloseRequest;
 
     protected:
         void closeSocket(int fd);
@@ -93,9 +94,6 @@ namespace ix
         std::vector<uint8_t> _readBuffer;
         static constexpr size_t kChunkSize = 1 << 15;
 
-        // Store file descriptors used by the communication pipe. Communication
-        // happens between a control thread and a background thread, which is
-        // blocked on select.
-        int _fildes[2];
+        EventFd _eventfd;
     };
 }

@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 
     CLI::App* transferApp = app.add_subcommand("transfer", "Broadcasting server");
     transferApp->add_option("--port", port, "Connection url");
+    transferApp->add_option("--host", hostname, "Hostname");
 
     CLI::App* connectApp = app.add_subcommand("connect", "Connect to a remote server");
     connectApp->add_option("url", url, "Connection url")->required();
@@ -60,11 +61,12 @@ int main(int argc, char** argv)
     chatApp->add_option("user", user, "User name")->required();
 
     CLI::App* echoServerApp = app.add_subcommand("echo_server", "Echo server");
-    echoServerApp->add_option("--port", port, "Connection url");
+    echoServerApp->add_option("--port", port, "Port");
+    echoServerApp->add_option("--host", hostname, "Hostname");
 
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
-    broadcastServerApp->add_option("--port", port, "Connection url");
-    broadcastServerApp->add_option("--hostname", hostname, "Hostname");
+    broadcastServerApp->add_option("--port", port, "Port");
+    broadcastServerApp->add_option("--host", hostname, "Hostname");
 
     CLI::App* pingPongApp = app.add_subcommand("ping", "Ping pong");
     pingPongApp->add_option("url", url, "Connection url")->required();
@@ -90,7 +92,7 @@ int main(int argc, char** argv)
 
     if (app.got_subcommand("transfer"))
     {
-        return ix::ws_transfer_main(port);
+        return ix::ws_transfer_main(port, hostname);
     }
     else if (app.got_subcommand("send"))
     {
@@ -111,7 +113,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("echo_server"))
     {
-        return ix::ws_echo_server_main(port);
+        return ix::ws_echo_server_main(port, hostname);
     }
     else if (app.got_subcommand("broadcast_server"))
     {

@@ -10,11 +10,11 @@
 
 namespace ix
 {
-    int ws_transfer_main(int port)
+    int ws_transfer_main(int port, const std::string& hostname)
     {
-        std::cout << "Listening on port " << port << std::endl;
+        std::cout << "Listening on " << hostname << ":" << port << std::endl;
 
-        ix::WebSocketServer server(port);
+        ix::WebSocketServer server(port, hostname);
 
         server.setOnConnectionCallback(
             [&server](std::shared_ptr<ix::WebSocket> webSocket)
