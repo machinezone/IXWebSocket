@@ -77,6 +77,7 @@ namespace ix
         void setReadyState(ReadyStateValues readyStateValue);
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
         void dispatch(const OnMessageCallback& onMessageCallback);
+        size_t bufferedAmount() const;
 
     private:
         std::string _url;

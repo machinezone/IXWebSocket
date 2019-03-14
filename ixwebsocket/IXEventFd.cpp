@@ -17,6 +17,8 @@
 // cf Android/Kernel table here
 // https://android.stackexchange.com/questions/51651/which-android-runs-which-linux-kernel
 //
+// On macOS we use UNIX pipes to wake up select.
+//
 
 #include "IXEventFd.h"
 
@@ -24,17 +26,24 @@
 # include <sys/eventfd.h>
 #endif
 
-#ifndef _WIN32
 #include <unistd.h> // for write
-#endif
+#include <fcntl.h>
 
 namespace ix
 {
-    EventFd::EventFd() :
-        _eventfd(-1)
+    EventFd::EventFd()
     {
 #ifdef __linux__
+        _eventfd = -1;
         _eventfd = eventfd(0, 0);
+        fcntl(_eventfd, F_SETFL, O_NONBLOCK);
+#else
+        _fildes[0] = -1;
+        _fildes[1] = -1;
+
+        pipe(_fildes);
+        fcntl(_fildes[0], F_SETFL, O_NONBLOCK);
+        fcntl(_fildes[1], F_SETFL, O_NONBLOCK);
 #endif
     }
 
@@ -42,22 +51,44 @@ namespace ix
     {
 #ifdef __linux__
         ::close(_eventfd);
+#else
+        ::close(_fildes[0]);
+        ::close(_fildes[1]);
+        _fildes[0] = -1;
+        _fildes[1] = -1;
 #endif
     }
 
-    bool EventFd::notify()
+    bool EventFd::notify(uint64_t value)
     {
-#if defined(__linux__)
-        if (_eventfd == -1) return false;
+        int fd;
 
-        // select will wake up when a non-zero value is written to our eventfd
-        uint64_t value = 1;
+#if defined(__linux__)
+        fd = _eventfd;
+#else
+        // File descriptor at index 1 in _fildes is the write end of the pipe
+        fd = _fildes[1];
+#endif
+
+        if (fd == -1) return false;
 
         // we should write 8 bytes for an uint64_t
-        return write(_eventfd, &value, sizeof(value)) == 8;
+        return write(fd, &value, sizeof(value)) == 8;
+    }
+
+    // TODO: return max uint64_t for errors ?
+    uint64_t EventFd::read()
+    {
+        int fd;
+
+#if defined(__linux__)
+        fd = _eventfd;
 #else
-        return true;
+        fd = _fildes[0];
 #endif
+        uint64_t value = 0;
+        ::read(fd, &value, sizeof(value));
+        return value;
     }
 
     bool EventFd::clear()
@@ -77,6 +108,10 @@ namespace ix
 
     int EventFd::getFd()
     {
+#if defined(__linux__)
         return _eventfd;
+#else
+        return _fildes[0];
+#endif
     }
 }

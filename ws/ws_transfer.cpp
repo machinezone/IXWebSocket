@@ -10,11 +10,11 @@
 
 namespace ix
 {
-    int ws_transfer_main(int port)
+    int ws_transfer_main(int port, const std::string& hostname)
     {
-        std::cout << "Listening on port " << port << std::endl;
+        std::cout << "Listening on " << hostname << ":" << port << std::endl;
 
-        ix::WebSocketServer server(port);
+        ix::WebSocketServer server(port, hostname);
 
         server.setOnConnectionCallback(
             [&server](std::shared_ptr<ix::WebSocket> webSocket)
@@ -70,6 +70,15 @@ namespace ix
                                                   << " out of " << total << std::endl;
                                         return true;
                                     });
+
+                                    do
+                                    {
+                                        size_t bufferedAmount = client->bufferedAmount();
+                                        std::cerr << bufferedAmount << " bytes left to be sent" << std::endl;
+
+                                        std::chrono::duration<double, std::milli> duration(10);
+                                        std::this_thread::sleep_for(duration);
+                                    } while (client->bufferedAmount() != 0);
                                 }
                             }
                         }
