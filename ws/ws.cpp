@@ -92,12 +92,9 @@ int main(int argc, char** argv)
 
     CLI11_PARSE(app, argc, argv);
 
-    ix::Socket::init();
-
-    // pid file handling
-
     if (app.got_subcommand("transfer"))
     {
+        // pid file handling
         if (!pidfile.empty())
         {
             unlink(pidfile.c_str());

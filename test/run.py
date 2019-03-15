@@ -78,7 +78,7 @@ shutil.copy(os.path.join(
     'bin',
     'zlib.dll'), '.')
 
-lldb = "lldb --batch -o 'run' -k 'thread backtrace all' -k 'quit 1'"
+# lldb = "lldb --batch -o 'run' -k 'thread backtrace all' -k 'quit 1'"
 lldb = ""  # Disabled for now
 testCommand = '{} {} {}'.format(lldb, testBinary, os.getenv('TEST', ''))
 ret = os.system(testCommand)

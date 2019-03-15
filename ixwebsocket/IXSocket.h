@@ -23,6 +23,8 @@ typedef SSIZE_T ssize_t;
 
 namespace ix
 {
+    class SelectInterrupt;
+
     enum PollResultType
     {
         PollResultType_ReadyForRead = 0,
@@ -38,6 +40,7 @@ namespace ix
 
         Socket(int fd = -1);
         virtual ~Socket();
+        bool init(std::string& errorMsg);
 
         void configure();
 
@@ -72,8 +75,6 @@ namespace ix
             const CancellationRequest& isCancellationRequested);
 
         static int getErrno();
-        static bool init(); // Required on Windows to initialize WinSocket
-        static void cleanup(); // Required on Windows to cleanup WinSocket
 
         // Used as special codes for pipe communication
         static const uint64_t kSendRequest;
@@ -93,6 +94,6 @@ namespace ix
         std::vector<uint8_t> _readBuffer;
         static constexpr size_t kChunkSize = 1 << 15;
 
-        EventFd _eventfd;
+        std::shared_ptr<SelectInterrupt> _selectInterrupt;
     };
 }

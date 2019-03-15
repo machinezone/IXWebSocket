@@ -11,10 +11,6 @@
 
 int main(int argc, char* argv[])
 {
-    ix::Socket::init(); // for Windows
-
     int result = Catch::Session().run(argc, argv);
-
-    ix::Socket::cleanup(); // for Windows
     return result;
 }

@@ -254,7 +254,6 @@ namespace ix
     int ws_receive_main(const std::string& url,
                         bool enablePerMessageDeflate)
     {
-        Socket::init();
         wsReceive(url, enablePerMessageDeflate);
         return 0;
     }

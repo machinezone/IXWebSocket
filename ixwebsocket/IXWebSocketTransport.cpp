@@ -123,8 +123,13 @@ namespace ix
     // Server
     WebSocketInitResult WebSocketTransport::connectToSocket(int fd, int timeoutSecs)
     {
-        _socket.reset();
-        _socket = std::make_shared<Socket>(fd);
+        std::string errorMsg;
+        _socket = createSocket(fd, errorMsg);
+
+        if (!_socket)
+        {
+            return WebSocketInitResult(false, 0, errorMsg);
+        }
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,
                                               _socket,

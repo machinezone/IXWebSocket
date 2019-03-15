@@ -7,6 +7,8 @@
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
 #include "IXNetSystem.h"
+#include "IXSelectInterrupt.h"
+#include "IXSelectInterruptFactory.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +30,8 @@ namespace ix
     constexpr size_t Socket::kChunkSize;
 
     Socket::Socket(int fd) :
-        _sockfd(fd)
+        _sockfd(fd),
+        _selectInterrupt(createSelectInterrupt())
     {
         ;
     }
@@ -57,11 +60,11 @@ namespace ix
         FD_ZERO(&rfds);
         FD_SET(_sockfd, &rfds);
 
-        // File descriptor at index 0 in _fildes is the read end of the pipe
-        int eventfd = _eventfd.getFd();
-        if (eventfd != -1)
+        // File descriptor used to interrupt select when needed
+        int interruptFd = _selectInterrupt->getFd();
+        if (interruptFd != -1)
         {
-            FD_SET(eventfd, &rfds);
+            FD_SET(interruptFd, &rfds);
         }
 
         struct timeval timeout;
@@ -70,7 +73,7 @@ namespace ix
 
         // Compute the highest fd.
         int sockfd = _sockfd;
-        int nfds = (std::max)(sockfd, eventfd);
+        int nfds = (std::max)(sockfd, interruptFd);
 
         int ret = ::select(nfds + 1, &rfds, nullptr, nullptr,
                            (timeoutSecs < 0) ? nullptr : &timeout);
@@ -84,9 +87,9 @@ namespace ix
         {
             pollResult = PollResultType_Timeout;
         }
-        else if (eventfd != -1 && FD_ISSET(eventfd, &rfds))
+        else if (interruptFd != -1 && FD_ISSET(interruptFd, &rfds))
         {
-            uint64_t value = _eventfd.read();
+            uint64_t value = _selectInterrupt->read();
 
             if (value == kSendRequest)
             {
@@ -104,7 +107,7 @@ namespace ix
     // Wake up from poll/select by writing to the pipe which is watched by select
     bool Socket::wakeUpFromPoll(uint8_t wakeUpCode)
     {
-        return _eventfd.notify(wakeUpCode);
+        return _selectInterrupt->notify(wakeUpCode);
     }
 
     bool Socket::connect(const std::string& host,
@@ -114,7 +117,7 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
-        if (!_eventfd.clear()) return false;
+        if (!_selectInterrupt->clear()) return false;
 
         _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
         return _sockfd != -1;
@@ -173,24 +176,9 @@ namespace ix
 #endif
     }
 
-    bool Socket::init()
+    bool Socket::init(std::string& errorMsg)
     {
-#ifdef _WIN32
-        INT rc;
-        WSADATA wsaData;
-
-        rc = WSAStartup(MAKEWORD(2, 2), &wsaData);
-        return rc != 0;
-#else
-        return true;
-#endif
-    }
-
-    void Socket::cleanup()
-    {
-#ifdef _WIN32
-        WSACleanup();
-#endif
+        return _selectInterrupt->init(errorMsg);
     }
 
     bool Socket::writeBytes(const std::string& str,

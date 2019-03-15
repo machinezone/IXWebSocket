@@ -153,7 +153,6 @@ namespace ix
 
     int ws_connect_main(const std::string& url)
     {
-        Socket::init();
         interactiveMain(url);
         return 0;
     }

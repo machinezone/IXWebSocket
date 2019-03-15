@@ -20,23 +20,45 @@ namespace ix
                                          std::string& errorMsg)
     {
         errorMsg.clear();
+        std::shared_ptr<Socket> socket;
 
         if (!tls)
         {
-            return std::make_shared<Socket>();
+            socket = std::make_shared<Socket>();
         }
         else
         {
 #ifdef IXWEBSOCKET_USE_TLS
 # ifdef __APPLE__
-            return std::make_shared<SocketAppleSSL>();
+            socket = std::make_shared<SocketAppleSSL>();
 # else
-            return std::make_shared<SocketOpenSSL>();
+            socket = std::make_shared<SocketOpenSSL>();
 # endif
 #else
             errorMsg = "TLS support is not enabled on this platform.";
             return nullptr;
 #endif
         }
+
+        if (!socket->init(errorMsg))
+        {
+            socket.reset();
+        }
+
+        return socket;
+    }
+
+    std::shared_ptr<Socket> createSocket(int fd,
+                                         std::string& errorMsg)
+    {
+        errorMsg.clear();
+
+        std::shared_ptr<Socket> socket = std::make_shared<Socket>(fd);
+        if (!socket->init(errorMsg))
+        {
+            socket.reset();
+        }
+
+        return socket;
     }
 }
