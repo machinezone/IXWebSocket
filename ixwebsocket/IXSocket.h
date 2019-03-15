@@ -11,6 +11,7 @@
 #include <mutex>
 #include <atomic>
 #include <vector>
+#include <memory>
 
 #ifdef _WIN32
 #include <BaseTsd.h>
