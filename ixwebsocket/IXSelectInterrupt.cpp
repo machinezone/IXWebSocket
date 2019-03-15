@@ -38,7 +38,7 @@ namespace ix
         return true;
     }
 
-    int SelectInterrupt::getFd()
+    int SelectInterrupt::getFd() const
     {
         return -1;
     }

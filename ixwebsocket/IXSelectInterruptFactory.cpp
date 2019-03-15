@@ -8,8 +8,10 @@
 
 #if defined(__linux__)
 # include <ixwebsocket/IXSelectInterruptEventFd.h>
-#else
+#elif defined(__APPLE__)
 # include <ixwebsocket/IXSelectInterruptPipe.h>
+#else
+# include <ixwebsocket/IXSelectInterrupt.h>
 #endif
 
 namespace ix
@@ -18,8 +20,10 @@ namespace ix
     {
 #if defined(__linux__)
         return std::make_shared<SelectInterruptEventFd>();
-#else
+#elif defined(__APPLE__)
         return std::make_shared<SelectInterruptPipe>();
+#else
+        return std::make_shared<SelectInterrupt>();
 #endif
     }
 }

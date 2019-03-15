@@ -23,7 +23,7 @@ namespace ix
         bool notify(uint64_t value) final;
         bool clear() final;
         uint64_t read() final;
-        int getFd() final;
+        int getFd() const final;
 
     private:
         // Store file descriptors used by the communication pipe. Communication
