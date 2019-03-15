@@ -24,7 +24,7 @@
 // On macOS we use UNIX pipes to wake up select.
 //
 
-#include "IXEventFd.h"
+#include "IXSelectInterruptEventFd.h"
 
 #include <sys/eventfd.h>
 
