@@ -19,7 +19,6 @@ typedef SSIZE_T ssize_t;
 
 #include "IXCancellationRequest.h"
 #include "IXProgressCallback.h"
-#include "IXEventFd.h"
 
 namespace ix
 {
