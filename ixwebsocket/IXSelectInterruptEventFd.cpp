@@ -32,6 +32,7 @@
 #include <string.h> // for strerror
 #include <fcntl.h>
 #include <errno.h>
+#include <assert.h>
 #include <sstream>
 
 namespace ix
