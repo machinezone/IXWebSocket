@@ -5,16 +5,9 @@
  */
 
 #include <iostream>
+#include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXCancellationRequest.h>
-
-#if defined(__APPLE__) or defined(__linux__)
-# ifdef __APPLE__
-#  include <ixwebsocket/IXSocketAppleSSL.h>
-# else
-#  include <ixwebsocket/IXSocketOpenSSL.h>
-# endif
-#endif
 
 #include "IXTest.h"
 #include "catch.hpp"
@@ -63,7 +56,9 @@ TEST_CASE("socket", "[socket]")
 {
     SECTION("Connect to google HTTP server. Send GET request without header. Should return 200")
     {
-        std::shared_ptr<Socket> socket(new Socket);
+        std::string errMsg;
+        bool tls = false;
+        std::shared_ptr<Socket> socket = createSocket(tls, errMsg);
         std::string host("www.google.com");
         int port = 80;
 
@@ -82,11 +77,9 @@ TEST_CASE("socket", "[socket]")
 #if defined(__APPLE__) or defined(__linux__)
     SECTION("Connect to google HTTPS server. Send GET request without header. Should return 200")
     {
-# ifdef __APPLE__
-        std::shared_ptr<Socket> socket = std::make_shared<SocketAppleSSL>();
-# else
-        std::shared_ptr<Socket> socket = std::make_shared<SocketOpenSSL>();
-# endif
+        std::string errMsg;
+        bool tls = true;
+        std::shared_ptr<Socket> socket = createSocket(tls, errMsg);
         std::string host("www.google.com");
         int port = 443;
         std::string request("GET / HTTP/1.1\r\n\r\n");

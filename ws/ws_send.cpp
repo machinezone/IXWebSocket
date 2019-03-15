@@ -298,7 +298,6 @@ namespace ix
         bool throttle = false;
         bool enablePerMessageDeflate = false;
 
-        Socket::init();
         wsSend(url, path, enablePerMessageDeflate, throttle);
         return 0;
     }

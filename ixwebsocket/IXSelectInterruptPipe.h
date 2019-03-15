@@ -1,37 +1,39 @@
 /*
- *  IXEventFd.h
+ *  IXSelectInterruptPipe.h
  *  Author: Benjamin Sergeant
- *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2018-2019 Machine Zone, Inc. All rights reserved.
  */
 
 #pragma once
 
+#include "IXSelectInterrupt.h"
+
 #include <stdint.h>
+#include <string>
 
 namespace ix
 {
-    class EventFd {
+    class SelectInterruptPipe : public SelectInterrupt {
     public:
-        EventFd();
-        virtual ~EventFd();
+        SelectInterruptPipe();
+        virtual ~SelectInterruptPipe();
 
-        bool notify(uint64_t value);
-        bool clear();
-        uint64_t read();
-        int getFd();
+        bool init(std::string& errorMsg) final;
+
+        bool notify(uint64_t value) final;
+        bool clear() final;
+        uint64_t read() final;
+        int getFd() final;
 
     private:
-#if defined(__linux__)
-        int _eventfd;
-#else
         // Store file descriptors used by the communication pipe. Communication
         // happens between a control thread and a background thread, which is
         // blocked on select.
         int _fildes[2];
-#endif
 
         // Used to identify the read/write idx
         static const int kPipeReadIndex;
         static const int kPipeWriteIndex;
     };
 }
+

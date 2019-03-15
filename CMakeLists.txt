@@ -16,7 +16,6 @@ if (NOT WIN32)
 endif()
 
 set( IXWEBSOCKET_SOURCES
-    ixwebsocket/IXEventFd.cpp
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketServer.cpp
     ixwebsocket/IXSocketConnect.cpp
@@ -33,10 +32,11 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXWebSocketHttpHeaders.cpp
     ixwebsocket/IXHttpClient.cpp
     ixwebsocket/IXUrlParser.cpp
+    ixwebsocket/IXSelectInterrupt.cpp
+    ixwebsocket/IXSelectInterruptFactory.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
-    ixwebsocket/IXEventFd.h
     ixwebsocket/IXSocket.h
     ixwebsocket/IXSocketServer.h
     ixwebsocket/IXSocketConnect.h
@@ -58,15 +58,21 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/libwshandshake.hpp
     ixwebsocket/IXHttpClient.h
     ixwebsocket/IXUrlParser.h
+    ixwebsocket/IXSelectInterrupt.h
+    ixwebsocket/IXSelectInterruptFactory.h
 )
 
 # Platform specific code
 if (APPLE)
     list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/apple/IXSetThreadName_apple.cpp)
+    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSelectInterruptPipe.cpp)
+    list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSelectInterruptPipe.h)
 elseif (WIN32)
     list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/windows/IXSetThreadName_windows.cpp)
 else()
     list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/linux/IXSetThreadName_linux.cpp)
+    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSelectInterruptEventFd.cpp)
+    list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSelectInterruptEventFd.h)
 endif()
 
 if (USE_TLS)
