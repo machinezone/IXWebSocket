@@ -33,16 +33,15 @@ namespace ix
         Logger() << "errMsg: " << errMsg;
         REQUIRE(success);
 
-        std::cout << "Sending request: " << request
-                  << "to " << host << ":" << port
-                  << std::endl;
+        Logger() << "Sending request: " << request
+                 << "to " << host << ":" << port;
         REQUIRE(socket->writeBytes(request, isCancellationRequested));
 
         auto lineResult = socket->readLine(isCancellationRequested);
         auto lineValid = lineResult.first;
         auto line = lineResult.second;
 
-        std::cout << "read error: " << strerror(Socket::getErrno()) << std::endl;
+        Logger() << "read error: " << strerror(Socket::getErrno());
 
         REQUIRE(lineValid);
 
