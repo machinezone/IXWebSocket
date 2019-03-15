@@ -21,7 +21,7 @@ namespace ix
         virtual bool notify(uint64_t value);
         virtual bool clear();
         virtual uint64_t read();
-        virtual int getFd();
+        virtual int getFd() const;
     };
 }
 

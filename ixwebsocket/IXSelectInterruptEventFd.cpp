@@ -38,7 +38,7 @@ namespace ix
 {
     SelectInterruptEventFd::SelectInterruptEventFd()
     {
-        ;
+        _eventfd = -1;
     }
 
     SelectInterruptEventFd::~SelectInterruptEventFd()
@@ -48,7 +48,8 @@ namespace ix
 
     bool SelectInterruptEventFd::init(std::string& errorMsg)
     {
-        _eventfd = -1;
+        // calling init twice is a programming error
+        assert(_eventfd == -1);
 
         _eventfd = eventfd(0, 0);
         if (_eventfd < 0)
@@ -107,7 +108,7 @@ namespace ix
         return write(_eventfd, &value, sizeof(value)) == 8;
     }
 
-    int SelectInterruptEventFd::getFd()
+    int SelectInterruptEventFd::getFd() const
     {
         return _eventfd;
     }

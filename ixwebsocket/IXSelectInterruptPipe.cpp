@@ -25,7 +25,8 @@ namespace ix
 
     SelectInterruptPipe::SelectInterruptPipe()
     {
-        ;
+        _fildes[kPipeReadIndex] = -1;
+        _fildes[kPipeWriteIndex] = -1;
     }
 
     SelectInterruptPipe::~SelectInterruptPipe()
@@ -38,8 +39,9 @@ namespace ix
 
     bool SelectInterruptPipe::init(std::string& errorMsg)
     {
-        _fildes[kPipeReadIndex] = -1;
-        _fildes[kPipeWriteIndex] = -1;
+        // calling init twice is a programming error
+        assert(_fildes[kPipeReadIndex] == -1);
+        assert(_fildes[kPipeWriteIndex] == -1);
 
         if (pipe(_fildes) < 0)
         {
@@ -101,7 +103,7 @@ namespace ix
         return true;
     }
 
-    int SelectInterruptPipe::getFd()
+    int SelectInterruptPipe::getFd() const
     {
         return _fildes[kPipeReadIndex];
     }
