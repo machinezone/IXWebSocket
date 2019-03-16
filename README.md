@@ -124,7 +124,7 @@ HttpRequestArgs args;
 // Custom headers can be set
 WebSocketHttpHeaders headers;
 headers["Foo"] = "bar";
-args.extraHeaders = parseHeaders(headersData);
+args.extraHeaders = headers;
 
 // Timeout options
 args.connectTimeout = connectTimeout;
