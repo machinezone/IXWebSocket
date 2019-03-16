@@ -243,9 +243,15 @@ namespace ix
                 }
                 else if (pollResult == PollResultType_CloseRequest)
                 {
-                    ;
+                    _socket->close();
                 }
 
+                // Avoid a race condition where we get stuck in select
+                // while closing.
+                if (_readyState == CLOSING)
+                {
+                    _socket->close();
+                }
             },
             _heartBeatPeriod);
     }
