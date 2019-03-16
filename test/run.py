@@ -2,6 +2,39 @@ import os
 import platform
 import shutil
 
+import subprocess
+import threading
+
+
+class Command(object):
+    """Run system commands with timeout
+    
+    From http://www.bo-yang.net/2016/12/01/python-run-command-with-timeout
+    Python3 might have a builtin way to do that.
+    """
+    def __init__(self, cmd):
+        self.cmd = cmd
+        self.process = None
+
+    def run_command(self, capture = False):
+        self.process = subprocess.Popen(self.cmd, shell=True)
+        self.process.communicate()
+
+    def run(self, timeout = 5 * 60):
+        '''5 minutes default timeout'''
+        thread = threading.Thread(target=self.run_command, args=())
+        thread.start()
+        thread.join(timeout)
+
+        if thread.is_alive():
+            print 'Command timeout, kill it: ' + self.cmd
+            self.process.terminate()
+            thread.join()
+            return False, 255
+        else:
+            return True, self.process.returncode
+
+
 osName = platform.system()
 print('os name = {}'.format(osName))
 
@@ -81,5 +114,6 @@ shutil.copy(os.path.join(
 # lldb = "lldb --batch -o 'run' -k 'thread backtrace all' -k 'quit 1'"
 lldb = ""  # Disabled for now
 testCommand = '{} {} {}'.format(lldb, testBinary, os.getenv('TEST', ''))
-ret = os.system(testCommand)
+command = Command(testCommand)
+timedout, ret = command.run()
 assert ret == 0, 'Test command failed'

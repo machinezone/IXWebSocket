@@ -33,6 +33,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXHttpClient.cpp
     ixwebsocket/IXUrlParser.cpp
     ixwebsocket/IXSelectInterrupt.cpp
+    ixwebsocket/IXSelectInterruptPipe.cpp
     ixwebsocket/IXSelectInterruptFactory.cpp
 )
 
@@ -59,14 +60,13 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXHttpClient.h
     ixwebsocket/IXUrlParser.h
     ixwebsocket/IXSelectInterrupt.h
+    ixwebsocket/IXSelectInterruptPipe.h
     ixwebsocket/IXSelectInterruptFactory.h
 )
 
 # Platform specific code
 if (APPLE)
     list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/apple/IXSetThreadName_apple.cpp)
-    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSelectInterruptPipe.cpp)
-    list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSelectInterruptPipe.h)
 elseif (WIN32)
     list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/windows/IXSetThreadName_windows.cpp)
 else()
