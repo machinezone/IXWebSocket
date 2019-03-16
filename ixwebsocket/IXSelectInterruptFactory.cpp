@@ -6,9 +6,7 @@
 
 #include "IXSelectInterruptFactory.h"
 
-#if defined(__linux__)
-# include <ixwebsocket/IXSelectInterruptEventFd.h>
-#elif defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__)
 # include <ixwebsocket/IXSelectInterruptPipe.h>
 #else
 # include <ixwebsocket/IXSelectInterrupt.h>
@@ -18,9 +16,7 @@ namespace ix
 {
     std::shared_ptr<SelectInterrupt> createSelectInterrupt()
     {
-#if defined(__linux__)
-        return std::make_shared<SelectInterruptEventFd>();
-#elif defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__)
         return std::make_shared<SelectInterruptPipe>();
 #else
         return std::make_shared<SelectInterrupt>();
