@@ -379,7 +379,7 @@ websocket.ping("ping data, optional (empty string is ok): limited to 125 bytes l
 ### Heartbeat.
 
 You can configure an optional heart beat / keep-alive, sent every 45 seconds
-when there is not any traffic to make sure that load balancers do not kill an
+when there is no any traffic to make sure that load balancers do not kill an
 idle connection.
 
 ```
