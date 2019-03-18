@@ -204,7 +204,6 @@ namespace ix
                     {
                         // Wait with a 10ms timeout until the socket is ready to write.
                         // This way we are not busy looping
-                        int timeoutMs = 10;
                         PollResultType result = _socket->isReadyToWrite(0, 10);
                         if (result == PollResultType_Error)
                         {
