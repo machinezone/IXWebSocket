@@ -49,7 +49,7 @@ namespace ix
             return;
         }
 
-        PollResultType pollResult = isReadyToRead(timeoutSecs);
+        PollResultType pollResult = isReadyToRead(timeoutSecs, 0);
 
         if (onPollCallback) onPollCallback(pollResult);
     }
