@@ -183,7 +183,7 @@ There is a Dockerfile for running some code on Linux, and a unittest which can b
 You can build and install the ws command line tool with Homebrew.
 
 ```
-brew create --cmake https://github.com/machinezone/IXWebSocket/archive/v1.1.0.tar.gz
+brew tap bsergean/IXWebSocket
 brew install IXWebSocket
 ```
 
