@@ -246,7 +246,7 @@ namespace ix
         _webSocket.send(msg.dump(),
                         [throttle](int current, int total) -> bool
         {
-            std::cout << "Step " << current << " out of " << total << std::endl;
+            std::cout << "ws_send: Step " << current << " out of " << total << std::endl;
 
             if (throttle)
             {
@@ -260,7 +260,8 @@ namespace ix
         do
         {
             size_t bufferedAmount = _webSocket.bufferedAmount();
-            std::cout << bufferedAmount << " bytes left to be sent" << std::endl;
+            std::cout << "ws_send: " << bufferedAmount
+                      << " bytes left to be sent" << std::endl;
 
             std::chrono::duration<double, std::milli> duration(10);
             std::this_thread::sleep_for(duration);

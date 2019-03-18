@@ -44,13 +44,17 @@ int main(int argc, char** argv)
     int connectTimeOut = 60;
     int transferTimeout = 1800;
     int maxRedirects = 5;
+    int delayMs = -1;
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
     sendApp->add_option("path", path, "Path to the file to send")
         ->required()->check(CLI::ExistingPath);
+
     CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
     receiveApp->add_option("url", url, "Connection url")->required();
+    receiveApp->add_option("--delay", delayMs, "Delay (ms) to wait after receiving a fragment"
+                                               " to artificially slow down the receiver");
 
     CLI::App* transferApp = app.add_subcommand("transfer", "Broadcasting server");
     transferApp->add_option("--port", port, "Connection url");
@@ -114,7 +118,7 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("receive"))
     {
         bool enablePerMessageDeflate = false;
-        return ix::ws_receive_main(url, enablePerMessageDeflate);
+        return ix::ws_receive_main(url, enablePerMessageDeflate, delayMs);
     }
     else if (app.got_subcommand("connect"))
     {

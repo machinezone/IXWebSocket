@@ -34,7 +34,8 @@ namespace ix
     int ws_connect_main(const std::string& url);
 
     int ws_receive_main(const std::string& url,
-                        bool enablePerMessageDeflate);
+                        bool enablePerMessageDeflate,
+                        int delayMs);
 
     int ws_send_main(const std::string& url,
                      const std::string& path);

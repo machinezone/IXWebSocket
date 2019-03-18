@@ -49,22 +49,27 @@ namespace ix
             return;
         }
 
-        PollResultType pollResult = select(timeoutSecs, 0);
+        PollResultType pollResult = isReadyToRead(timeoutSecs);
 
         if (onPollCallback) onPollCallback(pollResult);
     }
 
-    PollResultType Socket::select(int timeoutSecs, int timeoutMs)
+    PollResultType Socket::select(bool readyToRead, int timeoutSecs, int timeoutMs)
     {
         fd_set rfds;
+        fd_set wfds;
         FD_ZERO(&rfds);
-        FD_SET(_sockfd, &rfds);
+        FD_ZERO(&wfds);
+
+        fd_set* fds = (readyToRead) ? &rfds : & wfds;
+
+        FD_SET(_sockfd, fds);
 
         // File descriptor used to interrupt select when needed
         int interruptFd = _selectInterrupt->getFd();
         if (interruptFd != -1)
         {
-            FD_SET(interruptFd, &rfds);
+            FD_SET(interruptFd, fds);
         }
 
         struct timeval timeout;
@@ -75,7 +80,7 @@ namespace ix
         int sockfd = _sockfd;
         int nfds = (std::max)(sockfd, interruptFd);
 
-        int ret = ::select(nfds + 1, &rfds, nullptr, nullptr,
+        int ret = ::select(nfds + 1, &rfds, &wfds, nullptr,
                            (timeoutSecs < 0) ? nullptr : &timeout);
 
         PollResultType pollResult = PollResultType_ReadyForRead;
@@ -87,7 +92,7 @@ namespace ix
         {
             pollResult = PollResultType_Timeout;
         }
-        else if (interruptFd != -1 && FD_ISSET(interruptFd, &rfds))
+        else if (interruptFd != -1 && FD_ISSET(interruptFd, fds))
         {
             uint64_t value = _selectInterrupt->read();
 
@@ -100,8 +105,32 @@ namespace ix
                 pollResult = PollResultType_CloseRequest;
             }
         }
+        else if (sockfd != -1 && FD_ISSET(sockfd, fds))
+        {
+            if (readyToRead)
+            {
+                pollResult = PollResultType_ReadyForRead;
+            }
+            else
+            {
+                pollResult = PollResultType_ReadyForWrite;
+            }
+        }
+
 
         return pollResult;
+    }
+
+    PollResultType Socket::isReadyToRead(int timeoutSecs, int timeoutMs)
+    {
+        bool readyToRead = true;
+        return select(readyToRead, timeoutSecs, timeoutMs);
+    }
+
+    PollResultType Socket::isReadyToWrite(int timeoutSecs, int timeoutMs)
+    {
+        bool readyToRead = false;
+        return select(readyToRead, timeoutSecs, timeoutMs);
     }
 
     // Wake up from poll/select by writing to the pipe which is watched by select
@@ -231,10 +260,9 @@ namespace ix
             else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
                                  getErrno() == EAGAIN))
             {
-                // Wait with a timeout until something is ready to read.
+                // Wait with a 1ms timeout until the socket is ready to read.
                 // This way we are not busy looping
-                int res = select(0, 1);
-                if (res < 0 && (errno == EBADF || errno == EINVAL))
+                if (isReadyToRead(0, 1) == PollResultType_Error)
                 {
                     return false;
                 }
@@ -301,9 +329,12 @@ namespace ix
 
             if (onProgressCallback) onProgressCallback((int) output.size(), (int) length);
 
-            // Wait with a timeout until something is ready to read.
+            // Wait with a 1ms timeout until the socket is ready to read.
             // This way we are not busy looping
-            select(0, 1);
+            if (isReadyToRead(0, 1) == PollResultType_Error)
+            {
+                return std::make_pair(false, std::string());
+            }
         }
 
         return std::make_pair(true, std::string(output.begin(),

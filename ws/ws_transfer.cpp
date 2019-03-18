@@ -54,7 +54,8 @@ namespace ix
                         }
                         else if (messageType == ix::WebSocket_MessageType_Fragment)
                         {
-                            std::cerr << "Received message fragment" << std::endl;
+                            std::cerr << "Received message fragment "
+                                      << std::endl;
                         }
                         else if (messageType == ix::WebSocket_MessageType_Message)
                         {
@@ -66,7 +67,7 @@ namespace ix
                                     client->send(str,
                                                  [](int current, int total) -> bool
                                     {
-                                        std::cerr << "Step " << current
+                                        std::cerr << "ws_transfer: Step " << current
                                                   << " out of " << total << std::endl;
                                         return true;
                                     });
@@ -74,7 +75,8 @@ namespace ix
                                     do
                                     {
                                         size_t bufferedAmount = client->bufferedAmount();
-                                        std::cerr << bufferedAmount << " bytes left to be sent" << std::endl;
+                                        std::cerr << "ws_transfer: " << bufferedAmount
+                                                  << " bytes left to be sent" << std::endl;
 
                                         std::chrono::duration<double, std::milli> duration(10);
                                         std::this_thread::sleep_for(duration);
