@@ -36,7 +36,7 @@ test_server:
 test:
 	python test/run.py
 
-ws_test:
+ws_test: all
 	(cd ws ; sh test_ws.sh)
 
 # For the fork that is configured with appveyor

@@ -26,7 +26,8 @@ namespace ix
     {
         public:
             WebSocketReceiver(const std::string& _url,
-                              bool enablePerMessageDeflate);
+                              bool enablePerMessageDeflate,
+                              int delayMs);
 
             void subscribe(const std::string& channel);
             void start();
@@ -41,6 +42,8 @@ namespace ix
             std::string _id;
             ix::WebSocket _webSocket;
             bool _enablePerMessageDeflate;
+            int _delayMs;
+            int _receivedFragmentCounter;
 
             std::mutex _conditionVariableMutex;
             std::condition_variable _condition;
@@ -51,9 +54,12 @@ namespace ix
     };
 
     WebSocketReceiver::WebSocketReceiver(const std::string& url,
-                                         bool enablePerMessageDeflate) :
+                                         bool enablePerMessageDeflate,
+                                         int delayMs) :
         _url(url),
-        _enablePerMessageDeflate(enablePerMessageDeflate)
+        _enablePerMessageDeflate(enablePerMessageDeflate),
+        _delayMs(delayMs),
+        _receivedFragmentCounter(0)
     {
         ;
     }
@@ -213,8 +219,15 @@ namespace ix
                 }
                 else if (messageType == ix::WebSocket_MessageType_Fragment)
                 {
-                    ss << "ws_receive: received fragment";
+                    ss << "ws_receive: received fragment " << _receivedFragmentCounter++;
                     log(ss.str());
+
+                    if (_delayMs > 0)
+                    {
+                        // Introduce an arbitrary delay, to simulate a slow connection
+                        std::chrono::duration<double, std::milli> duration(_delayMs);
+                        std::this_thread::sleep_for(duration);
+                    }
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
                 {
@@ -235,9 +248,10 @@ namespace ix
     }
 
     void wsReceive(const std::string& url,
-                   bool enablePerMessageDeflate)
+                   bool enablePerMessageDeflate,
+                   int delayMs)
     {
-        WebSocketReceiver webSocketReceiver(url, enablePerMessageDeflate);
+        WebSocketReceiver webSocketReceiver(url, enablePerMessageDeflate, delayMs);
         webSocketReceiver.start();
 
         webSocketReceiver.waitForConnection();
@@ -252,9 +266,10 @@ namespace ix
     }
 
     int ws_receive_main(const std::string& url,
-                        bool enablePerMessageDeflate)
+                        bool enablePerMessageDeflate,
+                        int delayMs)
     {
-        wsReceive(url, enablePerMessageDeflate);
+        wsReceive(url, enablePerMessageDeflate, delayMs);
         return 0;
     }
 }

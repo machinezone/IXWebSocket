@@ -77,6 +77,14 @@ namespace ix
             return false;
         }
 
+        //
+        // FIXME: on macOS we should configure the pipe to not trigger SIGPIPE
+        // on reads/writes to a closed fd
+        //
+        // The generation of the SIGPIPE signal can be suppressed using the
+        // F_SETNOSIGPIPE fcntl command.
+        //
+
         return true;
     }
 

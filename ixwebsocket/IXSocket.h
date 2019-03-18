@@ -28,10 +28,11 @@ namespace ix
     enum PollResultType
     {
         PollResultType_ReadyForRead = 0,
-        PollResultType_Timeout = 1,
-        PollResultType_Error = 2,
-        PollResultType_SendRequest = 3,
-        PollResultType_CloseRequest = 4
+        PollResultType_ReadyForWrite = 1,
+        PollResultType_Timeout = 2,
+        PollResultType_Error = 3,
+        PollResultType_SendRequest = 4,
+        PollResultType_CloseRequest = 5
     };
 
     class Socket {
@@ -44,10 +45,14 @@ namespace ix
 
         void configure();
 
-        PollResultType select(int timeoutSecs, int timeoutMs);
-        virtual void poll(const OnPollCallback& onPollCallback,
-                          int timeoutSecs = kDefaultPollTimeout);
-        virtual bool wakeUpFromPoll(uint8_t wakeUpCode);
+        // Functions to check whether there is activity on the socket
+        void poll(const OnPollCallback& onPollCallback,
+                  int timeoutSecs = kDefaultPollTimeout);
+        bool wakeUpFromPoll(uint8_t wakeUpCode);
+
+        PollResultType select(bool readyToRead, int timeoutSecs, int timeoutMs);
+        PollResultType isReadyToWrite(int timeoutSecs, int timeoutMs = 0);
+        PollResultType isReadyToRead(int timeoutSecs, int timeoutMs = 0);
 
         // Virtual methods
         virtual bool connect(const std::string& url,
