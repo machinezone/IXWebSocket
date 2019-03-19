@@ -211,7 +211,8 @@ namespace ix
                             setReadyState(CLOSED);
                             break;
                         }
-                        else if (result == PollResultType_ReadyForWrite)
+                        // FIXME: why are we not getting PollResultType_ReadyForWrite ??
+                        else // if (result == PollResultType_ReadyForWrite)
                         {
                             sendOnSocket();
                         }

@@ -50,11 +50,13 @@ int main(int argc, char** argv)
     sendApp->add_option("url", url, "Connection url")->required();
     sendApp->add_option("path", path, "Path to the file to send")
         ->required()->check(CLI::ExistingPath);
+    sendApp->add_option("--pidfile", pidfile, "Pid file");
 
     CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
     receiveApp->add_option("url", url, "Connection url")->required();
     receiveApp->add_option("--delay", delayMs, "Delay (ms) to wait after receiving a fragment"
                                                " to artificially slow down the receiver");
+    receiveApp->add_option("--pidfile", pidfile, "Pid file");
 
     CLI::App* transferApp = app.add_subcommand("transfer", "Broadcasting server");
     transferApp->add_option("--port", port, "Connection url");
@@ -96,19 +98,19 @@ int main(int argc, char** argv)
 
     CLI11_PARSE(app, argc, argv);
 
+    // pid file handling
+    if (!pidfile.empty())
+    {
+        unlink(pidfile.c_str());
+
+        std::ofstream f;
+        f.open(pidfile);
+        f << getpid();
+        f.close();
+    }
+
     if (app.got_subcommand("transfer"))
     {
-        // pid file handling
-        if (!pidfile.empty())
-        {
-            unlink(pidfile.c_str());
-
-            std::ofstream f;
-            f.open(pidfile);
-            f << getpid();
-            f.close();
-        }
-
         return ix::ws_transfer_main(port, hostname);
     }
     else if (app.got_subcommand("send"))
