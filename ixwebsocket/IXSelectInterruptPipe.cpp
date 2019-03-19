@@ -122,6 +122,7 @@ namespace ix
 
         uint64_t value = 0;
         ::read(fd, &value, sizeof(value));
+
         return value;
     }
 

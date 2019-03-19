@@ -1,5 +1,15 @@
 #!/bin/sh
 
+# Handle Ctrl-C by killing all sub-processing AND exiting
+trap cleanup INT
+
+function cleanup {
+    kill `cat /tmp/ws_test/pidfile.transfer`
+    kill `cat /tmp/ws_test/pidfile.receive`
+    kill `cat /tmp/ws_test/pidfile.send`
+    exit 1
+}
+
 rm -rf /tmp/ws_test
 mkdir -p /tmp/ws_test
 
@@ -21,11 +31,11 @@ done
 # Start a receiver
 mkdir -p /tmp/ws_test/receive
 cd /tmp/ws_test/receive
-ws receive --delay 5 ws://127.0.0.1:8090 --pidfile /tmp/ws_test/pidfile.receive &
+ws receive --delay 10 ws://127.0.0.1:8090 --pidfile /tmp/ws_test/pidfile.receive &
 
 mkdir /tmp/ws_test/send
 cd /tmp/ws_test/send
-dd if=/dev/urandom of=20M_file count=10000 bs=1024
+dd if=/dev/urandom of=20M_file count=20000 bs=1024
 
 # Start the sender job
 ws send --pidfile /tmp/ws_test/pidfile.send ws://127.0.0.1:8090 20M_file

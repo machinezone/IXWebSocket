@@ -62,7 +62,6 @@ namespace ix
         FD_ZERO(&wfds);
 
         fd_set* fds = (readyToRead) ? &rfds : & wfds;
-
         FD_SET(_sockfd, fds);
 
         // File descriptor used to interrupt select when needed
@@ -75,9 +74,6 @@ namespace ix
         struct timeval timeout;
         timeout.tv_sec = timeoutMs / 1000;
         timeout.tv_usec = (timeoutMs < 1000) ? 0 : 1000 * (timeoutMs % 1000);
-
-        //std::cerr << "timeout.tv_sec = " << timeout.tv_sec << std::endl;
-        //std::cerr << "timeout.tv_usec = " << timeout.tv_sec << std::endl;
 
         // Compute the highest fd.
         int sockfd = _sockfd;
@@ -95,7 +91,7 @@ namespace ix
         {
             pollResult = PollResultType_Timeout;
         }
-        else if (interruptFd != -1 && FD_ISSET(interruptFd, fds))
+        else if (interruptFd != -1 && FD_ISSET(interruptFd, &rfds))
         {
             uint64_t value = _selectInterrupt->read();
 
@@ -108,18 +104,14 @@ namespace ix
                 pollResult = PollResultType_CloseRequest;
             }
         }
-        else if (sockfd != -1 && FD_ISSET(sockfd, fds))
+        else if (sockfd != -1 && readyToRead && FD_ISSET(sockfd, &rfds))
         {
-            if (readyToRead)
-            {
-                pollResult = PollResultType_ReadyForRead;
-            }
-            else
-            {
-                pollResult = PollResultType_ReadyForWrite;
-            }
+            pollResult = PollResultType_ReadyForRead;
         }
-
+        else if (sockfd != -1 && !readyToRead && FD_ISSET(sockfd, &wfds))
+        {
+            pollResult = PollResultType_ReadyForWrite;
+        }
 
         return pollResult;
     }

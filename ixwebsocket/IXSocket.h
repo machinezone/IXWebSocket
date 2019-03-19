@@ -50,7 +50,6 @@ namespace ix
                   int timeoutSecs = kDefaultPollTimeout);
         bool wakeUpFromPoll(uint8_t wakeUpCode);
 
-        PollResultType select(bool readyToRead, int timeoutMs);
         PollResultType isReadyToWrite(int timeoutMs);
         PollResultType isReadyToRead(int timeoutMs);
 
@@ -92,6 +91,8 @@ namespace ix
         std::mutex _socketMutex;
 
     private:
+        PollResultType select(bool readyToRead, int timeoutMs);
+
         static const int kDefaultPollTimeout;
         static const int kDefaultPollNoTimeout;
 
