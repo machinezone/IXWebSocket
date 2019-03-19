@@ -50,9 +50,9 @@ namespace ix
                   int timeoutSecs = kDefaultPollTimeout);
         bool wakeUpFromPoll(uint8_t wakeUpCode);
 
-        PollResultType select(bool readyToRead, int timeoutSecs, int timeoutMs);
-        PollResultType isReadyToWrite(int timeoutSecs, int timeoutMs);
-        PollResultType isReadyToRead(int timeoutSecs, int timeoutMs);
+        PollResultType select(bool readyToRead, int timeoutMs);
+        PollResultType isReadyToWrite(int timeoutMs);
+        PollResultType isReadyToRead(int timeoutMs);
 
         // Virtual methods
         virtual bool connect(const std::string& url,

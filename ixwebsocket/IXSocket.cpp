@@ -49,12 +49,12 @@ namespace ix
             return;
         }
 
-        PollResultType pollResult = isReadyToRead(timeoutSecs, 0);
+        PollResultType pollResult = isReadyToRead(1000 * timeoutSecs);
 
         if (onPollCallback) onPollCallback(pollResult);
     }
 
-    PollResultType Socket::select(bool readyToRead, int timeoutSecs, int timeoutMs)
+    PollResultType Socket::select(bool readyToRead, int timeoutMs)
     {
         fd_set rfds;
         fd_set wfds;
@@ -73,15 +73,18 @@ namespace ix
         }
 
         struct timeval timeout;
-        timeout.tv_sec = timeoutSecs;
-        timeout.tv_usec = 1000 * timeoutMs;
+        timeout.tv_sec = timeoutMs / 1000;
+        timeout.tv_usec = (timeoutMs < 1000) ? 0 : 1000 * (timeoutMs % 1000);
+
+        //std::cerr << "timeout.tv_sec = " << timeout.tv_sec << std::endl;
+        //std::cerr << "timeout.tv_usec = " << timeout.tv_sec << std::endl;
 
         // Compute the highest fd.
         int sockfd = _sockfd;
         int nfds = (std::max)(sockfd, interruptFd);
 
         int ret = ::select(nfds + 1, &rfds, &wfds, nullptr,
-                           (timeoutSecs < 0) ? nullptr : &timeout);
+                           (timeoutMs < 0) ? nullptr : &timeout);
 
         PollResultType pollResult = PollResultType_ReadyForRead;
         if (ret < 0)
@@ -121,16 +124,16 @@ namespace ix
         return pollResult;
     }
 
-    PollResultType Socket::isReadyToRead(int timeoutSecs, int timeoutMs)
+    PollResultType Socket::isReadyToRead(int timeoutMs)
     {
         bool readyToRead = true;
-        return select(readyToRead, timeoutSecs, timeoutMs);
+        return select(readyToRead, timeoutMs);
     }
 
-    PollResultType Socket::isReadyToWrite(int timeoutSecs, int timeoutMs)
+    PollResultType Socket::isReadyToWrite(int timeoutMs)
     {
         bool readyToRead = false;
-        return select(readyToRead, timeoutSecs, timeoutMs);
+        return select(readyToRead, timeoutMs);
     }
 
     // Wake up from poll/select by writing to the pipe which is watched by select
@@ -262,7 +265,7 @@ namespace ix
             {
                 // Wait with a 1ms timeout until the socket is ready to read.
                 // This way we are not busy looping
-                if (isReadyToRead(0, 1) == PollResultType_Error)
+                if (isReadyToRead(1) == PollResultType_Error)
                 {
                     return false;
                 }
@@ -331,7 +334,7 @@ namespace ix
 
             // Wait with a 1ms timeout until the socket is ready to read.
             // This way we are not busy looping
-            if (isReadyToRead(0, 1) == PollResultType_Error)
+            if (isReadyToRead(1) == PollResultType_Error)
             {
                 return std::make_pair(false, std::string());
             }
