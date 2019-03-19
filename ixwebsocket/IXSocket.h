@@ -25,14 +25,14 @@ namespace ix
 {
     class SelectInterrupt;
 
-    enum PollResultType
+    enum class PollResultType
     {
-        PollResultType_ReadyForRead = 0,
-        PollResultType_ReadyForWrite = 1,
-        PollResultType_Timeout = 2,
-        PollResultType_Error = 3,
-        PollResultType_SendRequest = 4,
-        PollResultType_CloseRequest = 5
+        ReadyForRead = 0,
+        ReadyForWrite = 1,
+        Timeout = 2,
+        Error = 3,
+        SendRequest = 4,
+        CloseRequest = 5
     };
 
     class Socket {

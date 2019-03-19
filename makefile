@@ -39,7 +39,7 @@ test:
 	python test/run.py
 
 ws_test: all
-	(cd ws ; sh test_ws.sh)
+	(cd ws ; bash test_ws.sh)
 
 # For the fork that is configured with appveyor
 rebase_upstream:

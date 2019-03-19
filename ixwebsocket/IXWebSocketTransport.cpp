@@ -189,7 +189,7 @@ namespace ix
                 // If (1) heartbeat is enabled, and (2) no data was received or
                 // send for a duration exceeding our heart-beat period, send a
                 // ping to the server.
-                if (pollResult == PollResultType_Timeout &&
+                if (pollResult == PollResultType::Timeout &&
                     heartBeatPeriodExceeded())
                 {
                     std::stringstream ss;
@@ -198,7 +198,7 @@ namespace ix
                 }
                 // Make sure we send all the buffered data
                 // there can be a lot of it for large messages.
-                else if (pollResult == PollResultType_SendRequest)
+                else if (pollResult == PollResultType::SendRequest)
                 {
                     while (!isSendBufferEmpty() && !_requestInitCancellation)
                     {
@@ -206,19 +206,19 @@ namespace ix
                         // This way we are not busy looping
                         PollResultType result = _socket->isReadyToWrite(10);
 
-                        if (result == PollResultType_Error)
+                        if (result == PollResultType::Error)
                         {
                             _socket->close();
                             setReadyState(CLOSED);
                             break;
                         }
-                        else if (result == PollResultType_ReadyForWrite)
+                        else if (result == PollResultType::ReadyForWrite)
                         {
                             sendOnSocket();
                         }
                     }
                 }
-                else if (pollResult == PollResultType_ReadyForRead)
+                else if (pollResult == PollResultType::ReadyForRead)
                 {
                     while (true)
                     {
@@ -244,11 +244,11 @@ namespace ix
                         }
                     }
                 }
-                else if (pollResult == PollResultType_Error)
+                else if (pollResult == PollResultType::Error)
                 {
                     _socket->close();
                 }
-                else if (pollResult == PollResultType_CloseRequest)
+                else if (pollResult == PollResultType::CloseRequest)
                 {
                     _socket->close();
                 }
