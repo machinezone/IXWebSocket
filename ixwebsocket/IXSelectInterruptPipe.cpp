@@ -56,7 +56,7 @@ namespace ix
         if (fcntl(_fildes[kPipeReadIndex], F_SETFL, O_NONBLOCK) == -1)
         {
             std::stringstream ss;
-            ss << "SelectInterruptPipe::init() failed in fcntl() call"
+            ss << "SelectInterruptPipe::init() failed in fcntl(..., O_NONBLOCK) call"
                << " : " << strerror(errno);
             errorMsg = ss.str();
 
@@ -68,7 +68,7 @@ namespace ix
         if (fcntl(_fildes[kPipeWriteIndex], F_SETFL, O_NONBLOCK) == -1)
         {
             std::stringstream ss;
-            ss << "SelectInterruptPipe::init() failed in fcntl() call"
+            ss << "SelectInterruptPipe::init() failed in fcntl(..., O_NONBLOCK) call"
                << " : " << strerror(errno);
             errorMsg = ss.str();
 
@@ -77,13 +77,31 @@ namespace ix
             return false;
         }
 
-        //
-        // FIXME: on macOS we should configure the pipe to not trigger SIGPIPE
-        // on reads/writes to a closed fd
-        //
-        // The generation of the SIGPIPE signal can be suppressed using the
-        // F_SETNOSIGPIPE fcntl command.
-        //
+#ifdef F_SETNOSIGPIPE
+        if (fcntl(_fildes[kPipeWriteIndex], F_SETNOSIGPIPE, 1) == -1)
+        {
+            std::stringstream ss;
+            ss << "SelectInterruptPipe::init() failed in fcntl(.... F_SETNOSIGPIPE) call"
+               << " : " << strerror(errno);
+            errorMsg = ss.str();
+
+            _fildes[kPipeReadIndex] = -1;
+            _fildes[kPipeWriteIndex] = -1;
+            return false;
+        }
+
+        if (fcntl(_fildes[kPipeWriteIndex], F_SETNOSIGPIPE, 1) == -1)
+        {
+            std::stringstream ss;
+            ss << "SelectInterruptPipe::init() failed in fcntl(..., F_SETNOSIGPIPE) call"
+               << " : " << strerror(errno);
+            errorMsg = ss.str();
+
+            _fildes[kPipeReadIndex] = -1;
+            _fildes[kPipeWriteIndex] = -1;
+            return false;
+        }
+#endif
 
         return true;
     }
