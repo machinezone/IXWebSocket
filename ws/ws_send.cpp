@@ -162,6 +162,7 @@ namespace ix
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
                 {
+                    ss << "ws_send ";
                     ss << "Connection error: " << error.reason      << std::endl;
                     ss << "#retries: "         << error.retries     << std::endl;
                     ss << "Wait time(ms): "    << error.wait_time   << std::endl;
