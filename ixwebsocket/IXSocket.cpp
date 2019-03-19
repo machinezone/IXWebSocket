@@ -45,7 +45,7 @@ namespace ix
     {
         if (_sockfd == -1)
         {
-            if (onPollCallback) onPollCallback(PollResultType_Error);
+            if (onPollCallback) onPollCallback(PollResultType::Error);
             return;
         }
 
@@ -82,14 +82,14 @@ namespace ix
         int ret = ::select(nfds + 1, &rfds, &wfds, nullptr,
                            (timeoutMs < 0) ? nullptr : &timeout);
 
-        PollResultType pollResult = PollResultType_ReadyForRead;
+        PollResultType pollResult = PollResultType::ReadyForRead;
         if (ret < 0)
         {
-            pollResult = PollResultType_Error;
+            pollResult = PollResultType::Error;
         }
         else if (ret == 0)
         {
-            pollResult = PollResultType_Timeout;
+            pollResult = PollResultType::Timeout;
         }
         else if (interruptFd != -1 && FD_ISSET(interruptFd, &rfds))
         {
@@ -97,20 +97,20 @@ namespace ix
 
             if (value == kSendRequest)
             {
-                pollResult = PollResultType_SendRequest;
+                pollResult = PollResultType::SendRequest;
             }
             else if (value == kCloseRequest)
             {
-                pollResult = PollResultType_CloseRequest;
+                pollResult = PollResultType::CloseRequest;
             }
         }
         else if (sockfd != -1 && readyToRead && FD_ISSET(sockfd, &rfds))
         {
-            pollResult = PollResultType_ReadyForRead;
+            pollResult = PollResultType::ReadyForRead;
         }
         else if (sockfd != -1 && !readyToRead && FD_ISSET(sockfd, &wfds))
         {
-            pollResult = PollResultType_ReadyForWrite;
+            pollResult = PollResultType::ReadyForWrite;
         }
 
         return pollResult;
@@ -257,7 +257,7 @@ namespace ix
             {
                 // Wait with a 1ms timeout until the socket is ready to read.
                 // This way we are not busy looping
-                if (isReadyToRead(1) == PollResultType_Error)
+                if (isReadyToRead(1) == PollResultType::Error)
                 {
                     return false;
                 }
@@ -326,7 +326,7 @@ namespace ix
 
             // Wait with a 1ms timeout until the socket is ready to read.
             // This way we are not busy looping
-            if (isReadyToRead(1) == PollResultType_Error)
+            if (isReadyToRead(1) == PollResultType::Error)
             {
                 return std::make_pair(false, std::string());
             }
