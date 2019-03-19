@@ -5,7 +5,7 @@ mkdir -p /tmp/ws_test
 
 # Start a transport server
 cd /tmp/ws_test
-ws transfer --port 8090 --pidfile /tmp/ws_test/pidfile &
+ws transfer --port 8090 --pidfile /tmp/ws_test/pidfile.transfer &
 
 # Wait until the transfer server is up 
 while true
@@ -14,21 +14,21 @@ do
         echo "Transfer server up and running"
         break
     }
-    echo "sleep ..."
+    echo "sleep ... wait for transfer server"
     sleep 0.1
 done
 
 # Start a receiver
 mkdir -p /tmp/ws_test/receive
 cd /tmp/ws_test/receive
-ws receive --delay 5 ws://127.0.0.1:8090 &
+ws receive --delay 5 ws://127.0.0.1:8090 --pidfile /tmp/ws_test/pidfile.receive &
 
 mkdir /tmp/ws_test/send
 cd /tmp/ws_test/send
-dd if=/dev/urandom of=20M_file count=20000 bs=1024
+dd if=/dev/urandom of=20M_file count=10000 bs=1024
 
 # Start the sender job
-ws send ws://127.0.0.1:8090 20M_file
+ws send --pidfile /tmp/ws_test/pidfile.send ws://127.0.0.1:8090 20M_file
 
 # Wait until the file has been written to disk
 while true
@@ -37,7 +37,7 @@ do
         echo "Received file does exists, exiting loop"
         break
     fi
-    echo "sleep ..."
+    echo "sleep ... wait for output file"
     sleep 0.1
 done
 
@@ -48,4 +48,7 @@ cksum /tmp/ws_test/receive/20M_file
 sleep 2
 
 # Cleanup
-kill `cat /tmp/ws_test/pidfile`
+kill `cat /tmp/ws_test/pidfile.transfer`
+kill `cat /tmp/ws_test/pidfile.receive`
+kill `cat /tmp/ws_test/pidfile.send`
+
