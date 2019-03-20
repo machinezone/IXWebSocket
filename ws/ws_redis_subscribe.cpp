@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <chrono>
 #include "IXRedisClient.h"
 
 namespace ix
@@ -21,9 +22,35 @@ namespace ix
             return 1;
         }
 
-        auto callback = [](const std::string& message)
+        std::chrono::time_point<std::chrono::steady_clock> lastTimePoint;
+        int msgPerSeconds = 0;
+        int msgCount = 0;
+        bool verbose = false;
+
+        auto callback = [&lastTimePoint, &msgPerSeconds, &msgCount, verbose]
+                         (const std::string& message)
         {
-           std::cout << message << std::endl;
+            if (verbose)
+            {
+                std::cout << message << std::endl;
+            }
+
+            msgPerSeconds++;
+
+            auto now = std::chrono::steady_clock::now();
+            if (now - lastTimePoint > std::chrono::seconds(1))
+            {
+                lastTimePoint = std::chrono::steady_clock::now();
+
+                msgCount += msgPerSeconds;
+
+                // #messages 901 msg/s 150
+                std::cout << "#messages " << msgCount << " "
+                          << "msg/s " << msgPerSeconds
+                          << std::endl;
+
+                msgPerSeconds = 0;
+            }
         };
 
         std::cerr << "Subscribing to " << channel << "..." << std::endl;

@@ -8,7 +8,6 @@
 #include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXSocket.h>
 
-#include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <vector>
@@ -49,17 +48,22 @@ namespace ix
             return false;
         }
 
-        auto pollResult = _socket->isReadyToRead(1000);
+        auto pollResult = _socket->isReadyToRead(-1);
+        if (pollResult == PollResultType::Error)
+        {
+            return false;
+        }
 
         auto lineResult = _socket->readLine(nullptr);
         auto lineValid = lineResult.first;
         auto line = lineResult.second;
 
-        std::cout << "line: " << line << std::endl;
-
         return lineValid;
     }
 
+    //
+    // FIXME: we assume that redis never return errors...
+    //
     bool RedisClient::subscribe(const std::string& channel,
                                 const OnRedisSubscribeCallback& callback)
     {
@@ -77,12 +81,18 @@ namespace ix
         }
 
         // Wait 1s for the response
-        auto pollResult = _socket->isReadyToRead(1000);
+        auto pollResult = _socket->isReadyToRead(-1);
+        if (pollResult == PollResultType::Error)
+        {
+            return false;
+        }
 
         // Read the first line of the response
         auto lineResult = _socket->readLine(nullptr);
         auto lineValid = lineResult.first;
         auto line = lineResult.second;
+
+        if (!lineValid) return false;
 
         // There are 5 items for the subscribe repply
         for (int i = 0; i < 5; ++i)
@@ -90,16 +100,27 @@ namespace ix
             auto lineResult = _socket->readLine(nullptr);
             auto lineValid = lineResult.first;
             auto line = lineResult.second;
+
+            if (!lineValid) return false;
         }
 
         // Wait indefinitely for new messages
         while (true)
         {
+            // Wait until something is ready to read
             auto pollResult = _socket->isReadyToRead(-1);
+            if (pollResult == PollResultType::Error)
+            {
+                return false;
+            }
 
+            // The first line of the response describe the return type, 
+            // => *3 (an array of 3 elements)
             auto lineResult = _socket->readLine(nullptr);
             auto lineValid = lineResult.first;
             auto line = lineResult.second;
+
+            if (!lineValid) return false;
 
             int arraySize;
             {
@@ -115,12 +136,18 @@ namespace ix
                 auto lineValid = lineResult.first;
                 auto line = lineResult.second;
 
+                if (!lineValid) return false;
+
+                // Messages are string, which start with a string size
+                // => $7 (7 bytes)
                 int stringSize;
                 std::stringstream ss;
                 ss << line.substr(1, line.size()-1);
                 ss >> stringSize;
 
                 auto readResult = _socket->readBytes(stringSize, nullptr, nullptr);
+                if (!readResult.first) return false;
+
                 if (i == 2)
                 {
                     // The message is the 3rd element.
@@ -134,6 +161,6 @@ namespace ix
             }
         }
 
-        return lineValid;
+        return true;
     }
 }
