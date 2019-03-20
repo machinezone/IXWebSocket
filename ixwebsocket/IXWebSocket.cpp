@@ -79,10 +79,10 @@ namespace ix
         return _perMessageDeflateOptions;
     }
 
-    void WebSocket::setHeartBeatPeriod(int hearBeatPeriod)
+    void WebSocket::setHeartBeatPeriod(int heartBeatPeriod)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
-        _heartBeatPeriod = hearBeatPeriod;
+        _heartBeatPeriod = heartBeatPeriod;
     }
 
     int WebSocket::getHeartBeatPeriod() const

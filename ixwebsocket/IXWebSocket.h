@@ -89,7 +89,7 @@ namespace ix
         void setUrl(const std::string& url);
         void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         void setHandshakeTimeout(int handshakeTimeoutSecs);
-        void setHeartBeatPeriod(int hearBeatPeriod);
+        void setHeartBeatPeriod(int heartBeatPeriod);
 
         // Run asynchronously, by calling start and stop.
         void start();

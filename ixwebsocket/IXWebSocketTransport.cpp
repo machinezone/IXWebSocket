@@ -53,7 +53,7 @@
 
 namespace ix
 {
-    const std::string WebSocketTransport::kHeartBeatPingMessage("ixwebsocket::hearbeat");
+    const std::string WebSocketTransport::kHeartBeatPingMessage("ixwebsocket::heartbeat");
     const int WebSocketTransport::kDefaultHeartBeatPeriod(-1);
     constexpr size_t WebSocketTransport::kChunkSize;
 
@@ -75,11 +75,11 @@ namespace ix
     }
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                                       int hearBeatPeriod)
+                                       int heartBeatPeriod)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
-        _heartBeatPeriod = hearBeatPeriod;
+        _heartBeatPeriod = heartBeatPeriod;
     }
 
     // Client
