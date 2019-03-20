@@ -15,6 +15,21 @@ namespace ix
                               const std::string& channel,
                               const std::string& message)
     {
+        RedisClient redisClient;
+        if (!redisClient.connect(hostname, port))
+        {
+            std::cerr << "Cannot connect to redis host" << std::endl;
+            return 1;
+        }
+
+        std::cerr << "Publishing message " << message
+                  << " to " << channel << "..." << std::endl;
+        if (!redisClient.publish(channel, message))
+        {
+            std::cerr << "Error publishing message to redis" << std::endl;
+            return 1;
+        }
+
         return 0;
     }
 }

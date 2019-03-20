@@ -210,7 +210,7 @@ namespace ix
     {
         while (true)
         {
-            if (isCancellationRequested()) return false;
+            if (isCancellationRequested && isCancellationRequested()) return false;
 
             char* buffer = const_cast<char*>(str.c_str());
             int len = (int) str.size();
@@ -222,7 +222,7 @@ namespace ix
             {
                 return ret == len;
             }
-            // There is possibly something to be write, try again
+            // There is possibly something to be writen, try again
             else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
                                  getErrno() == EAGAIN))
             {
@@ -241,7 +241,7 @@ namespace ix
     {
         while (true)
         {
-            if (isCancellationRequested()) return false;
+            if (isCancellationRequested && isCancellationRequested()) return false;
 
             ssize_t ret;
             ret = recv(buffer, 1);

@@ -6,16 +6,21 @@
 
 #pragma once
 
-#include <ixwebsocket/IXSocket.h>
+#include <memory>
 
 namespace ix
 {
+    class Socket;
+
     class RedisClient {
     public:
-        RedisClient();
-        ~RedisClient();
+        RedisClient() = default;
+        ~RedisClient() = default;
 
         bool connect(const std::string& hostname, int port);
+
+        bool publish(const std::string& channel,
+                     const std::string& message);
 
     private:
         std::shared_ptr<Socket> _socket;

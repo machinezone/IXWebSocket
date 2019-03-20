@@ -73,7 +73,7 @@ namespace ix
         errMsg = "no error";
 
         // Maybe a cancellation request got in before the background thread terminated ?
-        if (isCancellationRequested())
+        if (isCancellationRequested && isCancellationRequested())
         {
             errMsg = "cancellation requested";
             return nullptr;
@@ -121,7 +121,7 @@ namespace ix
             }
 
             // Were we cancelled ?
-            if (isCancellationRequested())
+            if (isCancellationRequested && isCancellationRequested())
             {
                 errMsg = "cancellation requested";
                 return nullptr;
@@ -129,7 +129,7 @@ namespace ix
         }
 
         // Maybe a cancellation request got in before the bg terminated ?
-        if (isCancellationRequested())
+        if (isCancellationRequested && isCancellationRequested())
         {
             errMsg = "cancellation requested";
             return nullptr;

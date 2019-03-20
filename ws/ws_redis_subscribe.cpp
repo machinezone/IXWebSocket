@@ -14,6 +14,13 @@ namespace ix
                                 int port,
                                 const std::string& channel)
     {
+        RedisClient redisClient;
+        if (!redisClient.connect(hostname, port))
+        {
+            std::cerr << "Cannot connect to redis host" << std::endl;
+            return 1;
+        }
+
         return 0;
     }
 }
