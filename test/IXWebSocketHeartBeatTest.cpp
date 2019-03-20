@@ -65,7 +65,7 @@ namespace
         _webSocket.setUrl(url);
 
         // The important bit for this test.
-        // Set a 1 second hearbeat ; if no traffic is present on the connection for 1 second
+        // Set a 1 second heartbeat ; if no traffic is present on the connection for 1 second
         // a ping message will be sent by the client.
         _webSocket.setHeartBeatPeriod(1);
 

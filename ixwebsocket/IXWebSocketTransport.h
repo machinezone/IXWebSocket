@@ -61,7 +61,7 @@ namespace ix
         ~WebSocketTransport();
 
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                       int hearBeatPeriod);
+                       int heartBeatPeriod);
 
         WebSocketInitResult connectToUrl(const std::string& url, // Client
                                          int timeoutSecs);
@@ -148,7 +148,7 @@ namespace ix
         mutable std::mutex _lastSendTimePointMutex;
         std::chrono::time_point<std::chrono::steady_clock> _lastSendTimePoint;
 
-        // No data was send through the socket for longer that the hearbeat period
+        // No data was send through the socket for longer that the heartbeat period
         bool heartBeatPeriodExceeded();
 
         void sendOnSocket();
