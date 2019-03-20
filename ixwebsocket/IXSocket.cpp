@@ -210,7 +210,7 @@ namespace ix
     {
         while (true)
         {
-            if (isCancellationRequested()) return false;
+            if (isCancellationRequested && isCancellationRequested()) return false;
 
             char* buffer = const_cast<char*>(str.c_str());
             int len = (int) str.size();
@@ -222,7 +222,7 @@ namespace ix
             {
                 return ret == len;
             }
-            // There is possibly something to be write, try again
+            // There is possibly something to be writen, try again
             else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
                                  getErrno() == EAGAIN))
             {
@@ -241,7 +241,7 @@ namespace ix
     {
         while (true)
         {
-            if (isCancellationRequested()) return false;
+            if (isCancellationRequested && isCancellationRequested()) return false;
 
             ssize_t ret;
             ret = recv(buffer, 1);
@@ -304,9 +304,12 @@ namespace ix
         std::vector<uint8_t> output;
         while (output.size() != length)
         {
-            if (isCancellationRequested()) return std::make_pair(false, std::string());
+            if (isCancellationRequested && isCancellationRequested())
+            {
+                return std::make_pair(false, std::string());
+            }
 
-            int size = std::min(kChunkSize, length - output.size());
+            size_t size = std::min(kChunkSize, length - output.size());
             ssize_t ret = recv((char*)&_readBuffer[0], size);
 
             if (ret <= 0 && (getErrno() != EWOULDBLOCK &&

@@ -15,6 +15,10 @@ if (NOT WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
+endif()
+
 set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketServer.cpp
