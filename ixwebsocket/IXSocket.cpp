@@ -306,7 +306,7 @@ namespace ix
         {
             if (isCancellationRequested()) return std::make_pair(false, std::string());
 
-            int size = std::min(kChunkSize, length - output.size());
+            size_t size = std::min(kChunkSize, length - output.size());
             ssize_t ret = recv((char*)&_readBuffer[0], size);
 
             if (ret <= 0 && (getErrno() != EWOULDBLOCK &&
