@@ -26,7 +26,7 @@ namespace ix
                   << " to " << channel << "..." << std::endl;
         if (!redisClient.publish(channel, message))
         {
-            std::cerr << "Error publishing message to redis" << std::endl;
+            std::cerr << "Error publishing to channel " << channel << std::endl;
             return 1;
         }
 

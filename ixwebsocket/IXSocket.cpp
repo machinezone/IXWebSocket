@@ -304,7 +304,10 @@ namespace ix
         std::vector<uint8_t> output;
         while (output.size() != length)
         {
-            if (isCancellationRequested()) return std::make_pair(false, std::string());
+            if (isCancellationRequested && isCancellationRequested())
+            {
+                return std::make_pair(false, std::string());
+            }
 
             size_t size = std::min(kChunkSize, length - output.size());
             ssize_t ret = recv((char*)&_readBuffer[0], size);

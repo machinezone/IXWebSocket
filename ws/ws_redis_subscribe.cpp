@@ -21,6 +21,18 @@ namespace ix
             return 1;
         }
 
+        auto callback = [](const std::string& message)
+        {
+           std::cout << message << std::endl;
+        };
+
+        std::cerr << "Subscribing to " << channel << "..." << std::endl;
+        if (!redisClient.subscribe(channel, callback))
+        {
+            std::cerr << "Error subscribing to channel " << channel << std::endl;
+            return 1;
+        }
+
         return 0;
     }
 }
