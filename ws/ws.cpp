@@ -109,6 +109,7 @@ int main(int argc, char** argv)
     redisSubscribeApp->add_option("--port", redisPort, "Port");
     redisSubscribeApp->add_option("--host", hostname, "Hostname");
     redisSubscribeApp->add_option("channel", channel, "Channel")->required();
+    redisSubscribeApp->add_flag("-v", verbose, "Verbose");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -169,7 +170,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("redis_subscribe"))
     {
-        return ix::ws_redis_subscribe_main(hostname, redisPort, channel);
+        return ix::ws_redis_subscribe_main(hostname, redisPort, channel, verbose);
     }
 
     return 1;

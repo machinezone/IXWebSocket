@@ -13,7 +13,8 @@ namespace ix
 {
     int ws_redis_subscribe_main(const std::string& hostname,
                                 int port,
-                                const std::string& channel)
+                                const std::string& channel,
+                                bool verbose)
     {
         RedisClient redisClient;
         if (!redisClient.connect(hostname, port))
@@ -25,7 +26,6 @@ namespace ix
         std::chrono::time_point<std::chrono::steady_clock> lastTimePoint;
         int msgPerSeconds = 0;
         int msgCount = 0;
-        bool verbose = false;
 
         auto callback = [&lastTimePoint, &msgPerSeconds, &msgCount, verbose]
                          (const std::string& message)

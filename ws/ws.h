@@ -47,5 +47,6 @@ namespace ix
 
     int ws_redis_subscribe_main(const std::string& hostname,
                                 int port,
-                                const std::string& channel);
+                                const std::string& channel,
+                                bool verbose);
 }
