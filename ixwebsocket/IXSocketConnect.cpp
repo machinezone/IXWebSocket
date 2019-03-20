@@ -66,7 +66,7 @@ namespace ix
 
         for (;;)
         {
-            if (isCancellationRequested()) // Must handle timeout as well
+            if (isCancellationRequested && isCancellationRequested()) // Must handle timeout as well
             {
                 closeSocket(fd);
                 errMsg = "Cancelled";
