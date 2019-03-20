@@ -23,6 +23,8 @@ add_executable(ws
   ixcrypto/IXHash.cpp
   ixcrypto/IXUuid.cpp
 
+  IXRedisClient.cpp
+
   ws_http_client.cpp
   ws_ping_pong.cpp
   ws_broadcast_server.cpp
@@ -32,6 +34,8 @@ add_executable(ws
   ws_transfer.cpp
   ws_send.cpp
   ws_receive.cpp
+  ws_redis_publish.cpp
+  ws_redis_subscribe.cpp
   ws.cpp)
 
 if (APPLE AND USE_TLS)

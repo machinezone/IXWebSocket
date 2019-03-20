@@ -35,12 +35,15 @@ int main(int argc, char** argv)
     std::string output;
     std::string hostname("127.0.0.1");
     std::string pidfile;
+    std::string channel;
+    std::string message;
     bool headersOnly = false;
     bool followRedirects = false;
     bool verbose = false;
     bool save = false;
     bool compress = false;
     int port = 8080;
+    int redisPort = 6379;
     int connectTimeOut = 60;
     int transferTimeout = 1800;
     int maxRedirects = 5;
@@ -96,6 +99,17 @@ int main(int argc, char** argv)
     httpClientApp->add_option("--connect-timeout", connectTimeOut, "Connection timeout");
     httpClientApp->add_option("--transfer-timeout", transferTimeout, "Transfer timeout");
 
+    CLI::App* redisPublishApp = app.add_subcommand("redis_publish", "Redis publisher");
+    redisPublishApp->add_option("--port", redisPort, "Port");
+    redisPublishApp->add_option("--host", hostname, "Hostname");
+    redisPublishApp->add_option("channel", channel, "Channel")->required();
+    redisPublishApp->add_option("message", message, "Message")->required();
+
+    CLI::App* redisSubscribeApp = app.add_subcommand("redis_subscribe", "Redis subscriber");
+    redisSubscribeApp->add_option("--port", redisPort, "Port");
+    redisSubscribeApp->add_option("--host", hostname, "Hostname");
+    redisSubscribeApp->add_option("channel", channel, "Channel")->required();
+
     CLI11_PARSE(app, argc, argv);
 
     // pid file handling
@@ -148,6 +162,14 @@ int main(int argc, char** argv)
                                        connectTimeOut, transferTimeout,
                                        followRedirects, maxRedirects, verbose,
                                        save, output, compress);
+    }
+    else if (app.got_subcommand("redis_publish"))
+    {
+        return ix::ws_redis_publish_main(hostname, redisPort, channel, message);
+    }
+    else if (app.got_subcommand("redis_subscribe"))
+    {
+        return ix::ws_redis_subscribe_main(hostname, redisPort, channel);
     }
 
     return 1;

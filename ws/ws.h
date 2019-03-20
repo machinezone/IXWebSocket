@@ -39,4 +39,13 @@ namespace ix
 
     int ws_send_main(const std::string& url,
                      const std::string& path);
+
+    int ws_redis_publish_main(const std::string& hostname,
+                              int port,
+                              const std::string& channel,
+                              const std::string& message);
+
+    int ws_redis_subscribe_main(const std::string& hostname,
+                                int port,
+                                const std::string& channel);
 }
