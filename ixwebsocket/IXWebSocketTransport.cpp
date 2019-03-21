@@ -287,12 +287,6 @@ namespace ix
         }
     }
 
-    void WebSocketTransport::appendToSendBuffer(const std::vector<uint8_t>& buffer)
-    {
-        std::lock_guard<std::mutex> lock(_txbufMutex);
-        _txbuf.insert(_txbuf.end(), buffer.begin(), buffer.end());
-    }
-
     void WebSocketTransport::unmaskReceiveBuffer(const wsheader_type& ws)
     {
         if (ws.mask)

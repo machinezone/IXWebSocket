@@ -29,6 +29,7 @@ set (SOURCES
 
   IXDNSLookupTest.cpp
   IXSocketTest.cpp
+  IXSocketConnectTest.cpp
 )
 
 # Some unittest don't work on windows yet
