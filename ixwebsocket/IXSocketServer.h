@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "IXConnectionState.h"
+
 #include <utility> // pair
 #include <string>
 #include <set>
@@ -20,12 +22,16 @@ namespace ix
 {
     class SocketServer {
     public:
+        using ConnectionStateFactory = std::function<std::shared_ptr<ConnectionState>()>;
+
         SocketServer(int port = SocketServer::kDefaultPort,
                      const std::string& host = SocketServer::kDefaultHost,
                      int backlog = SocketServer::kDefaultTcpBacklog,
                      size_t maxConnections = SocketServer::kDefaultMaxConnections);
         virtual ~SocketServer();
         virtual void stop();
+
+        void setConnectionStateFactory(const ConnectionStateFactory& connectionStateFactory);
 
         const static int kDefaultPort;
         const static std::string kDefaultHost;
@@ -60,9 +66,13 @@ namespace ix
         std::condition_variable _conditionVariable;
         std::mutex _conditionVariableMutex;
 
+        //
+        ConnectionStateFactory _connectionStateFactory;
+
         // Methods
         void run();
-        virtual void handleConnection(int fd) = 0;
+        virtual void handleConnection(int fd,
+                                      std::shared_ptr<ConnectionState> connectionState) = 0;
         virtual size_t getConnectedClientsCount() = 0;
     };
 }

@@ -114,7 +114,7 @@ namespace ix
                 return false;
             }
 
-            // The first line of the response describe the return type, 
+            // The first line of the response describe the return type,
             // => *3 (an array of 3 elements)
             auto lineResult = _socket->readLine(nullptr);
             auto lineValid = lineResult.first;

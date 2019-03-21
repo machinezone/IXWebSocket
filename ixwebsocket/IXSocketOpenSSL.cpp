@@ -21,6 +21,7 @@
 namespace ix
 {
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
+    std::once_flag SocketOpenSSL::_openSSLInitFlag;
 
     SocketOpenSSL::SocketOpenSSL(int fd) : Socket(fd),
         _ssl_connection(nullptr),

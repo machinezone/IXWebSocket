@@ -20,7 +20,8 @@
 
 namespace ix
 {
-    using OnConnectionCallback = std::function<void(std::shared_ptr<WebSocket>)>;
+    using OnConnectionCallback = std::function<void(std::shared_ptr<WebSocket>,
+                                                    std::shared_ptr<ConnectionState>)>;
 
     class WebSocketServer : public SocketServer {
     public:
@@ -49,7 +50,8 @@ namespace ix
         const static int kDefaultHandShakeTimeoutSecs;
 
         // Methods
-        virtual void handleConnection(int fd) final;
+        virtual void handleConnection(int fd,
+                                      std::shared_ptr<ConnectionState> connectionState) final;
         virtual size_t getConnectedClientsCount() final;
     };
 }

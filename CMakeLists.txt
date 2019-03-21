@@ -39,6 +39,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSelectInterrupt.cpp
     ixwebsocket/IXSelectInterruptPipe.cpp
     ixwebsocket/IXSelectInterruptFactory.cpp
+    ixwebsocket/IXConnectionState.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
@@ -66,6 +67,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSelectInterrupt.h
     ixwebsocket/IXSelectInterruptPipe.h
     ixwebsocket/IXSelectInterruptFactory.h
+    ixwebsocket/IXConnectionState.h
 )
 
 # Platform specific code
