@@ -18,13 +18,32 @@ using namespace ix;
 
 namespace ix
 {
-    bool startServer(ix::WebSocketServer& server)
+    // Test that we can override the connectionState impl to provide our own
+    class ConnectionStateCustom : public ConnectionState
     {
+        void computeId()
+        {
+            // a very boring invariant id that we can test against in the unittest
+            _id = "foobarConnectionId";
+        }
+    };
+
+    bool startServer(ix::WebSocketServer& server,
+                     std::string& connectionId)
+    {
+        auto factory = []() -> std::shared_ptr<ConnectionState>
+        {
+            return std::make_shared<ConnectionStateCustom>();
+        };
+        server.setConnectionStateFactory(factory);
+
         server.setOnConnectionCallback(
-            [&server](std::shared_ptr<ix::WebSocket> webSocket)
+            [&server, &connectionId](std::shared_ptr<ix::WebSocket> webSocket,
+                      std::shared_ptr<ConnectionState> connectionState)
             {
                 webSocket->setOnMessageCallback(
-                    [webSocket, &server](ix::WebSocketMessageType messageType,
+                    [webSocket, connectionState,
+                     &connectionId, &server](ix::WebSocketMessageType messageType,
                        const std::string& str,
                        size_t wireSize,
                        const ix::WebSocketErrorInfo& error,
@@ -34,12 +53,15 @@ namespace ix
                         if (messageType == ix::WebSocket_MessageType_Open)
                         {
                             Logger() << "New connection";
+                            Logger() << "id: " << connectionState->getId();
                             Logger() << "Uri: " << openInfo.uri;
                             Logger() << "Headers:";
                             for (auto it : openInfo.headers)
                             {
                                 Logger() << it.first << ": " << it.second;
                             }
+
+                            connectionId = connectionState->getId();
                         }
                         else if (messageType == ix::WebSocket_MessageType_Close)
                         {
@@ -78,7 +100,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
     {
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        REQUIRE(startServer(server));
+        std::string connectionId;
+        REQUIRE(startServer(server, connectionId));
 
         std::string errMsg;
         bool tls = false;
@@ -111,7 +134,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
     {
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        REQUIRE(startServer(server));
+        std::string connectionId;
+        REQUIRE(startServer(server, connectionId));
 
         std::string errMsg;
         bool tls = false;
@@ -147,7 +171,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
     {
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        REQUIRE(startServer(server));
+        std::string connectionId;
+        REQUIRE(startServer(server, connectionId));
 
         std::string errMsg;
         bool tls = false;
@@ -177,6 +202,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 
         // Give us 500ms for the server to notice that clients went away
         ix::msleep(500);
+
+        REQUIRE(connectionId == "foobarConnectionId");
 
         server.stop();
         REQUIRE(server.getClients().size() == 0);

@@ -128,10 +128,11 @@ namespace
     {
         // A dev/null server
         server.setOnConnectionCallback(
-            [&server, &receivedPingMessages](std::shared_ptr<ix::WebSocket> webSocket)
+            [&server, &receivedPingMessages](std::shared_ptr<ix::WebSocket> webSocket,
+                                             std::shared_ptr<ConnectionState> connectionState)
             {
                 webSocket->setOnMessageCallback(
-                    [webSocket, &server, &receivedPingMessages](ix::WebSocketMessageType messageType,
+                    [webSocket, connectionState, &server, &receivedPingMessages](ix::WebSocketMessageType messageType,
                        const std::string& str,
                        size_t wireSize,
                        const ix::WebSocketErrorInfo& error,
@@ -141,6 +142,7 @@ namespace
                         if (messageType == ix::WebSocket_MessageType_Open)
                         {
                             Logger() << "New server connection";
+                            Logger() << "id: " << connectionState->getId();
                             Logger() << "Uri: " << openInfo.uri;
                             Logger() << "Headers:";
                             for (auto it : openInfo.headers)

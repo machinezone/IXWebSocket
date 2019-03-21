@@ -10,7 +10,7 @@ communication channels over a single TCP connection. *IXWebSocket* is a C++ libr
 * macOS
 * iOS
 * Linux
-* Android 
+* Android
 
 ## Examples
 
@@ -63,10 +63,11 @@ Here is what the server API looks like. Note that server support is very recent 
 ix::WebSocketServer server(port);
 
 server.setOnConnectionCallback(
-    [&server](std::shared_ptr<ix::WebSocket> webSocket)
+    [&server](std::shared_ptr<WebSocket> webSocket,
+              std::shared_ptr<ConnectionState> connectionState)
     {
         webSocket->setOnMessageCallback(
-            [webSocket, &server](ix::WebSocketMessageType messageType,
+            [webSocket, connectionState, &server](ix::WebSocketMessageType messageType,
                const std::string& str,
                size_t wireSize,
                const ix::WebSocketErrorInfo& error,
@@ -76,6 +77,12 @@ server.setOnConnectionCallback(
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
                     std::cerr << "New connection" << std::endl;
+
+                    // A connection state object is available, and has a default id
+                    // You can subclass ConnectionState and pass an alternate factory
+                    // to override it. It is useful if you want to store custom
+                    // attributes per connection (authenticated bool flag, attributes, etc...)
+                    std::cerr << "id: " << connectionState->getId() << std::endl;
 
                     // The uri the client did connect to.
                     std::cerr << "Uri: " << openInfo.uri << std::endl;
@@ -223,13 +230,13 @@ Here is a simplistic diagram which explains how the code is structured in term o
 +-----------------------+ --- Public
 |                       | Start the receiving Background thread. Auto reconnection. Simple websocket Ping.
 |  IXWebSocket          | Interface used by C++ test clients. No IX dependencies.
-|                       | 
+|                       |
 +-----------------------+
 |                       |
 |  IXWebSocketServer    | Run a server and give each connections its own WebSocket object.
 |                       | Each connection is handled in a new OS thread.
 |                       |
-+-----------------------+ --- Private 
++-----------------------+ --- Private
 |                       |
 |  IXWebSocketTransport | Low level websocket code, framing, managing raw socket. Adapted from easywsclient.
 |                       |

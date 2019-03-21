@@ -1,0 +1,33 @@
+/*
+ *  IXConnectionState.h
+ *  Author: Benjamin Sergeant
+ *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
+ */
+
+#pragma once
+
+#include <stdint.h>
+#include <string>
+#include <atomic>
+#include <memory>
+
+namespace ix
+{
+    class ConnectionState {
+    public:
+        ConnectionState();
+        virtual ~ConnectionState() = default;
+
+        virtual void computeId();
+        virtual const std::string& getId() const;
+
+        static std::shared_ptr<ConnectionState> createConnectionState();
+
+    protected:
+        std::string _id;
+
+        static std::atomic<uint64_t> _globalId;
+    };
+}
+
+

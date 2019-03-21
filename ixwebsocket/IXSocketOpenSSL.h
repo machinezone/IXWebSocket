@@ -50,7 +50,7 @@ namespace ix
         const SSL_METHOD* _ssl_method;
         mutable std::mutex _mutex;  // OpenSSL routines are not thread-safe
 
-        std::once_flag _openSSLInitFlag;
+        static std::once_flag _openSSLInitFlag;
         static std::atomic<bool> _openSSLInitializationSuccessful;
     };
 
