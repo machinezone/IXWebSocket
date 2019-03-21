@@ -353,7 +353,7 @@ namespace ix
         WebSocketHandshakeKeyGen::generate(headers["sec-websocket-key"].c_str(), output);
 
         std::stringstream ss;
-        ss << "HTTP/1.1 101\r\n";
+        ss << "HTTP/1.1 101 Switching Protocols\r\n";
         ss << "Sec-WebSocket-Accept: " << std::string(output) << "\r\n";
         ss << "Upgrade: websocket\r\n";
         ss << "Connection: Upgrade\r\n";
