@@ -212,6 +212,10 @@ TEST_CASE("Websocket_heartbeat", "[heartbeat]")
         webSocketClientA.stop();
         webSocketClientB.stop();
 
+
+        // Here we test heart beat period exceeded for clientA
+        // but it should not be exceeded for clientB which has sent data.
+        // -> expected ping messages == 2, but add a small buffer to make this more reliable.
         REQUIRE(serverReceivedPingMessages >= 2);
         REQUIRE(serverReceivedPingMessages <= 4);
 

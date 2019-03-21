@@ -6,8 +6,6 @@
 
 #include "IXConnectionState.h"
 
-#include <sstream>
-
 namespace ix
 {
     std::atomic<uint64_t> ConnectionState::_globalId(0);
@@ -19,9 +17,7 @@ namespace ix
 
     void ConnectionState::computeId()
     {
-        std::stringstream ss;
-        ss << _globalId++;
-        _id = ss.str();
+        _id = std::to_string(_globalId++);
     }
 
     const std::string& ConnectionState::getId() const
