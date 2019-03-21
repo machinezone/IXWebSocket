@@ -174,7 +174,6 @@ namespace ix
                                 std::string::const_iterator end,
                                 uint64_t message_size,
                                 uint8_t masking_key[4]);
-        void appendToSendBuffer(const std::vector<uint8_t>& buffer);
 
         unsigned getRandomUnsigned();
         void unmaskReceiveBuffer(const wsheader_type& ws);
