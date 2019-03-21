@@ -12,7 +12,7 @@ set (CMAKE_CXX_EXTENSIONS OFF)
 
 # -Wshorten-64-to-32 does not work with clang
 if (NOT WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wshorten-64-to-32")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
@@ -39,6 +39,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSelectInterrupt.cpp
     ixwebsocket/IXSelectInterruptPipe.cpp
     ixwebsocket/IXSelectInterruptFactory.cpp
+    ixwebsocket/IXConnectionState.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
@@ -66,6 +67,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSelectInterrupt.h
     ixwebsocket/IXSelectInterruptPipe.h
     ixwebsocket/IXSelectInterruptFactory.h
+    ixwebsocket/IXConnectionState.h
 )
 
 # Platform specific code

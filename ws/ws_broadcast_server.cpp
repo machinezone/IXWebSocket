@@ -17,10 +17,11 @@ namespace ix
         ix::WebSocketServer server(port, hostname);
 
         server.setOnConnectionCallback(
-            [&server](std::shared_ptr<ix::WebSocket> webSocket)
+            [&server](std::shared_ptr<WebSocket> webSocket,
+                      std::shared_ptr<ConnectionState> connectionState)
             {
                 webSocket->setOnMessageCallback(
-                    [webSocket, &server](ix::WebSocketMessageType messageType,
+                    [webSocket, connectionState, &server](ix::WebSocketMessageType messageType,
                        const std::string& str,
                        size_t wireSize,
                        const ix::WebSocketErrorInfo& error,
@@ -30,6 +31,7 @@ namespace ix
                         if (messageType == ix::WebSocket_MessageType_Open)
                         {
                             std::cerr << "New connection" << std::endl;
+                            std::cerr << "id: " << connectionState->getId() << std::endl;
                             std::cerr << "Uri: " << openInfo.uri << std::endl;
                             std::cerr << "Headers:" << std::endl;
                             for (auto it : openInfo.headers)

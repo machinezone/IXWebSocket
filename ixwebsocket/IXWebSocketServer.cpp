@@ -49,10 +49,12 @@ namespace ix
         _onConnectionCallback = callback;
     }
 
-    void WebSocketServer::handleConnection(int fd)
+    void WebSocketServer::handleConnection(
+        int fd,
+        std::shared_ptr<ConnectionState> connectionState)
     {
         auto webSocket = std::make_shared<WebSocket>();
-        _onConnectionCallback(webSocket);
+        _onConnectionCallback(webSocket, connectionState);
 
         webSocket->disableAutomaticReconnection();
 

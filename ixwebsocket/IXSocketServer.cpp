@@ -29,7 +29,8 @@ namespace ix
         _host(host),
         _backlog(backlog),
         _maxConnections(maxConnections),
-        _stop(false)
+        _stop(false),
+        _connectionStateFactory(&ConnectionState::createConnectionState)
     {
 
     }
@@ -145,6 +146,12 @@ namespace ix
         ::close(_serverFd);
     }
 
+    void SocketServer::setConnectionStateFactory(
+        const ConnectionStateFactory& connectionStateFactory)
+    {
+        _connectionStateFactory = connectionStateFactory;
+    }
+
     void SocketServer::run()
     {
         // Set the socket to non blocking mode, so that accept calls are not blocking
@@ -214,6 +221,12 @@ namespace ix
                 continue;
             }
 
+            std::shared_ptr<ConnectionState> connectionState;
+            if (_connectionStateFactory)
+            {
+                connectionState = _connectionStateFactory();
+            }
+
             // Launch the handleConnection work asynchronously in its own thread.
             //
             // the destructor of a future returned by std::async blocks,
@@ -221,7 +234,8 @@ namespace ix
             f = std::async(std::launch::async,
                            &SocketServer::handleConnection,
                            this,
-                           clientFd);
+                           clientFd,
+                           connectionState);
         }
     }
 }
