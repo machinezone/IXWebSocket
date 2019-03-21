@@ -39,7 +39,7 @@ namespace ix
 
         server.setOnConnectionCallback(
             [&server, &connectionId](std::shared_ptr<ix::WebSocket> webSocket,
-                      std::shared_ptr<ConnectionState> connectionState)
+                                     std::shared_ptr<ConnectionState> connectionState)
             {
                 webSocket->setOnMessageCallback(
                     [webSocket, connectionState,
@@ -52,6 +52,8 @@ namespace ix
                     {
                         if (messageType == ix::WebSocket_MessageType_Open)
                         {
+                            connectionState->computeId();
+
                             Logger() << "New connection";
                             Logger() << "id: " << connectionState->getId();
                             Logger() << "Uri: " << openInfo.uri;

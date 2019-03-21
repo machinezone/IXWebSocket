@@ -27,7 +27,7 @@ class Command(object):
         thread.join(timeout)
 
         if thread.is_alive():
-            print 'Command timeout, kill it: ' + self.cmd
+            print('Command timeout, kill it: ' + self.cmd)
             self.process.terminate()
             thread.join()
             return False, 255
