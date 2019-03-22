@@ -53,6 +53,7 @@ namespace ix
                         if (messageType == ix::WebSocket_MessageType_Open)
                         {
                             Logger() << "New connection";
+                            connectionState->computeId();
                             Logger() << "id: " << connectionState->getId();
                             Logger() << "Uri: " << openInfo.uri;
                             Logger() << "Headers:";
