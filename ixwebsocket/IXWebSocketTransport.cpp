@@ -124,7 +124,9 @@ namespace ix
     // Server
     WebSocketInitResult WebSocketTransport::connectToSocket(int fd, int timeoutSecs)
     {
-        _useMask = false;
+        // Server should not mask the data it sends to the client (with _useMask = false)
+        // However our unmasked code is broken right now for some reason, so disabling this.
+        _useMask = true;
 
         std::string errorMsg;
         _socket = createSocket(fd, errorMsg);
