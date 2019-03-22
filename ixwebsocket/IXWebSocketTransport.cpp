@@ -776,8 +776,6 @@ namespace ix
 
         if (_readyState == CLOSING || _readyState == CLOSED) return;
 
-        std::cout << "I WAS HERE" << std::endl;
-
         // See list of close events here:
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
         // We use 1000: normal closure.
