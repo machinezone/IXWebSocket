@@ -114,7 +114,7 @@ namespace ix
         std::stringstream ss;
         ss << "HTTP/1.1 ";
         ss << code;
-        ss << "\r\n";
+        ss << " ";
         ss << reason;
         ss << "\r\n";
 
