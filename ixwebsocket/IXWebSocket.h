@@ -101,6 +101,8 @@ namespace ix
 
         WebSocketSendInfo send(const std::string& text,
                                const OnProgressCallback& onProgressCallback = nullptr);
+        WebSocketSendInfo sendText(const std::string& text,
+                                   const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo ping(const std::string& text);
         void close();
 
@@ -120,7 +122,7 @@ namespace ix
     private:
 
         WebSocketSendInfo sendMessage(const std::string& text,
-                                      bool ping,
+                                      SendMessageKind sendMessageKind,
                                       const OnProgressCallback& callback = nullptr);
 
         bool isConnected() const;

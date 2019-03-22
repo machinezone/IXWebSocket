@@ -742,6 +742,15 @@ namespace ix
                         _enablePerMessageDeflate, onProgressCallback);
     }
 
+    WebSocketSendInfo WebSocketTransport::sendText(
+        const std::string& message,
+        const OnProgressCallback& onProgressCallback)
+
+    {
+        return sendData(wsheader_type::TEXT_FRAME, message,
+                        _enablePerMessageDeflate, onProgressCallback);
+    }
+
     void WebSocketTransport::sendOnSocket()
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);

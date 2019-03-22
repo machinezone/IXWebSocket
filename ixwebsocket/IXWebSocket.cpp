@@ -302,7 +302,13 @@ namespace ix
     WebSocketSendInfo WebSocket::send(const std::string& text,
                                       const OnProgressCallback& onProgressCallback)
     {
-        return sendMessage(text, false, onProgressCallback);
+        return sendMessage(text, SendMessageKind::Binary, onProgressCallback);
+    }
+
+    WebSocketSendInfo WebSocket::sendText(const std::string& text,
+                                          const OnProgressCallback& onProgressCallback)
+    {
+        return sendMessage(text, SendMessageKind::Text, onProgressCallback);
     }
 
     WebSocketSendInfo WebSocket::ping(const std::string& text)
@@ -311,11 +317,11 @@ namespace ix
         constexpr size_t pingMaxPayloadSize = 125;
         if (text.size() > pingMaxPayloadSize) return WebSocketSendInfo(false);
 
-        return sendMessage(text, true);
+        return sendMessage(text, SendMessageKind::Ping);
     }
 
     WebSocketSendInfo WebSocket::sendMessage(const std::string& text,
-                                             bool ping,
+                                             SendMessageKind sendMessageKind,
                                              const OnProgressCallback& onProgressCallback)
     {
         if (!isConnected()) return WebSocketSendInfo(false);
@@ -332,13 +338,22 @@ namespace ix
         std::lock_guard<std::mutex> lock(_writeMutex);
         WebSocketSendInfo webSocketSendInfo;
 
-        if (ping)
+        switch (sendMessageKind)
         {
-            webSocketSendInfo = _ws.sendPing(text);
-        }
-        else
-        {
-            webSocketSendInfo = _ws.sendBinary(text, onProgressCallback);
+            case SendMessageKind::Text:
+            {
+                webSocketSendInfo = _ws.sendText(text, onProgressCallback);
+            } break;
+
+            case SendMessageKind::Binary:
+            {
+                webSocketSendInfo = _ws.sendBinary(text, onProgressCallback);
+            } break;
+
+            case SendMessageKind::Ping:
+            {
+                webSocketSendInfo = _ws.sendPing(text);
+            } break;
         }
 
         WebSocket::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize, false);
