@@ -100,6 +100,10 @@ namespace ix
             uint8_t masking_key[4];
         };
 
+        // Tells whether we should mask the data we send.
+        // client should mask but server should not
+        bool _useMask;
+
         // Buffer for reading from our socket. That buffer is never resized.
         std::vector<uint8_t> _readbuf;
 

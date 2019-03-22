@@ -58,6 +58,7 @@ namespace ix
     constexpr size_t WebSocketTransport::kChunkSize;
 
     WebSocketTransport::WebSocketTransport() :
+        _useMask(true),
         _readyState(CLOSED),
         _closeCode(0),
         _closeWireSize(0),
@@ -123,6 +124,8 @@ namespace ix
     // Server
     WebSocketInitResult WebSocketTransport::connectToSocket(int fd, int timeoutSecs)
     {
+        _useMask = false;
+
         std::string errorMsg;
         _socket = createSocket(fd, errorMsg);
 
@@ -280,10 +283,12 @@ namespace ix
         _txbuf.insert(_txbuf.end(), header.begin(), header.end());
         _txbuf.insert(_txbuf.end(), begin, end);
 
-        // Masking
-        for (size_t i = 0; i != (size_t) message_size; ++i)
+        if (_useMask)
         {
-            *(_txbuf.end() - (size_t) message_size + i) ^= masking_key[i&0x3];
+            for (size_t i = 0; i != (size_t) message_size; ++i)
+            {
+                *(_txbuf.end() - (size_t) message_size + i) ^= masking_key[i&0x3];
+            }
         }
     }
 
@@ -667,27 +672,33 @@ namespace ix
 
         if (message_size < 126)
         {
-            header[1] = (message_size & 0xff) | 0x80;
+            header[1] = (message_size & 0xff) | (_useMask ? 0x80 : 0);
 
-            header[2] = masking_key[0];
-            header[3] = masking_key[1];
-            header[4] = masking_key[2];
-            header[5] = masking_key[3];
+            if (_useMask)
+            {
+                header[2] = masking_key[0];
+                header[3] = masking_key[1];
+                header[4] = masking_key[2];
+                header[5] = masking_key[3];
+            }
         }
         else if (message_size < 65536)
         {
-            header[1] = 126 | 0x80;
+            header[1] = 126 | (_useMask ? 0x80 : 0);
             header[2] = (message_size >> 8) & 0xff;
             header[3] = (message_size >> 0) & 0xff;
 
-            header[4] = masking_key[0];
-            header[5] = masking_key[1];
-            header[6] = masking_key[2];
-            header[7] = masking_key[3];
+            if (_useMask)
+            {
+                header[4] = masking_key[0];
+                header[5] = masking_key[1];
+                header[6] = masking_key[2];
+                header[7] = masking_key[3];
+            }
         }
         else
         { // TODO: run coverage testing here
-            header[1] = 127 | 0x80;
+            header[1] = 127 | (_useMask ? 0x80 : 0);
             header[2] = (message_size >> 56) & 0xff;
             header[3] = (message_size >> 48) & 0xff;
             header[4] = (message_size >> 40) & 0xff;
@@ -697,10 +708,13 @@ namespace ix
             header[8] = (message_size >>  8) & 0xff;
             header[9] = (message_size >>  0) & 0xff;
 
-            header[10] = masking_key[0];
-            header[11] = masking_key[1];
-            header[12] = masking_key[2];
-            header[13] = masking_key[3];
+            if (_useMask)
+            {
+                header[10] = masking_key[0];
+                header[11] = masking_key[1];
+                header[12] = masking_key[2];
+                header[13] = masking_key[3];
+            }
         }
 
         // _txbuf will keep growing until it can be transmitted over the socket:
@@ -761,6 +775,8 @@ namespace ix
         _requestInitCancellation = true;
 
         if (_readyState == CLOSING || _readyState == CLOSED) return;
+
+        std::cout << "I WAS HERE" << std::endl;
 
         // See list of close events here:
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
