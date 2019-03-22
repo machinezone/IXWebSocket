@@ -16,6 +16,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <stack>
+#include <iomanip>
 
 namespace ix
 {
@@ -147,5 +148,22 @@ namespace ix
         }
 
         return -1;
+    }
+
+    void hexDump(const std::string& prefix,
+                 const std::string& s)
+    {
+        std::ostringstream ss;
+        bool upper_case = false;
+
+        for (std::string::size_type i = 0; i < s.length(); ++i)
+        {
+            ss << std::hex
+               << std::setfill('0')
+               << std::setw(2)
+               << (upper_case ? std::uppercase : std::nouppercase) << (int)s[i];
+        }
+
+        std::cout << prefix << ": " << s << " => " << ss.str() << std::endl;
     }
 }

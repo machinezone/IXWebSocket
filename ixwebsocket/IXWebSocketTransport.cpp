@@ -124,9 +124,8 @@ namespace ix
     // Server
     WebSocketInitResult WebSocketTransport::connectToSocket(int fd, int timeoutSecs)
     {
-        // Server should not mask the data it sends to the client (with _useMask = false)
-        // However our unmasked code is broken right now for some reason, so disabling this.
-        _useMask = true;
+        // Server should not mask the data it sends to the client
+        _useMask = false;
 
         std::string errorMsg;
         _socket = createSocket(fd, errorMsg);
@@ -657,7 +656,8 @@ namespace ix
         std::vector<uint8_t> header;
         header.assign(2 +
                       (message_size >= 126 ? 2 : 0) +
-                      (message_size >= 65536 ? 6 : 0) + 4, 0);
+                      (message_size >= 65536 ? 6 : 0) +
+                      (_useMask ? 4 : 0), 0);
         header[0] = type;
 
         // The fin bit indicate that this is the last fragment. Fin is French for end.
