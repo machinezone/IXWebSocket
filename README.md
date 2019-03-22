@@ -46,8 +46,11 @@ webSocket.setOnMessageCallback(
 // Now that our callback is setup, we can start our background thread and receive messages
 webSocket.start();
 
-// Send a message to the server
+// Send a message to the server (default to BINARY mode)
 webSocket.send("hello world");
+
+// The message can be sent in TEXT mode
+webSocket.sendText("hello again");
 
 // ... finally ...
 

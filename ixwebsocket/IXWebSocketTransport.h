@@ -30,6 +30,13 @@ namespace ix
 {
     class Socket;
 
+    enum class SendMessageKind
+    {
+        Text,
+        Binary,
+        Ping
+    };
+
     class WebSocketTransport
     {
     public:
@@ -71,6 +78,8 @@ namespace ix
         void poll();
         WebSocketSendInfo sendBinary(const std::string& message,
                                      const OnProgressCallback& onProgressCallback);
+        WebSocketSendInfo sendText(const std::string& message,
+                                   const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendPing(const std::string& message);
         void close();
         ReadyStateValues getReadyState() const;
