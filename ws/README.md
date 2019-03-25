@@ -20,6 +20,8 @@ Subcommands:
   broadcast_server            Broadcasting server
   ping                        Ping pong
   curl                        HTTP Client
+  redis_publish               Redis publisher
+  redis_subscribe             Redis subscriber
 ```
 
 ## file transfer
