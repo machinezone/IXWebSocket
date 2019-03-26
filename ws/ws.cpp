@@ -37,6 +37,7 @@ int main(int argc, char** argv)
     std::string pidfile;
     std::string channel;
     std::string message;
+    std::string password;
     bool headersOnly = false;
     bool followRedirects = false;
     bool verbose = false;
@@ -102,12 +103,14 @@ int main(int argc, char** argv)
     CLI::App* redisPublishApp = app.add_subcommand("redis_publish", "Redis publisher");
     redisPublishApp->add_option("--port", redisPort, "Port");
     redisPublishApp->add_option("--host", hostname, "Hostname");
+    redisPublishApp->add_option("--password", password, "Password");
     redisPublishApp->add_option("channel", channel, "Channel")->required();
     redisPublishApp->add_option("message", message, "Message")->required();
 
     CLI::App* redisSubscribeApp = app.add_subcommand("redis_subscribe", "Redis subscriber");
     redisSubscribeApp->add_option("--port", redisPort, "Port");
     redisSubscribeApp->add_option("--host", hostname, "Hostname");
+    redisSubscribeApp->add_option("--password", password, "Password");
     redisSubscribeApp->add_option("channel", channel, "Channel")->required();
     redisSubscribeApp->add_flag("-v", verbose, "Verbose");
 
@@ -166,11 +169,11 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("redis_publish"))
     {
-        return ix::ws_redis_publish_main(hostname, redisPort, channel, message);
+        return ix::ws_redis_publish_main(hostname, redisPort, password, channel, message);
     }
     else if (app.got_subcommand("redis_subscribe"))
     {
-        return ix::ws_redis_subscribe_main(hostname, redisPort, channel, verbose);
+        return ix::ws_redis_subscribe_main(hostname, redisPort, password, channel, verbose);
     }
 
     return 1;

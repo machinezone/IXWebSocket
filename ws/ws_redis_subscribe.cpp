@@ -13,6 +13,7 @@ namespace ix
 {
     int ws_redis_subscribe_main(const std::string& hostname,
                                 int port,
+                                const std::string& password,
                                 const std::string& channel,
                                 bool verbose)
     {
@@ -21,6 +22,18 @@ namespace ix
         {
             std::cerr << "Cannot connect to redis host" << std::endl;
             return 1;
+        }
+
+        if (!password.empty())
+        {
+            std::string authResponse;
+            if (!redisClient.auth(password, authResponse))
+            {
+                std::stringstream ss;
+                std::cerr << "Cannot authenticated to redis" << std::endl;
+                return 1;
+            }
+            std::cout << "Auth response: " << authResponse << ":" << port << std::endl;
         }
 
         std::chrono::time_point<std::chrono::steady_clock> lastTimePoint;
@@ -53,8 +66,13 @@ namespace ix
             }
         };
 
+        auto responseCallback = [](const std::string& redisResponse)
+        {
+            std::cout << "Redis subscribe response: " << redisResponse << std::endl;
+        };
+
         std::cerr << "Subscribing to " << channel << "..." << std::endl;
-        if (!redisClient.subscribe(channel, callback))
+        if (!redisClient.subscribe(channel, responseCallback, callback))
         {
             std::cerr << "Error subscribing to channel " << channel << std::endl;
             return 1;

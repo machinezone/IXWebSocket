@@ -30,6 +30,39 @@ namespace ix
         return _socket->connect(hostname, port, errMsg, nullptr);
     }
 
+    bool RedisClient::auth(const std::string& password,
+                           std::string& response)
+    {
+        response.clear();
+
+        if (!_socket) return false;
+
+        std::stringstream ss;
+        ss << "AUTH ";
+        ss << password;
+        ss << "\r\n";
+
+        bool sent = _socket->writeBytes(ss.str(), nullptr);
+        if (!sent)
+        {
+            return false;
+        }
+
+        auto pollResult = _socket->isReadyToRead(-1);
+        if (pollResult == PollResultType::Error)
+        {
+            return false;
+        }
+
+        auto lineResult = _socket->readLine(nullptr);
+        auto lineValid = lineResult.first;
+        auto line = lineResult.second;
+
+        response = line;
+        return lineValid;
+    }
+
+
     bool RedisClient::publish(const std::string& channel,
                               const std::string& message)
     {
@@ -65,6 +98,7 @@ namespace ix
     // FIXME: we assume that redis never return errors...
     //
     bool RedisClient::subscribe(const std::string& channel,
+                                const OnRedisSubscribeResponseCallback& responseCallback,
                                 const OnRedisSubscribeCallback& callback)
     {
         if (!_socket) return false;
@@ -87,10 +121,14 @@ namespace ix
             return false;
         }
 
+        // build the response as a single string
+        std::stringstream oss;
+
         // Read the first line of the response
         auto lineResult = _socket->readLine(nullptr);
         auto lineValid = lineResult.first;
         auto line = lineResult.second;
+        oss << line;
 
         if (!lineValid) return false;
 
@@ -100,9 +138,12 @@ namespace ix
             auto lineResult = _socket->readLine(nullptr);
             auto lineValid = lineResult.first;
             auto line = lineResult.second;
+            oss << line;
 
             if (!lineValid) return false;
         }
+
+        responseCallback(oss.str());
 
         // Wait indefinitely for new messages
         while (true)
