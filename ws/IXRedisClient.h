@@ -15,6 +15,7 @@ namespace ix
 
     class RedisClient {
     public:
+        using OnRedisSubscribeResponseCallback = std::function<void(const std::string&)>;
         using OnRedisSubscribeCallback = std::function<void(const std::string&)>;
 
         RedisClient() = default;
@@ -23,10 +24,14 @@ namespace ix
         bool connect(const std::string& hostname,
                      int port);
 
+        bool auth(const std::string& password,
+                  std::string& response);
+
         bool publish(const std::string& channel,
                      const std::string& message);
 
         bool subscribe(const std::string& channel,
+                       const OnRedisSubscribeResponseCallback& responseCallback,
                        const OnRedisSubscribeCallback& callback);
 
     private:

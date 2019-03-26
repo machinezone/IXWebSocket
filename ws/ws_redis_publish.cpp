@@ -12,6 +12,7 @@ namespace ix
 {
     int ws_redis_publish_main(const std::string& hostname,
                               int port,
+                              const std::string& password,
                               const std::string& channel,
                               const std::string& message)
     {
@@ -20,6 +21,18 @@ namespace ix
         {
             std::cerr << "Cannot connect to redis host" << std::endl;
             return 1;
+        }
+
+        if (!password.empty())
+        {
+            std::string authResponse;
+            if (!redisClient.auth(password, authResponse))
+            {
+                std::stringstream ss;
+                std::cerr << "Cannot authenticated to redis" << std::endl;
+                return 1;
+            }
+            std::cout << "Auth response: " << authResponse << ":" << port << std::endl;
         }
 
         std::cerr << "Publishing message " << message
