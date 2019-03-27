@@ -1,0 +1,21 @@
+version: "3"
+services:
+  ws:
+    stdin_open: true
+    tty: true
+    image: bsergean/ws:build
+    ports:
+      - "8765:8765"
+    entrypoint: bash
+    networks:
+      - ws-net
+    depends_on:
+      - redis1
+
+  redis1:
+    image: redis:alpine
+    networks:
+      - ws-net
+
+networks:
+  ws-net:

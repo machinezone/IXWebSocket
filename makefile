@@ -9,8 +9,20 @@ brew:
 	mkdir -p build && (cd build ; cmake .. ; make -j install)
 
 .PHONY: docker
+
+NAME   := bsergean/ws
+TAG    := $(shell cat DOCKER_VERSION)
+IMG    := ${NAME}:${TAG}
+LATEST := ${NAME}:latest
+BUILD  := ${NAME}:build
+
 docker:
-	docker build -t ws:latest .
+	docker build -t ${IMG} .
+	docker tag ${IMG} ${BUILD}
+
+docker_push:
+	docker tag ${IMG} ${LATEST}
+	docker push ${LATEST}
 
 run:
 	docker run --cap-add sys_ptrace -it ws:latest

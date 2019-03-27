@@ -49,6 +49,7 @@ int main(int argc, char** argv)
     int transferTimeout = 1800;
     int maxRedirects = 5;
     int delayMs = -1;
+    int count = 1;
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
@@ -106,6 +107,7 @@ int main(int argc, char** argv)
     redisPublishApp->add_option("--password", password, "Password");
     redisPublishApp->add_option("channel", channel, "Channel")->required();
     redisPublishApp->add_option("message", message, "Message")->required();
+    redisPublishApp->add_option("-c", count, "Count");
 
     CLI::App* redisSubscribeApp = app.add_subcommand("redis_subscribe", "Redis subscriber");
     redisSubscribeApp->add_option("--port", redisPort, "Port");
@@ -113,6 +115,7 @@ int main(int argc, char** argv)
     redisSubscribeApp->add_option("--password", password, "Password");
     redisSubscribeApp->add_option("channel", channel, "Channel")->required();
     redisSubscribeApp->add_flag("-v", verbose, "Verbose");
+    redisSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -169,7 +172,8 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("redis_publish"))
     {
-        return ix::ws_redis_publish_main(hostname, redisPort, password, channel, message);
+        return ix::ws_redis_publish_main(hostname, redisPort, password,
+                                         channel, message, count);
     }
     else if (app.got_subcommand("redis_subscribe"))
     {
