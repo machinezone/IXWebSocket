@@ -7,6 +7,8 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
+#include <thread>
+#include <atomic>
 #include "IXRedisClient.h"
 
 namespace ix
@@ -36,11 +38,10 @@ namespace ix
             std::cout << "Auth response: " << authResponse << ":" << port << std::endl;
         }
 
-        std::chrono::time_point<std::chrono::steady_clock> lastTimePoint;
-        int msgPerSeconds = 0;
-        int msgCount = 0;
+        std::atomic<int> msgPerSeconds(0);
+        std::atomic<int> msgCount(0);
 
-        auto callback = [&lastTimePoint, &msgPerSeconds, &msgCount, verbose]
+        auto callback = [&msgPerSeconds, &msgCount, verbose]
                          (const std::string& message)
         {
             if (verbose)
@@ -49,27 +50,29 @@ namespace ix
             }
 
             msgPerSeconds++;
-
-            auto now = std::chrono::steady_clock::now();
-            if (now - lastTimePoint > std::chrono::seconds(1))
-            {
-                lastTimePoint = std::chrono::steady_clock::now();
-
-                msgCount += msgPerSeconds;
-
-                // #messages 901 msg/s 150
-                std::cout << "#messages " << msgCount << " "
-                          << "msg/s " << msgPerSeconds
-                          << std::endl;
-
-                msgPerSeconds = 0;
-            }
+            msgCount++;
         };
 
         auto responseCallback = [](const std::string& redisResponse)
         {
             std::cout << "Redis subscribe response: " << redisResponse << std::endl;
         };
+
+        auto timer = [&msgPerSeconds, &msgCount]
+        {
+            while (true)
+            {
+                std::cout << "#messages " << msgCount << " "
+                          << "msg/s " << msgPerSeconds
+                          << std::endl;
+
+                msgPerSeconds = 0;
+                auto duration = std::chrono::seconds(1);
+                std::this_thread::sleep_for(duration);
+            }
+        };
+
+        std::thread t(timer);
 
         std::cerr << "Subscribing to " << channel << "..." << std::endl;
         if (!redisClient.subscribe(channel, responseCallback, callback))

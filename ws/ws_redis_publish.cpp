@@ -14,7 +14,8 @@ namespace ix
                               int port,
                               const std::string& password,
                               const std::string& channel,
-                              const std::string& message)
+                              const std::string& message,
+                              int count)
     {
         RedisClient redisClient;
         if (!redisClient.connect(hostname, port))
@@ -35,12 +36,15 @@ namespace ix
             std::cout << "Auth response: " << authResponse << ":" << port << std::endl;
         }
 
-        std::cerr << "Publishing message " << message
-                  << " to " << channel << "..." << std::endl;
-        if (!redisClient.publish(channel, message))
+        for (int i = 0; i < count; i++)
         {
-            std::cerr << "Error publishing to channel " << channel << std::endl;
-            return 1;
+            //std::cerr << "Publishing message " << message
+            //          << " to " << channel << "..." << std::endl;
+            if (!redisClient.publish(channel, message))
+            {
+                std::cerr << "Error publishing to channel " << channel << std::endl;
+                return 1;
+            }
         }
 
         return 0;
