@@ -308,6 +308,29 @@ Subcommands:
 
 ---
 
+# Cobra
+
+```
+         ,,'6''-,.
+        <====,.;;--.
+        _`---===. """==__
+      //""@@-\===\@@@@ ""\\
+     |( @@@  |===|  @@@  ||
+      \\ @@   |===|  @@  //
+        \\ @@ |===|@@@ //
+         \\  |===|  //
+___________\\|===| //_____,----""""""""""-----,_
+  """"---,__`\===`/ _________,---------,____    `,
+             |==||                           `\   \
+            |==| |    Python 3 + Redis         )   |
+           |==| |       _____         ______,--'   '
+           |=|  `----"""     `""""""""         _,-'
+            `=\     __,---"""-------------"""''
+                """"
+```
+
+---
+
 # Why Redis ?
 
 - Redis Pub/Sub very easy to get going. Redis Stream (5.0-rc5) could be used.
@@ -332,27 +355,24 @@ Subcommands:
 
 ---
 
-# Cobra
+# Memory optimizations (thanks to tracemalloc module)
+
+## A simple asyncio PUBLISH only client (see code in the annex)
 
 ```
-         ,,'6''-,.
-        <====,.;;--.
-        _`---===. """==__
-      //""@@-\===\@@@@ ""\\
-     |( @@@  |===|  @@@  ||
-      \\ @@   |===|  @@  //
-        \\ @@ |===|@@@ //
-         \\  |===|  //
-___________\\|===| //_____,----""""""""""-----,_
-  """"---,__`\===`/ _________,---------,____    `,
-             |==||                           `\   \
-            |==| |    Python 3 + Redis         )   |
-           |==| |       _____         ______,--'   '
-           |=|  `----"""     `""""""""         _,-'
-            `=\     __,---"""-------------"""''
-                """"
+262.5 KB new 262.5 KB total / 2994 new 2994 total memory blocks:
+  ...
+  File "/src/cobra/server/pipelined_publisher.py", line 35
+    pipe.publish(appChannel, data)
+  File "/usr/local/lib/python3.7/site-packages/aioredis/commands/transaction.py", line 145
+    task = asyncio.ensure_future(attr(*args, **kw),
+  File "/usr/local/lib/python3.7/site-packages/aioredis/commands/pubsub.py", line 14
+    return self.execute(b'PUBLISH', channel, message)
+  File "/usr/local/lib/python3.7/site-packages/aioredis/commands/__init__.py", line 50
+    return self._pool_or_conn.execute(command, *args, **kwargs)
+  File "/usr/local/lib/python3.7/site-packages/aioredis/commands/transaction.py", line 102
+    self._pipeline.append((fut, cmd, args, kw))
 ```
-
 
 ---
 
