@@ -60,19 +60,7 @@
   <body>
     <textarea id="source">
 
-class: center, middle
-
-# RedisConf 2019
-
-Real-Time Health Analytics with WebSockets, Python 3 and Redis PubSub
-
----
-
 name: first
-
----
-
-name: ten-years
 
 ---
 
@@ -421,7 +409,7 @@ To be able to scale horizontally we run multiple redis instances, and we select 
                          |             |
              +---------->+             |     +-------------+
                          |  SELECT ... |     | few messages|
-         High frenquency |             +---->+  received   |
+         High frequency  |             +---->+  received   |
              message     |  (subset    |     |             |
                          |    of data) |     +-------------+
              +---------->+             |
@@ -431,11 +419,44 @@ To be able to scale horizontally we run multiple redis instances, and we select 
 
 ---
 
-# Deployment
+# Example Stream SQL expressions
 
-- OpenShift (Redhat tooling around Kubernete)
-- In memory redis config.
-- It works (tm)
+## HTTP Errors
+
+```
+SELECT data.url,data.status FROM \`engine_net_request_id\` 
+ WHERE data.status != 200 AND 
+        data.url LIKE 'why'
+
+{'data.url': 'https://why_are_we_still_making/this_request', 'data.status': 404}
+{'data.url': 'https://why_are_we_still_making/this_request', 'data.status': 404}
+{'data.url': 'https://why_are_we_still_making/this_request', 'data.status': 404}
+{'data.url': 'https://why_are_we_still_making/this_request', 'data.status': 404}
+{'data.url': 'https://why_are_we_still_making/this_one_too', 'data.status': 404}
+```
+
+## CDN requests
+
+```
+SELECT data.url,data.duration_ms FROM \`engine_net_request_id\` 
+ WHERE data.url LIKE '.png'
+
+
+{'data.url': 'https://big.cdn.provider/asset_1.png', 'data.duration_ms': 28}}
+{'data.url': 'https://big.cdn.provider/asset_2.png', 'data.duration_ms': 1008}}
+{'data.url': 'https://other.cdn.provider/asset_2.png', 'data.duration_ms': 512}}
+```
+
+???
+We used this to deprecate sending low res assets to old devices, as very few of them remained in use, and it would speed up our deployment process, and reduce our CDNs costs to do so.
+
+---
+
+# Deployed with OpenShift
+
+- 60 python nodes (1CPU + 4G) dedicated to publishers
+- 10 python nodes (1CPU + 4G) dedicated to subscribers
+- 5 redis nodes (512M ?)
 
 ```
 redis1-1-gbjvt                1/1       Running   2          145d
@@ -446,17 +467,17 @@ redis5-1-z6262                1/1       Running   0          52d
 ```
 
 ```
-cobra-44-4xfbw                1/1       Running   0          1h
-cobra-44-58vch                1/1       Running   0          1h
-cobra-44-5m4ff                1/1       Running   0          1h
-cobra-44-6vvk5                1/1       Running   0          1h
-cobra-44-7bmcx                1/1       Running   0          1h
-cobra-44-85q78                1/1       Running   0          1h
+cobra-44-4xfbw                1/1       Running   0          12d
+cobra-44-58vch                1/1       Running   0          12d
+cobra-44-5m4ff                1/1       Running   0          12d
+cobra-44-6vvk5                1/1       Running   0          12d
+...
 
-cobra-subscribers-30-7bpqh    1/1       Running   0          1h
-cobra-subscribers-30-fd477    1/1       Running   0          1h
-cobra-subscribers-30-h5ntn    1/1       Running   0          1h
-cobra-subscribers-30-hlcd6    1/1       Running   0          1h
+cobra-subscribers-30-7bpqh    1/1       Running   0          12d
+cobra-subscribers-30-fd477    1/1       Running   0          12d
+cobra-subscribers-30-h5ntn    1/1       Running   0          12d
+cobra-subscribers-30-hlcd6    1/1       Running   0          12d
+...
 ```
 
 ???
@@ -541,10 +562,10 @@ Good property of a flexible system.
 
 # Neo
 
-- Interactive real-time shell (good for non programmers)
+- Real time dashboard
 - Search/Filter with StreamSQL
 
-![Alt text](neo.png)
+![Alt text](neo_map.png)
 
 ---
 
@@ -610,40 +631,6 @@ class: center, middle
 
 ???
 I will not go through this in the presentation
-
----
-
-# Example Stream SQL expressions
-
-## HTTP Errors
-
-```
-SELECT data.url,data.status FROM \`engine_net_request_id\` 
- WHERE data.status != 200 AND 
-        data.url LIKE 'why'
-
-{'data.url': 'https://why_are_we_still_making/this_request', 'data.status': 404}
-{'data.url': 'https://why_are_we_still_making/this_request', 'data.status': 404}
-{'data.url': 'https://why_are_we_still_making/this_request', 'data.status': 404}
-{'data.url': 'https://why_are_we_still_making/this_request', 'data.status': 404}
-{'data.url': 'https://why_are_we_still_making/this_one_too', 'data.status': 404}
-```
-
-## CDN requests
-
-```
-SELECT data.url,data.duration_ms FROM \`engine_net_request_id\` 
- WHERE data.url LIKE '.png'
-
-
-{'data.url': 'https://big.cdn.provider/asset_1.png', 'data.duration_ms': 28}}
-{'data.url': 'https://big.cdn.provider/asset_2.png', 'data.duration_ms': 1008}}
-{'data.url': 'https://other.cdn.provider/asset_2.png', 'data.duration_ms': 512}}
-```
-
-???
-We used this to deprecate sending low res assets to old devices, as very few of them remained in use, and it would speed up our deployment process, and reduce our CDNs costs to do so.
-
 
 ---
 
