@@ -19,7 +19,7 @@ sleep 0.5
 ws redis_publish -c 100000 --host ${REDIS_HOST} foo bar
 
 # Wait a little for all messages to be received
-sleep 0.5
+sleep 1.5
 
 # Cleanup
 cleanup
