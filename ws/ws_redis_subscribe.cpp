@@ -46,7 +46,7 @@ namespace ix
         {
             if (verbose)
             {
-                std::cout << message << std::endl;
+                std::cout << "received: " << message << std::endl;
             }
 
             msgPerSeconds++;
@@ -84,4 +84,3 @@ namespace ix
         return 0;
     }
 }
-
