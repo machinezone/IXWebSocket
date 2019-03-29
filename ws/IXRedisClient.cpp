@@ -7,6 +7,7 @@
 #include "IXRedisClient.h"
 #include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXSocket.h>
+#include <cpp_redis/cpp_redis>
 
 #include <sstream>
 #include <iomanip>
@@ -17,6 +18,14 @@ namespace ix
 {
     bool RedisClient::connect(const std::string& hostname, int port)
     {
+         _sub.connect(hostname, port, []
+                 (const std::string& host, std::size_t port, cpp_redis::connect_state status) {
+            if (status == cpp_redis::connect_state::dropped) {
+              std::cout << "client disconnected from " << host << ":" << port << std::endl;
+            }
+          });
+
+         // also subscribe the old way
         bool tls = false;
         std::string errorMsg;
         _socket = createSocket(tls, errorMsg);
@@ -28,11 +37,22 @@ namespace ix
 
         std::string errMsg;
         return _socket->connect(hostname, port, errMsg, nullptr);
+        
     }
 
     bool RedisClient::auth(const std::string& password,
                            std::string& response)
     {
+        // authentication if server-server requires it
+        //  _sub.auth(password, [&response](const cpp_redis::reply& reply) {
+        //    if (reply.is_error()) { std::cerr << "Authentication failed: " << reply.as_string() << std::endl; }
+        //    else {
+        //      std::cout << "successful authentication" << std::endl;
+        //    }
+        //  });
+
+        return true;
+#if 0
         response.clear();
 
         if (!_socket) return false;
@@ -60,6 +80,7 @@ namespace ix
 
         response = line;
         return lineValid;
+#endif
     }
 
 
@@ -101,6 +122,19 @@ namespace ix
                                 const OnRedisSubscribeResponseCallback& responseCallback,
                                 const OnRedisSubscribeCallback& callback)
     {
+        _sub.subscribe(channel, [&callback](const std::string& chan, const std::string& msg) {
+            callback(msg);
+        });
+        _sub.commit();
+
+        while (true)
+        {
+            auto duration = std::chrono::seconds(1);
+            std::this_thread::sleep_for(duration);
+        }
+
+        return true;
+#if 0
         if (!_socket) return false;
 
         std::stringstream ss;
@@ -203,5 +237,6 @@ namespace ix
         }
 
         return true;
+#endif
     }
 }

@@ -42,5 +42,5 @@ if (APPLE AND USE_TLS)
     target_link_libraries(ws "-framework foundation" "-framework security")
 endif()
 
-target_link_libraries(ws ixwebsocket)
+target_link_libraries(ws ixwebsocket cpp_redis tacopie)
 install(TARGETS ws RUNTIME DESTINATION bin)

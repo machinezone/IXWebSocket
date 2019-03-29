@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <functional>
+#include <cpp_redis/cpp_redis>
 
 namespace ix
 {
@@ -35,6 +36,8 @@ namespace ix
                        const OnRedisSubscribeCallback& callback);
 
     private:
+        cpp_redis::subscriber _sub;
+
         std::shared_ptr<Socket> _socket;
     };
 }
