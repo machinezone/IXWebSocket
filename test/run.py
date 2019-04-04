@@ -350,9 +350,6 @@ def generateXmlOutput(results, xmlOutput, testRunName, runTime):
 def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLDB):
     '''Main driver. Run cmake, compiles, execute and validate the testsuite.'''
 
-    # Override CXX for Linux
-    os.environ['CXX'] = "/usr/bin/clang++ --std=c++14 --stdlib=libc++"
-
     runCMake(sanitizer, buildDir)
     runCommand('make -C {} -j8'.format(buildDir))
 
