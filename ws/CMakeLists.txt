@@ -16,14 +16,19 @@ option(USE_TLS "Add TLS support" ON)
 include_directories(ws .)
 include_directories(ws ..)
 include_directories(ws ../third_party)
+include_directories(ws ../third_party/statsd-client-cpp/src)
 
 add_executable(ws 
   ../third_party/msgpack11/msgpack11.cpp
+  ../third_party/jsoncpp/jsoncpp.cpp
+  ../third_party/statsd-client-cpp/src/statsd_client.cpp
   ixcrypto/IXBase64.cpp
   ixcrypto/IXHash.cpp
   ixcrypto/IXUuid.cpp
+  ixcrypto/IXHMac.cpp
 
   IXRedisClient.cpp
+  IXCobraConnection.cpp
 
   ws_http_client.cpp
   ws_ping_pong.cpp
@@ -36,6 +41,8 @@ add_executable(ws
   ws_receive.cpp
   ws_redis_publish.cpp
   ws_redis_subscribe.cpp
+  ws_cobra_subscribe.cpp
+  ws_cobra_to_statsd.cpp
   ws.cpp)
 
 if (APPLE AND USE_TLS)

@@ -38,6 +38,12 @@ int main(int argc, char** argv)
     std::string channel;
     std::string message;
     std::string password;
+    std::string appkey;
+    std::string endpoint;
+    std::string rolename;
+    std::string rolesecret;
+    std::string prefix("ws.test.v0");
+    std::string fields;
     bool headersOnly = false;
     bool followRedirects = false;
     bool verbose = false;
@@ -45,6 +51,7 @@ int main(int argc, char** argv)
     bool compress = false;
     int port = 8080;
     int redisPort = 6379;
+    int statsdPort = 8125;
     int connectTimeOut = 60;
     int transferTimeout = 1800;
     int maxRedirects = 5;
@@ -117,6 +124,28 @@ int main(int argc, char** argv)
     redisSubscribeApp->add_flag("-v", verbose, "Verbose");
     redisSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
 
+    CLI::App* cobraSubscribeApp = app.add_subcommand("cobra_subscribe", "Cobra subscriber");
+    cobraSubscribeApp->add_option("--appkey", appkey, "Appkey");
+    cobraSubscribeApp->add_option("--endpoint", endpoint, "Endpoint");
+    cobraSubscribeApp->add_option("--rolename", rolename, "Role name");
+    cobraSubscribeApp->add_option("--rolesecret", rolesecret, "Role secret");
+    cobraSubscribeApp->add_option("channel", channel, "Channel")->required();
+    cobraSubscribeApp->add_flag("-v", verbose, "Verbose");
+    cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
+
+    CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra to statsd");
+    cobra2statsd->add_option("--appkey", appkey, "Appkey");
+    cobra2statsd->add_option("--endpoint", endpoint, "Endpoint");
+    cobra2statsd->add_option("--rolename", rolename, "Role name");
+    cobra2statsd->add_option("--rolesecret", rolesecret, "Role secret");
+    cobra2statsd->add_option("--host", hostname, "Statsd host");
+    cobra2statsd->add_option("--port", statsdPort, "Statsd port");
+    cobra2statsd->add_option("--prefix", prefix, "Statsd prefix");
+    cobra2statsd->add_option("--fields", fields, "Extract fields for naming the event")->join();
+    cobra2statsd->add_option("channel", channel, "Channel")->required();
+    cobra2statsd->add_flag("-v", verbose, "Verbose");
+    cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
+
     CLI11_PARSE(app, argc, argv);
 
     // pid file handling
@@ -178,6 +207,19 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("redis_subscribe"))
     {
         return ix::ws_redis_subscribe_main(hostname, redisPort, password, channel, verbose);
+    }
+    else if (app.got_subcommand("cobra_subscribe"))
+    {
+        return ix::ws_cobra_subscribe_main(appkey, endpoint,
+                                           rolename, rolesecret,
+                                           channel, verbose);
+    }
+    else if (app.got_subcommand("cobra_to_statsd"))
+    {
+        return ix::ws_cobra_to_statsd_main(appkey, endpoint,
+                                           rolename, rolesecret,
+                                           channel, hostname, statsdPort,
+                                           prefix, fields, verbose);
     }
 
     return 1;

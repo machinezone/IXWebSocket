@@ -52,4 +52,22 @@ namespace ix
                                 const std::string& password,
                                 const std::string& channel,
                                 bool verbose);
+
+    int ws_cobra_subscribe_main(const std::string& appkey,
+                                const std::string& endpoint,
+                                const std::string& rolename,
+                                const std::string& rolesecret,
+                                const std::string& channel,
+                                bool verbose);
+
+    int ws_cobra_to_statsd_main(const std::string& appkey,
+                                const std::string& endpoint,
+                                const std::string& rolename,
+                                const std::string& rolesecret,
+                                const std::string& channel,
+                                const std::string& host,
+                                int port,
+                                const std::string& prefix,
+                                const std::string& fields,
+                                bool verbose);
 }
