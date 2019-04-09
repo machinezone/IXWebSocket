@@ -11,19 +11,24 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <memory>
 
 #include <jsoncpp/json/json.h>
-#include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
 
 namespace ix
 {
+    class WebSocket;
+
     enum CobraConnectionEventType
     {
         CobraConnection_EventType_Authenticated = 0,
         CobraConnection_EventType_Error = 1,
         CobraConnection_EventType_Open = 2,
-        CobraConnection_EventType_Closed = 3
+        CobraConnection_EventType_Closed = 3,
+        CobraConnection_EventType_Subscribed = 4,
+        CobraConnection_EventType_UnSubscribed = 5
     };
 
     enum CobraConnectionPublishMode
@@ -35,7 +40,8 @@ namespace ix
     using SubscriptionCallback = std::function<void(const Json::Value&)>;
     using EventCallback = std::function<void(CobraConnectionEventType,
                                              const std::string&,
-                                             const WebSocketHttpHeaders&)>;
+                                             const WebSocketHttpHeaders&,
+                                             const std::string&)>;
     using TrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
     class CobraConnection
@@ -84,7 +90,7 @@ namespace ix
 
         /// Returns true only if we're connected
         bool isConnected() const;
-
+        
         /// Flush the publish queue
         bool flushQueue();
 
@@ -100,6 +106,8 @@ namespace ix
         bool handleHandshakeResponse(const Json::Value& data);
         bool sendAuthMessage(const std::string& nonce);
         bool handleSubscriptionData(const Json::Value& pdu);
+        bool handleSubscriptionResponse(const Json::Value& pdu);
+        bool handleUnsubscriptionResponse(const Json::Value& pdu);
 
         void initWebSocketOnMessageCallback();
 
@@ -113,13 +121,15 @@ namespace ix
         /// Invoke event callbacks
         void invokeEventCallback(CobraConnectionEventType eventType,
                                  const std::string& errorMsg = std::string(),
-                                 const WebSocketHttpHeaders& headers = WebSocketHttpHeaders());
-        void invokeErrorCallback(const std::string& errorMsg);
+                                 const WebSocketHttpHeaders& headers = WebSocketHttpHeaders(),
+                                 const std::string& subscriptionId = std::string());
+        void invokeErrorCallback(const std::string& errorMsg,
+                                 const std::string& serializedPdu);
 
         ///
         /// Member variables
-        ///
-        WebSocket _webSocket;
+        /// 
+        std::unique_ptr<WebSocket> _webSocket;
 
         /// Configuration data
         std::string _appkey;
@@ -148,10 +158,10 @@ namespace ix
         std::unordered_map<std::string, SubscriptionCallback> _cbs;
         mutable std::mutex _cbsMutex;
 
-        // Message Queue can be touched on control+background thread,
+        // Message Queue can be touched on control+background thread, 
         // protecting with a mutex.
         //
-        // Message queue is used when there are problems sending messages so
+        // Message queue is used when there are problems sending messages so 
         // that sending can be retried later.
         std::deque<std::string> _messageQueue;
         mutable std::mutex _queueMutex;
@@ -159,5 +169,5 @@ namespace ix
         // Cap the queue size (100 elems so far -> ~100k)
         static constexpr size_t kQueueMaxSize = 256;
     };
-
+    
 } // namespace ix

@@ -6,6 +6,7 @@
 
 #include "IXCobraConnection.h"
 #include <ixcrypto/IXHMac.h>
+#include <ixwebsocket/IXWebSocket.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -20,9 +21,10 @@ namespace ix
     constexpr size_t CobraConnection::kQueueMaxSize;
 
     CobraConnection::CobraConnection() :
+        _webSocket(new WebSocket()),
+        _publishMode(CobraConnection_PublishMode_Immediate),
         _authenticated(false),
-        _eventCallback(nullptr),
-        _publishMode(CobraConnection_PublishMode_Immediate)
+        _eventCallback(nullptr)
     {
         _pdu["action"] = "rtm/publish";
 
@@ -32,6 +34,7 @@ namespace ix
     CobraConnection::~CobraConnection()
     {
         disconnect();
+        setEventCallback(nullptr);
     }
 
     void CobraConnection::setTrafficTrackerCallback(const TrafficTrackerCallback& callback)
@@ -59,36 +62,40 @@ namespace ix
     }
 
     void CobraConnection::invokeEventCallback(ix::CobraConnectionEventType eventType,
-                                              const std::string& errorMsg,
-                                              const WebSocketHttpHeaders& headers)
+                                               const std::string& errorMsg,
+                                               const WebSocketHttpHeaders& headers,
+                                               const std::string& subscriptionId)
     {
         std::lock_guard<std::mutex> lock(_eventCallbackMutex);
         if (_eventCallback)
         {
-            _eventCallback(eventType, errorMsg, headers);
+            _eventCallback(eventType, errorMsg, headers, subscriptionId);
         }
     }
 
-    void CobraConnection::invokeErrorCallback(const std::string& errorMsg)
+    void CobraConnection::invokeErrorCallback(const std::string& errorMsg,
+                                               const std::string& serializedPdu)
     {
-        invokeEventCallback(ix::CobraConnection_EventType_Error, errorMsg);
+        std::stringstream ss;
+        ss << errorMsg << " : received pdu => " << serializedPdu;
+        invokeEventCallback(ix::CobraConnection_EventType_Error, ss.str());
     }
 
     void CobraConnection::disconnect()
     {
         _authenticated = false;
-        _webSocket.stop();
+        _webSocket->stop();
     }
 
     void CobraConnection::initWebSocketOnMessageCallback()
     {
-        _webSocket.setOnMessageCallback(
+        _webSocket->setOnMessageCallback(
             [this](ix::WebSocketMessageType messageType,
                    const std::string& str,
                    size_t wireSize,
                    const ix::WebSocketErrorInfo& error,
-                   const ix::WebSocketCloseInfo& closeInfo,
-                   const ix::WebSocketHttpHeaders& headers)
+                   const ix::WebSocketOpenInfo& openInfo,
+                   const ix::WebSocketCloseInfo& closeInfo)
             {
                 CobraConnection::invokeTrafficTrackerCallback(wireSize, true);
 
@@ -97,7 +104,7 @@ namespace ix
                 {
                     invokeEventCallback(ix::CobraConnection_EventType_Open,
                                         std::string(),
-                                        headers);
+                                        openInfo.headers);
                     sendHandshakeMessage();
                 }
                 else if (messageType == ix::WebSocket_MessageType_Close)
@@ -116,13 +123,13 @@ namespace ix
                     Json::Reader reader;
                     if (!reader.parse(str, data))
                     {
-                        invokeErrorCallback(std::string("Invalid json: ") + str);
+                        invokeErrorCallback("Invalid json", str);
                         return;
                     }
 
                     if (!data.isMember("action"))
                     {
-                        invokeErrorCallback("Missing action");
+                        invokeErrorCallback("Missing action", str);
                         return;
                     }
 
@@ -132,12 +139,12 @@ namespace ix
                     {
                         if (!handleHandshakeResponse(data))
                         {
-                            invokeErrorCallback("Error extracting nonce from handshake response");
+                            invokeErrorCallback("Error extracting nonce from handshake response", str);
                         }
                     }
                     else if (action == "auth/handshake/error")
                     {
-                        invokeErrorCallback("Handshake error."); // print full message ?
+                        invokeErrorCallback("Handshake error", str);
                     }
                     else if (action == "auth/authenticate/ok")
                     {
@@ -147,15 +154,37 @@ namespace ix
                     }
                     else if (action == "auth/authenticate/error")
                     {
-                        invokeErrorCallback("Authentication error."); // print full message ?
+                        invokeErrorCallback("Authentication error", str);
                     }
                     else if (action == "rtm/subscription/data")
                     {
                         handleSubscriptionData(data);
                     }
+                    else if (action == "rtm/subscribe/ok")
+                    {
+                        if (!handleSubscriptionResponse(data))
+                        {
+                            invokeErrorCallback("Error processing subscribe response", str);
+                        }
+                    }
+                    else if (action == "rtm/subscribe/error")
+                    {
+                        invokeErrorCallback("Subscription error", str);
+                    }
+                    else if (action == "rtm/unsubscribe/ok")
+                    {
+                        if (!handleUnsubscriptionResponse(data))
+                        {
+                            invokeErrorCallback("Error processing subscribe response", str);
+                        }
+                    }
+                    else if (action == "rtm/unsubscribe/error")
+                    {
+                        invokeErrorCallback("Unsubscription error", str);
+                    }
                     else
                     {
-                        invokeErrorCallback(std::string("Un-handled message type: ") + action);
+                        invokeErrorCallback("Un-handled message type", str);
                     }
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
@@ -165,7 +194,7 @@ namespace ix
                     ss << "#retries: "         << error.retries     << std::endl;
                     ss << "Wait time(ms): "    << error.wait_time   << std::endl;
                     ss << "HTTP Status: "      << error.http_status << std::endl;
-                    invokeErrorCallback(ss.str());
+                    invokeErrorCallback(ss.str(), std::string());
                 }
         });
     }
@@ -176,10 +205,10 @@ namespace ix
     }
 
     void CobraConnection::configure(const std::string& appkey,
-                                    const std::string& endpoint,
-                                    const std::string& rolename,
-                                    const std::string& rolesecret,
-                                    WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions)
+                                     const std::string& endpoint,
+                                     const std::string& rolename,
+                                     const std::string& rolesecret,
+                                     WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions)
     {
         _appkey = appkey;
         _endpoint = endpoint;
@@ -192,8 +221,8 @@ namespace ix
         ss << _appkey;
 
         std::string url = ss.str();
-        _webSocket.setUrl(url);
-        _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
+        _webSocket->setUrl(url);
+        _webSocket->setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
     }
 
     //
@@ -226,10 +255,10 @@ namespace ix
         std::string serializedJson = serializeJson(pdu);
         CobraConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
 
-        return _webSocket.send(serializedJson).success;
+        return _webSocket->send(serializedJson).success;
     }
 
-    //
+    // 
     // Extract the nonce from the handshake response
     // use it to compute a hash during authentication
     //
@@ -288,16 +317,47 @@ namespace ix
         std::string serializedJson = serializeJson(pdu);
         CobraConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
 
-        return _webSocket.send(serializedJson).success;
+        return _webSocket->send(serializedJson).success;
     }
 
+    bool CobraConnection::handleSubscriptionResponse(const Json::Value& pdu)
+    {
+        if (!pdu.isMember("body")) return false;
+        Json::Value body = pdu["body"];
+
+        if (!body.isMember("subscription_id")) return false;
+        Json::Value subscriptionId = body["subscription_id"];
+
+        if (!subscriptionId.isString()) return false;
+
+        invokeEventCallback(ix::CobraConnection_EventType_Subscribed,
+                            std::string(), WebSocketHttpHeaders(),
+                            subscriptionId.asString());
+        return true;
+    }
+
+    bool CobraConnection::handleUnsubscriptionResponse(const Json::Value& pdu)
+    {
+        if (!pdu.isMember("body")) return false;
+        Json::Value body = pdu["body"];
+
+        if (!body.isMember("subscription_id")) return false;
+        Json::Value subscriptionId = body["subscription_id"];
+
+        if (!subscriptionId.isString()) return false;
+
+        invokeEventCallback(ix::CobraConnection_EventType_UnSubscribed,
+                            std::string(), WebSocketHttpHeaders(),
+                            subscriptionId.asString());
+        return true;
+    }
 
     bool CobraConnection::handleSubscriptionData(const Json::Value& pdu)
     {
         if (!pdu.isMember("body")) return false;
         Json::Value body = pdu["body"];
 
-        // Identify subscription_id, so that we can find
+        // Identify subscription_id, so that we can find 
         // which callback to execute
         if (!body.isMember("subscription_id")) return false;
         Json::Value subscriptionId = body["subscription_id"];
@@ -320,13 +380,13 @@ namespace ix
 
     bool CobraConnection::connect()
     {
-        _webSocket.start();
+        _webSocket->start();
         return true;
     }
 
     bool CobraConnection::isConnected() const
     {
-        return _webSocket.getReadyState() == ix::WebSocket_ReadyState_Open;
+        return _webSocket->getReadyState() == ix::WebSocket_ReadyState_Open;
     }
 
     std::string CobraConnection::serializeJson(const Json::Value& value)
@@ -339,7 +399,7 @@ namespace ix
     // publish is not thread safe as we are trying to reuse some Json objects.
     //
     bool CobraConnection::publish(const Json::Value& channels,
-                                  const Json::Value& msg)
+                                   const Json::Value& msg)
     {
         _body["channels"] = channels;
         _body["message"] = msg;
@@ -371,7 +431,7 @@ namespace ix
     }
 
     void CobraConnection::subscribe(const std::string& channel,
-                                    SubscriptionCallback cb)
+                                     SubscriptionCallback cb)
     {
         // Create and send a subscribe pdu
         Json::Value body;
@@ -381,7 +441,7 @@ namespace ix
         pdu["action"] = "rtm/subscribe";
         pdu["body"] = body;
 
-        _webSocket.send(pdu.toStyledString());
+        _webSocket->send(pdu.toStyledString());
 
         // Set the callback
         std::lock_guard<std::mutex> lock(_cbsMutex);
@@ -400,13 +460,13 @@ namespace ix
 
         // Create and send an unsubscribe pdu
         Json::Value body;
-        body["channel"] = channel;
+        body["subscription_id"] = channel;
 
         Json::Value pdu;
         pdu["action"] = "rtm/unsubscribe";
         pdu["body"] = body;
 
-        _webSocket.send(pdu.toStyledString());
+        _webSocket->send(pdu.toStyledString());
     }
 
     //
@@ -456,7 +516,7 @@ namespace ix
 
     bool CobraConnection::publishMessage(const std::string& serializedJson)
     {
-        auto webSocketSendInfo = _webSocket.send(serializedJson);
+        auto webSocketSendInfo = _webSocket->send(serializedJson);
         CobraConnection::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize,
                                                        false);
         return webSocketSendInfo.success;
@@ -471,5 +531,5 @@ namespace ix
     {
         connect();
     }
-
+    
 } // namespace ix
