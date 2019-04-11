@@ -9,6 +9,9 @@ project (ws)
 # There's -Weverything too for clang
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+#set(CMAKE_LD_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+
 set (CMAKE_CXX_STANDARD 14)
 
 option(USE_TLS "Add TLS support" ON)
@@ -28,6 +31,7 @@ add_executable(ws
   ixcrypto/IXHMac.cpp
 
   IXRedisClient.cpp
+  IXSentryClient.cpp
   IXCobraConnection.cpp
 
   ws_http_client.cpp
@@ -43,6 +47,7 @@ add_executable(ws
   ws_redis_subscribe.cpp
   ws_cobra_subscribe.cpp
   ws_cobra_to_statsd.cpp
+  ws_cobra_to_sentry.cpp
   ws.cpp)
 
 if (APPLE AND USE_TLS)

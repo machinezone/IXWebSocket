@@ -16,6 +16,7 @@
 
 namespace ix
 {
+    // fields are command line argument that can be specified multiple times
     std::vector<std::string> parseFields(const std::string& fields)
     {
         std::vector<std::string> tokens;
@@ -32,6 +33,10 @@ namespace ix
         return tokens;
     }
 
+    //
+    // Extract an attribute from a Json Value.
+    // extractAttr("foo.bar", {"foo": {"bar": "baz"}}) => baz
+    //
     std::string extractAttr(const std::string& attr,
                             const Json::Value& jsonValue)
     {
@@ -71,7 +76,8 @@ namespace ix
 
         // statsd client
         // test with netcat as a server: `nc -ul 8125`
-        statsd::StatsdClient statsdClient(host, port, prefix, true);
+        bool statsdBatch = true;
+        statsd::StatsdClient statsdClient(host, port, prefix, statsdBatch);
 
         Json::FastWriter jsonWriter;
         uint64_t msgCount = 0;
@@ -86,6 +92,10 @@ namespace ix
                 if (eventType == ix::CobraConnection_EventType_Open)
                 {
                     std::cout << "Subscriber: connected" << std::endl;
+                }
+                if (eventType == ix::CobraConnection_EventType_Closed)
+                {
+                    std::cout << "Subscriber: closed" << std::endl;
                 }
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
@@ -129,7 +139,7 @@ namespace ix
 
         while (true)
         {
-            std::chrono::duration<double, std::milli> duration(10);
+            std::chrono::duration<double, std::milli> duration(1000);
             std::this_thread::sleep_for(duration);
         }
 

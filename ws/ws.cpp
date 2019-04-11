@@ -44,11 +44,13 @@ int main(int argc, char** argv)
     std::string rolesecret;
     std::string prefix("ws.test.v0");
     std::string fields;
+    std::string dsn;
     bool headersOnly = false;
     bool followRedirects = false;
     bool verbose = false;
     bool save = false;
     bool compress = false;
+    bool strict = false;
     int port = 8080;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -57,6 +59,7 @@ int main(int argc, char** argv)
     int maxRedirects = 5;
     int delayMs = -1;
     int count = 1;
+    int jobs = 4;
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
@@ -146,6 +149,18 @@ int main(int argc, char** argv)
     cobra2statsd->add_flag("-v", verbose, "Verbose");
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
 
+    CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra to sentry");
+    cobra2sentry->add_option("--appkey", appkey, "Appkey");
+    cobra2sentry->add_option("--endpoint", endpoint, "Endpoint");
+    cobra2sentry->add_option("--rolename", rolename, "Role name");
+    cobra2sentry->add_option("--rolesecret", rolesecret, "Role secret");
+    cobra2sentry->add_option("--dsn", dsn, "Sentry DSN");
+    cobra2sentry->add_option("--jobs", jobs, "Number of thread sending events to Sentry");
+    cobra2sentry->add_option("channel", channel, "Channel")->required();
+    cobra2sentry->add_flag("-v", verbose, "Verbose");
+    cobra2sentry->add_flag("-s", strict, "Strict mode. Error out when sending to sentry fails");
+    cobra2sentry->add_option("--pidfile", pidfile, "Pid file");
+
     CLI11_PARSE(app, argc, argv);
 
     // pid file handling
@@ -220,6 +235,13 @@ int main(int argc, char** argv)
                                            rolename, rolesecret,
                                            channel, hostname, statsdPort,
                                            prefix, fields, verbose);
+    }
+    else if (app.got_subcommand("cobra_to_sentry"))
+    {
+        return ix::ws_cobra_to_sentry_main(appkey, endpoint,
+                                           rolename, rolesecret,
+                                           channel, dsn,
+                                           verbose, strict, jobs);
     }
 
     return 1;
