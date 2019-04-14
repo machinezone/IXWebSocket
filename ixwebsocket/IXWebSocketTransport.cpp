@@ -644,7 +644,7 @@ namespace ix
                                           std::string::const_iterator message_end,
                                           bool compress)
     {
-        auto message_size = message_end - message_begin;
+        uint64_t message_size = static_cast<uint64_t>(message_end - message_begin);
 
         unsigned x = getRandomUnsigned();
         uint8_t masking_key[4] = {};
