@@ -104,6 +104,10 @@ add_library( ixwebsocket STATIC
 # gcc/Linux needs -pthread
 find_package(Threads)
 
+if (APPLE AND USE_TLS)
+    target_link_libraries(ixwebsocket "-framework foundation" "-framework security")
+endif()
+
 if(UNIX AND NOT APPLE)
   find_package(OpenSSL REQUIRED)
   add_definitions(${OPENSSL_DEFINITIONS})
