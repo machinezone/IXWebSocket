@@ -50,9 +50,5 @@ add_executable(ws
   ws_cobra_to_sentry.cpp
   ws.cpp)
 
-if (APPLE AND USE_TLS)
-    target_link_libraries(ws "-framework foundation" "-framework security")
-endif()
-
 target_link_libraries(ws ixwebsocket)
 install(TARGETS ws RUNTIME DESTINATION bin)
