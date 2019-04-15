@@ -17,6 +17,8 @@
 #include <mutex>
 #include <atomic>
 #include <list>
+#include <thread>
+#include <future>
 
 #include "IXWebSocketSendInfo.h"
 #include "IXWebSocketPerMessageDeflate.h"
@@ -68,7 +70,7 @@ namespace ix
         ~WebSocketTransport();
 
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                       int heartBeatPeriod);
+                       int heartBeatPeriod, int heartBeatFactorDisconnectOnNoResponse);
 
         WebSocketInitResult connectToUrl(const std::string& url, // Client
                                          int timeoutSecs);
@@ -155,14 +157,25 @@ namespace ix
         std::atomic<bool> _requestInitCancellation;
 
         // Optional Heartbeat
+        std::thread _thread;
+        std::promise<void> _exitSignal;
+        std::future<void> _future;
         int _heartBeatPeriod;
+        int _heartBeatFactorDisconnectOnNoResponse;
         static const int kDefaultHeartBeatPeriod;
+        static const int kDefaultHeartBeatFactorDisconnectOnNoResponse; // delay to wait for a PONG response, as factor of heartbeat period, -1 if no check
         const static std::string kHeartBeatPingMessage;
-        mutable std::mutex _lastSendTimePointMutex;
-        std::chrono::time_point<std::chrono::steady_clock> _lastSendTimePoint;
+        mutable std::mutex _lastSendPingTimePointMutex;
+        mutable std::mutex _lastReceivePongTimePointMutex;
+        std::chrono::time_point<std::chrono::steady_clock> _lastSendPingTimePoint;
+        std::chrono::time_point<std::chrono::steady_clock> _lastReceivePongTimePoint;
 
-        // No data was send through the socket for longer than the heartbeat period
+        // No PING data was send through the socket for longer than the heartbeat period
         bool heartBeatPeriodExceeded();
+        // No PONG data was received through the socket for longer than (2 times) the heartbeat period
+        bool pongReceiveDelayExceeded();
+        void runHeartBeat();
+        void stopHeartBeat();
 
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,

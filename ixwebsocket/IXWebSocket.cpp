@@ -32,13 +32,15 @@ namespace ix
     OnTrafficTrackerCallback WebSocket::_onTrafficTrackerCallback = nullptr;
     const int WebSocket::kDefaultHandShakeTimeoutSecs(60);
     const int WebSocket::kDefaultHeartBeatPeriod(-1);
+    const int WebSocket::kDefaultHeartBeatFactorDisconnectOnNoResponse(-1);
 
     WebSocket::WebSocket() :
         _onMessageCallback(OnMessageCallback()),
         _stop(false),
         _automaticReconnection(true),
         _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs),
-        _heartBeatPeriod(kDefaultHeartBeatPeriod)
+        _heartBeatPeriod(kDefaultHeartBeatPeriod),
+        _heartBeatFactorDisconnectOnNoResponse(kDefaultHeartBeatFactorDisconnectOnNoResponse)
     {
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize)
@@ -90,7 +92,13 @@ namespace ix
         std::lock_guard<std::mutex> lock(_configMutex);
         return _heartBeatPeriod;
     }
-
+    
+    void WebSocket::enableDisconnectOnNoHeartBeatResponse(int heartBeatFactor)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _heartBeatFactorDisconnectOnNoResponse = heartBeatFactor;
+    }
+    
     void WebSocket::start()
     {
         if (_thread.joinable()) return; // we've already been started
@@ -125,7 +133,8 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(_perMessageDeflateOptions,
-                          _heartBeatPeriod);
+                          _heartBeatPeriod,
+                          _heartBeatFactorDisconnectOnNoResponse);
         }
 
         WebSocketInitResult status = _ws.connectToUrl(_url, timeoutSecs);
@@ -145,7 +154,7 @@ namespace ix
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
-            _ws.configure(_perMessageDeflateOptions, _heartBeatPeriod);
+            _ws.configure(_perMessageDeflateOptions, _heartBeatPeriod, _heartBeatFactorDisconnectOnNoResponse);
         }
 
         WebSocketInitResult status = _ws.connectToSocket(fd, timeoutSecs);
