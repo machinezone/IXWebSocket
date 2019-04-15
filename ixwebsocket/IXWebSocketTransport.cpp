@@ -75,7 +75,7 @@ namespace ix
 
     WebSocketTransport::~WebSocketTransport()
     {
-        stopHeartBeat();
+        stopHeartBeatWatchdogThread();
     }
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
@@ -86,13 +86,13 @@ namespace ix
         _heartBeatPeriod = heartBeatPeriod;
         _heartBeatFactorDisconnectOnNoResponse = heartBeatFactorDisconnectOnNoResponse;
 
-        stopHeartBeat();
+        stopHeartBeatWatchdogThread();
 
         if(_heartBeatPeriod != kDefaultHeartBeatPeriod)
         {
             _exitSignal = std::promise<void>();
             _future = _exitSignal.get_future();
-            _thread = std::thread(&WebSocketTransport::runHeartBeat, this);
+            _heartbeatWatchdogThread = std::thread(&WebSocketTransport::heartbeatWatchdogThreadFunc, this);
         }
     }
 
@@ -199,7 +199,7 @@ namespace ix
 
     bool WebSocketTransport::pongReceiveDelayExceeded()
     {
-        if (_heartBeatFactorDisconnectOnNoResponse == kDefaultHeartBeatFactorDisconnectOnNoResponse)
+        if (_heartBeatFactorDisconnectOnNoResponse <= 0)
             return false;
 
         std::lock_guard<std::mutex> lock(_lastReceivePongTimePointMutex);
@@ -207,18 +207,16 @@ namespace ix
         return now - _lastReceivePongTimePoint > std::chrono::seconds(_heartBeatFactorDisconnectOnNoResponse*_heartBeatPeriod);
     }
 
-    void WebSocketTransport::runHeartBeat()
+    void WebSocketTransport::heartbeatWatchdogThreadFunc()
     {
-        using millis = std::chrono::duration<double, std::milli>;
-
-        while (_future.wait_for(std::chrono::milliseconds(0)) == std::future_status::timeout)
+        while (_future.wait_for(std::chrono::milliseconds(1000*_heartBeatPeriod)) == std::future_status::timeout)
         {
             if(_readyState == OPEN)
             {
                 // if (1) disconnect on no PONG received is enabled and (2) heartbeat is enabled and (3) duration exceeded the maximum delay, then close the connection
                 if(pongReceiveDelayExceeded())
                 {
-                    close();
+                    close(4000, "Heartbeat no answer failure");
                 }
                 // If (1) heartbeat is enabled and (2) send for a duration exceeding our heart-beat period, send a ping to the server.
                 else if (heartBeatPeriodExceeded())
@@ -228,17 +226,15 @@ namespace ix
                     sendPing(ss.str());
                 }
             }
-            
-            std::this_thread::sleep_for(millis(1000*_heartBeatPeriod));
         }
     }
     
-    void WebSocketTransport::stopHeartBeat()
+    void WebSocketTransport::stopHeartBeatWatchdogThread()
     {
-        if (_thread.joinable()) // we've already been started
+        if (_heartbeatWatchdogThread.joinable()) // heart beat is running
         {
             _exitSignal.set_value();
-            _thread.join();
+            _heartbeatWatchdogThread.join();
         }
     }
 
@@ -523,14 +519,7 @@ namespace ix
                 std::string reason(_rxbuf.begin()+ws.header_size + 2,
                                    _rxbuf.begin()+ws.header_size + 2 + (size_t) ws.N);
 
-                {
-                    std::lock_guard<std::mutex> lock(_closeDataMutex);
-                    _closeCode = code;
-                    _closeReason = reason;
-                    _closeWireSize = _rxbuf.size();
-                }
-
-                close();
+                close(code, reason, _rxbuf.size());
             }
             else
             {
@@ -782,8 +771,11 @@ namespace ix
 
         WebSocketSendInfo info = sendData(wsheader_type::PING, message, compress);
 
-        std::lock_guard<std::mutex> lck(_lastSendPingTimePointMutex);
-        _lastSendPingTimePoint = std::chrono::steady_clock::now();
+        if(info.success)
+        {
+            std::lock_guard<std::mutex> lck(_lastSendPingTimePointMutex);
+            _lastSendPingTimePoint = std::chrono::steady_clock::now();
+        }
 
         return info;
     }
@@ -833,7 +825,7 @@ namespace ix
         }
     }
 
-    void WebSocketTransport::close()
+    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize)
     {
         _requestInitCancellation = true;
 
@@ -841,24 +833,22 @@ namespace ix
 
         // See list of close events here:
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-        // We use 1000: normal closure.
-        //
-        // >>> struct.pack('!H', 1000)
-        // b'\x03\xe8'
-        //
-        const std::string normalClosure = std::string("\x03\xe8");
+        
+        std::stringstream stream;
+        stream << std::hex << code;
+        const std::string closure(stream.str());
+
         bool compress = false;
-        sendData(wsheader_type::CLOSE, normalClosure, compress);
+        sendData(wsheader_type::CLOSE, closure, compress);
         setReadyState(CLOSING);
 
         _socket->wakeUpFromPoll(Socket::kCloseRequest);
         _socket->close();
 
-        if(_closeCode == 0)
-        {
-            _closeCode = 1000;
-            _closeReason = "Normal Closure";
-        }
+        _closeCode = code;
+        _closeReason = reason;
+        _closeWireSize = closeWireSize;
+        
         setReadyState(CLOSED);
     }
 
