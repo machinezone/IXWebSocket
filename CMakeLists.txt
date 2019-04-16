@@ -70,12 +70,8 @@ set( IXWEBSOCKET_HEADERS
 
 if (UNIX)
     # Linux, Mac, iOS, Android
-    set( IXWEBSOCKET_SOURCES
-        ixwebsocket/IXSelectInterruptPipe.cpp
-    )
-    set( IXWEBSOCKET_HEADERS
-        ixwebsocket/IXSelectInterruptPipe.h
-    )
+    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSelectInterruptPipe.cpp )
+    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSelectInterruptPipe.h )
 endif()
 
 # Platform specific code
