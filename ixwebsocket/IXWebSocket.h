@@ -90,6 +90,7 @@ namespace ix
         void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         void setHandshakeTimeout(int handshakeTimeoutSecs);
         void setHeartBeatPeriod(int heartBeatPeriod);
+        void enableDisconnectOnNoHeartBeatResponse(int heartBeatFactor = kDefaultHeartBeatPeriod);
 
         // Run asynchronously, by calling start and stop.
         void start();
@@ -154,7 +155,9 @@ namespace ix
 
         // Optional Heartbeat
         int _heartBeatPeriod;
+        int _heartBeatFactorDisconnectOnNoResponse;
         static const int kDefaultHeartBeatPeriod;
+        static const int kDefaultHeartBeatFactorDisconnectOnNoResponse;
 
         friend class WebSocketServer;
     };

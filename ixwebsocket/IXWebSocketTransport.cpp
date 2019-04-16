@@ -55,6 +55,7 @@ namespace ix
 {
     const std::string WebSocketTransport::kHeartBeatPingMessage("ixwebsocket::heartbeat");
     const int WebSocketTransport::kDefaultHeartBeatPeriod(-1);
+    const int WebSocketTransport::kDefaultHeartBeatFactorDisconnectOnNoResponse(-1);
     constexpr size_t WebSocketTransport::kChunkSize;
 
     WebSocketTransport::WebSocketTransport() :
@@ -65,7 +66,9 @@ namespace ix
         _enablePerMessageDeflate(false),
         _requestInitCancellation(false),
         _heartBeatPeriod(kDefaultHeartBeatPeriod),
-        _lastSendTimePoint(std::chrono::steady_clock::now())
+        _heartBeatFactorDisconnectOnNoResponse(kDefaultHeartBeatFactorDisconnectOnNoResponse),
+        _lastSendPingTimePoint(std::chrono::steady_clock::now()),
+        _lastReceivePongTimePoint(std::chrono::steady_clock::now())
     {
         _readbuf.resize(kChunkSize);
     }
@@ -76,11 +79,12 @@ namespace ix
     }
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                                       int heartBeatPeriod)
+                                       int heartBeatPeriod, int heartBeatFactorDisconnectOnNoResponse)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
         _heartBeatPeriod = heartBeatPeriod;
+        _heartBeatFactorDisconnectOnNoResponse = heartBeatFactorDisconnectOnNoResponse;
     }
 
     // Client
@@ -176,17 +180,45 @@ namespace ix
         _onCloseCallback = onCloseCallback;
     }
 
-    // Only consider send time points for that computation.
-    // The receive time points is taken into account in Socket::poll (second parameter).
+    // Only consider send PING time points for that computation.
     bool WebSocketTransport::heartBeatPeriodExceeded()
     {
-        std::lock_guard<std::mutex> lock(_lastSendTimePointMutex);
+        if (_heartBeatPeriod <= 0)
+            return false;
+
+        std::lock_guard<std::mutex> lock(_lastSendPingTimePointMutex);
         auto now = std::chrono::steady_clock::now();
-        return now - _lastSendTimePoint > std::chrono::seconds(_heartBeatPeriod);
+        return now - _lastSendPingTimePoint > std::chrono::seconds(_heartBeatPeriod);
+    }
+
+    bool WebSocketTransport::pongReceiveDelayExceeded()
+    {
+        if (_heartBeatFactorDisconnectOnNoResponse <= 0)
+            return false;
+
+        std::lock_guard<std::mutex> lock(_lastReceivePongTimePointMutex);
+        auto now = std::chrono::steady_clock::now();
+        return now - _lastReceivePongTimePoint > std::chrono::seconds(_heartBeatFactorDisconnectOnNoResponse*_heartBeatPeriod);
     }
 
     void WebSocketTransport::poll()
     {
+        if (_readyState == OPEN)
+        {
+            // if (1) disconnect on no PONG received is enabled and (2) heartbeat is enabled and (3) duration exceeded the maximum delay, then close the connection
+            if (pongReceiveDelayExceeded())
+            {
+                close(4000, "Heartbeat no answer failure");
+            }
+            // If (1) heartbeat is enabled and (2) send for a duration exceeding our heart-beat period, send a ping to the server.
+            else if (heartBeatPeriodExceeded())
+            {
+                std::stringstream ss;
+                ss << kHeartBeatPingMessage << "::" << _heartBeatPeriod << "s";
+                sendPing(ss.str());
+            }
+        }
+
         _socket->poll(
             [this](PollResultType pollResult)
             {
@@ -459,6 +491,9 @@ namespace ix
                 std::string pongData(_rxbuf.begin()+ws.header_size,
                                      _rxbuf.begin()+ws.header_size + (size_t) ws.N);
 
+                std::lock_guard<std::mutex> lck(_lastReceivePongTimePointMutex);
+                _lastReceivePongTimePoint = std::chrono::steady_clock::now();
+
                 emitMessage(PONG, pongData, ws, onMessageCallback);
             }
             else if (ws.opcode == wsheader_type::CLOSE)
@@ -724,7 +759,16 @@ namespace ix
     WebSocketSendInfo WebSocketTransport::sendPing(const std::string& message)
     {
         bool compress = false;
-        return sendData(wsheader_type::PING, message, compress);
+
+        WebSocketSendInfo info = sendData(wsheader_type::PING, message, compress);
+
+        if(info.success)
+        {
+            std::lock_guard<std::mutex> lck(_lastSendPingTimePointMutex);
+            _lastSendPingTimePoint = std::chrono::steady_clock::now();
+        }
+
+        return info;
     }
 
     WebSocketSendInfo WebSocketTransport::sendBinary(
@@ -770,9 +814,6 @@ namespace ix
                 _txbuf.erase(_txbuf.begin(), _txbuf.begin() + ret);
             }
         }
-
-        std::lock_guard<std::mutex> lck(_lastSendTimePointMutex);
-        _lastSendTimePoint = std::chrono::steady_clock::now();
     }
 
     void WebSocketTransport::close(uint16_t code, const std::string& reason)
