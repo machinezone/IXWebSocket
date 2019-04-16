@@ -53,4 +53,13 @@ add_executable(ws
   ws.cpp)
 
 target_link_libraries(ws ixwebsocket)
+
+if(NOT APPLE)
+  find_package(OpenSSL REQUIRED)
+  add_definitions(${OPENSSL_DEFINITIONS})
+  message(STATUS "OpenSSL: " ${OPENSSL_VERSION})
+  include_directories(${OPENSSL_INCLUDE_DIR})
+  target_link_libraries(ws ${OPENSSL_LIBRARIES})
+endif()
+
 install(TARGETS ws RUNTIME DESTINATION bin)
