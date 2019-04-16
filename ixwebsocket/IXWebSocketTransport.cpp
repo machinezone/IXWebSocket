@@ -474,14 +474,8 @@ namespace ix
                 std::string reason(_rxbuf.begin()+ws.header_size + 2,
                                    _rxbuf.begin()+ws.header_size + 2 + (size_t) ws.N);
 
-                {
-                    std::lock_guard<std::mutex> lock(_closeDataMutex);
-                    _closeCode = code;
-                    _closeReason = reason;
-                    _closeWireSize = _rxbuf.size();
-                }
 
-                close();
+                close(code, reason, _rxbuf.size());
             }
             else
             {
@@ -781,7 +775,12 @@ namespace ix
         _lastSendTimePoint = std::chrono::steady_clock::now();
     }
 
-    void WebSocketTransport::close()
+    void WebSocketTransport::close(uint16_t code, const std::string& reason)
+    {
+        close(code, reason, 0);
+    }
+
+    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize)
     {
         _requestInitCancellation = true;
 
@@ -789,21 +788,19 @@ namespace ix
 
         // See list of close events here:
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-        // We use 1000: normal closure.
-        //
-        // >>> struct.pack('!H', 1000)
-        // b'\x03\xe8'
-        //
-        const std::string normalClosure = std::string("\x03\xe8");
+        const std::string closure{(char)(code >> 8), (char)(code & 0xff)};
+
         bool compress = false;
-        sendData(wsheader_type::CLOSE, normalClosure, compress);
+        sendData(wsheader_type::CLOSE, closure, compress);
         setReadyState(CLOSING);
 
         _socket->wakeUpFromPoll(Socket::kCloseRequest);
         _socket->close();
 
-        _closeCode = 1000;
-        _closeReason = "Normal Closure";
+        _closeCode = code;
+        _closeReason = reason;
+        _closeWireSize = closeWireSize;
+        
         setReadyState(CLOSED);
     }
 
