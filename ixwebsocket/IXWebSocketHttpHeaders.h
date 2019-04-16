@@ -12,6 +12,7 @@
 #include <map>
 #include <memory>
 #include <algorithm>
+#include <locale>
 
 namespace ix
 {
@@ -24,7 +25,7 @@ namespace ix
         {
             bool operator() (const unsigned char& c1, const unsigned char& c2) const
             {
-                return std::tolower(c1) < std::tolower(c2);
+                return std::tolower(c1, std::locale()) < std::tolower(c2, std::locale());
             }
         };
 

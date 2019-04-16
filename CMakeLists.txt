@@ -37,7 +37,6 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXHttpClient.cpp
     ixwebsocket/IXUrlParser.cpp
     ixwebsocket/IXSelectInterrupt.cpp
-    ixwebsocket/IXSelectInterruptPipe.cpp
     ixwebsocket/IXSelectInterruptFactory.cpp
     ixwebsocket/IXConnectionState.cpp
 )
@@ -65,10 +64,19 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXHttpClient.h
     ixwebsocket/IXUrlParser.h
     ixwebsocket/IXSelectInterrupt.h
-    ixwebsocket/IXSelectInterruptPipe.h
     ixwebsocket/IXSelectInterruptFactory.h
     ixwebsocket/IXConnectionState.h
 )
+
+if (UNIX)
+    # Linux, Mac, iOS, Android
+    set( IXWEBSOCKET_SOURCES
+        ixwebsocket/IXSelectInterruptPipe.cpp
+    )
+    set( IXWEBSOCKET_HEADERS
+        ixwebsocket/IXSelectInterruptPipe.h
+    )
+endif()
 
 # Platform specific code
 if (APPLE)
@@ -81,6 +89,7 @@ else()
     list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSelectInterruptEventFd.h)
 endif()
 
+set(USE_OPEN_SSL FALSE)
 if (USE_TLS)
     add_definitions(-DIXWEBSOCKET_USE_TLS)
 
@@ -91,6 +100,7 @@ if (USE_TLS)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketSChannel.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketSChannel.cpp)
     else()
+        set(USE_OPEN_SSL TRUE)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketOpenSSL.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketOpenSSL.cpp)
     endif()
@@ -101,18 +111,16 @@ add_library( ixwebsocket STATIC
     ${IXWEBSOCKET_HEADERS}
 )
 
-# gcc/Linux needs -pthread
-find_package(Threads)
-
 if (APPLE AND USE_TLS)
-    target_link_libraries(ixwebsocket "-framework foundation" "-framework security")
+  target_link_libraries(ixwebsocket "-framework foundation" "-framework security")
 endif()
 
-if(UNIX AND NOT APPLE)
+if(USE_OPEN_SSL)
   find_package(OpenSSL REQUIRED)
   add_definitions(${OPENSSL_DEFINITIONS})
   message(STATUS "OpenSSL: " ${OPENSSL_VERSION})
   include_directories(${OPENSSL_INCLUDE_DIR})
+  target_link_libraries(ixwebsocket ${OPENSSL_LIBRARIES})
 endif()
 
 if (WIN32)
@@ -127,15 +135,19 @@ if (WIN32)
 
   target_link_libraries(ixwebsocket libz wsock32 ws2_32)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-  
+
 else()
+  # gcc/Linux needs -pthread
+  find_package(Threads)
+
   target_link_libraries(ixwebsocket 
-    z ${OPENSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    z ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 set( IXWEBSOCKET_INCLUDE_DIRS
     .
-    ../../shared/OpenSSL/include)
+)
+
 target_include_directories( ixwebsocket PUBLIC ${IXWEBSOCKET_INCLUDE_DIRS} )
 
 add_subdirectory(ws)

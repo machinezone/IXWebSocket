@@ -6,9 +6,11 @@
 
 #include "IXSocketFactory.h"
 
-#if defined(__APPLE__) or defined(__linux__)
+#ifdef IXWEBSOCKET_USE_TLS
 # ifdef __APPLE__
 #  include <ixwebsocket/IXSocketAppleSSL.h>
+# elif defined(_WIN32)
+#  include <ixwebsocket/IXSocketSChannel.h>
 # else
 #  include <ixwebsocket/IXSocketOpenSSL.h>
 # endif
@@ -31,6 +33,8 @@ namespace ix
 #ifdef IXWEBSOCKET_USE_TLS
 # ifdef __APPLE__
             socket = std::make_shared<SocketAppleSSL>();
+# elif defined(_WIN32)
+            socket = std::make_shared<SocketSChannel>();
 # else
             socket = std::make_shared<SocketOpenSSL>();
 # endif

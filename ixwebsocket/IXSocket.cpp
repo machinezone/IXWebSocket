@@ -21,6 +21,10 @@
 #include <algorithm>
 #include <iostream>
 
+#ifdef min
+#undef min
+#endif
+
 namespace ix
 {
     const int Socket::kDefaultPollNoTimeout = -1; // No poll timeout by default
