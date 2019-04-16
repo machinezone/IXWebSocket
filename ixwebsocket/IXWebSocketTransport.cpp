@@ -797,9 +797,12 @@ namespace ix
         _socket->wakeUpFromPoll(Socket::kCloseRequest);
         _socket->close();
 
-        _closeCode = code;
-        _closeReason = reason;
-        _closeWireSize = closeWireSize;
+        {
+            std::lock_guard<std::mutex> lock(_closeDataMutex);
+            _closeCode = code;
+            _closeReason = reason;
+            _closeWireSize = closeWireSize;
+        }
         
         setReadyState(CLOSED);
     }
