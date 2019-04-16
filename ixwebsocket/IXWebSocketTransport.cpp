@@ -775,11 +775,6 @@ namespace ix
         _lastSendTimePoint = std::chrono::steady_clock::now();
     }
 
-    void WebSocketTransport::close(uint16_t code, const std::string& reason)
-    {
-        close(code, reason, 0);
-    }
-
     void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize)
     {
         _requestInitCancellation = true;
