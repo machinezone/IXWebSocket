@@ -7,6 +7,7 @@
 #include "IXSocketFactory.h"
 
 #ifdef IXWEBSOCKET_USE_TLS
+
 # ifdef __APPLE__
 #  include <ixwebsocket/IXSocketAppleSSL.h>
 # elif defined(_WIN32)
@@ -14,6 +15,11 @@
 # else
 #  include <ixwebsocket/IXSocketOpenSSL.h>
 # endif
+
+#else
+
+#include <ixwebsocket/IXSocket.h>
+
 #endif
 
 namespace ix
