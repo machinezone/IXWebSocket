@@ -24,9 +24,9 @@ namespace ix
         // The important override
         virtual void secureSocket() final;
 
-        virtual int send(char* buffer, size_t length) final;
-        virtual int send(const std::string& buffer) final;
-        virtual int recv(void* buffer, size_t length) final;
+        virtual ssize_t send(char* buffer, size_t length) final;
+        virtual ssize_t send(const std::string& buffer) final;
+        virtual ssize_t recv(void* buffer, size_t length) final;
 
     private:
     };
