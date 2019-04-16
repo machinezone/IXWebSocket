@@ -146,4 +146,6 @@ set( IXWEBSOCKET_INCLUDE_DIRS
 
 target_include_directories( ixwebsocket PUBLIC ${IXWEBSOCKET_INCLUDE_DIRS} )
 
-add_subdirectory(ws)
+if (NOT WIN32)
+    add_subdirectory(ws)
+endif()
