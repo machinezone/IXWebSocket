@@ -81,7 +81,7 @@ namespace ix
         WebSocketSendInfo sendText(const std::string& message,
                                    const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendPing(const std::string& message);
-        void close();
+        void close(uint16_t code = 1000, const std::string& reason = "Normal closure");
         ReadyStateValues getReadyState() const;
         void setReadyState(ReadyStateValues readyStateValue);
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
@@ -163,6 +163,8 @@ namespace ix
 
         // No data was send through the socket for longer than the heartbeat period
         bool heartBeatPeriodExceeded();
+
+        void close(uint16_t code, const std::string& reason, size_t closeWireSize);
 
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
