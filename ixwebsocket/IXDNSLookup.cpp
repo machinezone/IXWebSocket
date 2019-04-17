@@ -26,7 +26,7 @@ namespace ix
         _done(false),
         _id(_nextId++)
     {
-
+        initNetSystem();
     }
 
     DNSLookup::~DNSLookup()
