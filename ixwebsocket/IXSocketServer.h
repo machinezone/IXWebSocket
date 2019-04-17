@@ -12,7 +12,7 @@
 #include <string>
 #include <set>
 #include <thread>
-#include <vector>
+#include <list>
 #include <mutex>
 #include <functional>
 #include <memory>
@@ -24,6 +24,10 @@ namespace ix
     class SocketServer {
     public:
         using ConnectionStateFactory = std::function<std::shared_ptr<ConnectionState>()>;
+
+        // We use a list as we only care about remove and append operations.
+        using ConnectionThreads = std::list<std::pair<std::shared_ptr<ConnectionState>,
+                                                      std::thread>>;
 
         SocketServer(int port = SocketServer::kDefaultPort,
                      const std::string& host = SocketServer::kDefaultHost,
@@ -64,7 +68,7 @@ namespace ix
         std::atomic<bool> _stop;
         std::thread _thread;
 
-        std::vector<std::thread> _connectionsThreads;
+        ConnectionThreads _connectionsThreads;
 
         std::condition_variable _conditionVariable;
         std::mutex _conditionVariableMutex;
@@ -77,5 +81,7 @@ namespace ix
         virtual void handleConnection(int fd,
                                       std::shared_ptr<ConnectionState> connectionState) = 0;
         virtual size_t getConnectedClientsCount() = 0;
+
+        void closeTerminatedThreads();
     };
 }

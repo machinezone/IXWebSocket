@@ -91,6 +91,7 @@ namespace ix
         }
 
         logInfo("WebSocketServer::handleConnection() done");
+        connectionState->setTerminated();
     }
 
     std::set<std::shared_ptr<WebSocket>> WebSocketServer::getClients()
