@@ -89,9 +89,10 @@ namespace ix
         void setUrl(const std::string& url);
         void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         void setHandshakeTimeout(int handshakeTimeoutSecs);
-        void setHeartBeatPeriod(int heartBeatPeriod);
-        void enableDisconnectOnNoHeartBeatResponse(int heartBeatFactor = kDefaultHeartBeatPeriod);
-
+        void setHeartBeatPeriod(int heartBeatPeriodSecs);
+        void setPingInterval(int pingIntervalSecs); // alias of setHeartBeatPeriod
+        void setPingTimeout(int pingTimeoutSecs);
+        
         // Run asynchronously, by calling start and stop.
         void start();
         void stop();
@@ -115,6 +116,8 @@ namespace ix
         const std::string& getUrl() const;
         const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
         int getHeartBeatPeriod() const;
+        int getPingInterval() const;
+        int getPingTimeout() const;
         size_t bufferedAmount() const;
 
         void enableAutomaticReconnection();
@@ -153,11 +156,11 @@ namespace ix
         std::atomic<int> _handshakeTimeoutSecs;
         static const int kDefaultHandShakeTimeoutSecs;
 
-        // Optional Heartbeat
-        int _heartBeatPeriod;
-        int _heartBeatFactorDisconnectOnNoResponse;
-        static const int kDefaultHeartBeatPeriod;
-        static const int kDefaultHeartBeatFactorDisconnectOnNoResponse;
+        // Optional ping and ping timeout
+        int _pingIntervalSecs;
+        int _pingTimeoutSecs;
+        static const int kDefaultPingIntervalSecs;
+        static const int kDefaultPingTimeoutSecs;
 
         friend class WebSocketServer;
     };

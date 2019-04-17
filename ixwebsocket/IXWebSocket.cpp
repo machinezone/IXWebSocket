@@ -31,16 +31,16 @@ namespace ix
 {
     OnTrafficTrackerCallback WebSocket::_onTrafficTrackerCallback = nullptr;
     const int WebSocket::kDefaultHandShakeTimeoutSecs(60);
-    const int WebSocket::kDefaultHeartBeatPeriod(-1);
-    const int WebSocket::kDefaultHeartBeatFactorDisconnectOnNoResponse(-1);
+    const int WebSocket::kDefaultPingIntervalSecs(-1);
+    const int WebSocket::kDefaultPingTimeoutSecs(-1);
 
     WebSocket::WebSocket() :
         _onMessageCallback(OnMessageCallback()),
         _stop(false),
         _automaticReconnection(true),
         _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs),
-        _heartBeatPeriod(kDefaultHeartBeatPeriod),
-        _heartBeatFactorDisconnectOnNoResponse(kDefaultHeartBeatFactorDisconnectOnNoResponse)
+        _pingIntervalSecs(kDefaultPingIntervalSecs),
+        _pingTimeoutSecs(kDefaultPingTimeoutSecs)
     {
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize)
@@ -81,22 +81,40 @@ namespace ix
         return _perMessageDeflateOptions;
     }
 
-    void WebSocket::setHeartBeatPeriod(int heartBeatPeriod)
+    void WebSocket::setHeartBeatPeriod(int heartBeatPeriodSecs)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
-        _heartBeatPeriod = heartBeatPeriod;
+        _pingIntervalSecs = heartBeatPeriodSecs;
     }
 
     int WebSocket::getHeartBeatPeriod() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
-        return _heartBeatPeriod;
+        return _pingIntervalSecs;
     }
-    
-    void WebSocket::enableDisconnectOnNoHeartBeatResponse(int heartBeatFactor)
+
+    void WebSocket::setPingInterval(int pingIntervalSecs)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
-        _heartBeatFactorDisconnectOnNoResponse = heartBeatFactor;
+        _pingIntervalSecs = pingIntervalSecs;
+    }
+
+    int WebSocket::getPingInterval() const
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _pingIntervalSecs;
+    }
+
+    void WebSocket::setPingTimeout(int pingTimeoutSecs)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _pingTimeoutSecs = pingTimeoutSecs;
+    }
+
+    int WebSocket::getPingTimeout() const
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _pingTimeoutSecs;
     }
     
     void WebSocket::start()
@@ -133,8 +151,8 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(_perMessageDeflateOptions,
-                          _heartBeatPeriod,
-                          _heartBeatFactorDisconnectOnNoResponse);
+                          _pingIntervalSecs,
+                          _pingTimeoutSecs);
         }
 
         WebSocketInitResult status = _ws.connectToUrl(_url, timeoutSecs);
@@ -154,7 +172,9 @@ namespace ix
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
-            _ws.configure(_perMessageDeflateOptions, _heartBeatPeriod, _heartBeatFactorDisconnectOnNoResponse);
+            _ws.configure(_perMessageDeflateOptions, 
+                          _pingIntervalSecs,
+                          _pingTimeoutSecs);
         }
 
         WebSocketInitResult status = _ws.connectToSocket(fd, timeoutSecs);

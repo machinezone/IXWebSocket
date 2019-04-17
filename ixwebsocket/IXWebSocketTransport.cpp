@@ -53,9 +53,9 @@
 
 namespace ix
 {
-    const std::string WebSocketTransport::kHeartBeatPingMessage("ixwebsocket::heartbeat");
-    const int WebSocketTransport::kDefaultHeartBeatPeriod(-1);
-    const int WebSocketTransport::kDefaultHeartBeatFactorDisconnectOnNoResponse(-1);
+    const std::string WebSocketTransport::kPingMessage("ixwebsocket::heartbeat");
+    const int WebSocketTransport::kDefaultPingIntervalSecs(-1);
+    const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     constexpr size_t WebSocketTransport::kChunkSize;
 
     WebSocketTransport::WebSocketTransport() :
@@ -65,8 +65,8 @@ namespace ix
         _closeWireSize(0),
         _enablePerMessageDeflate(false),
         _requestInitCancellation(false),
-        _heartBeatPeriod(kDefaultHeartBeatPeriod),
-        _heartBeatFactorDisconnectOnNoResponse(kDefaultHeartBeatFactorDisconnectOnNoResponse),
+        _pingIntervalSecs(kDefaultPingIntervalSecs),
+        _pingTimeoutSecs(kDefaultPingTimeoutSecs),
         _lastSendPingTimePoint(std::chrono::steady_clock::now()),
         _lastReceivePongTimePoint(std::chrono::steady_clock::now())
     {
@@ -79,12 +79,12 @@ namespace ix
     }
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                                       int heartBeatPeriod, int heartBeatFactorDisconnectOnNoResponse)
+                                       int pingIntervalSecs, int pingTimeoutSecs)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
-        _heartBeatPeriod = heartBeatPeriod;
-        _heartBeatFactorDisconnectOnNoResponse = heartBeatFactorDisconnectOnNoResponse;
+        _pingIntervalSecs = pingIntervalSecs;
+        _pingTimeoutSecs = pingTimeoutSecs;
     }
 
     // Client
@@ -181,40 +181,40 @@ namespace ix
     }
 
     // Only consider send PING time points for that computation.
-    bool WebSocketTransport::heartBeatPeriodExceeded()
+    bool WebSocketTransport::pingIntervalExceeded()
     {
-        if (_heartBeatPeriod <= 0)
+        if (_pingIntervalSecs <= 0)
             return false;
 
         std::lock_guard<std::mutex> lock(_lastSendPingTimePointMutex);
         auto now = std::chrono::steady_clock::now();
-        return now - _lastSendPingTimePoint > std::chrono::seconds(_heartBeatPeriod);
+        return now - _lastSendPingTimePoint > std::chrono::seconds(_pingIntervalSecs);
     }
 
-    bool WebSocketTransport::pongReceiveDelayExceeded()
+    bool WebSocketTransport::pingTimeoutExceeded()
     {
-        if (_heartBeatFactorDisconnectOnNoResponse <= 0)
+        if (_pingTimeoutSecs <= 0)
             return false;
 
         std::lock_guard<std::mutex> lock(_lastReceivePongTimePointMutex);
         auto now = std::chrono::steady_clock::now();
-        return now - _lastReceivePongTimePoint > std::chrono::seconds(_heartBeatFactorDisconnectOnNoResponse*_heartBeatPeriod);
+        return now - _lastReceivePongTimePoint > std::chrono::seconds(_pingTimeoutSecs);
     }
 
     void WebSocketTransport::poll()
     {
         if (_readyState == OPEN)
         {
-            // if (1) disconnect on no PONG received is enabled and (2) heartbeat is enabled and (3) duration exceeded the maximum delay, then close the connection
-            if (pongReceiveDelayExceeded())
+            // if (1) ping tiemout is enabled and (2) duration exceeded the maximum delay, then close the connection
+            if (pingTimeoutExceeded())
             {
-                close(4000, "Heartbeat no answer failure");
+                close(1011, "Ping timeout");
             }
-            // If (1) heartbeat is enabled and (2) send for a duration exceeding our heart-beat period, send a ping to the server.
-            else if (heartBeatPeriodExceeded())
+            // If (1) ping is enabled and (2) send for a duration exceeding our ping interval, send a ping to the server.
+            else if (pingIntervalExceeded())
             {
                 std::stringstream ss;
-                ss << kHeartBeatPingMessage << "::" << _heartBeatPeriod << "s";
+                ss << kPingMessage << "::" << _pingIntervalSecs << "s";
                 sendPing(ss.str());
             }
         }
@@ -222,19 +222,9 @@ namespace ix
         _socket->poll(
             [this](PollResultType pollResult)
             {
-                // If (1) heartbeat is enabled, and (2) no data was received or
-                // send for a duration exceeding our heart-beat period, send a
-                // ping to the server.
-                if (pollResult == PollResultType::Timeout &&
-                    heartBeatPeriodExceeded())
-                {
-                    std::stringstream ss;
-                    ss << kHeartBeatPingMessage << "::" << _heartBeatPeriod << "s";
-                    sendPing(ss.str());
-                }
                 // Make sure we send all the buffered data
                 // there can be a lot of it for large messages.
-                else if (pollResult == PollResultType::SendRequest)
+                if (pollResult == PollResultType::SendRequest)
                 {
                     while (!isSendBufferEmpty() && !_requestInitCancellation)
                     {
@@ -296,7 +286,7 @@ namespace ix
                     _socket->close();
                 }
             },
-            _heartBeatPeriod);
+            _pingIntervalSecs);
     }
 
     bool WebSocketTransport::isSendBufferEmpty() const
