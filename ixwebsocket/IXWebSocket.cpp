@@ -33,12 +33,14 @@ namespace ix
     const int WebSocket::kDefaultHandShakeTimeoutSecs(60);
     const int WebSocket::kDefaultPingIntervalSecs(-1);
     const int WebSocket::kDefaultPingTimeoutSecs(-1);
+    const bool WebSocket::kDefaultEnablePong(true);
 
     WebSocket::WebSocket() :
         _onMessageCallback(OnMessageCallback()),
         _stop(false),
         _automaticReconnection(true),
         _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs),
+        _enablePong(kDefaultEnablePong),
         _pingIntervalSecs(kDefaultPingIntervalSecs),
         _pingTimeoutSecs(kDefaultPingTimeoutSecs)
     {
@@ -116,6 +118,18 @@ namespace ix
         std::lock_guard<std::mutex> lock(_configMutex);
         return _pingTimeoutSecs;
     }
+
+    void WebSocket::enablePong()
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _enablePong = true;
+    }
+
+    void WebSocket::disablePong()
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _enablePong = false;
+    }
     
     void WebSocket::start()
     {
@@ -151,6 +165,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(_perMessageDeflateOptions,
+                          _enablePong,
                           _pingIntervalSecs,
                           _pingTimeoutSecs);
         }
@@ -172,7 +187,8 @@ namespace ix
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
-            _ws.configure(_perMessageDeflateOptions, 
+            _ws.configure(_perMessageDeflateOptions,
+                          _enablePong, 
                           _pingIntervalSecs,
                           _pingTimeoutSecs);
         }

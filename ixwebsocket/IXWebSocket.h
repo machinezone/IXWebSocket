@@ -92,6 +92,8 @@ namespace ix
         void setHeartBeatPeriod(int heartBeatPeriodSecs);
         void setPingInterval(int pingIntervalSecs); // alias of setHeartBeatPeriod
         void setPingTimeout(int pingTimeoutSecs);
+        void enablePong();
+        void disablePong();
         
         // Run asynchronously, by calling start and stop.
         void start();
@@ -155,6 +157,10 @@ namespace ix
 
         std::atomic<int> _handshakeTimeoutSecs;
         static const int kDefaultHandShakeTimeoutSecs;
+
+        // enable or disable PONG frame response to received PING frame
+        bool _enablePong;
+        static const bool kDefaultEnablePong;
 
         // Optional ping and ping timeout
         int _pingIntervalSecs;

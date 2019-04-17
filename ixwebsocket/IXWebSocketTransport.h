@@ -68,7 +68,8 @@ namespace ix
         ~WebSocketTransport();
 
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                       int pingIntervalSecs, int pingTimeoutSecs);
+                        bool enablePong,
+                        int pingIntervalSecs, int pingTimeoutSecs);
 
         WebSocketInitResult connectToUrl(const std::string& url, // Client
                                          int timeoutSecs);
@@ -153,6 +154,10 @@ namespace ix
 
         // Used to cancel dns lookup + socket connect + http upgrade
         std::atomic<bool> _requestInitCancellation;
+
+        // enable auto response to ping
+        bool _enablePong;
+        static const bool kDefaultEnablePong;
 
         // Optional ping and ping timeout
         int _pingIntervalSecs;

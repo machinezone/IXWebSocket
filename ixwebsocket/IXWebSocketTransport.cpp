@@ -57,7 +57,7 @@ int gcd (int a, int b) {
     b = a % b;
     a = t;
   }
-  
+
   return a;
 }
 
@@ -66,6 +66,7 @@ namespace ix
     const std::string WebSocketTransport::kPingMessage("ixwebsocket::heartbeat");
     const int WebSocketTransport::kDefaultPingIntervalSecs(-1);
     const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
+    const bool WebSocketTransport::kDefaultEnablePong(true);
     constexpr size_t WebSocketTransport::kChunkSize;
 
     WebSocketTransport::WebSocketTransport() :
@@ -75,6 +76,7 @@ namespace ix
         _closeWireSize(0),
         _enablePerMessageDeflate(false),
         _requestInitCancellation(false),
+        _enablePong(kDefaultEnablePong),
         _pingIntervalSecs(kDefaultPingIntervalSecs),
         _pingTimeoutSecs(kDefaultPingTimeoutSecs),
         _pingIntervalOrTimeoutGCDSecs(-1),
@@ -90,10 +92,12 @@ namespace ix
     }
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
+                                       bool enablePong,
                                        int pingIntervalSecs, int pingTimeoutSecs)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
+        _enablePong = enablePong;
         _pingIntervalSecs = pingIntervalSecs;
         _pingTimeoutSecs = pingTimeoutSecs;
 
@@ -484,12 +488,16 @@ namespace ix
             else if (ws.opcode == wsheader_type::PING)
             {
                 unmaskReceiveBuffer(ws);
-                std::string pingData(_rxbuf.begin()+ws.header_size,
-                                     _rxbuf.begin()+ws.header_size + (size_t) ws.N);
 
-                // Reply back right away
-                bool compress = false;
-                sendData(wsheader_type::PONG, pingData, compress);
+                std::string pingData(_rxbuf.begin()+ws.header_size,
+                                         _rxbuf.begin()+ws.header_size + (size_t) ws.N);
+
+                if (_enablePong)
+                {
+                    // Reply back right away
+                    bool compress = false;
+                    sendData(wsheader_type::PONG, pingData, compress);
+                }
 
                 emitMessage(PING, pingData, ws, onMessageCallback);
             }

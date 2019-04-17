@@ -37,6 +37,7 @@ if (NOT WIN32)
   list(APPEND SOURCES 
     IXWebSocketServerTest.cpp
     IXWebSocketPingTest.cpp
+    IXWebSocketPingTimeoutTest.cpp
     cmd_websocket_chat.cpp
     IXWebSocketTestConnectionDisconnection.cpp
   )
