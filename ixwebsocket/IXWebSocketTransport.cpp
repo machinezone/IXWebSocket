@@ -689,7 +689,7 @@ namespace ix
                                           std::string::const_iterator message_end,
                                           bool compress)
     {
-        auto message_size = message_end - message_begin;
+        uint64_t message_size = static_cast<uint64_t>(message_end - message_begin);
 
         unsigned x = getRandomUnsigned();
         uint8_t masking_key[4] = {};
@@ -830,11 +830,6 @@ namespace ix
                 _txbuf.erase(_txbuf.begin(), _txbuf.begin() + ret);
             }
         }
-    }
-
-    void WebSocketTransport::close(uint16_t code, const std::string& reason)
-    {
-        close(code, reason, 0);
     }
 
     void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize)

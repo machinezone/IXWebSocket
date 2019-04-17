@@ -18,7 +18,7 @@
 # include <ws2def.h>
 # include <WS2tcpip.h>
 # include <schannel.h>
-# include <sslsock.h>
+//# include <sslsock.h>
 # include <io.h>
 
 #define WIN32_LEAN_AND_MEAN
@@ -75,7 +75,7 @@ namespace ix
                                  int port,
                                  std::string& errMsg)
     {
-        return Socket::connect(host, port, errMsg);
+        return Socket::connect(host, port, errMsg, nullptr);
     }
 
 
@@ -89,17 +89,17 @@ namespace ix
         Socket::close();
     }
 
-    int SocketSChannel::send(char* buf, size_t nbyte)
+    ssize_t SocketSChannel::send(char* buf, size_t nbyte)
     {
         return Socket::send(buf, nbyte);
     }
 
-    int SocketSChannel::send(const std::string& buffer)
+    ssize_t SocketSChannel::send(const std::string& buffer)
     {
         return Socket::send(buffer);
     }
 
-    int SocketSChannel::recv(void* buf, size_t nbyte)
+    ssize_t SocketSChannel::recv(void* buf, size_t nbyte)
     {
         return Socket::recv(buf, nbyte);
     }

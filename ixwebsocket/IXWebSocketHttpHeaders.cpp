@@ -6,12 +6,28 @@
 
 #include "IXWebSocketHttpHeaders.h"
 #include "IXSocket.h"
-
-#include <string>
-#include <unordered_map>
+#include <algorithm>
+#include <locale>
 
 namespace ix
 {
+    bool CaseInsensitiveLess::NocaseCompare::operator()(const unsigned char & c1, const unsigned char & c2) const
+    {
+#ifdef _WIN32
+        return std::tolower(c1, std::locale()) < std::tolower(c2, std::locale());
+#else
+        return std::tolower(c1) < std::tolower(c2);
+#endif
+    }
+
+    bool CaseInsensitiveLess::operator()(const std::string & s1, const std::string & s2) const
+    {
+        return std::lexicographical_compare
+                (s1.begin(), s1.end(),   // source range
+                 s2.begin(), s2.end(),   // dest range
+                 NocaseCompare());       // comparison
+    }
+
     std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(
         std::shared_ptr<Socket> socket,
         const CancellationRequest& isCancellationRequested)

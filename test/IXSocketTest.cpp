@@ -73,7 +73,7 @@ TEST_CASE("socket", "[socket]")
         testSocket(host, port, request, socket, expectedStatus, timeoutSecs);
     }
 
-#if defined(__APPLE__) or defined(__linux__)
+#if defined(__APPLE__) || defined(__linux__)
     SECTION("Connect to google HTTPS server. Send GET request without header. Should return 200")
     {
         std::string errMsg;

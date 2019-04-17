@@ -136,6 +136,12 @@ namespace ix
 
     void SocketServer::stop()
     {
+        for (auto&& thread : _connectionsThreads)
+        {
+            if (!thread.joinable()) continue;
+            thread.join();
+        }
+
         if (!_thread.joinable()) return; // nothing to do
 
         _stop = true;
@@ -156,9 +162,6 @@ namespace ix
     {
         // Set the socket to non blocking mode, so that accept calls are not blocking
         SocketConnect::configure(_serverFd);
-
-        // Return value of std::async, ignored
-        std::future<void> f;
 
         for (;;)
         {
@@ -228,14 +231,10 @@ namespace ix
             }
 
             // Launch the handleConnection work asynchronously in its own thread.
-            //
-            // the destructor of a future returned by std::async blocks,
-            // so we need to declare it outside of this loop
-            f = std::async(std::launch::async,
-                           &SocketServer::handleConnection,
-                           this,
-                           clientFd,
-                           connectionState);
+            _connectionsThreads.push_back(std::thread(&SocketServer::handleConnection,
+                                          this,
+                                          clientFd,
+                                          connectionState));
         }
     }
 }

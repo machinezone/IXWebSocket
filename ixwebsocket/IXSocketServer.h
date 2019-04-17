@@ -12,6 +12,7 @@
 #include <string>
 #include <set>
 #include <thread>
+#include <vector>
 #include <mutex>
 #include <functional>
 #include <memory>
@@ -62,6 +63,8 @@ namespace ix
 
         std::atomic<bool> _stop;
         std::thread _thread;
+
+        std::vector<std::thread> _connectionsThreads;
 
         std::condition_variable _conditionVariable;
         std::mutex _conditionVariableMutex;
