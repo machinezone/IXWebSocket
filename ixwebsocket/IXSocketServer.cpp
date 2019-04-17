@@ -160,6 +160,8 @@ namespace ix
         // Return value of std::async, ignored
         std::future<void> f;
 
+        std::vector<std::thread> threads;
+
         for (;;)
         {
             if (_stop) return;
@@ -231,11 +233,15 @@ namespace ix
             //
             // the destructor of a future returned by std::async blocks,
             // so we need to declare it outside of this loop
-            f = std::async(std::launch::async,
-                           &SocketServer::handleConnection,
-                           this,
-                           clientFd,
-                           connectionState);
+            // f = std::async(std::launch::async,
+            //                &SocketServer::handleConnection,
+            //                this,
+            //                clientFd,
+            //                connectionState);
+            threads.push_back(std::thread(&SocketServer::handleConnection,
+                                          this,
+                                          clientFd,
+                                          connectionState));
         }
     }
 }
