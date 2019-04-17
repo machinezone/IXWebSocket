@@ -51,6 +51,16 @@
 #include <thread>
 
 
+int gcd (int a, int b) {
+  while (b != 0)  {
+    int t = b;
+    b = a % b;
+    a = t;
+  }
+  
+  return a;
+}
+
 namespace ix
 {
     const std::string WebSocketTransport::kPingMessage("ixwebsocket::heartbeat");
@@ -67,6 +77,7 @@ namespace ix
         _requestInitCancellation(false),
         _pingIntervalSecs(kDefaultPingIntervalSecs),
         _pingTimeoutSecs(kDefaultPingTimeoutSecs),
+        _pingIntervalOrTimeoutGCDSecs(-1),
         _lastSendPingTimePoint(std::chrono::steady_clock::now()),
         _lastReceivePongTimePoint(std::chrono::steady_clock::now())
     {
@@ -85,6 +96,13 @@ namespace ix
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
         _pingIntervalSecs = pingIntervalSecs;
         _pingTimeoutSecs = pingTimeoutSecs;
+
+        if (pingIntervalSecs > 0 && pingTimeoutSecs > 0)
+            _pingIntervalOrTimeoutGCDSecs = gcd(pingIntervalSecs, pingTimeoutSecs);
+        else if (_pingTimeoutSecs > 0)
+            _pingIntervalOrTimeoutGCDSecs = pingTimeoutSecs;
+        else
+            _pingIntervalOrTimeoutGCDSecs = pingIntervalSecs;
     }
 
     // Client
@@ -286,7 +304,7 @@ namespace ix
                     _socket->close();
                 }
             },
-            _pingIntervalSecs);
+            _pingIntervalOrTimeoutGCDSecs);
     }
 
     bool WebSocketTransport::isSendBufferEmpty() const

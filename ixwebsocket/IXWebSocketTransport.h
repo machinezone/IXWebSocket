@@ -157,6 +157,7 @@ namespace ix
         // Optional ping and ping timeout
         int _pingIntervalSecs;
         int _pingTimeoutSecs;
+        int _pingIntervalOrTimeoutGCDSecs; // if both ping interval and timeout are set (> 0), then use GCD of these value to wait for the lowest time
         static const int kDefaultPingIntervalSecs;
         static const int kDefaultPingTimeoutSecs;
         const static std::string kPingMessage;
