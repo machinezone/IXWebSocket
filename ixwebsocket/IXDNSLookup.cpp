@@ -135,6 +135,11 @@ namespace ix
             return nullptr;
         }
 
+        if (!_errMsg.empty())
+        {
+            errMsg = _errMsg;
+        }
+
         return _res;
     }
 
