@@ -136,11 +136,8 @@ namespace ix
 
     void SocketServer::stop()
     {
-        for (auto&& thread : _connectionsThreads)
-        {
-            if (!thread.joinable()) continue;
-            thread.join();
-        }
+        closeTerminatedThreads();
+        assert(_connectionsThreads.empty());
 
         if (!_thread.joinable()) return; // nothing to do
 
@@ -158,6 +155,29 @@ namespace ix
         _connectionStateFactory = connectionStateFactory;
     }
 
+    // join the threads for connections that have been closed
+    void SocketServer::closeTerminatedThreads()
+    {
+        auto it = _connectionsThreads.begin();
+        auto itEnd  = _connectionsThreads.end();
+
+        while (it != itEnd)
+        {
+            auto& connectionState = it->first;
+            auto& thread = it->second;
+
+            if (!connectionState->isTerminated() ||
+                !thread.joinable())
+            {
+                ++it;
+                continue;
+            }
+
+            thread.join();
+            it = _connectionsThreads.erase(it);
+        }
+    }
+
     void SocketServer::run()
     {
         // Set the socket to non blocking mode, so that accept calls are not blocking
@@ -166,6 +186,12 @@ namespace ix
         for (;;)
         {
             if (_stop) return;
+
+            // Garbage collection to shutdown/join threads for closed connections.
+            // We could run this in its own thread, so that we dont need to accept 
+            // a new connection to close a thread.
+            // We could also use a condition variable to be notify when we need to do this
+            closeTerminatedThreads();
 
             // Use select to check whether a new connection is in progress
             fd_set rfds;
@@ -231,10 +257,12 @@ namespace ix
             }
 
             // Launch the handleConnection work asynchronously in its own thread.
-            _connectionsThreads.push_back(std::thread(&SocketServer::handleConnection,
-                                          this,
-                                          clientFd,
-                                          connectionState));
+            _connectionsThreads.push_back(std::make_pair(
+                    connectionState,
+                    std::thread(&SocketServer::handleConnection,
+                                this,
+                                clientFd,
+                                connectionState)));
         }
     }
 }

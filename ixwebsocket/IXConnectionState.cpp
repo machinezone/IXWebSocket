@@ -10,7 +10,7 @@ namespace ix
 {
     std::atomic<uint64_t> ConnectionState::_globalId(0);
 
-    ConnectionState::ConnectionState()
+    ConnectionState::ConnectionState() : _terminated(false)
     {
         computeId();
     }
@@ -28,6 +28,16 @@ namespace ix
     std::shared_ptr<ConnectionState> ConnectionState::createConnectionState()
     {
         return std::make_shared<ConnectionState>();
+    }
+
+    bool ConnectionState::isTerminated() const
+    {
+        return _terminated;
+    }
+
+    bool ConnectionState::setTerminated()
+    {
+        _terminated = true;
     }
 }
 
