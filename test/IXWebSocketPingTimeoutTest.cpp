@@ -21,7 +21,7 @@ namespace
     class WebSocketClient
     {
         public:
-            WebSocketClient(int port);
+            WebSocketClient(int port, int pingInterval, int pingTimeout);
 
             void subscribe(const std::string& channel);
             void start();
@@ -35,14 +35,18 @@ namespace
         private:
             ix::WebSocket _webSocket;
             int _port;
+            int _pingInterval;
+            int _pingTimeout;
             std::atomic<int> _receivedPongMessages;
             std::atomic<bool> _closedDueToPingTimeout;
     };
 
-    WebSocketClient::WebSocketClient(int port)
+    WebSocketClient::WebSocketClient(int port, int pingInterval, int pingTimeout)
         : _port(port),
          _receivedPongMessages(0),
-         _closedDueToPingTimeout(false)
+         _closedDueToPingTimeout(false),
+         _pingInterval(pingInterval),
+         _pingTimeout(pingTimeout)
     {
         ;
     }
@@ -77,9 +81,9 @@ namespace
         _webSocket.setUrl(url);
 
         // The important bit for this test.
-        // Set a 1 second ping interval, and 2 second ping timeout
-        _webSocket.setPingInterval(1);
-        _webSocket.setPingTimeout(2); //
+        // Set a ping interval, and a ping timeout
+        _webSocket.setPingInterval(_pingInterval);
+        _webSocket.setPingTimeout(_pingTimeout);
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
@@ -218,6 +222,56 @@ namespace
     }
 }
 
+TEST_CASE("Websocket_ping_timeout_not_checked", "[setPingTimeout]")
+{
+    SECTION("Make sure that ping messages have a response (PONG).")
+    {
+        ix::setupWebSocketTrafficTrackerCallback();
+
+        int port = getFreePort();
+        ix::WebSocketServer server(port);  
+        std::atomic<int> serverReceivedPingMessages(0);
+        REQUIRE(startServer(server, serverReceivedPingMessages, false)); // false as Pong is disabled on Server
+
+        std::string session = ix::generateSessionId();
+        WebSocketClient webSocketClient(port, 1, -1); // ping interval = 1 second; ping timeout not checked
+
+        webSocketClient.start();
+
+        // Wait for all chat instance to be ready
+        while (true)
+        {
+            if (webSocketClient.isReady()) break;
+            ix::msleep(10);
+        }
+
+        REQUIRE(server.getClients().size() == 1);
+
+        ix::msleep(1100);
+
+        // Here we test ping timeout, no timeout
+        REQUIRE(serverReceivedPingMessages == 1);
+        REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
+
+        ix::msleep(1000);
+
+        // Here we test ping timeout, no timeout
+        REQUIRE(serverReceivedPingMessages == 2);
+        REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
+
+        webSocketClient.stop();
+
+        // Give us 500ms for the server to notice that clients went away
+        ix::msleep(500);
+        REQUIRE(server.getClients().size() == 0);
+
+        // Ensure client close was not by ping timeout
+        REQUIRE(webSocketClient.closedDueToPingTimeout() == false);
+
+        ix::reportWebSocketTraffic();
+    }
+}
+
 TEST_CASE("Websocket_ping_no_timeout", "[setPingTimeout]")
 {
     SECTION("Make sure that ping messages have a response (PONG).")
@@ -230,7 +284,7 @@ TEST_CASE("Websocket_ping_no_timeout", "[setPingTimeout]")
         REQUIRE(startServer(server, serverReceivedPingMessages, true)); // true as Pong is enable on Server
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port);
+        WebSocketClient webSocketClient(port, 1, 2); // ping interval = 1 second; ping timeout = 2 seconds
 
         webSocketClient.start();
 
@@ -280,7 +334,7 @@ TEST_CASE("Websocket_ping_timeout", "[setPingTimeout]")
         REQUIRE(startServer(server, serverReceivedPingMessages, false)); // false as Pong is DISABLED on Server
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port);
+        WebSocketClient webSocketClient(port, 1, 2); // ping interval = 1 second; ping timeout = 2 seconds
 
         webSocketClient.start();
 
@@ -303,6 +357,58 @@ TEST_CASE("Websocket_ping_timeout", "[setPingTimeout]")
 
         // Here we test ping timeout, timeout
         REQUIRE(serverReceivedPingMessages == 1);
+        REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
+        // Ensure client close was not by ping timeout
+        REQUIRE(webSocketClient.isClosed() == true);
+        REQUIRE(webSocketClient.closedDueToPingTimeout() == true);
+
+        webSocketClient.stop();
+
+        REQUIRE(server.getClients().size() == 0);
+
+        ix::reportWebSocketTraffic();
+    }
+}
+
+TEST_CASE("Websocket_ping_long_timeout", "[setPingTimeout]")
+{
+    SECTION("Make sure that ping messages don't have responses (no PONG).")
+    {
+        ix::setupWebSocketTrafficTrackerCallback();
+
+        int port = getFreePort();
+        ix::WebSocketServer server(port);  
+        std::atomic<int> serverReceivedPingMessages(0);
+        REQUIRE(startServer(server, serverReceivedPingMessages, false)); // false as Pong is DISABLED on Server
+
+        std::string session = ix::generateSessionId();
+        WebSocketClient webSocketClient(port, 2, 6); // ping interval = 2 second; ping timeout = 6 seconds
+
+        webSocketClient.start();
+
+        // Wait for all chat instance to be ready
+        while (true)
+        {
+            if (webSocketClient.isReady()) break;
+            ix::msleep(10);
+        }
+
+        REQUIRE(server.getClients().size() == 1);
+
+        ix::msleep(5900);
+
+        // Here we test ping timeout, no timeout yet (2 ping sent at 2s and 4s)
+        REQUIRE(serverReceivedPingMessages == 2);
+        REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
+
+        // Ensure client not closed
+        REQUIRE(webSocketClient.isClosed() == false);
+        REQUIRE(webSocketClient.closedDueToPingTimeout() == false);
+
+        ix::msleep(200);
+
+        // Here we test ping timeout, timeout (at 6 seconds)
+        REQUIRE(serverReceivedPingMessages == 2);
         REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
         // Ensure client close was not by ping timeout
         REQUIRE(webSocketClient.isClosed() == true);
