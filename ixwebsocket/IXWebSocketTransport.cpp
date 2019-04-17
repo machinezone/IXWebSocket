@@ -51,7 +51,7 @@
 #include <thread>
 
 
-int gcd (int a, int b) {
+int greatestCommonDivisor (int a, int b) {
   while (b != 0)  {
     int t = b;
     b = a % b;
@@ -102,7 +102,7 @@ namespace ix
         _pingTimeoutSecs = pingTimeoutSecs;
 
         if (pingIntervalSecs > 0 && pingTimeoutSecs > 0)
-            _pingIntervalOrTimeoutGCDSecs = gcd(pingIntervalSecs, pingTimeoutSecs);
+            _pingIntervalOrTimeoutGCDSecs = greatestCommonDivisor(pingIntervalSecs, pingTimeoutSecs);
         else if (_pingTimeoutSecs > 0)
             _pingIntervalOrTimeoutGCDSecs = pingTimeoutSecs;
         else
