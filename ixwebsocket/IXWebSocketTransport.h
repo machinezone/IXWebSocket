@@ -68,8 +68,8 @@ namespace ix
         ~WebSocketTransport();
 
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                        bool enablePong,
-                        int pingIntervalSecs, int pingTimeoutSecs);
+                       bool enablePong,
+                       int pingIntervalSecs, int pingTimeoutSecs);
 
         WebSocketInitResult connectToUrl(const std::string& url, // Client
                                          int timeoutSecs);

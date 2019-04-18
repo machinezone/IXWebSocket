@@ -52,7 +52,8 @@
 
 
 int greatestCommonDivisor (int a, int b) {
-  while (b != 0)  {
+  while (b != 0)
+  {
     int t = b;
     b = a % b;
     a = t;
@@ -92,8 +93,8 @@ namespace ix
     }
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                                        bool enablePong,
-                                        int pingIntervalSecs, int pingTimeoutSecs)
+                                       bool enablePong,
+                                       int pingIntervalSecs, int pingTimeoutSecs)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
