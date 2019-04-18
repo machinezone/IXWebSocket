@@ -13,6 +13,7 @@
 #include <sstream>
 #include <future>
 #include <string.h>
+#include <assert.h>
 
 namespace ix
 {
