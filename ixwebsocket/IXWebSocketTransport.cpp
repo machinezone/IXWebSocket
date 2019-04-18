@@ -232,9 +232,15 @@ namespace ix
 
     void WebSocketTransport::poll()
     {
-        _socket->poll(
-            [this](PollResultType pollResult)
+        PollResultType pollResult = _socket->poll(_pingIntervalOrTimeoutGCDSecs);
+
+        if (_readyState == OPEN)
+        {
+            // if (1) ping timeout is enabled and (2) duration since last received ping response (PONG)
+            // exceeds the maximum delay, then close the connection
+            if (pingTimeoutExceeded())
             {
+<<<<<<< HEAD
                 if (_readyState == OPEN)
                 {
                     // if (1) ping timeout is enabled and (2) duration since last received ping response (PONG)
@@ -252,78 +258,88 @@ namespace ix
                         sendPing(ss.str());
                     }
                 }
+=======
+                close(1011, "Ping timeout");
+            }
+            // If (1) ping is enabled and no ping has been sent for a duration 
+            // exceeding our ping interval, send a ping to the server.
+            else if (pingIntervalExceeded())
+            {
+                std::stringstream ss;
+                ss << kPingMessage << "::" << _pingIntervalSecs << "s";
+                sendPing(ss.str());
+            }
+        }
 
-                // Make sure we send all the buffered data
-                // there can be a lot of it for large messages.
-                if (pollResult == PollResultType::SendRequest)
+        // Make sure we send all the buffered data
+        // there can be a lot of it for large messages.
+        if (pollResult == PollResultType::SendRequest)
+        {
+            while (!isSendBufferEmpty() && !_requestInitCancellation)
+            {
+                // Wait with a 10ms timeout until the socket is ready to write.
+                // This way we are not busy looping
+                PollResultType result = _socket->isReadyToWrite(10);
+
+                if (result == PollResultType::Error)
                 {
-                    while (!isSendBufferEmpty() && !_requestInitCancellation)
+                    _socket->close();
+                    setReadyState(CLOSED);
+                    break;
+                }
+                else if (result == PollResultType::ReadyForWrite)
+                {
+                    sendOnSocket();
+                }
+            }
+        }
+        else if (pollResult == PollResultType::ReadyForRead)
+        {
+            while (true)
+            {
+                ssize_t ret = _socket->recv((char*)&_readbuf[0], _readbuf.size());
+
+                if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
+                                _socket->getErrno() == EAGAIN))
+                {
+                    break;
+                }
+                else if (ret <= 0)
+                {
+                    _rxbuf.clear();
+                    _socket->close();
                     {
-                        // Wait with a 10ms timeout until the socket is ready to write.
-                        // This way we are not busy looping
-                        PollResultType result = _socket->isReadyToWrite(10);
-
-                        if (result == PollResultType::Error)
-                        {
-                            _socket->close();
-                            setReadyState(CLOSED);
-                            break;
-                        }
-                        else if (result == PollResultType::ReadyForWrite)
-                        {
-                            sendOnSocket();
-                        }
+                        std::lock_guard<std::mutex> lock(_closeDataMutex);
+                        _closeCode = kAbnormalCloseCode;
+                        _closeReason = kAbnormalCloseMessage;
+                        _closeWireSize = 0;
                     }
+                    setReadyState(CLOSED);
+                    break;
                 }
-                else if (pollResult == PollResultType::ReadyForRead)
+                else
                 {
-                    while (true)
-                    {
-                        ssize_t ret = _socket->recv((char*)&_readbuf[0], _readbuf.size());
+                    _rxbuf.insert(_rxbuf.end(),
+                                  _readbuf.begin(),
+                                  _readbuf.begin() + ret);
+                }
+            }
+        }
+        else if (pollResult == PollResultType::Error)
+        {
+            _socket->close();
+        }
+        else if (pollResult == PollResultType::CloseRequest)
+        {
+            _socket->close();
+        }
 
-                        if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
-                                        _socket->getErrno() == EAGAIN))
-                        {
-                            break;
-                        }
-                        else if (ret <= 0)
-                        {
-                            _rxbuf.clear();
-                            _socket->close();
-                            {
-                                std::lock_guard<std::mutex> lock(_closeDataMutex);
-                                _closeCode = kAbnormalCloseCode;
-                                _closeReason = kAbnormalCloseMessage;
-                                _closeWireSize = 0;
-                            }
-                            setReadyState(CLOSED);
-                            break;
-                        }
-                        else
-                        {
-                            _rxbuf.insert(_rxbuf.end(),
-                                          _readbuf.begin(),
-                                          _readbuf.begin() + ret);
-                        }
-                    }
-                }
-                else if (pollResult == PollResultType::Error)
-                {
-                    _socket->close();
-                }
-                else if (pollResult == PollResultType::CloseRequest)
-                {
-                    _socket->close();
-                }
-
-                // Avoid a race condition where we get stuck in select
-                // while closing.
-                if (_readyState == CLOSING)
-                {
-                    _socket->close();
-                }
-            },
-            _pingIntervalOrTimeoutGCDSecs);
+        // Avoid a race condition where we get stuck in select
+        // while closing.
+        if (_readyState == CLOSING)
+        {
+            _socket->close();
+        }
     }
 
     bool WebSocketTransport::isSendBufferEmpty() const

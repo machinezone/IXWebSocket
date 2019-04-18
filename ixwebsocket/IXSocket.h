@@ -37,8 +37,6 @@ namespace ix
 
     class Socket {
     public:
-        using OnPollCallback = std::function<void(PollResultType)>;
-
         Socket(int fd = -1);
         virtual ~Socket();
         bool init(std::string& errorMsg);
@@ -46,8 +44,7 @@ namespace ix
         void configure();
 
         // Functions to check whether there is activity on the socket
-        void poll(const OnPollCallback& onPollCallback,
-                  int timeoutSecs = kDefaultPollTimeout);
+        PollResultType poll(int timeoutSecs = kDefaultPollTimeout);
         bool wakeUpFromPoll(uint8_t wakeUpCode);
 
         PollResultType isReadyToWrite(int timeoutMs);
