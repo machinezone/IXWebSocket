@@ -192,7 +192,8 @@ TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod
         REQUIRE(startServer(server, serverReceivedPingMessages));
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port, true); // true to use setHeartBeatPeriod
+        bool useSetHeartBeatPeriodMethod = true;
+        WebSocketClient webSocketClient(port, useSetHeartBeatPeriodMethod);
 
         webSocketClient.start();
 
@@ -234,7 +235,8 @@ TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
         REQUIRE(startServer(server, serverReceivedPingMessages));
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port, true); // true to use setHeartBeatPeriod
+        bool useSetHeartBeatPeriodMethod = true;
+        WebSocketClient webSocketClient(port, useSetHeartBeatPeriodMethod);
 
         webSocketClient.start();
 
@@ -280,7 +282,8 @@ TEST_CASE("Websocket_ping_no_data_sent_setPingInterval", "[setPingInterval]")
         REQUIRE(startServer(server, serverReceivedPingMessages));
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port, false); // false to use setPingInterval
+        bool useSetHeartBeatPeriodMethod = false; // so use setPingInterval
+        WebSocketClient webSocketClient(port, useSetHeartBeatPeriodMethod);
 
         webSocketClient.start();
 
@@ -322,7 +325,8 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval", "[setPingInterval]")
         REQUIRE(startServer(server, serverReceivedPingMessages));
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port, false); // false to use setPingInterval
+        bool useSetHeartBeatPeriodMethod = false; // so use setPingInterval
+        WebSocketClient webSocketClient(port, useSetHeartBeatPeriodMethod);
 
         webSocketClient.start();
 

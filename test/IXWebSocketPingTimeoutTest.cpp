@@ -231,10 +231,13 @@ TEST_CASE("Websocket_ping_timeout_not_checked", "[setPingTimeout]")
         int port = getFreePort();
         ix::WebSocketServer server(port);  
         std::atomic<int> serverReceivedPingMessages(0);
-        REQUIRE(startServer(server, serverReceivedPingMessages, false)); // false as Pong is disabled on Server
+        bool enablePong = false; // Pong is disabled on Server
+        REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port, 1, -1); // ping interval = 1 second; ping timeout not checked
+        int pingIntervalSecs = 1;
+        int pingTimeoutSecs = -1; // ping timeout not checked
+        WebSocketClient webSocketClient(port, pingIntervalSecs, pingTimeoutSecs);
 
         webSocketClient.start();
 
@@ -281,10 +284,13 @@ TEST_CASE("Websocket_ping_no_timeout", "[setPingTimeout]")
         int port = getFreePort();
         ix::WebSocketServer server(port);  
         std::atomic<int> serverReceivedPingMessages(0);
-        REQUIRE(startServer(server, serverReceivedPingMessages, true)); // true as Pong is enable on Server
+        bool enablePong = true; // Pong is enabled on Server
+        REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port, 1, 2); // ping interval = 1 second; ping timeout = 2 seconds
+        int pingIntervalSecs = 1;
+        int pingTimeoutSecs = 2;
+        WebSocketClient webSocketClient(port, pingIntervalSecs, pingTimeoutSecs);
 
         webSocketClient.start();
 
@@ -331,11 +337,13 @@ TEST_CASE("Websocket_no_ping_but_timeout", "[setPingTimeout]")
         int port = getFreePort();
         ix::WebSocketServer server(port);  
         std::atomic<int> serverReceivedPingMessages(0);
-        REQUIRE(startServer(server, serverReceivedPingMessages, false)); // false as Pong is DISABLED on Server
+        bool enablePong = false; // Pong is disabled on Server
+        REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port, -1, 3); // ping interval DISABLED; ping timeout = 3 seconds
-
+        int pingIntervalSecs = -1;  // no ping set
+        int pingTimeoutSecs = 3;
+        WebSocketClient webSocketClient(port, pingIntervalSecs, pingTimeoutSecs);
         webSocketClient.start();
 
         // Wait for all chat instance to be ready
@@ -355,7 +363,7 @@ TEST_CASE("Websocket_no_ping_but_timeout", "[setPingTimeout]")
 
         REQUIRE(webSocketClient.isClosed() == false);
         REQUIRE(webSocketClient.closedDueToPingTimeout() == false);
-        
+
         ix::msleep(200);
 
         // Here we test ping timeout, timeout
@@ -382,10 +390,13 @@ TEST_CASE("Websocket_ping_timeout", "[setPingTimeout]")
         int port = getFreePort();
         ix::WebSocketServer server(port);  
         std::atomic<int> serverReceivedPingMessages(0);
-        REQUIRE(startServer(server, serverReceivedPingMessages, false)); // false as Pong is DISABLED on Server
+        bool enablePong = false; // Pong is disabled on Server
+        REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port, 1, 2); // ping interval = 1 second; ping timeout = 2 seconds
+        int pingIntervalSecs = 1;
+        int pingTimeoutSecs = 2;
+        WebSocketClient webSocketClient(port, pingIntervalSecs, pingTimeoutSecs);
 
         webSocketClient.start();
 
@@ -430,10 +441,13 @@ TEST_CASE("Websocket_ping_long_timeout", "[setPingTimeout]")
         int port = getFreePort();
         ix::WebSocketServer server(port);  
         std::atomic<int> serverReceivedPingMessages(0);
-        REQUIRE(startServer(server, serverReceivedPingMessages, false)); // false as Pong is DISABLED on Server
+        bool enablePong = false; // Pong is disabled on Server
+        REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
 
         std::string session = ix::generateSessionId();
-        WebSocketClient webSocketClient(port, 2, 6); // ping interval = 2 second; ping timeout = 6 seconds
+        int pingIntervalSecs = 2;
+        int pingTimeoutSecs = 6;
+        WebSocketClient webSocketClient(port, pingIntervalSecs, pingTimeoutSecs);
 
         webSocketClient.start();
 

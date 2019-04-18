@@ -92,8 +92,8 @@ namespace ix
     }
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                                       bool enablePong,
-                                       int pingIntervalSecs, int pingTimeoutSecs)
+                                        bool enablePong,
+                                        int pingIntervalSecs, int pingTimeoutSecs)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
@@ -225,25 +225,27 @@ namespace ix
 
     void WebSocketTransport::poll()
     {
-        if (_readyState == OPEN)
-        {
-            // if (1) ping tiemout is enabled and (2) duration exceeded the maximum delay, then close the connection
-            if (pingTimeoutExceeded())
-            {
-                close(1011, "Ping timeout");
-            }
-            // If (1) ping is enabled and (2) send for a duration exceeding our ping interval, send a ping to the server.
-            else if (pingIntervalExceeded())
-            {
-                std::stringstream ss;
-                ss << kPingMessage << "::" << _pingIntervalSecs << "s";
-                sendPing(ss.str());
-            }
-        }
-
         _socket->poll(
             [this](PollResultType pollResult)
             {
+                if (_readyState == OPEN)
+                {
+                    // if (1) ping timeout is enabled and (2) duration since last received ping response (PONG)
+                    // exceeds the maximum delay, then close the connection
+                    if (pingTimeoutExceeded())
+                    {
+                        close(1011, "Ping timeout");
+                    }
+                    // If (1) ping is enabled and no ping has been sent for a duration 
+                    // exceeding our ping interval, send a ping to the server.
+                    else if (pingIntervalExceeded())
+                    {
+                        std::stringstream ss;
+                        ss << kPingMessage << "::" << _pingIntervalSecs << "s";
+                        sendPing(ss.str());
+                    }
+                }
+
                 // Make sure we send all the buffered data
                 // there can be a lot of it for large messages.
                 if (pollResult == PollResultType::SendRequest)
@@ -490,7 +492,7 @@ namespace ix
                 unmaskReceiveBuffer(ws);
 
                 std::string pingData(_rxbuf.begin()+ws.header_size,
-                                         _rxbuf.begin()+ws.header_size + (size_t) ws.N);
+                                     _rxbuf.begin()+ws.header_size + (size_t) ws.N);
 
                 if (_enablePong)
                 {
