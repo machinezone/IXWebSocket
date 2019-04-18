@@ -49,7 +49,7 @@ StatsdClient::StatsdClient(const string& host,
     d = new _StatsdClientData;
     d->sock = -1;
     config(host, port, ns);
-    srandom(time(NULL));
+    srandom((unsigned) time(NULL));
 
     if (batching_) {
         pthread_mutex_init(&batching_mutex_lock_, nullptr);
@@ -227,7 +227,7 @@ int StatsdClient::send_to_daemon(const string &message) {
     {
         return ret;
     }
-    ret = sendto(d->sock, message.data(), message.size(), 0, (struct sockaddr *) &d->server, sizeof(d->server));
+    ret = (int) sendto(d->sock, message.data(), message.size(), 0, (struct sockaddr *) &d->server, sizeof(d->server));
     if ( ret == -1) {
         snprintf(d->errmsg, sizeof(d->errmsg),
                  "sendto server fail, host=%s:%d, err=%m", d->host.c_str(), d->port);

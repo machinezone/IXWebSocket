@@ -6,7 +6,7 @@ all: brew
 install: brew
 
 brew:
-	mkdir -p build && (cd build ; cmake .. ; make -j install)
+	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 .. ; make -j install)
 
 .PHONY: docker
 
