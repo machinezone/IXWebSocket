@@ -155,7 +155,13 @@ namespace ix
         _connectionStateFactory = connectionStateFactory;
     }
 
+    //
     // join the threads for connections that have been closed
+    //
+    // When a connection is closed by a client, the connection state terminated
+    // field becomes true, and we can use that to know that we can join that thread
+    // and remove it from our _connectionsThreads data structure (a list).
+    //
     void SocketServer::closeTerminatedThreads()
     {
         auto it = _connectionsThreads.begin();
@@ -188,7 +194,7 @@ namespace ix
             if (_stop) return;
 
             // Garbage collection to shutdown/join threads for closed connections.
-            // We could run this in its own thread, so that we dont need to accept 
+            // We could run this in its own thread, so that we dont need to accept
             // a new connection to close a thread.
             // We could also use a condition variable to be notify when we need to do this
             closeTerminatedThreads();

@@ -798,7 +798,7 @@ namespace ix
             _closeReason = reason;
             _closeWireSize = closeWireSize;
         }
-        
+
         setReadyState(CLOSED);
     }
 

@@ -90,7 +90,7 @@ namespace ix
 
         /// Returns true only if we're connected
         bool isConnected() const;
-        
+
         /// Flush the publish queue
         bool flushQueue();
 
@@ -128,7 +128,7 @@ namespace ix
 
         ///
         /// Member variables
-        /// 
+        ///
         std::unique_ptr<WebSocket> _webSocket;
 
         /// Configuration data
@@ -158,10 +158,10 @@ namespace ix
         std::unordered_map<std::string, SubscriptionCallback> _cbs;
         mutable std::mutex _cbsMutex;
 
-        // Message Queue can be touched on control+background thread, 
+        // Message Queue can be touched on control+background thread,
         // protecting with a mutex.
         //
-        // Message queue is used when there are problems sending messages so 
+        // Message queue is used when there are problems sending messages so
         // that sending can be retried later.
         std::deque<std::string> _messageQueue;
         mutable std::mutex _queueMutex;
@@ -169,5 +169,5 @@ namespace ix
         // Cap the queue size (100 elems so far -> ~100k)
         static constexpr size_t kQueueMaxSize = 256;
     };
-    
+
 } // namespace ix

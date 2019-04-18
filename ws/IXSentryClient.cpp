@@ -110,10 +110,10 @@ namespace ix
         Json::Value exception;
         exception["value"] = msg["data"]["message"];
 
-        std::string stackTraceFieldName = 
+        std::string stackTraceFieldName =
             (msg["id"].asString() == "game_noisytypes_id") ? "traceback" : "stack";
-                             
-        exception["stacktrace"]["frames"] = 
+
+        exception["stacktrace"]["frames"] =
             parseLuaStackTrace(msg["data"][stackTraceFieldName].asString());
 
         payload["exception"].append(exception);
