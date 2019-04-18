@@ -165,6 +165,9 @@ namespace ix
         mutable std::mutex _lastSendTimePointMutex;
         std::chrono::time_point<std::chrono::steady_clock> _lastSendTimePoint;
 
+        static const int kInternalErrorCode;
+        const static std::string kInternalErrorDefaultMessage;
+
         // No data was send through the socket for longer than the heartbeat period
         bool heartBeatPeriodExceeded();
 
