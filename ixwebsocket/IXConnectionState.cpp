@@ -35,7 +35,7 @@ namespace ix
         return _terminated;
     }
 
-    bool ConnectionState::setTerminated()
+    void ConnectionState::setTerminated()
     {
         _terminated = true;
     }
