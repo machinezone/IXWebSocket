@@ -45,17 +45,14 @@ namespace ix
         close();
     }
 
-    void Socket::poll(const OnPollCallback& onPollCallback, int timeoutSecs)
+    PollResultType Socket::poll(int timeoutSecs)
     {
         if (_sockfd == -1)
         {
-            if (onPollCallback) onPollCallback(PollResultType::Error);
-            return;
+            return PollResultType::Error;
         }
 
-        PollResultType pollResult = isReadyToRead(1000 * timeoutSecs);
-
-        if (onPollCallback) onPollCallback(pollResult);
+        return isReadyToRead(1000 * timeoutSecs);
     }
 
     PollResultType Socket::select(bool readyToRead, int timeoutMs)
