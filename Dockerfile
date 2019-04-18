@@ -28,10 +28,11 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update 
 # Runtime 
 RUN apt-get install -y libssl1.1 
+RUN apt-get install -y ca-certificates
+RUN ["update-ca-certificates"]
 
 # Debugging
 RUN apt-get install -y strace
-RUN apt-get install -y gdb
 RUN apt-get install -y procps
 RUN apt-get install -y htop
 

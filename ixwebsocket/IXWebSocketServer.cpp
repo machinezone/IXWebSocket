@@ -17,13 +17,15 @@
 namespace ix
 {
     const int WebSocketServer::kDefaultHandShakeTimeoutSecs(3); // 3 seconds
+    const bool WebSocketServer::kDefaultEnablePong(true);
 
     WebSocketServer::WebSocketServer(int port,
                                      const std::string& host,
                                      int backlog,
                                      size_t maxConnections,
                                      int handshakeTimeoutSecs) : SocketServer(port, host, backlog, maxConnections),
-        _handshakeTimeoutSecs(handshakeTimeoutSecs)
+        _handshakeTimeoutSecs(handshakeTimeoutSecs),
+        _enablePong(kDefaultEnablePong)
     {
 
     }
@@ -44,6 +46,16 @@ namespace ix
         SocketServer::stop();
     }
 
+    void WebSocketServer::enablePong()
+    {
+        _enablePong = true;
+    }
+
+    void WebSocketServer::disablePong()
+    {
+        _enablePong = false;
+    }
+
     void WebSocketServer::setOnConnectionCallback(const OnConnectionCallback& callback)
     {
         _onConnectionCallback = callback;
@@ -57,6 +69,11 @@ namespace ix
         _onConnectionCallback(webSocket, connectionState);
 
         webSocket->disableAutomaticReconnection();
+
+        if (_enablePong)
+            webSocket->enablePong();
+        else
+            webSocket->disablePong();
 
         // Add this client to our client set
         {
