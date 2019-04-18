@@ -57,13 +57,15 @@ namespace ix
     const int WebSocketTransport::kDefaultHeartBeatPeriod(-1);
     constexpr size_t WebSocketTransport::kChunkSize;
     const int WebSocketTransport::kInternalErrorCode(1011);
-    const std::string WebSocketTransport::kInternalErrorDefaultMessage("Internal error");
+    const int WebSocketTransport::kAbnormalCloseCode(1006);
+    const std::string WebSocketTransport::kInternalErrorMessage("Internal error");
+    const std::string WebSocketTransport::kAbnormalCloseMessage("Abnormal closure");
 
     WebSocketTransport::WebSocketTransport() :
         _useMask(true),
         _readyState(CLOSED),
         _closeCode(kInternalErrorCode),
-        _closeReason(kInternalErrorDefaultMessage),
+        _closeReason(kInternalErrorMessage),
         _closeWireSize(0),
         _enablePerMessageDeflate(false),
         _requestInitCancellation(false),
@@ -167,7 +169,7 @@ namespace ix
             std::lock_guard<std::mutex> lock(_closeDataMutex);
             _onCloseCallback(_closeCode, _closeReason, _closeWireSize);
             _closeCode = kInternalErrorCode;
-            _closeReason = kInternalErrorDefaultMessage;
+            _closeReason = kInternalErrorMessage;
             _closeWireSize = 0;
         }
 
@@ -240,6 +242,12 @@ namespace ix
                         {
                             _rxbuf.clear();
                             _socket->close();
+                            {
+                                std::lock_guard<std::mutex> lock(_closeDataMutex);
+                                _closeCode = kAbnormalCloseCode;
+                                _closeReason = kAbnormalCloseMessage;
+                                _closeWireSize = 0;
+                            }
                             setReadyState(CLOSED);
                             break;
                         }
