@@ -44,4 +44,5 @@ RUN ldd /usr/local/bin/ws
 USER app
 WORKDIR /home/app
 
-CMD ["ws"]
+ENTRYPOINT ["ws"]
+CMD ["--help"]
