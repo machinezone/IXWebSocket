@@ -68,7 +68,8 @@ namespace ix
         ~WebSocketTransport();
 
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                       int heartBeatPeriod);
+                       bool enablePong,
+                       int pingIntervalSecs, int pingTimeoutSecs);
 
         WebSocketInitResult connectToUrl(const std::string& url, // Client
                                          int timeoutSecs);
@@ -158,15 +159,25 @@ namespace ix
         // Used to cancel dns lookup + socket connect + http upgrade
         std::atomic<bool> _requestInitCancellation;
 
-        // Optional Heartbeat
-        int _heartBeatPeriod;
-        static const int kDefaultHeartBeatPeriod;
-        const static std::string kHeartBeatPingMessage;
-        mutable std::mutex _lastSendTimePointMutex;
-        std::chrono::time_point<std::chrono::steady_clock> _lastSendTimePoint;
+        // enable auto response to ping
+        bool _enablePong;
+        static const bool kDefaultEnablePong;
 
-        // No data was send through the socket for longer than the heartbeat period
-        bool heartBeatPeriodExceeded();
+        // Optional ping and ping timeout
+        int _pingIntervalSecs;
+        int _pingTimeoutSecs;
+        int _pingIntervalOrTimeoutGCDSecs; // if both ping interval and timeout are set (> 0), then use GCD of these value to wait for the lowest time
+        static const int kDefaultPingIntervalSecs;
+        static const int kDefaultPingTimeoutSecs;
+        const static std::string kPingMessage;
+        mutable std::mutex _lastSendPingTimePointMutex;
+        mutable std::mutex _lastReceivePongTimePointMutex;
+        std::chrono::time_point<std::chrono::steady_clock> _lastSendPingTimePoint;
+        std::chrono::time_point<std::chrono::steady_clock> _lastReceivePongTimePoint;
+
+        bool pingIntervalExceeded();
+        // No PONG data was received through the socket for longer than ping timeout delay
+        bool pingTimeoutExceeded();
 
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
