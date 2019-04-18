@@ -88,9 +88,9 @@ namespace ix
         }
 
         conn.setEventCallback(
-            [&conn, &channel, &jsonWriter, 
+            [&conn, &channel, &jsonWriter,
              verbose, &receivedCount, &sentCount,
-             &condition, &conditionVariableMutex, 
+             &condition, &conditionVariableMutex,
              &progressCondition, &queue]
             (ix::CobraConnectionEventType eventType,
              const std::string& errMsg,
@@ -114,7 +114,7 @@ namespace ix
                 {
                     std::cerr << "Subscriber authenticated" << std::endl;
                     conn.subscribe(channel,
-                                   [&jsonWriter, verbose, 
+                                   [&jsonWriter, verbose,
                                     &sentCount, &receivedCount,
                                     &condition, &conditionVariableMutex,
                                     &progressCondition, &queue]
@@ -132,7 +132,7 @@ namespace ix
                                            receivedCount != 0 &&
                                            (sentCount * scaleFactor < receivedCount))
                                        {
-                                           std::cerr << "message dropped: sending is backlogged !" 
+                                           std::cerr << "message dropped: sending is backlogged !"
                                                      << std::endl;
 
                                            condition.notify_one();

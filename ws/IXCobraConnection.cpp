@@ -258,7 +258,7 @@ namespace ix
         return _webSocket->send(serializedJson).success;
     }
 
-    // 
+    //
     // Extract the nonce from the handshake response
     // use it to compute a hash during authentication
     //
@@ -357,7 +357,7 @@ namespace ix
         if (!pdu.isMember("body")) return false;
         Json::Value body = pdu["body"];
 
-        // Identify subscription_id, so that we can find 
+        // Identify subscription_id, so that we can find
         // which callback to execute
         if (!body.isMember("subscription_id")) return false;
         Json::Value subscriptionId = body["subscription_id"];
@@ -531,5 +531,5 @@ namespace ix
     {
         connect();
     }
-    
+
 } // namespace ix

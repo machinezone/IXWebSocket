@@ -70,7 +70,7 @@ namespace ix
                                 const std::string& prefix,
                                 const std::string& fields,
                                 bool verbose);
-    
+
     int ws_cobra_to_sentry_main(const std::string& appkey,
                                 const std::string& endpoint,
                                 const std::string& rolename,

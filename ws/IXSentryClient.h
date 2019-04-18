@@ -43,5 +43,5 @@ namespace ix
 
         HttpClient _httpClient;
     };
-    
+
 } // namespace ix
