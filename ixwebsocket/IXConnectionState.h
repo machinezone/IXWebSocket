@@ -21,7 +21,7 @@ namespace ix
         virtual void computeId();
         virtual const std::string& getId() const;
 
-        bool setTerminated();
+        void setTerminated();
         bool isTerminated() const;
 
         static std::shared_ptr<ConnectionState> createConnectionState();
