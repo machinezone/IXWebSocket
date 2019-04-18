@@ -111,6 +111,7 @@ def runCMake(sanitizer, buildDir):
     {sanitizerFlag} \
     -B{buildDir} \
     -DCMAKE_BUILD_TYPE=Debug \
+    -DUSE_TLS=1 \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 '''
     cmakeCmd = fmt.format(**locals())
