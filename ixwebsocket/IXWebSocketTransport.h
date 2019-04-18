@@ -159,23 +159,36 @@ namespace ix
         // Used to cancel dns lookup + socket connect + http upgrade
         std::atomic<bool> _requestInitCancellation;
 
+        // Constants for dealing with closing conneections
+        static const int kInternalErrorCode;
+        static const int kAbnormalCloseCode;
+        const static std::string kInternalErrorMessage;
+        const static std::string kAbnormalCloseMessage;
+  
         // enable auto response to ping
         bool _enablePong;
         static const bool kDefaultEnablePong;
 
-        // Optional ping and ping timeout
+        // Optional ping and pong timeout
         int _pingIntervalSecs;
         int _pingTimeoutSecs;
         int _pingIntervalOrTimeoutGCDSecs; // if both ping interval and timeout are set (> 0), then use GCD of these value to wait for the lowest time
+
         static const int kDefaultPingIntervalSecs;
         static const int kDefaultPingTimeoutSecs;
         const static std::string kPingMessage;
+      
+        // We record when ping are being sent so that we can know when to send the next one, periodically
+        // We also record when pong are being sent as a reply to pings, to close the connections
+        // if no pong were received sufficiently fast.
         mutable std::mutex _lastSendPingTimePointMutex;
         mutable std::mutex _lastReceivePongTimePointMutex;
         std::chrono::time_point<std::chrono::steady_clock> _lastSendPingTimePoint;
         std::chrono::time_point<std::chrono::steady_clock> _lastReceivePongTimePoint;
 
+        // If this function returns true, it is time to send a new ping
         bool pingIntervalExceeded();
+      
         // No PONG data was received through the socket for longer than ping timeout delay
         bool pingTimeoutExceeded();
 

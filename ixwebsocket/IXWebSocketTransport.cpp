@@ -69,11 +69,16 @@ namespace ix
     const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
     constexpr size_t WebSocketTransport::kChunkSize;
+    const int WebSocketTransport::kInternalErrorCode(1011);
+    const int WebSocketTransport::kAbnormalCloseCode(1006);
+    const std::string WebSocketTransport::kInternalErrorMessage("Internal error");
+    const std::string WebSocketTransport::kAbnormalCloseMessage("Abnormal closure");
 
     WebSocketTransport::WebSocketTransport() :
         _useMask(true),
         _readyState(CLOSED),
-        _closeCode(0),
+        _closeCode(kInternalErrorCode),
+        _closeReason(kInternalErrorMessage),
         _closeWireSize(0),
         _enablePerMessageDeflate(false),
         _requestInitCancellation(false),
@@ -190,8 +195,8 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
             _onCloseCallback(_closeCode, _closeReason, _closeWireSize);
-            _closeCode = 0;
-            _closeReason = std::string();
+            _closeCode = kInternalErrorCode;
+            _closeReason = kInternalErrorMessage;
             _closeWireSize = 0;
         }
 
@@ -284,6 +289,12 @@ namespace ix
                         {
                             _rxbuf.clear();
                             _socket->close();
+                            {
+                                std::lock_guard<std::mutex> lock(_closeDataMutex);
+                                _closeCode = kAbnormalCloseCode;
+                                _closeReason = kAbnormalCloseMessage;
+                                _closeWireSize = 0;
+                            }
                             setReadyState(CLOSED);
                             break;
                         }
@@ -526,8 +537,7 @@ namespace ix
 
                 // Get the reason.
                 std::string reason(_rxbuf.begin()+ws.header_size + 2,
-                                   _rxbuf.begin()+ws.header_size + 2 + (size_t) ws.N);
-
+                                   _rxbuf.begin()+ws.header_size + (size_t) ws.N);
 
                 close(code, reason, _rxbuf.size());
             }
@@ -843,7 +853,13 @@ namespace ix
 
         // See list of close events here:
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-        const std::string closure{(char)(code >> 8), (char)(code & 0xff)};
+        
+        int codeLength = 2;
+        std::string closure{(char)(code >> 8), (char)(code & 0xff)};
+        closure.resize(codeLength + reason.size());
+
+        // copy reason after code
+        closure.replace(codeLength, reason.size(), reason);
 
         bool compress = false;
         sendData(wsheader_type::CLOSE, closure, compress);
