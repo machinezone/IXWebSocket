@@ -130,7 +130,7 @@ namespace ix
         std::lock_guard<std::mutex> lock(_configMutex);
         _enablePong = false;
     }
-    
+
     void WebSocket::start()
     {
         if (_thread.joinable()) return; // we've already been started
@@ -188,7 +188,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(_perMessageDeflateOptions,
-                          _enablePong, 
+                          _enablePong,
                           _pingIntervalSecs,
                           _pingTimeoutSecs);
         }

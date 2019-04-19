@@ -211,7 +211,7 @@ TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod
         webSocketClient.stop();
 
 
-        // Here we test ping interval 
+        // Here we test ping interval
         // -> expected ping messages == 1 as 1900 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 1);
 
@@ -257,7 +257,7 @@ TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
 
         webSocketClient.stop();
 
-        // Here we test ping interval 
+        // Here we test ping interval
         // client has sent data, but ping should have been sent no matter what
         // -> expected ping messages == 2 as 900+900+1100 = 2900 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 2);
@@ -301,7 +301,7 @@ TEST_CASE("Websocket_ping_no_data_sent_setPingInterval", "[setPingInterval]")
         webSocketClient.stop();
 
 
-        // Here we test ping interval 
+        // Here we test ping interval
         // -> expected ping messages == 2 as 2100 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 2);
 
@@ -347,7 +347,7 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval", "[setPingInterval]")
 
         webSocketClient.stop();
 
-        // Here we test ping interval 
+        // Here we test ping interval
         // client has sent data, but ping should have been sent no matter what
         // -> expected ping messages == 3 as 900+900+1300 = 3100 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 3);

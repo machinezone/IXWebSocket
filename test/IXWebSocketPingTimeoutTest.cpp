@@ -113,7 +113,7 @@ namespace
                     }
 
                     _webSocket.disableAutomaticReconnection();
-        
+
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
                 {
@@ -229,7 +229,7 @@ TEST_CASE("Websocket_ping_timeout_not_checked", "[setPingTimeout]")
         ix::setupWebSocketTrafficTrackerCallback();
 
         int port = getFreePort();
-        ix::WebSocketServer server(port);  
+        ix::WebSocketServer server(port);
         std::atomic<int> serverReceivedPingMessages(0);
         bool enablePong = false; // Pong is disabled on Server
         REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
@@ -282,7 +282,7 @@ TEST_CASE("Websocket_ping_no_timeout", "[setPingTimeout]")
         ix::setupWebSocketTrafficTrackerCallback();
 
         int port = getFreePort();
-        ix::WebSocketServer server(port);  
+        ix::WebSocketServer server(port);
         std::atomic<int> serverReceivedPingMessages(0);
         bool enablePong = true; // Pong is enabled on Server
         REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
@@ -335,7 +335,7 @@ TEST_CASE("Websocket_no_ping_but_timeout", "[setPingTimeout]")
         ix::setupWebSocketTrafficTrackerCallback();
 
         int port = getFreePort();
-        ix::WebSocketServer server(port);  
+        ix::WebSocketServer server(port);
         std::atomic<int> serverReceivedPingMessages(0);
         bool enablePong = false; // Pong is disabled on Server
         REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
@@ -388,7 +388,7 @@ TEST_CASE("Websocket_ping_timeout", "[setPingTimeout]")
         ix::setupWebSocketTrafficTrackerCallback();
 
         int port = getFreePort();
-        ix::WebSocketServer server(port);  
+        ix::WebSocketServer server(port);
         std::atomic<int> serverReceivedPingMessages(0);
         bool enablePong = false; // Pong is disabled on Server
         REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
@@ -439,7 +439,7 @@ TEST_CASE("Websocket_ping_long_timeout", "[setPingTimeout]")
         ix::setupWebSocketTrafficTrackerCallback();
 
         int port = getFreePort();
-        ix::WebSocketServer server(port);  
+        ix::WebSocketServer server(port);
         std::atomic<int> serverReceivedPingMessages(0);
         bool enablePong = false; // Pong is disabled on Server
         REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
