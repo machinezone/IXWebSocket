@@ -17,8 +17,7 @@ namespace ix
                                 const std::string& endpoint,
                                 const std::string& rolename,
                                 const std::string& rolesecret,
-                                const std::string& channel,
-                                bool verbose)
+                                const std::string& channel)
     {
 
         ix::CobraConnection conn;
@@ -51,7 +50,6 @@ namespace ix
                     conn.subscribe(channel,
                                    [&jsonWriter](const Json::Value& msg)
                                    {
-                                       // std::cout << "Received message" << std::endl;
                                        std::cout << jsonWriter.write(msg) << std::endl;
                                    });
                 }

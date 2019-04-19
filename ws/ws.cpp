@@ -133,7 +133,6 @@ int main(int argc, char** argv)
     cobraSubscribeApp->add_option("--rolename", rolename, "Role name");
     cobraSubscribeApp->add_option("--rolesecret", rolesecret, "Role secret");
     cobraSubscribeApp->add_option("channel", channel, "Channel")->required();
-    cobraSubscribeApp->add_flag("-v", verbose, "Verbose");
     cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
 
     CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra to statsd");
@@ -227,7 +226,7 @@ int main(int argc, char** argv)
     {
         return ix::ws_cobra_subscribe_main(appkey, endpoint,
                                            rolename, rolesecret,
-                                           channel, verbose);
+                                           channel);
     }
     else if (app.got_subcommand("cobra_to_statsd"))
     {
