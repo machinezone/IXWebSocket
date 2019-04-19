@@ -422,7 +422,10 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
 
 
 def main():
-    buildDir = 'build/' + platform.system()
+    root = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(root)
+
+    buildDir = os.path.join(root, 'build', platform.system())
     if not os.path.exists(buildDir):
         os.makedirs(buildDir)
 
@@ -482,7 +485,4 @@ def main():
 
 
 if __name__ == '__main__':
-    root = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(root)
-
     main()
