@@ -48,7 +48,7 @@ test_server:
 # env TEST=Websocket_chat make test
 # env TEST=heartbeat make test
 test:
-	(cd test ; python2.7 run.py)
+	python2.7 test/run.py
 
 ws_test: all
 	(cd ws ; bash test_ws.sh)
