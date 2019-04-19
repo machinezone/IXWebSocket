@@ -505,6 +505,11 @@ def main():
         print('LLDB is only supported on Apple at this point')
         args.lldb = False
 
+    # Sanitizers display lots of strange errors on Linux on CI,
+    # which looks like false positives
+    if platform.system() != 'Darwin':
+        sanitizer = None
+
     return run(args.test, buildDir, sanitizer, xmlOutput, 
                testRunName, args.build_only, args.lldb)
 
