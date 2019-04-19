@@ -120,16 +120,9 @@ if(USE_OPEN_SSL)
 endif()
 
 if (WIN32)
-  get_filename_component(libz_path
-    ${PROJECT_SOURCE_DIR}/third_party/ZLIB-Windows/zlib-1.2.11_deploy_v140/release_dynamic/x64/lib/zlib.lib
-    ABSOLUTE)
-  add_library(libz STATIC IMPORTED)
-  set_target_properties(libz PROPERTIES IMPORTED_LOCATION
-    ${libz_path})
-
-  include_directories(${PROJECT_SOURCE_DIR}/third_party/ZLIB-Windows/zlib-1.2.11_deploy_v140/include)
-
-  target_link_libraries(ixwebsocket libz wsock32 ws2_32)
+  add_subdirectory(third_party/zlib)
+  include_directories(third_party/zlib ${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib)
+  target_link_libraries(ixwebsocket zlibstatic wsock32 ws2_32)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
 else()
