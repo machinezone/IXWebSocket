@@ -1,5 +1,9 @@
 #!/usr/bin/env python2.7
 '''
+Windows notes:
+    generator = '-G"NMake Makefiles"'
+    make = 'nmake'
+    testBinary ='ixwebsocket_unittest.exe'
 '''
 
 from __future__ import print_function
@@ -106,6 +110,10 @@ def runCMake(sanitizer, buildDir):
     if not os.path.exists(cmakeExecutable):
         cmakeExecutable = 'cmake'
 
+    generator = '"Unix Makefiles"'
+    if platform.system() == 'Windows':
+        generator = '"NMake Makefiles"'
+
     fmt = '''
 {cmakeExecutable} -H. \
     {sanitizerFlag} \
@@ -113,6 +121,7 @@ def runCMake(sanitizer, buildDir):
     -DCMAKE_BUILD_TYPE=Debug \
     -DUSE_TLS=1 \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    -G{generator}
 '''
     cmakeCmd = fmt.format(**locals())
     runCommand(cmakeCmd)
@@ -351,8 +360,15 @@ def generateXmlOutput(results, xmlOutput, testRunName, runTime):
 def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLDB):
     '''Main driver. Run cmake, compiles, execute and validate the testsuite.'''
 
+    # gen build files with CMake
     runCMake(sanitizer, buildDir)
-    runCommand('make -C {} -j8'.format(buildDir))
+
+    # build with make
+    makeCmd = 'make'
+    if platform.system() == 'Windows':
+        makeCmd = 'nmake'
+
+    runCommand('{} -C {} -j8'.format(makeCmd, buildDir))
 
     if buildOnly:
         return
@@ -388,6 +404,9 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
 
         # testName can contains spaces, so we enclose them in double quotes
         executable = os.path.join(buildDir, DEFAULT_EXE)
+
+        if platform.system() == 'Windows':
+            executable += '.exe'
 
         cmd = '{} "{}" "{}" >& "{}"'.format(lldb, executable, testName, outputPath)
 
