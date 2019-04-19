@@ -39,6 +39,11 @@ namespace ix
                 if (eventType == ix::CobraConnection_EventType_Open)
                 {
                     std::cout << "Subscriber: connected" << std::endl;
+
+                    for (auto it : headers)
+                    {
+                        std::cerr << it.first << ": " << it.second << std::endl;
+                    }
                 }
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
