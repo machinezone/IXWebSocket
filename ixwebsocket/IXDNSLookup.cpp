@@ -26,7 +26,7 @@ namespace ix
         _done(false),
         _id(_nextId++)
     {
-
+        initNetSystem();
     }
 
     DNSLookup::~DNSLookup()
@@ -133,6 +133,11 @@ namespace ix
         {
             errMsg = "cancellation requested";
             return nullptr;
+        }
+
+        if (!_errMsg.empty())
+        {
+            errMsg = _errMsg;
         }
 
         return _res;
