@@ -160,8 +160,8 @@ namespace ix
         std::atomic<bool> _requestInitCancellation;
 
         // Constants for dealing with closing conneections
-        static const int kInternalErrorCode;
-        static const int kAbnormalCloseCode;
+        static const uint16_t kInternalErrorCode;
+        static const uint16_t kAbnormalCloseCode;
         const static std::string kInternalErrorMessage;
         const static std::string kAbnormalCloseMessage;
         const static std::string kPingTimeoutMessage;

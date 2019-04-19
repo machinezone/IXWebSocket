@@ -69,8 +69,8 @@ namespace ix
     const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
     constexpr size_t WebSocketTransport::kChunkSize;
-    const int WebSocketTransport::kInternalErrorCode(1011);
-    const int WebSocketTransport::kAbnormalCloseCode(1006);
+    const uint16_t WebSocketTransport::kInternalErrorCode(1011);
+    const uint16_t WebSocketTransport::kAbnormalCloseCode(1006);
     const std::string WebSocketTransport::kInternalErrorMessage("Internal error");
     const std::string WebSocketTransport::kAbnormalCloseMessage("Abnormal closure");
     const std::string WebSocketTransport::kPingTimeoutMessage("Ping timeout");
