@@ -240,26 +240,7 @@ namespace ix
             // exceeds the maximum delay, then close the connection
             if (pingTimeoutExceeded())
             {
-<<<<<<< HEAD
-                if (_readyState == OPEN)
-                {
-                    // if (1) ping timeout is enabled and (2) duration since last received ping response (PONG)
-                    // exceeds the maximum delay, then close the connection
-                    if (pingTimeoutExceeded())
-                    {
-                        close(kInternalErrorCode, kPingTimeoutMessage);
-                    }
-                    // If (1) ping is enabled and no ping has been sent for a duration 
-                    // exceeding our ping interval, send a ping to the server.
-                    else if (pingIntervalExceeded())
-                    {
-                        std::stringstream ss;
-                        ss << kPingMessage << "::" << _pingIntervalSecs << "s";
-                        sendPing(ss.str());
-                    }
-                }
-=======
-                close(1011, "Ping timeout");
+                close(kInternalErrorCode, kPingTimeoutMessage);
             }
             // If (1) ping is enabled and no ping has been sent for a duration 
             // exceeding our ping interval, send a ping to the server.
