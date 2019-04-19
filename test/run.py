@@ -249,7 +249,7 @@ def executeJob(job):
     start = time.time()
 
     sys.stderr.write('.')
-    print('Executing ' + job['cmd'] + '...')
+    # print('Executing ' + job['cmd'] + '...')
 
     # 2 minutes of timeout for a single test
     timeout = 2 * 60
@@ -414,7 +414,7 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
         if platform.system() == 'Windows':
             executable += '.exe'
 
-        cmd = '{} "{}" "{}" >& "{}"'.format(lldb, executable, testName, outputPath)
+        cmd = '{} "{}" "{}" > "{}" 2>&1'.format(lldb, executable, testName, outputPath)
 
         jobs.append({
             'name': testName,
