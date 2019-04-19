@@ -94,7 +94,7 @@ namespace ix
         void setPingTimeout(int pingTimeoutSecs);
         void enablePong();
         void disablePong();
-        
+
         // Run asynchronously, by calling start and stop.
         void start();
         void stop();

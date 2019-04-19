@@ -100,7 +100,8 @@ namespace ix
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
                                        bool enablePong,
-                                       int pingIntervalSecs, int pingTimeoutSecs)
+                                       int pingIntervalSecs,
+                                       int pingTimeoutSecs)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
@@ -109,11 +110,18 @@ namespace ix
         _pingTimeoutSecs = pingTimeoutSecs;
 
         if (pingIntervalSecs > 0 && pingTimeoutSecs > 0)
-            _pingIntervalOrTimeoutGCDSecs = greatestCommonDivisor(pingIntervalSecs, pingTimeoutSecs);
+        {
+            _pingIntervalOrTimeoutGCDSecs = greatestCommonDivisor(pingIntervalSecs,
+                                                                  pingTimeoutSecs);
+        }
         else if (_pingTimeoutSecs > 0)
+        {
             _pingIntervalOrTimeoutGCDSecs = pingTimeoutSecs;
+        }
         else
+        {
             _pingIntervalOrTimeoutGCDSecs = pingIntervalSecs;
+        }
     }
 
     // Client
@@ -236,13 +244,13 @@ namespace ix
 
         if (_readyState == OPEN)
         {
-            // if (1) ping timeout is enabled and (2) duration since last received ping response (PONG)
-            // exceeds the maximum delay, then close the connection
+            // if (1) ping timeout is enabled and (2) duration since last received
+            // ping response (PONG) exceeds the maximum delay, then close the connection
             if (pingTimeoutExceeded())
             {
                 close(kInternalErrorCode, kPingTimeoutMessage);
             }
-            // If (1) ping is enabled and no ping has been sent for a duration 
+            // If ping is enabled and no ping has been sent for a duration
             // exceeding our ping interval, send a ping to the server.
             else if (pingIntervalExceeded())
             {
@@ -786,10 +794,9 @@ namespace ix
     WebSocketSendInfo WebSocketTransport::sendPing(const std::string& message)
     {
         bool compress = false;
-
         WebSocketSendInfo info = sendData(wsheader_type::PING, message, compress);
 
-        if(info.success)
+        if (info.success)
         {
             std::lock_guard<std::mutex> lck(_lastSendPingTimePointMutex);
             _lastSendPingTimePoint = std::chrono::steady_clock::now();
@@ -851,7 +858,7 @@ namespace ix
 
         // See list of close events here:
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-        
+
         int codeLength = 2;
         std::string closure{(char)(code >> 8), (char)(code & 0xff)};
         closure.resize(codeLength + reason.size());
