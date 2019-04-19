@@ -365,10 +365,15 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
 
     # build with make
     makeCmd = 'make'
+    jobs = '-j8'
+
     if platform.system() == 'Windows':
         makeCmd = 'nmake'
 
-    runCommand('{} -C {} -j8'.format(makeCmd, buildDir))
+        # nmake does not have a -j option
+        jobs = ''
+
+    runCommand('{} -C {} {}'.format(makeCmd, buildDir, jobs))
 
     if buildOnly:
         return
