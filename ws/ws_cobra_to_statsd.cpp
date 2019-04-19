@@ -46,7 +46,6 @@ namespace ix
 
         Json::Value val(jsonValue);
 
-        int i = 0;
         while (std::getline(tokenStream, token, '.'))
         {
             val = val[token];
@@ -92,6 +91,11 @@ namespace ix
                 if (eventType == ix::CobraConnection_EventType_Open)
                 {
                     std::cout << "Subscriber: connected" << std::endl;
+
+                    for (auto it : headers)
+                    {
+                        std::cerr << it.first << ": " << it.second << std::endl;
+                    }
                 }
                 if (eventType == ix::CobraConnection_EventType_Closed)
                 {
@@ -101,7 +105,7 @@ namespace ix
                 {
                     std::cout << "Subscriber authenticated" << std::endl;
                     conn.subscribe(channel,
-                                   [&jsonWriter, &statsdClient, &channel,
+                                   [&jsonWriter, &statsdClient,
                                     verbose, &tokens, &prefix, &msgCount]
                                    (const Json::Value& msg)
                                    {
