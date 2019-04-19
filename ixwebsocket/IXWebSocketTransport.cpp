@@ -69,10 +69,11 @@ namespace ix
     const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
     constexpr size_t WebSocketTransport::kChunkSize;
-    const int WebSocketTransport::kInternalErrorCode(1011);
-    const int WebSocketTransport::kAbnormalCloseCode(1006);
+    const uint16_t WebSocketTransport::kInternalErrorCode(1011);
+    const uint16_t WebSocketTransport::kAbnormalCloseCode(1006);
     const std::string WebSocketTransport::kInternalErrorMessage("Internal error");
     const std::string WebSocketTransport::kAbnormalCloseMessage("Abnormal closure");
+    const std::string WebSocketTransport::kPingTimeoutMessage("Ping timeout");
 
     WebSocketTransport::WebSocketTransport() :
         _useMask(true),
@@ -240,7 +241,7 @@ namespace ix
                     // exceeds the maximum delay, then close the connection
                     if (pingTimeoutExceeded())
                     {
-                        close(1011, "Ping timeout");
+                        close(kInternalErrorCode, kPingTimeoutMessage);
                     }
                     // If (1) ping is enabled and no ping has been sent for a duration 
                     // exceeding our ping interval, send a ping to the server.
