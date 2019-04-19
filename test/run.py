@@ -249,6 +249,7 @@ def executeJob(job):
     start = time.time()
 
     sys.stderr.write('.')
+    print('Executing ' + job['cmd'] + '...')
 
     # 2 minutes of timeout for a single test
     timeout = 2 * 60
