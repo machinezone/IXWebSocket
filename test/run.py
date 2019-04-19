@@ -482,4 +482,7 @@ def main():
 
 
 if __name__ == '__main__':
+    root = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(root)
+
     main()
