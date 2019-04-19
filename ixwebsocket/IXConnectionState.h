@@ -21,9 +21,13 @@ namespace ix
         virtual void computeId();
         virtual const std::string& getId() const;
 
+        void setTerminated();
+        bool isTerminated() const;
+
         static std::shared_ptr<ConnectionState> createConnectionState();
 
     protected:
+        std::atomic<bool> _terminated;
         std::string _id;
 
         static std::atomic<uint64_t> _globalId;
