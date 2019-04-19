@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <stack>
 #include <iomanip>
+#include <random>
+
 
 namespace ix
 {
@@ -70,10 +72,12 @@ namespace ix
         Logger() << msg;
     }
 
-    int getAnyFreePortSimple()
+    int getAnyFreePortRandom()
     {
-        static int defaultPort = 8090;
-        return defaultPort++;
+        std::random_device rd;
+        std::uniform_int_distribution<int> dist(1024 + 1, 65535);
+
+        return dist(rd);
     }
 
     int getAnyFreePort()
@@ -83,7 +87,7 @@ namespace ix
         if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             log("Cannot compute a free port. socket error.");
-            return defaultPort;
+            return getAnyFreePortRandom();
         }
 
         int enable = 1;
@@ -91,7 +95,7 @@ namespace ix
                        (char*) &enable, sizeof(enable)) < 0)
         {
             log("Cannot compute a free port. setsockopt error.");
-            return defaultPort;
+            return getAnyFreePortRandom();
         }
 
         // Bind to port 0. This is the standard way to get a free port.
@@ -105,7 +109,7 @@ namespace ix
             log("Cannot compute a free port. bind error.");
 
             ::close(sockfd);
-            return defaultPort;
+            return getAnyFreePortRandom();
         }
 
         struct sockaddr_in sa; // server address information
@@ -115,7 +119,7 @@ namespace ix
             log("Cannot compute a free port. getsockname error.");
 
             ::close(sockfd);
-            return defaultPort;
+            return getAnyFreePortRandom();
         }
 
         int port = ntohs(sa.sin_port);
@@ -130,7 +134,7 @@ namespace ix
         {
 #if defined(__has_feature)
 # if __has_feature(address_sanitizer)
-            int port = getAnyFreePortSimple();
+            int port = getAnyFreePortRandom();
 # else
             int port = getAnyFreePort();
 # endif
