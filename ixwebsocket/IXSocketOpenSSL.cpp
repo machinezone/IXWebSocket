@@ -342,7 +342,7 @@ namespace ix
 
             ERR_clear_error();
             ssize_t write_result = SSL_write(_ssl_connection, buf + sent, (int) nbyte);
-            int reason = SSL_get_error(_ssl_connection, write_result);
+            int reason = SSL_get_error(_ssl_connection, (int) write_result);
 
             if (reason == SSL_ERROR_NONE) {
                 nbyte -= write_result;
@@ -382,7 +382,7 @@ namespace ix
                 return read_result;
             }
 
-            int reason = SSL_get_error(_ssl_connection, read_result);
+            int reason = SSL_get_error(_ssl_connection, (int) read_result);
 
             if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
             {
