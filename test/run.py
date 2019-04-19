@@ -103,7 +103,7 @@ def runCMake(sanitizer, buildDir):
         'tsan': '-DSANITIZE_THREAD=On',
         'none': ''
     }
-    sanitizerFlag = sanitizersFlags[sanitizer]
+    sanitizerFlag = sanitizersFlags.get(sanitizer, '')
 
     # CMake installed via Self Service ends up here.
     cmakeExecutable = '/Applications/CMake.app/Contents/bin/cmake'
@@ -508,7 +508,7 @@ def main():
     # Sanitizers display lots of strange errors on Linux on CI,
     # which looks like false positives
     if platform.system() != 'Darwin':
-        sanitizer = None
+        sanitizer = 'none'
 
     return run(args.test, buildDir, sanitizer, xmlOutput, 
                testRunName, args.build_only, args.lldb)
