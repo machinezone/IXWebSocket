@@ -9,6 +9,9 @@ install: brew
 brew:
 	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 .. ; make -j install)
 
+uninstall:
+	xargs rm -fv < build/install_manifest.txt
+
 .PHONY: docker
 
 NAME   := bsergean/ws
