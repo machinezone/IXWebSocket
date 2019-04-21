@@ -5,6 +5,7 @@ all: brew
 
 install: brew
 
+# Use -DCMAKE_INSTALL_PREFIX= to install into another location
 brew:
 	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 .. ; make -j install)
 
@@ -31,14 +32,6 @@ run:
 trail:
 	sh third_party/remote_trailing_whitespaces.sh
 
-build:
-	(cd examples/satori_publisher ; mkdir -p build ; cd build ; cmake .. ; make)
-	(cd examples/chat ; mkdir -p build ; cd build ; cmake .. ; make)
-	(cd examples/ping_pong ; mkdir -p build ; cd build ; cmake .. ; make)
-	(cd examples/ws_connect ; mkdir -p build ; cd build ; cmake .. ; make)
-	(cd examples/echo_server ; mkdir -p build ; cd build ; cmake .. ; make)
-	(cd examples/broadcast_server ; mkdir -p build ; cd build ; cmake .. ; make)
-
 # That target is used to start a node server, but isn't required as we have 
 # a builtin C++ server started in the unittest now
 test_server:
@@ -62,7 +55,7 @@ rebase_upstream:
 
 install_cmake_for_linux:
 	mkdir -p /tmp/cmake
-	(cd /tmp/cmake ; curl -L -O https://github.com/Kitware/CMake/releases/download/v3.14.0-rc4/cmake-3.14.0-rc4-Linux-x86_64.tar.gz ; tar zxf cmake-3.14.0-rc4-Linux-x86_64.tar.gz)
+	(cd /tmp/cmake ; curl -L -O https://github.com/Kitware/CMake/releases/download/v3.14.0/cmake-3.14.0-Linux-x86_64.tar.gz ; tar zxf cmake-3.14.0-Linux-x86_64.tar.gz)
 
 .PHONY: test
 .PHONY: build
