@@ -11,7 +11,7 @@
 #include <thread>
 #include <atomic>
 #include <jsoncpp/json/json.h>
-#include "IXCobraMetricsPublisher.h"
+#include <ixcobra/IXCobraMetricsPublisher.h>
 
 namespace ix
 {

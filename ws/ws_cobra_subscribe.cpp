@@ -9,7 +9,7 @@
 #include <chrono>
 #include <thread>
 #include <atomic>
-#include "IXCobraConnection.h"
+#include <ixcobra/IXCobraConnection.h>
 
 namespace ix
 {
