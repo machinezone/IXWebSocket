@@ -135,6 +135,16 @@ int main(int argc, char** argv)
     cobraSubscribeApp->add_option("channel", channel, "Channel")->required();
     cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
 
+    CLI::App* cobraPublish = app.add_subcommand("cobra_publish", "Cobra publisher");
+    cobraPublish->add_option("--appkey", appkey, "Appkey");
+    cobraPublish->add_option("--endpoint", endpoint, "Endpoint");
+    cobraPublish->add_option("--rolename", rolename, "Role name");
+    cobraPublish->add_option("--rolesecret", rolesecret, "Role secret");
+    cobraPublish->add_option("channel", channel, "Channel")->required();
+    cobraPublish->add_option("--pidfile", pidfile, "Pid file");
+    cobraPublish->add_option("path", path, "Path to the file to send")
+        ->required()->check(CLI::ExistingPath);
+
     CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra to statsd");
     cobra2statsd->add_option("--appkey", appkey, "Appkey");
     cobra2statsd->add_option("--endpoint", endpoint, "Endpoint");
@@ -227,6 +237,12 @@ int main(int argc, char** argv)
         return ix::ws_cobra_subscribe_main(appkey, endpoint,
                                            rolename, rolesecret,
                                            channel);
+    }
+    else if (app.got_subcommand("cobra_publish"))
+    {
+        return ix::ws_cobra_publish_main(appkey, endpoint,
+                                         rolename, rolesecret,
+                                         channel, path);
     }
     else if (app.got_subcommand("cobra_to_statsd"))
     {
