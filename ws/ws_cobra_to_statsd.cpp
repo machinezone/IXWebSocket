@@ -10,7 +10,7 @@
 #include <thread>
 #include <atomic>
 #include <vector>
-#include "IXCobraConnection.h"
+#include <ixcobra/IXCobraConnection.h>
 
 #include <statsd_client.h>
 

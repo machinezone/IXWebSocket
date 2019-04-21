@@ -27,16 +27,18 @@ add_executable(ws
   ../third_party/msgpack11/msgpack11.cpp
   ../third_party/jsoncpp/jsoncpp.cpp
   ../third_party/statsd-client-cpp/src/statsd_client.cpp
+
   ixcrypto/IXBase64.cpp
   ixcrypto/IXHash.cpp
   ixcrypto/IXUuid.cpp
   ixcrypto/IXHMac.cpp
 
+  ixcobra/IXCobraConnection.cpp
+  ixcobra/IXCobraMetricsPublisher.cpp
+  ixcobra/IXCobraMetricsThreadedPublisher.cpp
+
   IXRedisClient.cpp
   IXSentryClient.cpp
-  IXCobraConnection.cpp
-  IXCobraMetricsPublisher.cpp
-  IXCobraMetricsThreadedPublisher.cpp
 
   ws_http_client.cpp
   ws_ping_pong.cpp
