@@ -6,6 +6,8 @@ all: brew
 install: brew
 
 # Use -DCMAKE_INSTALL_PREFIX= to install into another location
+# on osx it is good practice to make /usr/local user writable
+# sudo chown -R `whoami`/staff /usr/local
 brew:
 	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 .. ; make -j install)
 
