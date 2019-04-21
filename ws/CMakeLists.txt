@@ -35,6 +35,8 @@ add_executable(ws
   IXRedisClient.cpp
   IXSentryClient.cpp
   IXCobraConnection.cpp
+  IXCobraMetricsPublisher.cpp
+  IXCobraMetricsThreadedPublisher.cpp
 
   ws_http_client.cpp
   ws_ping_pong.cpp
@@ -48,6 +50,7 @@ add_executable(ws
   ws_redis_publish.cpp
   ws_redis_subscribe.cpp
   ws_cobra_subscribe.cpp
+  ws_cobra_publish.cpp
   ws_cobra_to_statsd.cpp
   ws_cobra_to_sentry.cpp
   ws.cpp)

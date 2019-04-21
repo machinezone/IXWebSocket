@@ -389,6 +389,11 @@ namespace ix
         return _webSocket->getReadyState() == ix::WebSocket_ReadyState_Open;
     }
 
+    bool CobraConnection::isAuthenticated() const
+    {
+        return isConnected() && _authenticated;
+    }
+
     std::string CobraConnection::serializeJson(const Json::Value& value)
     {
         std::lock_guard<std::mutex> lock(_jsonWriterMutex);
