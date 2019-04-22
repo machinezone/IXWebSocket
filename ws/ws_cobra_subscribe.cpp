@@ -9,7 +9,7 @@
 #include <chrono>
 #include <thread>
 #include <atomic>
-#include "IXCobraConnection.h"
+#include <ixcobra/IXCobraConnection.h>
 
 namespace ix
 {
@@ -17,8 +17,7 @@ namespace ix
                                 const std::string& endpoint,
                                 const std::string& rolename,
                                 const std::string& rolesecret,
-                                const std::string& channel,
-                                bool verbose)
+                                const std::string& channel)
     {
 
         ix::CobraConnection conn;
@@ -39,6 +38,11 @@ namespace ix
                 if (eventType == ix::CobraConnection_EventType_Open)
                 {
                     std::cout << "Subscriber: connected" << std::endl;
+
+                    for (auto it : headers)
+                    {
+                        std::cerr << it.first << ": " << it.second << std::endl;
+                    }
                 }
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
@@ -46,7 +50,6 @@ namespace ix
                     conn.subscribe(channel,
                                    [&jsonWriter](const Json::Value& msg)
                                    {
-                                       // std::cout << "Received message" << std::endl;
                                        std::cout << jsonWriter.write(msg) << std::endl;
                                    });
                 }

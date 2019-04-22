@@ -69,10 +69,11 @@ namespace ix
     const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
     constexpr size_t WebSocketTransport::kChunkSize;
-    const int WebSocketTransport::kInternalErrorCode(1011);
-    const int WebSocketTransport::kAbnormalCloseCode(1006);
+    const uint16_t WebSocketTransport::kInternalErrorCode(1011);
+    const uint16_t WebSocketTransport::kAbnormalCloseCode(1006);
     const std::string WebSocketTransport::kInternalErrorMessage("Internal error");
     const std::string WebSocketTransport::kAbnormalCloseMessage("Abnormal closure");
+    const std::string WebSocketTransport::kPingTimeoutMessage("Ping timeout");
 
     WebSocketTransport::WebSocketTransport() :
         _useMask(true),
@@ -99,7 +100,8 @@ namespace ix
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
                                        bool enablePong,
-                                       int pingIntervalSecs, int pingTimeoutSecs)
+                                       int pingIntervalSecs,
+                                       int pingTimeoutSecs)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
@@ -108,11 +110,18 @@ namespace ix
         _pingTimeoutSecs = pingTimeoutSecs;
 
         if (pingIntervalSecs > 0 && pingTimeoutSecs > 0)
-            _pingIntervalOrTimeoutGCDSecs = greatestCommonDivisor(pingIntervalSecs, pingTimeoutSecs);
+        {
+            _pingIntervalOrTimeoutGCDSecs = greatestCommonDivisor(pingIntervalSecs,
+                                                                  pingTimeoutSecs);
+        }
         else if (_pingTimeoutSecs > 0)
+        {
             _pingIntervalOrTimeoutGCDSecs = pingTimeoutSecs;
+        }
         else
+        {
             _pingIntervalOrTimeoutGCDSecs = pingIntervalSecs;
+        }
     }
 
     // Client
@@ -231,98 +240,95 @@ namespace ix
 
     void WebSocketTransport::poll()
     {
-        _socket->poll(
-            [this](PollResultType pollResult)
+        PollResultType pollResult = _socket->poll(_pingIntervalOrTimeoutGCDSecs);
+
+        if (_readyState == OPEN)
+        {
+            // if (1) ping timeout is enabled and (2) duration since last received
+            // ping response (PONG) exceeds the maximum delay, then close the connection
+            if (pingTimeoutExceeded())
             {
-                if (_readyState == OPEN)
-                {
-                    // if (1) ping timeout is enabled and (2) duration since last received ping response (PONG)
-                    // exceeds the maximum delay, then close the connection
-                    if (pingTimeoutExceeded())
-                    {
-                        close(1011, "Ping timeout");
-                    }
-                    // If (1) ping is enabled and no ping has been sent for a duration 
-                    // exceeding our ping interval, send a ping to the server.
-                    else if (pingIntervalExceeded())
-                    {
-                        std::stringstream ss;
-                        ss << kPingMessage << "::" << _pingIntervalSecs << "s";
-                        sendPing(ss.str());
-                    }
-                }
+                close(kInternalErrorCode, kPingTimeoutMessage);
+            }
+            // If ping is enabled and no ping has been sent for a duration
+            // exceeding our ping interval, send a ping to the server.
+            else if (pingIntervalExceeded())
+            {
+                std::stringstream ss;
+                ss << kPingMessage << "::" << _pingIntervalSecs << "s";
+                sendPing(ss.str());
+            }
+        }
 
-                // Make sure we send all the buffered data
-                // there can be a lot of it for large messages.
-                if (pollResult == PollResultType::SendRequest)
-                {
-                    while (!isSendBufferEmpty() && !_requestInitCancellation)
-                    {
-                        // Wait with a 10ms timeout until the socket is ready to write.
-                        // This way we are not busy looping
-                        PollResultType result = _socket->isReadyToWrite(10);
+        // Make sure we send all the buffered data
+        // there can be a lot of it for large messages.
+        if (pollResult == PollResultType::SendRequest)
+        {
+            while (!isSendBufferEmpty() && !_requestInitCancellation)
+            {
+                // Wait with a 10ms timeout until the socket is ready to write.
+                // This way we are not busy looping
+                PollResultType result = _socket->isReadyToWrite(10);
 
-                        if (result == PollResultType::Error)
-                        {
-                            _socket->close();
-                            setReadyState(CLOSED);
-                            break;
-                        }
-                        else if (result == PollResultType::ReadyForWrite)
-                        {
-                            sendOnSocket();
-                        }
-                    }
-                }
-                else if (pollResult == PollResultType::ReadyForRead)
-                {
-                    while (true)
-                    {
-                        ssize_t ret = _socket->recv((char*)&_readbuf[0], _readbuf.size());
-
-                        if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
-                                        _socket->getErrno() == EAGAIN))
-                        {
-                            break;
-                        }
-                        else if (ret <= 0)
-                        {
-                            _rxbuf.clear();
-                            _socket->close();
-                            {
-                                std::lock_guard<std::mutex> lock(_closeDataMutex);
-                                _closeCode = kAbnormalCloseCode;
-                                _closeReason = kAbnormalCloseMessage;
-                                _closeWireSize = 0;
-                            }
-                            setReadyState(CLOSED);
-                            break;
-                        }
-                        else
-                        {
-                            _rxbuf.insert(_rxbuf.end(),
-                                          _readbuf.begin(),
-                                          _readbuf.begin() + ret);
-                        }
-                    }
-                }
-                else if (pollResult == PollResultType::Error)
+                if (result == PollResultType::Error)
                 {
                     _socket->close();
+                    setReadyState(CLOSED);
+                    break;
                 }
-                else if (pollResult == PollResultType::CloseRequest)
+                else if (result == PollResultType::ReadyForWrite)
                 {
-                    _socket->close();
+                    sendOnSocket();
                 }
+            }
+        }
+        else if (pollResult == PollResultType::ReadyForRead)
+        {
+            while (true)
+            {
+                ssize_t ret = _socket->recv((char*)&_readbuf[0], _readbuf.size());
 
-                // Avoid a race condition where we get stuck in select
-                // while closing.
-                if (_readyState == CLOSING)
+                if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
+                                _socket->getErrno() == EAGAIN))
                 {
-                    _socket->close();
+                    break;
                 }
-            },
-            _pingIntervalOrTimeoutGCDSecs);
+                else if (ret <= 0)
+                {
+                    _rxbuf.clear();
+                    _socket->close();
+                    {
+                        std::lock_guard<std::mutex> lock(_closeDataMutex);
+                        _closeCode = kAbnormalCloseCode;
+                        _closeReason = kAbnormalCloseMessage;
+                        _closeWireSize = 0;
+                    }
+                    setReadyState(CLOSED);
+                    break;
+                }
+                else
+                {
+                    _rxbuf.insert(_rxbuf.end(),
+                                  _readbuf.begin(),
+                                  _readbuf.begin() + ret);
+                }
+            }
+        }
+        else if (pollResult == PollResultType::Error)
+        {
+            _socket->close();
+        }
+        else if (pollResult == PollResultType::CloseRequest)
+        {
+            _socket->close();
+        }
+
+        // Avoid a race condition where we get stuck in select
+        // while closing.
+        if (_readyState == CLOSING)
+        {
+            _socket->close();
+        }
     }
 
     bool WebSocketTransport::isSendBufferEmpty() const
@@ -788,10 +794,9 @@ namespace ix
     WebSocketSendInfo WebSocketTransport::sendPing(const std::string& message)
     {
         bool compress = false;
-
         WebSocketSendInfo info = sendData(wsheader_type::PING, message, compress);
 
-        if(info.success)
+        if (info.success)
         {
             std::lock_guard<std::mutex> lck(_lastSendPingTimePointMutex);
             _lastSendPingTimePoint = std::chrono::steady_clock::now();
@@ -853,7 +858,7 @@ namespace ix
 
         // See list of close events here:
         // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-        
+
         int codeLength = 2;
         std::string closure{(char)(code >> 8), (char)(code & 0xff)};
         closure.resize(codeLength + reason.size());

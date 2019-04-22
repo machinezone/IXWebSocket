@@ -13,7 +13,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
-#include "IXCobraConnection.h"
+#include <ixcobra/IXCobraConnection.h>
 
 #include "IXSentryClient.h"
 

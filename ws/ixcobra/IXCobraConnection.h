@@ -91,6 +91,9 @@ namespace ix
         /// Returns true only if we're connected
         bool isConnected() const;
 
+        /// Returns true only if we're authenticated
+        bool isAuthenticated() const;
+
         /// Flush the publish queue
         bool flushQueue();
 

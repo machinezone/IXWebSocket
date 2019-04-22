@@ -35,8 +35,8 @@ webSocket.setOnMessageCallback(
        const std::string& str,
        size_t wireSize,
        const ix::WebSocketErrorInfo& error,
-       const ix::WebSocketCloseInfo& closeInfo,
-       const ix::WebSocketHttpHeaders& headers)
+       const ix::WebSocketOpenInfo& openInfo,
+       const ix::WebSocketCloseInfo& closeInfo)
     {
         if (messageType == ix::WebSocket_MessageType_Message)
         {
@@ -187,11 +187,21 @@ auto downloadSize = std::get<6>(out);
 
 ## Build
 
-CMakefiles for the library and the examples are available. This library has few dependencies, so it is possible to just add the source files into your project.
+CMakefiles for the library and the examples are available. This library has few dependencies, so it is possible to just add the source files into your project. Otherwise the usual way will suffice.
+
+```
+mkdir build # make a build dir so that you can build out of tree.
+cd build
+cmake ..
+make -j
+make install # will install to /usr/local on Unix, on macOS it is a good idea to sudo chown -R `whoami`:staff /usr/local
+```
+
+Headers and a static library will be installed to the target dir.
 
 There is a Dockerfile for running some code on Linux, and a unittest which can be executed by typing `make test`.
 
-You can build and install the ws command line tool with Homebrew.
+Finally you can build and install the `ws command line tool` with Homebrew. The homebrew version might be slightly out of date.
 
 ```
 brew tap bsergean/IXWebSocket
@@ -292,8 +302,8 @@ webSocket.setOnMessageCallback(
        const std::string& str,
        size_t wireSize,
        const ix::WebSocketErrorInfo& error,
-       const ix::WebSocketCloseInfo& closeInfo,
-       const ix::WebSocketHttpHeaders& headers)
+       const ix::WebSocketOpenInfo& openInfo,
+       const ix::WebSocketCloseInfo& closeInfo)
     {
         if (messageType == ix::WebSocket_MessageType_Open)
         {
@@ -329,8 +339,8 @@ webSocket.setOnMessageCallback(
        const std::string& str,
        size_t wireSize,
        const ix::WebSocketErrorInfo& error,
-       const ix::WebSocketCloseInfo& closeInfo,
-       const ix::WebSocketHttpHeaders& headers)
+       const ix::WebSocketOpenInfo& openInfo,
+       const ix::WebSocketCloseInfo& closeInfo)
     {
         if (messageType == ix::WebSocket_MessageType_Error)
         {
@@ -369,8 +379,8 @@ webSocket.setOnMessageCallback(
        const std::string& str,
        size_t wireSize,
        const ix::WebSocketErrorInfo& error,
-       const ix::WebSocketCloseInfo& closeInfo,
-       const ix::WebSocketHttpHeaders& headers)
+       const ix::WebSocketOpenInfo& openInfo,
+       const ix::WebSocketCloseInfo& closeInfo)
     {
         if (messageType == ix::WebSocket_MessageType_Ping ||
             messageType == ix::WebSocket_MessageType_Pong)

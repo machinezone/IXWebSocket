@@ -45,17 +45,14 @@ namespace ix
         close();
     }
 
-    void Socket::poll(const OnPollCallback& onPollCallback, int timeoutSecs)
+    PollResultType Socket::poll(int timeoutSecs)
     {
         if (_sockfd == -1)
         {
-            if (onPollCallback) onPollCallback(PollResultType::Error);
-            return;
+            return PollResultType::Error;
         }
 
-        PollResultType pollResult = isReadyToRead(1000 * timeoutSecs);
-
-        if (onPollCallback) onPollCallback(pollResult);
+        return isReadyToRead(1000 * timeoutSecs);
     }
 
     PollResultType Socket::select(bool readyToRead, int timeoutMs)
@@ -163,6 +160,8 @@ namespace ix
 
     ssize_t Socket::send(char* buffer, size_t length)
     {
+        std::lock_guard<std::mutex> lock(_socketMutex);
+
         int flags = 0;
 #ifdef MSG_NOSIGNAL
         flags = MSG_NOSIGNAL;
@@ -178,6 +177,8 @@ namespace ix
 
     ssize_t Socket::recv(void* buffer, size_t length)
     {
+        std::lock_guard<std::mutex> lock(_socketMutex);
+
         int flags = 0;
 #ifdef MSG_NOSIGNAL
         flags = MSG_NOSIGNAL;

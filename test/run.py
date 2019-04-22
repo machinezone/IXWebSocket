@@ -1,5 +1,9 @@
 #!/usr/bin/env python2.7
 '''
+Windows notes:
+    generator = '-G"NMake Makefiles"'
+    make = 'nmake'
+    testBinary ='ixwebsocket_unittest.exe'
 '''
 
 from __future__ import print_function
@@ -99,12 +103,16 @@ def runCMake(sanitizer, buildDir):
         'tsan': '-DSANITIZE_THREAD=On',
         'none': ''
     }
-    sanitizerFlag = sanitizersFlags[sanitizer]
+    sanitizerFlag = sanitizersFlags.get(sanitizer, '')
 
     # CMake installed via Self Service ends up here.
     cmakeExecutable = '/Applications/CMake.app/Contents/bin/cmake'
     if not os.path.exists(cmakeExecutable):
         cmakeExecutable = 'cmake'
+
+    generator = '"Unix Makefiles"'
+    if platform.system() == 'Windows':
+        generator = '"NMake Makefiles"'
 
     fmt = '''
 {cmakeExecutable} -H. \
@@ -113,6 +121,7 @@ def runCMake(sanitizer, buildDir):
     -DCMAKE_BUILD_TYPE=Debug \
     -DUSE_TLS=1 \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    -G{generator}
 '''
     cmakeCmd = fmt.format(**locals())
     runCommand(cmakeCmd)
@@ -240,6 +249,7 @@ def executeJob(job):
     start = time.time()
 
     sys.stderr.write('.')
+    # print('Executing ' + job['cmd'] + '...')
 
     # 2 minutes of timeout for a single test
     timeout = 2 * 60
@@ -351,8 +361,20 @@ def generateXmlOutput(results, xmlOutput, testRunName, runTime):
 def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLDB):
     '''Main driver. Run cmake, compiles, execute and validate the testsuite.'''
 
+    # gen build files with CMake
     runCMake(sanitizer, buildDir)
-    runCommand('make -C {} -j8'.format(buildDir))
+
+    # build with make
+    makeCmd = 'make'
+    jobs = '-j8'
+
+    if platform.system() == 'Windows':
+        makeCmd = 'nmake'
+
+        # nmake does not have a -j option
+        jobs = ''
+
+    runCommand('{} -C {} {}'.format(makeCmd, buildDir, jobs))
 
     if buildOnly:
         return
@@ -389,7 +411,10 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
         # testName can contains spaces, so we enclose them in double quotes
         executable = os.path.join(buildDir, DEFAULT_EXE)
 
-        cmd = '{} "{}" "{}" >& "{}"'.format(lldb, executable, testName, outputPath)
+        if platform.system() == 'Windows':
+            executable += '.exe'
+
+        cmd = '{} "{}" "{}" > "{}" 2>&1'.format(lldb, executable, testName, outputPath)
 
         jobs.append({
             'name': testName,
@@ -422,7 +447,10 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
 
 
 def main():
-    buildDir = 'build/' + platform.system()
+    root = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(root)
+
+    buildDir = os.path.join(root, 'build', platform.system())
     if not os.path.exists(buildDir):
         os.makedirs(buildDir)
 
@@ -476,6 +504,11 @@ def main():
     if platform.system() != 'Darwin' and args.lldb:
         print('LLDB is only supported on Apple at this point')
         args.lldb = False
+
+    # Sanitizers display lots of strange errors on Linux on CI,
+    # which looks like false positives
+    if platform.system() != 'Darwin':
+        sanitizer = 'none'
 
     return run(args.test, buildDir, sanitizer, xmlOutput, 
                testRunName, args.build_only, args.lldb)

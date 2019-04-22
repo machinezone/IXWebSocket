@@ -69,7 +69,8 @@ namespace ix
 
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
                        bool enablePong,
-                       int pingIntervalSecs, int pingTimeoutSecs);
+                       int pingIntervalSecs,
+                       int pingTimeoutSecs);
 
         WebSocketInitResult connectToUrl(const std::string& url, // Client
                                          int timeoutSecs);
@@ -160,25 +161,28 @@ namespace ix
         std::atomic<bool> _requestInitCancellation;
 
         // Constants for dealing with closing conneections
-        static const int kInternalErrorCode;
-        static const int kAbnormalCloseCode;
-        const static std::string kInternalErrorMessage;
-        const static std::string kAbnormalCloseMessage;
-  
+        static const uint16_t kInternalErrorCode;
+        static const uint16_t kAbnormalCloseCode;
+        static const std::string kInternalErrorMessage;
+        static const std::string kAbnormalCloseMessage;
+        static const std::string kPingTimeoutMessage;
+
         // enable auto response to ping
         bool _enablePong;
         static const bool kDefaultEnablePong;
 
         // Optional ping and pong timeout
+        // if both ping interval and timeout are set (> 0),
+        // then use GCD of these value to wait for the lowest time
         int _pingIntervalSecs;
         int _pingTimeoutSecs;
-        int _pingIntervalOrTimeoutGCDSecs; // if both ping interval and timeout are set (> 0), then use GCD of these value to wait for the lowest time
+        int _pingIntervalOrTimeoutGCDSecs;
 
         static const int kDefaultPingIntervalSecs;
         static const int kDefaultPingTimeoutSecs;
-        const static std::string kPingMessage;
-      
-        // We record when ping are being sent so that we can know when to send the next one, periodically
+        static const std::string kPingMessage;
+
+        // We record when ping are being sent so that we can know when to send the next one
         // We also record when pong are being sent as a reply to pings, to close the connections
         // if no pong were received sufficiently fast.
         mutable std::mutex _lastSendPingTimePointMutex;
@@ -188,7 +192,7 @@ namespace ix
 
         // If this function returns true, it is time to send a new ping
         bool pingIntervalExceeded();
-      
+
         // No PONG data was received through the socket for longer than ping timeout delay
         bool pingTimeoutExceeded();
 

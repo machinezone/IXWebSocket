@@ -137,8 +137,16 @@ namespace ix
 
     void SocketServer::stop()
     {
-        closeTerminatedThreads();
-        assert(_connectionsThreads.empty());
+        while (true)
+        {
+            closeTerminatedThreads();
+            if (_connectionsThreads.empty()) break;
+
+            // wait 10ms and try again later.
+            // we could have a timeout, but if we exit of here
+            // we leaked threads, it is quite bad.
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
 
         if (!_thread.joinable()) return; // nothing to do
 

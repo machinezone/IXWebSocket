@@ -113,7 +113,7 @@ if (APPLE AND USE_TLS)
   target_link_libraries(ixwebsocket "-framework foundation" "-framework security")
 endif()
 
-if(USE_OPEN_SSL)
+if (USE_OPEN_SSL)
   find_package(OpenSSL REQUIRED)
   add_definitions(${OPENSSL_DEFINITIONS})
   message(STATUS "OpenSSL: " ${OPENSSL_VERSION})
@@ -140,6 +140,13 @@ set( IXWEBSOCKET_INCLUDE_DIRS
 )
 
 target_include_directories( ixwebsocket PUBLIC ${IXWEBSOCKET_INCLUDE_DIRS} )
+
+set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
+
+install(TARGETS ixwebsocket
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ixwebsocket/
+)
 
 if (NOT WIN32)
     add_subdirectory(ws)
