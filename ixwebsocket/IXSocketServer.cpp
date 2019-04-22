@@ -181,14 +181,13 @@ namespace ix
             auto& connectionState = it->first;
             auto& thread = it->second;
 
-            if (!connectionState->isTerminated() ||
-                !thread.joinable())
+            if (!connectionState->isTerminated())
             {
                 ++it;
                 continue;
             }
 
-            thread.join();
+            if (thread.joinable()) thread.join();
             it = _connectionsThreads.erase(it);
         }
     }
