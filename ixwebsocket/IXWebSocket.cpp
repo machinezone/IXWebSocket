@@ -45,11 +45,11 @@ namespace ix
         _pingTimeoutSecs(kDefaultPingTimeoutSecs)
     {
         _ws.setOnCloseCallback(
-            [this](uint16_t code, const std::string& reason, size_t wireSize)
+            [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
             {
                 _onMessageCallback(WebSocket_MessageType_Close, "", wireSize,
                                    WebSocketErrorInfo(), WebSocketOpenInfo(),
-                                   WebSocketCloseInfo(code, reason));
+                                   WebSocketCloseInfo(code, reason, remote));
             }
         );
     }
