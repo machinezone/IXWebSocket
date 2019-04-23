@@ -91,6 +91,8 @@ namespace ix
         _pingIntervalSecs(kDefaultPingIntervalSecs),
         _pingTimeoutSecs(kDefaultPingTimeoutSecs),
         _pingIntervalOrTimeoutGCDSecs(-1),
+        _currentGCDTimePoint(std::chrono::steady_clock::now()),
+        _nextGCDTimePoint(std::chrono::steady_clock::now()),
         _lastSendPingTimePoint(std::chrono::steady_clock::now()),
         _lastReceivePongTimePoint(std::chrono::steady_clock::now())
     {
@@ -117,6 +119,7 @@ namespace ix
         {
             _pingIntervalOrTimeoutGCDSecs = greatestCommonDivisor(pingIntervalSecs,
                                                                   pingTimeoutSecs);
+            _nextGCDTimePoint = _currentGCDTimePoint + std::chrono::seconds(_pingIntervalOrTimeoutGCDSecs);
         }
         else if (_pingTimeoutSecs > 0)
         {
@@ -126,6 +129,8 @@ namespace ix
         {
             _pingIntervalOrTimeoutGCDSecs = pingIntervalSecs;
         }
+
+        _nextGCDTimePoint = _currentGCDTimePoint + std::chrono::seconds(_pingIntervalOrTimeoutGCDSecs);
     }
 
     // Client
@@ -245,8 +250,6 @@ namespace ix
 
     void WebSocketTransport::poll()
     {
-        PollResultType pollResult = _socket->poll(_pingIntervalOrTimeoutGCDSecs);
-
         if (_readyState == OPEN)
         {
             // if (1) ping timeout is enabled and (2) duration since last received
@@ -264,6 +267,20 @@ namespace ix
                 sendPing(ss.str());
             }
         }
+
+        // compute lasting delay to wait for next ping / timeout
+        auto now = std::chrono::steady_clock::now();
+
+        if (now >= _nextGCDTimePoint)
+        {
+            _currentGCDTimePoint = std::chrono::steady_clock::now();
+            _nextGCDTimePoint = _currentGCDTimePoint + std::chrono::seconds(_pingIntervalOrTimeoutGCDSecs);
+        }
+
+        int lastingDelayInMs = (int)std::chrono::duration_cast<std::chrono::milliseconds>(_nextGCDTimePoint - now).count();
+
+        // poll the socket
+        PollResultType pollResult = _socket->poll(lastingDelayInMs);
 
         // Make sure we send all the buffered data
         // there can be a lot of it for large messages.

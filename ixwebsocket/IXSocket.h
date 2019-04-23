@@ -44,7 +44,7 @@ namespace ix
         void configure();
 
         // Functions to check whether there is activity on the socket
-        PollResultType poll(int timeoutSecs = kDefaultPollTimeout);
+        PollResultType poll(int timeoutMs = kDefaultPollTimeout);
         bool wakeUpFromPoll(uint8_t wakeUpCode);
 
         PollResultType isReadyToWrite(int timeoutMs);

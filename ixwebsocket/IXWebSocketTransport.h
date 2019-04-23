@@ -188,6 +188,10 @@ namespace ix
         static const int kDefaultPingTimeoutSecs;
         static const std::string kPingMessage;
 
+        // Record time step for ping/ ping timeout to ensure we wait for the right left duration
+        std::chrono::time_point<std::chrono::steady_clock> _currentGCDTimePoint;
+        std::chrono::time_point<std::chrono::steady_clock> _nextGCDTimePoint;
+
         // We record when ping are being sent so that we can know when to send the next one
         // We also record when pong are being sent as a reply to pings, to close the connections
         // if no pong were received sufficiently fast.
