@@ -80,6 +80,7 @@ namespace ix
     WebSocketTransport::WebSocketTransport() :
         _useMask(true),
         _readyState(CLOSED),
+        _treatAbnormalCloseAfterDispatch(false),
         _closeCode(kInternalErrorCode),
         _closeReason(kInternalErrorMessage),
         _closeWireSize(0),
@@ -299,16 +300,20 @@ namespace ix
                 }
                 else if (ret <= 0)
                 {
-                    _rxbuf.clear();
                     _socket->close();
+
+                    if (_rxbuf.size() > 0) 
                     {
-                        std::lock_guard<std::mutex> lock(_closeDataMutex);
-                        _closeCode = kAbnormalCloseCode;
-                        _closeReason = kAbnormalCloseMessage;
-                        _closeWireSize = 0;
-                        _closeRemote = true;
+                        _treatAbnormalCloseAfterDispatch = true;
+
+                        setReadyState(CLOSING);
                     }
-                    setReadyState(CLOSED);
+                    else
+                    {   
+                        _treatAbnormalCloseAfterDispatch = false;
+                        internalClose(kAbnormalCloseCode, kAbnormalCloseMessage, 0, true);
+                    }
+
                     break;
                 }
                 else
@@ -400,7 +405,7 @@ namespace ix
         while (true)
         {
             wsheader_type ws;
-            if (_rxbuf.size() < 2) return; /* Need at least 2 */
+            if (_rxbuf.size() < 2) break; /* Need at least 2 */
             const uint8_t * data = (uint8_t *) &_rxbuf[0]; // peek, but don't consume
             ws.fin = (data[0] & 0x80) == 0x80;
             ws.rsv1 = (data[0] & 0x40) == 0x40;
@@ -408,7 +413,7 @@ namespace ix
             ws.mask = (data[1] & 0x80) == 0x80;
             ws.N0 = (data[1] & 0x7f);
             ws.header_size = 2 + (ws.N0 == 126? 2 : 0) + (ws.N0 == 127? 8 : 0) + (ws.mask? 4 : 0);
-            if (_rxbuf.size() < ws.header_size) return; /* Need: ws.header_size - _rxbuf.size() */
+            if (_rxbuf.size() < ws.header_size) break; /* Need: ws.header_size - _rxbuf.size() */
 
             //
             // Calculate payload length:
@@ -552,7 +557,8 @@ namespace ix
                 
                 bool remote = true;
 
-                close(code, reason, _rxbuf.size(), remote);
+                //std::cout << this << " CLOSE FROM REMOTE" << code << " / " << reason << std::endl;
+                internalClose(code, reason, _rxbuf.size(), remote);
             }
             else
             {
@@ -564,6 +570,13 @@ namespace ix
             // Erase the message that has been processed from the input/read buffer
             _rxbuf.erase(_rxbuf.begin(),
                          _rxbuf.begin() + ws.header_size + (size_t) ws.N);
+        }
+
+        if (_readyState == CLOSING && _treatAbnormalCloseAfterDispatch)
+        {
+            _treatAbnormalCloseAfterDispatch = false;
+            
+            internalClose(kAbnormalCloseCode, kAbnormalCloseMessage, 0, true);
         }
     }
 
@@ -859,7 +872,7 @@ namespace ix
         }
     }
 
-    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
+    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize)
     {
         _requestInitCancellation = true;
 
@@ -877,11 +890,17 @@ namespace ix
 
         bool compress = false;
         sendData(wsheader_type::CLOSE, closure, compress);
+
         setReadyState(CLOSING);
 
         _socket->wakeUpFromPoll(Socket::kCloseRequest);
         _socket->close();
 
+        internalClose(code, reason, closeWireSize, false);
+    }
+
+    void WebSocketTransport::internalClose(uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
+    {
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
             _closeCode = code;
@@ -889,7 +908,6 @@ namespace ix
             _closeWireSize = closeWireSize;
             _closeRemote = remote;
         }
-
         setReadyState(CLOSED);
     }
 

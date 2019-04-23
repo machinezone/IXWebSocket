@@ -35,6 +35,7 @@ set (SOURCES
 # Some unittest don't work on windows yet
 if (NOT WIN32)
   list(APPEND SOURCES 
+    IXWebSocketCloseTest.cpp
     IXWebSocketServerTest.cpp
     IXWebSocketPingTest.cpp
     IXWebSocketPingTimeoutTest.cpp

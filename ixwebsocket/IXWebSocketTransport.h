@@ -87,8 +87,7 @@ namespace ix
 
         void close(uint16_t code = 1000,
                    const std::string& reason = "Normal closure",
-                   size_t closeWireSize = 0,
-                   bool remote = false);
+                   size_t closeWireSize = 0);
 
         ReadyStateValues getReadyState() const;
         void setReadyState(ReadyStateValues readyStateValue);
@@ -147,6 +146,7 @@ namespace ix
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)
         std::atomic<ReadyStateValues> _readyState;
+        std::atomic<bool> _treatAbnormalCloseAfterDispatch;
 
         OnCloseCallback _onCloseCallback;
         uint16_t _closeCode;
@@ -200,6 +200,11 @@ namespace ix
 
         // No PONG data was received through the socket for longer than ping timeout delay
         bool pingTimeoutExceeded();
+
+        void internalClose(uint16_t code,
+                           const std::string& reason,
+                           size_t closeWireSize,
+                           bool remote);
 
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
