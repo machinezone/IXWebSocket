@@ -45,12 +45,16 @@ int main(int argc, char** argv)
     std::string prefix("ws.test.v0");
     std::string fields;
     std::string dsn;
+    std::string redisHosts("127.0.0.1");
+    std::string redisPassword;
+    std::string appsConfigPath("appsConfig.json");
     bool headersOnly = false;
     bool followRedirects = false;
     bool verbose = false;
     bool save = false;
     bool compress = false;
     bool strict = false;
+    bool stress = false;
     int port = 8080;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -144,6 +148,7 @@ int main(int argc, char** argv)
     cobraPublish->add_option("--pidfile", pidfile, "Pid file");
     cobraPublish->add_option("path", path, "Path to the file to send")
         ->required()->check(CLI::ExistingPath);
+    cobraPublish->add_flag("--stress", stress, "Stress mode");
 
     CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra to statsd");
     cobra2statsd->add_option("--appkey", appkey, "Appkey");
@@ -169,6 +174,17 @@ int main(int argc, char** argv)
     cobra2sentry->add_flag("-v", verbose, "Verbose");
     cobra2sentry->add_flag("-s", strict, "Strict mode. Error out when sending to sentry fails");
     cobra2sentry->add_option("--pidfile", pidfile, "Pid file");
+
+    CLI::App* runApp = app.add_subcommand("snake", "Snake server");
+    runApp->add_option("--port", port, "Connection url");
+    runApp->add_option("--host", hostname, "Hostname");
+    runApp->add_option("--pidfile", pidfile, "Pid file");
+    runApp->add_option("--redis_hosts", redisHosts, "Redis hosts");
+    runApp->add_option("--redis_port", redisPort, "Redis hosts");
+    runApp->add_option("--redis_password", redisPassword, "Redis password");
+    runApp->add_option("--apps_config_path", appsConfigPath, "Path to auth data")
+        ->check(CLI::ExistingPath);
+    runApp->add_flag("-v", verbose, "Verbose");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -242,7 +258,7 @@ int main(int argc, char** argv)
     {
         return ix::ws_cobra_publish_main(appkey, endpoint,
                                          rolename, rolesecret,
-                                         channel, path);
+                                         channel, path, stress);
     }
     else if (app.got_subcommand("cobra_to_statsd"))
     {
@@ -257,6 +273,13 @@ int main(int argc, char** argv)
                                            rolename, rolesecret,
                                            channel, dsn,
                                            verbose, strict, jobs);
+    }
+    else if (app.got_subcommand("snake"))
+    {
+        return ix::ws_snake_main(port, hostname,
+                                 redisHosts, redisPort,
+                                 redisPassword, verbose,
+                                 appsConfigPath);
     }
 
     return 1;

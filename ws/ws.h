@@ -64,7 +64,8 @@ namespace ix
                               const std::string& rolename,
                               const std::string& rolesecret,
                               const std::string& channel,
-                              const std::string& path);
+                              const std::string& path,
+                              bool stress);
 
     int ws_cobra_to_statsd_main(const std::string& appkey,
                                 const std::string& endpoint,
@@ -86,4 +87,12 @@ namespace ix
                                 bool verbose,
                                 bool strict,
                                 int jobs);
+
+    int ws_snake_main(int port,
+                      const std::string& hostname,
+                      const std::string& redisHosts,
+                      int redisPort,
+                      const std::string& redisPassword,
+                      bool verbose,
+                      const std::string& appsConfigPath);
 }

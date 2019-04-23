@@ -36,13 +36,14 @@ namespace ix
             std::cout << "Auth response: " << authResponse << ":" << port << std::endl;
         }
 
+        std::string errMsg;
         for (int i = 0; i < count; i++)
         {
-            //std::cerr << "Publishing message " << message
-            //          << " to " << channel << "..." << std::endl;
-            if (!redisClient.publish(channel, message))
+            if (!redisClient.publish(channel, message, errMsg))
             {
-                std::cerr << "Error publishing to channel " << channel << std::endl;
+                std::cerr << "Error publishing to channel " << channel 
+                          << "error: " << errMsg
+                          << std::endl;
                 return 1;
             }
         }

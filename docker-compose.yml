@@ -1,11 +1,19 @@
 version: "3"
 services:
+  snake:
+    image: bsergean/ws:build
+    entrypoint: ws snake --port 8765 --host 0.0.0.0 --redis_hosts redis1
+    ports:
+      - "8765:8765"
+    networks:
+      - ws-net
+    depends_on:
+      - redis1
+
   ws:
     stdin_open: true
     tty: true
     image: bsergean/ws:build
-    ports:
-      - "8765:8765"
     entrypoint: bash
     networks:
       - ws-net
