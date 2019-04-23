@@ -302,12 +302,15 @@ namespace ix
                 {
                     _socket->close();
 
+                    // if there are received data pending to be processed, then delay the abnormal closure
+                    // to after dispatch (other close code/reason could be read from the buffer)
                     if (_rxbuf.size() > 0) 
                     {
                         _treatAbnormalCloseAfterDispatch = true;
 
                         setReadyState(CLOSING);
                     }
+                    // no received data pending processing, so we can close directly
                     else
                     {   
                         _treatAbnormalCloseAfterDispatch = false;
@@ -572,6 +575,8 @@ namespace ix
                          _rxbuf.begin() + ws.header_size + (size_t) ws.N);
         }
 
+        // if an abnormal closure was raised, and nothing else triggered a CLOSED state in
+        // the received and processed data, then close using abnormal close code and message
         if (_readyState == CLOSING && _treatAbnormalCloseAfterDispatch)
         {
             _treatAbnormalCloseAfterDispatch = false;
