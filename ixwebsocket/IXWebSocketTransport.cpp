@@ -893,7 +893,7 @@ namespace ix
         }
     }
 
-    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
+    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize)
     {
         _requestInitCancellation = true;
 
