@@ -8,6 +8,7 @@
 #include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXSocket.h>
 
+#include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <vector>
@@ -62,34 +63,60 @@ namespace ix
         return lineValid;
     }
 
+    std::string RedisClient::writeString(const std::string& str)
+    {
+        std::stringstream ss;
+        ss << "$";
+        ss << str.size();
+        ss << "\r\n";
+        ss << str;
+        ss << "\r\n";
+
+        return ss.str();
+    }
 
     bool RedisClient::publish(const std::string& channel,
-                              const std::string& message)
+                              const std::string& message,
+                              std::string& errMsg)
     {
-        if (!_socket) return false;
+        errMsg.clear();
+
+        if (!_socket)
+        {
+            errMsg = "socket is not initialized";
+            return false;
+        }
 
         std::stringstream ss;
-        ss << "PUBLISH ";
-        ss << channel;
-        ss << " ";
-        ss << message;
-        ss << "\r\n";
+        ss << "*3\r\n";
+        ss << writeString("PUBLISH");
+        ss << writeString(channel);
+        ss << writeString(message);
 
         bool sent = _socket->writeBytes(ss.str(), nullptr);
         if (!sent)
         {
+            errMsg = "Cannot write bytes to socket";
             return false;
         }
 
         auto pollResult = _socket->isReadyToRead(-1);
         if (pollResult == PollResultType::Error)
         {
+            errMsg = "Error while polling for result";
             return false;
         }
 
         auto lineResult = _socket->readLine(nullptr);
         auto lineValid = lineResult.first;
         auto line = lineResult.second;
+
+        // A successful response starts with a :
+        if (line.empty() || line[0] != ':')
+        {
+            errMsg = line;
+            return false;
+        }
 
         return lineValid;
     }

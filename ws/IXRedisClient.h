@@ -28,13 +28,16 @@ namespace ix
                   std::string& response);
 
         bool publish(const std::string& channel,
-                     const std::string& message);
+                     const std::string& message,
+                     std::string& errMsg);
 
         bool subscribe(const std::string& channel,
                        const OnRedisSubscribeResponseCallback& responseCallback,
                        const OnRedisSubscribeCallback& callback);
 
     private:
+        std::string writeString(const std::string& str);
+
         std::shared_ptr<Socket> _socket;
     };
 }

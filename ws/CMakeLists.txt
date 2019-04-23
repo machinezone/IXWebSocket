@@ -11,8 +11,8 @@ if (NOT WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 endif()
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
-#set(CMAKE_LD_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+# set(CMAKE_LD_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
 
 set (CMAKE_CXX_STANDARD 14)
 
@@ -22,6 +22,7 @@ include_directories(ws .)
 include_directories(ws ..)
 include_directories(ws ../third_party)
 include_directories(ws ../third_party/statsd-client-cpp/src)
+include_directories(ws snake)
 
 add_executable(ws 
   ../third_party/msgpack11/msgpack11.cpp
@@ -36,6 +37,10 @@ add_executable(ws
   ixcobra/IXCobraConnection.cpp
   ixcobra/IXCobraMetricsPublisher.cpp
   ixcobra/IXCobraMetricsThreadedPublisher.cpp
+
+  snake/IXSnakeServer.cpp
+  snake/IXSnakeProtocol.cpp
+  snake/IXAppConfig.cpp
 
   IXRedisClient.cpp
   IXSentryClient.cpp
@@ -55,6 +60,7 @@ add_executable(ws
   ws_cobra_publish.cpp
   ws_cobra_to_statsd.cpp
   ws_cobra_to_sentry.cpp
+  ws_snake.cpp
   ws.cpp)
 
 target_link_libraries(ws ixwebsocket)
