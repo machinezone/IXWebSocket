@@ -71,9 +71,11 @@ namespace ix
     constexpr size_t WebSocketTransport::kChunkSize;
     const uint16_t WebSocketTransport::kInternalErrorCode(1011);
     const uint16_t WebSocketTransport::kAbnormalCloseCode(1006);
+    const uint16_t WebSocketTransport::kProtocolErrorCode(1002);
     const std::string WebSocketTransport::kInternalErrorMessage("Internal error");
     const std::string WebSocketTransport::kAbnormalCloseMessage("Abnormal closure");
     const std::string WebSocketTransport::kPingTimeoutMessage("Ping timeout");
+    const std::string WebSocketTransport::kProtocolErrorMessage("Protocol error");
 
     WebSocketTransport::WebSocketTransport() :
         _useMask(true),
@@ -81,6 +83,7 @@ namespace ix
         _closeCode(kInternalErrorCode),
         _closeReason(kInternalErrorMessage),
         _closeWireSize(0),
+        _closeRemote(false),
         _enablePerMessageDeflate(false),
         _requestInitCancellation(false),
         _enablePong(kDefaultEnablePong),
@@ -203,10 +206,11 @@ namespace ix
         if (readyStateValue == CLOSED)
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
-            _onCloseCallback(_closeCode, _closeReason, _closeWireSize);
+            _onCloseCallback(_closeCode, _closeReason, _closeWireSize, _closeRemote);
             _closeCode = kInternalErrorCode;
             _closeReason = kInternalErrorMessage;
             _closeWireSize = 0;
+            _closeRemote = false;
         }
 
         _readyState = readyStateValue;
@@ -302,6 +306,7 @@ namespace ix
                         _closeCode = kAbnormalCloseCode;
                         _closeReason = kAbnormalCloseMessage;
                         _closeWireSize = 0;
+                        _closeRemote = true;
                     }
                     setReadyState(CLOSED);
                     break;
@@ -544,12 +549,16 @@ namespace ix
                 // Get the reason.
                 std::string reason(_rxbuf.begin()+ws.header_size + 2,
                                    _rxbuf.begin()+ws.header_size + (size_t) ws.N);
+                
+                bool remote = true;
 
-                close(code, reason, _rxbuf.size());
+                close(code, reason, _rxbuf.size(), remote);
             }
             else
             {
-                close();
+                // Unexpected frame type
+
+                close(kProtocolErrorCode, kProtocolErrorMessage, _rxbuf.size());
             }
 
             // Erase the message that has been processed from the input/read buffer
@@ -850,7 +859,7 @@ namespace ix
         }
     }
 
-    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize)
+    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
     {
         _requestInitCancellation = true;
 
@@ -878,6 +887,7 @@ namespace ix
             _closeCode = code;
             _closeReason = reason;
             _closeWireSize = closeWireSize;
+            _closeRemote = remote;
         }
 
         setReadyState(CLOSED);
