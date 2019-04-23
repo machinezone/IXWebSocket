@@ -382,7 +382,7 @@ TEST_CASE("Websocket_server_close", "[close]")
 
         server.stop();
 
-        ix::msleep(500);
+        ix::msleep(200);
 
         // ensure client close is the same as values given
         REQUIRE(webSocketClient.getCloseCode() == 1000);
