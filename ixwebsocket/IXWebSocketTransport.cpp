@@ -560,7 +560,6 @@ namespace ix
                 
                 bool remote = true;
 
-                //std::cout << this << " CLOSE FROM REMOTE" << code << " / " << reason << std::endl;
                 internalClose(code, reason, _rxbuf.size(), remote);
             }
             else
@@ -877,7 +876,7 @@ namespace ix
         }
     }
 
-    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize)
+    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
     {
         _requestInitCancellation = true;
 

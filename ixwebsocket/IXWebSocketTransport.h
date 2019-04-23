@@ -87,7 +87,8 @@ namespace ix
 
         void close(uint16_t code = 1000,
                    const std::string& reason = "Normal closure",
-                   size_t closeWireSize = 0);
+                   size_t closeWireSize = 0,
+                   bool remote = false);
 
         ReadyStateValues getReadyState() const;
         void setReadyState(ReadyStateValues readyStateValue);
