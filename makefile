@@ -31,7 +31,7 @@ docker_push:
 	docker push ${LATEST}
 
 run:
-	docker run --cap-add sys_ptrace -it ws:latest
+	docker run --cap-add sys_ptrace --entrypoint=bash -it bsergean/ws:build
 
 # this is helpful to remove trailing whitespaces
 trail:
