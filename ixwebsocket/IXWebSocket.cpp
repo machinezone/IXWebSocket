@@ -142,6 +142,7 @@ namespace ix
     {
         bool automaticReconnection = _automaticReconnection;
 
+
         // This value needs to be forced when shutting down, it is restored later
         _automaticReconnection = false;
 
@@ -269,12 +270,13 @@ namespace ix
             if (_stop) return;
 
             // 2. Poll to see if there's any new data available
-            _ws.poll();
+            WebSocketTransport::PollPostTreatment pollPostTreatment = _ws.poll();
 
-            if (_stop) return;
+            //if (_stop) return;
 
             // 3. Dispatch the incoming messages
             _ws.dispatch(
+                pollPostTreatment,
                 [this](const std::string& msg,
                        size_t wireSize,
                        bool decompressionError,
