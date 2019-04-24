@@ -122,7 +122,6 @@ namespace snake
     void handlePublish(
         std::shared_ptr<SnakeConnectionState> state,
         std::shared_ptr<ix::WebSocket> ws,
-        const AppConfig& appConfig,
         const nlohmann::json& pdu)
     {
         std::vector<std::string> channels;
@@ -293,7 +292,7 @@ namespace snake
         }
         else if (action == "rtm/publish")
         {
-            handlePublish(state, ws, appConfig, pdu);
+            handlePublish(state, ws, pdu);
         }
         else if (action == "rtm/subscribe")
         {

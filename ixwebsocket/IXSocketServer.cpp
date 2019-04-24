@@ -135,6 +135,11 @@ namespace ix
         _conditionVariable.wait(lock);
     }
 
+    void SocketServer::stopAcceptingConnections()
+    {
+        _stop = true;
+    }
+
     void SocketServer::stop()
     {
         while (true)
@@ -269,6 +274,8 @@ namespace ix
             {
                 connectionState = _connectionStateFactory();
             }
+
+            if (_stop) return;
 
             // Launch the handleConnection work asynchronously in its own thread.
             _connectionsThreads.push_back(std::make_pair(
