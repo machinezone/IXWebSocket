@@ -37,6 +37,8 @@ namespace ix
 
     void WebSocketServer::stop()
     {
+        stopAcceptingConnections();
+
         auto clients = getClients();
         for (auto client : clients)
         {
