@@ -57,6 +57,8 @@ namespace ix
         void logError(const std::string& str);
         void logInfo(const std::string& str);
 
+        void stopAcceptingConnections();
+
     private:
         // Member variables
         int _port;
