@@ -43,7 +43,7 @@ namespace ix
             client->close();
         }
 
-        //SocketServer::stop();
+        SocketServer::stop();
     }
 
     void WebSocketServer::enablePong()

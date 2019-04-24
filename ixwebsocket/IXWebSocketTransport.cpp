@@ -333,7 +333,7 @@ namespace ix
             _socket->close();
         }
 
-        if (_readyState == CLOSING && closingDelayExceeded())
+        if (_readyState == CLOSING /*&& closingDelayExceeded()*/)
         {
             // close code and reason were set when calling close()
             _socket->close();
@@ -928,8 +928,6 @@ namespace ix
 
         sendCloseFrame(code, reason);
 
-        setReadyState(CLOSING);
-
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
             _closeCode = code;
@@ -941,6 +939,9 @@ namespace ix
             std::lock_guard<std::mutex> lock(_closingTimePointMutex);
             _closingTimePoint = std::chrono::steady_clock::now();
         }
+        setReadyState(CLOSING);
+
+        _socket->wakeUpFromPoll(Socket::kSendRequest);
     }
 
     size_t WebSocketTransport::bufferedAmount() const

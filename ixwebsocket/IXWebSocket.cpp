@@ -272,8 +272,6 @@ namespace ix
             // 2. Poll to see if there's any new data available
             WebSocketTransport::PollPostTreatment pollPostTreatment = _ws.poll();
 
-            //if (_stop) return;
-
             // 3. Dispatch the incoming messages
             _ws.dispatch(
                 pollPostTreatment,
