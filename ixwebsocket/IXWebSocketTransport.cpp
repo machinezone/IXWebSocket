@@ -269,9 +269,9 @@ namespace ix
             }
         }
 
-        int lastingDelayForSocketTimeoutInMs = -1; // no timeout
+        int lastingDelayForSocketTimeoutInMs = _pingIntervalOrTimeoutGCDSecs;
 
-        if (_pingIntervalOrTimeoutGCDSecs > 0)
+        if (_pingIntervalOrTimeoutGCDSecs > 0)  // timeout is set for ing and/or ping timeout
         {
             // compute lasting delay to wait for next ping / timeout, if at least one set
             auto now = std::chrono::steady_clock::now();
