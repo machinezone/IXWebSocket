@@ -68,7 +68,6 @@ namespace ix
     const int WebSocketTransport::kDefaultPingIntervalSecs(-1);
     const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
-    const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(100);
     constexpr size_t WebSocketTransport::kChunkSize;
 
     const uint16_t WebSocketTransport::kInternalErrorCode(1011);
@@ -88,7 +87,6 @@ namespace ix
         _closeRemote(false),
         _enablePerMessageDeflate(false),
         _requestInitCancellation(false),
-        _closingTimePoint(std::chrono::steady_clock::now()),
         _enablePong(kDefaultEnablePong),
         _pingIntervalSecs(kDefaultPingIntervalSecs),
         _pingTimeoutSecs(kDefaultPingTimeoutSecs),
@@ -245,13 +243,6 @@ namespace ix
         return now - _lastReceivePongTimePoint > std::chrono::seconds(_pingTimeoutSecs);
     }
 
-    bool WebSocketTransport::closingDelayExceeded()
-    {
-        std::lock_guard<std::mutex> lock(_closingTimePointMutex);
-        auto now = std::chrono::steady_clock::now();
-        return now - _closingTimePoint > std::chrono::milliseconds(kClosingMaximumWaitingDelayInMs);
-    }
-
     WebSocketTransport::PollPostTreatment WebSocketTransport::poll()
     {
         PollResultType pollResult = _socket->poll(_pingIntervalOrTimeoutGCDSecs);
@@ -333,7 +324,7 @@ namespace ix
             _socket->close();
         }
 
-        if (_readyState == CLOSING /*&& closingDelayExceeded()*/)
+        if (_readyState == CLOSING)
         {
             // close code and reason were set when calling close()
             _socket->close();
@@ -934,10 +925,6 @@ namespace ix
             _closeReason = reason;
             _closeWireSize = closeWireSize;
             _closeRemote = remote;
-        }
-        {
-            std::lock_guard<std::mutex> lock(_closingTimePointMutex);
-            _closingTimePoint = std::chrono::steady_clock::now();
         }
         setReadyState(CLOSING);
 
