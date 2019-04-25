@@ -57,10 +57,10 @@ namespace ix
         SocketConnect::configure(fd);
 
         if (::connect(fd, address->ai_addr, address->ai_addrlen) == -1
-            && errno != EINPROGRESS)
+            && errno != EINPROGRESS && errno != 0)
         {
-            closeSocket(fd);
             errMsg = strerror(errno);
+            closeSocket(fd);
             return -1;
         }
 
