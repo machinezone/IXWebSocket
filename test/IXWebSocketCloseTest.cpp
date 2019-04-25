@@ -231,7 +231,7 @@ namespace
         return true;
     }
 }
-/*
+
 TEST_CASE("Websocket_client_close_default", "[close]")
 {
     SECTION("Make sure that close code and reason was used and sent to server.")
@@ -289,7 +289,7 @@ TEST_CASE("Websocket_client_close_default", "[close]")
         ix::reportWebSocketTraffic();
     }
 }
-*/
+
 TEST_CASE("Websocket_client_close_params_given", "[close]")
 {
     SECTION("Make sure that close code and reason was used and sent to server.")

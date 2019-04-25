@@ -262,12 +262,10 @@ namespace ix
 
         while (true)
         {
-            if (_stop) return;
+            if (_stop && !isClosing()) return;
 
             // 1. Make sure we are always connected
             reconnectPerpetuallyIfDisconnected();
-
-            if (_stop) return;
 
             // 2. Poll to see if there's any new data available
             WebSocketTransport::PollPostTreatment pollPostTreatment = _ws.poll();
@@ -317,7 +315,7 @@ namespace ix
             // 4. In blocking mode, getting out of this function is triggered by
             //    an explicit disconnection from the callback, or by the remote end
             //    closing the connection, ie isConnected() == false.
-            if (!_thread.joinable() && !isConnected() && !_automaticReconnection) return;
+            if (!_thread.joinable() && !(isConnected() || isClosing()) && !_automaticReconnection) return;
         }
     }
 

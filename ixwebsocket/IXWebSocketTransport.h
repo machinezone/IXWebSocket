@@ -168,7 +168,11 @@ namespace ix
 
         // Used to cancel dns lookup + socket connect + http upgrade
         std::atomic<bool> _requestInitCancellation;
-        
+              
+        mutable std::mutex _closingTimePointMutex;
+        std::chrono::time_point<std::chrono::steady_clock>_closingTimePoint;
+        static const int kClosingMaximumWaitingDelayInMs;
+
         // Constants for dealing with closing conneections
         static const uint16_t kInternalErrorCode;
         static const uint16_t kAbnormalCloseCode;

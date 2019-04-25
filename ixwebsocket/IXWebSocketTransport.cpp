@@ -68,6 +68,7 @@ namespace ix
     const int WebSocketTransport::kDefaultPingIntervalSecs(-1);
     const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
+    const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(500);
     constexpr size_t WebSocketTransport::kChunkSize;
 
     const uint16_t WebSocketTransport::kInternalErrorCode(1011);
@@ -87,6 +88,7 @@ namespace ix
         _closeRemote(false),
         _enablePerMessageDeflate(false),
         _requestInitCancellation(false),
+        _closingTimePoint(std::chrono::steady_clock::now()),
         _enablePong(kDefaultEnablePong),
         _pingIntervalSecs(kDefaultPingIntervalSecs),
         _pingTimeoutSecs(kDefaultPingTimeoutSecs),
@@ -243,9 +245,19 @@ namespace ix
         return now - _lastReceivePongTimePoint > std::chrono::seconds(_pingTimeoutSecs);
     }
 
+    bool WebSocketTransport::closingDelayExceeded()
+    {
+        std::lock_guard<std::mutex> lock(_closingTimePointMutex);
+        auto now = std::chrono::steady_clock::now();
+        return now - _closingTimePoint > std::chrono::milliseconds(kClosingMaximumWaitingDelayInMs);
+    }
+
     WebSocketTransport::PollPostTreatment WebSocketTransport::poll()
     {
-        PollResultType pollResult = _socket->poll(_pingIntervalOrTimeoutGCDSecs);
+        // we need to have no timeout if state is CLOSING
+        int timeoutDelayinS = (_readyState == CLOSING) ? 0 : _pingIntervalOrTimeoutGCDSecs;
+
+        PollResultType pollResult = _socket->poll(timeoutDelayinS);
 
         if (_readyState == OPEN)
         {
@@ -293,8 +305,8 @@ namespace ix
             {
                 ssize_t ret = _socket->recv((char*)&_readbuf[0], _readbuf.size());
 
-                if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
-                                _socket->getErrno() == EAGAIN))
+                if (ret < 0 && _readyState != CLOSING && (_socket->getErrno() == EWOULDBLOCK ||
+                                                          _socket->getErrno() == EAGAIN))
                 {
                     break;
                 }
@@ -324,7 +336,7 @@ namespace ix
             _socket->close();
         }
 
-        if (_readyState == CLOSING)
+        if (_readyState == CLOSING && closingDelayExceeded())
         {
             // close code and reason were set when calling close()
             _socket->close();
@@ -926,8 +938,13 @@ namespace ix
             _closeWireSize = closeWireSize;
             _closeRemote = remote;
         }
+        {
+            std::lock_guard<std::mutex> lock(_closingTimePointMutex);
+            _closingTimePoint = std::chrono::steady_clock::now();
+        }
         setReadyState(CLOSING);
 
+        // wake up the poll, but do not close yet
         _socket->wakeUpFromPoll(Socket::kSendRequest);
     }
 
