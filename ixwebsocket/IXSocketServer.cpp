@@ -144,8 +144,7 @@ namespace ix
     {
         while (true)
         {
-            closeTerminatedThreads();
-            if (_connectionsThreads.empty()) break;
+            if (closeTerminatedThreads()) break;
 
             // wait 10ms and try again later.
             // we could have a timeout, but if we exit of here
@@ -176,8 +175,9 @@ namespace ix
     // field becomes true, and we can use that to know that we can join that thread
     // and remove it from our _connectionsThreads data structure (a list).
     //
-    void SocketServer::closeTerminatedThreads()
+    bool SocketServer::closeTerminatedThreads()
     {
+        std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
         auto it = _connectionsThreads.begin();
         auto itEnd  = _connectionsThreads.end();
 
@@ -195,6 +195,8 @@ namespace ix
             if (thread.joinable()) thread.join();
             it = _connectionsThreads.erase(it);
         }
+
+        return _connectionsThreads.empty();
     }
 
     void SocketServer::run()
@@ -278,6 +280,7 @@ namespace ix
             if (_stop) return;
 
             // Launch the handleConnection work asynchronously in its own thread.
+            std::lock_guard<std::mutex> lock(_conditionVariableMutex);
             _connectionsThreads.push_back(std::make_pair(
                     connectionState,
                     std::thread(&SocketServer::handleConnection,

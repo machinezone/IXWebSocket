@@ -17,6 +17,7 @@ namespace ix
     std::atomic<uint64_t> DNSLookup::_nextId(0);
     std::set<uint64_t> DNSLookup::_activeJobs;
     std::mutex DNSLookup::_activeJobsMutex;
+    std::mutex DNSLookup::_resMutex;
 
     DNSLookup::DNSLookup(const std::string& hostname, int port, int64_t wait) :
         _hostname(hostname),
@@ -36,7 +37,8 @@ namespace ix
         _activeJobs.erase(_id);
     }
 
-    struct addrinfo* DNSLookup::getAddrInfo(const std::string& hostname,
+    // we want hostname to be copied, not passed as a const reference
+    struct addrinfo* DNSLookup::getAddrInfo(std::string hostname,
                                             int port,
                                             std::string& errMsg)
     {
@@ -135,6 +137,7 @@ namespace ix
             return nullptr;
         }
 
+        std::unique_lock<std::mutex> rlock(_resMutex);
         return _res;
     }
 
@@ -156,7 +159,10 @@ namespace ix
         }
 
         // Copy result into the member variables
-        _res = res;
+        {
+            std::unique_lock<std::mutex> rlock(_resMutex);
+            _res = res;
+        }
         _errMsg = errMsg;
         _condition.notify_one();
         _done = true;
