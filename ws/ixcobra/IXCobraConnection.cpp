@@ -205,20 +205,18 @@ namespace ix
     }
 
     void CobraConnection::configure(const std::string& appkey,
-                                     const std::string& endpoint,
-                                     const std::string& rolename,
-                                     const std::string& rolesecret,
-                                     WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions)
+                                    const std::string& endpoint,
+                                    const std::string& rolename,
+                                    const std::string& rolesecret,
+                                    const WebSocketPerMessageDeflateOptions& webSocketPerMessageDeflateOptions)
     {
-        _appkey = appkey;
-        _endpoint = endpoint;
-        _role_name = rolename;
-        _role_secret = rolesecret;
+        _roleName = rolename;
+        _roleSecret = rolesecret;
 
         std::stringstream ss;
-        ss << _endpoint;
+        ss << endpoint;
         ss << "/v2?appkey=";
-        ss << _appkey;
+        ss << appkey;
 
         std::string url = ss.str();
         _webSocket->setUrl(url);
@@ -242,7 +240,7 @@ namespace ix
     bool CobraConnection::sendHandshakeMessage()
     {
         Json::Value data;
-        data["role"] = _role_name;
+        data["role"] = _roleName;
 
         Json::Value body;
         body["data"] = data;
@@ -304,7 +302,7 @@ namespace ix
     bool CobraConnection::sendAuthMessage(const std::string& nonce)
     {
         Json::Value credentials;
-        credentials["hash"] = hmac(nonce, _role_secret);
+        credentials["hash"] = hmac(nonce, _roleSecret);
 
         Json::Value body;
         body["credentials"] = credentials;
