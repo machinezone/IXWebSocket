@@ -23,3 +23,9 @@
 # include <sys/time.h>
 # include <unistd.h>
 #endif
+
+namespace ix
+{
+    bool initNetSystem();
+    bool uninitNetSystem();
+}
