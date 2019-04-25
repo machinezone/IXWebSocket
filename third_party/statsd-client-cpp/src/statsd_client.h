@@ -61,6 +61,6 @@ protected:
     const uint64_t max_batching_size = 32768;
 };
 
-}; // end namespace
+} // end namespace
 
 #endif
