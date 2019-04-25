@@ -18,7 +18,6 @@
 # include <ws2def.h>
 # include <WS2tcpip.h>
 # include <schannel.h>
-//# include <sslsock.h>
 # include <io.h>
 
 #define WIN32_LEAN_AND_MEAN
