@@ -77,6 +77,7 @@ namespace ix
 
         // the list of (connectionState, threads) for each connections
         ConnectionThreads _connectionsThreads;
+        std::mutex _connectionsThreadsMutex;
 
         // used to have the main control thread for a server
         // wait for a 'terminate' notification without busy polling
@@ -92,6 +93,7 @@ namespace ix
                                       std::shared_ptr<ConnectionState> connectionState) = 0;
         virtual size_t getConnectedClientsCount() = 0;
 
-        void closeTerminatedThreads();
+        // Returns true if all connection threads are joined
+        bool closeTerminatedThreads();
     };
 }
