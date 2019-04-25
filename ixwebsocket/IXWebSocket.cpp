@@ -142,7 +142,6 @@ namespace ix
     {
         bool automaticReconnection = _automaticReconnection;
 
-
         // This value needs to be forced when shutting down, it is restored later
         _automaticReconnection = false;
 
