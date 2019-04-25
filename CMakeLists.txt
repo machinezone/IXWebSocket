@@ -137,7 +137,7 @@ set( IXWEBSOCKET_INCLUDE_DIRS
     .
 )
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     # Build with Multiple Processes
     target_compile_options(ixwebsocket PRIVATE /MP)
 endif()
