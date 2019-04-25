@@ -68,7 +68,7 @@ namespace ix
     const int WebSocketTransport::kDefaultPingIntervalSecs(-1);
     const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
-    const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(500);
+    const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(100);
     constexpr size_t WebSocketTransport::kChunkSize;
 
     const uint16_t WebSocketTransport::kInternalErrorCode(1011);
