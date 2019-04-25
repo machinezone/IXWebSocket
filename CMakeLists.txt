@@ -137,6 +137,11 @@ set( IXWEBSOCKET_INCLUDE_DIRS
     .
 )
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    # Build with Multiple Processes
+    target_compile_options(ixwebsocket PRIVATE /MP)
+endif()
+
 target_include_directories( ixwebsocket PUBLIC ${IXWEBSOCKET_INCLUDE_DIRS} )
 
 set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
