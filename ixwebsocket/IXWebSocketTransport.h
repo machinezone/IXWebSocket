@@ -62,7 +62,8 @@ namespace ix
                                                      MessageKind)>;
         using OnCloseCallback = std::function<void(uint16_t,
                                                    const std::string&,
-                                                   size_t)>;
+                                                   size_t,
+                                                   bool)>;
 
         WebSocketTransport();
         ~WebSocketTransport();
@@ -86,7 +87,8 @@ namespace ix
 
         void close(uint16_t code = 1000,
                    const std::string& reason = "Normal closure",
-                   size_t closeWireSize = 0);
+                   size_t closeWireSize = 0,
+                   bool remote = false);
 
         ReadyStateValues getReadyState() const;
         void setReadyState(ReadyStateValues readyStateValue);
@@ -150,6 +152,7 @@ namespace ix
         uint16_t _closeCode;
         std::string _closeReason;
         size_t _closeWireSize;
+        bool _closeRemote;
         mutable std::mutex _closeDataMutex;
 
         // Data used for Per Message Deflate compression (with zlib)
@@ -163,9 +166,11 @@ namespace ix
         // Constants for dealing with closing conneections
         static const uint16_t kInternalErrorCode;
         static const uint16_t kAbnormalCloseCode;
+        static const uint16_t kProtocolErrorCode;
         static const std::string kInternalErrorMessage;
         static const std::string kAbnormalCloseMessage;
         static const std::string kPingTimeoutMessage;
+        static const std::string kProtocolErrorMessage;
 
         // enable auto response to ping
         bool _enablePong;

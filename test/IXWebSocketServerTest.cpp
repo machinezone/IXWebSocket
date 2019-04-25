@@ -204,9 +204,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         // Give us 500ms for the server to notice that clients went away
         ix::msleep(500);
 
-        REQUIRE(connectionId == "foobarConnectionId");
-
         server.stop();
+        REQUIRE(connectionId == "foobarConnectionId");
         REQUIRE(server.getClients().size() == 0);
     }
 }

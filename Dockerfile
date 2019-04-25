@@ -45,5 +45,8 @@ RUN ldd /usr/local/bin/ws
 USER app
 WORKDIR /home/app
 
+COPY --chown=app:app ws/snake/appsConfig.json .
+COPY --chown=app:app ws/cobraMetricsSample.json .
+
 ENTRYPOINT ["ws"]
 CMD ["--help"]

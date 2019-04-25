@@ -20,7 +20,8 @@ namespace ix
                               const std::string& rolename,
                               const std::string& rolesecret,
                               const std::string& channel,
-                              const std::string& path)
+                              const std::string& path,
+                              bool stress)
     {
         CobraMetricsPublisher cobraMetricsPublisher;
         cobraMetricsPublisher.enable(true);
@@ -39,7 +40,27 @@ namespace ix
         Json::Reader reader;
         if (!reader.parse(str, data)) return 1;
 
-        cobraMetricsPublisher.push(std::string("foo_id"), data);
+        if (!stress)
+        {
+            cobraMetricsPublisher.push(channel, data);
+        }
+        else
+        {
+            // Stress mode to try to trigger server and client bugs
+            while (true)
+            {
+                for (int i = 0 ; i < 1000; ++i)
+                {
+                    cobraMetricsPublisher.push(channel, data);
+                }
+
+                cobraMetricsPublisher.suspend();
+                cobraMetricsPublisher.resume();
+
+                // FIXME: investigate why without this check we trigger a lock
+                while (!cobraMetricsPublisher.isAuthenticated()) ;
+            }
+        }
 
         // Wait a bit for the message to get a chance to be sent
         // there isn't any ack on publish right now so it's the best we can do
