@@ -56,6 +56,12 @@ namespace ix
             FRAGMENT
         };
 
+        enum PollPostTreatment
+        {
+            NONE,
+            CHECK_OR_RAISE_ABNORMAL_CLOSE_AFTER_DISPATCH
+        };
+
         using OnMessageCallback = std::function<void(const std::string&,
                                                      size_t,
                                                      bool,
@@ -78,7 +84,7 @@ namespace ix
         WebSocketInitResult connectToSocket(int fd,              // Server
                                             int timeoutSecs);
 
-        void poll();
+        PollPostTreatment poll();
         WebSocketSendInfo sendBinary(const std::string& message,
                                      const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendText(const std::string& message,
@@ -87,12 +93,13 @@ namespace ix
 
         void close(uint16_t code = 1000,
                    const std::string& reason = "Normal closure",
-                   size_t closeWireSize = 0);
+                   size_t closeWireSize = 0,
+                   bool remote = false);
 
         ReadyStateValues getReadyState() const;
         void setReadyState(ReadyStateValues readyStateValue);
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
-        void dispatch(const OnMessageCallback& onMessageCallback);
+        void dispatch(PollPostTreatment pollPostTreatment, const OnMessageCallback& onMessageCallback);
         size_t bufferedAmount() const;
 
     private:
@@ -146,7 +153,6 @@ namespace ix
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)
         std::atomic<ReadyStateValues> _readyState;
-        std::atomic<bool> _treatAbnormalCloseAfterDispatch;
 
         OnCloseCallback _onCloseCallback;
         uint16_t _closeCode;
@@ -162,6 +168,10 @@ namespace ix
 
         // Used to cancel dns lookup + socket connect + http upgrade
         std::atomic<bool> _requestInitCancellation;
+              
+        mutable std::mutex _closingTimePointMutex;
+        std::chrono::time_point<std::chrono::steady_clock>_closingTimePoint;
+        static const int kClosingMaximumWaitingDelayInMs;
 
         // Constants for dealing with closing conneections
         static const uint16_t kInternalErrorCode;
@@ -204,10 +214,15 @@ namespace ix
         // No PONG data was received through the socket for longer than ping timeout delay
         bool pingTimeoutExceeded();
 
-        void internalClose(uint16_t code,
-                           const std::string& reason,
-                           size_t closeWireSize,
-                           bool remote);
+        // after calling close(), if no CLOSE frame answer is received back from the remote, we should close the connexion
+        bool closingDelayExceeded();
+
+        void sendCloseFrame(uint16_t code, const std::string& reason);
+
+        void closeSocketAndSwitchToClosedState(uint16_t code,
+                                               const std::string& reason,
+                                               size_t closeWireSize,
+                                               bool remote);
 
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,

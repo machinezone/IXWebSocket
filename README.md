@@ -199,7 +199,20 @@ make install # will install to /usr/local on Unix, on macOS it is a good idea to
 
 Headers and a static library will be installed to the target dir.
 
-There is a Dockerfile for running some code on Linux, and a unittest which can be executed by typing `make test`.
+There is a unittest which can be executed by typing `make test`.
+
+There is a Dockerfile for running some code on Linux. To use docker-compose you must make a docker container first.
+
+```
+$ make docker
+...
+$ docker compose up &
+...
+$ docker exec -it ixwebsocket_ws_1 bash
+app@ca2340eb9106:~$ ws --help
+ws is a websocket tool
+...
+```
 
 Finally you can build and install the `ws command line tool` with Homebrew. The homebrew version might be slightly out of date.
 

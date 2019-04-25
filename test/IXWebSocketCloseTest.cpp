@@ -131,7 +131,7 @@ namespace
                     _closeCode = closeInfo.code;
                     _closeReason = std::string(closeInfo.reason);
                     _closeRemote = closeInfo.remote;
-
+                    
                     _webSocket.disableAutomaticReconnection();
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
@@ -324,7 +324,7 @@ TEST_CASE("Websocket_client_close_params_given", "[close]")
 
         webSocketClient.stop(4000, "My reason");
 
-        ix::msleep(200);
+        ix::msleep(500);
 
         // ensure client close is the same as values given
         REQUIRE(webSocketClient.getCloseCode() == 4000);
@@ -378,11 +378,11 @@ TEST_CASE("Websocket_server_close", "[close]")
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(100);
+        ix::msleep(200);
 
         server.stop();
 
-        ix::msleep(200);
+        ix::msleep(500);
 
         // ensure client close is the same as values given
         REQUIRE(webSocketClient.getCloseCode() == 1000);

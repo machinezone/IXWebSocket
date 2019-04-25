@@ -53,10 +53,12 @@ namespace ix
                 {
                     cobraMetricsPublisher.push(channel, data);
                 }
-                cobraMetricsPublisher.suspend();
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                cobraMetricsPublisher.suspend();
                 cobraMetricsPublisher.resume();
+
+                // FIXME: investigate why without this check we trigger a lock
+                while (!cobraMetricsPublisher.isAuthenticated()) ;
             }
         }
 
