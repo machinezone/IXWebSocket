@@ -595,12 +595,19 @@ namespace ix
         }
 
         // if an abnormal closure was raised in poll, and nothing else triggered a CLOSED state in
-        // the received and processed data, then close using abnormal close code and message
+        // the received and processed data then close the connection
         if (pollPostTreatment == CHECK_OR_RAISE_ABNORMAL_CLOSE_AFTER_DISPATCH)
         {
             _rxbuf.clear();
 
-            if (_readyState != CLOSED)
+            // if we previously closed the connection (CLOSING state), then set state to CLOSED (code/reason were set before)
+            if (_readyState == CLOSING)
+            {
+                _socket->close();
+                setReadyState(CLOSED);
+            }
+            // if we weren't closing, then close using abnormal close code and message 
+            else if (_readyState != CLOSED)
             {
                 closeSocketAndSwitchToClosedState(kAbnormalCloseCode, kAbnormalCloseMessage, 0, false);
             }
