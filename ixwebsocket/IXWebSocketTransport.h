@@ -99,7 +99,8 @@ namespace ix
         ReadyStateValues getReadyState() const;
         void setReadyState(ReadyStateValues readyStateValue);
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
-        void dispatch(PollPostTreatment pollPostTreatment, const OnMessageCallback& onMessageCallback);
+        void dispatch(PollPostTreatment pollPostTreatment,
+                      const OnMessageCallback& onMessageCallback);
         size_t bufferedAmount() const;
 
     private:

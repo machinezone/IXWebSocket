@@ -216,6 +216,11 @@ namespace ix
         return getReadyState() == WebSocket_ReadyState_Closing;
     }
 
+    bool WebSocket::isConnectedOrClosing() const
+    {
+        return isConnected() || isClosing();
+    }
+
     void WebSocket::close(uint16_t code, const std::string& reason)
     {
         _ws.close(code, reason);
@@ -313,8 +318,8 @@ namespace ix
 
             // 4. In blocking mode, getting out of this function is triggered by
             //    an explicit disconnection from the callback, or by the remote end
-            //    closing the connection, ie isConnected() == false.
-            if (!_thread.joinable() && !(isConnected() || isClosing()) && !_automaticReconnection) return;
+            //    closing the connection, ie isConnectedOrClosing() == false.
+            if (!_thread.joinable() && !isConnectedOrClosing() && !_automaticReconnection) return;
         }
     }
 

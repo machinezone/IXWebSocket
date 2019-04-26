@@ -68,7 +68,7 @@ namespace ix
     const int WebSocketTransport::kDefaultPingIntervalSecs(-1);
     const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
-    const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(100);
+    const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(200);
     constexpr size_t WebSocketTransport::kChunkSize;
 
     const uint16_t WebSocketTransport::kInternalErrorCode(1011);
@@ -280,7 +280,7 @@ namespace ix
         
         // No timeout if state is CLOSING, otherwise computed
         // pingIntervalOrTimeoutGCD (equals to -1 if no ping and no ping timeout are set)
-        int lastingDelayForSocketTimeoutInMs = (_readyState == CLOSING) ? 0 : _pingIntervalOrTimeoutGCDSecs;
+        int lastingTimeoutDelayInMs = (_readyState == CLOSING) ? 0 : _pingIntervalOrTimeoutGCDSecs;
 
         if (_pingIntervalOrTimeoutGCDSecs > 0)
         {
@@ -291,16 +291,16 @@ namespace ix
             {
                 _nextGCDTimePoint = now + std::chrono::seconds(_pingIntervalOrTimeoutGCDSecs);
             
-                lastingDelayForSocketTimeoutInMs = _pingIntervalOrTimeoutGCDSecs * 1000;
+                lastingTimeoutDelayInMs = _pingIntervalOrTimeoutGCDSecs * 1000;
             }
             else 
             {
-                lastingDelayForSocketTimeoutInMs = (int)std::chrono::duration_cast<std::chrono::milliseconds>(_nextGCDTimePoint - now).count();
+                lastingTimeoutDelayInMs = (int)std::chrono::duration_cast<std::chrono::milliseconds>(_nextGCDTimePoint - now).count();
             }
         }
 
         // poll the socket
-        PollResultType pollResult = _socket->poll(lastingDelayForSocketTimeoutInMs);
+        PollResultType pollResult = _socket->poll(lastingTimeoutDelayInMs);
 
         // Make sure we send all the buffered data
         // there can be a lot of it for large messages.
@@ -363,6 +363,7 @@ namespace ix
 
         if (_readyState == CLOSING && closingDelayExceeded())
         {
+            _rxbuf.clear();
             // close code and reason were set when calling close()
             _socket->close();
             setReadyState(CLOSED);
@@ -430,7 +431,8 @@ namespace ix
     // |                     Payload Data continued ...                |
     // +---------------------------------------------------------------+
     //
-    void WebSocketTransport::dispatch(WebSocketTransport::PollPostTreatment pollPostTreatment, const OnMessageCallback& onMessageCallback)
+    void WebSocketTransport::dispatch(WebSocketTransport::PollPostTreatment pollPostTreatment,
+                                      const OnMessageCallback& onMessageCallback)
     {
         while (true)
         {
@@ -589,7 +591,7 @@ namespace ix
                 // We receive a CLOSE frame from remote and are NOT the ones who triggered the close
                 if (_readyState != CLOSING)
                 {
-                    //send back the CLOSE frame
+                    // send back the CLOSE frame
                     sendCloseFrame(code, reason);
 
                     _socket->wakeUpFromPoll(Socket::kCloseRequest);
@@ -618,10 +620,15 @@ namespace ix
         }
 
         // if an abnormal closure was raised in poll, and nothing else triggered a CLOSED state in
-        // the received and processed data, then close uising abnormal close code and message
-        if (_readyState != CLOSED && _readyState != CLOSING && pollPostTreatment == CHECK_OR_RAISE_ABNORMAL_CLOSE_AFTER_DISPATCH)
+        // the received and processed data, then close using abnormal close code and message
+        if (pollPostTreatment == CHECK_OR_RAISE_ABNORMAL_CLOSE_AFTER_DISPATCH)
         {
-            closeSocketAndSwitchToClosedState(kAbnormalCloseCode, kAbnormalCloseMessage, 0, true);
+            _rxbuf.clear();
+
+            if (_readyState != CLOSED)
+            {
+                closeSocketAndSwitchToClosedState(kAbnormalCloseCode, kAbnormalCloseMessage, 0, false);
+            }
         }
     }
 
@@ -937,7 +944,6 @@ namespace ix
     void WebSocketTransport::closeSocketAndSwitchToClosedState(uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
     {
         _socket->close();
-
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
             _closeCode = code;
@@ -955,7 +961,6 @@ namespace ix
         if (_readyState == CLOSING || _readyState == CLOSED) return;
 
         sendCloseFrame(code, reason);
-
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
             _closeCode = code;
