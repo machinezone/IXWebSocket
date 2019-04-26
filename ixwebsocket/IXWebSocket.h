@@ -137,6 +137,7 @@ namespace ix
 
         bool isConnected() const;
         bool isClosing() const;
+        bool isConnectedOrClosing() const;
         void reconnectPerpetuallyIfDisconnected();
         std::string readyStateToString(ReadyState readyState);
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
