@@ -602,7 +602,7 @@ namespace ix
 
             if (_readyState != CLOSED)
             {
-                closeSocketAndSwitchToClosedState(kAbnormalCloseCode, kAbnormalCloseMessage, 0, true);
+                closeSocketAndSwitchToClosedState(kAbnormalCloseCode, kAbnormalCloseMessage, 0, false);
             }
         }
     }
