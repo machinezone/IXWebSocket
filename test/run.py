@@ -251,8 +251,8 @@ def executeJob(job):
     sys.stderr.write('.')
     # print('Executing ' + job['cmd'] + '...')
 
-    # 2 minutes of timeout for a single test
-    timeout = 2 * 60
+    # 10 minutes of timeout for a single test, cf PR #42
+    timeout = 10 * 60
     command = Command(job['cmd'])
     timedout, ret = command.run(timeout)
 
