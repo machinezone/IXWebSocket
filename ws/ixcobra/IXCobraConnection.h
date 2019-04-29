@@ -56,7 +56,7 @@ namespace ix
                        const std::string& endpoint,
                        const std::string& rolename,
                        const std::string& rolesecret,
-                       WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions);
+                       const WebSocketPerMessageDeflateOptions& webSocketPerMessageDeflateOptions);
 
         static void setTrafficTrackerCallback(const TrafficTrackerCallback& callback);
 
@@ -135,10 +135,8 @@ namespace ix
         std::unique_ptr<WebSocket> _webSocket;
 
         /// Configuration data
-        std::string _appkey;
-        std::string _endpoint;
-        std::string _role_name;
-        std::string _role_secret;
+        std::string _roleName;
+        std::string _roleSecret;
         std::atomic<CobraConnectionPublishMode> _publishMode;
 
         // Can be set on control+background thread, protecting with an atomic

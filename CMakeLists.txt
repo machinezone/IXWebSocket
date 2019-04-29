@@ -26,6 +26,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSocketFactory.cpp
     ixwebsocket/IXDNSLookup.cpp
     ixwebsocket/IXCancellationRequest.cpp
+    ixwebsocket/IXNetSystem.cpp
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketServer.cpp
     ixwebsocket/IXWebSocketTransport.cpp
@@ -49,6 +50,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSetThreadName.h
     ixwebsocket/IXDNSLookup.h
     ixwebsocket/IXCancellationRequest.h
+    ixwebsocket/IXNetSystem.h
     ixwebsocket/IXProgressCallback.h
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketServer.h
@@ -136,6 +138,11 @@ endif()
 set( IXWEBSOCKET_INCLUDE_DIRS
     .
 )
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    # Build with Multiple Processes
+    target_compile_options(ixwebsocket PRIVATE /MP)
+endif()
 
 target_include_directories( ixwebsocket PUBLIC ${IXWEBSOCKET_INCLUDE_DIRS} )
 

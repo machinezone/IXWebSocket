@@ -51,15 +51,19 @@
 #include <thread>
 
 
-int greatestCommonDivisor (int a, int b) {
-  while (b != 0)
-  {
-    int t = b;
-    b = a % b;
-    a = t;
-  }
+namespace
+{
+    int greatestCommonDivisor(int a, int b)
+    {
+        while (b != 0)
+        {
+            int t = b;
+            b = a % b;
+            a = t;
+        }
 
-  return a;
+        return a;
+    }
 }
 
 namespace ix

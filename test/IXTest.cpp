@@ -113,7 +113,7 @@ namespace ix
         }
 
         struct sockaddr_in sa; // server address information
-        socklen_t len;
+        socklen_t len = sizeof(sa);
         if (getsockname(sockfd, (struct sockaddr *) &sa, &len) < 0)
         {
             log("Cannot compute a free port. getsockname error.");

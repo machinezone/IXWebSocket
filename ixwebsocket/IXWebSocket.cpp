@@ -38,6 +38,7 @@ namespace ix
     WebSocket::WebSocket() :
         _onMessageCallback(OnMessageCallback()),
         _stop(false),
+        _blocking(true),
         _automaticReconnection(true),
         _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs),
         _enablePong(kDefaultEnablePong),
@@ -135,6 +136,7 @@ namespace ix
     {
         if (_thread.joinable()) return; // we've already been started
 
+        _blocking = false;
         _thread = std::thread(&WebSocket::run, this);
     }
 
@@ -156,6 +158,7 @@ namespace ix
         _stop = true;
         _thread.join();
         _stop = false;
+        _blocking = true;
 
         _automaticReconnection = automaticReconnection;
     }
@@ -262,7 +265,7 @@ namespace ix
 
     void WebSocket::run()
     {
-        setThreadName(_url);
+        setThreadName(getUrl());
 
         while (true)
         {
@@ -319,7 +322,7 @@ namespace ix
             // 4. In blocking mode, getting out of this function is triggered by
             //    an explicit disconnection from the callback, or by the remote end
             //    closing the connection, ie isConnectedOrClosing() == false.
-            if (!_thread.joinable() && !isConnectedOrClosing() && !_automaticReconnection) return;
+            if (_blocking && !isConnectedOrClosing() && !_automaticReconnection) return;
         }
     }
 
