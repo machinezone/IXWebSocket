@@ -126,7 +126,7 @@ namespace ix
 
         // Tells whether we should mask the data we send.
         // client should mask but server should not
-        bool _useMask;
+        std::atomic<bool> _useMask;
 
         // Buffer for reading from our socket. That buffer is never resized.
         std::vector<uint8_t> _readbuf;
