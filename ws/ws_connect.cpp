@@ -14,7 +14,8 @@ namespace ix
     class WebSocketConnect
     {
         public:
-            WebSocketConnect(const std::string& _url);
+            WebSocketConnect(const std::string& _url,
+                             bool disableAutomaticReconnection);
 
             void subscribe(const std::string& channel);
             void start();
@@ -29,10 +30,16 @@ namespace ix
             void log(const std::string& msg);
     };
 
-    WebSocketConnect::WebSocketConnect(const std::string& url) :
+    WebSocketConnect::WebSocketConnect(const std::string& url,
+                                       bool disableAutomaticReconnection) :
         _url(url)
     {
-        ;
+        if (disableAutomaticReconnection)
+        {
+            std::cout << "Disabling automatic reconnection with "
+                         "_webSocket.disableAutomaticReconnection()"
+                         " not supported yet" << std::endl;
+        }
     }
 
     void WebSocketConnect::log(const std::string& msg)
@@ -113,10 +120,10 @@ namespace ix
         _webSocket.send(text);
     }
 
-    void interactiveMain(const std::string& url)
+    int ws_connect_main(const std::string& url, bool disableAutomaticReconnection)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
-        WebSocketConnect webSocketChat(url);
+        WebSocketConnect webSocketChat(url, disableAutomaticReconnection);
         webSocketChat.start();
 
         while (true)
@@ -149,11 +156,7 @@ namespace ix
 
         std::cout << std::endl;
         webSocketChat.stop();
-    }
 
-    int ws_connect_main(const std::string& url)
-    {
-        interactiveMain(url);
         return 0;
     }
 }
