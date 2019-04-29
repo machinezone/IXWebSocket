@@ -230,11 +230,11 @@ namespace ix
         millis duration;
 
         // Try to connect only once when we don't have automaticReconnection setup
-        if (!isConnected() && !_automaticReconnection && !_stop)
+        if (!isConnected() && !isClosing() && !_stop && !_automaticReconnection)
         {
             status = connect(_handshakeTimeoutSecs);
 
-            if (!status.success && !_stop)
+            if (!status.success)
             {
                 duration = millis(calculateRetryWaitMilliseconds(retries++));
 
@@ -249,6 +249,7 @@ namespace ix
         }
         else
         {
+            // Otherwise try to reconnect perpertually
             while (true)
             {
                 if (isConnected() || isClosing() || _stop || !_automaticReconnection)
@@ -258,7 +259,7 @@ namespace ix
 
                 status = connect(_handshakeTimeoutSecs);
 
-                if (!status.success && !_stop)
+                if (!status.success)
                 {
                     duration = millis(calculateRetryWaitMilliseconds(retries++));
 
@@ -269,8 +270,12 @@ namespace ix
                     _onMessageCallback(WebSocket_MessageType_Error, "", 0,
                                        connectErr, WebSocketOpenInfo(),
                                        WebSocketCloseInfo());
-
-                    std::this_thread::sleep_for(duration);
+                    
+                    // Only sleep if we aren't in the middle of stopping
+                    if (!_stop)
+                    {
+                        std::this_thread::sleep_for(duration);
+                    }
                 }
             }
         }
