@@ -265,7 +265,7 @@ namespace ix
 
     void WebSocket::run()
     {
-        setThreadName(_url);
+        setThreadName(getUrl());
 
         while (true)
         {

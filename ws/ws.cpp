@@ -21,9 +21,12 @@
 
 #include <cli11/CLI11.hpp>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXNetSystem.h>
 
 int main(int argc, char** argv)
 {
+    ix::initNetSystem();
+
     CLI::App app{"ws is a websocket tool"};
     app.require_subcommand();
 
@@ -199,88 +202,90 @@ int main(int argc, char** argv)
         f.close();
     }
 
+    int ret = 1;
     if (app.got_subcommand("transfer"))
     {
-        return ix::ws_transfer_main(port, hostname);
+        ret = ix::ws_transfer_main(port, hostname);
     }
     else if (app.got_subcommand("send"))
     {
-        return ix::ws_send_main(url, path);
+        ret = ix::ws_send_main(url, path);
     }
     else if (app.got_subcommand("receive"))
     {
         bool enablePerMessageDeflate = false;
-        return ix::ws_receive_main(url, enablePerMessageDeflate, delayMs);
+        ret = ix::ws_receive_main(url, enablePerMessageDeflate, delayMs);
     }
     else if (app.got_subcommand("connect"))
     {
-        return ix::ws_connect_main(url);
+        ret = ix::ws_connect_main(url);
     }
     else if (app.got_subcommand("chat"))
     {
-        return ix::ws_chat_main(url, user);
+        ret = ix::ws_chat_main(url, user);
     }
     else if (app.got_subcommand("echo_server"))
     {
-        return ix::ws_echo_server_main(port, hostname);
+        ret = ix::ws_echo_server_main(port, hostname);
     }
     else if (app.got_subcommand("broadcast_server"))
     {
-        return ix::ws_broadcast_server_main(port, hostname);
+        ret = ix::ws_broadcast_server_main(port, hostname);
     }
     else if (app.got_subcommand("ping"))
     {
-        return ix::ws_ping_pong_main(url);
+        ret = ix::ws_ping_pong_main(url);
     }
     else if (app.got_subcommand("curl"))
     {
-        return ix::ws_http_client_main(url, headers, data, headersOnly,
-                                       connectTimeOut, transferTimeout,
-                                       followRedirects, maxRedirects, verbose,
-                                       save, output, compress);
+        ret = ix::ws_http_client_main(url, headers, data, headersOnly,
+                                      connectTimeOut, transferTimeout,
+                                      followRedirects, maxRedirects, verbose,
+                                      save, output, compress);
     }
     else if (app.got_subcommand("redis_publish"))
     {
-        return ix::ws_redis_publish_main(hostname, redisPort, password,
-                                         channel, message, count);
+        ret = ix::ws_redis_publish_main(hostname, redisPort, password,
+                                        channel, message, count);
     }
     else if (app.got_subcommand("redis_subscribe"))
     {
-        return ix::ws_redis_subscribe_main(hostname, redisPort, password, channel, verbose);
+        ret = ix::ws_redis_subscribe_main(hostname, redisPort, password, channel, verbose);
     }
     else if (app.got_subcommand("cobra_subscribe"))
     {
-        return ix::ws_cobra_subscribe_main(appkey, endpoint,
-                                           rolename, rolesecret,
-                                           channel);
+        ret = ix::ws_cobra_subscribe_main(appkey, endpoint,
+                                          rolename, rolesecret,
+                                          channel);
     }
     else if (app.got_subcommand("cobra_publish"))
     {
-        return ix::ws_cobra_publish_main(appkey, endpoint,
-                                         rolename, rolesecret,
-                                         channel, path, stress);
+        ret = ix::ws_cobra_publish_main(appkey, endpoint,
+                                        rolename, rolesecret,
+                                        channel, path, stress);
     }
     else if (app.got_subcommand("cobra_to_statsd"))
     {
-        return ix::ws_cobra_to_statsd_main(appkey, endpoint,
-                                           rolename, rolesecret,
-                                           channel, hostname, statsdPort,
-                                           prefix, fields, verbose);
+        ret = ix::ws_cobra_to_statsd_main(appkey, endpoint,
+                                          rolename, rolesecret,
+                                          channel, hostname, statsdPort,
+                                          prefix, fields, verbose);
     }
     else if (app.got_subcommand("cobra_to_sentry"))
     {
-        return ix::ws_cobra_to_sentry_main(appkey, endpoint,
-                                           rolename, rolesecret,
-                                           channel, dsn,
-                                           verbose, strict, jobs);
+        ret = ix::ws_cobra_to_sentry_main(appkey, endpoint,
+                                          rolename, rolesecret,
+                                          channel, dsn,
+                                          verbose, strict, jobs);
     }
     else if (app.got_subcommand("snake"))
     {
-        return ix::ws_snake_main(port, hostname,
-                                 redisHosts, redisPort,
-                                 redisPassword, verbose,
-                                 appsConfigPath);
+        ret = ix::ws_snake_main(port, hostname,
+                                redisHosts, redisPort,
+                                redisPassword, verbose,
+                                appsConfigPath);
     }
 
-    return 1;
+    ix::uninitNetSystem();
+    return ret;
 }
