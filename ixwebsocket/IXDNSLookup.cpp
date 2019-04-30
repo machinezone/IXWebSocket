@@ -19,25 +19,24 @@ namespace ix
     std::mutex DNSLookup::_activeJobsMutex;
 
     DNSLookup::DNSLookup(const std::string& hostname, int port, int64_t wait) :
-        _hostname(hostname),
         _port(port),
         _wait(wait),
         _res(nullptr),
         _done(false),
         _id(_nextId++)
     {
-        ;
+        setHostname(hostname);
     }
 
     DNSLookup::~DNSLookup()
     {
         // Remove this job from the active jobs list
-        std::unique_lock<std::mutex> lock(_activeJobsMutex);
+        std::lock_guard<std::mutex> lock(_activeJobsMutex);
         _activeJobs.erase(_id);
     }
 
     // we want hostname to be copied, not passed as a const reference
-    struct addrinfo* DNSLookup::getAddrInfo(std::string hostname,
+    struct addrinfo* DNSLookup::getAddrInfo(const std::string& hostname,
                                             int port,
                                             std::string& errMsg)
     {
@@ -80,7 +79,7 @@ namespace ix
             return nullptr;
         }
 
-        return getAddrInfo(_hostname, _port, errMsg);
+        return getAddrInfo(getHostname(), _port, errMsg);
     }
 
     struct addrinfo* DNSLookup::resolveAsync(std::string& errMsg,
@@ -98,7 +97,7 @@ namespace ix
 
         // Record job in the active Job set
         {
-            std::unique_lock<std::mutex> lock(_activeJobsMutex);
+            std::lock_guard<std::mutex> lock(_activeJobsMutex);
             _activeJobs.insert(_id);
         }
 
@@ -106,7 +105,7 @@ namespace ix
         // Good resource on thread forced termination
         // https://www.bo-yang.net/2017/11/19/cpp-kill-detached-thread
         //
-        _thread = std::thread(&DNSLookup::run, this, _id, _hostname, _port);
+        _thread = std::thread(&DNSLookup::run, this, _id, getHostname(), _port);
         _thread.detach();
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
@@ -140,7 +139,7 @@ namespace ix
         return getRes();
     }
 
-    void DNSLookup::run(uint64_t id, std::string hostname, int port) // thread runner
+    void DNSLookup::run(uint64_t id, const std::string& hostname, int port) // thread runner
     {
         // We don't want to read or write into members variables of an object that could be
         // gone, so we use temporary variables (res) or we pass in by copy everything that
@@ -151,7 +150,7 @@ namespace ix
         // if this isn't an active job, and the control thread is gone
         // there is nothing to do, and we don't want to touch the defunct
         // object data structure such as _errMsg or _condition
-        std::unique_lock<std::mutex> lock(_activeJobsMutex);
+        std::lock_guard<std::mutex> lock(_activeJobsMutex);
         if (_activeJobs.count(id) == 0)
         {
             return;
@@ -165,27 +164,39 @@ namespace ix
         _done = true;
     }
 
+    void DNSLookup::setHostname(const std::string& hostname)
+    {
+        std::lock_guard<std::mutex> lock(_hostnameMutex);
+        _hostname = hostname;
+    }
+
+    const std::string& DNSLookup::getHostname()
+    {
+        std::lock_guard<std::mutex> lock(_hostnameMutex);
+        return _hostname;
+    }
+
     void DNSLookup::setErrMsg(const std::string& errMsg)
     {
-        std::unique_lock<std::mutex> lock(_errMsgMutex);
+        std::lock_guard<std::mutex> lock(_errMsgMutex);
         _errMsg = errMsg;
     }
 
     const std::string& DNSLookup::getErrMsg()
     {
-        std::unique_lock<std::mutex> lock(_errMsgMutex);
+        std::lock_guard<std::mutex> lock(_errMsgMutex);
         return _errMsg;
     }
 
     void DNSLookup::setRes(struct addrinfo* addr)
     {
-        std::unique_lock<std::mutex> lock(_resMutex);
+        std::lock_guard<std::mutex> lock(_resMutex);
         _res = addr;
     }
 
     struct addrinfo* DNSLookup::getRes()
     {
-        std::unique_lock<std::mutex> lock(_resMutex);
+        std::lock_guard<std::mutex> lock(_resMutex);
         return _res;
     }
 }
