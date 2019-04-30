@@ -39,6 +39,7 @@ namespace ix
             std::cout << "Disabling automatic reconnection with "
                          "_webSocket.disableAutomaticReconnection()"
                          " not supported yet" << std::endl;
+            _webSocket.disableAutomaticReconnection();
         }
     }
 
