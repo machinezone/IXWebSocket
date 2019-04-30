@@ -419,7 +419,7 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
         jobs.append({
             'name': testName,
             'cmd': cmd,
-            'output_path': outputPath,
+            #'output_path': outputPath,
             'use_lldb': useLLDB
         })
 
