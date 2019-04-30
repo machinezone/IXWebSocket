@@ -54,12 +54,6 @@ namespace ix
         void setRes(struct addrinfo* addr);
         struct addrinfo* getRes();
 
-        void setErrMsg(const std::string& errMsg);
-        const std::string& getErrMsg();
-
-        void setRes(struct addrinfo* addr);
-        struct addrinfo* getRes();
-
         std::string _hostname;
         std::mutex _hostnameMutex;
         int _port;
