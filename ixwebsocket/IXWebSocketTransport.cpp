@@ -309,8 +309,8 @@ namespace ix
             {
                 ssize_t ret = _socket->recv((char*)&_readbuf[0], _readbuf.size());
 
-                if (ret < 0 && _readyState != CLOSING && (_socket->getErrno() == EWOULDBLOCK ||
-                                                          _socket->getErrno() == EAGAIN))
+                if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
+                                _socket->getErrno() == EAGAIN))
                 {
                     break;
                 }

@@ -345,7 +345,7 @@ namespace ix
             // 4. In blocking mode, getting out of this function is triggered by
             //    an explicit disconnection from the callback, or by the remote end
             //    closing the connection, ie isConnectedOrClosing() == false.
-            if (/*_blocking &&*/ !isConnectedOrClosing() && !_automaticReconnection) return;
+            if (!isConnectedOrClosing() && !_automaticReconnection) return;
         }
     }
 
