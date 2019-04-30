@@ -146,7 +146,7 @@ namespace ix
         return _res;
     }
 
-    void DNSLookup::run(uint64_t id, const std::string& hostname, int port) // thread runner
+    void DNSLookup::run(uint64_t id, std::string hostname, int port) // thread runner
     {
         // We don't want to read or write into members variables of an object that could be
         // gone, so we use temporary variables (res) or we pass in by copy everything that
