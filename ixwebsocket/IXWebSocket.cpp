@@ -232,16 +232,12 @@ namespace ix
         using millis = std::chrono::duration<double, std::milli>;
         millis duration;
 
-        while (true)
+        // Try to connect only once when we don't have automaticReconnection setup
+        if (!isConnected() && !isClosing() && !_stop && !_automaticReconnection)
         {
-            if (isConnected() || isClosing() || _stop || !_automaticReconnection)
-            {
-                break;
-            }
-
             status = connect(_handshakeTimeoutSecs);
 
-            if (!status.success && !_stop)
+            if (!status.success)
             {
                 duration = millis(calculateRetryWaitMilliseconds(retries++));
 
@@ -252,8 +248,38 @@ namespace ix
                 _onMessageCallback(WebSocket_MessageType_Error, "", 0,
                                    connectErr, WebSocketOpenInfo(),
                                    WebSocketCloseInfo());
+            }
+        }
+        else
+        {
+            // Otherwise try to reconnect perpertually
+            while (true)
+            {
+                if (isConnected() || isClosing() || _stop || !_automaticReconnection)
+                {
+                    break;
+                }
 
-                std::this_thread::sleep_for(duration);
+                status = connect(_handshakeTimeoutSecs);
+
+                if (!status.success)
+                {
+                    duration = millis(calculateRetryWaitMilliseconds(retries++));
+
+                    connectErr.retries = retries;
+                    connectErr.wait_time = duration.count();
+                    connectErr.reason = status.errorStr;
+                    connectErr.http_status = status.http_status;
+                    _onMessageCallback(WebSocket_MessageType_Error, "", 0,
+                                       connectErr, WebSocketOpenInfo(),
+                                       WebSocketCloseInfo());
+                    
+                    // Only sleep if we aren't in the middle of stopping
+                    if (!_stop)
+                    {
+                        std::this_thread::sleep_for(duration);
+                    }
+                }
             }
         }
     }
@@ -320,8 +346,7 @@ namespace ix
             // 4. In blocking mode, getting out of this function is triggered by
             //    an explicit disconnection from the callback, or by the remote end
             //    closing the connection, ie isConnected() == false.
-            //    closing the connection, ie isConnectedOrClosing() == false.
-            if (!_backgroundThreadRunning && !isConnected() && !_automaticReconnection) return;
+            if (!isConnected() && !_automaticReconnection) return;
         }
     }
 
