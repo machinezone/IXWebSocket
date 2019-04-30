@@ -31,7 +31,7 @@ namespace ix
     int ws_chat_main(const std::string& url,
                      const std::string& user);
 
-    int ws_connect_main(const std::string& url);
+    int ws_connect_main(const std::string& url, bool disableAutomaticReconnection);
 
     int ws_receive_main(const std::string& url,
                         bool enablePerMessageDeflate,

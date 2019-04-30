@@ -79,6 +79,7 @@ namespace
         }
 
         _webSocket.setUrl(url);
+        _webSocket.disableAutomaticReconnection();
 
         // The important bit for this test.
         // Set a ping interval, and a ping timeout
@@ -101,7 +102,6 @@ namespace
                 {
                     log("client connected");
 
-                    _webSocket.disableAutomaticReconnection();
                 }
                 else if (messageType == ix::WebSocket_MessageType_Close)
                 {
@@ -112,15 +112,11 @@ namespace
                         _closedDueToPingTimeout = true;
                     }
 
-                    _webSocket.disableAutomaticReconnection();
-
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
                 {
                     ss << "Error ! " << error.reason;
                     log(ss.str());
-
-                    _webSocket.disableAutomaticReconnection();
                 }
                 else if (messageType == ix::WebSocket_MessageType_Pong)
                 {

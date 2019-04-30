@@ -103,6 +103,7 @@ namespace
         }
 
         _webSocket.setUrl(url);
+        _webSocket.disableAutomaticReconnection();
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
@@ -119,8 +120,6 @@ namespace
                 if (messageType == ix::WebSocket_MessageType_Open)
                 {
                     log("client connected");
-
-                    _webSocket.disableAutomaticReconnection();
                 }
                 else if (messageType == ix::WebSocket_MessageType_Close)
                 {
@@ -131,15 +130,11 @@ namespace
                     _closeCode = closeInfo.code;
                     _closeReason = std::string(closeInfo.reason);
                     _closeRemote = closeInfo.remote;
-                    
-                    _webSocket.disableAutomaticReconnection();
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
                 {
                     ss << "Error ! " << error.reason;
                     log(ss.str());
-
-                    _webSocket.disableAutomaticReconnection();
                 }
                 else if (messageType == ix::WebSocket_MessageType_Pong)
                 {
