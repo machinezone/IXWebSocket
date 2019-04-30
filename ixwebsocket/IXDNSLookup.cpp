@@ -17,7 +17,6 @@ namespace ix
     std::atomic<uint64_t> DNSLookup::_nextId(0);
     std::set<uint64_t> DNSLookup::_activeJobs;
     std::mutex DNSLookup::_activeJobsMutex;
-    std::mutex DNSLookup::_resMutex;
 
     DNSLookup::DNSLookup(const std::string& hostname, int port, int64_t wait) :
         _hostname(hostname),
@@ -137,13 +136,8 @@ namespace ix
             return nullptr;
         }
 
-        if (!_errMsg.empty())
-        {
-            errMsg = _errMsg;
-        }
-
-        std::unique_lock<std::mutex> rlock(_resMutex);
-        return _res;
+        errMsg = getErrMsg();
+        return getRes();
     }
 
     void DNSLookup::run(uint64_t id, std::string hostname, int port) // thread runner
@@ -155,7 +149,7 @@ namespace ix
         struct addrinfo* res = getAddrInfo(hostname, port, errMsg);
 
         // if this isn't an active job, and the control thread is gone
-        // there is not thing to do, and we don't want to touch the defunct
+        // there is nothing to do, and we don't want to touch the defunct
         // object data structure such as _errMsg or _condition
         std::unique_lock<std::mutex> lock(_activeJobsMutex);
         if (_activeJobs.count(id) == 0)
@@ -164,12 +158,34 @@ namespace ix
         }
 
         // Copy result into the member variables
-        {
-            std::unique_lock<std::mutex> rlock(_resMutex);
-            _res = res;
-        }
-        _errMsg = errMsg;
+        setRes(res);
+        setErrMsg(errMsg);
+
         _condition.notify_one();
         _done = true;
+    }
+
+    void DNSLookup::setErrMsg(const std::string& errMsg)
+    {
+        std::unique_lock<std::mutex> lock(_errMsgMutex);
+        _errMsg = errMsg;
+    }
+
+    const std::string& DNSLookup::getErrMsg()
+    {
+        std::unique_lock<std::mutex> lock(_errMsgMutex);
+        return _errMsg;
+    }
+
+    void DNSLookup::setRes(struct addrinfo* addr)
+    {
+        std::unique_lock<std::mutex> lock(_resMutex);
+        _res = addr;
+    }
+
+    struct addrinfo* DNSLookup::getRes()
+    {
+        std::unique_lock<std::mutex> lock(_resMutex);
+        return _res;
     }
 }
