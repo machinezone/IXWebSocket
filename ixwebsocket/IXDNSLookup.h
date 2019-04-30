@@ -39,11 +39,20 @@ namespace ix
         struct addrinfo* resolveBlocking(std::string& errMsg,
                                          const CancellationRequest& isCancellationRequested);
 
-        static struct addrinfo* getAddrInfo(std::string hostname,
+        static struct addrinfo* getAddrInfo(const std::string& hostname,
                                             int port,
                                             std::string& errMsg);
 
-        void run(uint64_t id, std::string hostname, int port); // thread runner
+        void run(uint64_t id, const std::string& hostname, int port); // thread runner
+
+        void setHostname(const std::string& hostname);
+        const std::string& getHostname();
+
+        void setErrMsg(const std::string& errMsg);
+        const std::string& getErrMsg();
+
+        void setRes(struct addrinfo* addr);
+        struct addrinfo* getRes();
 
         void setErrMsg(const std::string& errMsg);
         const std::string& getErrMsg();
@@ -52,7 +61,9 @@ namespace ix
         struct addrinfo* getRes();
 
         std::string _hostname;
+        std::mutex _hostnameMutex;
         int _port;
+
         int64_t _wait;
 
         struct addrinfo* _res;
