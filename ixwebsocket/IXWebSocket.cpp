@@ -216,9 +216,10 @@ namespace ix
         return getReadyState() == WebSocket_ReadyState_Closing;
     }
 
-    void WebSocket::close()
+    void WebSocket::close(uint16_t code,
+                          const std::string& reason)
     {
-        _ws.close();
+        _ws.close(code, reason);
     }
 
     void WebSocket::reconnectPerpetuallyIfDisconnected()

@@ -111,7 +111,11 @@ namespace ix
         WebSocketSendInfo sendText(const std::string& text,
                                    const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo ping(const std::string& text);
-        void close();
+
+        // A close frame can provide a code and a reason
+        // FIXME: use constants
+        void close(uint16_t code = 1000,
+                   const std::string& reason = "Normal closure");
 
         void setOnMessageCallback(const OnMessageCallback& callback);
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
