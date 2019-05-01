@@ -553,7 +553,7 @@ namespace ix
                 // Get the reason.
                 std::string reason(_rxbuf.begin()+ws.header_size + 2,
                                    _rxbuf.begin()+ws.header_size + (size_t) ws.N);
-                
+
                 bool remote = true;
 
                 close(code, reason, _rxbuf.size(), remote);

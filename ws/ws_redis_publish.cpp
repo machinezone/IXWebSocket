@@ -41,7 +41,7 @@ namespace ix
         {
             if (!redisClient.publish(channel, message, errMsg))
             {
-                std::cerr << "Error publishing to channel " << channel 
+                std::cerr << "Error publishing to channel " << channel
                           << "error: " << errMsg
                           << std::endl;
                 return 1;
