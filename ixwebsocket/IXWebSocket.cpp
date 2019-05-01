@@ -212,9 +212,10 @@ namespace ix
         return getReadyState() == ReadyState::Closing;
     }
 
-    void WebSocket::close()
+    void WebSocket::close(uint16_t code,
+                          const std::string& reason)
     {
-        _ws.close();
+        _ws.close(code, reason);
     }
 
     void WebSocket::checkConnection(bool firstConnectionAttempt)
