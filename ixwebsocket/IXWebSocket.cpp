@@ -271,7 +271,7 @@ namespace ix
                     _onMessageCallback(WebSocket_MessageType_Error, "", 0,
                                        connectErr, WebSocketOpenInfo(),
                                        WebSocketCloseInfo());
-                    
+
                     // Only sleep if we aren't in the middle of stopping
                     if (!_stop)
                     {
