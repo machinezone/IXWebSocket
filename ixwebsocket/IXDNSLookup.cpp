@@ -35,7 +35,6 @@ namespace ix
         _activeJobs.erase(_id);
     }
 
-    // we want hostname to be copied, not passed as a const reference
     struct addrinfo* DNSLookup::getAddrInfo(const std::string& hostname,
                                             int port,
                                             std::string& errMsg)
