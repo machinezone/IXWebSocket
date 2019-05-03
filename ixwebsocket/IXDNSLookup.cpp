@@ -17,28 +17,26 @@ namespace ix
     std::atomic<uint64_t> DNSLookup::_nextId(0);
     std::set<uint64_t> DNSLookup::_activeJobs;
     std::mutex DNSLookup::_activeJobsMutex;
-    std::mutex DNSLookup::_resMutex;
 
     DNSLookup::DNSLookup(const std::string& hostname, int port, int64_t wait) :
-        _hostname(hostname),
         _port(port),
         _wait(wait),
         _res(nullptr),
         _done(false),
         _id(_nextId++)
     {
-        ;
+        setHostname(hostname);
     }
 
     DNSLookup::~DNSLookup()
     {
         // Remove this job from the active jobs list
-        std::unique_lock<std::mutex> lock(_activeJobsMutex);
+        std::lock_guard<std::mutex> lock(_activeJobsMutex);
         _activeJobs.erase(_id);
     }
 
     // we want hostname to be copied, not passed as a const reference
-    struct addrinfo* DNSLookup::getAddrInfo(std::string hostname,
+    struct addrinfo* DNSLookup::getAddrInfo(const std::string& hostname,
                                             int port,
                                             std::string& errMsg)
     {
@@ -81,7 +79,7 @@ namespace ix
             return nullptr;
         }
 
-        return getAddrInfo(_hostname, _port, errMsg);
+        return getAddrInfo(getHostname(), _port, errMsg);
     }
 
     struct addrinfo* DNSLookup::resolveAsync(std::string& errMsg,
@@ -99,7 +97,7 @@ namespace ix
 
         // Record job in the active Job set
         {
-            std::unique_lock<std::mutex> lock(_activeJobsMutex);
+            std::lock_guard<std::mutex> lock(_activeJobsMutex);
             _activeJobs.insert(_id);
         }
 
@@ -107,7 +105,7 @@ namespace ix
         // Good resource on thread forced termination
         // https://www.bo-yang.net/2017/11/19/cpp-kill-detached-thread
         //
-        _thread = std::thread(&DNSLookup::run, this, _id, _hostname, _port);
+        _thread = std::thread(&DNSLookup::run, this, _id, getHostname(), _port);
         _thread.detach();
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
@@ -137,13 +135,8 @@ namespace ix
             return nullptr;
         }
 
-        if (!_errMsg.empty())
-        {
-            errMsg = _errMsg;
-        }
-
-        std::unique_lock<std::mutex> rlock(_resMutex);
-        return _res;
+        errMsg = getErrMsg();
+        return getRes();
     }
 
     void DNSLookup::run(uint64_t id, const std::string& hostname, int port) // thread runner
@@ -155,21 +148,55 @@ namespace ix
         struct addrinfo* res = getAddrInfo(hostname, port, errMsg);
 
         // if this isn't an active job, and the control thread is gone
-        // there is not thing to do, and we don't want to touch the defunct
+        // there is nothing to do, and we don't want to touch the defunct
         // object data structure such as _errMsg or _condition
-        std::unique_lock<std::mutex> lock(_activeJobsMutex);
+        std::lock_guard<std::mutex> lock(_activeJobsMutex);
         if (_activeJobs.count(id) == 0)
         {
             return;
         }
 
         // Copy result into the member variables
-        {
-            std::unique_lock<std::mutex> rlock(_resMutex);
-            _res = res;
-        }
-        _errMsg = errMsg;
+        setRes(res);
+        setErrMsg(errMsg);
+
         _condition.notify_one();
         _done = true;
+    }
+
+    void DNSLookup::setHostname(const std::string& hostname)
+    {
+        std::lock_guard<std::mutex> lock(_hostnameMutex);
+        _hostname = hostname;
+    }
+
+    const std::string& DNSLookup::getHostname()
+    {
+        std::lock_guard<std::mutex> lock(_hostnameMutex);
+        return _hostname;
+    }
+
+    void DNSLookup::setErrMsg(const std::string& errMsg)
+    {
+        std::lock_guard<std::mutex> lock(_errMsgMutex);
+        _errMsg = errMsg;
+    }
+
+    const std::string& DNSLookup::getErrMsg()
+    {
+        std::lock_guard<std::mutex> lock(_errMsgMutex);
+        return _errMsg;
+    }
+
+    void DNSLookup::setRes(struct addrinfo* addr)
+    {
+        std::lock_guard<std::mutex> lock(_resMutex);
+        _res = addr;
+    }
+
+    struct addrinfo* DNSLookup::getRes()
+    {
+        std::lock_guard<std::mutex> lock(_resMutex);
+        return _res;
     }
 }

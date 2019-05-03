@@ -156,7 +156,6 @@ namespace ix
         static OnTrafficTrackerCallback _onTrafficTrackerCallback;
 
         std::atomic<bool> _stop;
-        std::atomic<bool> _blocking;
         std::atomic<bool> _automaticReconnection;
         std::thread _thread;
         std::mutex _writeMutex;

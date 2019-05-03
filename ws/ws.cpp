@@ -58,6 +58,7 @@ int main(int argc, char** argv)
     bool compress = false;
     bool strict = false;
     bool stress = false;
+    bool disableAutomaticReconnection = false;
     int port = 8080;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -87,6 +88,7 @@ int main(int argc, char** argv)
 
     CLI::App* connectApp = app.add_subcommand("connect", "Connect to a remote server");
     connectApp->add_option("url", url, "Connection url")->required();
+    connectApp->add_flag("-d", disableAutomaticReconnection, "Disable Automatic Reconnection");
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
     chatApp->add_option("url", url, "Connection url")->required();
@@ -218,7 +220,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("connect"))
     {
-        ret = ix::ws_connect_main(url);
+        ret = ix::ws_connect_main(url, disableAutomaticReconnection);
     }
     else if (app.got_subcommand("chat"))
     {
