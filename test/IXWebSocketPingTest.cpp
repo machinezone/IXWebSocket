@@ -461,7 +461,7 @@ TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
         webSocketClient.sendMessage("hello world");
         ix::msleep(900);
         webSocketClient.sendMessage("hello world");
-        ix::msleep(1100);
+        ix::msleep(1010);
 
         webSocketClient.stop();
 

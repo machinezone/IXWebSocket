@@ -602,12 +602,20 @@ namespace ix
                     bool remote = true;
                     closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
                 }
-                // we got the CLOSE frame answer from our close, so we can close the connection if
-                // the code/reason are the same
-                else if (_closeCode == code && _closeReason == reason)
+                else
                 {
-                    bool remote = false;
-                    closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
+                    // we got the CLOSE frame answer from our close, so we can close the connection if
+                    // the code/reason are the same
+                    bool identicalReason;
+                    {
+                        std::lock_guard<std::mutex> lock(_closeDataMutex);
+                        identicalReason = _closeCode == code && _closeReason == reason;
+                    }
+                    if (identicalReason)
+                    {
+                        bool remote = false;
+                        closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
+                    }
                 }
             }
             else
