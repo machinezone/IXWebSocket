@@ -69,9 +69,13 @@ namespace
         // The important bit for this test.
         // Set a 1 second heartbeat with the setter method to test
         if (_useHeartBeatMethod)
+        {
             _webSocket.setHeartBeatPeriod(1);
+        }
         else
+        {
             _webSocket.setPingInterval(1);
+        }
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
@@ -110,8 +114,7 @@ namespace
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
                 {
-                    ss << "Received message " << str;
-                    log(ss.str());
+                    // too many messages to log
                 }
                 else
                 {
@@ -163,6 +166,14 @@ namespace
                             log("Server received a ping");
                             receivedPingMessages++;
                         }
+                        else if (messageType == ix::WebSocket_MessageType_Message)
+                        {
+                            // to many messages to log
+                            for(auto client: server.getClients())
+                            {
+                                client->sendText("reply");
+                            }
+                        }
                     }
                 );
             }
@@ -177,96 +188,6 @@ namespace
 
         server.start();
         return true;
-    }
-}
-
-TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
-{
-    SECTION("Make sure that ping messages are sent when no other data are sent.")
-    {
-        ix::setupWebSocketTrafficTrackerCallback();
-
-        int port = getFreePort();
-        ix::WebSocketServer server(port);
-        std::atomic<int> serverReceivedPingMessages(0);
-        REQUIRE(startServer(server, serverReceivedPingMessages));
-
-        std::string session = ix::generateSessionId();
-        bool useSetHeartBeatPeriodMethod = true;
-        WebSocketClient webSocketClient(port, useSetHeartBeatPeriodMethod);
-
-        webSocketClient.start();
-
-        // Wait for all chat instance to be ready
-        while (true)
-        {
-            if (webSocketClient.isReady()) break;
-            ix::msleep(10);
-        }
-
-        REQUIRE(server.getClients().size() == 1);
-
-        ix::msleep(1900);
-
-        webSocketClient.stop();
-
-
-        // Here we test ping interval
-        // -> expected ping messages == 1 as 1900 seconds, 1 ping sent every second
-        REQUIRE(serverReceivedPingMessages == 1);
-
-        // Give us 500ms for the server to notice that clients went away
-        ix::msleep(500);
-        REQUIRE(server.getClients().size() == 0);
-
-        ix::reportWebSocketTraffic();
-    }
-}
-
-TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
-{
-    SECTION("Make sure that ping messages are sent, even if other messages are sent")
-    {
-        ix::setupWebSocketTrafficTrackerCallback();
-
-        int port = getFreePort();
-        ix::WebSocketServer server(port);
-        std::atomic<int> serverReceivedPingMessages(0);
-        REQUIRE(startServer(server, serverReceivedPingMessages));
-
-        std::string session = ix::generateSessionId();
-        bool useSetHeartBeatPeriodMethod = true;
-        WebSocketClient webSocketClient(port, useSetHeartBeatPeriodMethod);
-
-        webSocketClient.start();
-
-        // Wait for all chat instance to be ready
-        while (true)
-        {
-            if (webSocketClient.isReady()) break;
-            ix::msleep(10);
-        }
-
-        REQUIRE(server.getClients().size() == 1);
-
-        ix::msleep(900);
-        webSocketClient.sendMessage("hello world");
-        ix::msleep(900);
-        webSocketClient.sendMessage("hello world");
-        ix::msleep(1100);
-
-        webSocketClient.stop();
-
-        // Here we test ping interval
-        // client has sent data, but ping should have been sent no matter what
-        // -> expected ping messages == 2 as 900+900+1100 = 2900 seconds, 1 ping sent every second
-        REQUIRE(serverReceivedPingMessages == 2);
-
-        // Give us 500ms for the server to notice that clients went away
-        ix::msleep(500);
-        REQUIRE(server.getClients().size() == 0);
-
-        ix::reportWebSocketTraffic();
     }
 }
 
@@ -351,6 +272,203 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval", "[setPingInterval]")
         // client has sent data, but ping should have been sent no matter what
         // -> expected ping messages == 3 as 900+900+1300 = 3100 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 3);
+
+        // Give us 500ms for the server to notice that clients went away
+        ix::msleep(500);
+        REQUIRE(server.getClients().size() == 0);
+
+        ix::reportWebSocketTraffic();
+    }
+}
+
+TEST_CASE("Websocket_ping_data_sent_setPingInterval_half_full", "[setPingInterval]")
+{
+    SECTION("Make sure that ping messages are sent, even if other messages are sent continuously during a given time")
+    {
+        ix::setupWebSocketTrafficTrackerCallback();
+
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+        std::atomic<int> serverReceivedPingMessages(0);
+        REQUIRE(startServer(server, serverReceivedPingMessages));
+
+        std::string session = ix::generateSessionId();
+        bool useSetHeartBeatPeriodMethod = false; // so use setPingInterval
+        WebSocketClient webSocketClient(port, useSetHeartBeatPeriodMethod);
+
+        webSocketClient.start();
+
+        // Wait for all chat instance to be ready
+        while (true)
+        {
+            if (webSocketClient.isReady()) break;
+            ix::msleep(10);
+        }
+
+        REQUIRE(server.getClients().size() == 1);
+
+        // send continuously for 1100ms
+        auto now = std::chrono::steady_clock::now();
+
+        while(std::chrono::steady_clock::now() - now <= std::chrono::milliseconds(900))
+        {
+            webSocketClient.sendMessage("message");
+            ix::msleep(1);
+        }
+        ix::msleep(150);
+
+        // Here we test ping interval
+        // client has sent data, but ping should have been sent no matter what
+        // -> expected ping messages == 1, as 900+150 = 1050ms, 1 ping sent every second
+        REQUIRE(serverReceivedPingMessages == 1);
+
+        ix::msleep(100);
+
+        webSocketClient.stop();
+
+        // Give us 500ms for the server to notice that clients went away
+        ix::msleep(500);
+        REQUIRE(server.getClients().size() == 0);
+
+        ix::reportWebSocketTraffic();
+    }
+}
+
+TEST_CASE("Websocket_ping_data_sent_setPingInterval_full", "[setPingInterval]")
+{
+    SECTION("Make sure that ping messages are sent, even if other messages are sent continuously for longer than ping interval")
+    {
+        ix::setupWebSocketTrafficTrackerCallback();
+
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+        std::atomic<int> serverReceivedPingMessages(0);
+        REQUIRE(startServer(server, serverReceivedPingMessages));
+
+        std::string session = ix::generateSessionId();
+        bool useSetHeartBeatPeriodMethod = false; // so use setPingInterval
+        WebSocketClient webSocketClient(port, useSetHeartBeatPeriodMethod);
+
+        webSocketClient.start();
+
+        // Wait for all chat instance to be ready
+        while (true)
+        {
+            if (webSocketClient.isReady()) break;
+            ix::msleep(10);
+        }
+
+        REQUIRE(server.getClients().size() == 1);
+
+        // send continuously for 1100ms
+        auto now = std::chrono::steady_clock::now();
+
+        while(std::chrono::steady_clock::now() - now <= std::chrono::milliseconds(1100))
+        {
+            webSocketClient.sendMessage("message");
+            ix::msleep(1);
+        }
+
+        // Here we test ping interval
+        // client has sent data, but ping should have been sent no matter what
+        // -> expected ping messages == 1, 1 ping sent every second
+        REQUIRE(serverReceivedPingMessages == 1);
+
+        ix::msleep(100);
+
+        webSocketClient.stop();
+
+        // Give us 500ms for the server to notice that clients went away
+        ix::msleep(500);
+        REQUIRE(server.getClients().size() == 0);
+
+        ix::reportWebSocketTraffic();
+    }
+}
+
+// Using setHeartBeatPeriod
+
+TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
+{
+    SECTION("Make sure that ping messages are sent when no other data are sent.")
+    {
+        ix::setupWebSocketTrafficTrackerCallback();
+
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+        std::atomic<int> serverReceivedPingMessages(0);
+        REQUIRE(startServer(server, serverReceivedPingMessages));
+
+        std::string session = ix::generateSessionId();
+        bool useSetHeartBeatPeriodMethod = true;
+        WebSocketClient webSocketClient(port, useSetHeartBeatPeriodMethod);
+
+        webSocketClient.start();
+
+        // Wait for all chat instance to be ready
+        while (true)
+        {
+            if (webSocketClient.isReady()) break;
+            ix::msleep(10);
+        }
+
+        REQUIRE(server.getClients().size() == 1);
+
+        ix::msleep(1900);
+
+        webSocketClient.stop();
+
+
+        // Here we test ping interval
+        // -> expected ping messages == 1 as 1900 seconds, 1 ping sent every second
+        REQUIRE(serverReceivedPingMessages == 1);
+
+        // Give us 500ms for the server to notice that clients went away
+        ix::msleep(500);
+        REQUIRE(server.getClients().size() == 0);
+
+        ix::reportWebSocketTraffic();
+    }
+}
+
+TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
+{
+    SECTION("Make sure that ping messages are sent, even if other messages are sent")
+    {
+        ix::setupWebSocketTrafficTrackerCallback();
+
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+        std::atomic<int> serverReceivedPingMessages(0);
+        REQUIRE(startServer(server, serverReceivedPingMessages));
+
+        std::string session = ix::generateSessionId();
+        bool useSetHeartBeatPeriodMethod = true;
+        WebSocketClient webSocketClient(port, useSetHeartBeatPeriodMethod);
+
+        webSocketClient.start();
+
+        // Wait for all chat instance to be ready
+        while (true)
+        {
+            if (webSocketClient.isReady()) break;
+            ix::msleep(10);
+        }
+
+        REQUIRE(server.getClients().size() == 1);
+
+        ix::msleep(900);
+        webSocketClient.sendMessage("hello world");
+        ix::msleep(900);
+        webSocketClient.sendMessage("hello world");
+        ix::msleep(1100);
+
+        webSocketClient.stop();
+
+        // Here we test ping interval
+        // client has sent data, but ping should have been sent no matter what
+        // -> expected ping messages == 2 as 900+900+1100 = 2900 seconds, 1 ping sent every second
+        REQUIRE(serverReceivedPingMessages == 2);
 
         // Give us 500ms for the server to notice that clients went away
         ix::msleep(500);

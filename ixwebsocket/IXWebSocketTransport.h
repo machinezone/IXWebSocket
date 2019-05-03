@@ -56,6 +56,12 @@ namespace ix
             FRAGMENT
         };
 
+        enum PollPostTreatment
+        {
+            NONE,
+            CHECK_OR_RAISE_ABNORMAL_CLOSE_AFTER_DISPATCH
+        };
+
         using OnMessageCallback = std::function<void(const std::string&,
                                                      size_t,
                                                      bool,
@@ -78,7 +84,7 @@ namespace ix
         WebSocketInitResult connectToSocket(int fd,              // Server
                                             int timeoutSecs);
 
-        void poll();
+        PollPostTreatment poll();
         WebSocketSendInfo sendBinary(const std::string& message,
                                      const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendText(const std::string& message,
@@ -93,7 +99,8 @@ namespace ix
         ReadyStateValues getReadyState() const;
         void setReadyState(ReadyStateValues readyStateValue);
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
-        void dispatch(const OnMessageCallback& onMessageCallback);
+        void dispatch(PollPostTreatment pollPostTreatment,
+                      const OnMessageCallback& onMessageCallback);
         size_t bufferedAmount() const;
 
     private:
@@ -162,6 +169,10 @@ namespace ix
 
         // Used to cancel dns lookup + socket connect + http upgrade
         std::atomic<bool> _requestInitCancellation;
+              
+        mutable std::mutex _closingTimePointMutex;
+        std::chrono::time_point<std::chrono::steady_clock>_closingTimePoint;
+        static const int kClosingMaximumWaitingDelayInMs;
 
         // Constants for dealing with closing conneections
         static const uint16_t kInternalErrorCode;
@@ -187,6 +198,9 @@ namespace ix
         static const int kDefaultPingTimeoutSecs;
         static const std::string kPingMessage;
 
+        // Record time step for ping/ ping timeout to ensure we wait for the right left duration
+        std::chrono::time_point<std::chrono::steady_clock> _nextGCDTimePoint;
+
         // We record when ping are being sent so that we can know when to send the next one
         // We also record when pong are being sent as a reply to pings, to close the connections
         // if no pong were received sufficiently fast.
@@ -200,6 +214,16 @@ namespace ix
 
         // No PONG data was received through the socket for longer than ping timeout delay
         bool pingTimeoutExceeded();
+
+        // after calling close(), if no CLOSE frame answer is received back from the remote, we should close the connexion
+        bool closingDelayExceeded();
+
+        void sendCloseFrame(uint16_t code, const std::string& reason);
+
+        void closeSocketAndSwitchToClosedState(uint16_t code,
+                                               const std::string& reason,
+                                               size_t closeWireSize,
+                                               bool remote);
 
         void sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
