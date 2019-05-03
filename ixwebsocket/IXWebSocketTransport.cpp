@@ -566,7 +566,6 @@ namespace ix
                 std::string reason(_rxbuf.begin()+ws.header_size + 2,
                                    _rxbuf.begin()+ws.header_size + (size_t) ws.N);
                 
-                
                 // We receive a CLOSE frame from remote and are NOT the ones who triggered the close
                 if (_readyState != CLOSING)
                 {

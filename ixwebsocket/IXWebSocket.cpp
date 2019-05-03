@@ -275,7 +275,7 @@ namespace ix
                     _onMessageCallback(WebSocket_MessageType_Error, "", 0,
                                        connectErr, WebSocketOpenInfo(),
                                        WebSocketCloseInfo());
-                    
+
                     // Only sleep if we aren't in the middle of stopping
                     if (!_stop)
                     {
@@ -342,9 +342,7 @@ namespace ix
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });
 
-            // 4. In blocking mode, getting out of this function is triggered by
-            //    an explicit disconnection from the callback, or by the remote end
-            //    closing the connection, ie isConnectedOrClosing() == false.
+            // If we aren't trying to reconnect automatically, exit if we aren't connected
             if (!isConnectedOrClosing() && !_automaticReconnection) return;
         }
     }
