@@ -257,7 +257,7 @@ namespace ix
             // Otherwise try to reconnect perpertually
             while (true)
             {
-                if (isConnected() || isClosing() || _stop || !_automaticReconnection)
+                if (isConnectedOrClosing() || _stop || !_automaticReconnection)
                 {
                     break;
                 }

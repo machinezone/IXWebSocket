@@ -282,9 +282,9 @@ namespace ix
             }
         }
         
-        // No timeout if state is CLOSING, otherwise computed
+        // No timeout if state is not OPEN, otherwise computed
         // pingIntervalOrTimeoutGCD (equals to -1 if no ping and no ping timeout are set)
-        int lastingTimeoutDelayInMs = (_readyState == CLOSING) ? 0 : _pingIntervalOrTimeoutGCDSecs;
+        int lastingTimeoutDelayInMs = (_readyState != OPEN) ? 0 : _pingIntervalOrTimeoutGCDSecs;
 
         if (_pingIntervalOrTimeoutGCDSecs > 0)
         {

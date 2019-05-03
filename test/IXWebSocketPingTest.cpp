@@ -355,7 +355,7 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval_full", "[setPingInterval]")
         while (true)
         {
             if (webSocketClient.isReady()) break;
-            ix::msleep(10);
+            ix::msleep(1);
         }
 
         REQUIRE(server.getClients().size() == 1);
@@ -409,7 +409,7 @@ TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod
         while (true)
         {
             if (webSocketClient.isReady()) break;
-            ix::msleep(10);
+            ix::msleep(1);
         }
 
         REQUIRE(server.getClients().size() == 1);
@@ -452,7 +452,7 @@ TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
         while (true)
         {
             if (webSocketClient.isReady()) break;
-            ix::msleep(10);
+            ix::msleep(1);
         }
 
         REQUIRE(server.getClients().size() == 1);

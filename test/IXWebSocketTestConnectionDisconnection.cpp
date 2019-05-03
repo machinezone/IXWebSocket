@@ -70,7 +70,9 @@ namespace
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
                 {
-                    log("cmd_websocket_satori_chat: Error!");
+                    ss << "cmd_websocket_satori_chat: Error! ";
+                    ss << error.reason;
+                    log(ss.str());
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
                 {
@@ -83,6 +85,10 @@ namespace
                 else if (messageType == ix::WebSocket_MessageType_Pong)
                 {
                     log("cmd_websocket_satori_chat: received pong message.!");
+                }
+                else if (messageType == ix::WebSocket_MessageType_Fragment)
+                {
+                    log("cmd_websocket_satori_chat: received fragment.!");
                 }
                 else
                 {
@@ -117,11 +123,11 @@ TEST_CASE("websocket_connections", "[websocket]")
     SECTION("Try to connect and disconnect with different timing.")
     {
         IXWebSocketTestConnectionDisconnection chatA;
-        for (int i = 0; i < 50; ++i)
+        for (int i = 0; i < 20; ++i)
         {
             log(std::string("Run: ") + std::to_string(i));
             chatA.start(WEBSOCKET_DOT_ORG_URL);
-            ix::msleep(i);
+            ix::msleep(i*50);
             chatA.stop();
         }
     }
