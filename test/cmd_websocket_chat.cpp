@@ -100,7 +100,7 @@ namespace
         std::string url;
         {
             std::stringstream ss;
-            ss << "ws://localhost:"
+            ss << "ws://127.0.0.1:"
                << _port
                << "/"
                << _user;

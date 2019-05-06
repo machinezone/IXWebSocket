@@ -7,6 +7,7 @@
 #include "IXSocketConnect.h"
 #include "IXDNSLookup.h"
 #include "IXNetSystem.h"
+#include "IXSocket.h"
 
 #include <string.h>
 #include <fcntl.h>
@@ -17,18 +18,6 @@
 # include <linux/in.h>
 # include <linux/tcp.h>
 #endif
-
-namespace
-{
-    void closeSocket(int fd)
-    {
-#ifdef _WIN32
-        closesocket(fd);
-#else
-        ::close(fd);
-#endif
-    }
-}
 
 namespace ix
 {
@@ -56,11 +45,12 @@ namespace ix
         // block us for too long
         SocketConnect::configure(fd);
 
-        if (::connect(fd, address->ai_addr, address->ai_addrlen) == -1
-            && errno != EINPROGRESS && errno != 0)
+        int res = ::connect(fd, address->ai_addr, address->ai_addrlen);
+
+        if (res == -1 && !Socket::isWaitNeeded())
         {
-            errMsg = strerror(errno);
-            closeSocket(fd);
+            errMsg = strerror(Socket::getErrno());
+            Socket::closeSocket(fd);
             return -1;
         }
 
@@ -68,15 +58,17 @@ namespace ix
         {
             if (isCancellationRequested && isCancellationRequested()) // Must handle timeout as well
             {
-                closeSocket(fd);
+                Socket::closeSocket(fd);
                 errMsg = "Cancelled";
                 return -1;
             }
 
-            // Use select to check the status of the new connection
+            // On Linux the timeout needs to be re-initialized everytime
+            // http://man7.org/linux/man-pages/man2/select.2.html
             struct timeval timeout;
             timeout.tv_sec = 0;
             timeout.tv_usec = 10 * 1000; // 10ms timeout
+
             fd_set wfds;
             fd_set efds;
 
@@ -85,11 +77,13 @@ namespace ix
             FD_ZERO(&efds);
             FD_SET(fd, &efds);
 
-            if (select(fd + 1, nullptr, &wfds, &efds, &timeout) < 0 &&
-                (errno == EBADF || errno == EINVAL))
+            // Use select to check the status of the new connection
+            res = select(fd + 1, nullptr, &wfds, &efds, &timeout);
+
+            if (res < 0 && (Socket::getErrno() == EBADF || Socket::getErrno() == EINVAL))
             {
-                closeSocket(fd);
-                errMsg = std::string("Connect error, select error: ") + strerror(errno);
+                Socket::closeSocket(fd);
+                errMsg = std::string("Connect error, select error: ") + strerror(Socket::getErrno());
                 return -1;
             }
 
@@ -110,7 +104,7 @@ namespace ix
                 optval != 0)
 #endif
             {
-                closeSocket(fd);
+                Socket::closeSocket(fd);
                 errMsg = strerror(optval);
                 return -1;
             }
@@ -121,7 +115,7 @@ namespace ix
             }
         }
 
-        closeSocket(fd);
+        Socket::closeSocket(fd);
         errMsg = "connect timed out after 60 seconds";
         return -1;
     }

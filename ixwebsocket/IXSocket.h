@@ -16,6 +16,20 @@
 #ifdef _WIN32
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
+
+#undef EWOULDBLOCK
+#undef EAGAIN
+#undef EINPROGRESS
+#undef EBADF
+#undef EINVAL
+
+// map to WSA error codes
+#define EWOULDBLOCK    WSAEWOULDBLOCK
+#define EAGAIN         WSATRY_AGAIN
+#define EINPROGRESS    WSAEINPROGRESS
+#define EBADF          WSAEBADF
+#define EINVAL         WSAEINVAL
+
 #endif
 
 #include "IXCancellationRequest.h"
@@ -75,14 +89,13 @@ namespace ix
 
         static int getErrno();
         static bool isWaitNeeded();
+        static void closeSocket(int fd);
 
         // Used as special codes for pipe communication
         static const uint64_t kSendRequest;
         static const uint64_t kCloseRequest;
 
     protected:
-        void closeSocket(int fd);
-
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;
 
