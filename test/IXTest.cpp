@@ -108,7 +108,7 @@ namespace ix
         {
             log("Cannot compute a free port. bind error.");
 
-            ::close(sockfd);
+            Socket::closeSocket(sockfd);
             return getAnyFreePortRandom();
         }
 
@@ -118,12 +118,12 @@ namespace ix
         {
             log("Cannot compute a free port. getsockname error.");
 
-            ::close(sockfd);
+            Socket::closeSocket(sockfd);
             return getAnyFreePortRandom();
         }
 
         int port = ntohs(sa.sin_port);
-        ::close(sockfd);
+        Socket::closeSocket(sockfd);
 
         return port;
     }

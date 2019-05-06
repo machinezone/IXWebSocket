@@ -23,7 +23,6 @@ namespace
         public:
             WebSocketClient(int port, int pingInterval, int pingTimeout);
 
-            void subscribe(const std::string& channel);
             void start();
             void stop();
             bool isReady() const;
@@ -71,7 +70,7 @@ namespace
         std::string url;
         {
             std::stringstream ss;
-            ss << "ws://localhost:"
+            ss << "ws://127.0.0.1:"
                << _port
                << "/";
 

@@ -189,28 +189,25 @@ namespace ix
 
     int Socket::getErrno()
     {
+        int err;
+
 #ifdef _WIN32
-        return WSAGetLastError();
+        err = WSAGetLastError();
 #else
-        return errno;
+        err = errno;
 #endif
+
+        return err;
     }
 
     bool Socket::isWaitNeeded()
     {
         int err = getErrno();
 
-        if (err == EWOULDBLOCK || err == EAGAIN)
+        if (err == EWOULDBLOCK || err == EAGAIN || err == EINPROGRESS)
         {
             return true;
         }
-
-#ifdef _WIN32
-        if (err == WSAEWOULDBLOCK || err == WSATRY_AGAIN)
-        {
-            return true;
-        }
-#endif
 
         return false;
     }
