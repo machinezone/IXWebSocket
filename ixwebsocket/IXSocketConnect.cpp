@@ -54,11 +54,6 @@ namespace ix
             return -1;
         }
 
-        // Use select to check the status of the new connection
-        struct timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 10 * 1000; // 10ms timeout
-
         for (;;)
         {
             if (isCancellationRequested && isCancellationRequested()) // Must handle timeout as well
@@ -68,6 +63,12 @@ namespace ix
                 return -1;
             }
 
+            // On Linux the timeout needs to be re-initialized everytime
+            // http://man7.org/linux/man-pages/man2/select.2.html
+            struct timeval timeout;
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 10 * 1000; // 10ms timeout
+
             fd_set wfds;
             fd_set efds;
 
@@ -76,6 +77,7 @@ namespace ix
             FD_ZERO(&efds);
             FD_SET(fd, &efds);
 
+            // Use select to check the status of the new connection
             res = select(fd + 1, nullptr, &wfds, &efds, &timeout);
 
             if (res < 0 && (Socket::getErrno() == EBADF || Socket::getErrno() == EINVAL))
