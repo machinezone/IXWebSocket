@@ -281,7 +281,7 @@ namespace ix
             if (_stop) return;
 
             // Launch the handleConnection work asynchronously in its own thread.
-            std::lock_guard<std::mutex> lock(_conditionVariableMutex);
+            std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
             _connectionsThreads.push_back(std::make_pair(
                     connectionState,
                     std::thread(&SocketServer::handleConnection,
