@@ -7,7 +7,6 @@
 #pragma once
 
 #include <string>
-#include <regex>
 
 namespace ix
 {
@@ -19,13 +18,8 @@ namespace ix
                           std::string& host,
                           std::string& path,
                           std::string& query,
-                          int& port,
-                          bool websocket);
+                          int& port);
 
-        static void printUrl(const std::string& url, bool websocket);
-
-    private:
-        static std::regex _httpRegex;
-        static std::regex _webSocketRegex;
+        static void printUrl(const std::string& url);
     };
 }

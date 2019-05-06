@@ -37,6 +37,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXWebSocketHttpHeaders.cpp
     ixwebsocket/IXHttpClient.cpp
     ixwebsocket/IXUrlParser.cpp
+    ixwebsocket/LUrlParser.cpp
     ixwebsocket/IXSelectInterrupt.cpp
     ixwebsocket/IXSelectInterruptFactory.cpp
     ixwebsocket/IXConnectionState.cpp
@@ -65,6 +66,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/libwshandshake.hpp
     ixwebsocket/IXHttpClient.h
     ixwebsocket/IXUrlParser.h
+    ixwebsocket/LUrlParser.h
     ixwebsocket/IXSelectInterrupt.h
     ixwebsocket/IXSelectInterruptFactory.h
     ixwebsocket/IXConnectionState.h
