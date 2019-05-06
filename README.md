@@ -12,8 +12,6 @@
 * Android
 * Windows (no TLS)
 
-The code was made to compile once on Windows but support is currently broken on this platform.
-
 ## Examples
 
 The [*ws*](https://github.com/machinezone/IXWebSocket/tree/master/ws) folder countains many interactive programs for chat, [file transfers](https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_send.cpp), [curl like](https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_http_client.cpp) http clients, demonstrating client and server usage.
