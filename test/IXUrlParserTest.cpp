@@ -23,10 +23,9 @@ TEST_CASE("urlParser", "[urlParser]")
         std::string url = "http://google.com";
         std::string protocol, host, path, query;
         int port;
-        bool websocket = false;
         bool res;
 
-        res = UrlParser::parse(url, protocol, host, path, query, port, websocket);
+        res = UrlParser::parse(url, protocol, host, path, query, port);
 
         REQUIRE(res);
         REQUIRE(protocol == "http");
@@ -41,10 +40,9 @@ TEST_CASE("urlParser", "[urlParser]")
         std::string url = "https://google.com";
         std::string protocol, host, path, query;
         int port;
-        bool websocket = false;
         bool res;
 
-        res = UrlParser::parse(url, protocol, host, path, query, port, websocket);
+        res = UrlParser::parse(url, protocol, host, path, query, port);
 
         REQUIRE(res);
         REQUIRE(protocol == "https");
@@ -59,10 +57,9 @@ TEST_CASE("urlParser", "[urlParser]")
         std::string url = "ws://google.com";
         std::string protocol, host, path, query;
         int port;
-        bool websocket = true;
         bool res;
 
-        res = UrlParser::parse(url, protocol, host, path, query, port, websocket);
+        res = UrlParser::parse(url, protocol, host, path, query, port);
 
         REQUIRE(res);
         REQUIRE(protocol == "ws");
@@ -77,10 +74,9 @@ TEST_CASE("urlParser", "[urlParser]")
         std::string url = "wss://google.com/ws?arg=value&arg2=value2";
         std::string protocol, host, path, query;
         int port;
-        bool websocket = true;
         bool res;
 
-        res = UrlParser::parse(url, protocol, host, path, query, port, websocket);
+        res = UrlParser::parse(url, protocol, host, path, query, port);
 
         REQUIRE(res);
         REQUIRE(protocol == "wss");
@@ -95,10 +91,9 @@ TEST_CASE("urlParser", "[urlParser]")
         std::string url = "ws://127.0.0.1:7350/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NTcxNzAwNzIsInVpZCI6ImMwZmZjOGE1LTk4OTktNDAwYi1hNGU5LTJjNWM3NjFmNWQxZiIsInVzbiI6InN2YmhOdlNJSmEifQ.5L8BUbpTA4XAHlSrdwhIVlrlIpRtjExepim7Yh5eEO4&status=true&format=protobuf";
         std::string protocol, host, path, query;
         int port;
-        bool websocket = true;
         bool res;
 
-        res = UrlParser::parse(url, protocol, host, path, query, port, websocket);
+        res = UrlParser::parse(url, protocol, host, path, query, port);
 
         REQUIRE(res);
         REQUIRE(protocol == "ws");

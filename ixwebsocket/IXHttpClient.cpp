@@ -47,9 +47,8 @@ namespace ix
 
         std::string protocol, host, path, query;
         int port;
-        bool websocket = false;
 
-        if (!UrlParser::parse(url, protocol, host, path, query, port, websocket))
+        if (!UrlParser::parse(url, protocol, host, path, query, port))
         {
             std::stringstream ss;
             ss << "Cannot parse url: " << url;

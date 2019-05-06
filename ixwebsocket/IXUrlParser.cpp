@@ -5,43 +5,32 @@
  */
 
 #include "IXUrlParser.h"
+#include "LUrlParser.h"
 
 #include <iostream>
-#include <sstream>
-
 
 namespace ix
 {
-    //
-    // The only difference between those 2 regex is the protocol
-    //
-    std::regex UrlParser::_httpRegex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-    std::regex UrlParser::_webSocketRegex("(ws|wss)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-
     bool UrlParser::parse(const std::string& url,
                           std::string& protocol,
                           std::string& host,
                           std::string& path,
                           std::string& query,
-                          int& port,
-                          bool websocket)
+                          int& port)
     {
-        std::cmatch what;
-        if (!regex_match(url.c_str(), what,
-                         websocket ? _webSocketRegex : _httpRegex))
+        LUrlParser::clParseURL res = LUrlParser::clParseURL::ParseURL(url);
+
+        if (!res.IsValid())
         {
             return false;
         }
 
-        std::string portStr;
+        protocol = res.m_Scheme;
+        host     = res.m_Host;
+        path     = res.m_Path;
+        query    = res.m_Query;
 
-        protocol = std::string(what[1].first, what[1].second);
-        host     = std::string(what[2].first, what[2].second);
-        portStr  = std::string(what[3].first, what[3].second);
-        path     = std::string(what[4].first, what[4].second);
-        query    = std::string(what[5].first, what[5].second);
-
-        if (portStr.empty())
+        if (!res.GetPort(&port))
         {
             if (protocol == "ws" || protocol == "http")
             {
@@ -57,12 +46,6 @@ namespace ix
                 // but this missing branch trigger cpplint linter.
                 return false;
             }
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << portStr;
-            ss >> port;
         }
 
         if (path.empty())
@@ -83,12 +66,12 @@ namespace ix
         return true;
     }
 
-    void UrlParser::printUrl(const std::string& url, bool websocket)
+    void UrlParser::printUrl(const std::string& url)
     {
         std::string protocol, host, path, query;
         int port {0};
 
-        if (!parse(url, protocol, host, path, query, port, websocket))
+        if (!parse(url, protocol, host, path, query, port))
         {
             return;
         }
