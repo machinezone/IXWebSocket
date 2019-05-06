@@ -32,16 +32,16 @@ set (SOURCES
   IXDNSLookupTest.cpp
   IXSocketTest.cpp
   IXSocketConnectTest.cpp
+  IXWebSocketServerTest.cpp
+  IXWebSocketPingTest.cpp
+  IXWebSocketTestConnectionDisconnection.cpp
 )
 
 # Some unittest don't work on windows yet
 if (NOT WIN32)
-  list(APPEND SOURCES 
-    IXWebSocketServerTest.cpp
-    IXWebSocketPingTest.cpp
+  list(APPEND SOURCES
     IXWebSocketPingTimeoutTest.cpp
     cmd_websocket_chat.cpp
-    IXWebSocketTestConnectionDisconnection.cpp
   )
 endif()
 

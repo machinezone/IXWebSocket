@@ -77,7 +77,7 @@ namespace ix
                << "at address " << _host << ":" << _port
                << " : " << strerror(Socket::getErrno());
 
-            ::close(_serverFd);
+            Socket::closeSocket(_serverFd);
             return std::make_pair(false, ss.str());
         }
 
@@ -101,7 +101,7 @@ namespace ix
                << "at address " << _host << ":" << _port
                << " : " << strerror(Socket::getErrno());
 
-            ::close(_serverFd);
+            Socket::closeSocket(_serverFd);
             return std::make_pair(false, ss.str());
         }
 
@@ -115,7 +115,7 @@ namespace ix
                << "at address " << _host << ":" << _port
                << " : " << strerror(Socket::getErrno());
 
-            ::close(_serverFd);
+            Socket::closeSocket(_serverFd);
             return std::make_pair(false, ss.str());
         }
 
@@ -159,7 +159,7 @@ namespace ix
         _stop = false;
 
         _conditionVariable.notify_one();
-        ::close(_serverFd);
+        Socket::closeSocket(_serverFd);
     }
 
     void SocketServer::setConnectionStateFactory(
@@ -242,7 +242,7 @@ namespace ix
             // Accept a connection.
             struct sockaddr_in client; // client address information
             int clientFd;              // socket connected to client
-            socklen_t addressLen = sizeof(socklen_t);
+            socklen_t addressLen = sizeof(client);
             memset(&client, 0, sizeof(client));
 
             if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) < 0)
@@ -250,9 +250,10 @@ namespace ix
                 if (!Socket::isWaitNeeded())
                 {
                     // FIXME: that error should be propagated
+                    int err = Socket::getErrno();
                     std::stringstream ss;
                     ss << "SocketServer::run() error accepting connection: "
-                       << strerror(Socket::getErrno());
+                       << err << ", " << strerror(err);
                     logError(ss.str());
                 }
                 continue;
@@ -266,7 +267,7 @@ namespace ix
                    << "Not accepting connection";
                 logError(ss.str());
 
-                ::close(clientFd);
+                Socket::closeSocket(clientFd);
 
                 continue;
             }

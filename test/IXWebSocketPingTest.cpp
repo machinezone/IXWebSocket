@@ -23,7 +23,6 @@ namespace
         public:
             WebSocketClient(int port, bool useHeartBeatMethod);
 
-            void subscribe(const std::string& channel);
             void start();
             void stop();
             bool isReady() const;
@@ -57,7 +56,7 @@ namespace
         std::string url;
         {
             std::stringstream ss;
-            ss << "ws://localhost:"
+            ss << "ws://127.0.0.1:"
                << _port
                << "/";
 
@@ -346,6 +345,9 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval", "[setPingInterval]")
         ix::msleep(1300);
 
         webSocketClient.stop();
+
+        // without this sleep test fails on Windows
+        ix::msleep(100);
 
         // Here we test ping interval
         // client has sent data, but ping should have been sent no matter what
