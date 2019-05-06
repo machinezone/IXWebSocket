@@ -196,6 +196,25 @@ namespace ix
 #endif
     }
 
+    bool Socket::isWaitNeeded()
+    {
+        int err = getErrno();
+
+        if (err == EWOULDBLOCK || err == EAGAIN)
+        {
+            return true;
+        }
+
+#ifdef _WIN32
+        if (err == WSAEWOULDBLOCK || err == WSATRY_AGAIN)
+        {
+            return true;
+        }
+#endif
+
+        return false;
+    }
+
     void Socket::closeSocket(int fd)
     {
 #ifdef _WIN32
@@ -228,8 +247,7 @@ namespace ix
                 return ret == len;
             }
             // There is possibly something to be writen, try again
-            else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
-                                 getErrno() == EAGAIN))
+            else if (ret < 0 && Socket::isWaitNeeded())
             {
                 continue;
             }
@@ -257,8 +275,7 @@ namespace ix
                 return true;
             }
             // There is possibly something to be read, try again
-            else if (ret < 0 && (getErrno() == EWOULDBLOCK ||
-                                 getErrno() == EAGAIN))
+            else if (ret < 0 && Socket::isWaitNeeded())
             {
                 // Wait with a 1ms timeout until the socket is ready to read.
                 // This way we are not busy looping
@@ -317,13 +334,12 @@ namespace ix
             size_t size = std::min(kChunkSize, length - output.size());
             ssize_t ret = recv((char*)&_readBuffer[0], size);
 
-            if (ret <= 0 && (getErrno() != EWOULDBLOCK &&
-                             getErrno() != EAGAIN))
+            if (ret <= 0 && !Socket::isWaitNeeded())
             {
                 // Error
                 return std::make_pair(false, std::string());
             }
-            else if (ret > 0)
+            else
             {
                 output.insert(output.end(),
                               _readBuffer.begin(),

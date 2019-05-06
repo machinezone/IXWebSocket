@@ -41,8 +41,6 @@ namespace ix
         virtual ~Socket();
         bool init(std::string& errorMsg);
 
-        void configure();
-
         // Functions to check whether there is activity on the socket
         PollResultType poll(int timeoutSecs = kDefaultPollTimeout);
         bool wakeUpFromPoll(uint8_t wakeUpCode);
@@ -76,6 +74,7 @@ namespace ix
             const CancellationRequest& isCancellationRequested);
 
         static int getErrno();
+        static bool isWaitNeeded();
 
         // Used as special codes for pipe communication
         static const uint64_t kSendRequest;
