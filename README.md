@@ -10,6 +10,7 @@
 * iOS
 * Linux
 * Android
+* Windows (no TLS)
 
 The code was made to compile once on Windows but support is currently broken on this platform.
 
