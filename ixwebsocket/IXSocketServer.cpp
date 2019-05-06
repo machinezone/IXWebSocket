@@ -244,7 +244,6 @@ namespace ix
             int clientFd;              // socket connected to client
             socklen_t addressLen = sizeof(client);
             memset(&client, 0, sizeof(client));
-            //client.sin_family = AF_INET;
 
             if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) < 0)
             {
