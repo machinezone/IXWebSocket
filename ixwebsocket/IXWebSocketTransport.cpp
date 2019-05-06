@@ -296,8 +296,7 @@ namespace ix
             {
                 ssize_t ret = _socket->recv((char*)&_readbuf[0], _readbuf.size());
 
-                if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
-                                _socket->getErrno() == EAGAIN))
+                if (ret < 0 && Socket::isWaitNeeded())
                 {
                     break;
                 }
@@ -844,8 +843,7 @@ namespace ix
         {
             ssize_t ret = _socket->send((char*)&_txbuf[0], _txbuf.size());
 
-            if (ret < 0 && (_socket->getErrno() == EWOULDBLOCK ||
-                            _socket->getErrno() == EAGAIN))
+            if (ret < 0 && Socket::isWaitNeeded())
             {
                 break;
             }

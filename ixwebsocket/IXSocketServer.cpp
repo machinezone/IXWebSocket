@@ -247,7 +247,7 @@ namespace ix
 
             if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) < 0)
             {
-                if (Socket::getErrno() != EWOULDBLOCK)
+                if (!Socket::isWaitNeeded())
                 {
                     // FIXME: that error should be propagated
                     std::stringstream ss;
