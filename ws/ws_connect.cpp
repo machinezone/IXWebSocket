@@ -106,6 +106,18 @@ namespace ix
                     ss << "HTTP Status: "      << error.http_status << std::endl;
                     log(ss.str());
                 }
+                else if (messageType == ix::WebSocket_MessageType_Fragment)
+                {
+                    std::cerr << "Received message fragment" << std::endl;
+                }
+                else if (messageType == ix::WebSocket_MessageType_Ping)
+                {
+                    std::cerr << "Received ping" << std::endl;
+                }
+                else if (messageType == ix::WebSocket_MessageType_Pong)
+                {
+                    std::cerr << "Received pong" << std::endl;
+                }
                 else
                 {
                     ss << "Invalid ix::WebSocketMessageType";
