@@ -1,7 +1,7 @@
 /*
- *  IXWebSocketPoll.cpp
+ *  IXWebSocketMessageQueue.cpp
  *  Author: Korchynskyi Dmytro
- *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2017-2019 Machine Zone, Inc. All rights reserved.
  */
 
 #include "IXWebSocketMessageQueue.h"
