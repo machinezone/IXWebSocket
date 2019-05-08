@@ -1,7 +1,7 @@
 /*
- *  IXWebSocketPoll.h
+ *  IXWebSocketMessageQueue.h
  *  Author: Korchynskyi Dmytro
- *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2017-2019 Machine Zone, Inc. All rights reserved.
  */
 
 #pragma once
@@ -13,9 +13,9 @@
 
 namespace ix
 {
-    /**
-     * A helper class to dispatch websocket message callbacks in your thread.
-     */
+    //
+    // A helper class to dispatch websocket message callbacks in your thread.
+    //
     class WebSocketMessageQueue
     {
     public:
