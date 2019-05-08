@@ -56,9 +56,10 @@ namespace ix
                     message->openInfo  = openInfo;
                     message->closeInfo = closeInfo;
 
-                    _messagesMutex.lock();
-                    _messages.emplace_back(std::move(message));
-                    _messagesMutex.unlock();
+                    {
+                        std::lock_guard<std::mutex> lock(_messagesMutex);
+                        _messages.emplace_back(std::move(message));
+                    }
                 });
             }
         }
@@ -72,14 +73,13 @@ namespace ix
     WebSocketMessageQueue::MessageDataPtr WebSocketMessageQueue::popMessage()
     {
         MessageDataPtr message;
+        std::lock_guard<std::mutex> lock(_messagesMutex);
 
-        _messagesMutex.lock();
         if (!_messages.empty())
         {
             message = std::move(_messages.front());
             _messages.pop_front();
         }
-        _messagesMutex.unlock();
 
         return message;
     }
