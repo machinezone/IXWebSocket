@@ -11,13 +11,14 @@ namespace ix
 
     WebSocketPoll::WebSocketPoll(WebSocket* websocket)
     {
+        bindWebsocket(websocket);
     }
 
     WebSocketPoll::~WebSocketPoll()
     {
         if (!_messages.empty())
         {
-
+            // not handled all messages
         }
 
         bindWebsocket(nullptr);
