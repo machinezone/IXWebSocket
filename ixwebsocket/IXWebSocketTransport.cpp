@@ -303,6 +303,8 @@ namespace ix
                 {
                     _rxbuf.clear();
                     _socket->close();
+
+                    if (getReadyState() != CLOSING)
                     {
                         std::lock_guard<std::mutex> lock(_closeDataMutex);
                         _closeCode = kAbnormalCloseCode;
