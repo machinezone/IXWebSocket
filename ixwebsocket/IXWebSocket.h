@@ -113,6 +113,11 @@ namespace ix
         WebSocketSendInfo ping(const std::string& text);
         void close();
 
+        /**
+         * Set callback to receive websocket messages.
+         *
+         * Be aware: your callback will be executed from websocket's internal thread!
+         */
         void setOnMessageCallback(const OnMessageCallback& callback);
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
         static void resetTrafficTrackerCallback();
