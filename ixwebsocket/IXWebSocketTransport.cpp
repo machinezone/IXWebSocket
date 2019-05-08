@@ -45,7 +45,6 @@
 #include <vector>
 #include <string>
 #include <cstdarg>
-#include <iostream>
 #include <sstream>
 #include <chrono>
 #include <thread>
