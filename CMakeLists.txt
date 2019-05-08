@@ -28,7 +28,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXCancellationRequest.cpp
     ixwebsocket/IXNetSystem.cpp
     ixwebsocket/IXWebSocket.cpp
-    ixwebsocket/IXWebSocketPoll.cpp
+    ixwebsocket/IXWebSocketMessageQueue.cpp
     ixwebsocket/IXWebSocketServer.cpp
     ixwebsocket/IXWebSocketTransport.cpp
     ixwebsocket/IXWebSocketHandshake.cpp
@@ -55,7 +55,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXNetSystem.h
     ixwebsocket/IXProgressCallback.h
     ixwebsocket/IXWebSocket.h
-    ixwebsocket/IXWebSocketPoll.h
+    ixwebsocket/IXWebSocketMessageQueue.h
     ixwebsocket/IXWebSocketServer.h
     ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/IXWebSocketHandshake.h

@@ -4,17 +4,17 @@
  *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include "IXWebSocketPoll.h"
+#include "IXWebSocketMessageQueue.h"
 
 namespace ix
 {
 
-    WebSocketPoll::WebSocketPoll(WebSocket* websocket)
+    WebSocketMessageQueue::WebSocketMessageQueue(WebSocket* websocket)
     {
         bindWebsocket(websocket);
     }
 
-    WebSocketPoll::~WebSocketPoll()
+    WebSocketMessageQueue::~WebSocketMessageQueue()
     {
         if (!_messages.empty())
         {
@@ -24,7 +24,7 @@ namespace ix
         bindWebsocket(nullptr);
     }
 
-    void WebSocketPoll::bindWebsocket(WebSocket * websocket)
+    void WebSocketMessageQueue::bindWebsocket(WebSocket * websocket)
     {
         if (_websocket != websocket)
         {
@@ -64,12 +64,12 @@ namespace ix
         }
     }
 
-    void WebSocketPoll::setOnMessageCallback(const OnMessageCallback& callback)
+    void WebSocketMessageQueue::setOnMessageCallback(const OnMessageCallback& callback)
     {
         _onMessageUserCallback = callback;
     }
     
-    WebSocketPoll::MessageDataPtr WebSocketPoll::popMessage()
+    WebSocketMessageQueue::MessageDataPtr WebSocketMessageQueue::popMessage()
     {
         MessageDataPtr message;
 
@@ -84,7 +84,7 @@ namespace ix
         return message;
     }
 
-    void WebSocketPoll::poll(int count)
+    void WebSocketMessageQueue::poll(int count)
     {
         if (!_onMessageUserCallback)
             return;
