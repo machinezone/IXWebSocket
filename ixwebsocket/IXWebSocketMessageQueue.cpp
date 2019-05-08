@@ -47,7 +47,7 @@ namespace ix
                 const WebSocketOpenInfo& openInfo,
                 const WebSocketCloseInfo& closeInfo)
             {
-                MessageDataPtr message(new Message());
+                MessagePtr message(new Message());
 
                 message->type      = type;
                 message->str       = str;
@@ -69,9 +69,9 @@ namespace ix
         _onMessageUserCallback = callback;
     }
     
-    WebSocketMessageQueue::MessageDataPtr WebSocketMessageQueue::popMessage()
+    WebSocketMessageQueue::MessagePtr WebSocketMessageQueue::popMessage()
     {
-        MessageDataPtr message;
+        MessagePtr message;
         std::lock_guard<std::mutex> lock(_messagesMutex);
 
         if (!_messages.empty())
@@ -88,7 +88,7 @@ namespace ix
         if (!_onMessageUserCallback)
             return;
 
-        MessageDataPtr message;
+        MessagePtr message;
 
         while (count > 0 && (message = popMessage()))
         {
