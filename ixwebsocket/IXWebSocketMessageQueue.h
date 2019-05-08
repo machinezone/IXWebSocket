@@ -39,14 +39,14 @@ namespace ix
             WebSocketCloseInfo closeInfo;
         };
 
-        using MessageDataPtr = std::shared_ptr<Message>;
+        using MessagePtr = std::shared_ptr<Message>;
 
-        MessageDataPtr popMessage();
+        MessagePtr popMessage();
 
     private:
         WebSocket* _websocket = nullptr;
         OnMessageCallback _onMessageUserCallback;
         std::mutex _messagesMutex;
-        std::list<MessageDataPtr> _messages;
+        std::list<MessagePtr> _messages;
     };
 }
