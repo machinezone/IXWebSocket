@@ -16,11 +16,11 @@ namespace ix
     /**
      * A helper class to dispatch websocket message callbacks in your thread.
      */
-    class WebSocketPoll
+    class WebSocketMessageQueue
     {
     public:
-        WebSocketPoll(WebSocket* websocket = nullptr);
-        ~WebSocketPoll();
+        WebSocketMessageQueue(WebSocket* websocket = nullptr);
+        ~WebSocketMessageQueue();
 
         void bindWebsocket(WebSocket* websocket);
 
