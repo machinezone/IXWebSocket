@@ -7,7 +7,6 @@
 #include "IXWebSocketPerMessageDeflateOptions.h"
 
 #include <sstream>
-#include <iostream>
 #include <algorithm>
 #include <cctype>
 
