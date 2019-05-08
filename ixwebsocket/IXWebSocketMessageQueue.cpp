@@ -26,42 +26,41 @@ namespace ix
 
     void WebSocketMessageQueue::bindWebsocket(WebSocket * websocket)
     {
-        if (_websocket != websocket)
+        if (_websocket == websocket) return;
+
+        // unbind old
+        if (_websocket)
         {
-            // unbind old
-            if (_websocket)
-            {
-                _websocket->setOnMessageCallback(nullptr);
-            }
+            _websocket->setOnMessageCallback(nullptr);
+        }
 
-            _websocket = websocket;
+        _websocket = websocket;
 
-            // bind new
-            if (_websocket)
+        // bind new
+        if (_websocket)
+        {
+            _websocket->setOnMessageCallback([this](
+                WebSocketMessageType type,
+                const std::string& str,
+                size_t wireSize,
+                const WebSocketErrorInfo& errorInfo,
+                const WebSocketOpenInfo& openInfo,
+                const WebSocketCloseInfo& closeInfo)
             {
-                _websocket->setOnMessageCallback([this](
-                    WebSocketMessageType type,
-                    const std::string& str,
-                    size_t wireSize,
-                    const WebSocketErrorInfo& errorInfo,
-                    const WebSocketOpenInfo& openInfo,
-                    const WebSocketCloseInfo& closeInfo)
+                MessageDataPtr message(new Message());
+
+                message->type      = type;
+                message->str       = str;
+                message->wireSize  = wireSize;
+                message->errorInfo = errorInfo;
+                message->openInfo  = openInfo;
+                message->closeInfo = closeInfo;
+
                 {
-                    MessageDataPtr message(new Message());
-
-                    message->type      = type;
-                    message->str       = str;
-                    message->wireSize  = wireSize;
-                    message->errorInfo = errorInfo;
-                    message->openInfo  = openInfo;
-                    message->closeInfo = closeInfo;
-
-                    {
-                        std::lock_guard<std::mutex> lock(_messagesMutex);
-                        _messages.emplace_back(std::move(message));
-                    }
-                });
-            }
+                    std::lock_guard<std::mutex> lock(_messagesMutex);
+                    _messages.emplace_back(std::move(message));
+                }
+            });
         }
     }
 
