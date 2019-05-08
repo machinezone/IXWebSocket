@@ -10,7 +10,6 @@
 
 #include "libwshandshake.hpp"
 
-#include <iostream>
 #include <sstream>
 #include <random>
 #include <algorithm>

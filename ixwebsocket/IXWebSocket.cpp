@@ -8,7 +8,6 @@
 #include "IXSetThreadName.h"
 #include "IXWebSocketHandshake.h"
 
-#include <iostream>
 #include <cmath>
 #include <cassert>
 
