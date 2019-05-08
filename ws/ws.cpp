@@ -30,7 +30,7 @@ int main(int argc, char** argv)
     CLI::App app{"ws is a websocket tool"};
     app.require_subcommand();
 
-    std::string url("ws://127.0.0.1:8080");
+    std::string url("ws://127.0.0.1:8008");
     std::string path;
     std::string user;
     std::string data;
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
     bool strict = false;
     bool stress = false;
     bool disableAutomaticReconnection = false;
-    int port = 8080;
+    int port = 8008;
     int redisPort = 6379;
     int statsdPort = 8125;
     int connectTimeOut = 60;
