@@ -7,11 +7,20 @@
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <ixwebsocket/IXNetSystem.h>
+#include <ixcore/utils/IXCoreLogger.h>
 
 int main(int argc, char* argv[])
 {
     ix::initNetSystem();
+
+    ix::IXCoreLogger::LogFunc logFunc = [](const char* msg)
+    {
+        spdlog::info(msg);
+    };
+    ix::IXCoreLogger::setLogFunction(logFunc);
 
     int result = Catch::Session().run(argc, argv);
 
