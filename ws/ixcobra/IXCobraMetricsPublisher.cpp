@@ -13,8 +13,8 @@
 namespace ix
 {
     const int CobraMetricsPublisher::kVersion = 1;
-    const std::string CobraMetricsPublisher::kSetRateControlId = "cms_set_rate_control_id";
-    const std::string CobraMetricsPublisher::kSetBlacklistId = "cms_set_blacklist_id";
+    const std::string CobraMetricsPublisher::kSetRateControlId = "sms_set_rate_control_id";
+    const std::string CobraMetricsPublisher::kSetBlacklistId = "sms_set_blacklist_id";
 
     CobraMetricsPublisher::CobraMetricsPublisher() :
         _enabled(false)

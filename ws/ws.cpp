@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 
     ix::IXCoreLogger::LogFunc logFunc = [](const char* msg)
     {
-        std::cout << msg << std::endl;
+        std::cerr << msg << std::endl;
     };
     ix::IXCoreLogger::setLogFunction(logFunc);
 
