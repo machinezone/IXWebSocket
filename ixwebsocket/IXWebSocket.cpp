@@ -215,6 +215,11 @@ namespace ix
         return getReadyState() == WebSocket_ReadyState_Closing;
     }
 
+    bool WebSocket::isConnectedOrClosing() const
+    {
+        return isConnected() || isClosing();
+    }
+
     void WebSocket::close()
     {
         _ws.close();
@@ -229,7 +234,7 @@ namespace ix
         millis duration;
 
         // Try to connect only once when we don't have automaticReconnection setup
-        if (!isConnected() && !isClosing() && !_stop && !_automaticReconnection)
+        if (!isConnectedOrClosing() && !_stop && !_automaticReconnection)
         {
             status = connect(_handshakeTimeoutSecs);
 
@@ -251,7 +256,7 @@ namespace ix
             // Otherwise try to reconnect perpertually
             while (true)
             {
-                if (isConnected() || isClosing() || _stop || !_automaticReconnection)
+                if (isConnectedOrClosing() || _stop || !_automaticReconnection)
                 {
                     break;
                 }
@@ -286,20 +291,17 @@ namespace ix
 
         while (true)
         {
-            if (_stop) return;
+            if (_stop && !isClosing()) return;
 
             // 1. Make sure we are always connected
             reconnectPerpetuallyIfDisconnected();
 
-            if (_stop) return;
-
             // 2. Poll to see if there's any new data available
-            _ws.poll();
-
-            if (_stop) return;
+            WebSocketTransport::PollPostTreatment pollPostTreatment = _ws.poll();
 
             // 3. Dispatch the incoming messages
             _ws.dispatch(
+                pollPostTreatment,
                 [this](const std::string& msg,
                        size_t wireSize,
                        bool decompressionError,
@@ -340,7 +342,7 @@ namespace ix
                 });
 
             // If we aren't trying to reconnect automatically, exit if we aren't connected
-            if (!isConnected() && !_automaticReconnection) return;
+            if (!isConnectedOrClosing() && !_automaticReconnection) return;
         }
     }
 

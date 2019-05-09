@@ -44,14 +44,14 @@ namespace ix
         close();
     }
 
-    PollResultType Socket::poll(int timeoutSecs)
+    PollResultType Socket::poll(int timeoutMs)
     {
         if (_sockfd == -1)
         {
             return PollResultType::Error;
         }
 
-        return isReadyToRead(1000 * timeoutSecs);
+        return isReadyToRead(timeoutMs);
     }
 
     PollResultType Socket::select(bool readyToRead, int timeoutMs)
