@@ -350,7 +350,7 @@ TEST_CASE("Websocket_no_ping_but_timeout", "[setPingTimeout]")
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(2900);
+        ix::msleep(2700);
 
         // Here we test ping timeout, no timeout yet
         REQUIRE(serverReceivedPingMessages == 0);
@@ -359,7 +359,7 @@ TEST_CASE("Websocket_no_ping_but_timeout", "[setPingTimeout]")
         REQUIRE(webSocketClient.isClosed() == false);
         REQUIRE(webSocketClient.closedDueToPingTimeout() == false);
 
-        ix::msleep(200);
+        ix::msleep(400);
 
         // Here we test ping timeout, timeout
         REQUIRE(serverReceivedPingMessages == 0);
