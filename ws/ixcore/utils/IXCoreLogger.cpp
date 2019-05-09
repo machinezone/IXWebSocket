@@ -4,7 +4,7 @@
 namespace ix
 {
 // Default do nothing logger
-IXCoreLogger::LogFunc IXCoreLogger::_currentLogger = [](const char* msg){};
+IXCoreLogger::LogFunc IXCoreLogger::_currentLogger = [](const char* /*msg*/){};
 
 void IXCoreLogger::Log(const char* msg)
 {
