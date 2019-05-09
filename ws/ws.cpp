@@ -22,10 +22,17 @@
 #include <cli11/CLI11.hpp>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXNetSystem.h>
+#include <ixcore/utils/IXCoreLogger.h>
 
 int main(int argc, char** argv)
 {
     ix::initNetSystem();
+
+    ix::IXCoreLogger::LogFunc logFunc = [](const char* msg)
+    {
+        std::cout << msg << std::endl;
+    };
+    ix::IXCoreLogger::setLogFunction(logFunc);
 
     CLI::App app{"ws is a websocket tool"};
     app.require_subcommand();
