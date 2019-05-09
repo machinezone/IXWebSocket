@@ -146,15 +146,13 @@ namespace ix
         std::string errMsg;
         struct addrinfo* res = getAddrInfo(hostname, port, errMsg);
 
+        // if this isn't an active job, and the control thread is gone
+        // there is nothing to do, and we don't want to touch the defunct
+        // object data structure such as _errMsg or _condition
+        std::lock_guard<std::mutex> lock(_activeJobsMutex);
+        if (_activeJobs.count(id) == 0)
         {
-            // if this isn't an active job, and the control thread is gone
-            // there is nothing to do, and we don't want to touch the defunct
-            // object data structure such as _errMsg or _condition
-            std::lock_guard<std::mutex> lock(_activeJobsMutex);
-            if (_activeJobs.count(id) == 0)
-            {
-                return;
-            }
+            return;
         }
 
         // Copy result into the member variables
