@@ -78,10 +78,12 @@ namespace ix
     const uint16_t WebSocketTransport::kInternalErrorCode(1011);
     const uint16_t WebSocketTransport::kAbnormalCloseCode(1006);
     const uint16_t WebSocketTransport::kProtocolErrorCode(1002);
+    const uint16_t WebSocketTransport::kNoStatusCodeErrorCode(1005);
     const std::string WebSocketTransport::kInternalErrorMessage("Internal error");
     const std::string WebSocketTransport::kAbnormalCloseMessage("Abnormal closure");
     const std::string WebSocketTransport::kPingTimeoutMessage("Ping timeout");
     const std::string WebSocketTransport::kProtocolErrorMessage("Protocol error");
+    const std::string WebSocketTransport::kNoStatusCodeErrorMessage("No status code");
 
     WebSocketTransport::WebSocketTransport() :
         _useMask(true),
@@ -580,25 +582,42 @@ namespace ix
             }
             else if (ws.opcode == wsheader_type::CLOSE)
             {
+                std::string reason;
+                uint16_t code = 0;
+
                 unmaskReceiveBuffer(ws);
 
-                // Extract the close code first, available as the first 2 bytes
-                uint16_t code = 0;
-                code |= ((uint64_t) _rxbuf[ws.header_size])   << 8;
-                code |= ((uint64_t) _rxbuf[ws.header_size+1]) << 0;
+                if (ws.N >= 2)
+                {
+                    // Extract the close code first, available as the first 2 bytes
+                    code |= ((uint64_t) _rxbuf[ws.header_size])   << 8;
+                    code |= ((uint64_t) _rxbuf[ws.header_size+1]) << 0;
 
-                // Get the reason.
-                std::string reason(_rxbuf.begin()+ws.header_size + 2,
-                                   _rxbuf.begin()+ws.header_size + (size_t) ws.N);
-                
+                    // Get the reason.
+                    if (ws.N > 2)
+                    {
+                        reason.assign(_rxbuf.begin()+ws.header_size + 2,
+                                      _rxbuf.begin()+ws.header_size + (size_t) ws.N);
+                    }
+                }
+                else
+                {
+                    // no close code received
+                    code = kNoStatusCodeErrorCode;
+                    reason = kNoStatusCodeErrorMessage;
+                }
+
                 // We receive a CLOSE frame from remote and are NOT the ones who triggered the close
                 if (_readyState != CLOSING)
                 {
-                    // send back the CLOSE frame
-                    sendCloseFrame(code, reason);
+                    if (code != kNoStatusCodeErrorCode)
+                    {
+                        // send back the CLOSE frame if a close code was received
+                        sendCloseFrame(code, reason);
 
-                    _socket->wakeUpFromPoll(Socket::kCloseRequest);
-                    
+                        _socket->wakeUpFromPoll(Socket::kCloseRequest);
+                    }
+
                     bool remote = true;
                     closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
                 }
@@ -611,6 +630,7 @@ namespace ix
                         std::lock_guard<std::mutex> lock(_closeDataMutex);
                         identicalReason = _closeCode == code && _closeReason == reason;
                     }
+
                     if (identicalReason)
                     {
                         bool remote = false;
