@@ -255,8 +255,6 @@ LUrlParser::clParseURL LUrlParser::clParseURL::ParseURL( const std::string& URL 
 		while ( *LocalString ) LocalString++;
 
 		Result.m_Fragment = std::string( CurrentString, LocalString - CurrentString );
-
-		CurrentString = LocalString;
 	}
 
 	Result.m_ErrorCode = LUrlParserError_Ok;
