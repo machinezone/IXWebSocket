@@ -21,6 +21,8 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/.. ixwebsocket)
 include_directories(
   ${PROJECT_SOURCE_DIR}/Catch2/single_include
   ../third_party/msgpack11
+  ../third_party/spdlog/include
+  ../ws
 )
 
 # Shared sources
@@ -28,6 +30,7 @@ set (SOURCES
   test_runner.cpp
   IXTest.cpp
   ../third_party/msgpack11/msgpack11.cpp
+  ../ws/ixcore/utils/IXCoreLogger.cpp
 
   IXDNSLookupTest.cpp
   IXSocketTest.cpp

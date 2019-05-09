@@ -20,9 +20,12 @@
 #include <unistd.h>
 
 #include <cli11/CLI11.hpp>
+#include <spdlog/spdlog.h>
+
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixcore/utils/IXCoreLogger.h>
+
 
 int main(int argc, char** argv)
 {
@@ -30,7 +33,7 @@ int main(int argc, char** argv)
 
     ix::IXCoreLogger::LogFunc logFunc = [](const char* msg)
     {
-        std::cerr << msg << std::endl;
+        spdlog::info(msg);
     };
     ix::IXCoreLogger::setLogFunction(logFunc);
 

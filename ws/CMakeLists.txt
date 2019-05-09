@@ -22,6 +22,7 @@ include_directories(ws .)
 include_directories(ws ..)
 include_directories(ws ../third_party)
 include_directories(ws ../third_party/statsd-client-cpp/src)
+include_directories(ws ../third_party/spdlog/include)
 include_directories(ws snake)
 
 add_executable(ws 
