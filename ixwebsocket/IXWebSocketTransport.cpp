@@ -610,13 +610,10 @@ namespace ix
                 // We receive a CLOSE frame from remote and are NOT the ones who triggered the close
                 if (_readyState != CLOSING)
                 {
-                    if (code != kNoStatusCodeErrorCode)
-                    {
-                        // send back the CLOSE frame if a close code was received
-                        sendCloseFrame(code, reason);
+                    // send back the CLOSE frame
+                    sendCloseFrame(code, reason);
 
-                        _socket->wakeUpFromPoll(Socket::kCloseRequest);
-                    }
+                    _socket->wakeUpFromPoll(Socket::kCloseRequest);
 
                     bool remote = true;
                     closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
@@ -962,21 +959,27 @@ namespace ix
         }
     }
 
-
     void WebSocketTransport::sendCloseFrame(uint16_t code, const std::string& reason)
     {
-        // See list of close events here:
-        // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-
-        int codeLength = 2;
-        std::string closure{(char)(code >> 8), (char)(code & 0xff)};
-        closure.resize(codeLength + reason.size());
-
-        // copy reason after code
-        closure.replace(codeLength, reason.size(), reason);
-
         bool compress = false;
-        sendData(wsheader_type::CLOSE, closure, compress);
+
+        // if a status is set/was read
+        if (code != kNoStatusCodeErrorCode)
+        {
+            // See list of close events here:
+            // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
+            std::string closure{(char)(code >> 8), (char)(code & 0xff)};
+
+            // copy reason after code
+            closure.append(reason);
+
+            sendData(wsheader_type::CLOSE, closure, compress);
+        }
+        else
+        {
+            // no close code/reason set
+            sendData(wsheader_type::CLOSE, "", compress);
+        }
     }
 
     void WebSocketTransport::closeSocketAndSwitchToClosedState(uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
