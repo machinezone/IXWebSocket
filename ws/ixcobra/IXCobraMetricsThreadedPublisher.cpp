@@ -6,6 +6,7 @@
 
 #include "IXCobraMetricsThreadedPublisher.h"
 #include <ixwebsocket/IXSetThreadName.h>
+#include <ixcore/utils/IXCoreLogger.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -58,7 +59,7 @@ namespace ix
                     ss << "Unsubscribed through subscription id: " << subscriptionId;
                 }
 
-                std::cerr << ss.str() << std::endl;
+                ix::IXCoreLogger::Log(ss.str().c_str());
         });
     }
 
