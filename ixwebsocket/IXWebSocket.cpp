@@ -235,7 +235,7 @@ namespace ix
         millis duration;
 
         // Try to connect only once when we don't have automaticReconnection setup
-        if (!isConnected() && !isClosing() && !_stop && !_automaticReconnection)
+        if (!isConnectedOrClosing() && !_stop && !_automaticReconnection)
         {
             status = connect(_handshakeTimeoutSecs);
 

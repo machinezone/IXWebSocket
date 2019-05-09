@@ -123,11 +123,11 @@ TEST_CASE("websocket_connections", "[websocket]")
     SECTION("Try to connect and disconnect with different timing.")
     {
         IXWebSocketTestConnectionDisconnection chatA;
-        for (int i = 0; i < 20; ++i)
+        for (int i = 0; i < 50; ++i)
         {
             log(std::string("Run: ") + std::to_string(i));
             chatA.start(WEBSOCKET_DOT_ORG_URL);
-            ix::msleep(i*50);
+            ix::msleep(i);
             chatA.stop();
         }
     }
