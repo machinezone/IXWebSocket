@@ -126,7 +126,7 @@ TEST_CASE("websocket_connections", "[websocket]")
         }
     }
 
-    SECTION("Try to connect and disconnect with different timing, from not enough time to successfull connect")
+    /*SECTION("Try to connect and disconnect with different timing, from not enough time to successfull connect")
     {
         IXWebSocketTestConnectionDisconnection chatA;
         for (int i = 0; i < 20; ++i)
@@ -136,5 +136,5 @@ TEST_CASE("websocket_connections", "[websocket]")
             ix::msleep(i*50);
             chatA.stop();
         }
-    }
+    }*/
 }
