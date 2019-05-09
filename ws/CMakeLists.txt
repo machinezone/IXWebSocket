@@ -29,6 +29,8 @@ add_executable(ws
   ../third_party/jsoncpp/jsoncpp.cpp
   ../third_party/statsd-client-cpp/src/statsd_client.cpp
 
+  ixcore/utils/IXCoreLogger.cpp
+
   ixcrypto/IXBase64.cpp
   ixcrypto/IXHash.cpp
   ixcrypto/IXUuid.cpp
