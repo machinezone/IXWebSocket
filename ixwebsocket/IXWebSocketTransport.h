@@ -186,7 +186,7 @@ namespace ix
         static const std::string kNoStatusCodeErrorMessage;
 
         // enable auto response to ping
-        bool _enablePong;
+        std::atomic<bool> _enablePong;
         static const bool kDefaultEnablePong;
 
         // Optional ping and pong timeout
