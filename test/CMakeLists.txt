@@ -40,6 +40,7 @@ set (SOURCES
 
 # Some unittest don't work on windows yet
 if (NOT WIN32)
+  list(APPEND SOURCES
     IXWebSocketPingTimeoutTest.cpp
     cmd_websocket_chat.cpp
   )

@@ -70,7 +70,9 @@ namespace
                 }
                 else if (messageType == ix::WebSocket_MessageType_Error)
                 {
-                    log("cmd_websocket_satori_chat: Error!");
+                    ss << "cmd_websocket_satori_chat: Error! ";
+                    ss << error.reason;
+                    log(ss.str());
                 }
                 else if (messageType == ix::WebSocket_MessageType_Message)
                 {
@@ -83,6 +85,10 @@ namespace
                 else if (messageType == ix::WebSocket_MessageType_Pong)
                 {
                     log("cmd_websocket_satori_chat: received pong message.!");
+                }
+                else if (messageType == ix::WebSocket_MessageType_Fragment)
+                {
+                    log("cmd_websocket_satori_chat: received fragment.!");
                 }
                 else
                 {
