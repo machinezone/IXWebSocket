@@ -149,6 +149,7 @@ namespace ix
         // This value needs to be forced when shutting down, it is restored later
         _automaticReconnection = false;
 
+        // sync close
         close();
 
         if (_thread.joinable())
