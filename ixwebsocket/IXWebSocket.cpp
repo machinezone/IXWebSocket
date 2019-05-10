@@ -13,16 +13,21 @@
 
 namespace
 {
-    uint64_t calculateRetryWaitMilliseconds(uint64_t retry_count)
+    uint64_t calculateRetryWaitMilliseconds(uint32_t retry_count)
     {
-        // This will overflow quite fast for large value of retry_count
-        // and will become 0, in which case the wait time will be none
-        // and we'll be constantly retrying to connect.
-        uint64_t wait_time = ((uint64_t) std::pow(2, retry_count) * 100L);
+        uint64_t wait_time;
 
-        // cap the wait time to 10s, or to retry_count == 10 for which wait_time > 10s
-        uint64_t tenSeconds = 10 * 1000;
-        return (wait_time > tenSeconds || retry_count > 10) ? tenSeconds : wait_time;
+        if (retry_count <= 6)
+        {
+            // max wait_time is 6400 ms (2 ^ 6 = 64)
+            wait_time = ((uint64_t)std::pow(2, retry_count) * 100L);
+        }
+        else
+        {
+            wait_time = 10 * 1000; // 10 sec
+        }
+
+        return wait_time;
     }
 }
 
@@ -228,7 +233,7 @@ namespace ix
 
     void WebSocket::reconnectPerpetuallyIfDisconnected()
     {
-        uint64_t retries = 0;
+        uint32_t retries = 0;
         WebSocketErrorInfo connectErr;
         ix::WebSocketInitResult status;
         using millis = std::chrono::duration<double, std::milli>;
