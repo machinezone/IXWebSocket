@@ -91,7 +91,6 @@ namespace ix
 
         void setUrl(const std::string& url);
         void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
-        void setHandshakeTimeout(int handshakeTimeoutSecs);
         void setHeartBeatPeriod(int heartBeatPeriodSecs);
         void setPingInterval(int pingIntervalSecs); // alias of setHeartBeatPeriod
         void setPingTimeout(int pingTimeoutSecs);
@@ -142,7 +141,6 @@ namespace ix
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
         // Server
-        void setSocketFileDescriptor(int fd);
         WebSocketInitResult connectToSocket(int fd, int timeoutSecs);
 
         WebSocketTransport _ws;

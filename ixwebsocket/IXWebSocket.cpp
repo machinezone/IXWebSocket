@@ -144,17 +144,15 @@ namespace ix
         // This value needs to be forced when shutting down, it is restored later
         _automaticReconnection = false;
 
+        // sync close
         close();
 
-        if (!_thread.joinable())
+        if (_thread.joinable())
         {
-            _automaticReconnection = automaticReconnection;
-            return;
+            _stop = true;
+            _thread.join();
+            _stop = false;
         }
-
-        _stop = true;
-        _thread.join();
-        _stop = false;
 
         _automaticReconnection = automaticReconnection;
     }
@@ -289,10 +287,8 @@ namespace ix
     {
         setThreadName(getUrl());
 
-        while (true)
+        while (getReadyState() != WebSocket_ReadyState_Closed)
         {
-            if (_stop && !isClosing()) return;
-
             // 1. Make sure we are always connected
             reconnectPerpetuallyIfDisconnected();
 
