@@ -19,7 +19,7 @@ namespace
 
         if (retry_count <= 6)
         {
-            // max wait_time is 6400
+            // max wait_time is 6400 ms (2 ^ 6 = 64)
             wait_time = ((uint64_t)std::pow(2, retry_count) * 100L);
         }
         else
