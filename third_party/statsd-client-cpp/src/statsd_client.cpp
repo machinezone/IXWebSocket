@@ -221,7 +221,6 @@ int StatsdClient::send(const string &message)
 
 
 int StatsdClient::send_to_daemon(const string &message) {
-    std::cout << "send_to_daemon: " << message.length() << " B" << std::endl;
     int ret = init();
     if ( ret )
     {
