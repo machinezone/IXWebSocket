@@ -37,6 +37,17 @@ int main(int argc, char** argv)
     };
     ix::IXCoreLogger::setLogFunction(logFunc);
 
+    // Display command.
+    if (getenv("DEBUG"))
+    {
+        std::cout << "Command: ";
+        for (int i = 0; i < argc; ++i)
+        {
+            std::cout << argv[i] << " ";
+        }
+        std::cout << std::endl;
+    }
+
     CLI::App app{"ws is a websocket tool"};
     app.require_subcommand();
 
