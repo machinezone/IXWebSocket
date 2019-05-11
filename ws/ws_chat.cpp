@@ -68,7 +68,7 @@ namespace ix
 
     bool WebSocketChat::isReady() const
     {
-        return _webSocket.getReadyState() == ix::WebSocket_ReadyState_Open;
+        return _webSocket.getReadyState() == ix::ReadyState::Open;
     }
 
     void WebSocketChat::stop()
@@ -92,7 +92,7 @@ namespace ix
                const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
                     log("ws chat: connected");
                     std::cout << "Uri: " << openInfo.uri << std::endl;
@@ -107,7 +107,7 @@ namespace ix
                        << " Connected !";
                        log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Close)
+                else if (messageType == ix::WebSocketMessageType::Close)
                 {
                     ss << "ws chat: user "
                        << _user
@@ -116,7 +116,7 @@ namespace ix
                        << " reason " << closeInfo.reason;
                        log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
                     auto result = decodeMessage(str);
 
@@ -132,7 +132,7 @@ namespace ix
                        << _user << " > ";
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Error)
+                else if (messageType == ix::WebSocketMessageType::Error)
                 {
                     ss << "Connection error: " << error.reason      << std::endl;
                     ss << "#retries: "         << error.retries     << std::endl;
