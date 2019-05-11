@@ -6,9 +6,6 @@
 
 #pragma once
 
-#include <string>
-#include <iostream>
-
 namespace ix
 {
     struct WebSocketSendInfo
