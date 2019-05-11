@@ -27,15 +27,6 @@ namespace ix
     struct Logger
     {
         public:
-            Logger& operator<<(const std::string& msg)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-
-                std::cerr << msg;
-                std::cerr << std::endl;
-                return *this;
-            }
-
             template <typename T>
             Logger& operator<<(T const& obj)
             {
