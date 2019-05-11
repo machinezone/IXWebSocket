@@ -91,7 +91,6 @@ namespace ix
 
         void setUrl(const std::string& url);
         void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
-        void setHandshakeTimeout(int handshakeTimeoutSecs);
         void setHeartBeatPeriod(int heartBeatPeriodSecs);
         void setPingInterval(int pingIntervalSecs); // alias of setHeartBeatPeriod
         void setPingTimeout(int pingTimeoutSecs);
@@ -100,6 +99,7 @@ namespace ix
 
         // Run asynchronously, by calling start and stop.
         void start();
+        // stop is synchronous
         void stop();
 
         // Run in blocking mode, by connecting first manually, and then calling run.
@@ -136,13 +136,11 @@ namespace ix
 
         bool isConnected() const;
         bool isClosing() const;
-        bool isConnectedOrClosing() const;
-        void reconnectPerpetuallyIfDisconnected();
+        void checkConnection(bool initial);
         std::string readyStateToString(ReadyState readyState);
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
         // Server
-        void setSocketFileDescriptor(int fd);
         WebSocketInitResult connectToSocket(int fd, int timeoutSecs);
 
         WebSocketTransport _ws;
