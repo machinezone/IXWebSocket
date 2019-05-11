@@ -221,6 +221,7 @@ namespace ix
 
         uint32_t retries = 0;
         millis duration;
+        ix::WebSocketInitResult status;
 
         // Try to connect perpertually
         while (true)
@@ -239,14 +240,14 @@ namespace ix
             firstConnectionAttempt = false;
 
             // Only sleep if we are retrying
-            if (retries != 0)
+            if (duration.count() > 0)
             {
                 // to do: make sleeping conditional
                 std::this_thread::sleep_for(duration);
             }
 
             // Try to connect synchronously
-            ix::WebSocketInitResult status = connect(_handshakeTimeoutSecs);
+            status = connect(_handshakeTimeoutSecs);
 
             if (!status.success)
             {
