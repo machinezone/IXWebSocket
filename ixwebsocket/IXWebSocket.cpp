@@ -221,6 +221,7 @@ namespace ix
     }
 
     bool WebSocket::isConnectedOrClosing() const
+
     {
         return isConnected() || isClosing();
     }
