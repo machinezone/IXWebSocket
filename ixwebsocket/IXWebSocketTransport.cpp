@@ -303,6 +303,8 @@ namespace ix
             }
         }
 
+        if (lastingTimeoutDelayInMs) lastingTimeoutDelayInMs = 20;
+
         // poll the socket
         PollResultType pollResult = _socket->poll(lastingTimeoutDelayInMs);
 
