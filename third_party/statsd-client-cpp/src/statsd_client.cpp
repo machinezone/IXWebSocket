@@ -108,7 +108,7 @@ int StatsdClient::init()
 
     d->sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if ( d->sock == -1 ) {
-        snprintf(d->errmsg, sizeof(d->errmsg), "could not create socket, err=%m");
+        snprintf(d->errmsg, sizeof(d->errmsg), "could not create socket, err=%s", strerror(errno));
         return -1;
     }
 
@@ -229,7 +229,7 @@ int StatsdClient::send_to_daemon(const string &message) {
     ret = (int) sendto(d->sock, message.data(), message.size(), 0, (struct sockaddr *) &d->server, sizeof(d->server));
     if ( ret == -1) {
         snprintf(d->errmsg, sizeof(d->errmsg),
-                 "sendto server fail, host=%s:%d, err=%m", d->host.c_str(), d->port);
+                 "sendto server fail, host=%s:%d, err=%s", d->host.c_str(), d->port, strerror(errno));
         return -1;
     }
 
