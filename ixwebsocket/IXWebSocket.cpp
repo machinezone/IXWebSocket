@@ -144,11 +144,6 @@ namespace ix
 
     void WebSocket::stop()
     {
-        bool automaticReconnection = _automaticReconnection;
-
-        // This value needs to be forced when shutting down, it is restored later
-        _automaticReconnection = false;
-
         close();
 
         if (_thread.joinable())
@@ -157,8 +152,6 @@ namespace ix
             _thread.join();
             _stop = false;
         }
-
-        _automaticReconnection = automaticReconnection;
     }
 
     WebSocketInitResult WebSocket::connect(int timeoutSecs)

@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <mutex>
 
 namespace ix
 {
@@ -30,6 +31,7 @@ namespace ix
         // happens between a control thread and a background thread, which is
         // blocked on select.
         int _fildes[2];
+        mutable std::mutex _fildesMutex;
 
         // Used to identify the read/write idx
         static const int kPipeReadIndex;
