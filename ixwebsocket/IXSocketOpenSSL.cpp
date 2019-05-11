@@ -10,7 +10,6 @@
 #include "IXSocketConnect.h"
 
 #include <cassert>
-#include <iostream>
 
 #include <openssl/x509v3.h>
 
