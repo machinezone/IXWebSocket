@@ -19,7 +19,5 @@ namespace ix
                           std::string& path,
                           std::string& query,
                           int& port);
-
-        static void printUrl(const std::string& url);
     };
 }

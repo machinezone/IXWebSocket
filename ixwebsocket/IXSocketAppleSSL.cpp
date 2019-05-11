@@ -20,8 +20,6 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include <iostream>
-
 #include <errno.h>
 #define socketerrno errno
 
