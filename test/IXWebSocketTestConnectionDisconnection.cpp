@@ -60,33 +60,33 @@ namespace
                const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
                     log("cmd_websocket_satori_chat: connected !");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Close)
+                else if (messageType == ix::WebSocketMessageType::Close)
                 {
                     log("cmd_websocket_satori_chat: disconnected !");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Error)
+                else if (messageType == ix::WebSocketMessageType::Error)
                 {
                     ss << "cmd_websocket_satori_chat: Error! ";
                     ss << error.reason;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
                     log("cmd_websocket_satori_chat: received message.!");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Ping)
+                else if (messageType == ix::WebSocketMessageType::Ping)
                 {
                     log("cmd_websocket_satori_chat: received ping message.!");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Pong)
+                else if (messageType == ix::WebSocketMessageType::Pong)
                 {
                     log("cmd_websocket_satori_chat: received pong message.!");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Fragment)
+                else if (messageType == ix::WebSocketMessageType::Fragment)
                 {
                     log("cmd_websocket_satori_chat: received fragment.!");
                 }

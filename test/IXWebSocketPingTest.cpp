@@ -43,7 +43,7 @@ namespace
 
     bool WebSocketClient::isReady() const
     {
-        return _webSocket.getReadyState() == ix::WebSocket_ReadyState_Open;
+        return _webSocket.getReadyState() == ix::ReadyState::Open;
     }
 
     void WebSocketClient::stop()
@@ -88,30 +88,30 @@ namespace
                    const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
                     log("client connected");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Close)
+                else if (messageType == ix::WebSocketMessageType::Close)
                 {
                     log("client disconnected");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Error)
+                else if (messageType == ix::WebSocketMessageType::Error)
                 {
                     ss << "Error ! " << error.reason;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Pong)
+                else if (messageType == ix::WebSocketMessageType::Pong)
                 {
                     ss << "Received pong message " << str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Ping)
+                else if (messageType == ix::WebSocketMessageType::Ping)
                 {
                     ss << "Received ping message " << str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
                     // too many messages to log
                 }
@@ -145,7 +145,7 @@ namespace
                        const ix::WebSocketOpenInfo& openInfo,
                        const ix::WebSocketCloseInfo& closeInfo)
                     {
-                        if (messageType == ix::WebSocket_MessageType_Open)
+                        if (messageType == ix::WebSocketMessageType::Open)
                         {
                             Logger() << "New server connection";
                             Logger() << "id: " << connectionState->getId();
@@ -156,16 +156,16 @@ namespace
                                 Logger() << it.first << ": " << it.second;
                             }
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Close)
+                        else if (messageType == ix::WebSocketMessageType::Close)
                         {
                             log("Server closed connection");
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Ping)
+                        else if (messageType == ix::WebSocketMessageType::Ping)
                         {
                             log("Server received a ping");
                             receivedPingMessages++;
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Message)
+                        else if (messageType == ix::WebSocketMessageType::Message)
                         {
                             // to many messages to log
                             for(auto client: server.getClients())

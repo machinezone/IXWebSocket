@@ -64,7 +64,7 @@ namespace ix
                 std::cerr << "Received " << wireSize << " bytes" << std::endl;
 
                 std::stringstream ss;
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
                     log("ping_pong: connected");
 
@@ -75,7 +75,7 @@ namespace ix
                         std::cout << it.first << ": " << it.second << std::endl;
                     }
                 }
-                else if (messageType == ix::WebSocket_MessageType_Close)
+                else if (messageType == ix::WebSocketMessageType::Close)
                 {
                     ss << "ping_pong: disconnected:"
                        << " code " << closeInfo.code
@@ -83,25 +83,25 @@ namespace ix
                        << str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
                     ss << "ping_pong: received message: "
                        << str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Ping)
+                else if (messageType == ix::WebSocketMessageType::Ping)
                 {
                     ss << "ping_pong: received ping message: "
                        << str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Pong)
+                else if (messageType == ix::WebSocketMessageType::Pong)
                 {
                     ss << "ping_pong: received pong message: "
                        << str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Error)
+                else if (messageType == ix::WebSocketMessageType::Error)
                 {
                     ss << "Connection error: " << error.reason      << std::endl;
                     ss << "#retries: "         << error.retries     << std::endl;

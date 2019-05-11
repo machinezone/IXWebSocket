@@ -150,12 +150,12 @@ namespace ix
         std::cerr << "Download size: " << downloadSize << std::endl;
 
         std::cerr << "Status: " << statusCode << std::endl;
-        if (errorCode != HttpErrorCode_Ok)
+        if (errorCode != HttpErrorCode::Ok)
         {
             std::cerr << "error message: " << errorMsg << std::endl;
         }
 
-        if (!headersOnly && errorCode == HttpErrorCode_Ok)
+        if (!headersOnly && errorCode == HttpErrorCode::Ok)
         {
             if (save || !output.empty())
             {

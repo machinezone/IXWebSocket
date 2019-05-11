@@ -87,7 +87,7 @@ namespace
 
     bool WebSocketChat::isReady() const
     {
-        return _webSocket.getReadyState() == ix::WebSocket_ReadyState_Open;
+        return _webSocket.getReadyState() == ix::ReadyState::Open;
     }
 
     void WebSocketChat::stop()
@@ -122,21 +122,21 @@ namespace
                    const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
                     ss << "cmd_websocket_chat: user "
                        << _user
                        << " Connected !";
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Close)
+                else if (messageType == ix::WebSocketMessageType::Close)
                 {
                     ss << "cmd_websocket_chat: user "
                        << _user
                        << " disconnected !";
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
                     auto result = decodeMessage(str);
 
@@ -159,20 +159,20 @@ namespace
                        << _user << " > ";
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Error)
+                else if (messageType == ix::WebSocketMessageType::Error)
                 {
                     ss << "cmd_websocket_chat: Error ! " << error.reason;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Ping)
+                else if (messageType == ix::WebSocketMessageType::Ping)
                 {
                     log("cmd_websocket_chat: received ping message");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Pong)
+                else if (messageType == ix::WebSocketMessageType::Pong)
                 {
                     log("cmd_websocket_chat: received pong message");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Fragment)
+                else if (messageType == ix::WebSocketMessageType::Fragment)
                 {
                     log("cmd_websocket_chat: received message fragment");
                 }
@@ -228,7 +228,7 @@ namespace
                        const ix::WebSocketOpenInfo& openInfo,
                        const ix::WebSocketCloseInfo& closeInfo)
                     {
-                        if (messageType == ix::WebSocket_MessageType_Open)
+                        if (messageType == ix::WebSocketMessageType::Open)
                         {
                             Logger() << "New connection";
                             Logger() << "id: " << connectionState->getId();
@@ -239,11 +239,11 @@ namespace
                                 Logger() << it.first << ": " << it.second;
                             }
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Close)
+                        else if (messageType == ix::WebSocketMessageType::Close)
                         {
                             log("Closed connection");
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Message)
+                        else if (messageType == ix::WebSocketMessageType::Message)
                         {
                             for (auto&& client : server.getClients())
                             {

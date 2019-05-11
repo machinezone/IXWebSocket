@@ -100,14 +100,14 @@ namespace ix
                 CobraConnection::invokeTrafficTrackerCallback(wireSize, true);
 
                 std::stringstream ss;
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
                     invokeEventCallback(ix::CobraConnection_EventType_Open,
                                         std::string(),
                                         openInfo.headers);
                     sendHandshakeMessage();
                 }
-                else if (messageType == ix::WebSocket_MessageType_Close)
+                else if (messageType == ix::WebSocketMessageType::Close)
                 {
                     _authenticated = false;
 
@@ -117,7 +117,7 @@ namespace ix
                     invokeEventCallback(ix::CobraConnection_EventType_Closed,
                                         ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
                     Json::Value data;
                     Json::Reader reader;
@@ -187,7 +187,7 @@ namespace ix
                         invokeErrorCallback("Un-handled message type", str);
                     }
                 }
-                else if (messageType == ix::WebSocket_MessageType_Error)
+                else if (messageType == ix::WebSocketMessageType::Error)
                 {
                     std::stringstream ss;
                     ss << "Connection error: " << error.reason      << std::endl;
@@ -384,7 +384,7 @@ namespace ix
 
     bool CobraConnection::isConnected() const
     {
-        return _webSocket->getReadyState() == ix::WebSocket_ReadyState_Open;
+        return _webSocket->getReadyState() == ix::ReadyState::Open;
     }
 
     bool CobraConnection::isAuthenticated() const

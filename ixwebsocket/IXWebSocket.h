@@ -24,23 +24,23 @@
 namespace ix
 {
     // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket#Ready_state_constants
-    enum ReadyState
+    enum class ReadyState
     {
-        WebSocket_ReadyState_Connecting = 0,
-        WebSocket_ReadyState_Open = 1,
-        WebSocket_ReadyState_Closing = 2,
-        WebSocket_ReadyState_Closed = 3
+        Connecting     = 0,
+        Open           = 1,
+        Closing        = 2,
+        Closed         = 3
     };
 
-    enum WebSocketMessageType
+    enum class WebSocketMessageType
     {
-        WebSocket_MessageType_Message = 0,
-        WebSocket_MessageType_Open = 1,
-        WebSocket_MessageType_Close = 2,
-        WebSocket_MessageType_Error = 3,
-        WebSocket_MessageType_Ping = 4,
-        WebSocket_MessageType_Pong = 5,
-        WebSocket_MessageType_Fragment = 6
+        Message        = 0,
+        Open           = 1,
+        Close          = 2,
+        Error          = 3,
+        Ping           = 4,
+        Pong           = 5,
+        Fragment       = 6
     };
 
     struct WebSocketOpenInfo
@@ -119,6 +119,8 @@ namespace ix
         static void resetTrafficTrackerCallback();
 
         ReadyState getReadyState() const;
+        static std::string readyStateToString(ReadyState readyState);
+
         const std::string& getUrl() const;
         const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
         int getHeartBeatPeriod() const;
@@ -138,7 +140,6 @@ namespace ix
         bool isConnected() const;
         bool isClosing() const;
         void checkConnection(bool firstConnectionAttempt);
-        std::string readyStateToString(ReadyState readyState);
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
         // Server
