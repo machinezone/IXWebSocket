@@ -222,15 +222,14 @@ namespace ix
         _ws.close();
     }
 
-    void WebSocket::checkConnection(bool initial)
+    void WebSocket::checkConnection(bool firstConnectionAttempt)
     {
         using millis = std::chrono::duration<double, std::milli>;
 
         uint32_t retries = 0;
         millis duration;
-        ix::WebSocketInitResult status;
 
-        // we will try to connect perpertually
+        // Try to connect perpertually
         while (true)
         {
             if (isConnected() || isClosing() || _stop)
@@ -238,23 +237,23 @@ namespace ix
                 break;
             }
 
-            if (!initial && !_automaticReconnection)
+            if (!firstConnectionAttempt && !_automaticReconnection)
             {
-                // don't attempt to reconnect
+                // Do not attempt to reconnect
                 break;
             }
 
-            initial = false;
+            firstConnectionAttempt = false;
 
             // Only sleep if we are retrying
-            if (duration.count() > 0)
+            if (retries != 0)
             {
-                // to do: make conditional sleeping
+                // to do: make sleeping conditional
                 std::this_thread::sleep_for(duration);
             }
 
-            // try to connect (sync connect)
-            status = connect(_handshakeTimeoutSecs);
+            // Try to connect synchronously
+            ix::WebSocketInitResult status = connect(_handshakeTimeoutSecs);
 
             if (!status.success)
             {
@@ -272,8 +271,8 @@ namespace ix
                 connectErr.http_status = status.http_status;
 
                 _onMessageCallback(WebSocket_MessageType_Error, "", 0,
-                                    connectErr, WebSocketOpenInfo(),
-                                    WebSocketCloseInfo());
+                                   connectErr, WebSocketOpenInfo(),
+                                   WebSocketCloseInfo());
             }
         }
     }
@@ -282,14 +281,14 @@ namespace ix
     {
         setThreadName(getUrl());
 
-        bool initial = true;
+        bool firstConnectionAttempt = true;
 
         while (true)
         {
             // 1. Make sure we are always connected
-            checkConnection(initial);
+            checkConnection(firstConnectionAttempt);
 
-            initial = false;
+            firstConnectionAttempt = false;
 
             // if here we are closed then checkConnection was not able to connect
             if (getReadyState() == WebSocket_ReadyState_Closed)

@@ -136,7 +136,7 @@ namespace ix
 
         bool isConnected() const;
         bool isClosing() const;
-        void checkConnection(bool initial);
+        void checkConnection(bool firstConnectionAttempt);
         std::string readyStateToString(ReadyState readyState);
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
