@@ -40,6 +40,8 @@ namespace ix
 
     bool SelectInterruptPipe::init(std::string& errorMsg)
     {
+        std::lock_guard<std::mutex> lock(_fildesMutex);
+
         // calling init twice is a programming error
         assert(_fildes[kPipeReadIndex] == -1);
         assert(_fildes[kPipeWriteIndex] == -1);
@@ -108,6 +110,8 @@ namespace ix
 
     bool SelectInterruptPipe::notify(uint64_t value)
     {
+        std::lock_guard<std::mutex> lock(_fildesMutex);
+
         int fd = _fildes[kPipeWriteIndex];
         if (fd == -1) return false;
 
@@ -118,6 +122,8 @@ namespace ix
     // TODO: return max uint64_t for errors ?
     uint64_t SelectInterruptPipe::read()
     {
+        std::lock_guard<std::mutex> lock(_fildesMutex);
+
         int fd = _fildes[kPipeReadIndex];
 
         uint64_t value = 0;
@@ -133,6 +139,8 @@ namespace ix
 
     int SelectInterruptPipe::getFd() const
     {
+        std::lock_guard<std::mutex> lock(_fildesMutex);
+
         return _fildes[kPipeReadIndex];
     }
 }
