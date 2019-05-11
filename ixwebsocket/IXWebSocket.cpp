@@ -293,11 +293,11 @@ namespace ix
             }
 
             // 2. Poll to see if there's any new data available
-            WebSocketTransport::PollResult pollPostTreatment = _ws.poll();
+            WebSocketTransport::PollResult pollResult = _ws.poll();
 
             // 3. Dispatch the incoming messages
             _ws.dispatch(
-                pollPostTreatment,
+                pollResult,
                 [this](const std::string& msg,
                        size_t wireSize,
                        bool decompressionError,
