@@ -4,7 +4,6 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 #include "../IXSetThreadName.h"
-#include <iostream>
 #include <Windows.h>
 
 namespace ix

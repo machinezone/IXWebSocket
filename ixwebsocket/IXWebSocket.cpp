@@ -148,6 +148,8 @@ namespace ix
 
         if (_thread.joinable())
         {
+            // wait until working thread will exit
+            // it will exit after close operation is finished
             _stop = true;
             _thread.join();
             _stop = false;
@@ -361,10 +363,10 @@ namespace ix
         }
     }
 
-    WebSocketSendInfo WebSocket::send(const std::string& text,
+    WebSocketSendInfo WebSocket::send(const std::string& data,
                                       const OnProgressCallback& onProgressCallback)
     {
-        return sendMessage(text, SendMessageKind::Binary, onProgressCallback);
+        return sendMessage(data, SendMessageKind::Binary, onProgressCallback);
     }
 
     WebSocketSendInfo WebSocket::sendText(const std::string& text,

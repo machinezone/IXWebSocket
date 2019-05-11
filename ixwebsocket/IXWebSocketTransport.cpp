@@ -719,7 +719,7 @@ namespace ix
         bool compress,
         const OnProgressCallback& onProgressCallback)
     {
-        if (_readyState == CLOSING || _readyState == CLOSED)
+        if (_readyState != OPEN)
         {
             return WebSocketSendInfo();
         }
