@@ -109,38 +109,38 @@ TEST_CASE("websocket_connections", "[websocket]")
 {
     SECTION("Try to connect to invalid servers.")
     {
-        IXWebSocketTestConnectionDisconnection chatA;
+        IXWebSocketTestConnectionDisconnection test;
 
-        chatA.start(GOOGLE_URL);
+        test.start(GOOGLE_URL);
         ix::msleep(1000);
-        chatA.stop();
+        test.stop();
 
-        chatA.start(UNKNOWN_URL);
+        test.start(UNKNOWN_URL);
         ix::msleep(1000);
-        chatA.stop();
+        test.stop();
     }
 
     SECTION("Try to connect and disconnect with different timing, not enough time to succesfully connect")
     {
-        IXWebSocketTestConnectionDisconnection chatA;
+        IXWebSocketTestConnectionDisconnection test;
         for (int i = 0; i < 50; ++i)
         {
             log(std::string("Run: ") + std::to_string(i));
-            chatA.start(WEBSOCKET_DOT_ORG_URL);
+            test.start(WEBSOCKET_DOT_ORG_URL);
             ix::msleep(i);
-            chatA.stop();
+            test.stop();
         }
     }
 
-    SECTION("Try to connect and disconnect with different timing, from not enough time to successfull connect")
+    /*SECTION("Try to connect and disconnect with different timing, from not enough time to successfull connect")
     {
-        IXWebSocketTestConnectionDisconnection chatA;
+        IXWebSocketTestConnectionDisconnection test;
         for (int i = 0; i < 20; ++i)
         {
             log(std::string("Run: ") + std::to_string(i));
-            chatA.start(WEBSOCKET_DOT_ORG_URL);
+            test.start(WEBSOCKET_DOT_ORG_URL);
             ix::msleep(i*50);
-            chatA.stop();
+            test.stop();
         }
-    }
+    }*/
 }
