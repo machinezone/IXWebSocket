@@ -19,23 +19,23 @@
 
 namespace ix
 {
-    enum HttpErrorCode
+    enum class HttpErrorCode
     {
-        HttpErrorCode_Ok = 0,
-        HttpErrorCode_CannotConnect = 1,
-        HttpErrorCode_Timeout = 2,
-        HttpErrorCode_Gzip = 3,
-        HttpErrorCode_UrlMalformed = 4,
-        HttpErrorCode_CannotCreateSocket = 5,
-        HttpErrorCode_SendError = 6,
-        HttpErrorCode_ReadError = 7,
-        HttpErrorCode_CannotReadStatusLine = 8,
-        HttpErrorCode_MissingStatus = 9,
-        HttpErrorCode_HeaderParsingError = 10,
-        HttpErrorCode_MissingLocation = 11,
-        HttpErrorCode_TooManyRedirects = 12,
-        HttpErrorCode_ChunkReadError = 13,
-        HttpErrorCode_CannotReadBody = 14
+        Ok                       = 0,
+        CannotConnect            = 1,
+        Timeout                  = 2,
+        Gzip                     = 3,
+        UrlMalformed             = 4,
+        CannotCreateSocket       = 5,
+        SendError                = 6,
+        ReadError                = 7,
+        CannotReadStatusLine     = 8,
+        MissingStatus            = 9,
+        HeaderParsingError       = 10,
+        MissingLocation          = 11,
+        TooManyRedirects         = 12,
+        ChunkReadError           = 13,
+        CannotReadBody           = 14
     };
 
     using HttpResponse = std::tuple<int, // status

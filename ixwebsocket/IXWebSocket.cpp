@@ -51,7 +51,7 @@ namespace ix
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
             {
-                _onMessageCallback(WebSocket_MessageType_Close, "", wireSize,
+                _onMessageCallback(WebSocketMessageType::Close, "", wireSize,
                                    WebSocketErrorInfo(), WebSocketOpenInfo(),
                                    WebSocketCloseInfo(code, reason, remote));
             }
@@ -172,7 +172,7 @@ namespace ix
             return status;
         }
 
-        _onMessageCallback(WebSocket_MessageType_Open, "", 0,
+        _onMessageCallback(WebSocketMessageType::Open, "", 0,
                            WebSocketErrorInfo(),
                            WebSocketOpenInfo(status.uri, status.headers),
                            WebSocketCloseInfo());
@@ -195,7 +195,7 @@ namespace ix
             return status;
         }
 
-        _onMessageCallback(WebSocket_MessageType_Open, "", 0,
+        _onMessageCallback(WebSocketMessageType::Open, "", 0,
                            WebSocketErrorInfo(),
                            WebSocketOpenInfo(status.uri, status.headers),
                            WebSocketCloseInfo());
@@ -204,12 +204,12 @@ namespace ix
 
     bool WebSocket::isConnected() const
     {
-        return getReadyState() == WebSocket_ReadyState_Open;
+        return getReadyState() == ReadyState::Open;
     }
 
     bool WebSocket::isClosing() const
     {
-        return getReadyState() == WebSocket_ReadyState_Closing;
+        return getReadyState() == ReadyState::Closing;
     }
 
     void WebSocket::close()
@@ -266,7 +266,7 @@ namespace ix
                 connectErr.reason      = status.errorStr;
                 connectErr.http_status = status.http_status;
 
-                _onMessageCallback(WebSocket_MessageType_Error, "", 0,
+                _onMessageCallback(WebSocketMessageType::Error, "", 0,
                                    connectErr, WebSocketOpenInfo(),
                                    WebSocketCloseInfo());
             }
@@ -287,17 +287,17 @@ namespace ix
             firstConnectionAttempt = false;
 
             // if here we are closed then checkConnection was not able to connect
-            if (getReadyState() == WebSocket_ReadyState_Closed)
+            if (getReadyState() == ReadyState::Closed)
             {
                 break;
             }
 
             // 2. Poll to see if there's any new data available
-            WebSocketTransport::PollPostTreatment pollPostTreatment = _ws.poll();
+            WebSocketTransport::PollResult pollResult = _ws.poll();
 
             // 3. Dispatch the incoming messages
             _ws.dispatch(
-                pollPostTreatment,
+                pollResult,
                 [this](const std::string& msg,
                        size_t wireSize,
                        bool decompressionError,
@@ -307,24 +307,24 @@ namespace ix
                     switch (messageKind)
                     {
                         default:
-                        case WebSocketTransport::MSG:
+                        case WebSocketTransport::MessageKind::MSG:
                         {
-                            webSocketMessageType = WebSocket_MessageType_Message;
+                            webSocketMessageType = WebSocketMessageType::Message;
                         } break;
 
-                        case WebSocketTransport::PING:
+                        case WebSocketTransport::MessageKind::PING:
                         {
-                            webSocketMessageType = WebSocket_MessageType_Ping;
+                            webSocketMessageType = WebSocketMessageType::Ping;
                         } break;
 
-                        case WebSocketTransport::PONG:
+                        case WebSocketTransport::MessageKind::PONG:
                         {
-                            webSocketMessageType = WebSocket_MessageType_Pong;
+                            webSocketMessageType = WebSocketMessageType::Pong;
                         } break;
 
-                        case WebSocketTransport::FRAGMENT:
+                        case WebSocketTransport::MessageKind::FRAGMENT:
                         {
-                            webSocketMessageType = WebSocket_MessageType_Fragment;
+                            webSocketMessageType = WebSocketMessageType::Fragment;
                         } break;
                     }
 
@@ -429,11 +429,11 @@ namespace ix
     {
         switch (_ws.getReadyState())
         {
-            case ix::WebSocketTransport::OPEN: return WebSocket_ReadyState_Open;
-            case ix::WebSocketTransport::CONNECTING: return WebSocket_ReadyState_Connecting;
-            case ix::WebSocketTransport::CLOSING: return WebSocket_ReadyState_Closing;
-            case ix::WebSocketTransport::CLOSED: return WebSocket_ReadyState_Closed;
-            default: return WebSocket_ReadyState_Closed;
+            case ix::WebSocketTransport::ReadyState::OPEN      : return ReadyState::Open;
+            case ix::WebSocketTransport::ReadyState::CONNECTING: return ReadyState::Connecting;
+            case ix::WebSocketTransport::ReadyState::CLOSING   : return ReadyState::Closing;
+            case ix::WebSocketTransport::ReadyState::CLOSED    : return ReadyState::Closed;
+            default: return ReadyState::Closed;
         }
     }
 
@@ -441,11 +441,11 @@ namespace ix
     {
         switch (readyState)
         {
-            case WebSocket_ReadyState_Open: return "OPEN";
-            case WebSocket_ReadyState_Connecting: return "CONNECTING";
-            case WebSocket_ReadyState_Closing: return "CLOSING";
-            case WebSocket_ReadyState_Closed: return "CLOSED";
-            default: return "CLOSED";
+            case ReadyState::Open      : return "OPEN";
+            case ReadyState::Connecting: return "CONNECTING";
+            case ReadyState::Closing   : return "CLOSING";
+            case ReadyState::Closed    : return "CLOSED";
+            default: return "UNKNOWN";
         }
     }
 

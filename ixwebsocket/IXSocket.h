@@ -41,12 +41,12 @@ namespace ix
 
     enum class PollResultType
     {
-        ReadyForRead = 0,
-        ReadyForWrite = 1,
-        Timeout = 2,
-        Error = 3,
-        SendRequest = 4,
-        CloseRequest = 5
+        ReadyForRead    = 0,
+        ReadyForWrite   = 1,
+        Timeout         = 2,
+        Error           = 3,
+        SendRequest     = 4,
+        CloseRequest    = 5
     };
 
     class Socket {

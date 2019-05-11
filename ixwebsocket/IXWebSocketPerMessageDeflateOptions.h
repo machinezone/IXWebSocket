@@ -23,7 +23,6 @@ namespace ix
         WebSocketPerMessageDeflateOptions(std::string extension);
 
         std::string generateHeader();
-        std::string parseHeader();
         bool enabled() const;
         bool getClientNoContextTakeover() const;
         bool getServerNoContextTakeover() const;

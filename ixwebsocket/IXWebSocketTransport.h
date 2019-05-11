@@ -40,7 +40,7 @@ namespace ix
     class WebSocketTransport
     {
     public:
-        enum ReadyStateValues
+        enum class ReadyState
         {
             CLOSING,
             CLOSED,
@@ -48,7 +48,7 @@ namespace ix
             OPEN
         };
 
-        enum MessageKind
+        enum class MessageKind
         {
             MSG,
             PING,
@@ -56,10 +56,10 @@ namespace ix
             FRAGMENT
         };
 
-        enum PollPostTreatment
+        enum class PollResult
         {
-            NONE,
-            CHECK_OR_RAISE_ABNORMAL_CLOSE_AFTER_DISPATCH
+            Succeeded,
+            AbnormalClose
         };
 
         using OnMessageCallback = std::function<void(const std::string&,
@@ -84,7 +84,7 @@ namespace ix
         WebSocketInitResult connectToSocket(int fd,              // Server
                                             int timeoutSecs);
 
-        PollPostTreatment poll();
+        PollResult poll();
         WebSocketSendInfo sendBinary(const std::string& message,
                                      const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendText(const std::string& message,
@@ -96,10 +96,10 @@ namespace ix
                    size_t closeWireSize = 0,
                    bool remote = false);
 
-        ReadyStateValues getReadyState() const;
-        void setReadyState(ReadyStateValues readyStateValue);
+        ReadyState getReadyState() const;
+        void setReadyState(ReadyState readyState);
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
-        void dispatch(PollPostTreatment pollPostTreatment,
+        void dispatch(PollResult pollResult,
                       const OnMessageCallback& onMessageCallback);
         size_t bufferedAmount() const;
 
@@ -113,11 +113,11 @@ namespace ix
             bool mask;
             enum opcode_type {
                 CONTINUATION = 0x0,
-                TEXT_FRAME = 0x1,
+                TEXT_FRAME   = 0x1,
                 BINARY_FRAME = 0x2,
-                CLOSE = 8,
-                PING = 9,
-                PONG = 0xa,
+                CLOSE        = 8,
+                PING         = 9,
+                PONG         = 0xa,
             } opcode;
             int N0;
             uint64_t N;
@@ -153,7 +153,7 @@ namespace ix
         std::shared_ptr<Socket> _socket;
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)
-        std::atomic<ReadyStateValues> _readyState;
+        std::atomic<ReadyState> _readyState;
 
         OnCloseCallback _onCloseCallback;
         uint16_t _closeCode;
