@@ -132,6 +132,8 @@ TEST_CASE("websocket_connections", "[websocket]")
         }
     }
 
+    // This test breaks on travis CI - Ubuntu Xenial + gcc + tsan
+    // We should fix this.
     /*SECTION("Try to connect and disconnect with different timing, from not enough time to successfull connect")
     {
         IXWebSocketTestConnectionDisconnection test;
