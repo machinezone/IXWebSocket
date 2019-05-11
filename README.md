@@ -37,7 +37,7 @@ webSocket.setOnMessageCallback(
        const ix::WebSocketOpenInfo& openInfo,
        const ix::WebSocketCloseInfo& closeInfo)
     {
-        if (messageType == ix::WebSocket_MessageType_Message)
+        if (messageType == ix::WebSocketMessageType::Message)
         {
             std::cout << str << std::endl;
         }
@@ -77,7 +77,7 @@ server.setOnConnectionCallback(
                const ix::WebSocketOpenInfo& openInfo,
                const ix::WebSocketCloseInfo& closeInfo)
             {
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
                     std::cerr << "New connection" << std::endl;
 
@@ -96,7 +96,7 @@ server.setOnConnectionCallback(
                         std::cerr << it.first << ": " << it.second << std::endl;
                     }
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
                     // For an echo server, we just send back to the client whatever was received by the server
                     // All connected clients are available in an std::set. See the broadcast cpp example.
@@ -301,10 +301,10 @@ If the connection was closed and sending failed, the return value will be set to
 
 `getReadyState()` returns the state of the connection. There are 4 possible states.
 
-1. WebSocket_ReadyState_Connecting - The connection is not yet open.
-2. WebSocket_ReadyState_Open       - The connection is open and ready to communicate.
-3. WebSocket_ReadyState_Closing    - The connection is in the process of closing.
-4. WebSocket_MessageType_Close     - The connection is closed or could not be opened.
+1. ReadyState::Connecting - The connection is not yet open.
+2. ReadyState::Open       - The connection is open and ready to communicate.
+3. ReadyState::Closing    - The connection is in the process of closing.
+4. ReadyState::Closed     - The connection is closed or could not be opened.
 
 ### Open and Close notifications
 
@@ -319,7 +319,7 @@ webSocket.setOnMessageCallback(
        const ix::WebSocketOpenInfo& openInfo,
        const ix::WebSocketCloseInfo& closeInfo)
     {
-        if (messageType == ix::WebSocket_MessageType_Open)
+        if (messageType == ix::WebSocketMessageType::Open)
         {
             std::cout << "send greetings" << std::endl;
 
@@ -330,7 +330,7 @@ webSocket.setOnMessageCallback(
                 std::cout << it.first << ": " << it.second << std::endl;
             }
         }
-        else if (messageType == ix::WebSocket_MessageType_Close)
+        else if (messageType == ix::WebSocketMessageType::Close)
         {
             std::cout << "disconnected" << std::endl;
 
@@ -345,7 +345,7 @@ webSocket.setOnMessageCallback(
 
 ### Error notification
 
-A message will be fired when there is an error with the connection. The message type will be `ix::WebSocket_MessageType_Error`. Multiple fields will be available on the event to describe the error.
+A message will be fired when there is an error with the connection. The message type will be `ix::WebSocketMessageType::Error`. Multiple fields will be available on the event to describe the error.
 
 ```
 webSocket.setOnMessageCallback(
@@ -356,7 +356,7 @@ webSocket.setOnMessageCallback(
        const ix::WebSocketOpenInfo& openInfo,
        const ix::WebSocketCloseInfo& closeInfo)
     {
-        if (messageType == ix::WebSocket_MessageType_Error)
+        if (messageType == ix::WebSocketMessageType::Error)
         {
             std::stringstream ss;
             ss << "Error: "         << error.reason      << std::endl;
@@ -396,8 +396,8 @@ webSocket.setOnMessageCallback(
        const ix::WebSocketOpenInfo& openInfo,
        const ix::WebSocketCloseInfo& closeInfo)
     {
-        if (messageType == ix::WebSocket_MessageType_Ping ||
-            messageType == ix::WebSocket_MessageType_Pong)
+        if (messageType == ix::WebSocketMessageType::Ping ||
+            messageType == ix::WebSocketMessageType::Pong)
         {
             std::cout << "pong data: " << str << std::endl;
         }
