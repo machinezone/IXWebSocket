@@ -142,9 +142,10 @@ namespace ix
         _thread = std::thread(&WebSocket::run, this);
     }
 
-    void WebSocket::stop()
+    void WebSocket::stop(uint16_t code,
+                         const std::string& reason)
     {
-        close();
+        close(code, reason);
 
         if (_thread.joinable())
         {
@@ -212,9 +213,10 @@ namespace ix
         return getReadyState() == ReadyState::Closing;
     }
 
-    void WebSocket::close()
+    void WebSocket::close(uint16_t code,
+                          const std::string& reason)
     {
-        _ws.close();
+        _ws.close(code, reason);
     }
 
     void WebSocket::checkConnection(bool firstConnectionAttempt)
