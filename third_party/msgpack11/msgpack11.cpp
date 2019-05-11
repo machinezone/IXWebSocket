@@ -119,62 +119,62 @@ static void verify_length(size_t len)
 }
 
 static void dump(NullStruct, std::string &out) {
-    out.push_back(0xc0);
+    out.push_back((char) 0xc0);
 }
 
 static void dump(float value, std::string &out) {
-    out.push_back(0xca);
+    out.push_back((char) 0xca);
     dump_data(value, out);
 }
 
 static void dump(double value, std::string &out) {
-    out.push_back(0xcb);
+    out.push_back((char) 0xcb);
     dump_data(value, out);
 }
 
 static void dump(int8_t value, std::string &out) {
     if( value < -32 )
     {
-        out.push_back(0xd0);
+        out.push_back((char) 0xd0);
     }
     out.push_back(value);
 }
 
 static void dump(int16_t value, std::string &out) {
-    out.push_back(0xd1);
+    out.push_back((char) 0xd1);
     dump_data(value, out);
 }
 
 static void dump(int32_t value, std::string &out) {
-    out.push_back(0xd2);
+    out.push_back((char) 0xd2);
     dump_data(value, out);
 }
 
 static void dump(int64_t value, std::string &out) {
-    out.push_back(0xd3);
+    out.push_back((char) 0xd3);
     dump_data(value, out);
 }
 
 static void dump(uint8_t value, std::string &out) {
     if(128 <= value)
     {
-        out.push_back(0xcc);
+        out.push_back((char) 0xcc);
     }
     out.push_back(value);
 }
 
 static void dump(uint16_t value, std::string &out) {
-    out.push_back(0xcd);
+    out.push_back((char) 0xcd);
     dump_data(value, out);
 }
 
 static void dump(uint32_t value, std::string &out) {
-    out.push_back(0xce);
+    out.push_back((char) 0xce);
     dump_data(value, out);
 }
 
 static void dump(uint64_t value, std::string &out) {
-    out.push_back(0xcf);
+    out.push_back((char) 0xcf);
     dump_data(value, out);
 }
 
@@ -194,19 +194,19 @@ static void dump(const std::string& value, std::string &out) {
     else if(len <= 0xff)
     {
         uint8_t const length = static_cast<uint8_t>(len);
-        out.push_back(0xd9);
+        out.push_back((char) 0xd9);
         out.push_back(length);
     }
     else if(len <= 0xffff)
     {
         uint16_t const length = static_cast<uint16_t>(len);
-        out.push_back(0xda);
+        out.push_back((char) 0xda);
         dump_data(length, out);
     }
     else
     {
         uint32_t const length = static_cast<uint32_t>(len);
-        out.push_back(0xdb);
+        out.push_back((char) 0xdb);
         dump_data(length, out);
     }
 
@@ -226,13 +226,13 @@ static void dump(const MsgPack::array& value, std::string &out) {
     else if(len <= 0xffff)
     {
         uint16_t const length = static_cast<uint16_t>(len);
-        out.push_back(0xdc);
+        out.push_back((char) 0xdc);
         dump_data(length, out);
     }
     else
     {
         uint32_t const length = static_cast<uint32_t>(len);
-        out.push_back(0xdd);
+        out.push_back((char) 0xdd);
         dump_data(length, out);
     }
 
@@ -252,13 +252,13 @@ static void dump(const MsgPack::object& value, std::string &out) {
     else if(len <= 0xffff)
     {
         uint16_t const length = static_cast<uint16_t>(len);
-        out.push_back(0xde);
+        out.push_back((char) 0xde);
         dump_data(length, out);
     }
     else
     {
         uint32_t const length = static_cast<uint32_t>(len);
-        out.push_back(0xdf);
+        out.push_back((char) 0xdf);
         dump_data(length, out);
     }
 
@@ -274,19 +274,19 @@ static void dump(const MsgPack::binary& value, std::string &out) {
     if(len <= 0xff)
     {
         uint8_t const length = static_cast<uint8_t>(len);
-        out.push_back(0xc4);
+        out.push_back((char) 0xc4);
         dump_data(length, out);
     }
     else if(len <= 0xffff)
     {
         uint16_t const length = static_cast<uint16_t>(len);
-        out.push_back(0xc5);
+        out.push_back((char) 0xc5);
         dump_data(length, out);
     }
     else
     {
         uint32_t const length = static_cast<uint32_t>(len);
-        out.push_back(0xc6);
+        out.push_back((char) 0xc6);
         dump_data(length, out);
     }
 
@@ -302,33 +302,33 @@ static void dump(const MsgPack::extension& value, std::string &out) {
     verify_length(len);
 
     if(len == 0x01) {
-        out.push_back(0xd4);
+        out.push_back((char) 0xd4);
     }
     else if(len == 0x02) {
-        out.push_back(0xd5);
+        out.push_back((char) 0xd5);
     }
     else if(len == 0x04) {
-        out.push_back(0xd6);
+        out.push_back((char) 0xd6);
     }
     else if(len == 0x08) {
-        out.push_back(0xd7);
+        out.push_back((char) 0xd7);
     }
     else if(len == 0x10) {
-        out.push_back(0xd8);
+        out.push_back((char) 0xd8);
     }
     else if(len <= 0xff) {
         uint8_t const length = static_cast<uint8_t>(len);
-        out.push_back(0xc7);
+        out.push_back((char) 0xc7);
         out.push_back(length);
     }
     else if(len <= 0xffff) {
         uint16_t const length = static_cast<uint16_t>(len);
-        out.push_back(0xc8);
+        out.push_back((char) 0xc8);
         dump_data(length, out);
     }
     else {
         uint32_t const length = static_cast<uint32_t>(len);
-        out.push_back(0xc9);
+        out.push_back((char) 0xc9);
         dump_data(length, out);
     }
 
