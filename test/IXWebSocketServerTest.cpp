@@ -50,7 +50,7 @@ namespace ix
                        const ix::WebSocketOpenInfo& openInfo,
                        const ix::WebSocketCloseInfo& closeInfo)
                     {
-                        if (messageType == ix::WebSocket_MessageType_Open)
+                        if (messageType == ix::WebSocketMessageType::Open)
                         {
                             Logger() << "New connection";
                             connectionState->computeId();
@@ -64,11 +64,11 @@ namespace ix
 
                             connectionId = connectionState->getId();
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Close)
+                        else if (messageType == ix::WebSocketMessageType::Close)
                         {
                             Logger() << "Closed connection";
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Message)
+                        else if (messageType == ix::WebSocketMessageType::Message)
                         {
                             for (auto&& client : server.getClients())
                             {
