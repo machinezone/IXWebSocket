@@ -39,6 +39,7 @@ set (SOURCES
   IXWebSocketPingTest.cpp
   IXWebSocketTestConnectionDisconnection.cpp
   IXUrlParserTest.cpp
+  IXWebSocketMessageQTest.cpp
 )
 
 # Some unittest don't work on windows yet
