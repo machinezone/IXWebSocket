@@ -65,7 +65,7 @@ class Command(object):
             return True, self.process.returncode
 
 
-def runCommand(cmd, assertOnFailure=True, timeout=None):
+def runCommand(cmd, abortOnFailure=True, timeout=None):
     '''Small wrapper to run a command and make sure it succeed'''
 
     if timeout is None:
@@ -73,16 +73,13 @@ def runCommand(cmd, assertOnFailure=True, timeout=None):
 
     print('\nRunning', cmd)
     command = Command(cmd)
-    timedout, ret = command.run(timeout)
+    succeed, ret = command.run(timeout)
 
-    if timedout:
-        print('Unittest timed out')
-
-    msg = 'cmd {} failed with error code {}'.format(cmd, ret)
-    if ret != 0:
+    if not succeed or ret != 0:
+        msg = 'cmd {} failed with error code {}'.format(cmd, ret)
         print(msg)
-        if assertOnFailure:
-            assert False
+        if abortOnFailure:
+            sys.exit(-1)
 
 
 def runCMake(sanitizer, buildDir):
@@ -97,22 +94,26 @@ def runCMake(sanitizer, buildDir):
     if not os.path.exists(cmake_executable):
         cmake_executable = 'cmake'
 
-    sanitizersFlags = {
-        'asan': '-DSANITIZE_ADDRESS=On',
-        'ubsan': '-DSANITIZE_UNDEFINED=On',
-        'tsan': '-DSANITIZE_THREAD=On',
-        'none': ''
-    }
-    sanitizerFlag = sanitizersFlags.get(sanitizer, '')
+    if sanitizer and sanitizer != 'none':
+        sanitizersFlags = {
+            'asan': '-DSANITIZE_ADDRESS=On',
+            'ubsan': '-DSANITIZE_UNDEFINED=On',
+            'tsan': '-DSANITIZE_THREAD=On',
+            'none': ''
+        }
+        sanitizerFlag = sanitizersFlags.get(sanitizer, '')
+    else:
+        sanitizerFlag = '-DSANITIZE_ADDRESS=OFF -DSANITIZE_UNDEFINED=OFF -DSANITIZE_THREAD=OFF'
 
     # CMake installed via Self Service ends up here.
     cmakeExecutable = '/Applications/CMake.app/Contents/bin/cmake'
     if not os.path.exists(cmakeExecutable):
         cmakeExecutable = 'cmake'
 
-    generator = '"Unix Makefiles"'
     if platform.system() == 'Windows':
         generator = '"NMake Makefiles"'
+    else:
+        generator = '"Unix Makefiles"'
 
     fmt = '''
 {cmakeExecutable} -H. \
@@ -136,7 +137,7 @@ def runTest(args, buildDir, xmlOutput, testRunName):
     fmt = '{buildDir}/{DEFAULT_EXE} -o {xmlOutput} -n "{testRunName}" -r junit "{args}"'
     testCommand = fmt.format(**locals())
     runCommand(testCommand,
-               assertOnFailure=False)
+               abortOnFailure=False)
 
 
 def validateTestSuite(xmlOutput):
@@ -365,16 +366,19 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
     runCMake(sanitizer, buildDir)
 
     # build with make
-    makeCmd = 'make'
-    jobs = '-j8'
+    #makeCmd = 'cmake --build '
+    #jobs = '-j8'
 
-    if platform.system() == 'Windows':
-        makeCmd = 'nmake'
+    #if platform.system() == 'Windows':
+    #    makeCmd = 'nmake'
 
         # nmake does not have a -j option
-        jobs = ''
+    #    jobs = ''
 
-    runCommand('{} -C {} {}'.format(makeCmd, buildDir, jobs))
+    #runCommand('{} -C {} {}'.format(makeCmd, buildDir, jobs))
+
+    # build with cmake
+    runCommand('cmake --build ' + buildDir)
 
     if buildOnly:
         return
@@ -481,7 +485,10 @@ def main():
 
     # Default sanitizer is tsan
     sanitizer = args.sanitizer
-    if args.sanitizer is None:
+
+    if args.no_sanitizer:
+        sanitizer = 'none'
+    elif args.sanitizer is None:
         sanitizer = 'tsan'
 
     defaultRunName = 'ixengine_{}_{}'.format(platform.system(), sanitizer)
