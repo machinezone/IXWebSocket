@@ -1,5 +1,5 @@
 /*
- *  IXWebSocketServerTest.cpp
+ *  IXWebSocketMessageQTest.cpp
  *  Author: Korchynskyi Dmytro
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
@@ -135,6 +135,7 @@ namespace
             if (receivedCount >= 3)
             {
                 testDone = true;
+                succeeded = true;
             }
             else
             {
@@ -162,12 +163,15 @@ namespace
             }
         }
 
+        bool isSucceeded() const { return succeeded; }
+
     private:
         WebSocket ws;
         WebSocketMessageQueue msgQ;
         bool testDone = false;
         uint32_t receivedCount = 0;
         std::thread::id mainThreadId;
+        bool succeeded = false;
     };
 }
 
@@ -181,6 +185,7 @@ TEST_CASE("Websocket_message_queue", "[websocket_message_q]")
 
         MsgQTestClient testClient;
         testClient.run("ws://127.0.0.1:" + std::to_string(port));
+        REQUIRE(testClient.isSucceeded());
     }
 
 }
