@@ -13,7 +13,7 @@
 
 namespace ix
 {
-    class SelectInterruptEventFd : public SelectInterrupt {
+    class SelectInterruptEventFd final : public SelectInterrupt {
     public:
         SelectInterruptEventFd();
         virtual ~SelectInterruptEventFd();
