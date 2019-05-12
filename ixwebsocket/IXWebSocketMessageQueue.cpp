@@ -76,6 +76,11 @@ namespace ix
     {
         _onMessageUserCallback = callback;
     }
+
+    void WebSocketMessageQueue::setOnMessageCallback(OnMessageCallback&& callback)
+    {
+        _onMessageUserCallback = std::move(callback);
+    }
     
     WebSocketMessageQueue::MessagePtr WebSocketMessageQueue::popMessage()
     {

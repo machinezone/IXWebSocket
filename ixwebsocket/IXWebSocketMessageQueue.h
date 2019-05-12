@@ -25,6 +25,7 @@ namespace ix
         void bindWebsocket(WebSocket* websocket);
 
         void setOnMessageCallback(const OnMessageCallback& callback);
+        void setOnMessageCallback(OnMessageCallback&& callback);
 
         void poll(int count = 512);
 
