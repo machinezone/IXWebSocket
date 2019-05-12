@@ -14,7 +14,7 @@
 
 namespace ix
 {
-    class SelectInterruptPipe : public SelectInterrupt {
+    class SelectInterruptPipe final : public SelectInterrupt {
     public:
         SelectInterruptPipe();
         virtual ~SelectInterruptPipe();

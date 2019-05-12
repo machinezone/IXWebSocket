@@ -23,7 +23,7 @@ namespace ix
     using OnConnectionCallback = std::function<void(std::shared_ptr<WebSocket>,
                                                     std::shared_ptr<ConnectionState>)>;
 
-    class WebSocketServer : public SocketServer {
+    class WebSocketServer final : public SocketServer {
     public:
         WebSocketServer(int port = SocketServer::kDefaultPort,
                         const std::string& host = SocketServer::kDefaultHost,

@@ -19,7 +19,7 @@
 
 namespace ix
 {
-    class SocketOpenSSL : public Socket
+    class SocketOpenSSL final : public Socket
     {
     public:
         SocketOpenSSL(int fd = -1);
