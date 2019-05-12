@@ -127,8 +127,8 @@ def runTest(args, buildDir, xmlOutput, testRunName):
     if args is None:
         args = ''
 
-    fmt = '{TEST_EXE_PATH} -o {xmlOutput} -n "{testRunName}" -r junit "{args}"'
-    testCommand = fmt.format(**locals())
+    testCommand = '{} -o {} -n "{}" -r junit "{}"'.format(TEST_EXE_PATH, xmlOutput, testRunName, args)
+
     runCommand(testCommand,
                abortOnFailure=False)
 
