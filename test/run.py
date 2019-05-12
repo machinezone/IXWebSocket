@@ -28,9 +28,9 @@ try:
 except ImportError:
     hasClick = False
 
-
-DEFAULT_EXE = 'ixwebsocket_unittest'
-
+BUILD_TYPE = 'Debug'
+XML_OUTPUT_FILE = 'ixwebsocket_unittest.xml'
+TEST_EXE_PATH = None
 
 class Command(object):
     """Run system commands with timeout
@@ -76,7 +76,7 @@ def runCommand(cmd, abortOnFailure=True, timeout=None):
     succeed, ret = command.run(timeout)
 
     if not succeed or ret != 0:
-        msg = 'cmd {} failed with error code {}'.format(cmd, ret)
+        msg = 'cmd {}\nfailed with error code {}'.format(cmd, ret)
         print(msg)
         if abortOnFailure:
             sys.exit(-1)
@@ -88,22 +88,13 @@ def runCMake(sanitizer, buildDir):
     (remove build sub-folder).
     '''
 
-    # CMake installed via Self Service ends up here.
-    cmake_executable = '/Applications/CMake.app/Contents/bin/cmake'
-
-    if not os.path.exists(cmake_executable):
-        cmake_executable = 'cmake'
-
-    if sanitizer and sanitizer != 'none':
-        sanitizersFlags = {
-            'asan': '-DSANITIZE_ADDRESS=On',
-            'ubsan': '-DSANITIZE_UNDEFINED=On',
-            'tsan': '-DSANITIZE_THREAD=On',
-            'none': ''
-        }
-        sanitizerFlag = sanitizersFlags.get(sanitizer, '')
-    else:
-        sanitizerFlag = '-DSANITIZE_ADDRESS=OFF -DSANITIZE_UNDEFINED=OFF -DSANITIZE_THREAD=OFF'
+    sanitizersFlags = {
+        'asan': '-DSANITIZE_ADDRESS=On',
+        'ubsan': '-DSANITIZE_UNDEFINED=On',
+        'tsan': '-DSANITIZE_THREAD=On',
+        'none': ''
+    }
+    sanitizerFlag = sanitizersFlags.get(sanitizer, '')
 
     # CMake installed via Self Service ends up here.
     cmakeExecutable = '/Applications/CMake.app/Contents/bin/cmake'
@@ -111,19 +102,21 @@ def runCMake(sanitizer, buildDir):
         cmakeExecutable = 'cmake'
 
     if platform.system() == 'Windows':
-        generator = '"NMake Makefiles"'
+        #generator = '"NMake Makefiles"'
+        generator = '"Visual Studio 16 2019"'
     else:
         generator = '"Unix Makefiles"'
 
-    fmt = '''
-{cmakeExecutable} -H. \
+    CMAKE_BUILD_TYPE = BUILD_TYPE
+
+    fmt = '{cmakeExecutable} -H. \
     {sanitizerFlag} \
-    -B{buildDir} \
-    -DCMAKE_BUILD_TYPE=Debug \
+    -B"{buildDir}" \
+    -DCMAKE_BUILD_TYPE={CMAKE_BUILD_TYPE} \
     -DUSE_TLS=1 \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-    -G{generator}
-'''
+    -G{generator}'
+
     cmakeCmd = fmt.format(**locals())
     runCommand(cmakeCmd)
 
@@ -134,7 +127,7 @@ def runTest(args, buildDir, xmlOutput, testRunName):
     if args is None:
         args = ''
 
-    fmt = '{buildDir}/{DEFAULT_EXE} -o {xmlOutput} -n "{testRunName}" -r junit "{args}"'
+    fmt = '{TEST_EXE_PATH} -o {xmlOutput} -n "{testRunName}" -r junit "{args}"'
     testCommand = fmt.format(**locals())
     runCommand(testCommand,
                abortOnFailure=False)
@@ -297,8 +290,7 @@ def executeJobs(jobs):
 def computeAllTestNames(buildDir):
     '''Compute all test case names, by executing the unittest in a custom mode'''
 
-    executable = os.path.join(buildDir, DEFAULT_EXE)
-    cmd = '"{}" --list-test-names-only'.format(executable)
+    cmd = '"{}" --list-test-names-only'.format(TEST_EXE_PATH)
     names = os.popen(cmd).read().splitlines()
     names.sort()  # Sort test names for execution determinism
     return names
@@ -345,7 +337,7 @@ def generateXmlOutput(results, xmlOutput, testRunName, runTime):
         })
 
         systemOut = ET.Element('system-out')
-        systemOut.text = result['output'].decode('utf-8')
+        systemOut.text = result['output'].decode('utf-8', 'ignore')
         testCase.append(systemOut)
 
         if not result['success']:
@@ -413,12 +405,7 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
             continue
 
         # testName can contains spaces, so we enclose them in double quotes
-        executable = os.path.join(buildDir, DEFAULT_EXE)
-
-        if platform.system() == 'Windows':
-            executable += '.exe'
-
-        cmd = '{} "{}" "{}" > "{}" 2>&1'.format(lldb, executable, testName, outputPath)
+        cmd = '{} "{}" "{}" > "{}" 2>&1'.format(lldb, TEST_EXE_PATH, testName, outputPath)
 
         jobs.append({
             'name': testName,
@@ -458,8 +445,6 @@ def main():
     if not os.path.exists(buildDir):
         os.makedirs(buildDir)
 
-    defaultOutput = DEFAULT_EXE + '.xml'
-
     parser = argparse.ArgumentParser(description='Build and Run the engine unittest')
 
     sanitizers = ['tsan', 'asan', 'ubsan', 'none']
@@ -491,10 +476,22 @@ def main():
     elif args.sanitizer is None:
         sanitizer = 'tsan'
 
+    # Sanitizers display lots of strange errors on Linux on CI,
+    # which looks like false positives
+    if platform.system() != 'Darwin':
+        sanitizer = 'none'
+
     defaultRunName = 'ixengine_{}_{}'.format(platform.system(), sanitizer)
 
-    xmlOutput = args.output or defaultOutput
+    xmlOutput = args.output or XML_OUTPUT_FILE
     testRunName = args.run_name or os.getenv('IXENGINE_TEST_RUN_NAME') or defaultRunName
+
+    global TEST_EXE_PATH
+
+    if platform.system() == 'Windows':
+        TEST_EXE_PATH = os.path.join(buildDir, BUILD_TYPE, 'ixwebsocket_unittest.exe')
+    else:
+        TEST_EXE_PATH = os.path.join(buildDir, 'ixwebsocket_unittest')
 
     if args.list:
         # catch2 exit with a different error code when requesting the list of files
@@ -511,11 +508,6 @@ def main():
     if platform.system() != 'Darwin' and args.lldb:
         print('LLDB is only supported on Apple at this point')
         args.lldb = False
-
-    # Sanitizers display lots of strange errors on Linux on CI,
-    # which looks like false positives
-    if platform.system() != 'Darwin':
-        sanitizer = 'none'
 
     return run(args.test, buildDir, sanitizer, xmlOutput, 
                testRunName, args.build_only, args.lldb)
