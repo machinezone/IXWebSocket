@@ -33,12 +33,12 @@ namespace ix
         {
             // set dummy callback just to avoid crash
             _websocket->setOnMessageCallback([](
-                WebSocketMessageType type,
-                const std::string & str,
-                size_t wireSize,
-                const WebSocketErrorInfo & errorInfo,
-                const WebSocketOpenInfo & openInfo,
-                const WebSocketCloseInfo & closeInfo)
+                WebSocketMessageType,
+                const std::string &,
+                size_t,
+                const WebSocketErrorInfo &,
+                const WebSocketOpenInfo &,
+                const WebSocketCloseInfo &)
             {});
         }
 
