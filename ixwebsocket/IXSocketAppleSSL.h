@@ -16,7 +16,7 @@
 
 namespace ix
 {
-    class SocketAppleSSL : public Socket
+    class SocketAppleSSL final : public Socket
     {
     public:
         SocketAppleSSL(int fd = -1);
