@@ -116,6 +116,7 @@ namespace ix
 
         // Set callback to receive websocket messages.
         // Be aware: your callback will be executed from websocket's internal thread!
+        // To receive message events in your thread, look at WebSocketMessageQueue class
         void setOnMessageCallback(const OnMessageCallback& callback);
 
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
