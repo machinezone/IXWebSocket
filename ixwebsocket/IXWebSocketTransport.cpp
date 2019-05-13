@@ -303,6 +303,10 @@ namespace ix
             }
         }
 
+#ifdef _WIN32
+        if (lastingTimeoutDelayInMs <= 0) lastingTimeoutDelayInMs = 20;
+#endif
+
         // poll the socket
         PollResultType pollResult = _socket->poll(lastingTimeoutDelayInMs);
 

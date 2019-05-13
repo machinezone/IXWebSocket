@@ -73,7 +73,7 @@ namespace ix
 
         struct timeval timeout;
         timeout.tv_sec = timeoutMs / 1000;
-        timeout.tv_usec = (timeoutMs < 1000) ? 0 : 1000 * (timeoutMs % 1000);
+        timeout.tv_usec = 1000 * (timeoutMs % 1000);
 
         // Compute the highest fd.
         int sockfd = _sockfd;
