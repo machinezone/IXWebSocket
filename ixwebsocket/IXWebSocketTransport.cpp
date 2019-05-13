@@ -168,7 +168,6 @@ namespace ix
                                                          timeoutSecs);
         if (result.success)
         {
-            initTimePointsAndGCDAfterConnect();
             setReadyState(ReadyState::OPEN);
         }
         return result;
@@ -197,7 +196,6 @@ namespace ix
         auto result = webSocketHandshake.serverHandshake(fd, timeoutSecs);
         if (result.success)
         {
-            initTimePointsAndGCDAfterConnect();
             setReadyState(ReadyState::OPEN);
         }
         return result;
@@ -221,6 +219,10 @@ namespace ix
             _closeReason = kInternalErrorMessage;
             _closeWireSize = 0;
             _closeRemote = false;
+        }
+        else if (readyState == ReadyState::OPEN)
+        {
+            initTimePointsAndGCDAfterConnect();
         }
 
         _readyState = readyState;
