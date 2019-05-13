@@ -458,6 +458,11 @@ namespace ix
         _automaticReconnection = false;
     }
 
+    bool WebSocket::isEnabledAutomaticReconnection() const
+    {
+        return _automaticReconnection;
+    }
+
     size_t WebSocket::bufferedAmount() const
     {
         return _ws.bufferedAmount();
