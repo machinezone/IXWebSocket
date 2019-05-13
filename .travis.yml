@@ -4,12 +4,22 @@ matrix:
     # Linux
     - os: linux
       dist: xenial
-      compiler: clang
       script: make test
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+            - gcc-8
+      env:
+        - COMPILER="CC=gcc-8 && CXX=g++-8"
+
     - os: linux
       dist: xenial
-      compiler: gcc
       script: make test
+      env:
+        - COMPILER="CC=clang && CXX=clang++"
 
     # macOS
     # - os: osx
