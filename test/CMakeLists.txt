@@ -7,7 +7,7 @@ project (ixwebsocket_unittest)
 
 set (CMAKE_CXX_STANDARD 14)
 
-if (NOT WIN32)
+if (UNIX)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../third_party/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
   find_package(Sanitizers)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
@@ -38,22 +38,22 @@ set (SOURCES
   IXWebSocketPingTest.cpp
   IXWebSocketTestConnectionDisconnection.cpp
   IXUrlParserTest.cpp
-  IXWebSocketCloseTest.cpp
   IXWebSocketServerTest.cpp
   IXWebSocketPingTest.cpp
 )
 
 # Some unittest don't work on windows yet
-if (NOT WIN32)
+if (UNIX)
   list(APPEND SOURCES
-    # IXWebSocketPingTimeoutTest.cpp # This test isn't reliable flaky, disabling in master
+    # IXWebSocketPingTimeoutTest.cpp # This test isn't reliable # (multiple platforms), disabling in master
+    # IXWebSocketCloseTest.cpp       # 
     cmd_websocket_chat.cpp
   )
 endif()
 
 add_executable(ixwebsocket_unittest ${SOURCES})
 
-if (NOT WIN32)
+if (UNIX)
   add_sanitizers(ixwebsocket_unittest)
 endif()
 
