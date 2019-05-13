@@ -2,6 +2,11 @@ language: bash
 
 matrix:
   include:
+    # macOS
+    - os: osx
+      compiler: clang
+      script: make test
+
     # Linux
     - os: linux
       dist: xenial
@@ -17,17 +22,10 @@ matrix:
         - CC=clang 
         - CXX=clang++
 
-    # macOS
-    # - os: osx
-    #   compiler: clang
-    #   script: make test
-
-    # # Windows
-    # - os: windows
-    #   env:
-    #     - CMAKE_PATH="/c/Program Files/CMake/bin"
-    #   script: 
-    #     - export PATH=$CMAKE_PATH:$PATH
-    #     - python test/run.py
-
-
+    # Windows
+    - os: windows
+      env:
+        - CMAKE_PATH="/c/Program Files/CMake/bin"
+      script: 
+        - export PATH=$CMAKE_PATH:$PATH
+        - python test/run.py
