@@ -223,7 +223,6 @@ namespace ix
 
         uint32_t retries = 0;
         millis duration;
-        ix::WebSocketInitResult status;
 
         // Try to connect perpertually
         while (true)
@@ -249,7 +248,7 @@ namespace ix
             }
 
             // Try to connect synchronously
-            status = connect(_handshakeTimeoutSecs);
+            ix::WebSocketInitResult status = connect(_handshakeTimeoutSecs);
 
             if (!status.success)
             {
