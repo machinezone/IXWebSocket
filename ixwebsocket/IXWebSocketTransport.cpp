@@ -134,11 +134,6 @@ namespace ix
         {
             _pingIntervalOrTimeoutGCDSecs = pingIntervalSecs;
         }
-
-        if (_pingIntervalOrTimeoutGCDSecs > 0)
-        {
-            _nextGCDTimePoint = std::chrono::steady_clock::now() + std::chrono::seconds(_pingIntervalOrTimeoutGCDSecs);
-        }
     }
 
     // Client
@@ -173,6 +168,7 @@ namespace ix
                                                          timeoutSecs);
         if (result.success)
         {
+            initTimePointsAndGCDAfterConnect();
             setReadyState(ReadyState::OPEN);
         }
         return result;
@@ -201,6 +197,7 @@ namespace ix
         auto result = webSocketHandshake.serverHandshake(fd, timeoutSecs);
         if (result.success)
         {
+            initTimePointsAndGCDAfterConnect();
             setReadyState(ReadyState::OPEN);
         }
         return result;
@@ -232,6 +229,23 @@ namespace ix
     void WebSocketTransport::setOnCloseCallback(const OnCloseCallback& onCloseCallback)
     {
         _onCloseCallback = onCloseCallback;
+    }
+
+    void WebSocketTransport::initTimePointsAndGCDAfterConnect()
+    {
+        {
+            std::lock_guard<std::mutex> lock(_lastSendPingTimePointMutex);
+            _lastSendPingTimePoint = std::chrono::steady_clock::now();
+        } 
+        {
+            std::lock_guard<std::mutex> lock(_lastReceivePongTimePointMutex);
+            _lastReceivePongTimePoint = std::chrono::steady_clock::now();
+        }
+
+        if (_pingIntervalOrTimeoutGCDSecs > 0)
+        {
+            _nextGCDTimePoint = std::chrono::steady_clock::now() + std::chrono::seconds(_pingIntervalOrTimeoutGCDSecs);
+        }
     }
 
     // Only consider send PING time points for that computation.
