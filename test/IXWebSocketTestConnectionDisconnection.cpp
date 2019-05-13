@@ -96,6 +96,12 @@ namespace
                 }
             });
 
+        _webSocket.enableAutomaticReconnection();
+        REQUIRE(_webSocket.isEnabledAutomaticReconnection() == true);
+
+        _webSocket.disableAutomaticReconnection();
+        REQUIRE(_webSocket.isEnabledAutomaticReconnection() == false);
+
         // Start the connection
         _webSocket.start();
     }
