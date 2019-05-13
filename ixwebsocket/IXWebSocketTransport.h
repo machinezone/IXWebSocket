@@ -220,6 +220,8 @@ namespace ix
         // after calling close(), if no CLOSE frame answer is received back from the remote, we should close the connexion
         bool closingDelayExceeded();
 
+        void initTimePointsAndGCDAfterConnect();
+
         void sendCloseFrame(uint16_t code, const std::string& reason);
 
         void closeSocketAndSwitchToClosedState(uint16_t code,
