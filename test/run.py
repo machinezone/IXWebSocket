@@ -279,6 +279,7 @@ def executeJobs(jobs):
     '''Execute a list of job concurrently on multiple CPU/cores'''
 
     poolSize = multiprocessing.cpu_count()
+    poolSize = 1  # for windows
 
     pool = multiprocessing.Pool(poolSize)
     results = pool.map(executeJob, jobs)
