@@ -3,23 +3,25 @@ matrix:
   include:
     # Linux
     - os: linux
+      dist: xenial
       compiler: clang
       script: make test
     - os: linux
+      dist: xenial
       compiler: gcc
       script: make test
 
     # macOS
-    - os: osx
-      compiler: clang
-      script: make test
+    # - os: osx
+    #   compiler: clang
+    #   script: make test
 
-    # Windows
-    - os: windows
-      env:
-        - CMAKE_PATH="/c/Program Files/CMake/bin"
-      script: 
-        - export PATH=$CMAKE_PATH:$PATH
-        - python test/run.py
+    # # Windows
+    # - os: windows
+    #   env:
+    #     - CMAKE_PATH="/c/Program Files/CMake/bin"
+    #   script: 
+    #     - export PATH=$CMAKE_PATH:$PATH
+    #     - python test/run.py
 
 
