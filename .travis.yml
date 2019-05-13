@@ -1,9 +1,25 @@
 language: bash
 matrix:
   include:
+    # Linux
+    - os: linux
+      compiler: clang
+      script: make test
+    - os: linux
+      compiler: gcc
+      script: make test
+
+    # macOS
+    - os: osx
+      compiler: clang
+      script: make test
+
+    # Windows
     - os: windows
       env:
         - CMAKE_PATH="/c/Program Files/CMake/bin"
       script: 
         - export PATH=$CMAKE_PATH:$PATH
         - python test/run.py
+
+

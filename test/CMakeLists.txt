@@ -37,18 +37,18 @@ set (SOURCES
   IXWebSocketTestConnectionDisconnection.cpp
   IXUrlParserTest.cpp
   IXWebSocketServerTest.cpp
-  cmd_websocket_chat.cpp
 )
 
 # Some unittest don't work on windows yet
-# if (NOT WIN32)
-#   list(APPEND SOURCES
-#     IXWebSocketPingTimeoutTest.cpp
-#     IXDNSLookupTest.cpp
-#     IXWebSocketPingTest.cpp
-#     IXWebSocketCloseTest.cpp
-#   )
-# endif()
+if (UNIX)
+  list(APPEND SOURCES
+    IXWebSocketPingTimeoutTest.cpp
+    IXDNSLookupTest.cpp
+    IXWebSocketPingTest.cpp
+    IXWebSocketCloseTest.cpp
+    cmd_websocket_chat.cpp
+  )
+endif()
 
 add_executable(ixwebsocket_unittest ${SOURCES})
 
