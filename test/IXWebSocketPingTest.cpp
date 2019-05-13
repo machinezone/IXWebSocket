@@ -413,13 +413,13 @@ TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(1850);
+        ix::msleep(1900);
 
         webSocketClient.stop();
 
 
         // Here we test ping interval
-        // -> expected ping messages == 1 as 1850 seconds, 1 ping sent every second
+        // -> expected ping messages == 1 as 1900 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 1);
 
         // Give us 500ms for the server to notice that clients went away
@@ -460,7 +460,7 @@ TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
         webSocketClient.sendMessage("hello world");
         ix::msleep(900);
         webSocketClient.sendMessage("hello world");
-        ix::msleep(900);
+        ix::msleep(1100);
 
         webSocketClient.stop();
 
@@ -469,7 +469,7 @@ TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
 
         // Here we test ping interval
         // client has sent data, but ping should have been sent no matter what
-        // -> expected ping messages == 2 as 900+900+900 = 2700 seconds, 1 ping sent every second
+        // -> expected ping messages == 2 as 900+900+1100 = 2900 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 2);
 
         // Give us 500ms for the server to notice that clients went away
