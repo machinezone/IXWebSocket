@@ -103,7 +103,8 @@ def runCMake(sanitizer, buildDir):
 
     if platform.system() == 'Windows':
         #generator = '"NMake Makefiles"'
-        generator = '"Visual Studio 16 2019"'
+        #generator = '"Visual Studio 16 2019"'
+        generator = '"Visual Studio 15 2017"'
     else:
         generator = '"Unix Makefiles"'
 
