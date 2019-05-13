@@ -1,25 +1,21 @@
 language: bash
+
 matrix:
   include:
     # Linux
     - os: linux
       dist: xenial
-      script: make test
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-8
-            - gcc-8
+      script: python test/run.py
       env:
-        - COMPILER="CC=gcc-8 && CXX=g++-8"
+        - CC=clang 
+        - CXX=clang++
 
     - os: linux
       dist: xenial
-      script: make test
+      script: python test/run.py
       env:
-        - COMPILER="CC=clang && CXX=clang++"
+        - CC=clang 
+        - CXX=clang++
 
     # macOS
     # - os: osx
