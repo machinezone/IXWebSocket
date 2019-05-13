@@ -359,12 +359,13 @@ TEST_CASE("Websocket_no_ping_but_timeout", "[setPingTimeout]")
         REQUIRE(webSocketClient.isClosed() == false);
         REQUIRE(webSocketClient.closedDueToPingTimeout() == false);
 
-        ix::msleep(200);
+        ix::msleep(300);
 
         // Here we test ping timeout, timeout
         REQUIRE(serverReceivedPingMessages == 0);
         REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
-        // Ensure client close was not by ping timeout
+        // Ensure client close was by ping timeout
+        ix::msleep(300);
         REQUIRE(webSocketClient.isClosed() == true);
         REQUIRE(webSocketClient.closedDueToPingTimeout() == true);
 
@@ -415,7 +416,8 @@ TEST_CASE("Websocket_ping_timeout", "[setPingTimeout]")
         // Here we test ping timeout, timeout
         REQUIRE(serverReceivedPingMessages == 1);
         REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
-        // Ensure client close was not by ping timeout
+        // Ensure client close was by ping timeout
+        ix::msleep(300);
         REQUIRE(webSocketClient.isClosed() == true);
         REQUIRE(webSocketClient.closedDueToPingTimeout() == true);
 
