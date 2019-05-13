@@ -45,7 +45,6 @@ if (UNIX)
     IXWebSocketPingTimeoutTest.cpp
     IXDNSLookupTest.cpp
     IXWebSocketPingTest.cpp
-    IXWebSocketCloseTest.cpp
     cmd_websocket_chat.cpp
   )
 endif()
