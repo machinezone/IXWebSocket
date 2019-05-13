@@ -31,19 +31,20 @@ set (SOURCES
   ../third_party/msgpack11/msgpack11.cpp
   ../ws/ixcore/utils/IXCoreLogger.cpp
 
-  IXDNSLookupTest.cpp
   IXSocketTest.cpp
   IXSocketConnectTest.cpp
   IXWebSocketServerTest.cpp
-  IXWebSocketPingTest.cpp
   IXWebSocketTestConnectionDisconnection.cpp
   IXUrlParserTest.cpp
+  IXWebSocketServerTest.cpp
 )
 
 # Some unittest don't work on windows yet
-if (NOT WIN32)
+if (UNIX)
   list(APPEND SOURCES
     IXWebSocketPingTimeoutTest.cpp
+    IXDNSLookupTest.cpp
+    IXWebSocketPingTest.cpp
     cmd_websocket_chat.cpp
   )
 endif()
