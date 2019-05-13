@@ -410,7 +410,7 @@ TEST_CASE("Websocket_ping_timeout", "[setPingTimeout]")
         REQUIRE(serverReceivedPingMessages == 1);
         REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
 
-        ix::msleep(1000);
+        ix::msleep(1100);
 
         // Here we test ping timeout, timeout
         REQUIRE(serverReceivedPingMessages == 1);
