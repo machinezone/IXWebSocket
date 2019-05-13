@@ -46,7 +46,7 @@ set (SOURCES
 # Some unittest don't work on windows yet
 if (NOT WIN32)
   list(APPEND SOURCES
-    IXWebSocketPingTimeoutTest.cpp
+    # IXWebSocketPingTimeoutTest.cpp # This test isn't reliable flaky, disabling in master
     cmd_websocket_chat.cpp
   )
 endif()
