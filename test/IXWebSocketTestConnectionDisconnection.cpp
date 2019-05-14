@@ -62,33 +62,33 @@ namespace
                 std::stringstream ss;
                 if (messageType == ix::WebSocketMessageType::Open)
                 {
-                    log("cmd_websocket_satori_chat: connected !");
+                    log("TestConnectionDisconnection: connected !");
                 }
                 else if (messageType == ix::WebSocketMessageType::Close)
                 {
-                    log("cmd_websocket_satori_chat: disconnected !");
+                    log("TestConnectionDisconnection: disconnected !");
                 }
                 else if (messageType == ix::WebSocketMessageType::Error)
                 {
-                    ss << "cmd_websocket_satori_chat: Error! ";
+                    ss << "TestConnectionDisconnection: Error! ";
                     ss << error.reason;
                     log(ss.str());
                 }
                 else if (messageType == ix::WebSocketMessageType::Message)
                 {
-                    log("cmd_websocket_satori_chat: received message.!");
+                    log("TestConnectionDisconnection: received message.!");
                 }
                 else if (messageType == ix::WebSocketMessageType::Ping)
                 {
-                    log("cmd_websocket_satori_chat: received ping message.!");
+                    log("TestConnectionDisconnection: received ping message.!");
                 }
                 else if (messageType == ix::WebSocketMessageType::Pong)
                 {
-                    log("cmd_websocket_satori_chat: received pong message.!");
+                    log("TestConnectionDisconnection: received pong message.!");
                 }
                 else if (messageType == ix::WebSocketMessageType::Fragment)
                 {
-                    log("cmd_websocket_satori_chat: received fragment.!");
+                    log("TestConnectionDisconnection: received fragment.!");
                 }
                 else
                 {

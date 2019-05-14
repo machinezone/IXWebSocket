@@ -11,6 +11,7 @@
 #include <sstream>
 #include <iostream>
 #include <mutex>
+#include <spdlog/spdlog.h>
 
 namespace ix
 {
@@ -32,8 +33,9 @@ namespace ix
             {
                 std::lock_guard<std::mutex> lock(_mutex);
 
-                std::cerr << obj;
-                std::cerr << std::endl;
+                std::stringstream ss;
+                ss << obj;
+                spdlog::info(ss.str());
                 return *this;
             }
 
