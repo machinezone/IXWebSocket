@@ -97,10 +97,10 @@ namespace
             });
 
         _webSocket.enableAutomaticReconnection();
-        REQUIRE(_webSocket.isEnabledAutomaticReconnection() == true);
+        REQUIRE(_webSocket.isAutomaticReconnectionEnabled() == true);
 
         _webSocket.disableAutomaticReconnection();
-        REQUIRE(_webSocket.isEnabledAutomaticReconnection() == false);
+        REQUIRE(_webSocket.isAutomaticReconnectionEnabled() == false);
 
         // Start the connection
         _webSocket.start();

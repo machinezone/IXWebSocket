@@ -130,7 +130,7 @@ namespace ix
 
         void enableAutomaticReconnection();
         void disableAutomaticReconnection();
-        bool isEnabledAutomaticReconnection() const;
+        bool isAutomaticReconnectionEnabled() const;
 
     private:
 

@@ -458,7 +458,7 @@ namespace ix
         _automaticReconnection = false;
     }
 
-    bool WebSocket::isEnabledAutomaticReconnection() const
+    bool WebSocket::isAutomaticReconnectionEnabled() const
     {
         return _automaticReconnection;
     }
