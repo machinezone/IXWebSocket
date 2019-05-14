@@ -129,7 +129,7 @@ namespace ix
     }
 
     // Wake up from poll/select by writing to the pipe which is watched by select
-    bool Socket::wakeUpFromPoll(uint8_t wakeUpCode)
+    bool Socket::wakeUpFromPoll(uint64_t wakeUpCode)
     {
         return _selectInterrupt->notify(wakeUpCode);
     }
