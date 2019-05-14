@@ -12,8 +12,8 @@ matrix:
       dist: xenial
       script: python test/run.py
       env:
-        - CC=clang 
-        - CXX=clang++
+        - CC=gcc
+        - CXX=g++
 
     # Clang + Linux disabled for now
     # - os: linux
