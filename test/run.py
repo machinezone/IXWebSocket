@@ -352,7 +352,7 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
     # gen build files with CMake
     runCMake(sanitizer, buildDir)
 
-    if platform.system() != 'Darwin':
+    if platform.system() == 'Darwin':
         # build with make
         runCommand('make -C {} -j8'.format(buildDir))
     else:
