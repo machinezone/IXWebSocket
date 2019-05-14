@@ -57,7 +57,7 @@ namespace ix
 
         // Functions to check whether there is activity on the socket
         PollResultType poll(int timeoutMs = kDefaultPollTimeout);
-        bool wakeUpFromPoll(uint8_t wakeUpCode);
+        bool wakeUpFromPoll(uint64_t wakeUpCode);
 
         PollResultType isReadyToWrite(int timeoutMs);
         PollResultType isReadyToRead(int timeoutMs);
