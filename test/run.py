@@ -371,7 +371,7 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
     #runCommand('{} -C {} {}'.format(makeCmd, buildDir, jobs))
 
     # build with cmake
-    runCommand('cmake --build ' + buildDir)
+    runCommand('cmake --build --parallel ' + buildDir)
 
     if buildOnly:
         return
