@@ -1,10 +1,4 @@
 #!/usr/bin/env python2.7
-'''
-Windows notes:
-    generator = '-G"NMake Makefiles"'
-    make = 'nmake'
-    testBinary ='ixwebsocket_unittest.exe'
-'''
 
 from __future__ import print_function
 
@@ -358,20 +352,12 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
     # gen build files with CMake
     runCMake(sanitizer, buildDir)
 
-    # build with make
-    #makeCmd = 'cmake --build '
-    #jobs = '-j8'
-
-    #if platform.system() == 'Windows':
-    #    makeCmd = 'nmake'
-
-        # nmake does not have a -j option
-    #    jobs = ''
-
-    #runCommand('{} -C {} {}'.format(makeCmd, buildDir, jobs))
-
-    # build with cmake
-    runCommand('cmake --build --parallel ' + buildDir)
+    if platform.system() != 'Darwin':
+        # build with make
+        runCommand('make -C {} -j8'.format(buildDir))
+    else:
+        # build with cmake on recent
+        runCommand('cmake --build --parallel {}'.format(buildDir))
 
     if buildOnly:
         return
