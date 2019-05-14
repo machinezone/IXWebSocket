@@ -15,12 +15,13 @@ matrix:
         - CC=clang 
         - CXX=clang++
 
-    - os: linux
-      dist: xenial
-      script: python test/run.py
-      env:
-        - CC=clang 
-        - CXX=clang++
+    # Clang + Linux disabled for now
+    # - os: linux
+    #   dist: xenial
+    #   script: python test/run.py
+    #   env:
+    #     - CC=clang 
+    #     - CXX=clang++
 
     # Windows
     - os: windows
