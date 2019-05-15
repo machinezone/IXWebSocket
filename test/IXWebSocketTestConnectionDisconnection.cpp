@@ -140,7 +140,7 @@ TEST_CASE("websocket_connections", "[websocket]")
 
     // This test breaks on travis CI - Ubuntu Xenial + gcc + tsan
     // We should fix this.
-    /*SECTION("Try to connect and disconnect with different timing, from not enough time to successfull connect")
+    SECTION("Try to connect and disconnect with different timing, from not enough time to successfull connect")
     {
         IXWebSocketTestConnectionDisconnection test;
         for (int i = 0; i < 20; ++i)
@@ -150,5 +150,5 @@ TEST_CASE("websocket_connections", "[websocket]")
             ix::msleep(i*50);
             test.stop();
         }
-    }*/
+    }
 }
