@@ -61,7 +61,7 @@ namespace
     uint16_t WebSocketClient::getCloseCode()
     {
         std::lock_guard<std::mutex> lck(_mutexCloseData);
-        
+
         return _closeCode;
     }
 
@@ -75,7 +75,7 @@ namespace
     bool WebSocketClient::getCloseRemote()
     {
         std::lock_guard<std::mutex> lck(_mutexCloseData);
-        
+
         return _closeRemote;
     }
 
@@ -126,11 +126,11 @@ namespace
                     log("client disconnected");
 
                     std::lock_guard<std::mutex> lck(_mutexCloseData);
-                    
+
                     _closeCode = closeInfo.code;
                     _closeReason = std::string(closeInfo.reason);
                     _closeRemote = closeInfo.remote;
-                    
+
                     _webSocket.disableAutomaticReconnection();
                 }
                 else if (messageType == ix::WebSocketMessageType::Error)
@@ -209,7 +209,7 @@ namespace
                             //Logger() << closeInfo.remote;
 
                             std::lock_guard<std::mutex> lck(mutexWrite);
-                            
+
                             receivedCloseCode = closeInfo.code;
                             receivedCloseReason = std::string(closeInfo.reason);
                             receivedCloseRemote = closeInfo.remote;
@@ -239,7 +239,7 @@ TEST_CASE("Websocket_client_close_default", "[close]")
 
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        
+
         uint16_t serverReceivedCloseCode(0);
         bool serverReceivedCloseRemote(false);
         std::string serverReceivedCloseReason("");
@@ -274,7 +274,7 @@ TEST_CASE("Websocket_client_close_default", "[close]")
 
         {
             std::lock_guard<std::mutex> lck(mutexWrite);
-            
+
             // Here we read the code/reason received by the server, and ensure that remote is true
             REQUIRE(serverReceivedCloseCode == 1000);
             REQUIRE(serverReceivedCloseReason == "Normal closure");
@@ -297,7 +297,7 @@ TEST_CASE("Websocket_client_close_params_given", "[close]")
 
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        
+
         uint16_t serverReceivedCloseCode(0);
         bool serverReceivedCloseRemote(false);
         std::string serverReceivedCloseReason("");
@@ -332,7 +332,7 @@ TEST_CASE("Websocket_client_close_params_given", "[close]")
 
         {
             std::lock_guard<std::mutex> lck(mutexWrite);
-            
+
             // Here we read the code/reason received by the server, and ensure that remote is true
             REQUIRE(serverReceivedCloseCode == 4000);
             REQUIRE(serverReceivedCloseReason == "My reason");
@@ -355,7 +355,7 @@ TEST_CASE("Websocket_server_close", "[close]")
 
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        
+
         uint16_t serverReceivedCloseCode(0);
         bool serverReceivedCloseRemote(false);
         std::string serverReceivedCloseReason("");
@@ -390,7 +390,7 @@ TEST_CASE("Websocket_server_close", "[close]")
 
         {
             std::lock_guard<std::mutex> lck(mutexWrite);
-            
+
             // Here we read the code/reason received by the server, and ensure that remote is true
             REQUIRE(serverReceivedCloseCode == 1000);
             REQUIRE(serverReceivedCloseReason == "Normal closure");
