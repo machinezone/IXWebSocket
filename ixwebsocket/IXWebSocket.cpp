@@ -263,7 +263,7 @@ namespace ix
                     connectErr.wait_time = duration.count();
                     connectErr.retries = retries;
                 }
-                
+
                 connectErr.reason      = status.errorStr;
                 connectErr.http_status = status.http_status;
 

@@ -19,7 +19,7 @@
 
 namespace ix
 {
-    enum class HttpErrorCode
+    enum class HttpErrorCode : int
     {
         Ok                       = 0,
         CannotConnect            = 1,

@@ -18,7 +18,7 @@ Very fast, header only, C++ logging library. [![Build Status](https://travis-ci.
 * Gentoo: `emerge dev-libs/spdlog`
 * Arch Linux: `yaourt -S spdlog-git`
 * vcpkg: `vcpkg install spdlog`
- 
+
 
 ## Platforms
  * Linux, FreeBSD, OpenBSD, Solaris, AIX
@@ -64,11 +64,11 @@ basic_mt...             Elapsed: 0.616035       1,623,284/sec
 rotating_mt...          Elapsed: 0.620344       1,612,008/sec
 daily_mt...             Elapsed: 0.648353       1,542,369/sec
 null_mt...              Elapsed: 0.151972       6,580,166/sec
-``` 
+```
 #### Asynchronous mode
 ```
 *******************************************************************************
-10 threads sharing same logger, 1,000,000 iterations 
+10 threads sharing same logger, 1,000,000 iterations
 *******************************************************************************
 async...                Elapsed: 0.350066       2,856,606/sec
 async...                Elapsed: 0.314865       3,175,960/sec
@@ -80,28 +80,28 @@ async...                Elapsed: 0.349851       2,858,358/sec
 #### Basic usage
 ```c++
 #include "spdlog/spdlog.h"
-int main() 
+int main()
 {
     spdlog::info("Welcome to spdlog!");
     spdlog::error("Some error message with arg: {}", 1);
-    
+
     spdlog::warn("Easy padding in numbers like {:08d}", 12);
     spdlog::critical("Support for int: {0:d};  hex: {0:x};  oct: {0:o}; bin: {0:b}", 42);
     spdlog::info("Support for floats {:03.2f}", 1.23456);
     spdlog::info("Positional args are {1} {0}..", "too", "supported");
     spdlog::info("{:<30}", "left aligned");
-    
+
     spdlog::set_level(spdlog::level::debug); // Set global log level to debug
-    spdlog::debug("This message should be displayed..");    
-    
+    spdlog::debug("This message should be displayed..");
+
     // change log pattern
     spdlog::set_pattern("[%H:%M:%S %z] [%n] [%^---%L---%$] [thread %t] %v");
-    
+
     // Compile time log levels
     // define SPDLOG_ACTIVE_LEVEL to desired level
     SPDLOG_TRACE("Some trace message with param {}", {});
     SPDLOG_DEBUG("Some debug message");
-        
+
 }
 ```
 #### create stdout/stderr logger object
@@ -111,8 +111,8 @@ int main()
 void stdout_example()
 {
     // create color multi threaded logger
-    auto console = spdlog::stdout_color_mt("console");    
-    auto err_logger = spdlog::stderr_color_mt("stderr");    
+    auto console = spdlog::stdout_color_mt("console");
+    auto err_logger = spdlog::stderr_color_mt("stderr");
     spdlog::get("console")->info("loggers can be retrieved from a global registry using the spdlog::get(logger_name)");
 }
 ```
@@ -122,7 +122,7 @@ void stdout_example()
 #include "spdlog/sinks/basic_file_sink.h"
 void basic_logfile_example()
 {
-    try 
+    try
     {
         auto my_logger = spdlog::basic_logger_mt("basic_logger", "logs/basic-log.txt");
     }
@@ -157,7 +157,7 @@ void daily_example()
 ```
 
 ---
-#### Cloning loggers 
+#### Cloning loggers
 ```c++
 // clone a logger and give it new name.
 // Useful for creating subsystem loggers from some "root" logger
@@ -238,13 +238,13 @@ void async_example()
     // spdlog::init_thread_pool(8192, 1); // queue with 8k items and 1 backing thread.
     auto async_file = spdlog::basic_logger_mt<spdlog::async_factory>("async_file_logger", "logs/async_log.txt");
     // alternatively:
-    // auto async_file = spdlog::create_async<spdlog::sinks::basic_file_sink_mt>("async_file_logger", "logs/async_log.txt");   
+    // auto async_file = spdlog::create_async<spdlog::sinks::basic_file_sink_mt>("async_file_logger", "logs/async_log.txt");
 }
 
 ```
 
 ---
-#### Asynchronous logger with multi sinks  
+#### Asynchronous logger with multi sinks
 ```c++
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/rotating_file_sink.h"
@@ -259,7 +259,7 @@ void multi_sink_example2()
     spdlog::register_logger(logger);
 }
 ```
- 
+
 ---
 #### User defined types
 ```c++
@@ -293,7 +293,7 @@ void err_handler_example()
 
 ```
 ---
-#### syslog 
+#### syslog
 ```c++
 #include "spdlog/sinks/syslog_sink.h"
 void syslog_example()
@@ -304,7 +304,7 @@ void syslog_example()
 }
 ```
 ---
-#### Android example 
+#### Android example
 ```c++
 #include "spdlog/sinks/android_sink.h"
 void android_example()
