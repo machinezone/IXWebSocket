@@ -157,6 +157,6 @@ install(TARGETS ixwebsocket
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ixwebsocket/
 )
 
-if (NOT WIN32)
+if (USE_WS)
     add_subdirectory(ws)
 endif()

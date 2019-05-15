@@ -149,13 +149,16 @@ namespace ix
                                        std::string("Could not parse URL ") + url);
         }
 
-        bool tls = protocol == "wss";
         std::string errorMsg;
-        _socket = createSocket(tls, errorMsg);
-
-        if (!_socket)
         {
-            return WebSocketInitResult(false, 0, errorMsg);
+            bool tls = protocol == "wss";
+            std::lock_guard<std::mutex> lock(_socketMutex);
+            _socket = createSocket(tls, errorMsg);
+
+            if (!_socket)
+            {
+                return WebSocketInitResult(false, 0, errorMsg);
+            }
         }
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,
@@ -180,11 +183,14 @@ namespace ix
         _useMask = false;
 
         std::string errorMsg;
-        _socket = createSocket(fd, errorMsg);
-
-        if (!_socket)
         {
-            return WebSocketInitResult(false, 0, errorMsg);
+            std::lock_guard<std::mutex> lock(_socketMutex);
+            _socket = createSocket(fd, errorMsg);
+
+            if (!_socket)
+            {
+                return WebSocketInitResult(false, 0, errorMsg);
+            }
         }
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,
@@ -338,7 +344,7 @@ namespace ix
 
                 if (result == PollResultType::Error)
                 {
-                    _socket->close();
+                    closeSocket();
                     setReadyState(ReadyState::CLOSED);
                     break;
                 }
@@ -363,7 +369,7 @@ namespace ix
                     // if there are received data pending to be processed, then delay the abnormal closure
                     // to after dispatch (other close code/reason could be read from the buffer)
                     
-                    _socket->close();
+                    closeSocket();
 
                     return PollResult::AbnormalClose;
                 }
@@ -377,18 +383,18 @@ namespace ix
         }
         else if (pollResult == PollResultType::Error)
         {
-            _socket->close();
+            closeSocket();
         }
         else if (pollResult == PollResultType::CloseRequest)
         {
-            _socket->close();
+            closeSocket();
         }
 
         if (_readyState == ReadyState::CLOSING && closingDelayExceeded())
         {
             _rxbuf.clear();
             // close code and reason were set when calling close()
-            _socket->close();
+            closeSocket();
             setReadyState(ReadyState::CLOSED);
         }
 
@@ -655,7 +661,6 @@ namespace ix
             else
             {
                 // Unexpected frame type
-
                 close(kProtocolErrorCode, kProtocolErrorMessage, _rxbuf.size());
             }
 
@@ -673,7 +678,7 @@ namespace ix
             // if we previously closed the connection (CLOSING state), then set state to CLOSED (code/reason were set before)
             if (_readyState == ReadyState::CLOSING)
             {
-                _socket->close();
+                closeSocket();
                 setReadyState(ReadyState::CLOSED);
             }
             // if we weren't closing, then close using abnormal close code and message 
@@ -949,13 +954,19 @@ namespace ix
                         _enablePerMessageDeflate, onProgressCallback);
     }
 
+    ssize_t WebSocketTransport::send()
+    {
+        std::lock_guard<std::mutex> lock(_socketMutex);
+        return _socket->send((char*)&_txbuf[0], _txbuf.size());
+    }
+
     void WebSocketTransport::sendOnSocket()
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);
 
         while (_txbuf.size())
         {
-            ssize_t ret = _socket->send((char*)&_txbuf[0], _txbuf.size());
+            ssize_t ret = send();
 
             if (ret < 0 && Socket::isWaitNeeded())
             {
@@ -963,8 +974,7 @@ namespace ix
             }
             else if (ret <= 0)
             {
-                _socket->close();
-
+                closeSocket();
                 setReadyState(ReadyState::CLOSED);
                 break;
             }
@@ -998,9 +1008,16 @@ namespace ix
         }
     }
 
-    void WebSocketTransport::closeSocketAndSwitchToClosedState(uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
+    void WebSocketTransport::closeSocket()
     {
+        std::lock_guard<std::mutex> lock(_socketMutex);
         _socket->close();
+    }
+
+    void WebSocketTransport::closeSocketAndSwitchToClosedState(
+        uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
+    {
+        closeSocket();
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
             _closeCode = code;
@@ -1011,7 +1028,8 @@ namespace ix
         setReadyState(ReadyState::CLOSED);
     }
 
-    void WebSocketTransport::close(uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
+    void WebSocketTransport::close(
+        uint16_t code, const std::string& reason, size_t closeWireSize, bool remote)
     {
         _requestInitCancellation = true;
 
