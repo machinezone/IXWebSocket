@@ -352,9 +352,12 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
     # gen build files with CMake
     runCMake(sanitizer, buildDir)
 
-    if platform.system() == 'Darwin':
+    if platform.system() == 'Linux':
+        # build with make -j
+        runCommand('make -C {} -j 2'.format(buildDir))
+    elif platform.system() == 'Darwin':
         # build with make
-        runCommand('make -C {} -j8'.format(buildDir))
+        runCommand('make -C {} -j 8'.format(buildDir))
     else:
         # build with cmake on recent
         runCommand('cmake --build --parallel {}'.format(buildDir))

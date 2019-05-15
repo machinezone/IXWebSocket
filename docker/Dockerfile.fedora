@@ -16,6 +16,7 @@ ENV PATH="${CMAKE_BIN_PATH}:${PATH}"
 
 RUN yum install -y python
 RUN yum install -y libtsan
+RUN yum install -y zlib-devel
 
 COPY . .
 # RUN ["make", "test"]
