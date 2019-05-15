@@ -154,7 +154,7 @@ namespace ix
 
         // Underlying TCP socket
         std::shared_ptr<Socket> _socket;
-        std::mutex _socketMutex;
+        std::recursive_mutex _socketMutex;
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)
         std::atomic<ReadyState> _readyState;
