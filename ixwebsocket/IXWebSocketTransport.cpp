@@ -244,7 +244,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_lastSendPingTimePointMutex);
             _lastSendPingTimePoint = std::chrono::steady_clock::now();
-        } 
+        }
         {
             std::lock_guard<std::mutex> lock(_lastReceivePongTimePointMutex);
             _lastReceivePongTimePoint = std::chrono::steady_clock::now();
@@ -303,7 +303,7 @@ namespace ix
                 sendPing(ss.str());
             }
         }
-        
+
         // No timeout if state is not OPEN, otherwise computed
         // pingIntervalOrTimeoutGCD (equals to -1 if no ping and no ping timeout are set)
         int lastingTimeoutDelayInMs = (_readyState != ReadyState::OPEN) ? 0 : _pingIntervalOrTimeoutGCDSecs;
@@ -316,10 +316,10 @@ namespace ix
             if (now >= _nextGCDTimePoint)
             {
                 _nextGCDTimePoint = now + std::chrono::seconds(_pingIntervalOrTimeoutGCDSecs);
-            
+
                 lastingTimeoutDelayInMs = _pingIntervalOrTimeoutGCDSecs * 1000;
             }
-            else 
+            else
             {
                 lastingTimeoutDelayInMs = (int)std::chrono::duration_cast<std::chrono::milliseconds>(_nextGCDTimePoint - now).count();
             }
@@ -368,7 +368,7 @@ namespace ix
                 {
                     // if there are received data pending to be processed, then delay the abnormal closure
                     // to after dispatch (other close code/reason could be read from the buffer)
-                    
+
                     closeSocket();
 
                     return PollResult::AbnormalClose;
@@ -681,7 +681,7 @@ namespace ix
                 closeSocket();
                 setReadyState(ReadyState::CLOSED);
             }
-            // if we weren't closing, then close using abnormal close code and message 
+            // if we weren't closing, then close using abnormal close code and message
             else if (_readyState != ReadyState::CLOSED)
             {
                 closeSocketAndSwitchToClosedState(kAbnormalCloseCode, kAbnormalCloseMessage, 0, false);

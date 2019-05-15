@@ -173,7 +173,7 @@ namespace ix
 
         // Used to cancel dns lookup + socket connect + http upgrade
         std::atomic<bool> _requestInitCancellation;
-              
+
         mutable std::mutex _closingTimePointMutex;
         std::chrono::time_point<std::chrono::steady_clock>_closingTimePoint;
         static const int kClosingMaximumWaitingDelayInMs;

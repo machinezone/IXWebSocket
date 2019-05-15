@@ -713,7 +713,7 @@ typedef basic_format_args<wprintf_context> wprintf_args;
 /**
   \rst
   Constructs an `~fmt::format_arg_store` object that contains references to
-  arguments and can be implicitly converted to `~fmt::printf_args`. 
+  arguments and can be implicitly converted to `~fmt::printf_args`.
   \endrst
  */
 template<typename... Args>
@@ -723,7 +723,7 @@ inline format_arg_store<printf_context, Args...>
 /**
   \rst
   Constructs an `~fmt::format_arg_store` object that contains references to
-  arguments and can be implicitly converted to `~fmt::wprintf_args`. 
+  arguments and can be implicitly converted to `~fmt::wprintf_args`.
   \endrst
  */
 template<typename... Args>
