@@ -152,7 +152,7 @@ namespace ix
         std::string errorMsg;
         {
             bool tls = protocol == "wss";
-            std::lock_guard<std::mutex> lock(_socketMutex);
+            std::lock_guard<std::recursive_mutex> lock(_socketMutex);
             _socket = createSocket(tls, errorMsg);
 
             if (!_socket)
@@ -184,7 +184,7 @@ namespace ix
 
         std::string errorMsg;
         {
-            std::lock_guard<std::mutex> lock(_socketMutex);
+            std::lock_guard<std::recursive_mutex> lock(_socketMutex);
             _socket = createSocket(fd, errorMsg);
 
             if (!_socket)
@@ -956,7 +956,7 @@ namespace ix
 
     ssize_t WebSocketTransport::send()
     {
-        std::lock_guard<std::mutex> lock(_socketMutex);
+        std::lock_guard<std::recursive_mutex> lock(_socketMutex);
         return _socket->send((char*)&_txbuf[0], _txbuf.size());
     }
 
@@ -1010,7 +1010,7 @@ namespace ix
 
     void WebSocketTransport::closeSocket()
     {
-        std::lock_guard<std::mutex> lock(_socketMutex);
+        std::lock_guard<std::recursive_mutex> lock(_socketMutex);
         _socket->close();
     }
 
