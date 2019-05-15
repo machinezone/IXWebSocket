@@ -5,12 +5,16 @@ matrix:
     # macOS
     - os: osx
       compiler: clang
-      script: make test
+      script:
+        - python test/run.py
+        - make
 
     # Linux
     - os: linux
       dist: xenial
-      script: python test/run.py
+      script: 
+        - python test/run.py
+        - make
       env:
         - CC=gcc
         - CXX=g++

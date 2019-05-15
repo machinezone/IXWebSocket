@@ -96,6 +96,9 @@ namespace ix
                    size_t closeWireSize = 0,
                    bool remote = false);
 
+        void closeSocket();
+        ssize_t send();
+
         ReadyState getReadyState() const;
         void setReadyState(ReadyState readyState);
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
@@ -151,6 +154,7 @@ namespace ix
 
         // Underlying TCP socket
         std::shared_ptr<Socket> _socket;
+        std::mutex _socketMutex;
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)
         std::atomic<ReadyState> _readyState;
