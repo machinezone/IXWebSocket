@@ -7,14 +7,14 @@ matrix:
       compiler: clang
       script:
         - python test/run.py
-        - make ws_test
+        - make ws
 
     # Linux
     - os: linux
       dist: xenial
       script: 
         - python test/run.py
-        - make ws_test
+        - make ws
       env:
         - CC=gcc
         - CXX=g++

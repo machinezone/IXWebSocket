@@ -17,8 +17,12 @@ TEST_CASE("socket_connect", "[net]")
 {
     SECTION("Test connecting to a known hostname")
     {
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+        REQUIRE(startWebSocketEchoServer(server));
+
         std::string errMsg;
-        int fd = SocketConnect::connect("www.google.com", 80, errMsg, [] { return false; });
+        int fd = SocketConnect::connect("127.0.0.1", port, errMsg, [] { return false; });
         std::cerr << "Error message: " << errMsg << std::endl;
         REQUIRE(fd != -1);
     }
@@ -34,9 +38,13 @@ TEST_CASE("socket_connect", "[net]")
 
     SECTION("Test connecting to a good hostname, with cancellation")
     {
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+        REQUIRE(startWebSocketEchoServer(server));
+
         std::string errMsg;
         // The callback returning true means we are requesting cancellation
-        int fd = SocketConnect::connect("www.google.com", 80, errMsg, [] { return true; });
+        int fd = SocketConnect::connect("127.0.0.1", port, errMsg, [] { return true; });
         std::cerr << "Error message: " << errMsg << std::endl;
         REQUIRE(fd == -1);
     }
