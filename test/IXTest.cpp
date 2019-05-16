@@ -170,4 +170,58 @@ namespace ix
 
         std::cout << prefix << ": " << s << " => " << ss.str() << std::endl;
     }
+
+    bool startWebSocketEchoServer(ix::WebSocketServer& server)
+    {
+        server.setOnConnectionCallback(
+            [&server](std::shared_ptr<ix::WebSocket> webSocket,
+                      std::shared_ptr<ConnectionState> connectionState)
+            {
+                webSocket->setOnMessageCallback(
+                    [webSocket, connectionState, &server](ix::WebSocketMessageType messageType,
+                       const std::string& str,
+                       size_t wireSize,
+                       const ix::WebSocketErrorInfo& error,
+                       const ix::WebSocketOpenInfo& openInfo,
+                       const ix::WebSocketCloseInfo& closeInfo)
+                    {
+                        if (messageType == ix::WebSocketMessageType::Open)
+                        {
+                            Logger() << "New connection";
+                            Logger() << "Uri: " << openInfo.uri;
+                            Logger() << "Headers:";
+                            for (auto it : openInfo.headers)
+                            {
+                                Logger() << it.first << ": " << it.second;
+                            }
+                        }
+                        else if (messageType == ix::WebSocketMessageType::Close)
+                        {
+                            Logger() << "Closed connection";
+                        }
+                        else if (messageType == ix::WebSocketMessageType::Message)
+                        {
+                            for (auto&& client : server.getClients())
+                            {
+                                if (client != webSocket)
+                                {
+                                    client->send(str);
+                                }
+                            }
+                        }
+                    }
+                );
+            }
+        );
+
+        auto res = server.listen();
+        if (!res.first)
+        {
+            Logger() << res.second;
+            return false;
+        }
+
+        server.start();
+        return true;
+    }
 }
