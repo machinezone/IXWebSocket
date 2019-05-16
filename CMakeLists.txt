@@ -42,6 +42,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSelectInterrupt.cpp
     ixwebsocket/IXSelectInterruptFactory.cpp
     ixwebsocket/IXConnectionState.cpp
+    ixwebsocket/IXWebSocketCloseConstants.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
@@ -72,6 +73,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSelectInterrupt.h
     ixwebsocket/IXSelectInterruptFactory.h
     ixwebsocket/IXConnectionState.h
+    ixwebsocket/IXWebSocketCloseConstants.h
 )
 
 if (UNIX)
