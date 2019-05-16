@@ -8,7 +8,6 @@
 #include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXCancellationRequest.h>
-#include <ixwebsocket/IXWebSocketServer.h>
 
 #include "IXTest.h"
 #include "catch.hpp"
@@ -50,60 +49,6 @@ namespace ix
         REQUIRE(sscanf(line.c_str(), "HTTP/1.1 %d", &status) == 1);
         REQUIRE(status == expectedStatus);
     }
-
-    bool startServer(ix::WebSocketServer& server)
-    {
-        server.setOnConnectionCallback(
-            [&server](std::shared_ptr<ix::WebSocket> webSocket,
-                      std::shared_ptr<ConnectionState> connectionState)
-            {
-                webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, &server](ix::WebSocketMessageType messageType,
-                       const std::string& str,
-                       size_t wireSize,
-                       const ix::WebSocketErrorInfo& error,
-                       const ix::WebSocketOpenInfo& openInfo,
-                       const ix::WebSocketCloseInfo& closeInfo)
-                    {
-                        if (messageType == ix::WebSocketMessageType::Open)
-                        {
-                            Logger() << "New connection";
-                            Logger() << "Uri: " << openInfo.uri;
-                            Logger() << "Headers:";
-                            for (auto it : openInfo.headers)
-                            {
-                                Logger() << it.first << ": " << it.second;
-                            }
-                        }
-                        else if (messageType == ix::WebSocketMessageType::Close)
-                        {
-                            Logger() << "Closed connection";
-                        }
-                        else if (messageType == ix::WebSocketMessageType::Message)
-                        {
-                            for (auto&& client : server.getClients())
-                            {
-                                if (client != webSocket)
-                                {
-                                    client->send(str);
-                                }
-                            }
-                        }
-                    }
-                );
-            }
-        );
-
-        auto res = server.listen();
-        if (!res.first)
-        {
-            Logger() << res.second;
-            return false;
-        }
-
-        server.start();
-        return true;
-    }
 }
 
 TEST_CASE("socket", "[socket]")
@@ -113,7 +58,7 @@ TEST_CASE("socket", "[socket]")
         // Start a server first which we'll hit with our socket code
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        REQUIRE(startServer(server));
+        REQUIRE(startWebSocketEchoServer(server));
 
         std::string errMsg;
         bool tls = false;

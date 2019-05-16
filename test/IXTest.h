@@ -12,6 +12,7 @@
 #include <iostream>
 #include <mutex>
 #include <spdlog/spdlog.h>
+#include <ixwebsocket/IXWebSocketServer.h>
 
 namespace ix
 {
@@ -46,4 +47,6 @@ namespace ix
     void log(const std::string& msg);
 
     int getFreePort();
+
+    bool startWebSocketEchoServer(ix::WebSocketServer& server);
 }
