@@ -11,6 +11,9 @@ install: brew
 brew:
 	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j install)
 
+ws:
+	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j)
+
 uninstall:
 	xargs rm -fv < build/install_manifest.txt
 
