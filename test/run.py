@@ -456,7 +456,7 @@ def main():
                         help='Run the test through lldb.')
     parser.add_argument('--run_name', '-n',
                         help='Name of the test run.')
-    parser.add_argument('--cpu_count', '-j',
+    parser.add_argument('--cpu_count', '-j', type=int, default=multiprocessing.cpu_count(),
                         help='Number of cpus to use for running the tests.')
 
     args = parser.parse_args()
@@ -502,10 +502,8 @@ def main():
         print('LLDB is only supported on Apple at this point')
         args.lldb = False
 
-    cpuCount = args.cpu_count or multiprocessing.cpu_count()
-
     return run(args.test, buildDir, sanitizer, xmlOutput, 
-               testRunName, args.build_only, args.lldb, cpuCount)
+               testRunName, args.build_only, args.lldb, args.cpu_count)
 
 
 if __name__ == '__main__':
