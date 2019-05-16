@@ -1,7 +1,6 @@
 # General
 
 ![Alt text](https://travis-ci.org/machinezone/IXWebSocket.svg?branch=master)
-(master is broken now ... see https://github.com/machinezone/IXWebSocket/issues/77)
 
 ## Introduction
 
