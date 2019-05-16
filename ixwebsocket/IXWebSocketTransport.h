@@ -25,6 +25,7 @@
 #include "IXCancellationRequest.h"
 #include "IXWebSocketHandshake.h"
 #include "IXProgressCallback.h"
+#include "IXWebSocketCloseConstants.h"
 
 namespace ix
 {
@@ -91,8 +92,8 @@ namespace ix
                                    const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendPing(const std::string& message);
 
-        void close(uint16_t code = 1000,
-                   const std::string& reason = "Normal closure",
+        void close(uint16_t code = WebSocketCloseConstants::kNormalClosureCode,
+                   const std::string& reason = WebSocketCloseConstants::kNormalClosureMessage,
                    size_t closeWireSize = 0,
                    bool remote = false);
 

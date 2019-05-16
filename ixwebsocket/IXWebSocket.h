@@ -19,6 +19,7 @@
 #include "IXWebSocketSendInfo.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXWebSocketCloseConstants.h"
 #include "IXProgressCallback.h"
 
 namespace ix
@@ -101,8 +102,8 @@ namespace ix
         void start();
 
         // stop is synchronous
-        void stop(uint16_t code = 1000,
-                  const std::string& reason = "Normal closure");
+        void stop(uint16_t code = WebSocketCloseConstants::kNormalClosureCode,
+                  const std::string& reason = WebSocketCloseConstants::kNormalClosureMessage);
 
         // Run in blocking mode, by connecting first manually, and then calling run.
         WebSocketInitResult connect(int timeoutSecs);

@@ -74,21 +74,11 @@ namespace ix
     const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(200);
     constexpr size_t WebSocketTransport::kChunkSize;
 
-    const uint16_t WebSocketTransport::kInternalErrorCode(1011);
-    const uint16_t WebSocketTransport::kAbnormalCloseCode(1006);
-    const uint16_t WebSocketTransport::kProtocolErrorCode(1002);
-    const uint16_t WebSocketTransport::kNoStatusCodeErrorCode(1005);
-    const std::string WebSocketTransport::kInternalErrorMessage("Internal error");
-    const std::string WebSocketTransport::kAbnormalCloseMessage("Abnormal closure");
-    const std::string WebSocketTransport::kPingTimeoutMessage("Ping timeout");
-    const std::string WebSocketTransport::kProtocolErrorMessage("Protocol error");
-    const std::string WebSocketTransport::kNoStatusCodeErrorMessage("No status code");
-
     WebSocketTransport::WebSocketTransport() :
         _useMask(true),
         _readyState(ReadyState::CLOSED),
-        _closeCode(kInternalErrorCode),
-        _closeReason(kInternalErrorMessage),
+        _closeCode(WebSocketCloseConstants::kInternalErrorCode),
+        _closeReason(WebSocketCloseConstants::kInternalErrorMessage),
         _closeWireSize(0),
         _closeRemote(false),
         _enablePerMessageDeflate(false),
@@ -221,8 +211,8 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
             _onCloseCallback(_closeCode, _closeReason, _closeWireSize, _closeRemote);
-            _closeCode = kInternalErrorCode;
-            _closeReason = kInternalErrorMessage;
+            _closeCode = WebSocketCloseConstants::kInternalErrorCode;
+            _closeReason = WebSocketCloseConstants::kInternalErrorMessage;
             _closeWireSize = 0;
             _closeRemote = false;
         }
@@ -292,7 +282,8 @@ namespace ix
             // ping response (PONG) exceeds the maximum delay, then close the connection
             if (pingTimeoutExceeded())
             {
-                close(kInternalErrorCode, kPingTimeoutMessage);
+                close(WebSocketCloseConstants::kInternalErrorCode,
+                      WebSocketCloseConstants::kPingTimeoutMessage);
             }
             // If ping is enabled and no ping has been sent for a duration
             // exceeding our ping interval, send a ping to the server.
@@ -637,8 +628,8 @@ namespace ix
                 else
                 {
                     // no close code received
-                    code = kNoStatusCodeErrorCode;
-                    reason = kNoStatusCodeErrorMessage;
+                    code = WebSocketCloseConstants::kNoStatusCodeErrorCode;
+                    reason = WebSocketCloseConstants::kNoStatusCodeErrorMessage;
                 }
 
                 // We receive a CLOSE frame from remote and are NOT the ones who triggered the close
@@ -672,7 +663,9 @@ namespace ix
             else
             {
                 // Unexpected frame type
-                close(kProtocolErrorCode, kProtocolErrorMessage, _rxbuf.size());
+                close(WebSocketCloseConstants::kProtocolErrorCode,
+                      WebSocketCloseConstants::kProtocolErrorMessage,
+                      _rxbuf.size());
             }
 
             // Erase the message that has been processed from the input/read buffer
@@ -695,7 +688,9 @@ namespace ix
             // if we weren't closing, then close using abnormal close code and message
             else if (_readyState != ReadyState::CLOSED)
             {
-                closeSocketAndSwitchToClosedState(kAbnormalCloseCode, kAbnormalCloseMessage, 0, false);
+                closeSocketAndSwitchToClosedState(WebSocketCloseConstants::kAbnormalCloseCode,
+                                                  WebSocketCloseConstants::kAbnormalCloseMessage,
+                                                  0, false);
             }
         }
     }
@@ -1001,7 +996,7 @@ namespace ix
         bool compress = false;
 
         // if a status is set/was read
-        if (code != kNoStatusCodeErrorCode)
+        if (code != WebSocketCloseConstants::kNoStatusCodeErrorCode)
         {
             // See list of close events here:
             // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
