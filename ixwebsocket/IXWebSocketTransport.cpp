@@ -130,6 +130,8 @@ namespace ix
     WebSocketInitResult WebSocketTransport::connectToUrl(const std::string& url,
                                                          int timeoutSecs)
     {
+        std::lock_guard<std::mutex> lock(_socketMutex);
+
         std::string protocol, host, path, query;
         int port;
 
@@ -140,15 +142,12 @@ namespace ix
         }
 
         std::string errorMsg;
-        {
-            bool tls = protocol == "wss";
-            // std::lock_guard<std::mutex> lock(_socketMutex);
-            _socket = createSocket(tls, errorMsg);
+        bool tls = protocol == "wss";
+        _socket = createSocket(tls, errorMsg);
 
-            if (!_socket)
-            {
-                return WebSocketInitResult(false, 0, errorMsg);
-            }
+        if (!_socket)
+        {
+            return WebSocketInitResult(false, 0, errorMsg);
         }
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,
@@ -169,18 +168,17 @@ namespace ix
     // Server
     WebSocketInitResult WebSocketTransport::connectToSocket(int fd, int timeoutSecs)
     {
+        std::lock_guard<std::mutex> lock(_socketMutex);
+
         // Server should not mask the data it sends to the client
         _useMask = false;
 
         std::string errorMsg;
-        {
-            // std::lock_guard<std::mutex> lock(_socketMutex);
-            _socket = createSocket(fd, errorMsg);
+        _socket = createSocket(fd, errorMsg);
 
-            if (!_socket)
-            {
-                return WebSocketInitResult(false, 0, errorMsg);
-            }
+        if (!_socket)
+        {
+            return WebSocketInitResult(false, 0, errorMsg);
         }
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,
@@ -962,7 +960,7 @@ namespace ix
 
     ssize_t WebSocketTransport::send()
     {
-        // std::lock_guard<std::mutex> lock(_socketMutex);
+        std::lock_guard<std::mutex> lock(_socketMutex);
         return _socket->send((char*)&_txbuf[0], _txbuf.size());
     }
 
@@ -1016,7 +1014,7 @@ namespace ix
 
     void WebSocketTransport::closeSocket()
     {
-        // std::lock_guard<std::mutex> lock(_socketMutex);
+        std::lock_guard<std::mutex> lock(_socketMutex);
         _socket->close();
     }
 
