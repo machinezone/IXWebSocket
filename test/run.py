@@ -269,12 +269,12 @@ def executeJob(job):
     return job
 
 
-def executeJobs(jobs):
+def executeJobs(jobs, cpuCount):
     '''Execute a list of job concurrently on multiple CPU/cores'''
 
-    poolSize = multiprocessing.cpu_count()
+    print('Using {} cores to execute the unittest'.format(cpuCount))
 
-    pool = multiprocessing.Pool(poolSize)
+    pool = multiprocessing.Pool(cpuCount)
     results = pool.map(executeJob, jobs)
     pool.close()
     pool.join()
@@ -346,7 +346,8 @@ def generateXmlOutput(results, xmlOutput, testRunName, runTime):
         f.write(content.encode('utf-8'))
 
 
-def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLDB):
+def run(testName, buildDir, sanitizer, xmlOutput,
+        testRunName, buildOnly, useLLDB, cpuCount):
     '''Main driver. Run cmake, compiles, execute and validate the testsuite.'''
 
     # gen build files with CMake
@@ -405,7 +406,7 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
         })
 
     start = time.time()
-    results = executeJobs(jobs)
+    results = executeJobs(jobs, cpuCount)
     runTime = time.time() - start
     generateXmlOutput(results, xmlOutput, testRunName, runTime)
 
@@ -455,6 +456,8 @@ def main():
                         help='Run the test through lldb.')
     parser.add_argument('--run_name', '-n',
                         help='Name of the test run.')
+    parser.add_argument('--cpu_count', '-j',
+                        help='Number of cpus to use for running the tests.')
 
     args = parser.parse_args()
 
@@ -499,8 +502,10 @@ def main():
         print('LLDB is only supported on Apple at this point')
         args.lldb = False
 
+    cpuCount = args.cpu_count or multiprocessing.cpu_count()
+
     return run(args.test, buildDir, sanitizer, xmlOutput, 
-               testRunName, args.build_only, args.lldb)
+               testRunName, args.build_only, args.lldb, cpuCount)
 
 
 if __name__ == '__main__':
