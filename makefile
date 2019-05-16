@@ -51,7 +51,7 @@ test_server:
 test:
 	python2.7 test/run.py
 
-ws_test: all
+ws_test: ws
 	(cd ws ; env DEBUG=1 PATH=../ws/build:$$PATH bash test_ws.sh)
 
 # For the fork that is configured with appveyor
