@@ -61,4 +61,4 @@ sleep 2
 kill `cat /tmp/ws_test/pidfile.transfer`
 kill `cat /tmp/ws_test/pidfile.receive`
 kill `cat /tmp/ws_test/pidfile.send`
-
+exit 0

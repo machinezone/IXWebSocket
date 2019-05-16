@@ -52,7 +52,7 @@ test:
 	python2.7 test/run.py
 
 ws_test: all
-	(cd ws ; bash test_ws.sh)
+	(cd ws ; env DEBUG=1 PATH=../ws/build:$$PATH bash test_ws.sh)
 
 # For the fork that is configured with appveyor
 rebase_upstream:
@@ -67,3 +67,4 @@ install_cmake_for_linux:
 
 .PHONY: test
 .PHONY: build
+.PHONY: ws
