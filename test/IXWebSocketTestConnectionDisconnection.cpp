@@ -129,11 +129,17 @@ TEST_CASE("websocket_connections", "[websocket]")
     SECTION("Try to connect and disconnect with different timing, not enough time to succesfully connect")
     {
         IXWebSocketTestConnectionDisconnection test;
+        log(std::string("50 Runs"));
+
         for (int i = 0; i < 50; ++i)
         {
             log(std::string("Run: ") + std::to_string(i));
             test.start(WEBSOCKET_DOT_ORG_URL);
+
+            log(std::string("Sleeping"));
             ix::msleep(i);
+
+            log(std::string("Stopping"));
             test.stop();
         }
     }
@@ -143,11 +149,17 @@ TEST_CASE("websocket_connections", "[websocket]")
     SECTION("Try to connect and disconnect with different timing, from not enough time to successfull connect")
     {
         IXWebSocketTestConnectionDisconnection test;
+        log(std::string("20 Runs"));
+
         for (int i = 0; i < 20; ++i)
         {
             log(std::string("Run: ") + std::to_string(i));
             test.start(WEBSOCKET_DOT_ORG_URL);
+
+            log(std::string("Sleeping"));
             ix::msleep(i*50);
+
+            log(std::string("Stopping"));
             test.stop();
         }
     }
