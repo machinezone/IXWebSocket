@@ -74,6 +74,12 @@ namespace ix
         // background thread to wait for incoming connections
         std::atomic<bool> _stop;
         std::thread _thread;
+        void run();
+
+        // background thread to cleanup (join) terminated threads
+        std::atomic<bool> _stopGc;
+        std::thread _gcThread;
+        void runGC();
 
         // the list of (connectionState, threads) for each connections
         ConnectionThreads _connectionsThreads;
@@ -87,13 +93,12 @@ namespace ix
         // the factory to create ConnectionState objects
         ConnectionStateFactory _connectionStateFactory;
 
-        // Methods
-        void run();
         virtual void handleConnection(int fd,
                                       std::shared_ptr<ConnectionState> connectionState) = 0;
         virtual size_t getConnectedClientsCount() = 0;
 
         // Returns true if all connection threads are joined
-        bool closeTerminatedThreads();
+        void closeTerminatedThreads();
+        size_t getConnectionsThreadsCount();
     };
 }

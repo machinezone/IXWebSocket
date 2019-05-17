@@ -13,6 +13,7 @@
 #include <ixcobra/IXCobraConnection.h>
 
 #include <statsd_client.h>
+#include <spdlog/spdlog.h>
 
 namespace ix
 {
@@ -90,20 +91,20 @@ namespace ix
             {
                 if (eventType == ix::CobraConnection_EventType_Open)
                 {
-                    std::cout << "Subscriber: connected" << std::endl;
+                    spdlog::info("Subscriber connected");
 
                     for (auto it : headers)
                     {
-                        std::cerr << it.first << ": " << it.second << std::endl;
+                        spdlog::info("{}: {}", it.first, it.second);
                     }
                 }
                 if (eventType == ix::CobraConnection_EventType_Closed)
                 {
-                    std::cout << "Subscriber: closed" << std::endl;
+                    spdlog::info("Subscriber closed");
                 }
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
-                    std::cout << "Subscriber authenticated" << std::endl;
+                    spdlog::info("Subscriber authenticated");
                     conn.subscribe(channel,
                                    [&jsonWriter, &statsdClient,
                                     verbose, &tokens, &prefix, &msgCount]
@@ -111,7 +112,7 @@ namespace ix
                                    {
                                        if (verbose)
                                        {
-                                           std::cout << jsonWriter.write(msg) << std::endl;
+                                           spdlog::info(jsonWriter.write(msg));
                                        }
 
                                        std::string id;
@@ -121,22 +122,22 @@ namespace ix
                                            id += extractAttr(attr, msg);
                                        }
 
-                                       std::cout << msgCount++ << " " << prefix << id << std::endl;
+                                       spdlog::info("{} {}{}", msgCount++, prefix, id);
 
                                        statsdClient.count(id, 1);
                                    });
                 }
                 else if (eventType == ix::CobraConnection_EventType_Subscribed)
                 {
-                    std::cout << "Subscriber: subscribed to channel " << subscriptionId << std::endl;
+                    spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
                 }
                 else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
                 {
-                    std::cout << "Subscriber: unsubscribed from channel " << subscriptionId << std::endl;
+                    spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
                 }
                 else if (eventType == ix::CobraConnection_EventType_Error)
                 {
-                    std::cout << "Subscriber: error" << errMsg << std::endl;
+                    spdlog::error("Subscriber: error {}", errMsg);
                 }
             }
         );

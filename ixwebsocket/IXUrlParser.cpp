@@ -7,8 +7,6 @@
 #include "IXUrlParser.h"
 #include "LUrlParser.h"
 
-#include <iostream>
-
 namespace ix
 {
     bool UrlParser::parse(const std::string& url,
@@ -66,22 +64,4 @@ namespace ix
         return true;
     }
 
-    void UrlParser::printUrl(const std::string& url)
-    {
-        std::string protocol, host, path, query;
-        int port {0};
-
-        if (!parse(url, protocol, host, path, query, port))
-        {
-            return;
-        }
-
-        std::cout << "[" << url << "]" << std::endl;
-        std::cout << protocol << std::endl;
-        std::cout << host << std::endl;
-        std::cout << port << std::endl;
-        std::cout << path << std::endl;
-        std::cout << query << std::endl;
-        std::cout << "-------------------------------" << std::endl;
-    }
 }

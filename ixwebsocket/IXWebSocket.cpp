@@ -13,16 +13,21 @@
 
 namespace
 {
-    uint64_t calculateRetryWaitMilliseconds(uint64_t retry_count)
+    uint64_t calculateRetryWaitMilliseconds(uint32_t retry_count)
     {
-        // This will overflow quite fast for large value of retry_count
-        // and will become 0, in which case the wait time will be none
-        // and we'll be constantly retrying to connect.
-        uint64_t wait_time = ((uint64_t) std::pow(2, retry_count) * 100L);
+        uint64_t wait_time;
 
-        // cap the wait time to 10s, or to retry_count == 10 for which wait_time > 10s
-        uint64_t tenSeconds = 10 * 1000;
-        return (wait_time > tenSeconds || retry_count > 10) ? tenSeconds : wait_time;
+        if (retry_count <= 6)
+        {
+            // max wait_time is 6400 ms (2 ^ 6 = 64)
+            wait_time = ((uint64_t)std::pow(2, retry_count) * 100L);
+        }
+        else
+        {
+            wait_time = 10 * 1000; // 10 sec
+        }
+
+        return wait_time;
     }
 }
 
@@ -46,7 +51,7 @@ namespace ix
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
             {
-                _onMessageCallback(WebSocket_MessageType_Close, "", wireSize,
+                _onMessageCallback(WebSocketMessageType::Close, "", wireSize,
                                    WebSocketErrorInfo(), WebSocketOpenInfo(),
                                    WebSocketCloseInfo(code, reason, remote));
             }
@@ -137,26 +142,19 @@ namespace ix
         _thread = std::thread(&WebSocket::run, this);
     }
 
-    void WebSocket::stop()
+    void WebSocket::stop(uint16_t code,
+                         const std::string& reason)
     {
-        bool automaticReconnection = _automaticReconnection;
+        close(code, reason);
 
-        // This value needs to be forced when shutting down, it is restored later
-        _automaticReconnection = false;
-
-        close();
-
-        if (!_thread.joinable())
+        if (_thread.joinable())
         {
-            _automaticReconnection = automaticReconnection;
-            return;
+            // wait until working thread will exit
+            // it will exit after close operation is finished
+            _stop = true;
+            _thread.join();
+            _stop = false;
         }
-
-        _stop = true;
-        _thread.join();
-        _stop = false;
-
-        _automaticReconnection = automaticReconnection;
     }
 
     WebSocketInitResult WebSocket::connect(int timeoutSecs)
@@ -175,7 +173,7 @@ namespace ix
             return status;
         }
 
-        _onMessageCallback(WebSocket_MessageType_Open, "", 0,
+        _onMessageCallback(WebSocketMessageType::Open, "", 0,
                            WebSocketErrorInfo(),
                            WebSocketOpenInfo(status.uri, status.headers),
                            WebSocketCloseInfo());
@@ -198,7 +196,7 @@ namespace ix
             return status;
         }
 
-        _onMessageCallback(WebSocket_MessageType_Open, "", 0,
+        _onMessageCallback(WebSocketMessageType::Open, "", 0,
                            WebSocketErrorInfo(),
                            WebSocketOpenInfo(status.uri, status.headers),
                            WebSocketCloseInfo());
@@ -207,80 +205,71 @@ namespace ix
 
     bool WebSocket::isConnected() const
     {
-        return getReadyState() == WebSocket_ReadyState_Open;
+        return getReadyState() == ReadyState::Open;
     }
 
     bool WebSocket::isClosing() const
     {
-        return getReadyState() == WebSocket_ReadyState_Closing;
+        return getReadyState() == ReadyState::Closing;
     }
 
-    bool WebSocket::isConnectedOrClosing() const
+    void WebSocket::close(uint16_t code,
+                          const std::string& reason)
     {
-        return isConnected() || isClosing();
+        _ws.close(code, reason);
     }
 
-    void WebSocket::close()
+    void WebSocket::checkConnection(bool firstConnectionAttempt)
     {
-        _ws.close();
-    }
-
-    void WebSocket::reconnectPerpetuallyIfDisconnected()
-    {
-        uint64_t retries = 0;
-        WebSocketErrorInfo connectErr;
-        ix::WebSocketInitResult status;
         using millis = std::chrono::duration<double, std::milli>;
+
+        uint32_t retries = 0;
         millis duration;
 
-        // Try to connect only once when we don't have automaticReconnection setup
-        if (!isConnectedOrClosing() && !_stop && !_automaticReconnection)
+        // Try to connect perpertually
+        while (true)
         {
-            status = connect(_handshakeTimeoutSecs);
+            if (isConnected() || isClosing() || _stop)
+            {
+                break;
+            }
+
+            if (!firstConnectionAttempt && !_automaticReconnection)
+            {
+                // Do not attempt to reconnect
+                break;
+            }
+
+            firstConnectionAttempt = false;
+
+            // Only sleep if we are retrying
+            if (duration.count() > 0)
+            {
+                // to do: make sleeping conditional
+                std::this_thread::sleep_for(duration);
+            }
+
+            // Try to connect synchronously
+            ix::WebSocketInitResult status = connect(_handshakeTimeoutSecs);
 
             if (!status.success)
             {
-                duration = millis(calculateRetryWaitMilliseconds(retries++));
+                WebSocketErrorInfo connectErr;
 
-                connectErr.retries = retries;
-                connectErr.wait_time = duration.count();
-                connectErr.reason = status.errorStr;
-                connectErr.http_status = status.http_status;
-                _onMessageCallback(WebSocket_MessageType_Error, "", 0,
-                                   connectErr, WebSocketOpenInfo(),
-                                   WebSocketCloseInfo());
-            }
-        }
-        else
-        {
-            // Otherwise try to reconnect perpertually
-            while (true)
-            {
-                if (isConnectedOrClosing() || _stop || !_automaticReconnection)
-                {
-                    break;
-                }
-
-                status = connect(_handshakeTimeoutSecs);
-
-                if (!status.success)
+                if (_automaticReconnection)
                 {
                     duration = millis(calculateRetryWaitMilliseconds(retries++));
 
-                    connectErr.retries = retries;
                     connectErr.wait_time = duration.count();
-                    connectErr.reason = status.errorStr;
-                    connectErr.http_status = status.http_status;
-                    _onMessageCallback(WebSocket_MessageType_Error, "", 0,
-                                       connectErr, WebSocketOpenInfo(),
-                                       WebSocketCloseInfo());
-
-                    // Only sleep if we aren't in the middle of stopping
-                    if (!_stop)
-                    {
-                        std::this_thread::sleep_for(duration);
-                    }
+                    connectErr.retries = retries;
                 }
+
+                connectErr.reason      = status.errorStr;
+                connectErr.http_status = status.http_status;
+
+                _onMessageCallback(WebSocketMessageType::Error, "", 0,
+                                   connectErr, WebSocketOpenInfo(),
+                                   WebSocketCloseInfo());
             }
         }
     }
@@ -289,19 +278,30 @@ namespace ix
     {
         setThreadName(getUrl());
 
+        bool firstConnectionAttempt = true;
+
         while (true)
         {
-            if (_stop && !isClosing()) return;
-
             // 1. Make sure we are always connected
-            reconnectPerpetuallyIfDisconnected();
+            checkConnection(firstConnectionAttempt);
+
+            firstConnectionAttempt = false;
+
+            // if here we are closed then checkConnection was not able to connect
+            if (getReadyState() == ReadyState::Closed)
+            {
+                break;
+            }
+
+            // We cannot enter poll which might block forever if we are stopping
+            if (_stop) break;
 
             // 2. Poll to see if there's any new data available
-            WebSocketTransport::PollPostTreatment pollPostTreatment = _ws.poll();
+            WebSocketTransport::PollResult pollResult = _ws.poll();
 
             // 3. Dispatch the incoming messages
             _ws.dispatch(
-                pollPostTreatment,
+                pollResult,
                 [this](const std::string& msg,
                        size_t wireSize,
                        bool decompressionError,
@@ -310,24 +310,25 @@ namespace ix
                     WebSocketMessageType webSocketMessageType;
                     switch (messageKind)
                     {
-                        case WebSocketTransport::MSG:
+                        default:
+                        case WebSocketTransport::MessageKind::MSG:
                         {
-                            webSocketMessageType = WebSocket_MessageType_Message;
+                            webSocketMessageType = WebSocketMessageType::Message;
                         } break;
 
-                        case WebSocketTransport::PING:
+                        case WebSocketTransport::MessageKind::PING:
                         {
-                            webSocketMessageType = WebSocket_MessageType_Ping;
+                            webSocketMessageType = WebSocketMessageType::Ping;
                         } break;
 
-                        case WebSocketTransport::PONG:
+                        case WebSocketTransport::MessageKind::PONG:
                         {
-                            webSocketMessageType = WebSocket_MessageType_Pong;
+                            webSocketMessageType = WebSocketMessageType::Pong;
                         } break;
 
-                        case WebSocketTransport::FRAGMENT:
+                        case WebSocketTransport::MessageKind::FRAGMENT:
                         {
-                            webSocketMessageType = WebSocket_MessageType_Fragment;
+                            webSocketMessageType = WebSocketMessageType::Fragment;
                         } break;
                     }
 
@@ -340,9 +341,6 @@ namespace ix
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });
-
-            // If we aren't trying to reconnect automatically, exit if we aren't connected
-            if (!isConnectedOrClosing() && !_automaticReconnection) return;
         }
     }
 
@@ -369,10 +367,10 @@ namespace ix
         }
     }
 
-    WebSocketSendInfo WebSocket::send(const std::string& text,
+    WebSocketSendInfo WebSocket::send(const std::string& data,
                                       const OnProgressCallback& onProgressCallback)
     {
-        return sendMessage(text, SendMessageKind::Binary, onProgressCallback);
+        return sendMessage(data, SendMessageKind::Binary, onProgressCallback);
     }
 
     WebSocketSendInfo WebSocket::sendText(const std::string& text,
@@ -435,11 +433,11 @@ namespace ix
     {
         switch (_ws.getReadyState())
         {
-            case ix::WebSocketTransport::OPEN: return WebSocket_ReadyState_Open;
-            case ix::WebSocketTransport::CONNECTING: return WebSocket_ReadyState_Connecting;
-            case ix::WebSocketTransport::CLOSING: return WebSocket_ReadyState_Closing;
-            case ix::WebSocketTransport::CLOSED: return WebSocket_ReadyState_Closed;
-            default: return WebSocket_ReadyState_Closed;
+            case ix::WebSocketTransport::ReadyState::OPEN      : return ReadyState::Open;
+            case ix::WebSocketTransport::ReadyState::CONNECTING: return ReadyState::Connecting;
+            case ix::WebSocketTransport::ReadyState::CLOSING   : return ReadyState::Closing;
+            case ix::WebSocketTransport::ReadyState::CLOSED    : return ReadyState::Closed;
+            default: return ReadyState::Closed;
         }
     }
 
@@ -447,11 +445,11 @@ namespace ix
     {
         switch (readyState)
         {
-            case WebSocket_ReadyState_Open: return "OPEN";
-            case WebSocket_ReadyState_Connecting: return "CONNECTING";
-            case WebSocket_ReadyState_Closing: return "CLOSING";
-            case WebSocket_ReadyState_Closed: return "CLOSED";
-            default: return "CLOSED";
+            case ReadyState::Open      : return "OPEN";
+            case ReadyState::Connecting: return "CONNECTING";
+            case ReadyState::Closing   : return "CLOSING";
+            case ReadyState::Closed    : return "CLOSED";
+            default: return "UNKNOWN";
         }
     }
 
@@ -463,6 +461,11 @@ namespace ix
     void WebSocket::disableAutomaticReconnection()
     {
         _automaticReconnection = false;
+    }
+
+    bool WebSocket::isAutomaticReconnectionEnabled() const
+    {
+        return _automaticReconnection;
     }
 
     size_t WebSocket::bufferedAmount() const

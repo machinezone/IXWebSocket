@@ -36,9 +36,6 @@ namespace ix
     {
         if (disableAutomaticReconnection)
         {
-            std::cout << "Disabling automatic reconnection with "
-                         "_webSocket.disableAutomaticReconnection()"
-                         " not supported yet" << std::endl;
             _webSocket.disableAutomaticReconnection();
         }
     }
@@ -73,7 +70,7 @@ namespace ix
                const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
                     log("ws_connect: connected");
                     std::cout << "Uri: " << openInfo.uri << std::endl;
@@ -83,14 +80,14 @@ namespace ix
                         std::cout << it.first << ": " << it.second << std::endl;
                     }
                 }
-                else if (messageType == ix::WebSocket_MessageType_Close)
+                else if (messageType == ix::WebSocketMessageType::Close)
                 {
                     ss << "ws_connect: connection closed:";
                     ss << " code " << closeInfo.code;
                     ss << " reason " << closeInfo.reason << std::endl;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
                     std::cerr << "Received " << wireSize << " bytes" << std::endl;
 
@@ -98,7 +95,7 @@ namespace ix
                        << str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Error)
+                else if (messageType == ix::WebSocketMessageType::Error)
                 {
                     ss << "Connection error: " << error.reason      << std::endl;
                     ss << "#retries: "         << error.retries     << std::endl;
@@ -106,15 +103,15 @@ namespace ix
                     ss << "HTTP Status: "      << error.http_status << std::endl;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Fragment)
+                else if (messageType == ix::WebSocketMessageType::Fragment)
                 {
                     std::cerr << "Received message fragment" << std::endl;
                 }
-                else if (messageType == ix::WebSocket_MessageType_Ping)
+                else if (messageType == ix::WebSocketMessageType::Ping)
                 {
                     std::cerr << "Received ping" << std::endl;
                 }
-                else if (messageType == ix::WebSocket_MessageType_Pong)
+                else if (messageType == ix::WebSocketMessageType::Pong)
                 {
                     std::cerr << "Received pong" << std::endl;
                 }

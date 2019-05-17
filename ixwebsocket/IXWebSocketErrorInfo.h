@@ -12,10 +12,10 @@ namespace ix
 {
     struct WebSocketErrorInfo
     {
-        uint64_t retries;
-        double wait_time;
-        int http_status;
+        uint32_t retries = 0;
+        double wait_time = 0;
+        int http_status = 0;
         std::string reason;
-        bool decompressionError;
+        bool decompressionError = false;
     };
 }

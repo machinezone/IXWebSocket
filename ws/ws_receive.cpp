@@ -191,7 +191,7 @@ namespace ix
                const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
                     _condition.notify_one();
 
@@ -203,21 +203,21 @@ namespace ix
                         std::cout << it.first << ": " << it.second << std::endl;
                     }
                 }
-                else if (messageType == ix::WebSocket_MessageType_Close)
+                else if (messageType == ix::WebSocketMessageType::Close)
                 {
                     ss << "ws_receive: connection closed:";
                     ss << " code " << closeInfo.code;
                     ss << " reason " << closeInfo.reason << std::endl;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
                     ss << "ws_receive: transfered " << wireSize << " bytes";
                     log(ss.str());
                     handleMessage(str);
                     _condition.notify_one();
                 }
-                else if (messageType == ix::WebSocket_MessageType_Fragment)
+                else if (messageType == ix::WebSocketMessageType::Fragment)
                 {
                     ss << "ws_receive: received fragment " << _receivedFragmentCounter++;
                     log(ss.str());
@@ -229,7 +229,7 @@ namespace ix
                         std::this_thread::sleep_for(duration);
                     }
                 }
-                else if (messageType == ix::WebSocket_MessageType_Error)
+                else if (messageType == ix::WebSocketMessageType::Error)
                 {
                     ss << "ws_receive ";
                     ss << "Connection error: " << error.reason      << std::endl;

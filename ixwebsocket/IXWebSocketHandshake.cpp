@@ -242,7 +242,7 @@ namespace ix
         }
 
         char output[29] = {};
-        WebSocketHandshakeKeyGen::generate(secWebSocketKey.c_str(), output);
+        WebSocketHandshakeKeyGen::generate(secWebSocketKey, output);
         if (std::string(output) != headers["sec-websocket-accept"])
         {
             std::string errorMsg("Invalid Sec-WebSocket-Accept value");
@@ -348,7 +348,7 @@ namespace ix
         }
 
         char output[29] = {};
-        WebSocketHandshakeKeyGen::generate(headers["sec-websocket-key"].c_str(), output);
+        WebSocketHandshakeKeyGen::generate(headers["sec-websocket-key"], output);
 
         std::stringstream ss;
         ss << "HTTP/1.1 101 Switching Protocols\r\n";

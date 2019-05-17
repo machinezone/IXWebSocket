@@ -73,7 +73,7 @@ namespace ix
 
         struct timeval timeout;
         timeout.tv_sec = timeoutMs / 1000;
-        timeout.tv_usec = (timeoutMs < 1000) ? 0 : 1000 * (timeoutMs % 1000);
+        timeout.tv_usec = 1000 * (timeoutMs % 1000);
 
         // Compute the highest fd.
         int sockfd = _sockfd;
@@ -129,7 +129,7 @@ namespace ix
     }
 
     // Wake up from poll/select by writing to the pipe which is watched by select
-    bool Socket::wakeUpFromPoll(uint8_t wakeUpCode)
+    bool Socket::wakeUpFromPoll(uint64_t wakeUpCode)
     {
         return _selectInterrupt->notify(wakeUpCode);
     }

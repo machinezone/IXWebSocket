@@ -25,6 +25,7 @@
 #include "IXCancellationRequest.h"
 #include "IXWebSocketHandshake.h"
 #include "IXProgressCallback.h"
+#include "IXWebSocketCloseConstants.h"
 
 namespace ix
 {
@@ -40,7 +41,7 @@ namespace ix
     class WebSocketTransport
     {
     public:
-        enum ReadyStateValues
+        enum class ReadyState
         {
             CLOSING,
             CLOSED,
@@ -48,7 +49,7 @@ namespace ix
             OPEN
         };
 
-        enum MessageKind
+        enum class MessageKind
         {
             MSG,
             PING,
@@ -56,10 +57,10 @@ namespace ix
             FRAGMENT
         };
 
-        enum PollPostTreatment
+        enum class PollResult
         {
-            NONE,
-            CHECK_OR_RAISE_ABNORMAL_CLOSE_AFTER_DISPATCH
+            Succeeded,
+            AbnormalClose
         };
 
         using OnMessageCallback = std::function<void(const std::string&,
@@ -84,22 +85,25 @@ namespace ix
         WebSocketInitResult connectToSocket(int fd,              // Server
                                             int timeoutSecs);
 
-        PollPostTreatment poll();
+        PollResult poll();
         WebSocketSendInfo sendBinary(const std::string& message,
                                      const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendText(const std::string& message,
                                    const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendPing(const std::string& message);
 
-        void close(uint16_t code = 1000,
-                   const std::string& reason = "Normal closure",
+        void close(uint16_t code = WebSocketCloseConstants::kNormalClosureCode,
+                   const std::string& reason = WebSocketCloseConstants::kNormalClosureMessage,
                    size_t closeWireSize = 0,
                    bool remote = false);
 
-        ReadyStateValues getReadyState() const;
-        void setReadyState(ReadyStateValues readyStateValue);
+        void closeSocket();
+        ssize_t send();
+
+        ReadyState getReadyState() const;
+        void setReadyState(ReadyState readyState);
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
-        void dispatch(PollPostTreatment pollPostTreatment,
+        void dispatch(PollResult pollResult,
                       const OnMessageCallback& onMessageCallback);
         size_t bufferedAmount() const;
 
@@ -113,11 +117,11 @@ namespace ix
             bool mask;
             enum opcode_type {
                 CONTINUATION = 0x0,
-                TEXT_FRAME = 0x1,
+                TEXT_FRAME   = 0x1,
                 BINARY_FRAME = 0x2,
-                CLOSE = 8,
-                PING = 9,
-                PONG = 0xa,
+                CLOSE        = 8,
+                PING         = 9,
+                PONG         = 0xa,
             } opcode;
             int N0;
             uint64_t N;
@@ -151,9 +155,10 @@ namespace ix
 
         // Underlying TCP socket
         std::shared_ptr<Socket> _socket;
+        std::mutex _socketMutex;
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)
-        std::atomic<ReadyStateValues> _readyState;
+        std::atomic<ReadyState> _readyState;
 
         OnCloseCallback _onCloseCallback;
         uint16_t _closeCode;
@@ -169,21 +174,10 @@ namespace ix
 
         // Used to cancel dns lookup + socket connect + http upgrade
         std::atomic<bool> _requestInitCancellation;
-              
+
         mutable std::mutex _closingTimePointMutex;
         std::chrono::time_point<std::chrono::steady_clock>_closingTimePoint;
         static const int kClosingMaximumWaitingDelayInMs;
-
-        // Constants for dealing with closing conneections
-        static const uint16_t kInternalErrorCode;
-        static const uint16_t kAbnormalCloseCode;
-        static const uint16_t kProtocolErrorCode;
-        static const uint16_t kNoStatusCodeErrorCode;
-        static const std::string kInternalErrorMessage;
-        static const std::string kAbnormalCloseMessage;
-        static const std::string kPingTimeoutMessage;
-        static const std::string kProtocolErrorMessage;
-        static const std::string kNoStatusCodeErrorMessage;
 
         // enable auto response to ping
         std::atomic<bool> _enablePong;
@@ -219,6 +213,8 @@ namespace ix
 
         // after calling close(), if no CLOSE frame answer is received back from the remote, we should close the connexion
         bool closingDelayExceeded();
+
+        void initTimePointsAndGCDAfterConnect();
 
         void sendCloseFrame(uint16_t code, const std::string& reason);
 

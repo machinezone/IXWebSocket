@@ -1,10 +1,4 @@
 #!/usr/bin/env python2.7
-'''
-Windows notes:
-    generator = '-G"NMake Makefiles"'
-    make = 'nmake'
-    testBinary ='ixwebsocket_unittest.exe'
-'''
 
 from __future__ import print_function
 
@@ -28,9 +22,9 @@ try:
 except ImportError:
     hasClick = False
 
-
-DEFAULT_EXE = 'ixwebsocket_unittest'
-
+BUILD_TYPE = 'Debug'
+XML_OUTPUT_FILE = 'ixwebsocket_unittest.xml'
+TEST_EXE_PATH = None
 
 class Command(object):
     """Run system commands with timeout
@@ -65,7 +59,7 @@ class Command(object):
             return True, self.process.returncode
 
 
-def runCommand(cmd, assertOnFailure=True, timeout=None):
+def runCommand(cmd, abortOnFailure=True, timeout=None):
     '''Small wrapper to run a command and make sure it succeed'''
 
     if timeout is None:
@@ -73,16 +67,13 @@ def runCommand(cmd, assertOnFailure=True, timeout=None):
 
     print('\nRunning', cmd)
     command = Command(cmd)
-    timedout, ret = command.run(timeout)
+    succeed, ret = command.run(timeout)
 
-    if timedout:
-        print('Unittest timed out')
-
-    msg = 'cmd {} failed with error code {}'.format(cmd, ret)
-    if ret != 0:
+    if not succeed or ret != 0:
+        msg = 'cmd {}\nfailed with error code {}'.format(cmd, ret)
         print(msg)
-        if assertOnFailure:
-            assert False
+        if abortOnFailure:
+            sys.exit(-1)
 
 
 def runCMake(sanitizer, buildDir):
@@ -90,12 +81,6 @@ def runCMake(sanitizer, buildDir):
     We do an out of dir build, so that cleaning up is easy
     (remove build sub-folder).
     '''
-
-    # CMake installed via Self Service ends up here.
-    cmake_executable = '/Applications/CMake.app/Contents/bin/cmake'
-
-    if not os.path.exists(cmake_executable):
-        cmake_executable = 'cmake'
 
     sanitizersFlags = {
         'asan': '-DSANITIZE_ADDRESS=On',
@@ -110,19 +95,23 @@ def runCMake(sanitizer, buildDir):
     if not os.path.exists(cmakeExecutable):
         cmakeExecutable = 'cmake'
 
-    generator = '"Unix Makefiles"'
     if platform.system() == 'Windows':
-        generator = '"NMake Makefiles"'
+        #generator = '"NMake Makefiles"'
+        #generator = '"Visual Studio 16 2019"'
+        generator = '"Visual Studio 15 2017"'
+    else:
+        generator = '"Unix Makefiles"'
 
-    fmt = '''
-{cmakeExecutable} -H. \
+    CMAKE_BUILD_TYPE = BUILD_TYPE
+
+    fmt = '{cmakeExecutable} -H. \
     {sanitizerFlag} \
-    -B{buildDir} \
-    -DCMAKE_BUILD_TYPE=Debug \
+    -B"{buildDir}" \
+    -DCMAKE_BUILD_TYPE={CMAKE_BUILD_TYPE} \
     -DUSE_TLS=1 \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-    -G{generator}
-'''
+    -G{generator}'
+
     cmakeCmd = fmt.format(**locals())
     runCommand(cmakeCmd)
 
@@ -133,10 +122,10 @@ def runTest(args, buildDir, xmlOutput, testRunName):
     if args is None:
         args = ''
 
-    fmt = '{buildDir}/{DEFAULT_EXE} -o {xmlOutput} -n "{testRunName}" -r junit "{args}"'
-    testCommand = fmt.format(**locals())
+    testCommand = '{} -o {} -n "{}" -r junit "{}"'.format(TEST_EXE_PATH, xmlOutput, testRunName, args)
+
     runCommand(testCommand,
-               assertOnFailure=False)
+               abortOnFailure=False)
 
 
 def validateTestSuite(xmlOutput):
@@ -280,12 +269,12 @@ def executeJob(job):
     return job
 
 
-def executeJobs(jobs):
+def executeJobs(jobs, cpuCount):
     '''Execute a list of job concurrently on multiple CPU/cores'''
 
-    poolSize = multiprocessing.cpu_count()
+    print('Using {} cores to execute the unittest'.format(cpuCount))
 
-    pool = multiprocessing.Pool(poolSize)
+    pool = multiprocessing.Pool(cpuCount)
     results = pool.map(executeJob, jobs)
     pool.close()
     pool.join()
@@ -296,8 +285,7 @@ def executeJobs(jobs):
 def computeAllTestNames(buildDir):
     '''Compute all test case names, by executing the unittest in a custom mode'''
 
-    executable = os.path.join(buildDir, DEFAULT_EXE)
-    cmd = '"{}" --list-test-names-only'.format(executable)
+    cmd = '"{}" --list-test-names-only'.format(TEST_EXE_PATH)
     names = os.popen(cmd).read().splitlines()
     names.sort()  # Sort test names for execution determinism
     return names
@@ -344,7 +332,7 @@ def generateXmlOutput(results, xmlOutput, testRunName, runTime):
         })
 
         systemOut = ET.Element('system-out')
-        systemOut.text = result['output'].decode('utf-8')
+        systemOut.text = result['output'].decode('utf-8', 'ignore')
         testCase.append(systemOut)
 
         if not result['success']:
@@ -358,23 +346,22 @@ def generateXmlOutput(results, xmlOutput, testRunName, runTime):
         f.write(content.encode('utf-8'))
 
 
-def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLDB):
+def run(testName, buildDir, sanitizer, xmlOutput,
+        testRunName, buildOnly, useLLDB, cpuCount):
     '''Main driver. Run cmake, compiles, execute and validate the testsuite.'''
 
     # gen build files with CMake
     runCMake(sanitizer, buildDir)
 
-    # build with make
-    makeCmd = 'make'
-    jobs = '-j8'
-
-    if platform.system() == 'Windows':
-        makeCmd = 'nmake'
-
-        # nmake does not have a -j option
-        jobs = ''
-
-    runCommand('{} -C {} {}'.format(makeCmd, buildDir, jobs))
+    if platform.system() == 'Linux':
+        # build with make -j
+        runCommand('make -C {} -j 2'.format(buildDir))
+    elif platform.system() == 'Darwin':
+        # build with make
+        runCommand('make -C {} -j 8'.format(buildDir))
+    else:
+        # build with cmake on recent
+        runCommand('cmake --build --parallel {}'.format(buildDir))
 
     if buildOnly:
         return
@@ -409,12 +396,7 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
             continue
 
         # testName can contains spaces, so we enclose them in double quotes
-        executable = os.path.join(buildDir, DEFAULT_EXE)
-
-        if platform.system() == 'Windows':
-            executable += '.exe'
-
-        cmd = '{} "{}" "{}" > "{}" 2>&1'.format(lldb, executable, testName, outputPath)
+        cmd = '{} "{}" "{}" > "{}" 2>&1'.format(lldb, TEST_EXE_PATH, testName, outputPath)
 
         jobs.append({
             'name': testName,
@@ -424,7 +406,7 @@ def run(testName, buildDir, sanitizer, xmlOutput, testRunName, buildOnly, useLLD
         })
 
     start = time.time()
-    results = executeJobs(jobs)
+    results = executeJobs(jobs, cpuCount)
     runTime = time.time() - start
     generateXmlOutput(results, xmlOutput, testRunName, runTime)
 
@@ -454,8 +436,6 @@ def main():
     if not os.path.exists(buildDir):
         os.makedirs(buildDir)
 
-    defaultOutput = DEFAULT_EXE + '.xml'
-
     parser = argparse.ArgumentParser(description='Build and Run the engine unittest')
 
     sanitizers = ['tsan', 'asan', 'ubsan', 'none']
@@ -476,18 +456,40 @@ def main():
                         help='Run the test through lldb.')
     parser.add_argument('--run_name', '-n',
                         help='Name of the test run.')
+    parser.add_argument('--cpu_count', '-j', type=int, default=multiprocessing.cpu_count(),
+                        help='Number of cpus to use for running the tests.')
 
     args = parser.parse_args()
 
+    # Windows does not play nice with multiple files opened by different processes
+    # "The process cannot access the file because it is being used by another process"
+    if platform.system() == 'Windows':
+        args.cpu_count = 1
+
     # Default sanitizer is tsan
     sanitizer = args.sanitizer
-    if args.sanitizer is None:
+
+    if args.no_sanitizer:
+        sanitizer = 'none'
+    elif args.sanitizer is None:
         sanitizer = 'tsan'
+
+    # Sanitizers display lots of strange errors on Linux on CI,
+    # which looks like false positives
+    if platform.system() != 'Darwin':
+        sanitizer = 'none'
 
     defaultRunName = 'ixengine_{}_{}'.format(platform.system(), sanitizer)
 
-    xmlOutput = args.output or defaultOutput
+    xmlOutput = args.output or XML_OUTPUT_FILE
     testRunName = args.run_name or os.getenv('IXENGINE_TEST_RUN_NAME') or defaultRunName
+
+    global TEST_EXE_PATH
+
+    if platform.system() == 'Windows':
+        TEST_EXE_PATH = os.path.join(buildDir, BUILD_TYPE, 'ixwebsocket_unittest.exe')
+    else:
+        TEST_EXE_PATH = os.path.join(buildDir, 'ixwebsocket_unittest')
 
     if args.list:
         # catch2 exit with a different error code when requesting the list of files
@@ -505,13 +507,8 @@ def main():
         print('LLDB is only supported on Apple at this point')
         args.lldb = False
 
-    # Sanitizers display lots of strange errors on Linux on CI,
-    # which looks like false positives
-    if platform.system() != 'Darwin':
-        sanitizer = 'none'
-
     return run(args.test, buildDir, sanitizer, xmlOutput, 
-               testRunName, args.build_only, args.lldb)
+               testRunName, args.build_only, args.lldb, args.cpu_count)
 
 
 if __name__ == '__main__':

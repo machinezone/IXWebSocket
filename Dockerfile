@@ -1,1 +1,1 @@
-docker/Dockerfile.fedora
+docker/Dockerfile.ubuntu_xenial

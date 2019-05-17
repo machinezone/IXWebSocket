@@ -19,28 +19,29 @@
 #include "IXWebSocketSendInfo.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXWebSocketCloseConstants.h"
 #include "IXProgressCallback.h"
 
 namespace ix
 {
     // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket#Ready_state_constants
-    enum ReadyState
+    enum class ReadyState
     {
-        WebSocket_ReadyState_Connecting = 0,
-        WebSocket_ReadyState_Open = 1,
-        WebSocket_ReadyState_Closing = 2,
-        WebSocket_ReadyState_Closed = 3
+        Connecting     = 0,
+        Open           = 1,
+        Closing        = 2,
+        Closed         = 3
     };
 
-    enum WebSocketMessageType
+    enum class WebSocketMessageType
     {
-        WebSocket_MessageType_Message = 0,
-        WebSocket_MessageType_Open = 1,
-        WebSocket_MessageType_Close = 2,
-        WebSocket_MessageType_Error = 3,
-        WebSocket_MessageType_Ping = 4,
-        WebSocket_MessageType_Pong = 5,
-        WebSocket_MessageType_Fragment = 6
+        Message        = 0,
+        Open           = 1,
+        Close          = 2,
+        Error          = 3,
+        Ping           = 4,
+        Pong           = 5,
+        Fragment       = 6
     };
 
     struct WebSocketOpenInfo
@@ -91,7 +92,6 @@ namespace ix
 
         void setUrl(const std::string& url);
         void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
-        void setHandshakeTimeout(int handshakeTimeoutSecs);
         void setHeartBeatPeriod(int heartBeatPeriodSecs);
         void setPingInterval(int pingIntervalSecs); // alias of setHeartBeatPeriod
         void setPingTimeout(int pingTimeoutSecs);
@@ -100,24 +100,32 @@ namespace ix
 
         // Run asynchronously, by calling start and stop.
         void start();
-        void stop();
+
+        // stop is synchronous
+        void stop(uint16_t code = WebSocketCloseConstants::kNormalClosureCode,
+                  const std::string& reason = WebSocketCloseConstants::kNormalClosureMessage);
 
         // Run in blocking mode, by connecting first manually, and then calling run.
         WebSocketInitResult connect(int timeoutSecs);
         void run();
 
-        WebSocketSendInfo send(const std::string& text,
+        // send binary data
+        WebSocketSendInfo send(const std::string& data,
                                const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo sendText(const std::string& text,
                                    const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo ping(const std::string& text);
-        void close();
+
+        void close(uint16_t code = 1000,
+                   const std::string& reason = "Normal closure");
 
         void setOnMessageCallback(const OnMessageCallback& callback);
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
         static void resetTrafficTrackerCallback();
 
         ReadyState getReadyState() const;
+        static std::string readyStateToString(ReadyState readyState);
+
         const std::string& getUrl() const;
         const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
         int getHeartBeatPeriod() const;
@@ -127,6 +135,7 @@ namespace ix
 
         void enableAutomaticReconnection();
         void disableAutomaticReconnection();
+        bool isAutomaticReconnectionEnabled() const;
 
     private:
 
@@ -136,13 +145,10 @@ namespace ix
 
         bool isConnected() const;
         bool isClosing() const;
-        bool isConnectedOrClosing() const;
-        void reconnectPerpetuallyIfDisconnected();
-        std::string readyStateToString(ReadyState readyState);
+        void checkConnection(bool firstConnectionAttempt);
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
         // Server
-        void setSocketFileDescriptor(int fd);
         WebSocketInitResult connectToSocket(int fd, int timeoutSecs);
 
         WebSocketTransport _ws;

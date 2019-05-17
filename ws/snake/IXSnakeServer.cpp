@@ -65,7 +65,7 @@ namespace snake
                        const ix::WebSocketOpenInfo& openInfo,
                        const ix::WebSocketCloseInfo& closeInfo)
                     {
-                        if (messageType == ix::WebSocket_MessageType_Open)
+                        if (messageType == ix::WebSocketMessageType::Open)
                         {
                             std::cerr << "New connection" << std::endl;
                             std::cerr << "id: " << state->getId() << std::endl;
@@ -86,13 +86,13 @@ namespace snake
                                 std::cerr << "Cannot connect to redis host" << std::endl;
                             }
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Close)
+                        else if (messageType == ix::WebSocketMessageType::Close)
                         {
                             std::cerr << "Closed connection"
                                       << " code " << closeInfo.code
                                       << " reason " << closeInfo.reason << std::endl;
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Error)
+                        else if (messageType == ix::WebSocketMessageType::Error)
                         {
                             std::stringstream ss;
                             ss << "Connection error: " << error.reason      << std::endl;
@@ -101,11 +101,11 @@ namespace snake
                             ss << "HTTP Status: "      << error.http_status << std::endl;
                             std::cerr << ss.str();
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Fragment)
+                        else if (messageType == ix::WebSocketMessageType::Fragment)
                         {
                             std::cerr << "Received message fragment" << std::endl;
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Message)
+                        else if (messageType == ix::WebSocketMessageType::Message)
                         {
                             std::cerr << "Received " << wireSize << " bytes" << std::endl;
                             processCobraMessage(state, webSocket, _appConfig, str);

@@ -9,7 +9,10 @@ install: brew
 # on osx it is good practice to make /usr/local user writable
 # sudo chown -R `whoami`/staff /usr/local
 brew:
-	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 .. ; make -j install)
+	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j install)
+
+ws:
+	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j)
 
 uninstall:
 	xargs rm -fv < build/install_manifest.txt
@@ -48,8 +51,8 @@ test_server:
 test:
 	python2.7 test/run.py
 
-ws_test: all
-	(cd ws ; bash test_ws.sh)
+ws_test: ws
+	(cd ws ; env DEBUG=1 PATH=../ws/build:$$PATH bash test_ws.sh)
 
 # For the fork that is configured with appveyor
 rebase_upstream:
@@ -64,3 +67,4 @@ install_cmake_for_linux:
 
 .PHONY: test
 .PHONY: build
+.PHONY: ws

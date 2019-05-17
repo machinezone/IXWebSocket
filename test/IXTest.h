@@ -11,6 +11,8 @@
 #include <sstream>
 #include <iostream>
 #include <mutex>
+#include <spdlog/spdlog.h>
+#include <ixwebsocket/IXWebSocketServer.h>
 
 namespace ix
 {
@@ -27,22 +29,14 @@ namespace ix
     struct Logger
     {
         public:
-            Logger& operator<<(const std::string& msg)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-
-                std::cerr << msg;
-                std::cerr << std::endl;
-                return *this;
-            }
-
             template <typename T>
             Logger& operator<<(T const& obj)
             {
                 std::lock_guard<std::mutex> lock(_mutex);
 
-                std::cerr << obj;
-                std::cerr << std::endl;
+                std::stringstream ss;
+                ss << obj;
+                spdlog::info(ss.str());
                 return *this;
             }
 
@@ -53,4 +47,6 @@ namespace ix
     void log(const std::string& msg);
 
     int getFreePort();
+
+    bool startWebSocketEchoServer(ix::WebSocketServer& server);
 }

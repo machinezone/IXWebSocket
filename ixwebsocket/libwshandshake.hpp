@@ -20,6 +20,8 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <string>
+#include <string.h>
 
 class WebSocketHandshakeKeyGen {
     template <int N, typename T>
@@ -100,7 +102,12 @@ class WebSocketHandshakeKeyGen {
     }
 
 public:
-    static inline void generate(const char input[24], char output[28]) {
+    static inline void generate(const std::string& inputStr, char output[28]) {
+
+        char input[25] = {};
+        strncpy(input, inputStr.c_str(), 25 - 1);
+        input[25 - 1] = '\0';
+
         uint32_t b_output[5] = {
             0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0
         };

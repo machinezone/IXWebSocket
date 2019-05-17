@@ -60,41 +60,47 @@ namespace
                const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
-                    log("cmd_websocket_satori_chat: connected !");
+                    log("TestConnectionDisconnection: connected !");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Close)
+                else if (messageType == ix::WebSocketMessageType::Close)
                 {
-                    log("cmd_websocket_satori_chat: disconnected !");
+                    log("TestConnectionDisconnection: disconnected !");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Error)
+                else if (messageType == ix::WebSocketMessageType::Error)
                 {
-                    ss << "cmd_websocket_satori_chat: Error! ";
+                    ss << "TestConnectionDisconnection: Error! ";
                     ss << error.reason;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
-                    log("cmd_websocket_satori_chat: received message.!");
+                    log("TestConnectionDisconnection: received message.!");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Ping)
+                else if (messageType == ix::WebSocketMessageType::Ping)
                 {
-                    log("cmd_websocket_satori_chat: received ping message.!");
+                    log("TestConnectionDisconnection: received ping message.!");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Pong)
+                else if (messageType == ix::WebSocketMessageType::Pong)
                 {
-                    log("cmd_websocket_satori_chat: received pong message.!");
+                    log("TestConnectionDisconnection: received pong message.!");
                 }
-                else if (messageType == ix::WebSocket_MessageType_Fragment)
+                else if (messageType == ix::WebSocketMessageType::Fragment)
                 {
-                    log("cmd_websocket_satori_chat: received fragment.!");
+                    log("TestConnectionDisconnection: received fragment.!");
                 }
                 else
                 {
                     log("Invalid ix::WebSocketMessageType");
                 }
             });
+
+        _webSocket.enableAutomaticReconnection();
+        REQUIRE(_webSocket.isAutomaticReconnectionEnabled() == true);
+
+        _webSocket.disableAutomaticReconnection();
+        REQUIRE(_webSocket.isAutomaticReconnectionEnabled() == false);
 
         // Start the connection
         _webSocket.start();
@@ -109,38 +115,52 @@ TEST_CASE("websocket_connections", "[websocket]")
 {
     SECTION("Try to connect to invalid servers.")
     {
-        IXWebSocketTestConnectionDisconnection chatA;
+        IXWebSocketTestConnectionDisconnection test;
 
-        chatA.start(GOOGLE_URL);
+        test.start(GOOGLE_URL);
         ix::msleep(1000);
-        chatA.stop();
+        test.stop();
 
-        chatA.start(UNKNOWN_URL);
+        test.start(UNKNOWN_URL);
         ix::msleep(1000);
-        chatA.stop();
+        test.stop();
     }
 
     SECTION("Try to connect and disconnect with different timing, not enough time to succesfully connect")
     {
-        IXWebSocketTestConnectionDisconnection chatA;
+        IXWebSocketTestConnectionDisconnection test;
+        log(std::string("50 Runs"));
+
         for (int i = 0; i < 50; ++i)
         {
             log(std::string("Run: ") + std::to_string(i));
-            chatA.start(WEBSOCKET_DOT_ORG_URL);
+            test.start(WEBSOCKET_DOT_ORG_URL);
+
+            log(std::string("Sleeping"));
             ix::msleep(i);
-            chatA.stop();
+
+            log(std::string("Stopping"));
+            test.stop();
         }
     }
 
-    /*SECTION("Try to connect and disconnect with different timing, from not enough time to successfull connect")
+    // This test breaks on travis CI - Ubuntu Xenial + gcc + tsan
+    // We should fix this.
+    SECTION("Try to connect and disconnect with different timing, from not enough time to successfull connect")
     {
-        IXWebSocketTestConnectionDisconnection chatA;
+        IXWebSocketTestConnectionDisconnection test;
+        log(std::string("20 Runs"));
+
         for (int i = 0; i < 20; ++i)
         {
             log(std::string("Run: ") + std::to_string(i));
-            chatA.start(WEBSOCKET_DOT_ORG_URL);
+            test.start(WEBSOCKET_DOT_ORG_URL);
+
+            log(std::string("Sleeping"));
             ix::msleep(i*50);
-            chatA.stop();
+
+            log(std::string("Stopping"));
+            test.stop();
         }
-    }*/
+    }
 }

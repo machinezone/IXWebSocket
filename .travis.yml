@@ -1,17 +1,36 @@
-language: cpp
-dist: xenial
-
-compiler:
-  - gcc
-  - clang
-os:
-  - linux
-  - osx
+language: bash
 
 matrix:
-  exclude:
-    # GCC fails on recent Travis OSX images.
-    - compiler: gcc
-      os: osx
+  include:
+    # macOS
+    - os: osx
+      compiler: clang
+      script:
+        - python test/run.py
+        - make ws
 
-script: python test/run.py
+    # Linux
+    - os: linux
+      dist: xenial
+      script: 
+        - python test/run.py
+        - make ws
+      env:
+        - CC=gcc
+        - CXX=g++
+
+    # Clang + Linux disabled for now
+    # - os: linux
+    #   dist: xenial
+    #   script: python test/run.py
+    #   env:
+    #     - CC=clang 
+    #     - CXX=clang++
+
+    # Windows
+    - os: windows
+      env:
+        - CMAKE_PATH="/c/Program Files/CMake/bin"
+      script: 
+        - export PATH=$CMAKE_PATH:$PATH
+        - python test/run.py

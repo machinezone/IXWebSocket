@@ -10,7 +10,7 @@
 
 namespace ix
 {
-    class SocketSChannel : public Socket
+    class SocketSChannel final : public Socket
     {
     public:
         SocketSChannel();

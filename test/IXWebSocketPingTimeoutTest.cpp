@@ -52,12 +52,12 @@ namespace
 
     bool WebSocketClient::isReady() const
     {
-        return _webSocket.getReadyState() == ix::WebSocket_ReadyState_Open;
+        return _webSocket.getReadyState() == ix::ReadyState::Open;
     }
 
     bool WebSocketClient::isClosed() const
     {
-        return _webSocket.getReadyState() == ix::WebSocket_ReadyState_Closed;
+        return _webSocket.getReadyState() == ix::ReadyState::Closed;
     }
 
     void WebSocketClient::stop()
@@ -97,12 +97,12 @@ namespace
                    const ix::WebSocketCloseInfo& closeInfo)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocket_MessageType_Open)
+                if (messageType == ix::WebSocketMessageType::Open)
                 {
                     log("client connected");
 
                 }
-                else if (messageType == ix::WebSocket_MessageType_Close)
+                else if (messageType == ix::WebSocketMessageType::Close)
                 {
                     log("client disconnected");
 
@@ -112,24 +112,24 @@ namespace
                     }
 
                 }
-                else if (messageType == ix::WebSocket_MessageType_Error)
+                else if (messageType == ix::WebSocketMessageType::Error)
                 {
                     ss << "Error ! " << error.reason;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Pong)
+                else if (messageType == ix::WebSocketMessageType::Pong)
                 {
                     _receivedPongMessages++;
 
                     ss << "Received pong message " << str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Ping)
+                else if (messageType == ix::WebSocketMessageType::Ping)
                 {
                     ss << "Received ping message " << str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocket_MessageType_Message)
+                else if (messageType == ix::WebSocketMessageType::Message)
                 {
                     ss << "Received message " << str;
                     log(ss.str());
@@ -174,7 +174,7 @@ namespace
                        const ix::WebSocketOpenInfo& openInfo,
                        const ix::WebSocketCloseInfo& closeInfo)
                     {
-                        if (messageType == ix::WebSocket_MessageType_Open)
+                        if (messageType == ix::WebSocketMessageType::Open)
                         {
                             Logger() << "New server connection";
                             Logger() << "id: " << connectionState->getId();
@@ -185,11 +185,11 @@ namespace
                                 Logger() << it.first << ": " << it.second;
                             }
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Close)
+                        else if (messageType == ix::WebSocketMessageType::Close)
                         {
                             log("Server closed connection");
                         }
-                        else if (messageType == ix::WebSocket_MessageType_Ping)
+                        else if (messageType == ix::WebSocketMessageType::Ping)
                         {
                             log("Server received a ping");
                             receivedPingMessages++;
@@ -350,7 +350,7 @@ TEST_CASE("Websocket_no_ping_but_timeout", "[setPingTimeout]")
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(2700);
+        ix::msleep(2900);
 
         // Here we test ping timeout, no timeout yet
         REQUIRE(serverReceivedPingMessages == 0);
@@ -359,12 +359,13 @@ TEST_CASE("Websocket_no_ping_but_timeout", "[setPingTimeout]")
         REQUIRE(webSocketClient.isClosed() == false);
         REQUIRE(webSocketClient.closedDueToPingTimeout() == false);
 
-        ix::msleep(400);
+        ix::msleep(300);
 
         // Here we test ping timeout, timeout
         REQUIRE(serverReceivedPingMessages == 0);
         REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
-        // Ensure client close was not by ping timeout
+        // Ensure client close was by ping timeout
+        ix::msleep(300);
         REQUIRE(webSocketClient.isClosed() == true);
         REQUIRE(webSocketClient.closedDueToPingTimeout() == true);
 
@@ -410,12 +411,13 @@ TEST_CASE("Websocket_ping_timeout", "[setPingTimeout]")
         REQUIRE(serverReceivedPingMessages == 1);
         REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
 
-        ix::msleep(1000);
+        ix::msleep(1100);
 
         // Here we test ping timeout, timeout
         REQUIRE(serverReceivedPingMessages == 1);
         REQUIRE(webSocketClient.getReceivedPongMessages() == 0);
-        // Ensure client close was not by ping timeout
+        // Ensure client close was by ping timeout
+        ix::msleep(300);
         REQUIRE(webSocketClient.isClosed() == true);
         REQUIRE(webSocketClient.closedDueToPingTimeout() == true);
 
