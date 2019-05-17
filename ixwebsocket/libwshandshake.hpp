@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <string>
+#include <string.h>
 
 class WebSocketHandshakeKeyGen {
     template <int N, typename T>
