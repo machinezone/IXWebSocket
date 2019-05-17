@@ -51,6 +51,7 @@ endif()
 # IXWebSocketPingTest.cpp
 # IXWebSocketPingTimeoutTest.cpp
 # IXWebSocketCloseTest.cpp
+# IXWebSocketMessageQTest.cpp (trigger a segfault on Linux)
 
 add_executable(ixwebsocket_unittest ${SOURCES})
 
