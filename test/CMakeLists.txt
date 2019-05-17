@@ -36,6 +36,7 @@ set (SOURCES
   IXWebSocketServerTest.cpp
   IXWebSocketTestConnectionDisconnection.cpp
   IXUrlParserTest.cpp
+  IXWebSocketMessageQTest.cpp
   IXWebSocketServerTest.cpp
 )
 
