@@ -37,6 +37,7 @@ set (SOURCES
   IXWebSocketTestConnectionDisconnection.cpp
   IXUrlParserTest.cpp
   IXWebSocketServerTest.cpp
+  IXWebSocketCloseTest.cpp
 )
 
 # Some unittest don't work on windows yet
@@ -50,7 +51,6 @@ endif()
 # Disable tests for now that are failing or not reliable
 # IXWebSocketPingTest.cpp
 # IXWebSocketPingTimeoutTest.cpp
-# IXWebSocketCloseTest.cpp
 # IXWebSocketMessageQTest.cpp (trigger a segfault on Linux)
 
 add_executable(ixwebsocket_unittest ${SOURCES})

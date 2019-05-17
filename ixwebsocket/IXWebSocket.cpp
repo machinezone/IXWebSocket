@@ -293,8 +293,8 @@ namespace ix
                 break;
             }
 
-            // We cannot enter poll which might block forever if we are stopping
-            if (_stop) break;
+            // We can avoid to poll if we want to stop and are not closing
+            if (_stop && !isClosing()) break;
 
             // 2. Poll to see if there's any new data available
             WebSocketTransport::PollResult pollResult = _ws.poll();
