@@ -461,6 +461,11 @@ def main():
 
     args = parser.parse_args()
 
+    # Windows does not play nice with multiple files opened by different processes
+    # "The process cannot access the file because it is being used by another process"
+    if platform.system() == 'Windows':
+        args.cpu_count = 1
+
     # Default sanitizer is tsan
     sanitizer = args.sanitizer
 
