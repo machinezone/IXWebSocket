@@ -256,11 +256,11 @@ TEST_CASE("Websocket_client_close_default", "[close]")
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(300);
+        ix::msleep(500);
 
         webSocketClient.stop();
 
-        ix::msleep(300);
+        ix::msleep(500);
 
         // ensure client close is the same as values given
         REQUIRE(webSocketClient.getCloseCode() == 1000);
@@ -314,11 +314,11 @@ TEST_CASE("Websocket_client_close_params_given", "[close]")
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(300);
+        ix::msleep(500);
 
         webSocketClient.stop(4000, "My reason");
 
-        ix::msleep(300);
+        ix::msleep(500);
 
         // ensure client close is the same as values given
         REQUIRE(webSocketClient.getCloseCode() == 4000);
@@ -372,11 +372,11 @@ TEST_CASE("Websocket_server_close", "[close]")
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(300);
+        ix::msleep(500);
 
         server.stop();
 
-        ix::msleep(300);
+        ix::msleep(500);
 
         // ensure client close is the same as values given
         REQUIRE(webSocketClient.getCloseCode() == 1000);
