@@ -1064,8 +1064,6 @@ namespace ix
         }
         else
         {
-            closeSocket();
-            
             {
                 std::lock_guard<std::mutex> lock(_closeDataMutex);
                 _closeCode = code;
