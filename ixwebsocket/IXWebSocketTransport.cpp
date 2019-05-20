@@ -48,6 +48,7 @@
 #include <sstream>
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 
 namespace
@@ -346,6 +347,7 @@ namespace ix
                 {
                     closeSocket();
                     setReadyState(ReadyState::CLOSED);
+                    std::cout << this << "CLOSE 6" << std::endl;
                     break;
                 }
                 else if (result == PollResultType::ReadyForWrite)
@@ -396,6 +398,7 @@ namespace ix
             // close code and reason were set when calling close()
             closeSocket();
             setReadyState(ReadyState::CLOSED);
+            std::cout << this << "CLOSE 1" << std::endl;
         }
 
         return PollResult::Succeeded;
@@ -682,6 +685,7 @@ namespace ix
             {
                 closeSocket();
                 setReadyState(ReadyState::CLOSED);
+                std::cout << this << "CLOSE 2" << std::endl;
             }
             // if we weren't closing, then close using abnormal close code and message
             else if (_readyState != ReadyState::CLOSED)
@@ -980,6 +984,7 @@ namespace ix
             {
                 closeSocket();
                 setReadyState(ReadyState::CLOSED);
+                std::cout << this << "CLOSE 3" << std::endl;
                 break;
             }
             else
@@ -1032,6 +1037,7 @@ namespace ix
         }
 
         setReadyState(ReadyState::CLOSED);
+        std::cout << this << "CLOSE 4" << std::endl;
         _requestInitCancellation = false;
     }
 
@@ -1073,6 +1079,7 @@ namespace ix
             }
 
             setReadyState(ReadyState::CLOSED);
+            std::cout << this << "CLOSE 5" << std::endl;
 
             // wake up the poll, and close
             _socket->wakeUpFromPoll(Socket::kCloseRequest);
