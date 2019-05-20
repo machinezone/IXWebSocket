@@ -122,12 +122,6 @@ namespace
                 }
                 else if (messageType == ix::WebSocketMessageType::Close)
                 {
-                    std::lock_guard<std::mutex> lck(_mutexCloseData);
-
-                    _closeCode = closeInfo.code;
-                    _closeReason = std::string(closeInfo.reason);
-                    _closeRemote = closeInfo.remote;
-
                     std::stringstream ss;
                     ss << "client disconnected("
                        << closeInfo.code
@@ -135,6 +129,12 @@ namespace
                        << closeInfo.reason
                        << ")";
                     log(ss.str());
+
+                    std::lock_guard<std::mutex> lck(_mutexCloseData);
+
+                    _closeCode = closeInfo.code;
+                    _closeReason = std::string(closeInfo.reason);
+                    _closeRemote = closeInfo.remote;
                 }
                 else if (messageType == ix::WebSocketMessageType::Error)
                 {
@@ -203,8 +203,6 @@ namespace
                         }
                         else if (messageType == ix::WebSocketMessageType::Close)
                         {
-                            std::lock_guard<std::mutex> lck(mutexWrite);
-
                             std::stringstream ss;
                             ss << "Server closed connection("
                                << closeInfo.code
@@ -213,6 +211,8 @@ namespace
                                << ")";
                             log(ss.str());
                             
+                            std::lock_guard<std::mutex> lck(mutexWrite);
+
                             receivedCloseCode = closeInfo.code;
                             receivedCloseReason = std::string(closeInfo.reason);
                             receivedCloseRemote = closeInfo.remote;
