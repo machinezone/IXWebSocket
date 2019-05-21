@@ -37,8 +37,6 @@ set (SOURCES
   IXWebSocketTestConnectionDisconnection.cpp
   IXUrlParserTest.cpp
   IXWebSocketServerTest.cpp
-  IXWebSocketPingTest.cpp
-  IXWebSocketPingTimeoutTest.cpp
 )
 
 # Some unittest don't work on windows yet
@@ -47,6 +45,8 @@ if (UNIX)
     IXDNSLookupTest.cpp
     cmd_websocket_chat.cpp
     IXWebSocketCloseTest.cpp
+    IXWebSocketPingTest.cpp
+    IXWebSocketPingTimeoutTest.cpp
   )
 endif()
 
