@@ -44,13 +44,13 @@ if (UNIX)
   list(APPEND SOURCES
     IXDNSLookupTest.cpp
     cmd_websocket_chat.cpp
+    IXWebSocketCloseTest.cpp
   )
 endif()
 
 # Disable tests for now that are failing or not reliable
 # IXWebSocketPingTest.cpp
 # IXWebSocketPingTimeoutTest.cpp
-# IXWebSocketCloseTest.cpp
 # IXWebSocketMessageQTest.cpp (trigger a segfault on Linux)
 
 add_executable(ixwebsocket_unittest ${SOURCES})
