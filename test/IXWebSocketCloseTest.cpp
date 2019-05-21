@@ -407,3 +407,50 @@ TEST_CASE("Websocket_server_close", "[close]")
         ix::reportWebSocketTraffic();
     }
 }
+
+TEST_CASE("Websocket_server_close_immediatly", "[close]")
+{
+    SECTION("Make sure that close code and reason was read from server.")
+    {
+        ix::setupWebSocketTrafficTrackerCallback();
+
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+
+        uint16_t serverReceivedCloseCode(0);
+        bool serverReceivedCloseRemote(false);
+        std::string serverReceivedCloseReason("");
+        std::mutex mutexWrite;
+
+        REQUIRE(startServer(server, serverReceivedCloseCode, serverReceivedCloseReason, serverReceivedCloseRemote, mutexWrite));
+
+        std::string session = ix::generateSessionId();
+        WebSocketClient webSocketClient(port);
+
+        webSocketClient.start();
+
+        server.stop();
+
+        ix::msleep(500);
+
+        // ensure client close hasn't been called
+        REQUIRE(webSocketClient.getCloseCode() == 0);
+        REQUIRE(webSocketClient.getCloseReason() == "");
+        REQUIRE(webSocketClient.getCloseRemote() == false);
+
+        {
+            std::lock_guard<std::mutex> lck(mutexWrite);
+
+            // Here we ensure that the code/reason wasn't received by the server
+            REQUIRE(serverReceivedCloseCode == 0);
+            REQUIRE(serverReceivedCloseReason == "");
+            REQUIRE(serverReceivedCloseRemote == false);
+        }
+
+        // Give us 1000ms for the server to notice that clients went away
+        ix::msleep(1000);
+        REQUIRE(server.getClients().size() == 0);
+
+        ix::reportWebSocketTraffic();
+    }
+}
