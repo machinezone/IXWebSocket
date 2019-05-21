@@ -748,7 +748,7 @@ namespace ix
         bool compress,
         const OnProgressCallback& onProgressCallback)
     {
-        if (_readyState != ReadyState::OPEN)
+        if (_readyState != ReadyState::OPEN && _readyState != ReadyState::CLOSING)
         {
             return WebSocketSendInfo();
         }
@@ -1045,7 +1045,6 @@ namespace ix
         // connection is opened, so close without sending close frame
         if (_readyState == ReadyState::OPEN)
         {
-            sendCloseFrame(code, reason);
             {
                 std::lock_guard<std::mutex> lock(_closeDataMutex);
                 _closeCode = code;
@@ -1059,6 +1058,7 @@ namespace ix
             }
             setReadyState(ReadyState::CLOSING);
 
+            sendCloseFrame(code, reason);
             // wake up the poll, but do not close yet
             _socket->wakeUpFromPoll(Socket::kSendRequest);
         }
