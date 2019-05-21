@@ -225,8 +225,8 @@ TEST_CASE("Websocket_ping_no_data_sent_setPingInterval", "[setPingInterval]")
         // -> expected ping messages == 2 as 2100 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 2);
 
-        // Give us 500ms for the server to notice that clients went away
-        ix::msleep(500);
+        // Give us 1000ms for the server to notice that clients went away
+        ix::msleep(1000);
         REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
@@ -272,8 +272,8 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval", "[setPingInterval]")
         // -> expected ping messages == 3 as 900+900+1300 = 3100 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 3);
 
-        // Give us 500ms for the server to notice that clients went away
-        ix::msleep(500);
+        // Give us 1000ms for the server to notice that clients went away
+        ix::msleep(1000);
         REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
@@ -325,8 +325,8 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval_half_full", "[setPingInterva
 
         webSocketClient.stop();
 
-        // Give us 500ms for the server to notice that clients went away
-        ix::msleep(500);
+        // Give us 1000ms for the server to notice that clients went away
+        ix::msleep(1000);
         REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
@@ -377,8 +377,8 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval_full", "[setPingInterval]")
 
         webSocketClient.stop();
 
-        // Give us 500ms for the server to notice that clients went away
-        ix::msleep(500);
+        // Give us 1000ms for the server to notice that clients went away
+        ix::msleep(1000);
         REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
@@ -422,8 +422,8 @@ TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod
         // -> expected ping messages == 1 as 1900 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 1);
 
-        // Give us 500ms for the server to notice that clients went away
-        ix::msleep(500);
+        // Give us 1000ms for the server to notice that clients went away
+        ix::msleep(1000);
         REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
@@ -472,8 +472,8 @@ TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
         // -> expected ping messages == 2 as 900+900+1100 = 2900 seconds, 1 ping sent every second
         REQUIRE(serverReceivedPingMessages == 2);
 
-        // Give us 500ms for the server to notice that clients went away
-        ix::msleep(500);
+        // Give us 1000ms for the server to notice that clients went away
+        ix::msleep(1000);
         REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
