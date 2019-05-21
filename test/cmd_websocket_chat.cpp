@@ -336,8 +336,8 @@ TEST_CASE("Websocket_chat", "[websocket_chat]")
         REQUIRE(chatA.getReceivedMessages()[1] == "from B2");
         REQUIRE(chatA.getReceivedMessages()[2].size() == bigMessage.size());
 
-        // Give us 500ms for the server to notice that clients went away
-        ix::msleep(500);
+        // Give us 1000ms for the server to notice that clients went away
+        ix::msleep(1000);
         REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();

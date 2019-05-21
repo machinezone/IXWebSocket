@@ -102,6 +102,7 @@ namespace
         }
 
         _webSocket.setUrl(url);
+        _webSocket.disableAutomaticReconnection();
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
@@ -118,27 +119,27 @@ namespace
                 if (messageType == ix::WebSocketMessageType::Open)
                 {
                     log("client connected");
-
-                    _webSocket.disableAutomaticReconnection();
                 }
                 else if (messageType == ix::WebSocketMessageType::Close)
                 {
-                    log("client disconnected");
+                    std::stringstream ss;
+                    ss << "client disconnected("
+                       << closeInfo.code
+                       << ","
+                       << closeInfo.reason
+                       << ")";
+                    log(ss.str());
 
                     std::lock_guard<std::mutex> lck(_mutexCloseData);
 
                     _closeCode = closeInfo.code;
                     _closeReason = std::string(closeInfo.reason);
                     _closeRemote = closeInfo.remote;
-
-                    _webSocket.disableAutomaticReconnection();
                 }
                 else if (messageType == ix::WebSocketMessageType::Error)
                 {
                     ss << "Error ! " << error.reason;
                     log(ss.str());
-
-                    _webSocket.disableAutomaticReconnection();
                 }
                 else if (messageType == ix::WebSocketMessageType::Pong)
                 {
@@ -202,12 +203,14 @@ namespace
                         }
                         else if (messageType == ix::WebSocketMessageType::Close)
                         {
-                            log("Server closed connection");
-
-                            //Logger() << closeInfo.code;
-                            //Logger() << closeInfo.reason;
-                            //Logger() << closeInfo.remote;
-
+                            std::stringstream ss;
+                            ss << "Server closed connection("
+                               << closeInfo.code
+                               << ","
+                               << closeInfo.reason
+                               << ")";
+                            log(ss.str());
+                            
                             std::lock_guard<std::mutex> lck(mutexWrite);
 
                             receivedCloseCode = closeInfo.code;
@@ -261,11 +264,11 @@ TEST_CASE("Websocket_client_close_default", "[close]")
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(100);
+        ix::msleep(500);
 
         webSocketClient.stop();
 
-        ix::msleep(200);
+        ix::msleep(500);
 
         // ensure client close is the same as values given
         REQUIRE(webSocketClient.getCloseCode() == 1000);
@@ -319,7 +322,7 @@ TEST_CASE("Websocket_client_close_params_given", "[close]")
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(100);
+        ix::msleep(500);
 
         webSocketClient.stop(4000, "My reason");
 
@@ -377,7 +380,7 @@ TEST_CASE("Websocket_server_close", "[close]")
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(200);
+        ix::msleep(500);
 
         server.stop();
 
@@ -394,6 +397,53 @@ TEST_CASE("Websocket_server_close", "[close]")
             // Here we read the code/reason received by the server, and ensure that remote is true
             REQUIRE(serverReceivedCloseCode == 1000);
             REQUIRE(serverReceivedCloseReason == "Normal closure");
+            REQUIRE(serverReceivedCloseRemote == false);
+        }
+
+        // Give us 1000ms for the server to notice that clients went away
+        ix::msleep(1000);
+        REQUIRE(server.getClients().size() == 0);
+
+        ix::reportWebSocketTraffic();
+    }
+}
+
+TEST_CASE("Websocket_server_close_immediatly", "[close]")
+{
+    SECTION("Make sure that close code and reason was read from server.")
+    {
+        ix::setupWebSocketTrafficTrackerCallback();
+
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+
+        uint16_t serverReceivedCloseCode(0);
+        bool serverReceivedCloseRemote(false);
+        std::string serverReceivedCloseReason("");
+        std::mutex mutexWrite;
+
+        REQUIRE(startServer(server, serverReceivedCloseCode, serverReceivedCloseReason, serverReceivedCloseRemote, mutexWrite));
+
+        std::string session = ix::generateSessionId();
+        WebSocketClient webSocketClient(port);
+
+        webSocketClient.start();
+
+        server.stop();
+
+        ix::msleep(500);
+
+        // ensure client close hasn't been called
+        REQUIRE(webSocketClient.getCloseCode() == 0);
+        REQUIRE(webSocketClient.getCloseReason() == "");
+        REQUIRE(webSocketClient.getCloseRemote() == false);
+
+        {
+            std::lock_guard<std::mutex> lck(mutexWrite);
+
+            // Here we ensure that the code/reason wasn't received by the server
+            REQUIRE(serverReceivedCloseCode == 0);
+            REQUIRE(serverReceivedCloseReason == "");
             REQUIRE(serverReceivedCloseRemote == false);
         }
 
