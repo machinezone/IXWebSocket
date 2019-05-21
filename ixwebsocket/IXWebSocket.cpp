@@ -10,7 +10,6 @@
 
 #include <cmath>
 #include <cassert>
-#include <iostream>
 
 namespace
 {
@@ -146,7 +145,6 @@ namespace ix
     void WebSocket::stop(uint16_t code,
                          const std::string& reason)
     {
-        std::cout << this << ' STOP' << std::endl;
         close(code, reason);
 
         if (_thread.joinable())
@@ -284,7 +282,6 @@ namespace ix
 
         while (true)
         {
-            std::cout << this << ' RUN -' << std::endl;
             // 1. Make sure we are always connected
             checkConnection(firstConnectionAttempt);
 
@@ -296,14 +293,11 @@ namespace ix
                 break;
             }
 
-            std::cout << this << ' RUN --' << std::endl;
             // We can avoid to poll if we want to stop and are not closing
             if (_stop && !isClosing()) break;
 
             // 2. Poll to see if there's any new data available
             WebSocketTransport::PollResult pollResult = _ws.poll();
-
-            std::cout << this << ' RUN --- ' << std::to_string((int)pollResult) << std::endl;
 
             // 3. Dispatch the incoming messages
             _ws.dispatch(
