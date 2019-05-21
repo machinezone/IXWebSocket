@@ -429,7 +429,6 @@ TEST_CASE("Websocket_ping_timeout", "[setPingTimeout]")
     }
 }
 
-#if 0 // this test fails on travis / commenting it out for now to get back to a green travis state
 TEST_CASE("Websocket_ping_long_timeout", "[setPingTimeout]")
 {
     SECTION("Make sure that ping messages don't have responses (no PONG).")
@@ -458,7 +457,7 @@ TEST_CASE("Websocket_ping_long_timeout", "[setPingTimeout]")
 
         REQUIRE(server.getClients().size() == 1);
 
-        ix::msleep(5900);
+        ix::msleep(5800);
 
         // Here we test ping timeout, no timeout yet (2 ping sent at 2s and 4s)
         REQUIRE(serverReceivedPingMessages == 2);
@@ -468,7 +467,7 @@ TEST_CASE("Websocket_ping_long_timeout", "[setPingTimeout]")
         REQUIRE(webSocketClient.isClosed() == false);
         REQUIRE(webSocketClient.closedDueToPingTimeout() == false);
 
-        ix::msleep(200);
+        ix::msleep(600);
 
         // Here we test ping timeout, timeout (at 6 seconds)
         REQUIRE(serverReceivedPingMessages == 2);
@@ -484,4 +483,3 @@ TEST_CASE("Websocket_ping_long_timeout", "[setPingTimeout]")
         ix::reportWebSocketTraffic();
     }
 }
-#endif
