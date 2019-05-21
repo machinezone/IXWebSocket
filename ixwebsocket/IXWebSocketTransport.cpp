@@ -71,7 +71,7 @@ namespace ix
     const int WebSocketTransport::kDefaultPingIntervalSecs(-1);
     const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
-    const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(200);
+    const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(300);
     constexpr size_t WebSocketTransport::kChunkSize;
 
     WebSocketTransport::WebSocketTransport() :
@@ -748,7 +748,7 @@ namespace ix
         bool compress,
         const OnProgressCallback& onProgressCallback)
     {
-        if (_readyState != ReadyState::OPEN)
+        if (_readyState != ReadyState::OPEN && _readyState != ReadyState::CLOSING)
         {
             return WebSocketSendInfo();
         }
@@ -1042,22 +1042,41 @@ namespace ix
 
         if (_readyState == ReadyState::CLOSING || _readyState == ReadyState::CLOSED) return;
 
-        sendCloseFrame(code, reason);
+        // connection is opened, so close without sending close frame
+        if (_readyState == ReadyState::OPEN)
         {
-            std::lock_guard<std::mutex> lock(_closeDataMutex);
-            _closeCode = code;
-            _closeReason = reason;
-            _closeWireSize = closeWireSize;
-            _closeRemote = remote;
-        }
-        {
-            std::lock_guard<std::mutex> lock(_closingTimePointMutex);
-            _closingTimePoint = std::chrono::steady_clock::now();
-        }
-        setReadyState(ReadyState::CLOSING);
+            {
+                std::lock_guard<std::mutex> lock(_closeDataMutex);
+                _closeCode = code;
+                _closeReason = reason;
+                _closeWireSize = closeWireSize;
+                _closeRemote = remote;
+            }
+            {
+                std::lock_guard<std::mutex> lock(_closingTimePointMutex);
+                _closingTimePoint = std::chrono::steady_clock::now();
+            }
+            setReadyState(ReadyState::CLOSING);
 
-        // wake up the poll, but do not close yet
-        _socket->wakeUpFromPoll(Socket::kSendRequest);
+            sendCloseFrame(code, reason);
+            // wake up the poll, but do not close yet
+            _socket->wakeUpFromPoll(Socket::kSendRequest);
+        }
+        else
+        {
+            {
+                std::lock_guard<std::mutex> lock(_closeDataMutex);
+                _closeCode = code;
+                _closeReason = reason;
+                _closeWireSize = closeWireSize;
+                _closeRemote = remote;
+            }
+
+            setReadyState(ReadyState::CLOSED);
+
+            // wake up the poll, and close
+            _socket->wakeUpFromPoll(Socket::kCloseRequest);
+        }
     }
 
     size_t WebSocketTransport::bufferedAmount() const
