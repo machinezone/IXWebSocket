@@ -51,7 +51,6 @@ if (UNIX)
 endif()
 
 # Disable tests for now that are failing or not reliable
-
 # IXWebSocketMessageQTest.cpp (trigger a segfault on Linux)
 
 add_executable(ixwebsocket_unittest ${SOURCES})
