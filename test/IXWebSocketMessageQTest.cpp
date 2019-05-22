@@ -186,6 +186,8 @@ TEST_CASE("Websocket_message_queue", "[websocket_message_q]")
         MsgQTestClient testClient;
         testClient.run("ws://127.0.0.1:" + std::to_string(port));
         REQUIRE(testClient.isSucceeded());
+
+        server.stop();
     }
 
 }

@@ -50,8 +50,14 @@ if (UNIX)
   )
 endif()
 
+# Some unittest fail for dubious reason on Ubuntu Xenial with TSAN
+if (MAC OR WIN32)
+  list(APPEND SOURCES
+    IXWebSocketMessageQTest.cpp
+  )
+endif()
+
 # Disable tests for now that are failing or not reliable
-# IXWebSocketMessageQTest.cpp (trigger a segfault on Linux)
 
 add_executable(ixwebsocket_unittest ${SOURCES})
 
