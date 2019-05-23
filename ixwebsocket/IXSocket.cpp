@@ -46,11 +46,6 @@ namespace ix
 
     PollResultType Socket::poll(int timeoutMs)
     {
-        if (_sockfd == -1)
-        {
-            return PollResultType::Error;
-        }
-
         return isReadyToRead(timeoutMs);
     }
 
@@ -62,7 +57,10 @@ namespace ix
         FD_ZERO(&wfds);
 
         fd_set* fds = (readyToRead) ? &rfds : & wfds;
-        FD_SET(_sockfd, fds);
+        if (_sockfd != -1)
+        {
+            FD_SET(_sockfd, fds);
+        }
 
         // File descriptor used to interrupt select when needed
         int interruptFd = _selectInterrupt->getFd();
@@ -118,12 +116,22 @@ namespace ix
 
     PollResultType Socket::isReadyToRead(int timeoutMs)
     {
+        if (_sockfd == -1)
+        {
+            return PollResultType::Error;
+        }
+
         bool readyToRead = true;
         return select(readyToRead, timeoutMs);
     }
 
     PollResultType Socket::isReadyToWrite(int timeoutMs)
     {
+        if (_sockfd == -1)
+        {
+            return PollResultType::Error;
+        }
+
         bool readyToRead = false;
         return select(readyToRead, timeoutMs);
     }
