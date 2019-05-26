@@ -224,7 +224,7 @@ namespace ix
         using millis = std::chrono::duration<double, std::milli>;
 
         uint32_t retries = 0;
-        millis duration;
+        millis duration(0);
 
         // Try to connect perpertually
         while (true)
