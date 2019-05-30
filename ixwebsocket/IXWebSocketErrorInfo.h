@@ -18,4 +18,4 @@ namespace ix
         std::string reason;
         bool decompressionError = false;
     };
-}
+} // namespace ix

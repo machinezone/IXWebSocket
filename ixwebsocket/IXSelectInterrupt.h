@@ -11,7 +11,8 @@
 
 namespace ix
 {
-    class SelectInterrupt {
+    class SelectInterrupt
+    {
     public:
         SelectInterrupt();
         virtual ~SelectInterrupt();
@@ -23,6 +24,4 @@ namespace ix
         virtual uint64_t read();
         virtual int getFd() const;
     };
-}
-
-
+} // namespace ix

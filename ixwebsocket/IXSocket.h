@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include <string>
-#include <functional>
-#include <mutex>
 #include <atomic>
-#include <vector>
+#include <functional>
 #include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
 
 #ifdef _WIN32
 #include <BaseTsd.h>
@@ -24,11 +24,11 @@ typedef SSIZE_T ssize_t;
 #undef EINVAL
 
 // map to WSA error codes
-#define EWOULDBLOCK    WSAEWOULDBLOCK
-#define EAGAIN         WSATRY_AGAIN
-#define EINPROGRESS    WSAEINPROGRESS
-#define EBADF          WSAEBADF
-#define EINVAL         WSAEINVAL
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#define EAGAIN WSATRY_AGAIN
+#define EINPROGRESS WSAEINPROGRESS
+#define EBADF WSAEBADF
+#define EINVAL WSAEINVAL
 
 #endif
 
@@ -41,15 +41,16 @@ namespace ix
 
     enum class PollResultType
     {
-        ReadyForRead    = 0,
-        ReadyForWrite   = 1,
-        Timeout         = 2,
-        Error           = 3,
-        SendRequest     = 4,
-        CloseRequest    = 5
+        ReadyForRead = 0,
+        ReadyForWrite = 1,
+        Timeout = 2,
+        Error = 3,
+        SendRequest = 4,
+        CloseRequest = 5
     };
 
-    class Socket {
+    class Socket
+    {
     public:
         Socket(int fd = -1);
         virtual ~Socket();
@@ -75,17 +76,13 @@ namespace ix
 
         // Blocking and cancellable versions, working with socket that can be set
         // to non blocking mode. Used during HTTP upgrade.
-        bool readByte(void* buffer,
-                      const CancellationRequest& isCancellationRequested);
-        bool writeBytes(const std::string& str,
-                        const CancellationRequest& isCancellationRequested);
+        bool readByte(void* buffer, const CancellationRequest& isCancellationRequested);
+        bool writeBytes(const std::string& str, const CancellationRequest& isCancellationRequested);
 
-        std::pair<bool, std::string> readLine(
-            const CancellationRequest& isCancellationRequested);
-        std::pair<bool, std::string> readBytes(
-            size_t length,
-            const OnProgressCallback& onProgressCallback,
-            const CancellationRequest& isCancellationRequested);
+        std::pair<bool, std::string> readLine(const CancellationRequest& isCancellationRequested);
+        std::pair<bool, std::string> readBytes(size_t length,
+                                               const OnProgressCallback& onProgressCallback,
+                                               const CancellationRequest& isCancellationRequested);
 
         static int getErrno();
         static bool isWaitNeeded();
@@ -111,4 +108,4 @@ namespace ix
 
         std::shared_ptr<SelectInterrupt> _selectInterrupt;
     };
-}
+} // namespace ix

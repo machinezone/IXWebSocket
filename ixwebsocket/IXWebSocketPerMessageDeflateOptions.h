@@ -42,4 +42,4 @@ namespace ix
         int _clientMaxWindowBits;
         int _serverMaxWindowBits;
     };
-}
+} // namespace ix

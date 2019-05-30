@@ -16,9 +16,7 @@ namespace ix
         SocketSChannel();
         ~SocketSChannel();
 
-        virtual bool connect(const std::string& host,
-                             int port,
-                             std::string& errMsg) final;
+        virtual bool connect(const std::string& host, int port, std::string& errMsg) final;
         virtual void close() final;
 
         // The important override
@@ -31,4 +29,4 @@ namespace ix
     private:
     };
 
-}
+} // namespace ix

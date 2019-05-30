@@ -7,16 +7,14 @@
 #pragma once
 
 #include "IXCobraConnection.h"
-
-#include <jsoncpp/json/json.h>
-
-#include <string>
-#include <queue>
-#include <mutex>
-#include <thread>
-#include <map>
 #include <atomic>
 #include <condition_variable>
+#include <jsoncpp/json/json.h>
+#include <map>
+#include <mutex>
+#include <queue>
+#include <string>
+#include <thread>
 
 namespace ix
 {
@@ -67,8 +65,7 @@ namespace ix
         };
 
         /// Push a message to be processed by the background thread
-        void pushMessage(MessageKind messageKind,
-                         const Json::Value& msg);
+        void pushMessage(MessageKind messageKind, const Json::Value& msg);
 
         /// Get a wait time which is increasing exponentially based on the number of retries
         uint64_t getWaitTimeExp(int retry_count);

@@ -6,10 +6,9 @@
 
 #pragma once
 
-#include <string>
-
-#include <ixwebsocket/IXWebSocketServer.h>
 #include "IXAppConfig.h"
+#include <ixwebsocket/IXWebSocketServer.h>
+#include <string>
 
 namespace snake
 {
@@ -27,4 +26,4 @@ namespace snake
         AppConfig _appConfig;
         ix::WebSocketServer _server;
     };
-}
+} // namespace snake

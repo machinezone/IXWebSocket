@@ -7,14 +7,14 @@
 #pragma once
 
 #include "IXCancellationRequest.h"
-
 #include <string>
 
 struct addrinfo;
 
 namespace ix
 {
-    class SocketConnect {
+    class SocketConnect
+    {
     public:
         static int connect(const std::string& hostname,
                            int port,
@@ -24,9 +24,8 @@ namespace ix
         static void configure(int sockfd);
 
     private:
-        static int connectToAddress(const struct addrinfo *address,
+        static int connectToAddress(const struct addrinfo* address,
                                     std::string& errMsg,
                                     const CancellationRequest& isCancellationRequested);
     };
-}
-
+} // namespace ix

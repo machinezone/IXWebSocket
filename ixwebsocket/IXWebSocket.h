@@ -9,39 +9,38 @@
 
 #pragma once
 
+#include "IXProgressCallback.h"
+#include "IXWebSocketCloseConstants.h"
+#include "IXWebSocketErrorInfo.h"
+#include "IXWebSocketHttpHeaders.h"
+#include "IXWebSocketPerMessageDeflateOptions.h"
+#include "IXWebSocketSendInfo.h"
+#include "IXWebSocketTransport.h"
+#include <atomic>
+#include <mutex>
 #include <string>
 #include <thread>
-#include <mutex>
-#include <atomic>
-
-#include "IXWebSocketTransport.h"
-#include "IXWebSocketErrorInfo.h"
-#include "IXWebSocketSendInfo.h"
-#include "IXWebSocketPerMessageDeflateOptions.h"
-#include "IXWebSocketHttpHeaders.h"
-#include "IXWebSocketCloseConstants.h"
-#include "IXProgressCallback.h"
 
 namespace ix
 {
     // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket#Ready_state_constants
     enum class ReadyState
     {
-        Connecting     = 0,
-        Open           = 1,
-        Closing        = 2,
-        Closed         = 3
+        Connecting = 0,
+        Open = 1,
+        Closing = 2,
+        Closed = 3
     };
 
     enum class WebSocketMessageType
     {
-        Message        = 0,
-        Open           = 1,
-        Close          = 2,
-        Error          = 3,
-        Ping           = 4,
-        Pong           = 5,
-        Fragment       = 6
+        Message = 0,
+        Open = 1,
+        Close = 2,
+        Error = 3,
+        Ping = 4,
+        Pong = 5,
+        Fragment = 6
     };
 
     struct WebSocketOpenInfo
@@ -64,9 +63,7 @@ namespace ix
         std::string reason;
         bool remote;
 
-        WebSocketCloseInfo(uint16_t c = 0,
-                           const std::string& r = std::string(),
-                           bool rem = false)
+        WebSocketCloseInfo(uint16_t c = 0, const std::string& r = std::string(), bool rem = false)
             : code(c)
             , reason(r)
             , remote(rem)
@@ -91,7 +88,8 @@ namespace ix
         ~WebSocket();
 
         void setUrl(const std::string& url);
-        void setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
+        void setPerMessageDeflateOptions(
+            const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         void setHeartBeatPeriod(int heartBeatPeriodSecs);
         void setPingInterval(int pingIntervalSecs); // alias of setHeartBeatPeriod
         void setPingTimeout(int pingTimeoutSecs);
@@ -116,8 +114,7 @@ namespace ix
                                    const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo ping(const std::string& text);
 
-        void close(uint16_t code = 1000,
-                   const std::string& reason = "Normal closure");
+        void close(uint16_t code = 1000, const std::string& reason = "Normal closure");
 
         void setOnMessageCallback(const OnMessageCallback& callback);
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
@@ -138,7 +135,6 @@ namespace ix
         bool isAutomaticReconnectionEnabled() const;
 
     private:
-
         WebSocketSendInfo sendMessage(const std::string& text,
                                       SendMessageKind sendMessageKind,
                                       const OnProgressCallback& callback = nullptr);
@@ -180,4 +176,4 @@ namespace ix
 
         friend class WebSocketServer;
     };
-}
+} // namespace ix

@@ -10,22 +10,21 @@
 // Adapted from https://github.com/dhbaird/easywsclient
 //
 
-#include <string>
-#include <vector>
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <atomic>
-#include <list>
-
-#include "IXWebSocketSendInfo.h"
-#include "IXWebSocketPerMessageDeflate.h"
-#include "IXWebSocketPerMessageDeflateOptions.h"
-#include "IXWebSocketHttpHeaders.h"
 #include "IXCancellationRequest.h"
-#include "IXWebSocketHandshake.h"
 #include "IXProgressCallback.h"
 #include "IXWebSocketCloseConstants.h"
+#include "IXWebSocketHandshake.h"
+#include "IXWebSocketHttpHeaders.h"
+#include "IXWebSocketPerMessageDeflate.h"
+#include "IXWebSocketPerMessageDeflateOptions.h"
+#include "IXWebSocketSendInfo.h"
+#include <atomic>
+#include <functional>
+#include <list>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
 
 namespace ix
 {
@@ -63,14 +62,9 @@ namespace ix
             AbnormalClose
         };
 
-        using OnMessageCallback = std::function<void(const std::string&,
-                                                     size_t,
-                                                     bool,
-                                                     MessageKind)>;
-        using OnCloseCallback = std::function<void(uint16_t,
-                                                   const std::string&,
-                                                   size_t,
-                                                   bool)>;
+        using OnMessageCallback =
+            std::function<void(const std::string&, size_t, bool, MessageKind)>;
+        using OnCloseCallback = std::function<void(uint16_t, const std::string&, size_t, bool)>;
 
         WebSocketTransport();
         ~WebSocketTransport();
@@ -82,7 +76,7 @@ namespace ix
 
         WebSocketInitResult connectToUrl(const std::string& url, // Client
                                          int timeoutSecs);
-        WebSocketInitResult connectToSocket(int fd,              // Server
+        WebSocketInitResult connectToSocket(int fd, // Server
                                             int timeoutSecs);
 
         PollResult poll();
@@ -103,25 +97,26 @@ namespace ix
         ReadyState getReadyState() const;
         void setReadyState(ReadyState readyState);
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
-        void dispatch(PollResult pollResult,
-                      const OnMessageCallback& onMessageCallback);
+        void dispatch(PollResult pollResult, const OnMessageCallback& onMessageCallback);
         size_t bufferedAmount() const;
 
     private:
         std::string _url;
 
-        struct wsheader_type {
+        struct wsheader_type
+        {
             unsigned header_size;
             bool fin;
             bool rsv1;
             bool mask;
-            enum opcode_type {
+            enum opcode_type
+            {
                 CONTINUATION = 0x0,
-                TEXT_FRAME   = 0x1,
+                TEXT_FRAME = 0x1,
                 BINARY_FRAME = 0x2,
-                CLOSE        = 8,
-                PING         = 9,
-                PONG         = 0xa,
+                CLOSE = 8,
+                PING = 9,
+                PONG = 0xa,
             } opcode;
             int N0;
             uint64_t N;
@@ -176,7 +171,7 @@ namespace ix
         std::atomic<bool> _requestInitCancellation;
 
         mutable std::mutex _closingTimePointMutex;
-        std::chrono::time_point<std::chrono::steady_clock>_closingTimePoint;
+        std::chrono::time_point<std::chrono::steady_clock> _closingTimePoint;
         static const int kClosingMaximumWaitingDelayInMs;
 
         // enable auto response to ping
@@ -211,7 +206,8 @@ namespace ix
         // No PONG data was received through the socket for longer than ping timeout delay
         bool pingTimeoutExceeded();
 
-        // after calling close(), if no CLOSE frame answer is received back from the remote, we should close the connexion
+        // after calling close(), if no CLOSE frame answer is received back from the remote, we
+        // should close the connexion
         bool closingDelayExceeded();
 
         void initTimePointsAndGCDAfterConnect();
@@ -252,4 +248,4 @@ namespace ix
 
         std::string getMergedChunks() const;
     };
-}
+} // namespace ix

@@ -6,12 +6,10 @@
 
 #pragma once
 
-#include "IXSocket.h"
 #include "IXCancellationRequest.h"
-
-#include <Security/Security.h>
+#include "IXSocket.h"
 #include <Security/SecureTransport.h>
-
+#include <Security/Security.h>
 #include <mutex>
 
 namespace ix
@@ -34,7 +32,7 @@ namespace ix
 
     private:
         SSLContextRef _sslContext;
-        mutable std::mutex _mutex;  // AppleSSL routines are not thread-safe
+        mutable std::mutex _mutex; // AppleSSL routines are not thread-safe
     };
 
-}
+} // namespace ix

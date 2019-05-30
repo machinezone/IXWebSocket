@@ -13,9 +13,7 @@
 namespace ix
 {
     class Socket;
-    std::shared_ptr<Socket> createSocket(bool tls,
-                                         std::string& errorMsg);
+    std::shared_ptr<Socket> createSocket(bool tls, std::string& errorMsg);
 
-    std::shared_ptr<Socket> createSocket(int fd,
-                                         std::string& errorMsg);
-}
+    std::shared_ptr<Socket> createSocket(int fd, std::string& errorMsg);
+} // namespace ix

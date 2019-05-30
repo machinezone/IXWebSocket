@@ -20,4 +20,4 @@ namespace ix
                           std::string& query,
                           int& port);
     };
-}
+} // namespace ix

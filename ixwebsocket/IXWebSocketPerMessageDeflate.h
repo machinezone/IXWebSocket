@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
 
 namespace ix
 {
@@ -57,4 +57,4 @@ namespace ix
         std::unique_ptr<WebSocketPerMessageDeflateCompressor> _compressor;
         std::unique_ptr<WebSocketPerMessageDeflateDecompressor> _decompressor;
     };
-}
+} // namespace ix

@@ -6,14 +6,15 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <string>
 #include <atomic>
 #include <memory>
+#include <stdint.h>
+#include <string>
 
 namespace ix
 {
-    class ConnectionState {
+    class ConnectionState
+    {
     public:
         ConnectionState();
         virtual ~ConnectionState() = default;
@@ -32,6 +33,4 @@ namespace ix
 
         static std::atomic<uint64_t> _globalId;
     };
-}
-
-
+} // namespace ix
