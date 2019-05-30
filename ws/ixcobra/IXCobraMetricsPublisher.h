@@ -7,12 +7,10 @@
 #pragma once
 
 #include "IXCobraMetricsThreadedPublisher.h"
-
+#include <chrono>
 #include <jsoncpp/json/json.h>
-
 #include <string>
 #include <unordered_map>
-#include <chrono>
 
 namespace ix
 {
@@ -28,10 +26,11 @@ namespace ix
         /// to make shouldPush as fast as possible. _enabled default to false.
         ///
         /// The code that set those is ran only once at init, and
-        /// the last value to be set is _enabled, which is also the first value checked in shouldPush,
-        /// so there shouldn't be any race condition.
+        /// the last value to be set is _enabled, which is also the first value checked in
+        /// shouldPush, so there shouldn't be any race condition.
         ///
-        /// 2. The queue of messages is thread safe, so multiple metrics can be safely pushed on multiple threads
+        /// 2. The queue of messages is thread safe, so multiple metrics can be safely pushed on
+        /// multiple threads
         ///
         /// 3. Access to _last_update is protected as it needs to be read/write.
         ///
@@ -62,40 +61,44 @@ namespace ix
         void push(const std::string& id,
                   const CobraMetricsPublisher::Message& data = CobraMetricsPublisher::Message());
 
-        /// Richer interface using json, which supports types (bool, int, float) and hierarchies of elements
+        /// Richer interface using json, which supports types (bool, int, float) and hierarchies of
+        /// elements
         ///
-        /// The shouldPushTest argument should be set to false, and used in combination with the shouldPush method
-        /// for places where we want to be as lightweight as possible when collecting metrics. When set to false,
-        /// it is used so that we don't do double work when computing whether a metrics should be sent or not.
-        void push(const std::string& id,
-                  const Json::Value& data,
-                  bool shouldPushTest = true);
+        /// The shouldPushTest argument should be set to false, and used in combination with the
+        /// shouldPush method for places where we want to be as lightweight as possible when
+        /// collecting metrics. When set to false, it is used so that we don't do double work when
+        /// computing whether a metrics should be sent or not.
+        void push(const std::string& id, const Json::Value& data, bool shouldPushTest = true);
 
         /// Interface used by lua. msg is a json encoded string.
-        void push(const std::string& id,
-                  const std::string& data,
-                  bool shouldPushTest = true);
+        void push(const std::string& id, const std::string& data, bool shouldPushTest = true);
 
         /// Tells whether a metric can be pushed.
         /// A metric can be pushed if it satisfies those conditions:
         ///
         /// 1. the metrics system should be enabled
         /// 2. the metrics shouldn't be black-listed
-        /// 3. the metrics shouldn't have reached its rate control limit at this "sampling"/"calling" time
+        /// 3. the metrics shouldn't have reached its rate control limit at this
+        /// "sampling"/"calling" time
         bool shouldPush(const std::string& id) const;
 
         /// Get generic information json object
         Json::Value& getGenericAttributes();
 
         /// Set generic information values
-        void setGenericAttributes(const std::string& attrName,
-                                  const Json::Value& value);
+        void setGenericAttributes(const std::string& attrName, const Json::Value& value);
 
         /// Set a unique id for the session. A uuid can be used.
-        void setSession(const std::string& session) { _session = session; }
+        void setSession(const std::string& session)
+        {
+            _session = session;
+        }
 
         /// Get the unique id used to identify the current session
-        const std::string& getSession() const { return _session; }
+        const std::string& getSession() const
+        {
+            return _session;
+        }
 
         /// Return the number of milliseconds since the epoch (~1970)
         uint64_t getMillisecondsSinceEpoch() const;
@@ -117,7 +120,6 @@ namespace ix
         bool isAuthenticated() const;
 
     private:
-
         /// Lookup an id in our metrics to see whether it is blacklisted
         /// Complexity is logarithmic
         bool isMetricBlacklisted(const std::string& id) const;
@@ -150,15 +152,16 @@ namespace ix
         /// Metrics control (black list + rate control)
         std::vector<std::string> _blacklist;
         std::unordered_map<std::string, int> _rate_control;
-        std::unordered_map<std::string, std::chrono::time_point<std::chrono::steady_clock>> _last_update;
+        std::unordered_map<std::string, std::chrono::time_point<std::chrono::steady_clock>>
+            _last_update;
         mutable std::mutex _last_update_mutex; // protect access to _last_update
 
         // const strings for internal ids
         static const std::string kSetRateControlId;
         static const std::string kSetBlacklistId;
 
-        /// Our protocol version. Can be used by subscribers who would want to be backward compatible
-        /// if we change the way we arrange data
+        /// Our protocol version. Can be used by subscribers who would want to be backward
+        /// compatible if we change the way we arrange data
         static const int kVersion;
     };
 

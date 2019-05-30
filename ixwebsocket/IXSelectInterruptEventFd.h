@@ -7,13 +7,13 @@
 #pragma once
 
 #include "IXSelectInterrupt.h"
-
 #include <stdint.h>
 #include <string>
 
 namespace ix
 {
-    class SelectInterruptEventFd final : public SelectInterrupt {
+    class SelectInterruptEventFd final : public SelectInterrupt
+    {
     public:
         SelectInterruptEventFd();
         virtual ~SelectInterruptEventFd();
@@ -28,5 +28,4 @@ namespace ix
     private:
         int _eventfd;
     };
-}
-
+} // namespace ix

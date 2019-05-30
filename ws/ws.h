@@ -28,17 +28,13 @@ namespace ix
     int ws_broadcast_server_main(int port, const std::string& hostname);
     int ws_transfer_main(int port, const std::string& hostname);
 
-    int ws_chat_main(const std::string& url,
-                     const std::string& user);
+    int ws_chat_main(const std::string& url, const std::string& user);
 
     int ws_connect_main(const std::string& url, bool disableAutomaticReconnection);
 
-    int ws_receive_main(const std::string& url,
-                        bool enablePerMessageDeflate,
-                        int delayMs);
+    int ws_receive_main(const std::string& url, bool enablePerMessageDeflate, int delayMs);
 
-    int ws_send_main(const std::string& url,
-                     const std::string& path);
+    int ws_send_main(const std::string& url, const std::string& path);
 
     int ws_redis_publish_main(const std::string& hostname,
                               int port,
@@ -95,4 +91,4 @@ namespace ix
                       const std::string& redisPassword,
                       bool verbose,
                       const std::string& appsConfigPath);
-}
+} // namespace ix

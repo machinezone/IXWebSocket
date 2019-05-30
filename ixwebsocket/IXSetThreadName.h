@@ -10,4 +10,3 @@ namespace ix
 {
     void setThreadName(const std::string& name);
 }
-

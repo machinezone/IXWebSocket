@@ -7,8 +7,8 @@
 #pragma once
 
 #include "zlib.h"
-#include <string>
 #include <memory>
+#include <string>
 
 namespace ix
 {
@@ -46,5 +46,4 @@ namespace ix
         z_stream _inflateState;
     };
 
-}
-
+} // namespace ix

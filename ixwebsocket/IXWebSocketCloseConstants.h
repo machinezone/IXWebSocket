@@ -26,4 +26,4 @@ namespace ix
         static const std::string kProtocolErrorMessage;
         static const std::string kNoStatusCodeErrorMessage;
     };
-}
+} // namespace ix

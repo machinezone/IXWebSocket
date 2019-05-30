@@ -12,4 +12,4 @@ namespace ix
 {
     class SelectInterrupt;
     std::shared_ptr<SelectInterrupt> createSelectInterrupt();
-}
+} // namespace ix

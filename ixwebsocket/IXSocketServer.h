@@ -7,28 +7,28 @@
 #pragma once
 
 #include "IXConnectionState.h"
-
-#include <utility> // pair
-#include <string>
-#include <set>
-#include <thread>
-#include <list>
-#include <mutex>
-#include <functional>
-#include <memory>
 #include <atomic>
 #include <condition_variable>
+#include <functional>
+#include <list>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <thread>
+#include <utility> // pair
 
 namespace ix
 {
-    class SocketServer {
+    class SocketServer
+    {
     public:
         using ConnectionStateFactory = std::function<std::shared_ptr<ConnectionState>()>;
 
         // Each connection is handled by its own worker thread.
         // We use a list as we only care about remove and append operations.
-        using ConnectionThreads = std::list<std::pair<std::shared_ptr<ConnectionState>,
-                                                      std::thread>>;
+        using ConnectionThreads =
+            std::list<std::pair<std::shared_ptr<ConnectionState>, std::thread>>;
 
         SocketServer(int port = SocketServer::kDefaultPort,
                      const std::string& host = SocketServer::kDefaultHost,
@@ -52,7 +52,6 @@ namespace ix
         void wait();
 
     protected:
-
         // Logging
         void logError(const std::string& str);
         void logInfo(const std::string& str);
@@ -93,12 +92,11 @@ namespace ix
         // the factory to create ConnectionState objects
         ConnectionStateFactory _connectionStateFactory;
 
-        virtual void handleConnection(int fd,
-                                      std::shared_ptr<ConnectionState> connectionState) = 0;
+        virtual void handleConnection(int fd, std::shared_ptr<ConnectionState> connectionState) = 0;
         virtual size_t getConnectedClientsCount() = 0;
 
         // Returns true if all connection threads are joined
         void closeTerminatedThreads();
         size_t getConnectionsThreadsCount();
     };
-}
+} // namespace ix

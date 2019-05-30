@@ -6,16 +6,15 @@
 
 #pragma once
 
+#include <ixwebsocket/IXWebSocketHttpHeaders.h>
+#include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
+#include <jsoncpp/json/json.h>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <thread>
 #include <unordered_map>
-#include <memory>
-
-#include <jsoncpp/json/json.h>
-#include <ixwebsocket/IXWebSocketHttpHeaders.h>
-#include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
 
 namespace ix
 {
@@ -72,8 +71,7 @@ namespace ix
         /// Publish a message to a channel
         ///
         /// No-op if the connection is not established
-        bool publish(const Json::Value& channels,
-                     const Json::Value& msg);
+        bool publish(const Json::Value& channels, const Json::Value& msg);
 
         // Subscribe to a channel, and execute a callback when an incoming
         // message arrives.
@@ -126,8 +124,7 @@ namespace ix
                                  const std::string& errorMsg = std::string(),
                                  const WebSocketHttpHeaders& headers = WebSocketHttpHeaders(),
                                  const std::string& subscriptionId = std::string());
-        void invokeErrorCallback(const std::string& errorMsg,
-                                 const std::string& serializedPdu);
+        void invokeErrorCallback(const std::string& errorMsg, const std::string& serializedPdu);
 
         ///
         /// Member variables

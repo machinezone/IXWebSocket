@@ -7,14 +7,14 @@
 #pragma once
 
 #include "IXSelectInterrupt.h"
-
+#include <mutex>
 #include <stdint.h>
 #include <string>
-#include <mutex>
 
 namespace ix
 {
-    class SelectInterruptPipe final : public SelectInterrupt {
+    class SelectInterruptPipe final : public SelectInterrupt
+    {
     public:
         SelectInterruptPipe();
         virtual ~SelectInterruptPipe();
@@ -37,5 +37,4 @@ namespace ix
         static const int kPipeReadIndex;
         static const int kPipeWriteIndex;
     };
-}
-
+} // namespace ix

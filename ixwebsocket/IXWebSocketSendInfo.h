@@ -15,8 +15,7 @@ namespace ix
         size_t payloadSize;
         size_t wireSize;
 
-        WebSocketSendInfo(bool s = false, bool c = false,
-                          size_t p = 0, size_t w = 0)
+        WebSocketSendInfo(bool s = false, bool c = false, size_t p = 0, size_t w = 0)
             : success(s)
             , compressionError(c)
             , payloadSize(p)
@@ -25,4 +24,4 @@ namespace ix
             ;
         }
     };
-}
+} // namespace ix

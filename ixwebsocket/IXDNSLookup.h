@@ -11,22 +11,20 @@
 #pragma once
 
 #include "IXCancellationRequest.h"
-
-#include <string>
-#include <thread>
 #include <atomic>
 #include <condition_variable>
 #include <set>
+#include <string>
+#include <thread>
 
 struct addrinfo;
 
 namespace ix
 {
-    class DNSLookup {
+    class DNSLookup
+    {
     public:
-        DNSLookup(const std::string& hostname,
-                  int port,
-                  int64_t wait = DNSLookup::kDefaultWait);
+        DNSLookup(const std::string& hostname, int port, int64_t wait = DNSLookup::kDefaultWait);
         ~DNSLookup();
 
         struct addrinfo* resolve(std::string& errMsg,
@@ -78,4 +76,4 @@ namespace ix
 
         const static int64_t kDefaultWait;
     };
-}
+} // namespace ix

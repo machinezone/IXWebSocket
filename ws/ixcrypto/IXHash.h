@@ -13,4 +13,3 @@ namespace ix
 {
     uint64_t djb2Hash(const std::vector<uint8_t>& data);
 }
-

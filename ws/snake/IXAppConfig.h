@@ -6,10 +6,9 @@
 
 #pragma once
 
+#include "nlohmann/json.hpp"
 #include <string>
 #include <vector>
-
-#include "nlohmann/json.hpp"
 
 namespace snake
 {
@@ -31,16 +30,11 @@ namespace snake
         bool verbose;
     };
 
-    bool isAppKeyValid(
-        const AppConfig& appConfig,
-        std::string appkey);
+    bool isAppKeyValid(const AppConfig& appConfig, std::string appkey);
 
-    std::string getRoleSecret(
-        const AppConfig& appConfig,
-        std::string appkey,
-        std::string role);
+    std::string getRoleSecret(const AppConfig& appConfig, std::string appkey, std::string role);
 
     std::string generateNonce();
 
     void dumpConfig(const AppConfig& appConfig);
-}
+} // namespace snake

@@ -18,9 +18,8 @@ namespace snake
     class SnakeConnectionState;
     struct AppConfig;
 
-    void processCobraMessage(
-        std::shared_ptr<SnakeConnectionState> state,
-        std::shared_ptr<ix::WebSocket> ws,
-        const AppConfig& appConfig,
-        const std::string& str);
-}
+    void processCobraMessage(std::shared_ptr<SnakeConnectionState> state,
+                             std::shared_ptr<ix::WebSocket> ws,
+                             const AppConfig& appConfig,
+                             const std::string& str);
+} // namespace snake

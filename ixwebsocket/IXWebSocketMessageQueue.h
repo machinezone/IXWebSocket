@@ -7,9 +7,9 @@
 #pragma once
 
 #include "IXWebSocket.h"
-#include <thread>
 #include <list>
 #include <memory>
+#include <thread>
 
 namespace ix
 {
@@ -50,4 +50,4 @@ namespace ix
         std::mutex _messagesMutex;
         std::list<MessagePtr> _messages;
     };
-}
+} // namespace ix

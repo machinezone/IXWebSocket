@@ -40,6 +40,9 @@ run:
 trail:
 	sh third_party/remote_trailing_whitespaces.sh
 
+format:
+	sh third_party/indent.sh
+
 # That target is used to start a node server, but isn't required as we have 
 # a builtin C++ server started in the unittest now
 test_server:

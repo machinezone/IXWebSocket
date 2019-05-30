@@ -6,14 +6,15 @@
 
 #pragma once
 
-#include <memory>
 #include <functional>
+#include <memory>
 
 namespace ix
 {
     class Socket;
 
-    class RedisClient {
+    class RedisClient
+    {
     public:
         using OnRedisSubscribeResponseCallback = std::function<void(const std::string&)>;
         using OnRedisSubscribeCallback = std::function<void(const std::string&)>;
@@ -21,15 +22,11 @@ namespace ix
         RedisClient() = default;
         ~RedisClient() = default;
 
-        bool connect(const std::string& hostname,
-                     int port);
+        bool connect(const std::string& hostname, int port);
 
-        bool auth(const std::string& password,
-                  std::string& response);
+        bool auth(const std::string& password, std::string& response);
 
-        bool publish(const std::string& channel,
-                     const std::string& message,
-                     std::string& errMsg);
+        bool publish(const std::string& channel, const std::string& message, std::string& errMsg);
 
         bool subscribe(const std::string& channel,
                        const OnRedisSubscribeResponseCallback& responseCallback,
@@ -40,5 +37,4 @@ namespace ix
 
         std::shared_ptr<Socket> _socket;
     };
-}
-
+} // namespace ix

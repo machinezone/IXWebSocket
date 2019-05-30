@@ -7,15 +7,14 @@
 #pragma once
 
 #include "IXCancellationRequest.h"
+#include "IXSocket.h"
 #include "IXWebSocketHttpHeaders.h"
 #include "IXWebSocketPerMessageDeflate.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
-#include "IXSocket.h"
-
-#include <string>
 #include <atomic>
 #include <chrono>
 #include <memory>
+#include <string>
 #include <tuple>
 
 namespace ix
@@ -42,7 +41,8 @@ namespace ix
         }
     };
 
-    class WebSocketHandshake {
+    class WebSocketHandshake
+    {
     public:
         WebSocketHandshake(std::atomic<bool>& requestInitCancellation,
                            std::shared_ptr<Socket> _socket,
@@ -56,8 +56,7 @@ namespace ix
                                             int port,
                                             int timeoutSecs);
 
-        WebSocketInitResult serverHandshake(int fd,
-                                            int timeoutSecs);
+        WebSocketInitResult serverHandshake(int fd, int timeoutSecs);
 
     private:
         std::string genRandomString(const int len);
@@ -75,4 +74,4 @@ namespace ix
         WebSocketPerMessageDeflateOptions& _perMessageDeflateOptions;
         std::atomic<bool>& _enablePerMessageDeflate;
     };
-}
+} // namespace ix

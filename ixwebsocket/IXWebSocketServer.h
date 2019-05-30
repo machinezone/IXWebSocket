@@ -6,24 +6,24 @@
 
 #pragma once
 
-#include <utility> // pair
-#include <string>
-#include <set>
-#include <thread>
-#include <mutex>
+#include "IXSocketServer.h"
+#include "IXWebSocket.h"
+#include <condition_variable>
 #include <functional>
 #include <memory>
-#include <condition_variable>
-
-#include "IXWebSocket.h"
-#include "IXSocketServer.h"
+#include <mutex>
+#include <set>
+#include <string>
+#include <thread>
+#include <utility> // pair
 
 namespace ix
 {
-    using OnConnectionCallback = std::function<void(std::shared_ptr<WebSocket>,
-                                                    std::shared_ptr<ConnectionState>)>;
+    using OnConnectionCallback =
+        std::function<void(std::shared_ptr<WebSocket>, std::shared_ptr<ConnectionState>)>;
 
-    class WebSocketServer final : public SocketServer {
+    class WebSocketServer final : public SocketServer
+    {
     public:
         WebSocketServer(int port = SocketServer::kDefaultPort,
                         const std::string& host = SocketServer::kDefaultHost,
@@ -59,4 +59,4 @@ namespace ix
                                       std::shared_ptr<ConnectionState> connectionState) final;
         virtual size_t getConnectedClientsCount() final;
     };
-}
+} // namespace ix
