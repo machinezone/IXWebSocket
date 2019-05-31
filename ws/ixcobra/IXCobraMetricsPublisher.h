@@ -89,16 +89,10 @@ namespace ix
         void setGenericAttributes(const std::string& attrName, const Json::Value& value);
 
         /// Set a unique id for the session. A uuid can be used.
-        void setSession(const std::string& session)
-        {
-            _session = session;
-        }
+        void setSession(const std::string& session) { _session = session; }
 
         /// Get the unique id used to identify the current session
-        const std::string& getSession() const
-        {
-            return _session;
-        }
+        const std::string& getSession() const { return _session; }
 
         /// Return the number of milliseconds since the epoch (~1970)
         uint64_t getMillisecondsSinceEpoch() const;
