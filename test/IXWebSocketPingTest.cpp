@@ -427,6 +427,7 @@ TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod
         REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
+        server.stop();
     }
 }
 
@@ -477,5 +478,6 @@ TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
         REQUIRE(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
+        server.stop();
     }
 }

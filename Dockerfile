@@ -1,1 +1,1 @@
-docker/Dockerfile.ubuntu_xenial
+docker/Dockerfile.alpine

@@ -25,6 +25,9 @@ IMG    := ${NAME}:${TAG}
 LATEST := ${NAME}:latest
 BUILD  := ${NAME}:build
 
+docker_test:
+	docker build -f docker/Dockerfile.debian -t bsergean/ixwebsocket_test:build .
+
 docker:
 	docker build -t ${IMG} .
 	docker tag ${IMG} ${BUILD}
@@ -34,7 +37,7 @@ docker_push:
 	docker push ${LATEST}
 
 run:
-	docker run --cap-add sys_ptrace --entrypoint=bash -it bsergean/ws:build
+	docker run --cap-add sys_ptrace --entrypoint=sh -it bsergean/ws:build
 
 # this is helpful to remove trailing whitespaces
 trail:
