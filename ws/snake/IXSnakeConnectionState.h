@@ -16,37 +16,16 @@ namespace snake
     class SnakeConnectionState : public ix::ConnectionState
     {
     public:
-        std::string getNonce()
-        {
-            return _nonce;
-        }
-        void setNonce(const std::string& nonce)
-        {
-            _nonce = nonce;
-        }
+        std::string getNonce() { return _nonce; }
+        void setNonce(const std::string& nonce) { _nonce = nonce; }
 
-        std::string appkey()
-        {
-            return _appkey;
-        }
-        void setAppkey(const std::string& appkey)
-        {
-            _appkey = appkey;
-        }
+        std::string appkey() { return _appkey; }
+        void setAppkey(const std::string& appkey) { _appkey = appkey; }
 
-        std::string role()
-        {
-            return _role;
-        }
-        void setRole(const std::string& role)
-        {
-            _role = role;
-        }
+        std::string role() { return _role; }
+        void setRole(const std::string& role) { _role = role; }
 
-        ix::RedisClient& redisClient()
-        {
-            return _redisClient;
-        }
+        ix::RedisClient& redisClient() { return _redisClient; }
 
         std::future<void> fut;
 
