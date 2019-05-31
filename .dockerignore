@@ -1,3 +1,4 @@
 build
 CMakeCache.txt
 ws/CMakeCache.txt
+test/build

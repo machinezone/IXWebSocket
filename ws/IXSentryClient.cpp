@@ -99,6 +99,18 @@ namespace ix
         return frames;
     }
 
+    std::string parseExceptionName(const std::string& stack)
+    {
+        // Split by lines
+        std::string line;
+        std::stringstream tokenStream(stack);
+
+        // Extract the first line
+        std::getline(tokenStream, line);
+
+        return line;
+    }
+
     std::string SentryClient::computePayload(const Json::Value& msg)
     {
         Json::Value payload;
@@ -107,14 +119,14 @@ namespace ix
         payload["sdk"]["version"] = "1.0.0";
         payload["timestamp"] = SentryClient::getIso8601();
 
+        bool isNoisyTypes = msg["id"].asString() == "game_noisytypes_id";
+
+        std::string stackTraceFieldName = isNoisyTypes ? "traceback" : "stack";
+        std::string stack(msg["data"][stackTraceFieldName].asString());
+
         Json::Value exception;
-        exception["value"] = msg["data"]["message"];
-
-        std::string stackTraceFieldName =
-            (msg["id"].asString() == "game_noisytypes_id") ? "traceback" : "stack";
-
-        exception["stacktrace"]["frames"] =
-            parseLuaStackTrace(msg["data"][stackTraceFieldName].asString());
+        exception["stacktrace"]["frames"] = parseLuaStackTrace(stack);
+        exception["value"] = isNoisyTypes ? parseExceptionName(stack) : msg["data"]["message"];
 
         payload["exception"].append(exception);
 
