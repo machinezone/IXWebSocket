@@ -162,3 +162,6 @@ install(TARGETS ixwebsocket
 if (USE_WS)
     add_subdirectory(ws)
 endif()
+
+set (ENABLE_PROGRAMS OFF)
+add_subdirectory(third_party/mbedtls)
