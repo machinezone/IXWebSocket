@@ -115,7 +115,7 @@ namespace ix
         if (!success)
         {
             std::stringstream ss;
-            ss << "Cannot connect to url: " << url;
+            ss << "Cannot connect to url: " << url << " / error : " << errMsg;
             return std::make_tuple(code, HttpErrorCode::CannotConnect,
                                    headers, payload, ss.str(),
                                    uploadSize, downloadSize);

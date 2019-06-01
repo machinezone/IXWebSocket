@@ -43,6 +43,8 @@ namespace ix
         mbedtls_ctr_drbg_context _ctr_drbg;
 
         std::mutex _mutex;
+
+        bool init(const std::string& host);
     };
 
 } // namespace ix
