@@ -131,6 +131,15 @@ if (USE_OPEN_SSL)
   target_link_libraries(ixwebsocket ${OPENSSL_LIBRARIES})
 endif()
 
+set(USE_MBED_TLS TRUE)
+if (USE_MBED_TLS)
+  set (ENABLE_PROGRAMS OFF)
+  add_subdirectory(third_party/mbedtls)
+  include_directories(third_party/mbedtls/include)
+
+  target_link_libraries(ixwebsocket mbedtls)
+endif()
+
 if (WIN32)
   add_subdirectory(third_party/zlib)
   include_directories(third_party/zlib ${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib)
@@ -166,6 +175,3 @@ install(TARGETS ixwebsocket
 if (USE_WS)
     add_subdirectory(ws)
 endif()
-
-set (ENABLE_PROGRAMS OFF)
-add_subdirectory(third_party/mbedtls)

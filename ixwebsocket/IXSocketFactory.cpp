@@ -8,6 +8,8 @@
 
 #ifdef IXWEBSOCKET_USE_TLS
 
+#include <ixwebsocket/IXSocketMbedTLS.h>
+
 # ifdef __APPLE__
 #  include <ixwebsocket/IXSocketAppleSSL.h>
 # elif defined(_WIN32)
@@ -38,7 +40,8 @@ namespace ix
         {
 #ifdef IXWEBSOCKET_USE_TLS
 # ifdef __APPLE__
-            socket = std::make_shared<SocketAppleSSL>();
+            // socket = std::make_shared<SocketAppleSSL>();
+            socket = std::make_shared<SocketMbedTLS>();
 # elif defined(_WIN32)
             socket = std::make_shared<SocketSChannel>();
 # else

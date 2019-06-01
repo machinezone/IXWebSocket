@@ -8,6 +8,15 @@
 
 #include "IXSocket.h"
 
+#include <mbedtls/entropy.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/net.h>
+#include <mbedtls/error.h>
+#include <mbedtls/platform.h>
+#include <mbedtls/debug.h>
+
+#include <mutex>
+
 namespace ix
 {
     class SocketMbedTLS final : public Socket
@@ -16,7 +25,7 @@ namespace ix
         SocketMbedTLS();
         ~SocketMbedTLS();
 
-        virtual bool SocketMbedTLS::connect(
+        virtual bool connect(
             const std::string& host,
             int port,
             std::string& errMsg,
@@ -28,6 +37,12 @@ namespace ix
         virtual ssize_t recv(void* buffer, size_t length) final;
 
     private:
+        mbedtls_ssl_context _ssl;
+        mbedtls_ssl_config _conf;
+        mbedtls_entropy_context _entropy;
+        mbedtls_ctr_drbg_context _ctr_drbg;
+
+        std::mutex _mutex;
     };
 
 } // namespace ix

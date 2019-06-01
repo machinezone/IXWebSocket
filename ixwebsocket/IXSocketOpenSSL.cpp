@@ -240,7 +240,6 @@ namespace ix
         }
     }
 
-    // No wait support
     bool SocketOpenSSL::connect(const std::string& host,
                                 int port,
                                 std::string& errMsg,
@@ -361,7 +360,6 @@ namespace ix
         return send((char*)&buffer[0], buffer.size());
     }
 
-    // No wait support
     ssize_t SocketOpenSSL::recv(void* buf, size_t nbyte)
     {
         while (true)
