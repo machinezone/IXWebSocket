@@ -97,6 +97,10 @@ set(USE_OPEN_SSL FALSE)
 if (USE_TLS)
     add_definitions(-DIXWEBSOCKET_USE_TLS)
 
+    # FIXME / every platform get mbedtls for 
+    list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketMbedTLS.h)
+    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketMbedTLS.cpp)
+
     if (APPLE)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketAppleSSL.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketAppleSSL.cpp)
