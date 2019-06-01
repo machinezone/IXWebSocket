@@ -129,6 +129,9 @@ namespace ix
 
         mbedtls_ssl_conf_rng( &_conf, mbedtls_ctr_drbg_random, &_ctr_drbg );
 
+        // FIXME
+        mbedtls_ssl_conf_authmode(&_conf, MBEDTLS_SSL_VERIFY_NONE);
+
 // #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 //         mbedtls_ssl_conf_psk( &conf, psk, sizeof( psk ),
 //                     (const unsigned char *) psk_id, sizeof( psk_id ) - 1 );
