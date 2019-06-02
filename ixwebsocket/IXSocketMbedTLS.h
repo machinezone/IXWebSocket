@@ -7,14 +7,12 @@
 #pragma once
 
 #include "IXSocket.h"
-
-#include <mbedtls/entropy.h>
 #include <mbedtls/ctr_drbg.h>
-#include <mbedtls/net.h>
-#include <mbedtls/error.h>
-#include <mbedtls/platform.h>
 #include <mbedtls/debug.h>
-
+#include <mbedtls/entropy.h>
+#include <mbedtls/error.h>
+#include <mbedtls/net.h>
+#include <mbedtls/platform.h>
 #include <mutex>
 
 namespace ix
@@ -22,14 +20,13 @@ namespace ix
     class SocketMbedTLS final : public Socket
     {
     public:
-        SocketMbedTLS();
+        SocketMbedTLS() = default;
         ~SocketMbedTLS();
 
-        virtual bool connect(
-            const std::string& host,
-            int port,
-            std::string& errMsg,
-            const CancellationRequest& isCancellationRequested) final;
+        virtual bool connect(const std::string& host,
+                             int port,
+                             std::string& errMsg,
+                             const CancellationRequest& isCancellationRequested) final;
         virtual void close() final;
 
         virtual ssize_t send(char* buffer, size_t length) final;
@@ -44,7 +41,7 @@ namespace ix
 
         std::mutex _mutex;
 
-        bool init(const std::string& host);
+        bool init(const std::string& host, std::string& errMsg);
     };
 
 } // namespace ix
