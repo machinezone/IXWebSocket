@@ -77,7 +77,7 @@ TEST_CASE("socket", "[socket]")
         testSocket(host, port, request, socket, expectedStatus, timeoutSecs);
     }
 
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(IXWEBSOCKET_USE_TLS)
     SECTION("Connect to google HTTPS server over port 443. Send GET request without header. Should return 200")
     {
         std::string errMsg;

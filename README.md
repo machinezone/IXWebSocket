@@ -10,7 +10,7 @@
 * iOS
 * Linux
 * Android
-* Windows (no TLS)
+* Windows
 
 ## Examples
 
@@ -230,7 +230,7 @@ The per message deflate compression option is supported. It can lead to very nic
 
 ### TLS/SSL
 
-Connections can be optionally secured and encrypted with TLS/SSL when using a wss:// endpoint, or using normal un-encrypted socket with ws:// endpoints. AppleSSL is used on iOS and macOS, and OpenSSL is used on Android and Linux.
+Connections can be optionally secured and encrypted with TLS/SSL when using a wss:// endpoint, or using normal un-encrypted socket with ws:// endpoints. AppleSSL is used on iOS and macOS, OpenSSL is used on Android and Linux, mbedTLS is used on Windows.
 
 ### Polling and background thread work
 
@@ -246,6 +246,8 @@ Large frames are broken up into smaller chunks or messages to avoid filling up t
 
 ## Limitations
 
+* On Windows TLS is not setup yet to validate certificates.
+* There is no convenient way to embed a ca cert.
 * No utf-8 validation is made when sending TEXT message with sendText()
 * Automatic reconnection works at the TCP socket level, and will detect remote end disconnects. However, if the device/computer network become unreachable (by turning off wifi), it is quite hard to reliably and timely detect it at the socket level using `recv` and `send` error codes. [Here](https://stackoverflow.com/questions/14782143/linux-socket-how-to-detect-disconnected-network-in-a-client-program) is a good discussion on the subject. This behavior is consistent with other runtimes such as node.js. One way to detect a disconnected device with low level C code is to do a name resolution with DNS but this can be expensive. Mobile devices have good and reliable API to do that.
 * The server code is using select to detect incoming data, and creates one OS thread per connection. This is not as scalable as strategies using epoll or kqueue.
