@@ -1,7 +1,7 @@
 /*
  *  IXSocketMbedTLS.cpp
  *  Author: Benjamin Sergeant
- *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  *
  *  Some code taken from
  *  https://github.com/rottor12/WsClientLib/blob/master/lib/src/WsClientLib.cpp
@@ -35,7 +35,7 @@ namespace ix
                                   mbedtls_entropy_func,
                                   &_entropy,
                                   (const unsigned char *) pers,
-                                  strlen( pers ) ) != 0)
+                                  strlen(pers)) != 0)
         {
             errMsg = "Setting entropy seed failed";
             return false;
