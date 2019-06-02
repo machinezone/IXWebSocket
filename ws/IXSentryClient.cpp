@@ -22,7 +22,7 @@ namespace ix
         const std::regex dsnRegex("(http[s]?)://([^:]+):([^@]+)@([^/]+)/([0-9]+)");
         std::smatch group;
 
-        if (std::regex_match(dsn, group, dsnRegex) and group.size() == 6)
+        if (std::regex_match(dsn, group, dsnRegex) && group.size() == 6)
         {
             _validDsn = true;
 
