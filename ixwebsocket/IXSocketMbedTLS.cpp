@@ -10,7 +10,7 @@
 
 #include "IXSocketMbedTLS.h"
 #include "IXSocketConnect.h"
-#include "XNetSystem.h"
+#include "IXNetSystem.h"
 #include "IXSocket.h"
 
 #include <string.h>
