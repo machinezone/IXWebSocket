@@ -47,8 +47,8 @@ namespace ix
     {
         std::time_t now;
         std::time(&now);
-        char buf[sizeof "2011-10-08T07:07:09Z"];
-        std::strftime(buf, sizeof buf, "%Y-%m-%dT%H:%M:%SZ", std::gmtime(&now));
+        char buf[sizeof("2011-10-08T07:07:09Z")];
+        std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", std::gmtime(&now));
         return buf;
     }
 
