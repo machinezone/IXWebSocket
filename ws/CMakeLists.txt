@@ -68,7 +68,7 @@ add_executable(ws
 
 target_link_libraries(ws ixwebsocket)
 
-if(NOT APPLE)
+if(NOT APPLE AND NOT USE_MBED_TLS)
   find_package(OpenSSL REQUIRED)
   add_definitions(${OPENSSL_DEFINITIONS})
   message(STATUS "OpenSSL: " ${OPENSSL_VERSION})
