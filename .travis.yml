@@ -37,3 +37,4 @@ matrix:
       script: 
         - export PATH=$CMAKE_PATH:$PATH
         - python test/run.py
+        - cmake --build --parallel -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1
