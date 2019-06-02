@@ -1,5 +1,8 @@
 language: bash
 
+# See https://github.com/amaiorano/vectrexy/blob/master/.travis.yml
+# for ideas on installing vcpkg
+
 matrix:
   include:
     # macOS
