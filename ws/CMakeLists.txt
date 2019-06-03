@@ -25,10 +25,14 @@ include_directories(ws ../third_party/statsd-client-cpp/src)
 include_directories(ws ../third_party/spdlog/include)
 include_directories(ws snake)
 
+if (UNIX)
+  set( STATSD_CLIENT_SOURCES ../third_party/statsd-client-cpp/src/statsd_client.cpp)
+endif()
+
 add_executable(ws 
   ../third_party/msgpack11/msgpack11.cpp
   ../third_party/jsoncpp/jsoncpp.cpp
-  ../third_party/statsd-client-cpp/src/statsd_client.cpp
+  ${STATSD_CLIENT_SOURCES}
 
   ixcore/utils/IXCoreLogger.cpp
 
@@ -68,7 +72,7 @@ add_executable(ws
 
 target_link_libraries(ws ixwebsocket)
 
-if(NOT APPLE)
+if(NOT APPLE AND NOT USE_MBED_TLS)
   find_package(OpenSSL REQUIRED)
   add_definitions(${OPENSSL_DEFINITIONS})
   message(STATUS "OpenSSL: " ${OPENSSL_VERSION})

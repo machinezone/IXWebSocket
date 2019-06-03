@@ -22,7 +22,7 @@ namespace ix
         const std::regex dsnRegex("(http[s]?)://([^:]+):([^@]+)@([^/]+)/([0-9]+)");
         std::smatch group;
 
-        if (std::regex_match(dsn, group, dsnRegex) and group.size() == 6)
+        if (std::regex_match(dsn, group, dsnRegex) && group.size() == 6)
         {
             _validDsn = true;
 
@@ -47,8 +47,8 @@ namespace ix
     {
         std::time_t now;
         std::time(&now);
-        char buf[sizeof "2011-10-08T07:07:09Z"];
-        std::strftime(buf, sizeof buf, "%Y-%m-%dT%H:%M:%SZ", std::gmtime(&now));
+        char buf[sizeof("2011-10-08T07:07:09Z")];
+        std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", std::gmtime(&now));
         return buf;
     }
 

@@ -12,23 +12,23 @@ matrix:
         - python test/run.py
         - make ws
 
-    # Linux
-    - os: linux
-      dist: xenial
-      script: 
-        - python test/run.py
-        - make ws
-      env:
-        - CC=gcc
-        - CXX=g++
-
-    # Clang + Linux disabled for now
+    # # Linux
     # - os: linux
     #   dist: xenial
-    #   script: python test/run.py
+    #   script: 
+    #     - python test/run.py
+    #     - make ws
     #   env:
-    #     - CC=clang 
-    #     - CXX=clang++
+    #     - CC=gcc
+    #     - CXX=g++
+
+    # Clang + Linux disabled for now
+    - os: linux
+      dist: xenial
+      script: python test/run.py
+      env:
+        - CC=clang 
+        - CXX=clang++
 
     # Windows
     - os: windows
@@ -36,4 +36,6 @@ matrix:
         - CMAKE_PATH="/c/Program Files/CMake/bin"
       script: 
         - export PATH=$CMAKE_PATH:$PATH
+        - cmake -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .
+        - cmake --build --parallel .
         - python test/run.py
