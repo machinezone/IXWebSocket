@@ -74,7 +74,6 @@ namespace ix
         std::stringstream ss;
         ss << verb << " " << path << " HTTP/1.1\r\n";
         ss << "Host: " << host << "\r\n";
-        ss << "User-Agent: ixwebsocket/1.0.0" << "\r\n";
         ss << "Accept: */*" << "\r\n";
 
         if (args.compress)
