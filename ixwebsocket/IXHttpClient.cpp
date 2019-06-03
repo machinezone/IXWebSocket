@@ -21,6 +21,8 @@ namespace ix
     const std::string HttpClient::kPost = "POST";
     const std::string HttpClient::kGet = "GET";
     const std::string HttpClient::kHead = "HEAD";
+    const std::string HttpClient::kDel = "DEL";
+    const std::string HttpClient::kPut = "PUT";
 
     HttpClient::HttpClient()
     {
@@ -345,6 +347,12 @@ namespace ix
         return request(url, kHead, std::string(), args);
     }
 
+    HttpResponse HttpClient::del(const std::string& url,
+                                 const HttpRequestArgs& args)
+    {
+        return request(url, kDel, std::string(), args);
+    }
+
     HttpResponse HttpClient::post(const std::string& url,
                                   const HttpParameters& httpParameters,
                                   const HttpRequestArgs& args)
@@ -357,6 +365,20 @@ namespace ix
                                   const HttpRequestArgs& args)
     {
         return request(url, kPost, body, args);
+    }
+
+    HttpResponse HttpClient::put(const std::string& url,
+                                 const HttpParameters& httpParameters,
+                                 const HttpRequestArgs& args)
+    {
+        return request(url, kPut, serializeHttpParameters(httpParameters), args);
+    }
+
+    HttpResponse HttpClient::put(const std::string& url,
+                                 const std::string& body,
+                                 const HttpRequestArgs& args)
+    {
+        return request(url, kPut, body, args);
     }
 
     std::string HttpClient::urlEncode(const std::string& value)
