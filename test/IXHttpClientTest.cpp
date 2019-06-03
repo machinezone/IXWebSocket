@@ -64,7 +64,7 @@ TEST_CASE("http client", "[http]")
     }
 
 #if defined(IXWEBSOCKET_USE_TLS)
-    SECTION("Connect to a remote HTTP server")
+    SECTION("Connect to a remote HTTPS server")
     {
         std::string url("https://httpbin.org/");
 
