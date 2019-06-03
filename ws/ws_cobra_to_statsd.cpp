@@ -12,8 +12,11 @@
 #include <vector>
 #include <ixcobra/IXCobraConnection.h>
 
-#include <statsd_client.h>
 #include <spdlog/spdlog.h>
+
+#ifndef _WIN32
+#include <statsd_client.h>
+#endif
 
 namespace ix
 {
@@ -77,7 +80,11 @@ namespace ix
         // statsd client
         // test with netcat as a server: `nc -ul 8125`
         bool statsdBatch = true;
+#ifndef _WIN32
         statsd::StatsdClient statsdClient(host, port, prefix, statsdBatch);
+#else
+        int statsdClient;
+#endif
 
         Json::FastWriter jsonWriter;
         uint64_t msgCount = 0;
@@ -124,7 +131,9 @@ namespace ix
 
                                        spdlog::info("{} {}{}", msgCount++, prefix, id);
 
+#ifndef _WIN32
                                        statsdClient.count(id, 1);
+#endif
                                    });
                 }
                 else if (eventType == ix::CobraConnection_EventType_Subscribed)

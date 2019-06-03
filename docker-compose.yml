@@ -29,5 +29,15 @@ services:
     networks:
       - ws-net
 
+  statsd:
+    image: jaconel/statsd
+    ports:
+      - "8125:8125"
+    environment:
+      - STATSD_DUMP_MSG=true
+      - GRAPHITE_HOST=127.0.0.1
+    networks:
+      - ws-net
+
 networks:
   ws-net:

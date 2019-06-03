@@ -124,7 +124,7 @@ add_library( ixwebsocket STATIC
     ${IXWEBSOCKET_HEADERS}
 )
 
-if (APPLE AND USE_TLS)
+if (APPLE AND USE_TLS AND NOT USE_MBED_TLS)
   target_link_libraries(ixwebsocket "-framework foundation" "-framework security")
 endif()
 
