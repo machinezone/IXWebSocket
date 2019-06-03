@@ -272,10 +272,10 @@ namespace ix
                     log(oss.str(), args);
                 }
 
-                payload.reserve(payload.size() + chunkSize);
+                payload.reserve(payload.size() + (size_t) chunkSize);
 
                 // Read a chunk
-                auto chunkResult = _socket->readBytes(chunkSize,
+                auto chunkResult = _socket->readBytes((size_t) chunkSize,
                                                       args.onProgressCallback,
                                                       isCancellationRequested);
                 if (!chunkResult.first)

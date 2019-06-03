@@ -23,7 +23,7 @@ namespace
         std::streamoff size = file.tellg();
         file.seekg(0, file.beg);
 
-        memblock.resize(size);
+        memblock.resize((size_t) size);
         file.read((char*)&memblock.front(), static_cast<std::streamsize>(size));
 
         return memblock;
