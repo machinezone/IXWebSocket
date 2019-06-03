@@ -80,7 +80,7 @@ namespace ix
         // statsd client
         // test with netcat as a server: `nc -ul 8125`
         bool statsdBatch = true;
-#ifdef _WIN32
+#ifndef _WIN32
         statsd::StatsdClient statsdClient(host, port, prefix, statsdBatch);
 #else
         int statsdClient;
