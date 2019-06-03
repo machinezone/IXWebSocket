@@ -74,7 +74,6 @@ namespace ix
         std::stringstream ss;
         ss << verb << " " << path << " HTTP/1.1\r\n";
         ss << "Host: " << host << "\r\n";
-        ss << "Accept: */*" << "\r\n";
 
         if (args.compress)
         {
@@ -85,6 +84,18 @@ namespace ix
         for (auto&& it : args.extraHeaders)
         {
             ss << it.first << ": " << it.second << "\r\n";
+        }
+
+        // Set a default Accept header if none is present
+        if (headers.find("Accept") == headers.end())
+        {
+            ss << "Accept: */*" << "\r\n";
+        }
+
+        // Set a default User agent if none is present
+        if (headers.find("User-Agent") == headers.end())
+        {
+            ss << "User-Agent: ixwebsocket" << "\r\n";
         }
 
         if (verb == kPost)
