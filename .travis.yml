@@ -6,11 +6,11 @@ language: bash
 matrix:
   include:
     # macOS
-    # - os: osx
-    #   compiler: clang
-    #   script:
-    #     - python test/run.py
-    #     - make ws
+    - os: osx
+      compiler: clang
+      script:
+        - python test/run.py
+        - make ws
 
     # # Linux
     # - os: linux
@@ -23,12 +23,12 @@ matrix:
     #     - CXX=g++
 
     # Clang + Linux disabled for now
-    # - os: linux
-    #   dist: xenial
-    #   script: python test/run.py
-    #   env:
-    #     - CC=clang 
-    #     - CXX=clang++
+    - os: linux
+      dist: xenial
+      script: python test/run.py
+      env:
+        - CC=clang 
+        - CXX=clang++
 
     # Windows
     - os: windows
@@ -38,4 +38,4 @@ matrix:
         - export PATH=$CMAKE_PATH:$PATH
         - cmake -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .
         - cmake --build --parallel .
-        # - python test/run.py
+        - python test/run.py
