@@ -71,6 +71,7 @@ namespace ix
 
         HttpResponse get(const std::string& url, const HttpRequestArgs& args);
         HttpResponse head(const std::string& url, const HttpRequestArgs& args);
+        HttpResponse del(const std::string& url, const HttpRequestArgs& args);
 
         HttpResponse post(const std::string& url,
                           const HttpParameters& httpParameters,
@@ -79,7 +80,13 @@ namespace ix
                           const std::string& body,
                           const HttpRequestArgs& args);
 
-    private:
+        HttpResponse put(const std::string& url,
+                         const HttpParameters& httpParameters,
+                         const HttpRequestArgs& args);
+        HttpResponse put(const std::string& url,
+                         const std::string& body,
+                         const HttpRequestArgs& args);
+
         HttpResponse request(const std::string& url,
                              const std::string& verb,
                              const std::string& body,
@@ -90,6 +97,7 @@ namespace ix
 
         std::string urlEncode(const std::string& value);
 
+    private:
         void log(const std::string& msg, const HttpRequestArgs& args);
 
         bool gzipInflate(const std::string& in, std::string& out);
@@ -99,5 +107,7 @@ namespace ix
         const static std::string kPost;
         const static std::string kGet;
         const static std::string kHead;
+        const static std::string kDel;
+        const static std::string kPut;
     };
 } // namespace ix
