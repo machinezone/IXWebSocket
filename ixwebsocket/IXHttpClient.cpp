@@ -54,9 +54,9 @@ namespace ix
         {
             std::stringstream ss;
             ss << "Cannot parse url: " << url;
-            return std::make_tuple(code, HttpErrorCode::UrlMalformed,
-                                   headers, payload, ss.str(),
-                                   uploadSize, downloadSize);
+            return HttpResponse(code, HttpErrorCode::UrlMalformed,
+                                headers, payload, ss.str(),
+                                uploadSize, downloadSize);
         }
 
         bool tls = protocol == "https";
@@ -65,9 +65,9 @@ namespace ix
 
         if (!_socket)
         {
-            return std::make_tuple(code, HttpErrorCode::CannotCreateSocket,
-                                   headers, payload, errorMsg,
-                                   uploadSize, downloadSize);
+            return HttpResponse(code, HttpErrorCode::CannotCreateSocket,
+                                headers, payload, errorMsg,
+                                uploadSize, downloadSize);
         }
 
         // Build request string
@@ -128,9 +128,9 @@ namespace ix
         {
             std::stringstream ss;
             ss << "Cannot connect to url: " << url << " / error : " << errMsg;
-            return std::make_tuple(code, HttpErrorCode::CannotConnect,
-                                   headers, payload, ss.str(),
-                                   uploadSize, downloadSize);
+            return HttpResponse(code, HttpErrorCode::CannotConnect,
+                                headers, payload, ss.str(),
+                                uploadSize, downloadSize);
         }
 
         // Make a new cancellation object dealing with transfer timeout
@@ -154,9 +154,9 @@ namespace ix
         if (!_socket->writeBytes(req, isCancellationRequested))
         {
             std::string errorMsg("Cannot send request");
-            return std::make_tuple(code, HttpErrorCode::SendError,
-                                   headers, payload, errorMsg,
-                                   uploadSize, downloadSize);
+            return HttpResponse(code, HttpErrorCode::SendError,
+                                headers, payload, errorMsg,
+                                uploadSize, downloadSize);
         }
 
         uploadSize = req.size();
@@ -168,9 +168,9 @@ namespace ix
         if (!lineValid)
         {
             std::string errorMsg("Cannot retrieve status line");
-            return std::make_tuple(code, HttpErrorCode::CannotReadStatusLine,
-                                   headers, payload, errorMsg,
-                                   uploadSize, downloadSize);
+            return HttpResponse(code, HttpErrorCode::CannotReadStatusLine,
+                                headers, payload, errorMsg,
+                                uploadSize, downloadSize);
         }
 
         if (args.verbose)
@@ -183,9 +183,9 @@ namespace ix
         if (sscanf(line.c_str(), "HTTP/1.1 %d", &code) != 1)
         {
             std::string errorMsg("Cannot parse response code from status line");
-            return std::make_tuple(code, HttpErrorCode::MissingStatus,
-                                   headers, payload, errorMsg,
-                                   uploadSize, downloadSize);
+            return HttpResponse(code, HttpErrorCode::MissingStatus,
+                                headers, payload, errorMsg,
+                                uploadSize, downloadSize);
         }
 
         auto result = parseHttpHeaders(_socket, isCancellationRequested);
@@ -195,9 +195,9 @@ namespace ix
         if (!headersValid)
         {
             std::string errorMsg("Cannot parse http headers");
-            return std::make_tuple(code, HttpErrorCode::HeaderParsingError,
-                                   headers, payload, errorMsg,
-                                   uploadSize, downloadSize);
+            return HttpResponse(code, HttpErrorCode::HeaderParsingError,
+                                headers, payload, errorMsg,
+                                uploadSize, downloadSize);
         }
 
         // Redirect ?
@@ -206,18 +206,18 @@ namespace ix
             if (headers.find("Location") == headers.end())
             {
                 std::string errorMsg("Missing location header for redirect");
-                return std::make_tuple(code, HttpErrorCode::MissingLocation,
-                                       headers, payload, errorMsg,
-                                       uploadSize, downloadSize);
+                return HttpResponse(code, HttpErrorCode::MissingLocation,
+                                    headers, payload, errorMsg,
+                                    uploadSize, downloadSize);
             }
 
             if (redirects >= args.maxRedirects)
             {
                 std::stringstream ss;
                 ss << "Too many redirects: " << redirects;
-                return std::make_tuple(code, HttpErrorCode::TooManyRedirects,
-                                       headers, payload, ss.str(),
-                                       uploadSize, downloadSize);
+                return HttpResponse(code, HttpErrorCode::TooManyRedirects,
+                                    headers, payload, ss.str(),
+                                    uploadSize, downloadSize);
             }
 
             // Recurse
@@ -227,9 +227,9 @@ namespace ix
 
         if (verb == "HEAD")
         {
-            return std::make_tuple(code, HttpErrorCode::Ok,
-                                   headers, payload, std::string(),
-                                   uploadSize, downloadSize);
+            return HttpResponse(code, HttpErrorCode::Ok,
+                                headers, payload, std::string(),
+                                uploadSize, downloadSize);
         }
 
         // Parse response:
@@ -248,9 +248,9 @@ namespace ix
             if (!chunkResult.first)
             {
                 errorMsg = "Cannot read chunk";
-                return std::make_tuple(code, HttpErrorCode::ChunkReadError,
-                                       headers, payload, errorMsg,
-                                       uploadSize, downloadSize);
+                return HttpResponse(code, HttpErrorCode::ChunkReadError,
+                                    headers, payload, errorMsg,
+                                    uploadSize, downloadSize);
             }
             payload += chunkResult.second;
         }
@@ -266,9 +266,9 @@ namespace ix
 
                 if (!lineResult.first)
                 {
-                    return std::make_tuple(code, HttpErrorCode::ChunkReadError,
-                                           headers, payload, errorMsg,
-                                           uploadSize, downloadSize);
+                    return HttpResponse(code, HttpErrorCode::ChunkReadError,
+                                        headers, payload, errorMsg,
+                                        uploadSize, downloadSize);
                 }
 
                 uint64_t chunkSize;
@@ -293,9 +293,9 @@ namespace ix
                 if (!chunkResult.first)
                 {
                     errorMsg = "Cannot read chunk";
-                    return std::make_tuple(code, HttpErrorCode::ChunkReadError,
-                                           headers, payload, errorMsg,
-                                           uploadSize, downloadSize);
+                    return HttpResponse(code, HttpErrorCode::ChunkReadError,
+                                        headers, payload, errorMsg,
+                                        uploadSize, downloadSize);
                 }
                 payload += chunkResult.second;
 
@@ -304,9 +304,9 @@ namespace ix
 
                 if (!lineResult.first)
                 {
-                    return std::make_tuple(code, HttpErrorCode::ChunkReadError,
-                                           headers, payload, errorMsg,
-                                           uploadSize, downloadSize);
+                    return HttpResponse(code, HttpErrorCode::ChunkReadError,
+                                        headers, payload, errorMsg,
+                                        uploadSize, downloadSize);
                 }
 
                 if (chunkSize == 0) break;
@@ -319,9 +319,9 @@ namespace ix
         else
         {
             std::string errorMsg("Cannot read http body");
-            return std::make_tuple(code, HttpErrorCode::CannotReadBody,
-                                   headers, payload, errorMsg,
-                                   uploadSize, downloadSize);
+            return HttpResponse(code, HttpErrorCode::CannotReadBody,
+                                headers, payload, errorMsg,
+                                uploadSize, downloadSize);
         }
 
         downloadSize = payload.size();
@@ -333,16 +333,16 @@ namespace ix
             if (!gzipInflate(payload, decompressedPayload))
             {
                 std::string errorMsg("Error decompressing payload");
-                return std::make_tuple(code, HttpErrorCode::Gzip,
-                                       headers, payload, errorMsg,
-                                       uploadSize, downloadSize);
+                return HttpResponse(code, HttpErrorCode::Gzip,
+                                    headers, payload, errorMsg,
+                                    uploadSize, downloadSize);
             }
             payload = decompressedPayload;
         }
 
-        return std::make_tuple(code, HttpErrorCode::Ok,
-                               headers, payload, std::string(),
-                               uploadSize, downloadSize);
+        return HttpResponse(code, HttpErrorCode::Ok,
+                            headers, payload, std::string(),
+                            uploadSize, downloadSize);
     }
 
     HttpResponse HttpClient::get(const std::string& url,
