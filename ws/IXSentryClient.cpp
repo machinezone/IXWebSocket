@@ -88,7 +88,7 @@ namespace ix
                 ss >> lineno;
 
                 Json::Value frame;
-                frame["lineno"] = lineno;
+                frame["lineno"] = Json::UInt64(lineno);
                 frame["filename"] = fileName;
                 frame["function"] = function;
 

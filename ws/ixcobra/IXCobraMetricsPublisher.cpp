@@ -184,7 +184,7 @@ namespace ix
         msg["data"] = data;
         msg["session"] = _session;
         msg["version"] = kVersion;
-        msg["timestamp"] = getMillisecondsSinceEpoch();
+        msg["timestamp"] = Json::UInt64(getMillisecondsSinceEpoch());
 
         {
             std::lock_guard<std::mutex> lock(_device_mutex);
