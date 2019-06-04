@@ -44,7 +44,7 @@ trail:
 	sh third_party/remote_trailing_whitespaces.sh
 
 format:
-	sh third_party/indent.sh
+	find ixwebsocket ws -name '*.cpp' -o -name '*.h' -exec clang-format -i {} \;
 
 # That target is used to start a node server, but isn't required as we have 
 # a builtin C++ server started in the unittest now

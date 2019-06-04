@@ -117,45 +117,37 @@ namespace ix
         HttpParameters httpParameters = parsePostParameters(data);
 
         HttpClient httpClient;
-        HttpResponse out;
+        HttpResponse response;
         if (headersOnly)
         {
-            out = httpClient.head(url, args);
+            response = httpClient.head(url, args);
         }
         else if (data.empty())
         {
-            out = httpClient.get(url, args);
+            response = httpClient.get(url, args);
         }
         else
         {
-            out = httpClient.post(url, httpParameters, args);
+            response = httpClient.post(url, httpParameters, args);
         }
 
         std::cerr << std::endl;
 
-        auto statusCode = std::get<0>(out);
-        auto errorCode = std::get<1>(out);
-        auto responseHeaders = std::get<2>(out);
-        auto payload = std::get<3>(out);
-        auto errorMsg = std::get<4>(out);
-        auto uploadSize = std::get<5>(out);
-        auto downloadSize = std::get<6>(out);
-
-        for (auto it : responseHeaders)
+        for (auto it : response.headers)
         {
             std::cerr << it.first << ": " << it.second << std::endl;
         }
 
-        std::cerr << "Upload size: " << uploadSize << std::endl;
-        std::cerr << "Download size: " << downloadSize << std::endl;
+        std::cerr << "Upload size: " << response.uploadSize << std::endl;
+        std::cerr << "Download size: " << response.downloadSize << std::endl;
 
-        std::cerr << "Status: " << statusCode << std::endl;
-        if (errorCode != HttpErrorCode::Ok)
+        std::cerr << "Status: " << response.statusCode << std::endl;
+        if (response.errorCode != HttpErrorCode::Ok)
         {
-            std::cerr << "error message: " << errorMsg << std::endl;
+            std::cerr << "error message: " << response.errorMsg << std::endl;
         }
 
-        if (!headersOnly && errorCode == HttpErrorCode::Ok)
+        if (!headersOnly && response.errorCode == HttpErrorCode::Ok)
         {
             if (save || !output.empty())
             {
@@ -168,14 +160,14 @@ namespace ix
 
                 std::cout << "Writing to disk: " << filename << std::endl;
                 std::ofstream out(filename);
-                out.write((char*)&payload.front(), payload.size());
+                out.write((char*)&response.payload.front(), response.payload.size());
                 out.close();
             }
             else
             {
-                if (responseHeaders["Content-Type"] != "application/octet-stream")
+                if (response.headers["Content-Type"] != "application/octet-stream")
                 {
-                    std::cout << "payload: " << payload << std::endl;
+                    std::cout << "payload: " << response.payload << std::endl;
                 }
                 else
                 {

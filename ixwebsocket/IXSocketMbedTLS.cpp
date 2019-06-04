@@ -55,13 +55,13 @@ namespace ix
         // FIXME: cert verification is disabled
         mbedtls_ssl_conf_authmode(&_conf, MBEDTLS_SSL_VERIFY_NONE);
 
-        if (mbedtls_ssl_setup( &_ssl, &_conf ) != 0)
+        if (mbedtls_ssl_setup(&_ssl, &_conf) != 0)
         {
             errMsg = "SSL setup failed";
             return false;
         }
 
-        if (mbedtls_ssl_set_hostname( &_ssl, host.c_str()) != 0)
+        if (mbedtls_ssl_set_hostname(&_ssl, host.c_str()) != 0)
         {
             errMsg = "SNI setup failed";
             return false;

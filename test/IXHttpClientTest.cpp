@@ -40,27 +40,18 @@ TEST_CASE("http client", "[http]")
         };
 
         HttpClient httpClient;
-        HttpResponse out;
-        out = httpClient.get(url, args);
+        HttpResponse response = httpClient.get(url, args);
 
-        auto statusCode = std::get<0>(out);
-        auto errorCode = std::get<1>(out);
-        auto responseHeaders = std::get<2>(out);
-        auto payload = std::get<3>(out);
-        auto errorMsg = std::get<4>(out);
-        auto uploadSize = std::get<5>(out);
-        auto downloadSize = std::get<6>(out);
-
-        for (auto it : responseHeaders)
+        for (auto it : response.headers)
         {
             std::cerr << it.first << ": " << it.second << std::endl;
         }
 
-        std::cerr << "Upload size: " << uploadSize << std::endl;
-        std::cerr << "Download size: " << downloadSize << std::endl;
-        std::cerr << "Status: " << statusCode << std::endl;
+        std::cerr << "Upload size: " << response.uploadSize << std::endl;
+        std::cerr << "Download size: " << response.downloadSize << std::endl;
+        std::cerr << "Status: " << response.statusCode << std::endl;
 
-        REQUIRE(errorCode == HttpErrorCode::Ok);
+        REQUIRE(response.errorCode == HttpErrorCode::Ok);
     }
 
 #if defined(IXWEBSOCKET_USE_TLS)
@@ -91,27 +82,18 @@ TEST_CASE("http client", "[http]")
         };
 
         HttpClient httpClient;
-        HttpResponse out;
-        out = httpClient.get(url, args);
+        HttpResponse response = httpClient.get(url, args);
 
-        auto statusCode = std::get<0>(out);
-        auto errorCode = std::get<1>(out);
-        auto responseHeaders = std::get<2>(out);
-        auto payload = std::get<3>(out);
-        auto errorMsg = std::get<4>(out);
-        auto uploadSize = std::get<5>(out);
-        auto downloadSize = std::get<6>(out);
-
-        for (auto it : responseHeaders)
+        for (auto it : response.headers)
         {
             std::cerr << it.first << ": " << it.second << std::endl;
         }
 
-        std::cerr << "Upload size: " << uploadSize << std::endl;
-        std::cerr << "Download size: " << downloadSize << std::endl;
-        std::cerr << "Status: " << statusCode << std::endl;
+        std::cerr << "Upload size: " << response.uploadSize << std::endl;
+        std::cerr << "Download size: " << response.downloadSize << std::endl;
+        std::cerr << "Status: " << response.statusCode << std::endl;
 
-        REQUIRE(errorCode == HttpErrorCode::Ok);
+        REQUIRE(response.errorCode == HttpErrorCode::Ok);
     }
 #endif
 }

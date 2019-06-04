@@ -37,13 +37,34 @@ namespace ix
         CannotReadBody = 14
     };
 
-    using HttpResponse = std::tuple<int,           // status
-                                    HttpErrorCode, // error code
-                                    WebSocketHttpHeaders,
-                                    std::string, // payload
-                                    std::string, // error msg
-                                    uint64_t,    // upload size
-                                    uint64_t>;   // download size
+    struct HttpResponse
+    {
+        int statusCode;
+        HttpErrorCode errorCode;
+        WebSocketHttpHeaders headers;
+        std::string payload;
+        std::string errorMsg;
+        uint64_t uploadSize;
+        uint64_t downloadSize;
+
+        HttpResponse(int s = 0,
+                     const HttpErrorCode& c = HttpErrorCode::Ok,
+                     const WebSocketHttpHeaders& h = WebSocketHttpHeaders(),
+                     const std::string& p = std::string(),
+                     const std::string& e = std::string(),
+                     uint64_t u = 0,
+                     uint64_t d = 0)
+            : statusCode(s)
+            , errorCode(c)
+            , headers(h)
+            , payload(p)
+            , errorMsg(e)
+            , uploadSize(u)
+            , downloadSize(d)
+        {
+            ;
+        }
+    };
 
     using HttpParameters = std::map<std::string, std::string>;
     using Logger = std::function<void(const std::string&)>;

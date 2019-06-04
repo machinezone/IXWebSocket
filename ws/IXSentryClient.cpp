@@ -153,38 +153,30 @@ namespace ix
         };
 
         std::string body = computePayload(msg);
-        HttpResponse out = _httpClient.post(_url, body, args);
-
-        auto statusCode = std::get<0>(out);
-        auto errorCode = std::get<1>(out);
-        auto responseHeaders = std::get<2>(out);
-        auto payload = std::get<3>(out);
-        auto errorMsg = std::get<4>(out);
-        auto uploadSize = std::get<5>(out);
-        auto downloadSize = std::get<6>(out);
+        HttpResponse response = _httpClient.post(_url, body, args);
 
         if (verbose)
         {
-            for (auto it : responseHeaders)
+            for (auto it : response.headers)
             {
                 std::cerr << it.first << ": " << it.second << std::endl;
             }
 
-            std::cerr << "Upload size: " << uploadSize << std::endl;
-            std::cerr << "Download size: " << downloadSize << std::endl;
+            std::cerr << "Upload size: " << response.uploadSize << std::endl;
+            std::cerr << "Download size: " << response.downloadSize << std::endl;
 
-            std::cerr << "Status: " << statusCode << std::endl;
-            if (errorCode != HttpErrorCode::Ok)
+            std::cerr << "Status: " << response.statusCode << std::endl;
+            if (response.errorCode != HttpErrorCode::Ok)
             {
-                std::cerr << "error message: " << errorMsg << std::endl;
+                std::cerr << "error message: " << response.errorMsg << std::endl;
             }
 
-            if (responseHeaders["Content-Type"] != "application/octet-stream")
+            if (response.headers["Content-Type"] != "application/octet-stream")
             {
-                std::cerr << "payload: " << payload << std::endl;
+                std::cerr << "payload: " << response.payload << std::endl;
             }
         }
 
-        return statusCode == 200;
+        return response.statusCode == 200;
     }
 } // namespace ix
