@@ -98,7 +98,7 @@ namespace ix
             ss << "User-Agent: ixwebsocket" << "\r\n";
         }
 
-        if (verb == kPost)
+        if (verb == kPost || verb == kPut)
         {
             ss << "Content-Length: " << body.size() << "\r\n";
 
