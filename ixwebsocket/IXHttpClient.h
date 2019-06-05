@@ -98,32 +98,32 @@ namespace ix
         HttpClient(bool async = false);
         ~HttpClient();
 
-        HttpResponsePtr get(const std::string& url, const HttpRequestArgs& args);
-        HttpResponsePtr head(const std::string& url, const HttpRequestArgs& args);
-        HttpResponsePtr del(const std::string& url, const HttpRequestArgs& args);
+        HttpResponsePtr get(const std::string& url, HttpRequestArgsPtr args);
+        HttpResponsePtr head(const std::string& url, HttpRequestArgsPtr args);
+        HttpResponsePtr del(const std::string& url, HttpRequestArgsPtr args);
 
         HttpResponsePtr post(const std::string& url,
                              const HttpParameters& httpParameters,
-                             const HttpRequestArgs& args);
+                             HttpRequestArgsPtr args);
         HttpResponsePtr post(const std::string& url,
                              const std::string& body,
-                             const HttpRequestArgs& args);
+                             HttpRequestArgsPtr args);
 
         HttpResponsePtr put(const std::string& url,
                             const HttpParameters& httpParameters,
-                            const HttpRequestArgs& args);
+                            HttpRequestArgsPtr args);
         HttpResponsePtr put(const std::string& url,
                             const std::string& body,
-                            const HttpRequestArgs& args);
+                            HttpRequestArgsPtr args);
 
         HttpResponsePtr request(const std::string& url,
                                 const std::string& verb,
                                 const std::string& body,
-                                const HttpRequestArgs& args,
+                                HttpRequestArgsPtr args,
                                 int redirects = 0);
 
         // Async API
-        HttpRequestArgsPtr createRequest(const std::string& url,
+        HttpRequestArgsPtr createRequest(const std::string& url = std::string(),
                                          const std::string& verb = HttpClient::kGet);
 
         bool performRequest(HttpRequestArgsPtr request,
@@ -140,7 +140,7 @@ namespace ix
         const static std::string kPut;
 
     private:
-        void log(const std::string& msg, const HttpRequestArgs& args);
+        void log(const std::string& msg, HttpRequestArgsPtr args);
 
         bool gzipInflate(const std::string& in, std::string& out);
 

@@ -15,30 +15,30 @@ TEST_CASE("http client", "[http]")
 {
     SECTION("Connect to a remote HTTP server")
     {
-        std::string url("http://httpbin.org/");
-
+        HttpClient httpClient;
         WebSocketHttpHeaders headers;
 
-        HttpRequestArgs args;
-        args.extraHeaders = headers;
-        args.connectTimeout = 60;
-        args.transferTimeout = 60;
-        args.followRedirects = true;
-        args.maxRedirects = 10;
-        args.verbose = true;
-        args.compress = true;
-        args.logger = [](const std::string& msg)
+        std::string url("http://httpbin.org/");
+        auto args = httpClient.createRequest(url);
+
+        args->extraHeaders = headers;
+        args->connectTimeout = 60;
+        args->transferTimeout = 60;
+        args->followRedirects = true;
+        args->maxRedirects = 10;
+        args->verbose = true;
+        args->compress = true;
+        args->logger = [](const std::string& msg)
         {
             std::cout << msg;
         };
-        args.onProgressCallback = [](int current, int total) -> bool
+        args->onProgressCallback = [](int current, int total) -> bool
         {
             std::cerr << "\r" << "Downloaded "
                       << current << " bytes out of " << total;
             return true;
         };
 
-        HttpClient httpClient;
         auto response = httpClient.get(url, args);
 
         for (auto it : response->headers)
@@ -56,30 +56,30 @@ TEST_CASE("http client", "[http]")
 
     SECTION("Connect to a remote HTTPS server")
     {
-        std::string url("https://httpbin.org/");
-
+        HttpClient httpClient;
         WebSocketHttpHeaders headers;
 
-        HttpRequestArgs args;
-        args.extraHeaders = headers;
-        args.connectTimeout = 60;
-        args.transferTimeout = 60;
-        args.followRedirects = true;
-        args.maxRedirects = 10;
-        args.verbose = true;
-        args.compress = true;
-        args.logger = [](const std::string& msg)
+        std::string url("https://httpbin.org/");
+        auto args = httpClient.createRequest(url);
+
+        args->extraHeaders = headers;
+        args->connectTimeout = 60;
+        args->transferTimeout = 60;
+        args->followRedirects = true;
+        args->maxRedirects = 10;
+        args->verbose = true;
+        args->compress = true;
+        args->logger = [](const std::string& msg)
         {
             std::cout << msg;
         };
-        args.onProgressCallback = [](int current, int total) -> bool
+        args->onProgressCallback = [](int current, int total) -> bool
         {
             std::cerr << "\r" << "Downloaded "
                       << current << " bytes out of " << total;
             return true;
         };
 
-        HttpClient httpClient;
         auto response = httpClient.get(url, args);
 
         for (auto it : response->headers)
@@ -143,7 +143,6 @@ TEST_CASE("http client", "[http]")
             std::this_thread::sleep_for(duration);
             wait += 10;
         }
-
 
         std::cerr << "Done" << std::endl;
         REQUIRE(statusCode == 200);

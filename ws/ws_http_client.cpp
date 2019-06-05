@@ -95,19 +95,20 @@ namespace ix
                             const std::string& output,
                             bool compress)
     {
-        HttpRequestArgs args;
-        args.extraHeaders = parseHeaders(headersData);
-        args.connectTimeout = connectTimeout;
-        args.transferTimeout = transferTimeout;
-        args.followRedirects = followRedirects;
-        args.maxRedirects = maxRedirects;
-        args.verbose = verbose;
-        args.compress = compress;
-        args.logger = [](const std::string& msg)
+        HttpClient httpClient;
+        auto args = httpClient.createRequest();
+        args->extraHeaders = parseHeaders(headersData);
+        args->connectTimeout = connectTimeout;
+        args->transferTimeout = transferTimeout;
+        args->followRedirects = followRedirects;
+        args->maxRedirects = maxRedirects;
+        args->verbose = verbose;
+        args->compress = compress;
+        args->logger = [](const std::string& msg)
         {
             std::cout << msg;
         };
-        args.onProgressCallback = [](int current, int total) -> bool
+        args->onProgressCallback = [](int current, int total) -> bool
         {
             std::cerr << "\r" << "Downloaded "
                       << current << " bytes out of " << total;
@@ -116,8 +117,7 @@ namespace ix
 
         HttpParameters httpParameters = parsePostParameters(data);
 
-        HttpClient httpClient;
-        HttpResponse response;
+        HttpResponsePtr response;
         if (headersOnly)
         {
             response = httpClient.head(url, args);
@@ -133,21 +133,21 @@ namespace ix
 
         std::cerr << std::endl;
 
-        for (auto it : response.headers)
+        for (auto it : response->headers)
         {
             std::cerr << it.first << ": " << it.second << std::endl;
         }
 
-        std::cerr << "Upload size: " << response.uploadSize << std::endl;
-        std::cerr << "Download size: " << response.downloadSize << std::endl;
+        std::cerr << "Upload size: " << response->uploadSize << std::endl;
+        std::cerr << "Download size: " << response->downloadSize << std::endl;
 
-        std::cerr << "Status: " << response.statusCode << std::endl;
-        if (response.errorCode != HttpErrorCode::Ok)
+        std::cerr << "Status: " << response->statusCode << std::endl;
+        if (response->errorCode != HttpErrorCode::Ok)
         {
-            std::cerr << "error message: " << response.errorMsg << std::endl;
+            std::cerr << "error message: " << response->errorMsg << std::endl;
         }
 
-        if (!headersOnly && response.errorCode == HttpErrorCode::Ok)
+        if (!headersOnly && response->errorCode == HttpErrorCode::Ok)
         {
             if (save || !output.empty())
             {
@@ -160,14 +160,14 @@ namespace ix
 
                 std::cout << "Writing to disk: " << filename << std::endl;
                 std::ofstream out(filename);
-                out.write((char*)&response.payload.front(), response.payload.size());
+                out.write((char*)&response->payload.front(), response->payload.size());
                 out.close();
             }
             else
             {
-                if (response.headers["Content-Type"] != "application/octet-stream")
+                if (response->headers["Content-Type"] != "application/octet-stream")
                 {
-                    std::cout << "payload: " << response.payload << std::endl;
+                    std::cout << "payload: " << response->payload << std::endl;
                 }
                 else
                 {

@@ -13,7 +13,6 @@
 #include <iomanip>
 #include <vector>
 #include <cstring>
-#include <iostream>
 
 #include <zlib.h>
 
@@ -96,20 +95,18 @@ namespace ix
 
             if (_stop) return;
 
-            HttpResponsePtr response = request(args->url, args->verb, args->body, *args);
+            HttpResponsePtr response = request(args->url, args->verb, args->body, args);
             onResponseCallback(response);
 
             if (_stop) return;
         }
-
-        std::cout << "HttpClient::run() finished" << std::endl;
     }
 
     HttpResponsePtr HttpClient::request(
         const std::string& url,
         const std::string& verb,
         const std::string& body,
-        const HttpRequestArgs& args,
+        HttpRequestArgsPtr args,
         int redirects)
     {
         uint64_t uploadSize = 0;
@@ -146,13 +143,13 @@ namespace ix
         ss << verb << " " << path << " HTTP/1.1\r\n";
         ss << "Host: " << host << "\r\n";
 
-        if (args.compress)
+        if (args->compress)
         {
             ss << "Accept-Encoding: gzip" << "\r\n";
         }
 
         // Append extra headers
-        for (auto&& it : args.extraHeaders)
+        for (auto&& it : args->extraHeaders)
         {
             ss << it.first << ": " << it.second << "\r\n";
         }
@@ -174,7 +171,7 @@ namespace ix
             ss << "Content-Length: " << body.size() << "\r\n";
 
             // Set default Content-Type if unspecified
-            if (args.extraHeaders.find("Content-Type") == args.extraHeaders.end())
+            if (args->extraHeaders.find("Content-Type") == args->extraHeaders.end())
             {
                 ss << "Content-Type: application/x-www-form-urlencoded" << "\r\n";
             }
@@ -192,7 +189,7 @@ namespace ix
 
         // Make a cancellation object dealing with connection timeout
         auto isCancellationRequested =
-            makeCancellationRequestWithTimeout(args.connectTimeout, requestInitCancellation);
+            makeCancellationRequestWithTimeout(args->connectTimeout, requestInitCancellation);
 
         bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
         if (!success)
@@ -206,9 +203,9 @@ namespace ix
 
         // Make a new cancellation object dealing with transfer timeout
         isCancellationRequested =
-            makeCancellationRequestWithTimeout(args.transferTimeout, requestInitCancellation);
+            makeCancellationRequestWithTimeout(args->transferTimeout, requestInitCancellation);
 
-        if (args.verbose)
+        if (args->verbose)
         {
             std::stringstream ss;
             ss << "Sending " << verb << " request "
@@ -244,7 +241,7 @@ namespace ix
                                                   uploadSize, downloadSize);
         }
 
-        if (args.verbose)
+        if (args->verbose)
         {
             std::stringstream ss;
             ss << "Status line " << line;
@@ -272,7 +269,7 @@ namespace ix
         }
 
         // Redirect ?
-        if ((code >= 301 && code <= 308) && args.followRedirects)
+        if ((code >= 301 && code <= 308) && args->followRedirects)
         {
             if (headers.find("Location") == headers.end())
             {
@@ -282,7 +279,7 @@ namespace ix
                                                       uploadSize, downloadSize);
             }
 
-            if (redirects >= args.maxRedirects)
+            if (redirects >= args->maxRedirects)
             {
                 std::stringstream ss;
                 ss << "Too many redirects: " << redirects;
@@ -314,7 +311,7 @@ namespace ix
             payload.reserve(contentLength);
 
             auto chunkResult = _socket->readBytes(contentLength,
-                                                  args.onProgressCallback,
+                                                  args->onProgressCallback,
                                                   isCancellationRequested);
             if (!chunkResult.first)
             {
@@ -347,7 +344,7 @@ namespace ix
                 ss << std::hex << line;
                 ss >> chunkSize;
 
-                if (args.verbose)
+                if (args->verbose)
                 {
                     std::stringstream oss;
                     oss << "Reading " << chunkSize << " bytes"
@@ -359,7 +356,7 @@ namespace ix
 
                 // Read a chunk
                 auto chunkResult = _socket->readBytes((size_t) chunkSize,
-                                                      args.onProgressCallback,
+                                                      args->onProgressCallback,
                                                       isCancellationRequested);
                 if (!chunkResult.first)
                 {
@@ -417,47 +414,47 @@ namespace ix
     }
 
     HttpResponsePtr HttpClient::get(const std::string& url,
-                                 const HttpRequestArgs& args)
+                                    HttpRequestArgsPtr args)
     {
         return request(url, kGet, std::string(), args);
     }
 
     HttpResponsePtr HttpClient::head(const std::string& url,
-                                  const HttpRequestArgs& args)
+                                     HttpRequestArgsPtr args)
     {
         return request(url, kHead, std::string(), args);
     }
 
     HttpResponsePtr HttpClient::del(const std::string& url,
-                                 const HttpRequestArgs& args)
+                                    HttpRequestArgsPtr args)
     {
         return request(url, kDel, std::string(), args);
     }
 
     HttpResponsePtr HttpClient::post(const std::string& url,
-                                  const HttpParameters& httpParameters,
-                                  const HttpRequestArgs& args)
+                                     const HttpParameters& httpParameters,
+                                     HttpRequestArgsPtr args)
     {
         return request(url, kPost, serializeHttpParameters(httpParameters), args);
     }
 
     HttpResponsePtr HttpClient::post(const std::string& url,
-                                  const std::string& body,
-                                  const HttpRequestArgs& args)
+                                     const std::string& body,
+                                     HttpRequestArgsPtr args)
     {
         return request(url, kPost, body, args);
     }
 
     HttpResponsePtr HttpClient::put(const std::string& url,
-                                 const HttpParameters& httpParameters,
-                                 const HttpRequestArgs& args)
+                                    const HttpParameters& httpParameters,
+                                    HttpRequestArgsPtr args)
     {
         return request(url, kPut, serializeHttpParameters(httpParameters), args);
     }
 
     HttpResponsePtr HttpClient::put(const std::string& url,
-                                 const std::string& body,
-                                 const HttpRequestArgs& args)
+                                    const std::string& body,
+                                    const HttpRequestArgsPtr args)
     {
         return request(url, kPut, body, args);
     }
@@ -559,11 +556,11 @@ namespace ix
     }
 
     void HttpClient::log(const std::string& msg,
-                         const HttpRequestArgs& args)
+                         HttpRequestArgsPtr args)
     {
-        if (args.logger)
+        if (args->logger)
         {
-            args.logger(msg);
+            args->logger(msg);
         }
     }
 }
