@@ -49,6 +49,7 @@ TEST_CASE("http client", "[http]")
         std::cerr << "Upload size: " << response->uploadSize << std::endl;
         std::cerr << "Download size: " << response->downloadSize << std::endl;
         std::cerr << "Status: " << response->statusCode << std::endl;
+        std::cerr << "Error message: " << response->errorMsg << std::endl;
 
         REQUIRE(response->errorCode == HttpErrorCode::Ok);
         REQUIRE(response->statusCode == 200);
@@ -90,6 +91,7 @@ TEST_CASE("http client", "[http]")
         std::cerr << "Upload size: " << response->uploadSize << std::endl;
         std::cerr << "Download size: " << response->downloadSize << std::endl;
         std::cerr << "Status: " << response->statusCode << std::endl;
+        std::cerr << "Error message: " << response->errorMsg << std::endl;
 
         REQUIRE(response->errorCode == HttpErrorCode::Ok);
         REQUIRE(response->statusCode == 200);
@@ -128,6 +130,11 @@ TEST_CASE("http client", "[http]")
         httpClient.performRequest(args, [&requestCompleted, &statusCode]
             (const HttpResponsePtr& response)
             {
+                std::cerr << "Upload size: " << response->uploadSize << std::endl;
+                std::cerr << "Download size: " << response->downloadSize << std::endl;
+                std::cerr << "Status: " << response->statusCode << std::endl;
+                std::cerr << "Error message: " << response->errorMsg << std::endl;
+
                 // In case of failure, print response->errorMsg
                 statusCode = response->statusCode;
                 requestCompleted = true;
@@ -185,6 +192,11 @@ TEST_CASE("http client", "[http]")
             httpClient.performRequest(args, [i, &requestCompleted, &statusCode0, &statusCode1, &statusCode2]
                 (const HttpResponsePtr& response)
                 {
+                    std::cerr << "Upload size: " << response->uploadSize << std::endl;
+                    std::cerr << "Download size: " << response->downloadSize << std::endl;
+                    std::cerr << "Status: " << response->statusCode << std::endl;
+                    std::cerr << "Error message: " << response->errorMsg << std::endl;
+
                     // In case of failure, print response->errorMsg
                     if (i == 0)
                     {
