@@ -10,11 +10,13 @@
 #include "IXWebSocketHttpHeaders.h"
 #include <algorithm>
 #include <atomic>
+#include <condition_variable>
 #include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <tuple>
+#include <queue>
+#include <thread>
 
 namespace ix
 {
@@ -34,7 +36,8 @@ namespace ix
         MissingLocation = 11,
         TooManyRedirects = 12,
         ChunkReadError = 13,
-        CannotReadBody = 14
+        CannotReadBody = 14,
+        Invalid = 100
     };
 
     struct HttpResponse
@@ -66,12 +69,15 @@ namespace ix
         }
     };
 
+    using HttpResponsePtr = std::shared_ptr<HttpResponse>;
     using HttpParameters = std::map<std::string, std::string>;
     using Logger = std::function<void(const std::string&)>;
+    using OnResponseCallback = std::function<void(const HttpResponsePtr&)>;
 
     struct HttpRequestArgs
     {
         std::string url;
+        std::string verb;
         WebSocketHttpHeaders extraHeaders;
         std::string body;
         int connectTimeout;
@@ -84,51 +90,71 @@ namespace ix
         OnProgressCallback onProgressCallback;
     };
 
+    using HttpRequestArgsPtr = std::shared_ptr<HttpRequestArgs>;
+
     class HttpClient
     {
     public:
-        HttpClient();
+        HttpClient(bool async = false);
         ~HttpClient();
 
-        HttpResponse get(const std::string& url, const HttpRequestArgs& args);
-        HttpResponse head(const std::string& url, const HttpRequestArgs& args);
-        HttpResponse del(const std::string& url, const HttpRequestArgs& args);
+        HttpResponsePtr get(const std::string& url, const HttpRequestArgs& args);
+        HttpResponsePtr head(const std::string& url, const HttpRequestArgs& args);
+        HttpResponsePtr del(const std::string& url, const HttpRequestArgs& args);
 
-        HttpResponse post(const std::string& url,
-                          const HttpParameters& httpParameters,
-                          const HttpRequestArgs& args);
-        HttpResponse post(const std::string& url,
-                          const std::string& body,
-                          const HttpRequestArgs& args);
-
-        HttpResponse put(const std::string& url,
-                         const HttpParameters& httpParameters,
-                         const HttpRequestArgs& args);
-        HttpResponse put(const std::string& url,
-                         const std::string& body,
-                         const HttpRequestArgs& args);
-
-        HttpResponse request(const std::string& url,
-                             const std::string& verb,
+        HttpResponsePtr post(const std::string& url,
+                             const HttpParameters& httpParameters,
+                             const HttpRequestArgs& args);
+        HttpResponsePtr post(const std::string& url,
                              const std::string& body,
-                             const HttpRequestArgs& args,
-                             int redirects = 0);
+                             const HttpRequestArgs& args);
+
+        HttpResponsePtr put(const std::string& url,
+                            const HttpParameters& httpParameters,
+                            const HttpRequestArgs& args);
+        HttpResponsePtr put(const std::string& url,
+                            const std::string& body,
+                            const HttpRequestArgs& args);
+
+        HttpResponsePtr request(const std::string& url,
+                                const std::string& verb,
+                                const std::string& body,
+                                const HttpRequestArgs& args,
+                                int redirects = 0);
+
+        // Async API
+        HttpRequestArgsPtr createRequest(const std::string& url,
+                                         const std::string& verb = HttpClient::kGet);
+
+        bool performRequest(HttpRequestArgsPtr request,
+                            const OnResponseCallback& onResponseCallback);
 
         std::string serializeHttpParameters(const HttpParameters& httpParameters);
 
         std::string urlEncode(const std::string& value);
-
-    private:
-        void log(const std::string& msg, const HttpRequestArgs& args);
-
-        bool gzipInflate(const std::string& in, std::string& out);
-
-        std::shared_ptr<Socket> _socket;
 
         const static std::string kPost;
         const static std::string kGet;
         const static std::string kHead;
         const static std::string kDel;
         const static std::string kPut;
+
+    private:
+        void log(const std::string& msg, const HttpRequestArgs& args);
+
+        bool gzipInflate(const std::string& in, std::string& out);
+
+        // Async API background thread runner
+        void run();
+
+        // Async API
+        bool _async;
+        std::queue<std::pair<HttpRequestArgsPtr, OnResponseCallback>> _queue;
+        mutable std::mutex _queueMutex;
+        std::condition_variable _condition;
+        std::atomic<bool> _stop;
+        std::thread _thread;
+
+        std::shared_ptr<Socket> _socket;
     };
 } // namespace ix

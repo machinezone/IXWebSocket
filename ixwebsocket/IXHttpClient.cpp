@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <vector>
 #include <cstring>
+#include <iostream>
 
 #include <zlib.h>
 
@@ -24,17 +25,87 @@ namespace ix
     const std::string HttpClient::kDel = "DEL";
     const std::string HttpClient::kPut = "PUT";
 
-    HttpClient::HttpClient()
+    HttpClient::HttpClient(bool async) : _async(async), _stop(false)
     {
+        if (!_async) return;
 
+        _thread = std::thread(&HttpClient::run, this);
     }
 
     HttpClient::~HttpClient()
     {
+        if (!_thread.joinable()) return;
 
+        _stop = true;
+        _condition.notify_one();
+        _thread.join();
     }
 
-    HttpResponse HttpClient::request(
+    HttpRequestArgsPtr HttpClient::createRequest(const std::string& url,
+                                                 const std::string& verb)
+    {
+        auto request = std::make_shared<HttpRequestArgs>();
+        request->url = url;
+        request->verb = verb;
+        return request;
+    }
+
+    bool HttpClient::performRequest(HttpRequestArgsPtr args,
+                                    const OnResponseCallback& onResponseCallback)
+    {
+        if (!_async) return false;
+
+        // Enqueue the task
+        {
+            // acquire lock
+            std::unique_lock<std::mutex> lock(_queueMutex);
+
+            // add the task
+            _queue.push(std::make_pair(args, onResponseCallback));
+        } // release lock
+
+        // wake up one thread
+        _condition.notify_one();
+
+        return true;
+    }
+
+    void HttpClient::run()
+    {
+        while (true)
+        {
+            HttpRequestArgsPtr args;
+            OnResponseCallback onResponseCallback;
+
+            {
+                std::unique_lock<std::mutex> lock(_queueMutex);
+
+                while (!_stop && _queue.empty())
+                {
+                    _condition.wait(lock);
+                }
+
+                if (_stop) return;
+
+                auto p = _queue.front();
+                _queue.pop();
+
+                args = p.first;
+                onResponseCallback = p.second;
+            }
+
+            if (_stop) return;
+
+            HttpResponsePtr response = request(args->url, args->verb, args->body, *args);
+            onResponseCallback(response);
+
+            if (_stop) return;
+        }
+
+        std::cout << "HttpClient::run() finished" << std::endl;
+    }
+
+    HttpResponsePtr HttpClient::request(
         const std::string& url,
         const std::string& verb,
         const std::string& body,
@@ -54,7 +125,7 @@ namespace ix
         {
             std::stringstream ss;
             ss << "Cannot parse url: " << url;
-            return HttpResponse(code, HttpErrorCode::UrlMalformed,
+            return std::make_shared<HttpResponse>(code, HttpErrorCode::UrlMalformed,
                                 headers, payload, ss.str(),
                                 uploadSize, downloadSize);
         }
@@ -65,7 +136,7 @@ namespace ix
 
         if (!_socket)
         {
-            return HttpResponse(code, HttpErrorCode::CannotCreateSocket,
+            return std::make_shared<HttpResponse>(code, HttpErrorCode::CannotCreateSocket,
                                 headers, payload, errorMsg,
                                 uploadSize, downloadSize);
         }
@@ -128,9 +199,9 @@ namespace ix
         {
             std::stringstream ss;
             ss << "Cannot connect to url: " << url << " / error : " << errMsg;
-            return HttpResponse(code, HttpErrorCode::CannotConnect,
-                                headers, payload, ss.str(),
-                                uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code, HttpErrorCode::CannotConnect,
+                                                  headers, payload, ss.str(),
+                                                  uploadSize, downloadSize);
         }
 
         // Make a new cancellation object dealing with transfer timeout
@@ -154,9 +225,9 @@ namespace ix
         if (!_socket->writeBytes(req, isCancellationRequested))
         {
             std::string errorMsg("Cannot send request");
-            return HttpResponse(code, HttpErrorCode::SendError,
-                                headers, payload, errorMsg,
-                                uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code, HttpErrorCode::SendError,
+                                                  headers, payload, errorMsg,
+                                                  uploadSize, downloadSize);
         }
 
         uploadSize = req.size();
@@ -168,9 +239,9 @@ namespace ix
         if (!lineValid)
         {
             std::string errorMsg("Cannot retrieve status line");
-            return HttpResponse(code, HttpErrorCode::CannotReadStatusLine,
-                                headers, payload, errorMsg,
-                                uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code, HttpErrorCode::CannotReadStatusLine,
+                                                  headers, payload, errorMsg,
+                                                  uploadSize, downloadSize);
         }
 
         if (args.verbose)
@@ -183,9 +254,9 @@ namespace ix
         if (sscanf(line.c_str(), "HTTP/1.1 %d", &code) != 1)
         {
             std::string errorMsg("Cannot parse response code from status line");
-            return HttpResponse(code, HttpErrorCode::MissingStatus,
-                                headers, payload, errorMsg,
-                                uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code, HttpErrorCode::MissingStatus,
+                                                  headers, payload, errorMsg,
+                                                  uploadSize, downloadSize);
         }
 
         auto result = parseHttpHeaders(_socket, isCancellationRequested);
@@ -195,9 +266,9 @@ namespace ix
         if (!headersValid)
         {
             std::string errorMsg("Cannot parse http headers");
-            return HttpResponse(code, HttpErrorCode::HeaderParsingError,
-                                headers, payload, errorMsg,
-                                uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code, HttpErrorCode::HeaderParsingError,
+                                                  headers, payload, errorMsg,
+                                                  uploadSize, downloadSize);
         }
 
         // Redirect ?
@@ -206,18 +277,18 @@ namespace ix
             if (headers.find("Location") == headers.end())
             {
                 std::string errorMsg("Missing location header for redirect");
-                return HttpResponse(code, HttpErrorCode::MissingLocation,
-                                    headers, payload, errorMsg,
-                                    uploadSize, downloadSize);
+                return std::make_shared<HttpResponse>(code, HttpErrorCode::MissingLocation,
+                                                      headers, payload, errorMsg,
+                                                      uploadSize, downloadSize);
             }
 
             if (redirects >= args.maxRedirects)
             {
                 std::stringstream ss;
                 ss << "Too many redirects: " << redirects;
-                return HttpResponse(code, HttpErrorCode::TooManyRedirects,
-                                    headers, payload, ss.str(),
-                                    uploadSize, downloadSize);
+                return std::make_shared<HttpResponse>(code, HttpErrorCode::TooManyRedirects,
+                                                      headers, payload, ss.str(),
+                                                      uploadSize, downloadSize);
             }
 
             // Recurse
@@ -227,9 +298,9 @@ namespace ix
 
         if (verb == "HEAD")
         {
-            return HttpResponse(code, HttpErrorCode::Ok,
-                                headers, payload, std::string(),
-                                uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code, HttpErrorCode::Ok,
+                                                  headers, payload, std::string(),
+                                                  uploadSize, downloadSize);
         }
 
         // Parse response:
@@ -248,9 +319,9 @@ namespace ix
             if (!chunkResult.first)
             {
                 errorMsg = "Cannot read chunk";
-                return HttpResponse(code, HttpErrorCode::ChunkReadError,
-                                    headers, payload, errorMsg,
-                                    uploadSize, downloadSize);
+                return std::make_shared<HttpResponse>(code, HttpErrorCode::ChunkReadError,
+                                                      headers, payload, errorMsg,
+                                                      uploadSize, downloadSize);
             }
             payload += chunkResult.second;
         }
@@ -266,9 +337,9 @@ namespace ix
 
                 if (!lineResult.first)
                 {
-                    return HttpResponse(code, HttpErrorCode::ChunkReadError,
-                                        headers, payload, errorMsg,
-                                        uploadSize, downloadSize);
+                    return std::make_shared<HttpResponse>(code, HttpErrorCode::ChunkReadError,
+                                                          headers, payload, errorMsg,
+                                                          uploadSize, downloadSize);
                 }
 
                 uint64_t chunkSize;
@@ -293,9 +364,9 @@ namespace ix
                 if (!chunkResult.first)
                 {
                     errorMsg = "Cannot read chunk";
-                    return HttpResponse(code, HttpErrorCode::ChunkReadError,
-                                        headers, payload, errorMsg,
-                                        uploadSize, downloadSize);
+                    return std::make_shared<HttpResponse>(code, HttpErrorCode::ChunkReadError,
+                                                          headers, payload, errorMsg,
+                                                          uploadSize, downloadSize);
                 }
                 payload += chunkResult.second;
 
@@ -304,9 +375,9 @@ namespace ix
 
                 if (!lineResult.first)
                 {
-                    return HttpResponse(code, HttpErrorCode::ChunkReadError,
-                                        headers, payload, errorMsg,
-                                        uploadSize, downloadSize);
+                    return std::make_shared<HttpResponse>(code, HttpErrorCode::ChunkReadError,
+                                                          headers, payload, errorMsg,
+                                                          uploadSize, downloadSize);
                 }
 
                 if (chunkSize == 0) break;
@@ -319,9 +390,9 @@ namespace ix
         else
         {
             std::string errorMsg("Cannot read http body");
-            return HttpResponse(code, HttpErrorCode::CannotReadBody,
-                                headers, payload, errorMsg,
-                                uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code, HttpErrorCode::CannotReadBody,
+                                                  headers, payload, errorMsg,
+                                                  uploadSize, downloadSize);
         }
 
         downloadSize = payload.size();
@@ -333,58 +404,58 @@ namespace ix
             if (!gzipInflate(payload, decompressedPayload))
             {
                 std::string errorMsg("Error decompressing payload");
-                return HttpResponse(code, HttpErrorCode::Gzip,
-                                    headers, payload, errorMsg,
-                                    uploadSize, downloadSize);
+                return std::make_shared<HttpResponse>(code, HttpErrorCode::Gzip,
+                                                      headers, payload, errorMsg,
+                                                      uploadSize, downloadSize);
             }
             payload = decompressedPayload;
         }
 
-        return HttpResponse(code, HttpErrorCode::Ok,
-                            headers, payload, std::string(),
-                            uploadSize, downloadSize);
+        return std::make_shared<HttpResponse>(code, HttpErrorCode::Ok,
+                                              headers, payload, std::string(),
+                                              uploadSize, downloadSize);
     }
 
-    HttpResponse HttpClient::get(const std::string& url,
+    HttpResponsePtr HttpClient::get(const std::string& url,
                                  const HttpRequestArgs& args)
     {
         return request(url, kGet, std::string(), args);
     }
 
-    HttpResponse HttpClient::head(const std::string& url,
+    HttpResponsePtr HttpClient::head(const std::string& url,
                                   const HttpRequestArgs& args)
     {
         return request(url, kHead, std::string(), args);
     }
 
-    HttpResponse HttpClient::del(const std::string& url,
+    HttpResponsePtr HttpClient::del(const std::string& url,
                                  const HttpRequestArgs& args)
     {
         return request(url, kDel, std::string(), args);
     }
 
-    HttpResponse HttpClient::post(const std::string& url,
+    HttpResponsePtr HttpClient::post(const std::string& url,
                                   const HttpParameters& httpParameters,
                                   const HttpRequestArgs& args)
     {
         return request(url, kPost, serializeHttpParameters(httpParameters), args);
     }
 
-    HttpResponse HttpClient::post(const std::string& url,
+    HttpResponsePtr HttpClient::post(const std::string& url,
                                   const std::string& body,
                                   const HttpRequestArgs& args)
     {
         return request(url, kPost, body, args);
     }
 
-    HttpResponse HttpClient::put(const std::string& url,
+    HttpResponsePtr HttpClient::put(const std::string& url,
                                  const HttpParameters& httpParameters,
                                  const HttpRequestArgs& args)
     {
         return request(url, kPut, serializeHttpParameters(httpParameters), args);
     }
 
-    HttpResponse HttpClient::put(const std::string& url,
+    HttpResponsePtr HttpClient::put(const std::string& url,
                                  const std::string& body,
                                  const HttpRequestArgs& args)
     {

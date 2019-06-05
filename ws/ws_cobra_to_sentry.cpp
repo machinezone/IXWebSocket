@@ -46,9 +46,11 @@ namespace ix
         std::condition_variable progressCondition;
         std::queue<Json::Value> queue;
 
+        SentryClient sentryClient(dsn);
+
         auto sentrySender = [&condition, &progressCondition, &conditionVariableMutex,
                              &queue, verbose, &errorSending, &sentCount,
-                             &stop, &dsn]
+                             &stop, &sentryClient]
         {
             while (true)
             {
@@ -62,9 +64,7 @@ namespace ix
                     queue.pop();
                 }
 
-                SentryClient sc(dsn);
-
-                if (!sc.send(msg, verbose))
+                if (!sentryClient.send(msg, verbose))
                 {
                     errorSending = true;
                 }
