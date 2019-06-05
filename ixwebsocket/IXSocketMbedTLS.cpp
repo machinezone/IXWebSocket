@@ -82,7 +82,7 @@ namespace ix
         mbedtls_ssl_set_bio(&_ssl, &_sockfd, mbedtls_net_send, mbedtls_net_recv, NULL);
 
         int res;
-        do 
+        do
         {
             res = mbedtls_ssl_handshake(&_ssl);
         }

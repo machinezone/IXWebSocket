@@ -210,7 +210,7 @@ namespace
                                << closeInfo.reason
                                << ")";
                             log(ss.str());
-                            
+
                             std::lock_guard<std::mutex> lck(mutexWrite);
 
                             receivedCloseCode = closeInfo.code;
