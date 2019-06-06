@@ -9,6 +9,7 @@
 #include <ixwebsocket/IXHttpClient.h>
 #include <jsoncpp/json/json.h>
 #include <regex>
+#include <algorithm>
 
 namespace ix
 {
@@ -18,7 +19,7 @@ namespace ix
         SentryClient(const std::string& dsn);
         ~SentryClient() = default;
 
-        bool send(const Json::Value& msg, bool verbose);
+        std::pair<HttpResponsePtr, std::string> send(const Json::Value& msg, bool verbose);
 
     private:
         int64_t getTimestamp();

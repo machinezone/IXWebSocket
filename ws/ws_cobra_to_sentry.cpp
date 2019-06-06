@@ -14,6 +14,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <ixcobra/IXCobraConnection.h>
+#include <spdlog/spdlog.h>
 
 #include "IXSentryClient.h"
 
@@ -64,8 +65,13 @@ namespace ix
                     queue.pop();
                 }
 
-                if (!sentryClient.send(msg, verbose))
+                auto ret = sentryClient.send(msg, verbose);
+                HttpResponsePtr response = ret.first;
+                if (response->statusCode != 200)
                 {
+                    spdlog::error("Error sending data to sentry: {}", response->statusCode);
+                    spdlog::error("Response: {}", response->payload);
+                    spdlog::error("Log: {}", ret.second);
                     errorSending = true;
                 }
                 else
@@ -99,16 +105,16 @@ namespace ix
             {
                 if (eventType == ix::CobraConnection_EventType_Open)
                 {
-                    std::cerr << "Subscriber: connected" << std::endl;
+                    spdlog::info("Subscriber connected");
 
                     for (auto it : headers)
                     {
-                        std::cerr << it.first << ": " << it.second << std::endl;
+                        spdlog::info("{}: {}", it.first, it.second);
                     }
                 }
                 if (eventType == ix::CobraConnection_EventType_Closed)
                 {
-                    std::cerr << "Subscriber: closed" << std::endl;
+                    spdlog::info("Subscriber closed");
                 }
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
@@ -122,7 +128,7 @@ namespace ix
                                    {
                                        if (verbose)
                                        {
-                                           std::cerr << jsonWriter.write(msg) << std::endl;
+                                           spdlog::info(jsonWriter.write(msg));
                                        }
 
                                        // If we cannot send to sentry fast enough, drop the message
@@ -132,8 +138,7 @@ namespace ix
                                            receivedCount != 0 &&
                                            (sentCount * scaleFactor < receivedCount))
                                        {
-                                           std::cerr << "message dropped: sending is backlogged !"
-                                                     << std::endl;
+                                           spdlog::warn("message dropped: sending is backlogged !");
 
                                            condition.notify_one();
                                            progressCondition.notify_one();
@@ -153,15 +158,15 @@ namespace ix
                 }
                 else if (eventType == ix::CobraConnection_EventType_Subscribed)
                 {
-                    std::cerr << "Subscriber: subscribed to channel " << subscriptionId << std::endl;
+                    spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
                 }
                 else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
                 {
-                    std::cerr << "Subscriber: unsubscribed from channel " << subscriptionId << std::endl;
+                    spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
                 }
                 else if (eventType == ix::CobraConnection_EventType_Error)
                 {
-                    std::cerr << "Subscriber: error" << errMsg << std::endl;
+                    spdlog::error("Subscriber: error {}", errMsg);
                 }
             }
         );
@@ -172,17 +177,20 @@ namespace ix
             std::unique_lock<std::mutex> lock(progressConditionVariableMutex);
             progressCondition.wait(lock);
 
-            std::cout << "messages"
-                      << " received " << receivedCount
-                      << " sent " << sentCount
-                      << std::endl;
+            spdlog::info("messages received {} sent {}", receivedCount, sentCount);
 
             if (strict && errorSending) break;
         }
 
         conn.disconnect();
 
-        // FIXME: join all the bg threads and stop them.
+        // join all the bg threads and stop them.
+        stop = true;
+        for (int i = 0; i < jobs; i++)
+        {
+            spdlog::error("joining thread {}", i);
+            pool[i].join();
+        }
 
         return 0;
     }
