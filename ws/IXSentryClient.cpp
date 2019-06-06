@@ -141,42 +141,42 @@ namespace ix
     bool SentryClient::send(const Json::Value& msg,
                             bool verbose)
     {
-        HttpRequestArgs args;
-        args.extraHeaders["X-Sentry-Auth"] = SentryClient::computeAuthHeader();
-        args.connectTimeout = 60;
-        args.transferTimeout = 5 * 60;
-        args.followRedirects = true;
-        args.verbose = verbose;
-        args.logger = [](const std::string& msg)
+        auto args = _httpClient.createRequest();
+        args->extraHeaders["X-Sentry-Auth"] = SentryClient::computeAuthHeader();
+        args->connectTimeout = 60;
+        args->transferTimeout = 5 * 60;
+        args->followRedirects = true;
+        args->verbose = verbose;
+        args->logger = [](const std::string& msg)
         {
             std::cout << msg;
         };
 
         std::string body = computePayload(msg);
-        HttpResponse response = _httpClient.post(_url, body, args);
+        HttpResponsePtr response = _httpClient.post(_url, body, args);
 
         if (verbose)
         {
-            for (auto it : response.headers)
+            for (auto it : response->headers)
             {
                 std::cerr << it.first << ": " << it.second << std::endl;
             }
 
-            std::cerr << "Upload size: " << response.uploadSize << std::endl;
-            std::cerr << "Download size: " << response.downloadSize << std::endl;
+            std::cerr << "Upload size: " << response->uploadSize << std::endl;
+            std::cerr << "Download size: " << response->downloadSize << std::endl;
 
-            std::cerr << "Status: " << response.statusCode << std::endl;
-            if (response.errorCode != HttpErrorCode::Ok)
+            std::cerr << "Status: " << response->statusCode << std::endl;
+            if (response->errorCode != HttpErrorCode::Ok)
             {
-                std::cerr << "error message: " << response.errorMsg << std::endl;
+                std::cerr << "error message: " << response->errorMsg << std::endl;
             }
 
-            if (response.headers["Content-Type"] != "application/octet-stream")
+            if (response->headers["Content-Type"] != "application/octet-stream")
             {
-                std::cerr << "payload: " << response.payload << std::endl;
+                std::cerr << "payload: " << response->payload << std::endl;
             }
         }
 
-        return response.statusCode == 200;
+        return response->statusCode == 200;
     }
 } // namespace ix

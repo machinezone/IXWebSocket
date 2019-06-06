@@ -1041,7 +1041,7 @@ namespace ix
         _requestInitCancellation = true;
 
         if (_readyState == ReadyState::CLOSING || _readyState == ReadyState::CLOSED) return;
-        
+
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
             _closeCode = code;

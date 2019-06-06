@@ -25,7 +25,6 @@ namespace ix
         ~CobraMetricsThreadedPublisher();
 
         /// Configuration / set keys, etc...
-        /// All input data but the channel name is encrypted with rc4
         void configure(const std::string& appkey,
                        const std::string& endpoint,
                        const std::string& channel,
