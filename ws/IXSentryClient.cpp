@@ -132,8 +132,34 @@ namespace ix
 
         Json::Value extra;
         extra["cobra_event"] = msg;
+        extra["cobra_event"] = msg;
 
-        exception["extra"] = extra;
+        //
+        // "tags": [
+        //   [
+        //     "a",
+        //     "b"
+        //   ],
+        //  ]
+        // 
+        Json::Value tags;
+
+        Json::Value gameTag;
+        gameTag.append("game");
+        gameTag.append(msg["device"]["game"]);
+        tags.append(gameTag);
+
+        Json::Value userIdTag;
+        userIdTag.append("userid");
+        userIdTag.append(msg["device"]["user_id"]);
+        tags.append(userIdTag);
+
+        Json::Value environmentTag;
+        environmentTag.append("environment");
+        environmentTag.append(msg["device"]["environment"]);
+        tags.append(environmentTag);
+
+        payload["tags"] = tags;
 
         return _jsonWriter.write(payload);
     }
