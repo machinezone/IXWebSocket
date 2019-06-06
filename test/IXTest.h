@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-#include <sstream>
 #include <iostream>
+#include <ixwebsocket/IXWebSocketServer.h>
 #include <mutex>
 #include <spdlog/spdlog.h>
-#include <ixwebsocket/IXWebSocketServer.h>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace ix
 {
@@ -28,20 +28,20 @@ namespace ix
 
     struct Logger
     {
-        public:
-            template <typename T>
-            Logger& operator<<(T const& obj)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
+    public:
+        template<typename T>
+        Logger& operator<<(T const& obj)
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
 
-                std::stringstream ss;
-                ss << obj;
-                spdlog::info(ss.str());
-                return *this;
-            }
+            std::stringstream ss;
+            ss << obj;
+            spdlog::info(ss.str());
+            return *this;
+        }
 
-        private:
-            static std::mutex _mutex;
+    private:
+        static std::mutex _mutex;
     };
 
     void log(const std::string& msg);
@@ -49,4 +49,4 @@ namespace ix
     int getFreePort();
 
     bool startWebSocketEchoServer(ix::WebSocketServer& server);
-}
+} // namespace ix
