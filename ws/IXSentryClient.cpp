@@ -169,18 +169,15 @@ namespace ix
     std::pair<HttpResponsePtr, std::string> SentryClient::send(const Json::Value& msg,
                                                                bool verbose)
     {
-        std::string log;
-
         auto args = _httpClient.createRequest();
         args->extraHeaders["X-Sentry-Auth"] = SentryClient::computeAuthHeader();
         args->connectTimeout = 60;
         args->transferTimeout = 5 * 60;
         args->followRedirects = true;
         args->verbose = verbose;
-        args->logger = [&log](const std::string& msg)
+        args->logger = [](const std::string& msg)
         {
-            log += msg;
-            std::cout << msg;
+            spdlog::info("request logger: {}", msg);
         };
 
         std::string body = computePayload(msg);
@@ -196,7 +193,7 @@ namespace ix
             spdlog::info("Upload size: {}", response->uploadSize);
             spdlog::info("Download size: {}", response->downloadSize);
 
-            std::cerr << "Status: " << response->statusCode << std::endl;
+            spdlog::info("Status: {}", response->statusCode);
             if (response->errorCode != HttpErrorCode::Ok)
             {
                 spdlog::info("error message: {}", response->errorMsg);
@@ -208,6 +205,6 @@ namespace ix
             }
         }
 
-        return std::make_pair(response, log);
+        return std::make_pair(response, body);
     }
 } // namespace ix

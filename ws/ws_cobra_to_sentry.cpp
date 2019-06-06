@@ -47,12 +47,12 @@ namespace ix
         std::condition_variable progressCondition;
         std::queue<Json::Value> queue;
 
-        SentryClient sentryClient(dsn);
-
         auto sentrySender = [&condition, &progressCondition, &conditionVariableMutex,
                              &queue, verbose, &errorSending, &sentCount,
-                             &stop, &sentryClient]
+                             &stop, &dsn]
         {
+            SentryClient sentryClient(dsn);
+
             while (true)
             {
                 Json::Value msg;
@@ -70,8 +70,8 @@ namespace ix
                 if (response->statusCode != 200)
                 {
                     spdlog::error("Error sending data to sentry: {}", response->statusCode);
+                    spdlog::error("Body: {}", ret.second);
                     spdlog::error("Response: {}", response->payload);
-                    spdlog::error("Log: {}", ret.second);
                     errorSending = true;
                 }
                 else
@@ -192,6 +192,6 @@ namespace ix
             pool[i].join();
         }
 
-        return 0;
+        return (strict && errorSending) ? 1 : 0;
     }
 }

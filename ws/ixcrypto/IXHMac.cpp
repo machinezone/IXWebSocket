@@ -10,7 +10,6 @@
 #if defined(IXWEBSOCKET_USE_MBED_TLS)
 # include <mbedtls/md.h>
 #elif defined(__APPLE__)
-#  include <ixwebsocket/IXSocketMbedTLS.h>
 # include <CommonCrypto/CommonHMAC.h>
 #else
 # include <openssl/hmac.h>
