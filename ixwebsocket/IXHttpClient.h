@@ -156,5 +156,6 @@ namespace ix
         std::thread _thread;
 
         std::shared_ptr<Socket> _socket;
+        std::mutex _mutex; // to protect accessing the _socket (only one socket per client)
     };
 } // namespace ix

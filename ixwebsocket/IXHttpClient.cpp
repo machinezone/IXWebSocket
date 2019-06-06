@@ -109,6 +109,10 @@ namespace ix
         HttpRequestArgsPtr args,
         int redirects)
     {
+        // We only have one socket connection, so we cannot 
+        // make multiple requests concurrently.
+        std::lock_guard<std::mutex> lock(_mutex);
+
         uint64_t uploadSize = 0;
         uint64_t downloadSize = 0;
         int code = 0;
