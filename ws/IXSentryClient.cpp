@@ -8,6 +8,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 
@@ -114,6 +115,7 @@ namespace ix
     std::string SentryClient::computePayload(const Json::Value& msg)
     {
         Json::Value payload;
+
         payload["platform"] = "python";
         payload["sdk"]["name"] = "ws";
         payload["sdk"]["version"] = "1.0.0";
@@ -164,17 +166,20 @@ namespace ix
         return _jsonWriter.write(payload);
     }
 
-    bool SentryClient::send(const Json::Value& msg,
-                            bool verbose)
+    std::pair<HttpResponsePtr, std::string> SentryClient::send(const Json::Value& msg,
+                                                               bool verbose)
     {
+        std::string log;
+
         auto args = _httpClient.createRequest();
         args->extraHeaders["X-Sentry-Auth"] = SentryClient::computeAuthHeader();
         args->connectTimeout = 60;
         args->transferTimeout = 5 * 60;
         args->followRedirects = true;
         args->verbose = verbose;
-        args->logger = [](const std::string& msg)
+        args->logger = [&log](const std::string& msg)
         {
+            log += msg;
             std::cout << msg;
         };
 
@@ -185,24 +190,24 @@ namespace ix
         {
             for (auto it : response->headers)
             {
-                std::cerr << it.first << ": " << it.second << std::endl;
+                spdlog::info("{}: {}", it.first, it.second);
             }
 
-            std::cerr << "Upload size: " << response->uploadSize << std::endl;
-            std::cerr << "Download size: " << response->downloadSize << std::endl;
+            spdlog::info("Upload size: {}", response->uploadSize);
+            spdlog::info("Download size: {}", response->downloadSize);
 
             std::cerr << "Status: " << response->statusCode << std::endl;
             if (response->errorCode != HttpErrorCode::Ok)
             {
-                std::cerr << "error message: " << response->errorMsg << std::endl;
+                spdlog::info("error message: {}", response->errorMsg);
             }
 
             if (response->headers["Content-Type"] != "application/octet-stream")
             {
-                std::cerr << "payload: " << response->payload << std::endl;
+                spdlog::info("payload: {}", response->payload);
             }
         }
 
-        return response->statusCode == 200;
+        return std::make_pair(response, log);
     }
 } // namespace ix
