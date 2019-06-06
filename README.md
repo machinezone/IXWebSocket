@@ -129,33 +129,33 @@ Here is what the HTTP client API looks like. Note that HTTP client support is ve
 // Preparation
 //
 HttpClient httpClient;
-HttpRequestArgs args;
+HttpRequestArgsPtr args = httpClient.createRequest();
 
 // Custom headers can be set
 WebSocketHttpHeaders headers;
 headers["Foo"] = "bar";
-args.extraHeaders = headers;
+args->extraHeaders = headers;
 
 // Timeout options
-args.connectTimeout = connectTimeout;
-args.transferTimeout = transferTimeout;
+args->connectTimeout = connectTimeout;
+args->transferTimeout = transferTimeout;
 
 // Redirect options
-args.followRedirects = followRedirects;
-args.maxRedirects = maxRedirects;
+args->followRedirects = followRedirects;
+args->maxRedirects = maxRedirects;
 
 // Misc
-args.compress = compress; // Enable gzip compression
-args.verbose = verbose;
-args.logger = [](const std::string& msg)
+args->compress = compress; // Enable gzip compression
+args->verbose = verbose;
+args->logger = [](const std::string& msg)
 {
     std::cout << msg;
 };
 
 //
-// Request
+// Synchronous Request
 //
-HttpResponse out;
+HttpResponsePtr out;
 std::string url = "https://www.google.com";
 
 // HEAD request
@@ -175,13 +175,30 @@ out = httpClient.post(url, std::string("foo=bar"), args);
 //
 // Result
 //
-auto statusCode = std::get<0>(out);
-auto errorCode = std::get<1>(out);
-auto responseHeaders = std::get<2>(out);
-auto payload = std::get<3>(out);
-auto errorMsg = std::get<4>(out);
-auto uploadSize = std::get<5>(out);
-auto downloadSize = std::get<6>(out);
+auto errorCode = response->errorCode; // Can be HttpErrorCode::Ok, HttpErrorCode::UrlMalformed, etc...
+auto errorCode = response->errorCode; // 200, 404, etc...
+auto responseHeaders = response->headers; // All the headers in a special case-insensitive unordered_map of (string, string)
+auto payload = response->payload; // All the bytes from the response as an std::string
+auto errorMsg = response->errorMsg; // Descriptive error message in case of failure
+auto uploadSize = response->uploadSize; // Byte count of uploaded data
+auto downloadSize = response->downloadSize; // Byte count of downloaded data
+
+//
+// Asynchronous Request
+//
+bool async = true;
+HttpClient httpClient(async);
+auto args = httpClient.createRequest(url, HttpClient::kGet);
+
+// Push the request to a queue,
+bool ok = httpClient.performRequest(args, [](const HttpResponsePtr& response)
+    {
+        // This callback execute in a background thread. Make sure you uses appropriate protection such as mutex
+        auto statusCode = response->statusCode; // acess results
+    }
+);
+
+// ok will be false if your httpClient is not async
 ```
 
 ## Build

@@ -99,7 +99,7 @@ namespace ix
     void CobraMetricsThreadedPublisher::pushMessage(MessageKind messageKind,
                                                     const Json::Value& msg)
     {
-        // Now actually enqueue the task
+        // Enqueue the task
         {
             // acquire lock
             std::unique_lock<std::mutex> lock(_queue_mutex);
