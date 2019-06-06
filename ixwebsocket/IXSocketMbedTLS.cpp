@@ -24,6 +24,8 @@ namespace ix
 
     bool SocketMbedTLS::init(const std::string& host, std::string& errMsg)
     {
+        std::lock_guard<std::mutex> lock(_mutex);
+
         mbedtls_ssl_init(&_ssl);
         mbedtls_ssl_config_init(&_conf);
         mbedtls_ctr_drbg_init(&_ctr_drbg);
@@ -75,15 +77,24 @@ namespace ix
                                 std::string& errMsg,
                                 const CancellationRequest& isCancellationRequested)
     {
-        _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
-        if (_sockfd == -1) return false;
-        if (!init(host, errMsg)) return false;
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
+            if (_sockfd == -1) return false;
+        }
+
+        if (!init(host, errMsg))
+        {
+            close();
+            return false;
+        }
 
         mbedtls_ssl_set_bio(&_ssl, &_sockfd, mbedtls_net_send, mbedtls_net_recv, NULL);
 
         int res;
         do
         {
+            std::lock_guard<std::mutex> lock(_mutex);
             res = mbedtls_ssl_handshake(&_ssl);
         }
         while (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE);
@@ -95,6 +106,8 @@ namespace ix
 
             errMsg = "error in handshake : ";
             errMsg += buf;
+
+            close();
             return false;
         }
 
@@ -103,10 +116,14 @@ namespace ix
 
     void SocketMbedTLS::close()
     {
+        std::lock_guard<std::mutex> lock(_mutex);
+
         mbedtls_ssl_free(&_ssl);
         mbedtls_ssl_config_free(&_conf);
         mbedtls_ctr_drbg_free(&_ctr_drbg);
         mbedtls_entropy_free(&_entropy);
+
+        Socket::close();
     }
 
     ssize_t SocketMbedTLS::send(char* buf, size_t nbyte)
