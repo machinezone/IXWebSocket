@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include <ixwebsocket/IXHttpClient.h>
 #include <jsoncpp/json/json.h>
 #include <regex>
-#include <algorithm>
 
 namespace ix
 {

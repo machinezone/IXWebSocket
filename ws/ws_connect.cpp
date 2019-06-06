@@ -15,7 +15,8 @@ namespace ix
     {
         public:
             WebSocketConnect(const std::string& _url,
-                             bool disableAutomaticReconnection);
+                             bool disableAutomaticReconnection,
+                             bool disablePerMessageDeflate);
 
             void subscribe(const std::string& channel);
             void start();
@@ -26,13 +27,16 @@ namespace ix
         private:
             std::string _url;
             ix::WebSocket _webSocket;
+            bool _disablePerMessageDeflate;
 
             void log(const std::string& msg);
     };
 
     WebSocketConnect::WebSocketConnect(const std::string& url,
-                                       bool disableAutomaticReconnection) :
-        _url(url)
+                                       bool disableAutomaticReconnection,
+                                       bool disablePerMessageDeflate) :
+        _url(url),
+        _disablePerMessageDeflate(disablePerMessageDeflate)
     {
         if (disableAutomaticReconnection)
         {
@@ -54,9 +58,16 @@ namespace ix
     {
         _webSocket.setUrl(_url);
 
-        ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(
-            true, false, false, 15, 15);
-        _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
+        if (_disablePerMessageDeflate)
+        {
+            _webSocket.disablePerMessageDeflate();
+        }
+        else
+        {
+            ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(
+                true, false, false, 15, 15);
+            _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
+        }
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
@@ -130,10 +141,14 @@ namespace ix
         _webSocket.send(text);
     }
 
-    int ws_connect_main(const std::string& url, bool disableAutomaticReconnection)
+    int ws_connect_main(const std::string& url,
+                        bool disableAutomaticReconnection,
+                        bool disablePerMessageDeflate)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
-        WebSocketConnect webSocketChat(url, disableAutomaticReconnection);
+        WebSocketConnect webSocketChat(url,
+                                       disableAutomaticReconnection,
+                                       disablePerMessageDeflate);
         webSocketChat.start();
 
         while (true)

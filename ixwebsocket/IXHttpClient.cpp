@@ -109,7 +109,7 @@ namespace ix
         HttpRequestArgsPtr args,
         int redirects)
     {
-        // We only have one socket connection, so we cannot 
+        // We only have one socket connection, so we cannot
         // make multiple requests concurrently.
         std::lock_guard<std::mutex> lock(_mutex);
 

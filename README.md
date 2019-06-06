@@ -28,6 +28,9 @@ webSocket.setUrl(url);
 // to make sure that load balancers do not kill an idle connection.
 webSocket.setHeartBeatPeriod(45);
 
+// Per message deflate connection is enabled by default. You can tweak its parameters or disable it
+webSocket.disablePerMessageDeflate();
+
 // Setup a callback to be fired when a message or an event (open, close, error) is received
 webSocket.setOnMessageCallback(
     [](ix::WebSocketMessageType messageType,
@@ -255,7 +258,7 @@ No manual polling to fetch data is required. Data is sent and received instantly
 
 ### Automatic reconnection
 
-If the remote end (server) breaks the connection, the code will try to perpetually reconnect, by using an exponential backoff strategy, capped at one retry every 10 seconds.
+If the remote end (server) breaks the connection, the code will try to perpetually reconnect, by using an exponential backoff strategy, capped at one retry every 10 seconds. This behavior can be disabled.
 
 ### Large messages
 

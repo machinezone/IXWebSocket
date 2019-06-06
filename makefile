@@ -9,7 +9,7 @@ install: brew
 # on osx it is good practice to make /usr/local user writable
 # sudo chown -R `whoami`/staff /usr/local
 brew:
-	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j install)
+	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j install)
 
 ws:
 	mkdir -p build && (cd build ; cmake -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j)
@@ -44,7 +44,7 @@ trail:
 	sh third_party/remote_trailing_whitespaces.sh
 
 format:
-	find ixwebsocket ws -name '*.cpp' -o -name '*.h' -exec clang-format -i {} \;
+	find test ixwebsocket ws -name '*.cpp' -o -name '*.h' -exec clang-format -i {} \;
 
 # That target is used to start a node server, but isn't required as we have 
 # a builtin C++ server started in the unittest now

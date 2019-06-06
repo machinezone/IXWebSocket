@@ -143,7 +143,7 @@ namespace ix
         //     "b"
         //   ],
         //  ]
-        // 
+        //
         Json::Value tags;
 
         Json::Value gameTag;
