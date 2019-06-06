@@ -1,1 +1,1 @@
-docker/Dockerfile.ubuntu_artful
+docker/Dockerfile.alpine
