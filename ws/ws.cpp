@@ -81,6 +81,7 @@ int main(int argc, char** argv)
     bool stress = false;
     bool disableAutomaticReconnection = false;
     bool disablePerMessageDeflate = false;
+    bool greetings = false;
     int port = 8008;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -120,6 +121,7 @@ int main(int argc, char** argv)
     CLI::App* echoServerApp = app.add_subcommand("echo_server", "Echo server");
     echoServerApp->add_option("--port", port, "Port");
     echoServerApp->add_option("--host", hostname, "Hostname");
+    echoServerApp->add_flag("-g", greetings, "Verbose");
 
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
     broadcastServerApp->add_option("--port", port, "Port");
@@ -252,7 +254,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("echo_server"))
     {
-        ret = ix::ws_echo_server_main(port, hostname);
+        ret = ix::ws_echo_server_main(port, greetings, hostname);
     }
     else if (app.got_subcommand("broadcast_server"))
     {
