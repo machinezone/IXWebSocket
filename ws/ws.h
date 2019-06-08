@@ -24,7 +24,7 @@ namespace ix
 
     int ws_ping_pong_main(const std::string& url);
 
-    int ws_echo_server_main(int port, const std::string& hostname);
+    int ws_echo_server_main(int port, bool greetings, const std::string& hostname);
     int ws_broadcast_server_main(int port, const std::string& hostname);
     int ws_transfer_main(int port, const std::string& hostname);
 

@@ -10,18 +10,18 @@
 
 namespace ix
 {
-    int ws_echo_server_main(int port, const std::string& hostname)
+    int ws_echo_server_main(int port, bool greetings, const std::string& hostname)
     {
         std::cout << "Listening on " << hostname << ":" << port << std::endl;
 
         ix::WebSocketServer server(port, hostname);
 
         server.setOnConnectionCallback(
-            [](std::shared_ptr<ix::WebSocket> webSocket,
-               std::shared_ptr<ConnectionState> connectionState)
+            [greetings](std::shared_ptr<ix::WebSocket> webSocket,
+                        std::shared_ptr<ConnectionState> connectionState)
             {
                 webSocket->setOnMessageCallback(
-                    [webSocket, connectionState](ix::WebSocketMessageType messageType,
+                    [webSocket, connectionState, greetings](ix::WebSocketMessageType messageType,
                        const std::string& str,
                        size_t wireSize,
                        const ix::WebSocketErrorInfo& error,
@@ -37,6 +37,11 @@ namespace ix
                             for (auto it : openInfo.headers)
                             {
                                 std::cerr << it.first << ": " << it.second << std::endl;
+                            }
+
+                            if (greetings)
+                            {
+                                webSocket->sendText("Welcome !");
                             }
                         }
                         else if (messageType == ix::WebSocketMessageType::Close)
