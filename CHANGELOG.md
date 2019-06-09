@@ -3,8 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased] - 2019-06-xx
 ### Changed
-- IXSocketMbedTLS: better error handling in close and connect
+- Add explicite WebSocket::sendBinary
+- New headers + WebSocketMessage class to hold message data, still not used across the board
+- Add test/compatibility folder with small servers and clients written in different languages and different libraries to test compatibility.
 - ws echo_server has a -g option to print a greeting message on connect
+- IXSocketMbedTLS: better error handling in close and connect
 
 ## [3.1.2] - 2019-06-06
 ### Added
