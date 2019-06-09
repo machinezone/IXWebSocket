@@ -66,7 +66,8 @@ namespace ix
 
         // send is in binary mode by default
         WebSocketSendInfo send(const std::string& data,
-                               const OnProgressCallback& onProgressCallback = nullptr);
+                               const OnProgressCallback& onProgressCallback = nullptr,
+                               bool binary = true);
         WebSocketSendInfo sendBinary(const std::string& text,
                                      const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo sendText(const std::string& text,

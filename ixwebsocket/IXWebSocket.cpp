@@ -385,9 +385,12 @@ namespace ix
     }
 
     WebSocketSendInfo WebSocket::send(const std::string& data,
-                                      const OnProgressCallback& onProgressCallback)
+                                      const OnProgressCallback& onProgressCallback,
+                                      bool binary)
     {
-        return sendMessage(data, SendMessageKind::Binary, onProgressCallback);
+        return sendMessage(data,
+                           (binary) ? SendMessageKind::Binary: SendMessageKind::Text,
+                           onProgressCallback);
     }
 
     WebSocketSendInfo WebSocket::sendBinary(const std::string& text,
