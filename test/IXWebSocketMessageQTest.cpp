@@ -105,7 +105,7 @@ namespace
                 }
                 else if (msg->type == WebSocketMessageType::Message)
                 {
-                    REQUIRE(str.compare("Hey dude!") == 0);
+                    REQUIRE(msg->str.compare("Hey dude!") == 0);
                     ++receivedCount;
                     ss << "Received message " << msg->str;
                     log(ss.str());
