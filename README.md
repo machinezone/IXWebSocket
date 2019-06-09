@@ -33,27 +33,22 @@ webSocket.disablePerMessageDeflate();
 
 // Setup a callback to be fired when a message or an event (open, close, error) is received
 webSocket.setOnMessageCallback(
-    [](ix::WebSocketMessageType messageType,
-       const std::string& str,
-       size_t wireSize,
-       const ix::WebSocketErrorInfo& error,
-       const ix::WebSocketOpenInfo& openInfo,
-       const ix::WebSocketCloseInfo& closeInfo)
+    [](const ix::WebSocketMessagePtr& msg)
     {
-        if (messageType == ix::WebSocketMessageType::Message)
+        if (msg->type == ix::WebSocketMessageType::Message)
         {
-            std::cout << str << std::endl;
+            std::cout << msg->str << std::endl;
         }
 });
 
 // Now that our callback is setup, we can start our background thread and receive messages
 webSocket.start();
 
-// Send a message to the server (default to BINARY mode)
+// Send a message to the server (default to TEXT mode)
 webSocket.send("hello world");
 
-// The message can be sent in TEXT mode
-webSocket.sendText("hello again");
+// The message can be sent in BINARY mode (useful if you send MsgPack data for example)
+webSocket.sendBinary("some serialized binary data");
 
 // ... finally ...
 
@@ -73,14 +68,9 @@ server.setOnConnectionCallback(
               std::shared_ptr<ConnectionState> connectionState)
     {
         webSocket->setOnMessageCallback(
-            [webSocket, connectionState, &server](ix::WebSocketMessageType messageType,
-               const std::string& str,
-               size_t wireSize,
-               const ix::WebSocketErrorInfo& error,
-               const ix::WebSocketOpenInfo& openInfo,
-               const ix::WebSocketCloseInfo& closeInfo)
+            [webSocket, connectionState, &server](const ix::WebSocketMessagePtr msg)
             {
-                if (messageType == ix::WebSocketMessageType::Open)
+                if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     std::cerr << "New connection" << std::endl;
 
@@ -91,19 +81,21 @@ server.setOnConnectionCallback(
                     std::cerr << "id: " << connectionState->getId() << std::endl;
 
                     // The uri the client did connect to.
-                    std::cerr << "Uri: " << openInfo.uri << std::endl;
+                    std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
 
                     std::cerr << "Headers:" << std::endl;
-                    for (auto it : openInfo.headers)
+                    for (auto it : msg->openInfo.headers)
                     {
                         std::cerr << it.first << ": " << it.second << std::endl;
                     }
                 }
-                else if (messageType == ix::WebSocketMessageType::Message)
+                else if (msg->type == ix::WebSocketMessageType::Message)
                 {
                     // For an echo server, we just send back to the client whatever was received by the server
                     // All connected clients are available in an std::set. See the broadcast cpp example.
-                    webSocket->send(str);
+                    // Second parameter tells whether we are sending the message in binary or text mode.
+                    // Here we send it in the same mode as it was received.
+                    webSocket->send(msg->str, msg->binary);
                 }
             }
         );
@@ -334,32 +326,27 @@ The onMessage event will be fired when the connection is opened or closed. This 
 
 ```
 webSocket.setOnMessageCallback(
-    [](ix::WebSocketMessageType messageType,
-       const std::string& str,
-       size_t wireSize,
-       const ix::WebSocketErrorInfo& error,
-       const ix::WebSocketOpenInfo& openInfo,
-       const ix::WebSocketCloseInfo& closeInfo)
+    [](const ix::WebSocketMessagePtr& msg)
     {
-        if (messageType == ix::WebSocketMessageType::Open)
+        if (msg->type == ix::WebSocketMessageType::Open)
         {
             std::cout << "send greetings" << std::endl;
 
             // Headers can be inspected (pairs of string/string)
             std::cout << "Handshake Headers:" << std::endl;
-            for (auto it : headers)
+            for (auto it : msg->headers)
             {
                 std::cout << it.first << ": " << it.second << std::endl;
             }
         }
-        else if (messageType == ix::WebSocketMessageType::Close)
+        else if (msg->type == ix::WebSocketMessageType::Close)
         {
             std::cout << "disconnected" << std::endl;
 
             // The server can send an explicit code and reason for closing.
             // This data can be accessed through the closeInfo object.
-            std::cout << closeInfo.code << std::endl;
-            std::cout << closeInfo.reason << std::endl;
+            std::cout << msg->closeInfo.code << std::endl;
+            std::cout << msg->closeInfo.reason << std::endl;
         }
     }
 );
@@ -371,20 +358,15 @@ A message will be fired when there is an error with the connection. The message 
 
 ```
 webSocket.setOnMessageCallback(
-    [](ix::WebSocketMessageType messageType,
-       const std::string& str,
-       size_t wireSize,
-       const ix::WebSocketErrorInfo& error,
-       const ix::WebSocketOpenInfo& openInfo,
-       const ix::WebSocketCloseInfo& closeInfo)
+    [](const ix::WebSocketMessagePtr& msg)
     {
-        if (messageType == ix::WebSocketMessageType::Error)
+        if (msg->type == ix::WebSocketMessageType::Error)
         {
             std::stringstream ss;
-            ss << "Error: "         << error.reason      << std::endl;
-            ss << "#retries: "      << event.retries     << std::endl;
-            ss << "Wait time(ms): " << event.wait_time   << std::endl;
-            ss << "HTTP Status: "   << event.http_status << std::endl;
+            ss << "Error: "         << msg->errorInfo.reason      << std::endl;
+            ss << "#retries: "      << msg->eventInfo.retries     << std::endl;
+            ss << "Wait time(ms): " << msg->eventInfo.wait_time   << std::endl;
+            ss << "HTTP Status: "   << msg->eventInfo.http_status << std::endl;
             std::cout << ss.str() << std::endl;
         }
     }
@@ -411,17 +393,12 @@ Ping/pong messages are used to implement keep-alive. 2 message types exists to i
 
 ```
 webSocket.setOnMessageCallback(
-    [](ix::WebSocketMessageType messageType,
-       const std::string& str,
-       size_t wireSize,
-       const ix::WebSocketErrorInfo& error,
-       const ix::WebSocketOpenInfo& openInfo,
-       const ix::WebSocketCloseInfo& closeInfo)
+    [](const ix::WebSocketMessagePtr& msg)
     {
-        if (messageType == ix::WebSocketMessageType::Ping ||
-            messageType == ix::WebSocketMessageType::Pong)
+        if (msg->type == ix::WebSocketMessageType::Ping ||
+            msg->type == ix::WebSocketMessageType::Pong)
         {
-            std::cout << "pong data: " << str << std::endl;
+            std::cout << "pong data: " << msg->str << std::endl;
         }
     }
 );
