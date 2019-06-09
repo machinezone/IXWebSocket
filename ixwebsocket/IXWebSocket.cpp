@@ -51,9 +51,11 @@ namespace ix
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
             {
-                _onMessageCallback(WebSocketMessageType::Close, "", wireSize,
-                                   WebSocketErrorInfo(), WebSocketOpenInfo(),
-                                   WebSocketCloseInfo(code, reason, remote));
+                _onMessageCallback(
+                    std::make_shared<WebSocketMessage>(
+                        WebSocketMessageType::Close, "", wireSize,
+                        WebSocketErrorInfo(), WebSocketOpenInfo(),
+                        WebSocketCloseInfo(code, reason, remote)));
             }
         );
     }
@@ -180,10 +182,12 @@ namespace ix
             return status;
         }
 
-        _onMessageCallback(WebSocketMessageType::Open, "", 0,
-                           WebSocketErrorInfo(),
-                           WebSocketOpenInfo(status.uri, status.headers),
-                           WebSocketCloseInfo());
+        _onMessageCallback(
+            std::make_shared<WebSocketMessage>(
+                WebSocketMessageType::Open, "", 0,
+                WebSocketErrorInfo(),
+                WebSocketOpenInfo(status.uri, status.headers),
+                WebSocketCloseInfo()));
         return status;
     }
 
@@ -203,10 +207,12 @@ namespace ix
             return status;
         }
 
-        _onMessageCallback(WebSocketMessageType::Open, "", 0,
-                           WebSocketErrorInfo(),
-                           WebSocketOpenInfo(status.uri, status.headers),
-                           WebSocketCloseInfo());
+        _onMessageCallback(
+                std::make_shared<WebSocketMessage>(
+                    WebSocketMessageType::Open, "", 0,
+                    WebSocketErrorInfo(),
+                    WebSocketOpenInfo(status.uri, status.headers),
+                    WebSocketCloseInfo()));
         return status;
     }
 
@@ -274,9 +280,11 @@ namespace ix
                 connectErr.reason      = status.errorStr;
                 connectErr.http_status = status.http_status;
 
-                _onMessageCallback(WebSocketMessageType::Error, "", 0,
-                                   connectErr, WebSocketOpenInfo(),
-                                   WebSocketCloseInfo());
+                _onMessageCallback(
+                     std::make_shared<WebSocketMessage>(
+                        WebSocketMessageType::Error, "", 0,
+                        connectErr, WebSocketOpenInfo(),
+                        WebSocketCloseInfo()));
             }
         }
     }
@@ -342,9 +350,11 @@ namespace ix
                     WebSocketErrorInfo webSocketErrorInfo;
                     webSocketErrorInfo.decompressionError = decompressionError;
 
-                    _onMessageCallback(webSocketMessageType, msg, wireSize,
-                                       webSocketErrorInfo, WebSocketOpenInfo(),
-                                       WebSocketCloseInfo());
+                    _onMessageCallback(
+                         std::make_shared<WebSocketMessage>(
+                            webSocketMessageType, msg, wireSize,
+                            webSocketErrorInfo, WebSocketOpenInfo(),
+                            WebSocketCloseInfo()));
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });

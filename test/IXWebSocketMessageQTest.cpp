@@ -23,30 +23,25 @@ namespace
                       std::shared_ptr<ConnectionState> connectionState)
         {
             webSocket->setOnMessageCallback(
-                [connectionState, &server](ix::WebSocketMessageType messageType,
-                    const std::string & str,
-                    size_t wireSize,
-                    const ix::WebSocketErrorInfo & error,
-                    const ix::WebSocketOpenInfo & openInfo,
-                    const ix::WebSocketCloseInfo & closeInfo)
+                [connectionState, &server](const WebSocketMessagePtr& msg)
             {
-                if (messageType == ix::WebSocketMessageType::Open)
+                if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     Logger() << "New connection";
                     connectionState->computeId();
                     Logger() << "id: " << connectionState->getId();
                     Logger() << "Uri: " << openInfo.uri;
                     Logger() << "Headers:";
-                    for (auto it : openInfo.headers)
+                    for (auto&& it : msg->openInfo.headers)
                     {
                         Logger() << it.first << ": " << it.second;
                     }
                 }
-                else if (messageType == ix::WebSocketMessageType::Close)
+                else if (msg->type == ix::WebSocketMessageType::Close)
                 {
                     Logger() << "Closed connection";
                 }
-                else if (messageType == ix::WebSocketMessageType::Message)
+                else if (msg->type == ix::WebSocketMessageType::Message)
                 {
                     Logger() << "Message received: " << str;
 
@@ -78,42 +73,37 @@ namespace
         {
             msgQ.bindWebsocket(&ws);
 
-            msgQ.setOnMessageCallback([this](WebSocketMessageType messageType,
-                const std::string & str,
-                size_t wireSize,
-                const WebSocketErrorInfo & error,
-                const WebSocketOpenInfo & openInfo,
-                const WebSocketCloseInfo & closeInfo)
+            msgQ.setOnMessageCallback([this](const WebSocketMessagePtr& msg)
             {
                 REQUIRE(mainThreadId == std::this_thread::get_id());
 
                 std::stringstream ss;
-                if (messageType == WebSocketMessageType::Open)
+                if (msg->type == WebSocketMessageType::Open)
                 {
                     log("client connected");
                     sendNextMessage();
                 }
-                else if (messageType == WebSocketMessageType::Close)
+                else if (msg->type == WebSocketMessageType::Close)
                 {
                     log("client disconnected");
                 }
-                else if (messageType == WebSocketMessageType::Error)
+                else if (msg->type == WebSocketMessageType::Error)
                 {
                     ss << "Error ! " << error.reason;
                     log(ss.str());
                     testDone = true;
                 }
-                else if (messageType == WebSocketMessageType::Pong)
+                else if (msg->type == WebSocketMessageType::Pong)
                 {
                     ss << "Received pong message " << str;
                     log(ss.str());
                 }
-                else if (messageType == WebSocketMessageType::Ping)
+                else if (msg->type == WebSocketMessageType::Ping)
                 {
                     ss << "Received ping message " << str;
                     log(ss.str());
                 }
-                else if (messageType == WebSocketMessageType::Message)
+                else if (msg->type == WebSocketMessageType::Message)
                 {
                     REQUIRE(str.compare("Hey dude!") == 0);
                     ++receivedCount;
@@ -189,5 +179,4 @@ TEST_CASE("Websocket_message_queue", "[websocket_message_q]")
 
         server.stop();
     }
-
 }

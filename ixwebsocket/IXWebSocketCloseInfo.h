@@ -22,4 +22,4 @@ namespace ix
             ;
         }
     };
-}
+} // namespace ix

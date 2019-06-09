@@ -90,46 +90,41 @@ namespace ix
     void CobraConnection::initWebSocketOnMessageCallback()
     {
         _webSocket->setOnMessageCallback(
-            [this](ix::WebSocketMessageType messageType,
-                   const std::string& str,
-                   size_t wireSize,
-                   const ix::WebSocketErrorInfo& error,
-                   const ix::WebSocketOpenInfo& openInfo,
-                   const ix::WebSocketCloseInfo& closeInfo)
+            [this](const ix::WebSocketMessagePtr& msg)
             {
-                CobraConnection::invokeTrafficTrackerCallback(wireSize, true);
+                CobraConnection::invokeTrafficTrackerCallback(msg->wireSize, true);
 
                 std::stringstream ss;
-                if (messageType == ix::WebSocketMessageType::Open)
+                if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     invokeEventCallback(ix::CobraConnection_EventType_Open,
                                         std::string(),
-                                        openInfo.headers);
+                                        msg->openInfo.headers);
                     sendHandshakeMessage();
                 }
-                else if (messageType == ix::WebSocketMessageType::Close)
+                else if (msg->type == ix::WebSocketMessageType::Close)
                 {
                     _authenticated = false;
 
                     std::stringstream ss;
-                    ss << "Close code " << closeInfo.code;
-                    ss << " reason " << closeInfo.reason;
+                    ss << "Close code " << msg->closeInfo.code;
+                    ss << " reason " << msg->closeInfo.reason;
                     invokeEventCallback(ix::CobraConnection_EventType_Closed,
                                         ss.str());
                 }
-                else if (messageType == ix::WebSocketMessageType::Message)
+                else if (msg->type == ix::WebSocketMessageType::Message)
                 {
                     Json::Value data;
                     Json::Reader reader;
-                    if (!reader.parse(str, data))
+                    if (!reader.parse(msg->str, data))
                     {
-                        invokeErrorCallback("Invalid json", str);
+                        invokeErrorCallback("Invalid json", msg->str);
                         return;
                     }
 
                     if (!data.isMember("action"))
                     {
-                        invokeErrorCallback("Missing action", str);
+                        invokeErrorCallback("Missing action", msg->str);
                         return;
                     }
 
@@ -139,12 +134,12 @@ namespace ix
                     {
                         if (!handleHandshakeResponse(data))
                         {
-                            invokeErrorCallback("Error extracting nonce from handshake response", str);
+                            invokeErrorCallback("Error extracting nonce from handshake response", msg->str);
                         }
                     }
                     else if (action == "auth/handshake/error")
                     {
-                        invokeErrorCallback("Handshake error", str);
+                        invokeErrorCallback("Handshake error", msg->str);
                     }
                     else if (action == "auth/authenticate/ok")
                     {
@@ -154,7 +149,7 @@ namespace ix
                     }
                     else if (action == "auth/authenticate/error")
                     {
-                        invokeErrorCallback("Authentication error", str);
+                        invokeErrorCallback("Authentication error", msg->str);
                     }
                     else if (action == "rtm/subscription/data")
                     {
@@ -164,36 +159,36 @@ namespace ix
                     {
                         if (!handleSubscriptionResponse(data))
                         {
-                            invokeErrorCallback("Error processing subscribe response", str);
+                            invokeErrorCallback("Error processing subscribe response", msg->str);
                         }
                     }
                     else if (action == "rtm/subscribe/error")
                     {
-                        invokeErrorCallback("Subscription error", str);
+                        invokeErrorCallback("Subscription error", msg->str);
                     }
                     else if (action == "rtm/unsubscribe/ok")
                     {
                         if (!handleUnsubscriptionResponse(data))
                         {
-                            invokeErrorCallback("Error processing subscribe response", str);
+                            invokeErrorCallback("Error processing subscribe response", msg->str);
                         }
                     }
                     else if (action == "rtm/unsubscribe/error")
                     {
-                        invokeErrorCallback("Unsubscription error", str);
+                        invokeErrorCallback("Unsubscription error", msg->str);
                     }
                     else
                     {
-                        invokeErrorCallback("Un-handled message type", str);
+                        invokeErrorCallback("Un-handled message type", msg->str);
                     }
                 }
-                else if (messageType == ix::WebSocketMessageType::Error)
+                else if (msg->type == ix::WebSocketMessageType::Error)
                 {
                     std::stringstream ss;
-                    ss << "Connection error: " << error.reason      << std::endl;
-                    ss << "#retries: "         << error.retries     << std::endl;
-                    ss << "Wait time(ms): "    << error.wait_time   << std::endl;
-                    ss << "HTTP Status: "      << error.http_status << std::endl;
+                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
+                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
+                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
+                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
                     invokeErrorCallback(ss.str(), std::string());
                 }
         });
