@@ -59,7 +59,7 @@ namespace ix
                             std::cerr << "Received "
                                       << msg->wireSize << " bytes"
                                       << std::endl;
-                            webSocket->send(msg->str);
+                            webSocket->send(msg->str, msg->binary);
                         }
                     }
                 );
