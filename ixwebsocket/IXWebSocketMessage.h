@@ -31,13 +31,15 @@ namespace ix
                          size_t w,
                          WebSocketErrorInfo e,
                          WebSocketOpenInfo o,
-                         WebSocketCloseInfo c)
+                         WebSocketCloseInfo c,
+                         bool b = false)
             : type(t)
             , str(std::move(s))
             , wireSize(w)
             , errorInfo(e)
             , openInfo(o)
             , closeInfo(c)
+            , binary(b)
         {
             ;
         }

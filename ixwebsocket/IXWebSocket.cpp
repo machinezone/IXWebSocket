@@ -325,8 +325,8 @@ namespace ix
                     WebSocketMessageType webSocketMessageType;
                     switch (messageKind)
                     {
-                        default:
-                        case WebSocketTransport::MessageKind::MSG:
+                        case WebSocketTransport::MessageKind::MSG_TEXT:
+                        case WebSocketTransport::MessageKind::MSG_BINARY:
                         {
                             webSocketMessageType = WebSocketMessageType::Message;
                         } break;
@@ -350,11 +350,13 @@ namespace ix
                     WebSocketErrorInfo webSocketErrorInfo;
                     webSocketErrorInfo.decompressionError = decompressionError;
 
+                    bool binary = messageKind == WebSocketTransport::MessageKind::MSG_BINARY;
+
                     _onMessageCallback(
                          std::make_shared<WebSocketMessage>(
                             webSocketMessageType, msg, wireSize,
                             webSocketErrorInfo, WebSocketOpenInfo(),
-                            WebSocketCloseInfo()));
+                            WebSocketCloseInfo(), binary));
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });
@@ -385,8 +387,8 @@ namespace ix
     }
 
     WebSocketSendInfo WebSocket::send(const std::string& data,
-                                      const OnProgressCallback& onProgressCallback,
-                                      bool binary)
+                                      bool binary,
+                                      const OnProgressCallback& onProgressCallback)
     {
         return sendMessage(data,
                            (binary) ? SendMessageKind::Binary: SendMessageKind::Text,

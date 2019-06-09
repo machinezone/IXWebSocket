@@ -50,7 +50,8 @@ namespace ix
 
         enum class MessageKind
         {
-            MSG,
+            MSG_TEXT,
+            MSG_BINARY,
             PING,
             PONG,
             FRAGMENT

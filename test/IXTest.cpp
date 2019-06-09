@@ -200,7 +200,7 @@ namespace ix
                             {
                                 if (client != webSocket)
                                 {
-                                    client->send(msg->str);
+                                    client->send(msg->str, msg->binary);
                                 }
                             }
                         }
