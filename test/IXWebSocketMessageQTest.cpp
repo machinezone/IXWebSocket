@@ -30,7 +30,7 @@ namespace
                     Logger() << "New connection";
                     connectionState->computeId();
                     Logger() << "id: " << connectionState->getId();
-                    Logger() << "Uri: " << openInfo.uri;
+                    Logger() << "Uri: " << msg->openInfo.uri;
                     Logger() << "Headers:";
                     for (auto&& it : msg->openInfo.headers)
                     {
@@ -43,11 +43,11 @@ namespace
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    Logger() << "Message received: " << str;
+                    Logger() << "Message received: " << msg->str;
 
                     for (auto&& client : server.getClients())
                     {
-                        client->send(str);
+                        client->send(msg->str);
                     }
                 }
             }
@@ -89,25 +89,25 @@ namespace
                 }
                 else if (msg->type == WebSocketMessageType::Error)
                 {
-                    ss << "Error ! " << error.reason;
+                    ss << "Error ! " << msg->errorInfo.reason;
                     log(ss.str());
                     testDone = true;
                 }
                 else if (msg->type == WebSocketMessageType::Pong)
                 {
-                    ss << "Received pong message " << str;
+                    ss << "Received pong message " << msg->str;
                     log(ss.str());
                 }
                 else if (msg->type == WebSocketMessageType::Ping)
                 {
-                    ss << "Received ping message " << str;
+                    ss << "Received ping message " << msg->str;
                     log(ss.str());
                 }
                 else if (msg->type == WebSocketMessageType::Message)
                 {
                     REQUIRE(str.compare("Hey dude!") == 0);
                     ++receivedCount;
-                    ss << "Received message " << str;
+                    ss << "Received message " << msg->str;
                     log(ss.str());
                     sendNextMessage();
                 }
