@@ -16,6 +16,7 @@
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketSendInfo.h"
 #include "IXWebSocketTransport.h"
+#include "IXWebSocketMessage.h"
 #include <atomic>
 #include <mutex>
 #include <string>
@@ -30,46 +31,6 @@ namespace ix
         Open = 1,
         Closing = 2,
         Closed = 3
-    };
-
-    enum class WebSocketMessageType
-    {
-        Message = 0,
-        Open = 1,
-        Close = 2,
-        Error = 3,
-        Ping = 4,
-        Pong = 5,
-        Fragment = 6
-    };
-
-    struct WebSocketOpenInfo
-    {
-        std::string uri;
-        WebSocketHttpHeaders headers;
-
-        WebSocketOpenInfo(const std::string& u = std::string(),
-                          const WebSocketHttpHeaders& h = WebSocketHttpHeaders())
-            : uri(u)
-            , headers(h)
-        {
-            ;
-        }
-    };
-
-    struct WebSocketCloseInfo
-    {
-        uint16_t code;
-        std::string reason;
-        bool remote;
-
-        WebSocketCloseInfo(uint16_t c = 0, const std::string& r = std::string(), bool rem = false)
-            : code(c)
-            , reason(r)
-            , remote(rem)
-        {
-            ;
-        }
     };
 
     using OnMessageCallback = std::function<void(WebSocketMessageType,
@@ -169,7 +130,7 @@ namespace ix
         bool _enablePong;
         static const bool kDefaultEnablePong;
 
-        // Optional ping and ping timeout
+        // Optional ping and pong timeout
         int _pingIntervalSecs;
         int _pingTimeoutSecs;
         static const int kDefaultPingIntervalSecs;
