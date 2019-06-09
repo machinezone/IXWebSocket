@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [unreleased] - 2019-06-09
+### Changed
+- travis CI uses g++ on Linux
+
 ## [4.0.0] - 2019-06-09
 ### Changed
 - WebSocket::send() sends message in TEXT mode by default
