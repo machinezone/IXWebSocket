@@ -106,7 +106,7 @@ namespace
                 {
                     log("client disconnected");
 
-                    if (closeInfo.code == 1011)
+                    if (msg->closeInfo.code == 1011)
                     {
                         _closedDueToPingTimeout = true;
                     }

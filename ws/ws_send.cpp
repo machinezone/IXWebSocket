@@ -112,42 +112,37 @@ namespace ix
         log(std::string("Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback(
-            [this](ix::WebSocketMessageType messageType,
-               const std::string& str,
-               size_t wireSize,
-               const ix::WebSocketErrorInfo& error,
-               const ix::WebSocketOpenInfo& openInfo,
-               const ix::WebSocketCloseInfo& closeInfo)
+            [this](const WebSocketMessagePtr& msg)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocketMessageType::Open)
+                if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     _condition.notify_one();
 
                     log("ws_send: connected");
-                    std::cout << "Uri: " << openInfo.uri << std::endl;
+                    std::cout << "Uri: " << msg->openInfo.uri << std::endl;
                     std::cout << "Handshake Headers:" << std::endl;
-                    for (auto it : openInfo.headers)
+                    for (auto it : msg->openInfo.headers)
                     {
                         std::cout << it.first << ": " << it.second << std::endl;
                     }
                 }
-                else if (messageType == ix::WebSocketMessageType::Close)
+                else if (msg->type == ix::WebSocketMessageType::Close)
                 {
                     ss << "ws_send: connection closed:";
-                    ss << " code " << closeInfo.code;
-                    ss << " reason " << closeInfo.reason << std::endl;
+                    ss << " code " << msg->closeInfo.code;
+                    ss << " reason " << msg->closeInfo.reason << std::endl;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocketMessageType::Message)
+                else if (msg->type == ix::WebSocketMessageType::Message)
                 {
                     _condition.notify_one();
 
-                    ss << "ws_send: received message (" << wireSize << " bytes)";
+                    ss << "ws_send: received message (" << msg->wireSize << " bytes)";
                     log(ss.str());
 
                     std::string errMsg;
-                    MsgPack data = MsgPack::parse(str, errMsg);
+                    MsgPack data = MsgPack::parse(msg->str, errMsg);
                     if (!errMsg.empty())
                     {
                         std::cerr << "Invalid MsgPack response" << std::endl;
@@ -160,13 +155,13 @@ namespace ix
                         std::cerr << "Invalid id" << std::endl;
                     }
                 }
-                else if (messageType == ix::WebSocketMessageType::Error)
+                else if (msg->type == ix::WebSocketMessageType::Error)
                 {
                     ss << "ws_send ";
-                    ss << "Connection error: " << error.reason      << std::endl;
-                    ss << "#retries: "         << error.retries     << std::endl;
-                    ss << "Wait time(ms): "    << error.wait_time   << std::endl;
-                    ss << "HTTP Status: "      << error.http_status << std::endl;
+                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
+                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
+                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
+                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
                     log(ss.str());
                 }
                 else

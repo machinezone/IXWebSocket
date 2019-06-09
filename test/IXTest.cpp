@@ -178,34 +178,29 @@ namespace ix
                       std::shared_ptr<ConnectionState> connectionState)
             {
                 webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, &server](ix::WebSocketMessageType messageType,
-                       const std::string& str,
-                       size_t wireSize,
-                       const ix::WebSocketErrorInfo& error,
-                       const ix::WebSocketOpenInfo& openInfo,
-                       const ix::WebSocketCloseInfo& closeInfo)
+                    [webSocket, connectionState, &server](const ix::WebSocketMessagePtr& msg)
                     {
-                        if (messageType == ix::WebSocketMessageType::Open)
+                        if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             Logger() << "New connection";
-                            Logger() << "Uri: " << openInfo.uri;
+                            Logger() << "Uri: " << msg->openInfo.uri;
                             Logger() << "Headers:";
-                            for (auto it : openInfo.headers)
+                            for (auto it : msg->openInfo.headers)
                             {
                                 Logger() << it.first << ": " << it.second;
                             }
                         }
-                        else if (messageType == ix::WebSocketMessageType::Close)
+                        else if (msg->type == ix::WebSocketMessageType::Close)
                         {
                             Logger() << "Closed connection";
                         }
-                        else if (messageType == ix::WebSocketMessageType::Message)
+                        else if (msg->type == ix::WebSocketMessageType::Message)
                         {
                             for (auto&& client : server.getClients())
                             {
                                 if (client != webSocket)
                                 {
-                                    client->send(str);
+                                    client->send(msg->str);
                                 }
                             }
                         }

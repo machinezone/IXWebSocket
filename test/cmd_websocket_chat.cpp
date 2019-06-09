@@ -114,31 +114,26 @@ namespace
         log(std::string("Connecting to url: ") + url);
 
         _webSocket.setOnMessageCallback(
-            [this](ix::WebSocketMessageType messageType,
-                   const std::string& str,
-                   size_t wireSize,
-                   const ix::WebSocketErrorInfo& error,
-                   const ix::WebSocketOpenInfo& openInfo,
-                   const ix::WebSocketCloseInfo& closeInfo)
+            [this](const ix::WebSocketMessagePtr& msg)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocketMessageType::Open)
+                if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     ss << "cmd_websocket_chat: user "
                        << _user
                        << " Connected !";
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocketMessageType::Close)
+                else if (msg->type == ix::WebSocketMessageType::Close)
                 {
                     ss << "cmd_websocket_chat: user "
                        << _user
                        << " disconnected !";
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocketMessageType::Message)
+                else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    auto result = decodeMessage(str);
+                    auto result = decodeMessage(msg->str);
 
                     // Our "chat" / "broacast" node.js server does not send us
                     // the messages we send, so we don't need to have a msg_user != user
@@ -159,20 +154,20 @@ namespace
                        << _user << " > ";
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocketMessageType::Error)
+                else if (msg->type == ix::WebSocketMessageType::Error)
                 {
-                    ss << "cmd_websocket_chat: Error ! " << error.reason;
+                    ss << "cmd_websocket_chat: Error ! " << msg->errorInfo.reason;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocketMessageType::Ping)
+                else if (msg->type == ix::WebSocketMessageType::Ping)
                 {
                     log("cmd_websocket_chat: received ping message");
                 }
-                else if (messageType == ix::WebSocketMessageType::Pong)
+                else if (msg->type == ix::WebSocketMessageType::Pong)
                 {
                     log("cmd_websocket_chat: received pong message");
                 }
-                else if (messageType == ix::WebSocketMessageType::Fragment)
+                else if (msg->type == ix::WebSocketMessageType::Fragment)
                 {
                     log("cmd_websocket_chat: received message fragment");
                 }
@@ -221,35 +216,30 @@ namespace
                       std::shared_ptr<ConnectionState> connectionState)
             {
                 webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, &server](ix::WebSocketMessageType messageType,
-                       const std::string& str,
-                       size_t wireSize,
-                       const ix::WebSocketErrorInfo& error,
-                       const ix::WebSocketOpenInfo& openInfo,
-                       const ix::WebSocketCloseInfo& closeInfo)
+                    [webSocket, connectionState, &server](const ix::WebSocketMessagePtr& msg)
                     {
-                        if (messageType == ix::WebSocketMessageType::Open)
+                        if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             Logger() << "New connection";
                             Logger() << "id: " << connectionState->getId();
-                            Logger() << "Uri: " << openInfo.uri;
+                            Logger() << "Uri: " << msg->openInfo.uri;
                             Logger() << "Headers:";
-                            for (auto it : openInfo.headers)
+                            for (auto it : msg->openInfo.headers)
                             {
                                 Logger() << it.first << ": " << it.second;
                             }
                         }
-                        else if (messageType == ix::WebSocketMessageType::Close)
+                        else if (msg->type == ix::WebSocketMessageType::Close)
                         {
                             log("Closed connection");
                         }
-                        else if (messageType == ix::WebSocketMessageType::Message)
+                        else if (msg->type == ix::WebSocketMessageType::Message)
                         {
                             for (auto&& client : server.getClients())
                             {
                                 if (client != webSocket)
                                 {
-                                    client->send(str);
+                                    client->send(msg->str);
                                 }
                             }
                         }

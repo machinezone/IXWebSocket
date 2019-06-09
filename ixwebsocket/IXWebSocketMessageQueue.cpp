@@ -32,14 +32,7 @@ namespace ix
         if (_websocket)
         {
             // set dummy callback just to avoid crash
-            _websocket->setOnMessageCallback([](
-                WebSocketMessageType,
-                const std::string&,
-                size_t,
-                const WebSocketErrorInfo&,
-                const WebSocketOpenInfo&,
-                const WebSocketCloseInfo&)
-            {});
+            _websocket->setOnMessageCallback([](const WebSocketMessagePtr&) {});
         }
 
         _websocket = websocket;
@@ -47,27 +40,10 @@ namespace ix
         // bind new
         if (_websocket)
         {
-            _websocket->setOnMessageCallback([this](
-                WebSocketMessageType type,
-                const std::string& str,
-                size_t wireSize,
-                const WebSocketErrorInfo& errorInfo,
-                const WebSocketOpenInfo& openInfo,
-                const WebSocketCloseInfo& closeInfo)
+            _websocket->setOnMessageCallback([this](const WebSocketMessagePtr& msg)
             {
-                auto message = std::make_shared<WebSocketMessage>();
-
-                message->type      = type;
-                message->str       = str;
-                message->wireSize  = wireSize;
-                message->errorInfo = errorInfo;
-                message->openInfo  = openInfo;
-                message->closeInfo = closeInfo;
-
-                {
-                    std::lock_guard<std::mutex> lock(_messagesMutex);
-                    _messages.emplace_back(std::move(message));
-                }
+                std::lock_guard<std::mutex> lock(_messagesMutex);
+                _messages.emplace_back(std::move(msg));
             });
         }
     }
@@ -105,15 +81,7 @@ namespace ix
 
         while (count > 0 && (message = popMessage()))
         {
-            _onMessageUserCallback(
-                message->type,
-                message->str,
-                message->wireSize,
-                message->errorInfo,
-                message->openInfo,
-                message->closeInfo
-            );
-
+            _onMessageUserCallback(message);
             --count;
         }
     }

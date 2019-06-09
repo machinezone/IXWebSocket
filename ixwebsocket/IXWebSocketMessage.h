@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include "IXWebSocketMessageType.h"
-#include "IXWebSocketErrorInfo.h"
-#include "IXWebSocketOpenInfo.h"
 #include "IXWebSocketCloseInfo.h"
-#include <string>
+#include "IXWebSocketErrorInfo.h"
+#include "IXWebSocketMessageType.h"
+#include "IXWebSocketOpenInfo.h"
 #include <memory>
+#include <string>
 #include <thread>
 
 namespace ix
@@ -25,6 +25,22 @@ namespace ix
         WebSocketOpenInfo openInfo;
         WebSocketCloseInfo closeInfo;
         bool binary;
+
+        WebSocketMessage(WebSocketMessageType t,
+                         const std::string& s,
+                         size_t w,
+                         WebSocketErrorInfo e,
+                         WebSocketOpenInfo o,
+                         WebSocketCloseInfo c)
+            : type(t)
+            , str(std::move(s))
+            , wireSize(w)
+            , errorInfo(e)
+            , openInfo(o)
+            , closeInfo(c)
+        {
+            ;
+        }
     };
 
     using WebSocketMessagePtr = std::shared_ptr<WebSocketMessage>;

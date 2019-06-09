@@ -108,52 +108,47 @@ namespace
         log(std::string("Connecting to url: ") + url);
 
         _webSocket.setOnMessageCallback(
-            [this](ix::WebSocketMessageType messageType,
-               const std::string& str,
-               size_t wireSize,
-               const ix::WebSocketErrorInfo& error,
-               const ix::WebSocketOpenInfo& openInfo,
-                   const ix::WebSocketCloseInfo& closeInfo)
+            [this](const ix::WebSocketMessagePtr& msg)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocketMessageType::Open)
+                if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     log("client connected");
                 }
-                else if (messageType == ix::WebSocketMessageType::Close)
+                else if (msg->type == ix::WebSocketMessageType::Close)
                 {
                     std::stringstream ss;
                     ss << "client disconnected("
-                       << closeInfo.code
+                       << msg->closeInfo.code
                        << ","
-                       << closeInfo.reason
+                       << msg->closeInfo.reason
                        << ")";
                     log(ss.str());
 
                     std::lock_guard<std::mutex> lck(_mutexCloseData);
 
-                    _closeCode = closeInfo.code;
-                    _closeReason = std::string(closeInfo.reason);
-                    _closeRemote = closeInfo.remote;
+                    _closeCode = msg->closeInfo.code;
+                    _closeReason = std::string(msg->closeInfo.reason);
+                    _closeRemote = msg->closeInfo.remote;
                 }
-                else if (messageType == ix::WebSocketMessageType::Error)
+                else if (msg->type == ix::WebSocketMessageType::Error)
                 {
-                    ss << "Error ! " << error.reason;
+                    ss << "Error ! " << msg->errorInfo.reason;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocketMessageType::Pong)
+                else if (msg->type == ix::WebSocketMessageType::Pong)
                 {
-                    ss << "Received pong message " << str;
+                    ss << "Received pong message " << msg->str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocketMessageType::Ping)
+                else if (msg->type == ix::WebSocketMessageType::Ping)
                 {
-                    ss << "Received ping message " << str;
+                    ss << "Received ping message " << msg->str;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocketMessageType::Message)
+                else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    ss << "Received message " << str;
+                    ss << "Received message " << msg->str;
                     log(ss.str());
                 }
                 else
@@ -183,39 +178,34 @@ namespace
                                              std::shared_ptr<ConnectionState> connectionState)
             {
                 webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, &server, &receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite](ix::WebSocketMessageType messageType,
-                       const std::string& str,
-                       size_t wireSize,
-                       const ix::WebSocketErrorInfo& error,
-                       const ix::WebSocketOpenInfo& openInfo,
-                       const ix::WebSocketCloseInfo& closeInfo)
+                    [webSocket, connectionState, &server, &receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite](const ix::WebSocketMessagePtr& msg)
                     {
-                        if (messageType == ix::WebSocketMessageType::Open)
+                        if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             Logger() << "New server connection";
                             Logger() << "id: " << connectionState->getId();
-                            Logger() << "Uri: " << openInfo.uri;
+                            Logger() << "Uri: " << msg->openInfo.uri;
                             Logger() << "Headers:";
-                            for (auto it : openInfo.headers)
+                            for (auto it : msg->openInfo.headers)
                             {
                                 Logger() << it.first << ": " << it.second;
                             }
                         }
-                        else if (messageType == ix::WebSocketMessageType::Close)
+                        else if (msg->type == ix::WebSocketMessageType::Close)
                         {
                             std::stringstream ss;
                             ss << "Server closed connection("
-                               << closeInfo.code
+                               << msg->closeInfo.code
                                << ","
-                               << closeInfo.reason
+                               << msg->closeInfo.reason
                                << ")";
                             log(ss.str());
 
                             std::lock_guard<std::mutex> lck(mutexWrite);
 
-                            receivedCloseCode = closeInfo.code;
-                            receivedCloseReason = std::string(closeInfo.reason);
-                            receivedCloseRemote = closeInfo.remote;
+                            receivedCloseCode = msg->closeInfo.code;
+                            receivedCloseReason = std::string(msg->closeInfo.reason);
+                            receivedCloseRemote = msg->closeInfo.remote;
                         }
                     }
                 );

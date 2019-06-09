@@ -52,41 +52,36 @@ namespace
         log(std::string("Connecting to url: ") + url);
 
         _webSocket.setOnMessageCallback(
-            [](ix::WebSocketMessageType messageType,
-               const std::string& str,
-               size_t wireSize,
-               const ix::WebSocketErrorInfo& error,
-               const ix::WebSocketOpenInfo& openInfo,
-               const ix::WebSocketCloseInfo& closeInfo)
+            [](const ix::WebSocketMessagePtr& msg)
             {
                 std::stringstream ss;
-                if (messageType == ix::WebSocketMessageType::Open)
+                if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     log("TestConnectionDisconnection: connected !");
                 }
-                else if (messageType == ix::WebSocketMessageType::Close)
+                else if (msg->type == ix::WebSocketMessageType::Close)
                 {
                     log("TestConnectionDisconnection: disconnected !");
                 }
-                else if (messageType == ix::WebSocketMessageType::Error)
+                else if (msg->type == ix::WebSocketMessageType::Error)
                 {
                     ss << "TestConnectionDisconnection: Error! ";
-                    ss << error.reason;
+                    ss << msg->errorInfo.reason;
                     log(ss.str());
                 }
-                else if (messageType == ix::WebSocketMessageType::Message)
+                else if (msg->type == ix::WebSocketMessageType::Message)
                 {
                     log("TestConnectionDisconnection: received message.!");
                 }
-                else if (messageType == ix::WebSocketMessageType::Ping)
+                else if (msg->type == ix::WebSocketMessageType::Ping)
                 {
                     log("TestConnectionDisconnection: received ping message.!");
                 }
-                else if (messageType == ix::WebSocketMessageType::Pong)
+                else if (msg->type == ix::WebSocketMessageType::Pong)
                 {
                     log("TestConnectionDisconnection: received pong message.!");
                 }
-                else if (messageType == ix::WebSocketMessageType::Fragment)
+                else if (msg->type == ix::WebSocketMessageType::Fragment)
                 {
                     log("TestConnectionDisconnection: received fragment.!");
                 }

@@ -13,10 +13,10 @@
 #include "IXWebSocketCloseConstants.h"
 #include "IXWebSocketErrorInfo.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXWebSocketMessage.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketSendInfo.h"
 #include "IXWebSocketTransport.h"
-#include "IXWebSocketMessage.h"
 #include <atomic>
 #include <mutex>
 #include <string>
@@ -33,12 +33,7 @@ namespace ix
         Closed = 3
     };
 
-    using OnMessageCallback = std::function<void(WebSocketMessageType,
-                                                 const std::string&,
-                                                 size_t wireSize,
-                                                 const WebSocketErrorInfo&,
-                                                 const WebSocketOpenInfo&,
-                                                 const WebSocketCloseInfo&)>;
+    using OnMessageCallback = std::function<void(const WebSocketMessagePtr&)>;
 
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
@@ -78,7 +73,8 @@ namespace ix
                                    const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo ping(const std::string& text);
 
-        void close(uint16_t code = 1000, const std::string& reason = "Normal closure");
+        void close(uint16_t code = WebSocketCloseConstants::kNormalClosureCode,
+                   const std::string& reason = WebSocketCloseConstants::kNormalClosureMessage);
 
         void setOnMessageCallback(const OnMessageCallback& callback);
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
