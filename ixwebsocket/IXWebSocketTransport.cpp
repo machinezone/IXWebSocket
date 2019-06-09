@@ -542,12 +542,17 @@ namespace ix
             ) {
                 unmaskReceiveBuffer(ws);
 
+                MessageKind messageKind = 
+                    (ws.opcode == wsheader_type::TEXT_FRAME)
+                    ? MessageKind::MSG_TEXT
+                    : MessageKind::MSG_BINARY;
+
                 //
                 // Usual case. Small unfragmented messages
                 //
                 if (ws.fin && _chunks.empty())
                 {
-                    emitMessage(MessageKind::MSG,
+                    emitMessage(messageKind,
                                 std::string(_rxbuf.begin()+ws.header_size,
                                             _rxbuf.begin()+ws.header_size+(size_t) ws.N),
                                 ws,
@@ -567,7 +572,7 @@ namespace ix
                                              _rxbuf.begin()+ws.header_size+(size_t)ws.N));
                     if (ws.fin)
                     {
-                        emitMessage(MessageKind::MSG, getMergedChunks(), ws, onMessageCallback);
+                        emitMessage(messageKind, getMergedChunks(), ws, onMessageCallback);
                         _chunks.clear();
                     }
                     else

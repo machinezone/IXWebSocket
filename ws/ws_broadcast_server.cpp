@@ -62,6 +62,7 @@ namespace ix
                                 if (client != webSocket)
                                 {
                                     client->send(msg->str,
+                                                 msg->binary,
                                                  [](int current, int total) -> bool
                                     {
                                         std::cerr << "Step " << current

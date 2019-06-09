@@ -1,8 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [Unreleased] - 2019-06-xx
+## [4.0.0] - 2019-06-09
 ### Changed
+- WebSocket::send() sends message in TEXT mode by default
+- WebSocketMessage sets a new binary field, which tells whether the received incoming message is binary or text
 - WebSocket::send takes a third arg, binary which default to true (can be text too)
 - WebSocket callback only take one object, a const ix::WebSocketMessagePtr& msg
 - Add explicite WebSocket::sendBinary
