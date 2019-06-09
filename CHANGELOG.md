@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased] - 2019-06-xx
 ### Changed
+- WebSocket::send takes a third arg, binary which default to true (can be text too)
 - WebSocket callback only take one object, a const ix::WebSocketMessagePtr& msg
 - Add explicite WebSocket::sendBinary
 - New headers + WebSocketMessage class to hold message data, still not used across the board
