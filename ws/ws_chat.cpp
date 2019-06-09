@@ -172,7 +172,7 @@ namespace ix
 
     void WebSocketChat::sendMessage(const std::string& text)
     {
-        _webSocket.send(encodeMessage(text));
+        _webSocket.sendText(encodeMessage(text));
     }
 
     int ws_chat_main(const std::string& url,

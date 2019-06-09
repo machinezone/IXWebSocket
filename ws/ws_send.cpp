@@ -244,8 +244,8 @@ namespace ix
         MsgPack msg(pdu);
 
         Bench bench("Sending file through websocket");
-        _webSocket.send(msg.dump(),
-                        [throttle](int current, int total) -> bool
+        _webSocket.sendBinary(msg.dump(),
+                              [throttle](int current, int total) -> bool
         {
             std::cout << "ws_send: Step " << current << " out of " << total << std::endl;
 

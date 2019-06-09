@@ -138,7 +138,7 @@ namespace ix
 
     void WebSocketConnect::sendMessage(const std::string& text)
     {
-        _webSocket.send(text);
+        _webSocket.sendText(text);
     }
 
     int ws_connect_main(const std::string& url,

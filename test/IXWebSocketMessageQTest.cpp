@@ -20,7 +20,7 @@ namespace
     {
         server.setOnConnectionCallback(
             [&server](std::shared_ptr<ix::WebSocket> webSocket,
-                std::shared_ptr<ConnectionState> connectionState)
+                      std::shared_ptr<ConnectionState> connectionState)
         {
             webSocket->setOnMessageCallback(
                 [connectionState, &server](ix::WebSocketMessageType messageType,

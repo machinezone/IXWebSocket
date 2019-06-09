@@ -380,6 +380,12 @@ namespace ix
         return sendMessage(data, SendMessageKind::Binary, onProgressCallback);
     }
 
+    WebSocketSendInfo WebSocket::sendBinary(const std::string& text,
+                                            const OnProgressCallback& onProgressCallback)
+    {
+        return sendMessage(text, SendMessageKind::Binary, onProgressCallback);
+    }
+
     WebSocketSendInfo WebSocket::sendText(const std::string& text,
                                           const OnProgressCallback& onProgressCallback)
     {
