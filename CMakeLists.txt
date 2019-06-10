@@ -134,6 +134,11 @@ if (APPLE AND USE_TLS AND NOT USE_MBED_TLS)
   target_link_libraries(ixwebsocket "-framework foundation" "-framework security")
 endif()
 
+if (UNIX)
+  find_package(Threads)
+  target_link_libraries(ixwebsocket ${CMAKE_THREAD_LIBS_INIT})
+endif()
+
 if (USE_OPEN_SSL)
   find_package(OpenSSL REQUIRED)
   add_definitions(${OPENSSL_DEFINITIONS})
