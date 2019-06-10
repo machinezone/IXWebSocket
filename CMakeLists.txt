@@ -4,6 +4,8 @@
 #
 
 cmake_minimum_required(VERSION 3.4.1)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_MODULE_PATH}")
+
 project(ixwebsocket C CXX)
 
 set (CMAKE_CXX_STANDARD 14)
@@ -20,64 +22,64 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 endif()
 
 set( IXWEBSOCKET_SOURCES
+    ixwebsocket/IXCancellationRequest.cpp
+    ixwebsocket/IXConnectionState.cpp
+    ixwebsocket/IXDNSLookup.cpp
+    ixwebsocket/IXHttpClient.cpp
+    ixwebsocket/IXNetSystem.cpp
+    ixwebsocket/IXSelectInterrupt.cpp
+    ixwebsocket/IXSelectInterruptFactory.cpp
     ixwebsocket/IXSocket.cpp
-    ixwebsocket/IXSocketServer.cpp
     ixwebsocket/IXSocketConnect.cpp
     ixwebsocket/IXSocketFactory.cpp
-    ixwebsocket/IXDNSLookup.cpp
-    ixwebsocket/IXCancellationRequest.cpp
-    ixwebsocket/IXNetSystem.cpp
+    ixwebsocket/IXSocketServer.cpp
+    ixwebsocket/IXUrlParser.cpp
     ixwebsocket/IXWebSocket.cpp
-    ixwebsocket/IXWebSocketServer.cpp
-    ixwebsocket/IXWebSocketTransport.cpp
+    ixwebsocket/IXWebSocketCloseConstants.cpp
     ixwebsocket/IXWebSocketHandshake.cpp
+    ixwebsocket/IXWebSocketHttpHeaders.cpp
+    ixwebsocket/IXWebSocketMessageQueue.cpp
     ixwebsocket/IXWebSocketPerMessageDeflate.cpp
     ixwebsocket/IXWebSocketPerMessageDeflateCodec.cpp
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.cpp
-    ixwebsocket/IXWebSocketHttpHeaders.cpp
-    ixwebsocket/IXHttpClient.cpp
-    ixwebsocket/IXUrlParser.cpp
+    ixwebsocket/IXWebSocketServer.cpp
+    ixwebsocket/IXWebSocketTransport.cpp
     ixwebsocket/LUrlParser.cpp
-    ixwebsocket/IXSelectInterrupt.cpp
-    ixwebsocket/IXSelectInterruptFactory.cpp
-    ixwebsocket/IXConnectionState.cpp
-    ixwebsocket/IXWebSocketCloseConstants.cpp
-    ixwebsocket/IXWebSocketMessageQueue.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
-    ixwebsocket/IXSocket.h
-    ixwebsocket/IXSocketServer.h
-    ixwebsocket/IXSocketConnect.h
-    ixwebsocket/IXSocketFactory.h
-    ixwebsocket/IXSetThreadName.h
-    ixwebsocket/IXDNSLookup.h
     ixwebsocket/IXCancellationRequest.h
+    ixwebsocket/IXConnectionState.h
+    ixwebsocket/IXDNSLookup.h
+    ixwebsocket/IXHttpClient.h
     ixwebsocket/IXNetSystem.h
     ixwebsocket/IXProgressCallback.h
+    ixwebsocket/IXSelectInterrupt.h
+    ixwebsocket/IXSelectInterruptFactory.h
+    ixwebsocket/IXSetThreadName.h
+    ixwebsocket/IXSocket.h
+    ixwebsocket/IXSocketConnect.h
+    ixwebsocket/IXSocketFactory.h
+    ixwebsocket/IXSocketServer.h
+    ixwebsocket/IXUrlParser.h
     ixwebsocket/IXWebSocket.h
-    ixwebsocket/IXWebSocketServer.h
-    ixwebsocket/IXWebSocketTransport.h
-    ixwebsocket/IXWebSocketHandshake.h
-    ixwebsocket/IXWebSocketSendInfo.h
-    ixwebsocket/IXWebSocketErrorInfo.h
+    ixwebsocket/IXWebSocketCloseConstants.h
     ixwebsocket/IXWebSocketCloseInfo.h
-    ixwebsocket/IXWebSocketOpenInfo.h
-    ixwebsocket/IXWebSocketMessageType.h
+    ixwebsocket/IXWebSocketErrorInfo.h
+    ixwebsocket/IXWebSocketHandshake.h
+    ixwebsocket/IXWebSocketHttpHeaders.h
     ixwebsocket/IXWebSocketMessage.h
+    ixwebsocket/IXWebSocketMessageQueue.h
+    ixwebsocket/IXWebSocketMessageType.h
+    ixwebsocket/IXWebSocketOpenInfo.h
     ixwebsocket/IXWebSocketPerMessageDeflate.h
     ixwebsocket/IXWebSocketPerMessageDeflateCodec.h
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.h
-    ixwebsocket/IXWebSocketHttpHeaders.h
-    ixwebsocket/libwshandshake.hpp
-    ixwebsocket/IXHttpClient.h
-    ixwebsocket/IXUrlParser.h
+    ixwebsocket/IXWebSocketSendInfo.h
+    ixwebsocket/IXWebSocketServer.h
+    ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/LUrlParser.h
-    ixwebsocket/IXSelectInterrupt.h
-    ixwebsocket/IXSelectInterruptFactory.h
-    ixwebsocket/IXConnectionState.h
-    ixwebsocket/IXWebSocketCloseConstants.h
-    ixwebsocket/IXWebSocketMessageQueue.h
+    ixwebsocket/libwshandshake.hpp
 )
 
 if (UNIX)
@@ -141,25 +143,28 @@ if (USE_OPEN_SSL)
 endif()
 
 if (USE_MBED_TLS)
-  set (ENABLE_PROGRAMS OFF)
-  add_subdirectory(third_party/mbedtls)
-  include_directories(third_party/mbedtls/include)
+  if (USE_VENDORED_THIRD_PARTY)
+    set (ENABLE_PROGRAMS OFF)
+    add_subdirectory(third_party/mbedtls)
+    include_directories(third_party/mbedtls/include)
 
-  target_link_libraries(ixwebsocket mbedtls)
+    target_link_libraries(ixwebsocket mbedtls)
+  else()
+    find_package(MbedTLS REQUIRED)
+    include_directories(${MBEDTLS_INCLUDE_DIRS})
+    target_link_libraries(ixwebsocket ${MBEDTLS_LIBRARIES})
+  endif()
 endif()
 
-if (WIN32)
+find_package(ZLIB REQUIRED)
+if (ZLIB_FOUND)
+  include_directories(${ZLIB_INCLUDE_DIRS})
+  target_link_libraries(ixwebsocket ${ZLIB_LIBRARIES})
+else()
   add_subdirectory(third_party/zlib)
   include_directories(third_party/zlib ${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib)
   target_link_libraries(ixwebsocket zlibstatic wsock32 ws2_32)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
-else()
-  # gcc/Linux needs -pthread
-  find_package(Threads)
-
-  target_link_libraries(ixwebsocket 
-    z ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 set( IXWEBSOCKET_INCLUDE_DIRS
@@ -171,7 +176,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(ixwebsocket PRIVATE /MP)
 endif()
 
-target_include_directories( ixwebsocket PUBLIC ${IXWEBSOCKET_INCLUDE_DIRS} )
+target_include_directories(ixwebsocket PUBLIC ${IXWEBSOCKET_INCLUDE_DIRS})
 
 set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
 
