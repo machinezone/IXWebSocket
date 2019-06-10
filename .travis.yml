@@ -39,3 +39,33 @@ matrix:
         - cmake -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 -DUSE_VENDORED_THIRD_PARTY=1 .
         - cmake --build --parallel .
         - python test/run.py
+
+install:
+  # HACK: gcc 8.0.1 is missing movdirintrin.h so just download it. We need this for GLM and Vectrexy to build.
+  - sudo wget https://raw.githubusercontent.com/gcc-mirror/gcc/gcc-8-branch/gcc/config/i386/movdirintrin.h -P /usr/lib/gcc/x86_64-linux-gnu/8/include/
+
+  # Create deps dir
+  - mkdir -p ${DEPS_DIR}
+
+  # Set compiler vars
+  - export CC=${CC_COMPILER}
+  - export CXX=${CXX_COMPILER}
+
+  # Install vcpkg and dependencies
+  - |
+    set -e
+    mkdir -p ${DEPS_DIR}/vcpkg
+    pushd ${DEPS_DIR}/vcpkg
+    git init
+    git remote add origin https://github.com/Microsoft/vcpkg.git
+    git fetch origin master
+    git checkout -b master origin/master
+    ./bootstrap-vcpkg.sh
+    # Only build release libs to save time. We inject a new line first since some cmake files don't end with one.
+    echo -e '\nset(VCPKG_BUILD_TYPE release)' >> ./triplets/${VCPKG_TRIPLET}.cmake
+    ./vcpkg install sdl2 sdl2-net glew glm stb imgui
+    popd
+
+cache:
+  directories:
+- ${DEPS_DIR}/vcpkg/installed
