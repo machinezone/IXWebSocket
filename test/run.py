@@ -99,8 +99,10 @@ def runCMake(sanitizer, buildDir):
         #generator = '"NMake Makefiles"'
         #generator = '"Visual Studio 16 2019"'
         generator = '"Visual Studio 15 2017"'
+        USE_VENDORED_THIRD_PARTY = 'ON'
     else:
         generator = '"Unix Makefiles"'
+        USE_VENDORED_THIRD_PARTY = 'OFF'
 
     CMAKE_BUILD_TYPE = BUILD_TYPE
 
@@ -110,6 +112,7 @@ def runCMake(sanitizer, buildDir):
     -DCMAKE_BUILD_TYPE={CMAKE_BUILD_TYPE} \
     -DUSE_TLS=1 \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    -DUSE_VENDORED_THIRD_PARTY={USE_VENDORED_THIRD_PARTY} \
     -G{generator}'
 
     cmakeCmd = fmt.format(**locals())
