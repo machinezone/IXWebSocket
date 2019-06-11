@@ -36,6 +36,6 @@ matrix:
         - CMAKE_PATH="/c/Program Files/CMake/bin"
       script: 
         - export PATH=$CMAKE_PATH:$PATH
-        - cmake -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 -DUSE_VENDORED_THIRD_PARTY=1 .
-        - cmake --build --parallel .
+        #  - cmake -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 -DUSE_VENDORED_THIRD_PARTY=1 .
+        #  - cmake --build --parallel .
         - python test/run.py
