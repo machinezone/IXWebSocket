@@ -72,7 +72,6 @@ namespace ix
         std::string line;
         std::stringstream tokenStream(stack);
 
-        std::stringstream ss;
         std::smatch group;
 
         while (std::getline(tokenStream, line))
@@ -84,6 +83,7 @@ namespace ix
                 const auto linenoStr = group.str(2);
                 const auto function = group.str(3);
 
+                std::stringstream ss;
                 ss << linenoStr;
                 uint64_t lineno;
                 ss >> lineno;
@@ -96,6 +96,8 @@ namespace ix
                 frames.append(frame);
             }
         }
+
+        std::reverse(frames.begin(), frames.end());
 
         return frames;
     }
