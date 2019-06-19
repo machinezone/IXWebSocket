@@ -14,25 +14,13 @@ namespace ix
 {
     const int64_t DNSLookup::kDefaultWait = 10; // ms
 
-    std::atomic<uint64_t> DNSLookup::_nextId(0);
-    std::set<uint64_t> DNSLookup::_activeJobs;
-    std::mutex DNSLookup::_activeJobsMutex;
-
     DNSLookup::DNSLookup(const std::string& hostname, int port, int64_t wait) :
         _port(port),
         _wait(wait),
         _res(nullptr),
-        _done(false),
-        _id(_nextId++)
+        _done(false)
     {
         setHostname(hostname);
-    }
-
-    DNSLookup::~DNSLookup()
-    {
-        // Remove this job from the active jobs list
-        std::lock_guard<std::mutex> lock(_activeJobsMutex);
-        _activeJobs.erase(_id);
     }
 
     struct addrinfo* DNSLookup::getAddrInfo(const std::string& hostname,
@@ -94,17 +82,14 @@ namespace ix
                             // if you need a second lookup.
         }
 
-        // Record job in the active Job set
-        {
-            std::lock_guard<std::mutex> lock(_activeJobsMutex);
-            _activeJobs.insert(_id);
-        }
-
         //
         // Good resource on thread forced termination
         // https://www.bo-yang.net/2017/11/19/cpp-kill-detached-thread
         //
-        _thread = std::thread(&DNSLookup::run, this, _id, getHostname(), _port);
+        auto ptr = shared_from_this();
+        std::weak_ptr<DNSLookup> self(ptr);
+
+        _thread = std::thread(&DNSLookup::run, this, self, getHostname(), _port);
         _thread.detach();
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
@@ -138,7 +123,7 @@ namespace ix
         return getRes();
     }
 
-    void DNSLookup::run(uint64_t id, const std::string& hostname, int port) // thread runner
+    void DNSLookup::run(std::weak_ptr<DNSLookup> self, const std::string& hostname, int port) // thread runner
     {
         // We don't want to read or write into members variables of an object that could be
         // gone, so we use temporary variables (res) or we pass in by copy everything that
@@ -146,21 +131,15 @@ namespace ix
         std::string errMsg;
         struct addrinfo* res = getAddrInfo(hostname, port, errMsg);
 
-        // if this isn't an active job, and the control thread is gone
-        // there is nothing to do, and we don't want to touch the defunct
-        // object data structure such as _errMsg or _condition
-        std::lock_guard<std::mutex> lock(_activeJobsMutex);
-        if (_activeJobs.count(id) == 0)
+        if (self.lock())
         {
-            return;
+            // Copy result into the member variables
+            setRes(res);
+            setErrMsg(errMsg);
+
+            _condition.notify_one();
+            _done = true;
         }
-
-        // Copy result into the member variables
-        setRes(res);
-        setErrMsg(errMsg);
-
-        _condition.notify_one();
-        _done = true;
     }
 
     void DNSLookup::setHostname(const std::string& hostname)

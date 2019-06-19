@@ -128,8 +128,8 @@ namespace ix
         //
         // First do DNS resolution
         //
-        DNSLookup dnsLookup(hostname, port);
-        struct addrinfo *res = dnsLookup.resolve(errMsg, isCancellationRequested);
+        auto dnsLookup = std::make_shared<DNSLookup>(hostname, port);
+        struct addrinfo *res = dnsLookup->resolve(errMsg, isCancellationRequested);
         if (res == nullptr)
         {
             return -1;

@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased] - 2019-06-09
 ### Changed
+- IXDNSLookup. Uses weak pointer + smart_ptr + shared_from_this instead of static sets + mutex to handle object going away before dns lookup has resolved
 - cobra_to_sentry / backtraces are reversed and line number is not extracted correctly
 - mbedtls and zlib are searched with find_package, and we use the vendored version if nothing is found
 - travis CI uses g++ on Linux
