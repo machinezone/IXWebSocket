@@ -16,16 +16,17 @@
 #include <set>
 #include <string>
 #include <thread>
+#include <memory>
 
 struct addrinfo;
 
 namespace ix
 {
-    class DNSLookup
+    class DNSLookup : public std::enable_shared_from_this<DNSLookup>
     {
     public:
         DNSLookup(const std::string& hostname, int port, int64_t wait = DNSLookup::kDefaultWait);
-        ~DNSLookup();
+        ~DNSLookup() = default;
 
         struct addrinfo* resolve(std::string& errMsg,
                                  const CancellationRequest& isCancellationRequested,
@@ -41,7 +42,7 @@ namespace ix
                                             int port,
                                             std::string& errMsg);
 
-        void run(uint64_t id, const std::string& hostname, int port); // thread runner
+        void run(std::weak_ptr<DNSLookup> self, const std::string& hostname, int port); // thread runner
 
         void setHostname(const std::string& hostname);
         const std::string& getHostname();
@@ -68,11 +69,6 @@ namespace ix
         std::thread _thread;
         std::condition_variable _condition;
         std::mutex _conditionVariableMutex;
-
-        uint64_t _id;
-        static std::atomic<uint64_t> _nextId;
-        static std::set<uint64_t> _activeJobs;
-        static std::mutex _activeJobsMutex;
 
         const static int64_t kDefaultWait;
     };
