@@ -35,6 +35,7 @@ namespace ix
     struct HttpResponse
     {
         int statusCode;
+        std::string description;
         HttpErrorCode errorCode;
         WebSocketHttpHeaders headers;
         std::string payload;
@@ -43,6 +44,7 @@ namespace ix
         uint64_t downloadSize;
 
         HttpResponse(int s = 0,
+                     const std::string& des = std::string(),
                      const HttpErrorCode& c = HttpErrorCode::Ok,
                      const WebSocketHttpHeaders& h = WebSocketHttpHeaders(),
                      const std::string& p = std::string(),
@@ -50,6 +52,7 @@ namespace ix
                      uint64_t u = 0,
                      uint64_t d = 0)
             : statusCode(s)
+            , description(des)
             , errorCode(c)
             , headers(h)
             , payload(p)
@@ -84,9 +87,33 @@ namespace ix
 
     using HttpRequestArgsPtr = std::shared_ptr<HttpRequestArgs>;
 
+    struct HttpRequest
+    {
+        std::string uri;
+        std::string method;
+        std::string version;
+        WebSocketHttpHeaders headers;
+
+        HttpRequest(const std::string& u,
+                    const std::string& m,
+                    const std::string& v,
+                    const WebSocketHttpHeaders& h = WebSocketHttpHeaders())
+            : uri(u)
+            , method(m)
+            , version(v)
+            , headers(h)
+        {
+        }
+    };
+
+    using HttpRequestPtr = std::shared_ptr<HttpRequest>;
+
     class Http
     {
     public:
+        static std::tuple<bool, std::string, HttpRequestPtr> parseRequest(std::shared_ptr<Socket> socket);
+        static bool sendResponse(HttpResponsePtr response, std::shared_ptr<Socket> socket);
+
         static std::tuple<std::string, std::string, std::string> parseRequestLine(const std::string& line);
         static std::string trim(const std::string& str);
     };

@@ -8,6 +8,7 @@
 
 #include "IXSocketServer.h"
 #include "IXWebSocket.h"
+#include "IXHttp.h"
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -19,7 +20,7 @@
 namespace ix
 {
     using OnConnectionCallback =
-        std::function<void(std::shared_ptr<WebSocket>, std::shared_ptr<ConnectionState>)>;
+        std::function<HttpResponsePtr(HttpRequestPtr, std::shared_ptr<ConnectionState>)>;
 
     class HttpServer final : public SocketServer
     {

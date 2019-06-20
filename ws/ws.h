@@ -93,4 +93,6 @@ namespace ix
                       const std::string& redisPassword,
                       bool verbose,
                       const std::string& appsConfigPath);
+
+    int ws_httpd_main(int port, const std::string& hostname);
 } // namespace ix

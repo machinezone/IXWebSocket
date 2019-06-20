@@ -56,9 +56,13 @@ namespace ix
 
         std::string errorMsg;
         auto socket = createSocket(fd, errorMsg);
+        // Set the socket to non blocking mode + other tweaks
+        SocketConnect::configure(fd);
 
-        std::cout << "I was here" << std::endl;
+        auto ret = Http::parseRequest(socket);
+        auto response = _onConnectionCallback(std::get<2>(ret), connectionState);
 
+        Http::sendResponse(response, socket);
 #if 0
         // Parse request
         auto httpRequest = std::make_shared<HttpRequestArgs>();
