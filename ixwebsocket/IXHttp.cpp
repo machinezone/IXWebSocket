@@ -116,6 +116,10 @@ namespace ix
         // Write headers
         ss.str("");
         ss << "Content-Length: " << response->payload.size() << "\r\n";
+        for (auto&& it : response->headers)
+        {
+            ss << it.first << ": " << it.second << "\r\n";
+        }
         ss << "\r\n";
 
         if (!socket->writeBytes(ss.str(), nullptr))
