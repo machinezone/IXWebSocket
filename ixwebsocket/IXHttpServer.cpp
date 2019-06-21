@@ -60,22 +60,10 @@ namespace ix
         SocketConnect::configure(fd);
 
         auto ret = Http::parseRequest(socket);
+        // FIXME: handle errors in parseRequest
+
         auto response = _onConnectionCallback(std::get<2>(ret), connectionState);
-
         Http::sendResponse(response, socket);
-#if 0
-        // Parse request
-        auto httpRequest = std::make_shared<HttpRequestArgs>();
-
-        // Execute callback which should produce a response
-        auto response = _onConnectionCallback(httpRequest, connectionState);
-
-        // Write the response to the socket
-        if (!socket->writeBytes(response, nullptr))
-        {
-            std::string errorMsg("Cannot send request");
-        }
-#endif
 
         logInfo("HttpServer::handleConnection() done");
         connectionState->setTerminated();
