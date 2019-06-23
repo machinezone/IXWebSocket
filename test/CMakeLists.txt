@@ -7,7 +7,7 @@ project (ixwebsocket_unittest)
 
 set (CMAKE_CXX_STANDARD 14)
 
-if (NOT WIN32)
+if (MAC)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../third_party/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
   find_package(Sanitizers)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
@@ -67,7 +67,7 @@ endif()
 
 add_executable(ixwebsocket_unittest ${SOURCES})
 
-if (NOT WIN32)
+if (MAC)
   add_sanitizers(ixwebsocket_unittest)
 endif()
 
