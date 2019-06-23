@@ -110,7 +110,13 @@ namespace ix
             [this](HttpRequestPtr request,
                    std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr
             {
-                std::string path("." + request->uri);
+                std::string uri(request->uri);
+                if (uri.empty() || uri == "/")
+                {
+                    uri = "/index.html";
+                }
+
+                std::string path("." + uri);
                 auto res = readAsString(path);
                 bool found = res.first;
                 if (!found)
@@ -133,7 +139,8 @@ namespace ix
                 logInfo(ss.str());
 
                 WebSocketHttpHeaders headers;
-                headers["Content-Type"] = "application/octet-stream";
+                // FIXME: check extensions to set the content type
+                // headers["Content-Type"] = "application/octet-stream";
                 headers["Accept-Ranges"] = "none";
 
                 for (auto&& it : request->headers)
@@ -143,7 +150,7 @@ namespace ix
 
                 return std::make_shared<HttpResponse>(200, "OK",
                                                       HttpErrorCode::Ok,
-                                                      WebSocketHttpHeaders(),
+                                                      headers,
                                                       content);
             }
         );

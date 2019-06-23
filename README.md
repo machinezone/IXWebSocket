@@ -4,7 +4,7 @@
 
 ## Introduction
 
-[*WebSocket*](https://en.wikipedia.org/wiki/WebSocket) is a computer communications protocol, providing full-duplex and bi-directionnal communication channels over a single TCP connection. *IXWebSocket* is a C++ library for client and server Websocket communication, and for client HTTP communication. The code is derived from [easywsclient](https://github.com/dhbaird/easywsclient) and from the [Satori C SDK](https://github.com/satori-com/satori-rtm-sdk-c). It has been tested on the following platforms.
+[*WebSocket*](https://en.wikipedia.org/wiki/WebSocket) is a computer communications protocol, providing full-duplex and bi-directionnal communication channels over a single TCP connection. *IXWebSocket* is a C++ library for client and server Websocket communication, and for client and server HTTP communication. The code is derived from [easywsclient](https://github.com/dhbaird/easywsclient) and from the [Satori C SDK](https://github.com/satori-com/satori-rtm-sdk-c). It has been tested on the following platforms.
 
 * macOS
 * iOS
@@ -117,7 +117,7 @@ server.wait();
 
 ```
 
-Here is what the HTTP client API looks like. Note that HTTP client support is very recent and subject to changes.
+Here is what the HTTP client API looks like.
 
 ```
 //
@@ -194,6 +194,44 @@ bool ok = httpClient.performRequest(args, [](const HttpResponsePtr& response)
 );
 
 // ok will be false if your httpClient is not async
+```
+
+Here is what the HTTP server API looks like. Note that HTTP server support is very, very recent and subject to changes.
+
+```
+ix::HttpServer server(port, hostname);
+
+auto res = server.listen();
+if (!res.first)
+{
+    std::cerr << res.second << std::endl;
+    return 1;
+}
+
+server.start();
+server.wait();
+```
+
+If you want to handle how requests are processed, implement the setOnConnectionCallback callback, which takes an HttpRequestPtr as input, and returns an HttpResponsePtr. You can look at HttpServer::setDefaultConnectionCallback for a slightly more advanced callback example.
+
+```
+setOnConnectionCallback(
+    [this](HttpRequestPtr request,
+           std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr
+    {
+        // Build a string for the response
+        std::stringstream ss;
+        ss << request->method 
+           << " "
+           << request->uri;
+
+        std::string content = ss.str();
+
+        return std::make_shared<HttpResponse>(200, "OK",
+                                              HttpErrorCode::Ok,
+                                              WebSocketHttpHeaders(),
+                                              content);
+}
 ```
 
 ## Build
