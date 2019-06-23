@@ -15,10 +15,15 @@ namespace ix
 {
     std::string Http::trim(const std::string& str)
     {
-        std::string out(str);
-        out.erase(std::remove(out.begin(), out.end(), ' '), out.end());
-        out.erase(std::remove(out.begin(), out.end(), '\r'), out.end());
-        out.erase(std::remove(out.begin(), out.end(), '\n'), out.end());
+        std::string out;
+        for (auto c : str)
+        {
+            if (c != ' ' && c != '\n' && c != '\r')
+            {
+                out += c;
+            }
+        }
+
         return out;
     }
 
