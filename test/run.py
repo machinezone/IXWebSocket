@@ -102,7 +102,7 @@ def runCMake(sanitizer, buildDir):
         USE_VENDORED_THIRD_PARTY = 'ON'
     else:
         generator = '"Unix Makefiles"'
-        USE_VENDORED_THIRD_PARTY = 'OFF'
+        USE_VENDORED_THIRD_PARTY = 'ON'
 
     CMAKE_BUILD_TYPE = BUILD_TYPE
 
@@ -111,6 +111,7 @@ def runCMake(sanitizer, buildDir):
     -B"{buildDir}" \
     -DCMAKE_BUILD_TYPE={CMAKE_BUILD_TYPE} \
     -DUSE_TLS=1 \
+    -DUSE_MBED_TLS=1 \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
     -DUSE_VENDORED_THIRD_PARTY={USE_VENDORED_THIRD_PARTY} \
     -G{generator}'

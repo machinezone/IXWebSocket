@@ -216,6 +216,10 @@ int main(int argc, char** argv)
         ->check(CLI::ExistingPath);
     runApp->add_flag("-v", verbose, "Verbose");
 
+    CLI::App* httpServerApp = app.add_subcommand("httpd", "HTTP server");
+    httpServerApp->add_option("--port", port, "Port");
+    httpServerApp->add_option("--host", hostname, "Hostname");
+
     CLI11_PARSE(app, argc, argv);
 
     // pid file handling
@@ -312,6 +316,10 @@ int main(int argc, char** argv)
                                 redisHosts, redisPort,
                                 redisPassword, verbose,
                                 appsConfigPath);
+    }
+    else if (app.got_subcommand("httpd"))
+    {
+        ret = ix::ws_httpd_main(port, hostname);
     }
 
     ix::uninitNetSystem();

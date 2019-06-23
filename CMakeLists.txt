@@ -25,7 +25,9 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXCancellationRequest.cpp
     ixwebsocket/IXConnectionState.cpp
     ixwebsocket/IXDNSLookup.cpp
+    ixwebsocket/IXHttp.cpp
     ixwebsocket/IXHttpClient.cpp
+    ixwebsocket/IXHttpServer.cpp
     ixwebsocket/IXNetSystem.cpp
     ixwebsocket/IXSelectInterrupt.cpp
     ixwebsocket/IXSelectInterruptFactory.cpp
@@ -51,7 +53,9 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXCancellationRequest.h
     ixwebsocket/IXConnectionState.h
     ixwebsocket/IXDNSLookup.h
+    ixwebsocket/IXHttp.h
     ixwebsocket/IXHttpClient.h
+    ixwebsocket/IXHttpServer.h
     ixwebsocket/IXNetSystem.h
     ixwebsocket/IXProgressCallback.h
     ixwebsocket/IXSelectInterrupt.h
