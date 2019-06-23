@@ -97,7 +97,6 @@ namespace ix
         return std::make_tuple(true, "", httpRequest);
     }
 
-    // FIXME: Write a mime type
     bool Http::sendResponse(HttpResponsePtr response, std::shared_ptr<Socket> socket)
     {
         // Write the response to the socket
@@ -127,6 +126,8 @@ namespace ix
             return false;
         }
 
-        return socket->writeBytes(response->payload, nullptr);
+        return response->payload.empty() 
+            ? true
+            : socket->writeBytes(response->payload, nullptr);
     }
 }

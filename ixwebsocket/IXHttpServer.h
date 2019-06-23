@@ -19,17 +19,16 @@
 
 namespace ix
 {
-    using OnConnectionCallback =
-        std::function<HttpResponsePtr(HttpRequestPtr, std::shared_ptr<ConnectionState>)>;
-
     class HttpServer final : public SocketServer
     {
     public:
+        using OnConnectionCallback =
+            std::function<HttpResponsePtr(HttpRequestPtr, std::shared_ptr<ConnectionState>)>;
+
         HttpServer(int port = SocketServer::kDefaultPort,
                    const std::string& host = SocketServer::kDefaultHost,
                    int backlog = SocketServer::kDefaultTcpBacklog,
-                   size_t maxConnections = SocketServer::kDefaultMaxConnections,
-                   int handshakeTimeoutSecs = HttpServer::kDefaultHandShakeTimeoutSecs);
+                   size_t maxConnections = SocketServer::kDefaultMaxConnections);
         virtual ~HttpServer();
         virtual void stop() final;
 
@@ -37,15 +36,15 @@ namespace ix
 
     private:
         // Member variables
-        int _handshakeTimeoutSecs;
         OnConnectionCallback _onConnectionCallback;
-        const static int kDefaultHandShakeTimeoutSecs;
         std::atomic<int> _connectedClientsCount;
 
         // Methods
         virtual void handleConnection(int fd,
                                       std::shared_ptr<ConnectionState> connectionState) final;
         virtual size_t getConnectedClientsCount() final;
+
+        void setDefaultConnectionCallback();
     };
 } // namespace ix
 

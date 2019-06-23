@@ -28,6 +28,7 @@ include_directories(
 set (SOURCES 
   test_runner.cpp
   IXTest.cpp
+  IXGetFreePort.cpp
   ../third_party/msgpack11/msgpack11.cpp
   ../ws/ixcore/utils/IXCoreLogger.cpp
 
@@ -38,6 +39,8 @@ set (SOURCES
   IXUrlParserTest.cpp
   IXWebSocketServerTest.cpp
   IXHttpClientTest.cpp
+  IXHttpServerTest.cpp
+  IXUnityBuildsTest.cpp
 )
 
 # Some unittest don't work on windows yet

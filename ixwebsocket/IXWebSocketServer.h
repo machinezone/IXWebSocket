@@ -19,12 +19,12 @@
 
 namespace ix
 {
-    using OnConnectionCallback =
-        std::function<void(std::shared_ptr<WebSocket>, std::shared_ptr<ConnectionState>)>;
-
     class WebSocketServer final : public SocketServer
     {
     public:
+        using OnConnectionCallback =
+            std::function<void(std::shared_ptr<WebSocket>, std::shared_ptr<ConnectionState>)>;
+
         WebSocketServer(int port = SocketServer::kDefaultPort,
                         const std::string& host = SocketServer::kDefaultHost,
                         int backlog = SocketServer::kDefaultTcpBacklog,
