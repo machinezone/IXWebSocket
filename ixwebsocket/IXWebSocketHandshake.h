@@ -64,8 +64,6 @@ namespace ix
         // Parse HTTP headers
         WebSocketInitResult sendErrorResponse(int code, const std::string& reason);
 
-        std::tuple<std::string, std::string, std::string> parseRequestLine(const std::string& line);
-        std::string trim(const std::string& str);
         bool insensitiveStringCompare(const std::string& a, const std::string& b);
 
         std::atomic<bool>& _requestInitCancellation;

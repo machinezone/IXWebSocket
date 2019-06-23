@@ -7,7 +7,7 @@ project (ixwebsocket_unittest)
 
 set (CMAKE_CXX_STANDARD 14)
 
-if (NOT WIN32)
+if (MAC)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../third_party/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
   find_package(Sanitizers)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
@@ -28,6 +28,7 @@ include_directories(
 set (SOURCES 
   test_runner.cpp
   IXTest.cpp
+  IXGetFreePort.cpp
   ../third_party/msgpack11/msgpack11.cpp
   ../ws/ixcore/utils/IXCoreLogger.cpp
 
@@ -38,6 +39,8 @@ set (SOURCES
   IXUrlParserTest.cpp
   IXWebSocketServerTest.cpp
   IXHttpClientTest.cpp
+  IXHttpServerTest.cpp
+  IXUnityBuildsTest.cpp
 )
 
 # Some unittest don't work on windows yet
@@ -64,7 +67,7 @@ endif()
 
 add_executable(ixwebsocket_unittest ${SOURCES})
 
-if (NOT WIN32)
+if (MAC)
   add_sanitizers(ixwebsocket_unittest)
 endif()
 

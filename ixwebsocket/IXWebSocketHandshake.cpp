@@ -7,6 +7,7 @@
 #include "IXWebSocketHandshake.h"
 #include "IXSocketConnect.h"
 #include "IXUrlParser.h"
+#include "IXHttp.h"
 
 #include "libwshandshake.hpp"
 
@@ -31,15 +32,6 @@ namespace ix
 
     }
 
-    std::string WebSocketHandshake::trim(const std::string& str)
-    {
-        std::string out(str);
-        out.erase(std::remove(out.begin(), out.end(), ' '), out.end());
-        out.erase(std::remove(out.begin(), out.end(), '\r'), out.end());
-        out.erase(std::remove(out.begin(), out.end(), '\n'), out.end());
-        return out;
-    }
-
     bool WebSocketHandshake::insensitiveStringCompare(const std::string& a, const std::string& b)
     {
         return std::equal(a.begin(), a.end(),
@@ -48,40 +40,6 @@ namespace ix
                           {
                               return tolower(a) == tolower(b);
                           });
-    }
-
-    std::tuple<std::string, std::string, std::string> WebSocketHandshake::parseRequestLine(const std::string& line)
-    {
-        // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
-        std::string token;
-        std::stringstream tokenStream(line);
-        std::vector<std::string> tokens;
-
-        // Split by ' '
-        while (std::getline(tokenStream, token, ' '))
-        {
-            tokens.push_back(token);
-        }
-
-        std::string method;
-        if (tokens.size() >= 1)
-        {
-            method = trim(tokens[0]);
-        }
-
-        std::string requestUri;
-        if (tokens.size() >= 2)
-        {
-            requestUri = trim(tokens[1]);
-        }
-
-        std::string httpVersion;
-        if (tokens.size() >= 3)
-        {
-            httpVersion = trim(tokens[2]);
-        }
-
-        return std::make_tuple(method, requestUri, httpVersion);
     }
 
     std::string WebSocketHandshake::genRandomString(const int len)
@@ -294,7 +252,7 @@ namespace ix
         }
 
         // Validate request line (GET /foo HTTP/1.1\r\n)
-        auto requestLine = parseRequestLine(line);
+        auto requestLine = Http::parseRequestLine(line);
         auto method      = std::get<0>(requestLine);
         auto uri         = std::get<1>(requestLine);
         auto httpVersion = std::get<2>(requestLine);
