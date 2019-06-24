@@ -6,21 +6,21 @@ language: bash
 matrix:
   include:
     # macOS
-    - os: osx
-      compiler: clang
-      script:
-        - python test/run.py
-        - make ws
+    # - os: osx
+    #   compiler: clang
+    #   script:
+    #     - python test/run.py
+    #     - make ws
 
-    # Linux
-    - os: linux
-      dist: xenial
-      script: 
-        - python test/run.py
-        - make ws
-      env:
-        - CC=gcc
-        - CXX=g++
+    # # Linux
+    # - os: linux
+    #   dist: xenial
+    #   script: 
+    #     - python test/run.py
+    #     - make ws
+    #   env:
+    #     - CC=gcc
+    #     - CXX=g++
 
     # Clang + Linux disabled for now
     # - os: linux
