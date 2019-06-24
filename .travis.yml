@@ -6,21 +6,21 @@ language: bash
 matrix:
   include:
     # macOS
-    - os: osx
-      compiler: clang
-      script:
-        - python test/run.py
-        - make ws
+    # - os: osx
+    #   compiler: clang
+    #   script:
+    #     - python test/run.py
+    #     - make ws
 
-    # Linux
-    - os: linux
-      dist: xenial
-      script: 
-        - python test/run.py
-        - make ws
-      env:
-        - CC=gcc
-        - CXX=g++
+    # # Linux
+    # - os: linux
+    #   dist: xenial
+    #   script: 
+    #     - python test/run.py
+    #     - make ws
+    #   env:
+    #     - CC=gcc
+    #     - CXX=g++
 
     # Clang + Linux disabled for now
     # - os: linux
@@ -30,12 +30,14 @@ matrix:
     #     - CC=clang 
     #     - CXX=clang++
 
-    Windows
+    # Windows
     - os: windows
       env:
         - CMAKE_PATH="/c/Program Files/CMake/bin"
       script: 
         - export PATH=$CMAKE_PATH:$PATH
-        #  - cmake -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 -DUSE_VENDORED_THIRD_PARTY=1 .
-        #  - cmake --build --parallel .
-        - python test/run.py
+        - cd test
+        - cmake -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DUSE_VENDORED_THIRD_PARTY=1 .
+        - cmake --build --parallel .
+        - ixwebsocket_unittest.exe
+        # - python test/run.py
