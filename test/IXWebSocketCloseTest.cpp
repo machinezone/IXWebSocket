@@ -33,6 +33,8 @@ namespace
             uint16_t getCloseCode();
             const std::string& getCloseReason();
             bool getCloseRemote();
+        
+            bool hasConnectionError() const;
 
         private:
             ix::WebSocket _webSocket;
@@ -42,6 +44,7 @@ namespace
             uint16_t _closeCode;
             std::string _closeReason;
             bool _closeRemote;
+            std::atomic<bool> _connectionError;
     };
 
     WebSocketClient::WebSocketClient(int port)
@@ -49,8 +52,14 @@ namespace
         , _closeCode(0)
         , _closeReason(std::string(""))
         , _closeRemote(false)
+        , _connectionError(false)
     {
         ;
+    }
+    
+    bool WebSocketClient::hasConnectionError() const
+    {
+        return _connectionError;
     }
 
     bool WebSocketClient::isReady() const
@@ -133,6 +142,7 @@ namespace
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
+                    _connectionError = true;
                     ss << "Error ! " << msg->errorInfo.reason;
                     log(ss.str());
                 }
@@ -248,6 +258,7 @@ TEST_CASE("Websocket_client_close_default", "[close]")
         // Wait for all chat instance to be ready
         while (true)
         {
+            REQUIRE(!webSocketClient.hasConnectionError());
             if (webSocketClient.isReady()) break;
             ix::msleep(10);
         }
