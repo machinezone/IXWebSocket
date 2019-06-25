@@ -221,7 +221,7 @@ setOnConnectionCallback(
     {
         // Build a string for the response
         std::stringstream ss;
-        ss << request->method 
+        ss << request->method
            << " "
            << request->uri;
 

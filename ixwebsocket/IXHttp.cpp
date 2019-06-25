@@ -131,7 +131,7 @@ namespace ix
             return false;
         }
 
-        return response->payload.empty() 
+        return response->payload.empty()
             ? true
             : socket->writeBytes(response->payload, nullptr);
     }

@@ -63,55 +63,31 @@ namespace ix
                 return -1;
             }
 
-            // On Linux the timeout needs to be re-initialized everytime
-            // http://man7.org/linux/man-pages/man2/select.2.html
-            struct timeval timeout;
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 10 * 1000; // 10ms timeout
+            int timeoutMs = 10;
+            bool readyToRead = false;
+            PollResultType pollResult = Socket::poll(readyToRead, timeoutMs, fd);
 
-            fd_set wfds;
-            fd_set efds;
-
-            FD_ZERO(&wfds);
-            FD_SET(fd, &wfds);
-            FD_ZERO(&efds);
-            FD_SET(fd, &efds);
-
-            // Use select to check the status of the new connection
-            res = select(fd + 1, nullptr, &wfds, &efds, &timeout);
-
-            if (res < 0 && (Socket::getErrno() == EBADF || Socket::getErrno() == EINVAL))
+            if (pollResult == PollResultType::Timeout)
+            {
+                continue;
+            }
+            else if (pollResult == PollResultType::Error)
             {
                 Socket::closeSocket(fd);
-                errMsg = std::string("Connect error, select error: ") + strerror(Socket::getErrno());
+                errMsg = std::string("Connect error: ") +
+                            strerror(Socket::getErrno());
                 return -1;
             }
-
-            // Nothing was written to the socket, wait again.
-            if (!FD_ISSET(fd, &wfds)) continue;
-
-            // Something was written to the socket. Check for errors.
-            int optval = -1;
-            socklen_t optlen = sizeof(optval);
-
-#ifdef _WIN32
-            // On connect error, in async mode, windows will write to the exceptions fds
-            if (FD_ISSET(fd, &efds))
-#else
-            // getsockopt() puts the errno value for connect into optval so 0
-            // means no-error.
-            if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &optval, &optlen) == -1 ||
-                optval != 0)
-#endif
+            else if (pollResult == PollResultType::ReadyForWrite)
             {
-                Socket::closeSocket(fd);
-                errMsg = strerror(optval);
-                return -1;
+                return fd;
             }
             else
             {
-                // Success !
-                return fd;
+                Socket::closeSocket(fd);
+                errMsg = std::string("Connect error: ") +
+                            strerror(Socket::getErrno());
+                return -1;
             }
         }
 

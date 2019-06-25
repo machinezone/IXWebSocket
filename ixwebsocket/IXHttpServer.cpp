@@ -131,7 +131,7 @@ namespace ix
 
                 // Log request
                 std::stringstream ss;
-                ss << request->method 
+                ss << request->method
                    << " "
                    << request->uri
                    << " "
