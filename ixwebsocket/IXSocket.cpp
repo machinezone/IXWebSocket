@@ -44,12 +44,10 @@ namespace ix
         close();
     }
 
-    PollResultType Socket::poll(int timeoutMs)
-    {
-        return isReadyToRead(timeoutMs);
-    }
-
-    PollResultType Socket::select(bool readyToRead, int timeoutMs)
+    PollResultType Socket::poll(bool readyToRead,
+                                int timeoutMs,
+                                int sockfd,
+                                int interruptFd)
     {
         fd_set rfds;
         fd_set wfds;
@@ -57,13 +55,12 @@ namespace ix
         FD_ZERO(&wfds);
 
         fd_set* fds = (readyToRead) ? &rfds : & wfds;
-        if (_sockfd != -1)
+        if (sockfd != -1)
         {
-            FD_SET(_sockfd, fds);
+            FD_SET(sockfd, fds);
         }
 
         // File descriptor used to interrupt select when needed
-        int interruptFd = _selectInterrupt->getFd();
         if (interruptFd != -1)
         {
             FD_SET(interruptFd, fds);
@@ -74,7 +71,6 @@ namespace ix
         timeout.tv_usec = 1000 * (timeoutMs % 1000);
 
         // Compute the highest fd.
-        int sockfd = _sockfd;
         int nfds = (std::max)(sockfd, interruptFd);
 
         int ret = ::select(nfds + 1, &rfds, &wfds, nullptr,
@@ -122,7 +118,7 @@ namespace ix
         }
 
         bool readyToRead = true;
-        return select(readyToRead, timeoutMs);
+        return poll(readyToRead, timeoutMs, _sockfd, _selectInterrupt->getFd());
     }
 
     PollResultType Socket::isReadyToWrite(int timeoutMs)
@@ -133,7 +129,7 @@ namespace ix
         }
 
         bool readyToRead = false;
-        return select(readyToRead, timeoutMs);
+        return poll(readyToRead, timeoutMs, _sockfd, _selectInterrupt->getFd());
     }
 
     // Wake up from poll/select by writing to the pipe which is watched by select
