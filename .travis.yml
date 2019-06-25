@@ -6,21 +6,21 @@ language: bash
 matrix:
   include:
     # macOS
-    # - os: osx
-    #   compiler: clang
-    #   script:
-    #     - python test/run.py
-    #     - make ws
+    - os: osx
+      compiler: clang
+      script:
+        - python test/run.py
+        - make ws
 
     # # Linux
-    # - os: linux
-    #   dist: xenial
-    #   script: 
-    #     - python test/run.py
-    #     - make ws
-    #   env:
-    #     - CC=gcc
-    #     - CXX=g++
+    - os: linux
+      dist: xenial
+      script: 
+        - python test/run.py
+        - make ws
+      env:
+        - CC=gcc
+        - CXX=g++
 
     # Clang + Linux disabled for now
     # - os: linux
@@ -31,21 +31,21 @@ matrix:
     #     - CXX=clang++
 
     # Windows
-    - os: windows
-      env:
-        - CMAKE_PATH="/c/Program Files/CMake/bin"
-      script: 
-        - cd third_party/zlib
-        - cmake .
-        - cmake --build . --target install
-        - cd ../..
-        # - cd third_party/mbedtls
-        # - cmake .
-        # - cmake --build . --target install
-        # - cd ../..
-        - export PATH=$CMAKE_PATH:$PATH
-        - cd test
-        - cmake .
-        - cmake --build --parallel .
-        - ixwebsocket_unittest.exe
-        # - python test/run.py
+    # - os: windows
+    #   env:
+    #     - CMAKE_PATH="/c/Program Files/CMake/bin"
+    #   script: 
+    #     - cd third_party/zlib
+    #     - cmake .
+    #     - cmake --build . --target install
+    #     - cd ../..
+    #     # - cd third_party/mbedtls
+    #     # - cmake .
+    #     # - cmake --build . --target install
+    #     # - cd ../..
+    #     - export PATH=$CMAKE_PATH:$PATH
+    #     - cd test
+    #     - cmake .
+    #     - cmake --build --parallel .
+    #     - ixwebsocket_unittest.exe
+    #     # - python test/run.py
