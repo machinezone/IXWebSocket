@@ -45,7 +45,7 @@ matrix:
         - cd ../..
         - export PATH=$CMAKE_PATH:$PATH
         - cd test
-        - cmake -DUSE_TLS=1 -DUSE_MBED_TLS=1 .
+        - cmake .
         - cmake --build --parallel .
         - ixwebsocket_unittest.exe
         # - python test/run.py
