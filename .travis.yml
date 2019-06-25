@@ -39,10 +39,10 @@ matrix:
         - cmake .
         - cmake --build . --target install
         - cd ../..
-        - cd third_party/mbedtls
-        - cmake .
-        - cmake --build . --target install
-        - cd ../..
+        # - cd third_party/mbedtls
+        # - cmake .
+        # - cmake --build . --target install
+        # - cd ../..
         - export PATH=$CMAKE_PATH:$PATH
         - cd test
         - cmake .
