@@ -330,7 +330,7 @@ namespace ix
         }
 
         // poll the socket
-        PollResultType pollResult = _socket->poll(lastingTimeoutDelayInMs);
+        PollResultType pollResult = _socket->isReadyToRead(lastingTimeoutDelayInMs);
 
         // Make sure we send all the buffered data
         // there can be a lot of it for large messages.

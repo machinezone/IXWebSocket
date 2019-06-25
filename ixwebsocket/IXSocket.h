@@ -97,7 +97,10 @@ namespace ix
         std::mutex _socketMutex;
 
     private:
-        PollResultType select(bool readyToRead, int timeoutMs);
+        PollResultType poll(bool readyToRead,
+                            int timeoutMs,
+                            int sockfd,
+                            int interruptFd);
 
         static const int kDefaultPollTimeout;
         static const int kDefaultPollNoTimeout;
