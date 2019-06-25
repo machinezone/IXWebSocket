@@ -35,9 +35,17 @@ matrix:
       env:
         - CMAKE_PATH="/c/Program Files/CMake/bin"
       script: 
+        - cd third_party/zlib
+        - cmake .
+        - cmake --build . --target install
+        - cd ../..
+        - cd third_party/mbedtls
+        - cmake .
+        - cmake --build . --target install
+        - cd ../..
         - export PATH=$CMAKE_PATH:$PATH
         - cd test
-        - cmake -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DUSE_VENDORED_THIRD_PARTY=1 .
+        - cmake -DUSE_TLS=1 -DUSE_MBED_TLS=1 .
         - cmake --build --parallel .
         - ixwebsocket_unittest.exe
         # - python test/run.py
