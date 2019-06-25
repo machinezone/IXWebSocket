@@ -33,7 +33,7 @@ namespace
             uint16_t getCloseCode();
             const std::string& getCloseReason();
             bool getCloseRemote();
-        
+
             bool hasConnectionError() const;
 
         private:
@@ -56,7 +56,7 @@ namespace
     {
         ;
     }
-    
+
     bool WebSocketClient::hasConnectionError() const
     {
         return _connectionError;

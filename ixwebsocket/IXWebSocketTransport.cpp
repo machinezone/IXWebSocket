@@ -542,7 +542,7 @@ namespace ix
             ) {
                 unmaskReceiveBuffer(ws);
 
-                MessageKind messageKind = 
+                MessageKind messageKind =
                     (ws.opcode == wsheader_type::TEXT_FRAME)
                     ? MessageKind::MSG_TEXT
                     : MessageKind::MSG_BINARY;

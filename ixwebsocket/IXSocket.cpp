@@ -47,23 +47,44 @@ namespace ix
     PollResultType Socket::poll(bool readyToRead,
                                 int timeoutMs,
                                 int sockfd,
-                                int interruptFd)
+                                std::shared_ptr<SelectInterrupt> selectInterrupt)
     {
         fd_set rfds;
         fd_set wfds;
+        fd_set efds;
         FD_ZERO(&rfds);
         FD_ZERO(&wfds);
+        FD_ZERO(&efds);
+
+        // FD_SET cannot handle fds larger than FD_SETSIZE.
+        if (sockfd >= FD_SETSIZE)
+        {
+            return PollResultType::Error;
+        }
 
         fd_set* fds = (readyToRead) ? &rfds : & wfds;
         if (sockfd != -1)
         {
             FD_SET(sockfd, fds);
+            FD_SET(sockfd, &efds);
         }
 
         // File descriptor used to interrupt select when needed
-        if (interruptFd != -1)
+        int interruptFd = -1;
+        if (selectInterrupt)
         {
-            FD_SET(interruptFd, fds);
+            interruptFd = selectInterrupt->getFd();
+
+            // FD_SET cannot handle fds larger than FD_SETSIZE.
+            if (interruptFd >= FD_SETSIZE)
+            {
+                return PollResultType::Error;
+            }
+
+            if (interruptFd != -1)
+            {
+                FD_SET(interruptFd, fds);
+            }
         }
 
         struct timeval timeout;
@@ -73,7 +94,7 @@ namespace ix
         // Compute the highest fd.
         int nfds = (std::max)(sockfd, interruptFd);
 
-        int ret = ::select(nfds + 1, &rfds, &wfds, nullptr,
+        int ret = ::select(nfds + 1, &rfds, &wfds, &efds,
                            (timeoutMs < 0) ? nullptr : &timeout);
 
         PollResultType pollResult = PollResultType::ReadyForRead;
@@ -87,7 +108,7 @@ namespace ix
         }
         else if (interruptFd != -1 && FD_ISSET(interruptFd, &rfds))
         {
-            uint64_t value = _selectInterrupt->read();
+            uint64_t value = selectInterrupt->read();
 
             if (value == kSendRequest)
             {
@@ -105,6 +126,25 @@ namespace ix
         else if (sockfd != -1 && !readyToRead && FD_ISSET(sockfd, &wfds))
         {
             pollResult = PollResultType::ReadyForWrite;
+
+#ifdef _WIN32
+            // On connect error, in async mode, windows will write to the exceptions fds
+            if (FD_ISSET(fd, &efds))
+            {
+                pollResult = PollResultType::Error;
+            }
+#else
+            int optval = -1;
+            socklen_t optlen = sizeof(optval);
+
+            // getsockopt() puts the errno value for connect into optval so 0
+            // means no-error.
+            if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, &optlen) == -1 ||
+                optval != 0)
+            {
+                pollResult = PollResultType::Error;
+            }
+#endif
         }
 
         return pollResult;
@@ -118,7 +158,7 @@ namespace ix
         }
 
         bool readyToRead = true;
-        return poll(readyToRead, timeoutMs, _sockfd, _selectInterrupt->getFd());
+        return poll(readyToRead, timeoutMs, _sockfd, _selectInterrupt);
     }
 
     PollResultType Socket::isReadyToWrite(int timeoutMs)
@@ -129,7 +169,7 @@ namespace ix
         }
 
         bool readyToRead = false;
-        return poll(readyToRead, timeoutMs, _sockfd, _selectInterrupt->getFd());
+        return poll(readyToRead, timeoutMs, _sockfd, _selectInterrupt);
     }
 
     // Wake up from poll/select by writing to the pipe which is watched by select
@@ -247,7 +287,7 @@ namespace ix
                 else
                 {
                     buffer += ret;
-                    len -= ret; 
+                    len -= ret;
                     continue;
                 }
             }

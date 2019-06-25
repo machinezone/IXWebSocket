@@ -88,6 +88,12 @@ namespace ix
         static bool isWaitNeeded();
         static void closeSocket(int fd);
 
+        static PollResultType poll(bool readyToRead,
+                                   int timeoutMs,
+                                   int sockfd,
+                                   std::shared_ptr<SelectInterrupt> selectInterrupt = nullptr);
+
+
         // Used as special codes for pipe communication
         static const uint64_t kSendRequest;
         static const uint64_t kCloseRequest;
@@ -97,11 +103,6 @@ namespace ix
         std::mutex _socketMutex;
 
     private:
-        PollResultType poll(bool readyToRead,
-                            int timeoutMs,
-                            int sockfd,
-                            int interruptFd);
-
         static const int kDefaultPollTimeout;
         static const int kDefaultPollNoTimeout;
 
