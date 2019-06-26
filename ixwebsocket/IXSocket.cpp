@@ -253,14 +253,14 @@ namespace ix
     bool Socket::writeBytes(const std::string& str,
                             const CancellationRequest& isCancellationRequested)
     {
-        char* buffer = const_cast<char*>(str.c_str());
+        int offset = 0;
         int len = (int) str.size();
 
         while (true)
         {
             if (isCancellationRequested && isCancellationRequested()) return false;
 
-            ssize_t ret = send(buffer, len);
+            ssize_t ret = send((char*)&str[offset], len);
 
             // We wrote some bytes, as needed, all good.
             if (ret > 0)
@@ -271,7 +271,7 @@ namespace ix
                 }
                 else
                 {
-                    buffer += ret;
+                    offset += ret;
                     len -= ret;
                     continue;
                 }

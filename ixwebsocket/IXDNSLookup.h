@@ -42,10 +42,7 @@ namespace ix
                                             int port,
                                             std::string& errMsg);
 
-        void run(std::weak_ptr<DNSLookup> self, const std::string& hostname, int port); // thread runner
-
-        void setHostname(const std::string& hostname);
-        const std::string& getHostname();
+        void run(std::weak_ptr<DNSLookup> self, std::string hostname, int port); // thread runner
 
         void setErrMsg(const std::string& errMsg);
         const std::string& getErrMsg();
@@ -54,7 +51,6 @@ namespace ix
         struct addrinfo* getRes();
 
         std::string _hostname;
-        std::mutex _hostnameMutex;
         int _port;
 
         int64_t _wait;
