@@ -213,17 +213,12 @@ namespace ix
         {
             if (_stop) return;
 
-            // Use select to check whether a new connection is in progress
-            fd_set rfds;
-            struct timeval timeout;
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 10 * 1000; // 10ms timeout
+            // Use poll to check whether a new connection is in progress
+            int timeoutMs = 10;
+            bool readyToRead = true;
+            PollResultType pollResult = Socket::poll(readyToRead, timeoutMs, _serverFd);
 
-            FD_ZERO(&rfds);
-            FD_SET(_serverFd, &rfds);
-
-            if (select(_serverFd + 1, &rfds, nullptr, nullptr, &timeout) < 0 &&
-                (errno == EBADF || errno == EINVAL))
+            if (pollResult == PollResultType::Error)
             {
                 std::stringstream ss;
                 ss << "SocketServer::run() error in select: "
@@ -232,9 +227,8 @@ namespace ix
                 continue;
             }
 
-            if (!FD_ISSET(_serverFd, &rfds))
+            if (pollResult != PollResultType::ReadyForRead)
             {
-                // We reached the select timeout, and no new connections are pending
                 continue;
             }
 
