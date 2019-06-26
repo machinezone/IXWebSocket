@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <poll.h>
 
 #include <algorithm>
 
@@ -49,25 +50,21 @@ namespace ix
                                 int sockfd,
                                 std::shared_ptr<SelectInterrupt> selectInterrupt)
     {
-        fd_set rfds;
-        fd_set wfds;
-        fd_set efds;
-        FD_ZERO(&rfds);
-        FD_ZERO(&wfds);
-        FD_ZERO(&efds);
+        //
+        // We used to use ::select to poll but on Android 9 we get large fds out of ::connect
+        // which crash in FD_SET as they are larger than FD_SETSIZE.
+        // Switching to ::poll does fix that.
+        //
+        // However poll isn't as portable as select and has bugs on Windows, so we should write a 
+        // shim to fallback to select on those platforms.
+        // See https://github.com/mpv-player/mpv/pull/5203/files for such a select wrapper.
+        //
+        int nfds = 1;
+        struct pollfd fds[2];
 
-        // FD_SET cannot handle fds larger than FD_SETSIZE.
-        if (sockfd >= FD_SETSIZE)
-        {
-            return PollResultType::Error;
-        }
-
-        fd_set* fds = (readyToRead) ? &rfds : & wfds;
-        if (sockfd != -1)
-        {
-            FD_SET(sockfd, fds);
-            FD_SET(sockfd, &efds);
-        }
+        fds[0].fd = sockfd;
+        fds[0].events = (readyToRead) ? POLLIN : POLLOUT;
+        fds[0].events |= POLLERR;
 
         // File descriptor used to interrupt select when needed
         int interruptFd = -1;
@@ -75,27 +72,15 @@ namespace ix
         {
             interruptFd = selectInterrupt->getFd();
 
-            // FD_SET cannot handle fds larger than FD_SETSIZE.
-            if (interruptFd >= FD_SETSIZE)
-            {
-                return PollResultType::Error;
-            }
-
             if (interruptFd != -1)
             {
-                FD_SET(interruptFd, fds);
+                nfds = 2;
+                fds[1].fd = interruptFd;
+                fds[1].events = POLLIN;
             }
         }
 
-        struct timeval timeout;
-        timeout.tv_sec = timeoutMs / 1000;
-        timeout.tv_usec = 1000 * (timeoutMs % 1000);
-
-        // Compute the highest fd.
-        int nfds = (std::max)(sockfd, interruptFd);
-
-        int ret = ::select(nfds + 1, &rfds, &wfds, &efds,
-                           (timeoutMs < 0) ? nullptr : &timeout);
+        int ret = ::poll(fds, nfds, timeoutMs);
 
         PollResultType pollResult = PollResultType::ReadyForRead;
         if (ret < 0)
@@ -106,7 +91,7 @@ namespace ix
         {
             pollResult = PollResultType::Timeout;
         }
-        else if (interruptFd != -1 && FD_ISSET(interruptFd, &rfds))
+        else if (interruptFd != -1 && fds[1].revents & POLLIN)
         {
             uint64_t value = selectInterrupt->read();
 
@@ -119,17 +104,17 @@ namespace ix
                 pollResult = PollResultType::CloseRequest;
             }
         }
-        else if (sockfd != -1 && readyToRead && FD_ISSET(sockfd, &rfds))
+        else if (sockfd != -1 && readyToRead && fds[0].revents & POLLIN)
         {
             pollResult = PollResultType::ReadyForRead;
         }
-        else if (sockfd != -1 && !readyToRead && FD_ISSET(sockfd, &wfds))
+        else if (sockfd != -1 && !readyToRead && fds[0].revents & POLLOUT)
         {
             pollResult = PollResultType::ReadyForWrite;
 
 #ifdef _WIN32
             // On connect error, in async mode, windows will write to the exceptions fds
-            if (FD_ISSET(fd, &efds))
+            if (fds[0].revents & POLLERR)
             {
                 pollResult = PollResultType::Error;
             }
