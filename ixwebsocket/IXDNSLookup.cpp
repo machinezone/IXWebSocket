@@ -9,10 +9,11 @@
 
 #include <string.h>
 #include <chrono>
+#include <thread>
 
 namespace ix
 {
-    const int64_t DNSLookup::kDefaultWait = 10; // ms
+    const int64_t DNSLookup::kDefaultWait = 1; // ms
 
     DNSLookup::DNSLookup(const std::string& hostname, int port, int64_t wait) :
         _hostname(hostname),
@@ -92,20 +93,19 @@ namespace ix
 
         int port = _port;
         std::string hostname(_hostname);
-        _thread = std::thread(&DNSLookup::run, this, self, hostname, port);
-        _thread.detach();
 
-        std::unique_lock<std::mutex> lock(_conditionVariableMutex);
+        // We make the background thread doing the work a shared pointer 
+        // instead of a member variable, because it can keep running when
+        // this object goes out of scope, in case of cancellation
+        auto t = std::make_shared<std::thread>(&DNSLookup::run, this, self, hostname, port);
+        t->detach();
 
         while (!_done)
         {
-            // Wait for 10 milliseconds on the condition variable, to see
-            // if the bg thread has terminated.
-            if (_condition.wait_for(lock, std::chrono::milliseconds(_wait)) == std::cv_status::no_timeout)
-            {
-                // Background thread has terminated, so we can break of this loop
-                break;
-            }
+            // Wait for 1 milliseconds, to see if the bg thread has terminated.
+            // We do not use a condition variable to wait, as destroying this one
+            // if the bg thread is alive can cause undefined behavior.
+            std::this_thread::sleep_for(std::chrono::milliseconds(_wait));
 
             // Were we cancelled ?
             if (isCancellationRequested && isCancellationRequested())
@@ -140,7 +140,6 @@ namespace ix
             setRes(res);
             setErrMsg(errMsg);
 
-            _condition.notify_one();
             _done = true;
         }
     }

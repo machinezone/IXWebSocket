@@ -12,10 +12,9 @@
 
 #include "IXCancellationRequest.h"
 #include <atomic>
-#include <condition_variable>
+#include <mutex>
 #include <set>
 #include <string>
-#include <thread>
 #include <memory>
 
 struct addrinfo;
@@ -52,8 +51,8 @@ namespace ix
 
         std::string _hostname;
         int _port;
-
         int64_t _wait;
+        const static int64_t kDefaultWait;
 
         struct addrinfo* _res;
         std::mutex _resMutex;
@@ -62,10 +61,5 @@ namespace ix
         std::mutex _errMsgMutex;
 
         std::atomic<bool> _done;
-        std::thread _thread;
-        std::condition_variable _condition;
-        std::mutex _conditionVariableMutex;
-
-        const static int64_t kDefaultWait;
     };
 } // namespace ix
