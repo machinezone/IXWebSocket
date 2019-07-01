@@ -29,13 +29,13 @@ namespace ix
 
         struct addrinfo* resolve(std::string& errMsg,
                                  const CancellationRequest& isCancellationRequested,
-                                 bool blocking = false);
+                                 bool cancellable = true);
 
     private:
-        struct addrinfo* resolveAsync(std::string& errMsg,
-                                      const CancellationRequest& isCancellationRequested);
-        struct addrinfo* resolveBlocking(std::string& errMsg,
-                                         const CancellationRequest& isCancellationRequested);
+        struct addrinfo* resolveCancellable(std::string& errMsg,
+                                            const CancellationRequest& isCancellationRequested);
+        struct addrinfo* resolveUnCancellable(std::string& errMsg,
+                                              const CancellationRequest& isCancellationRequested);
 
         static struct addrinfo* getAddrInfo(const std::string& hostname,
                                             int port,
