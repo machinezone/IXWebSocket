@@ -50,14 +50,14 @@ namespace ix
 
     struct addrinfo* DNSLookup::resolve(std::string& errMsg,
                                         const CancellationRequest& isCancellationRequested,
-                                        bool blocking)
+                                        bool cancellable)
     {
-        return blocking ? resolveBlocking(errMsg, isCancellationRequested)
-                        : resolveAsync(errMsg, isCancellationRequested);
+        return cancellable ? resolveCancellable(errMsg, isCancellationRequested)
+                           : resolveUnCancellable(errMsg, isCancellationRequested);
     }
 
-    struct addrinfo* DNSLookup::resolveBlocking(std::string& errMsg,
-                                                const CancellationRequest& isCancellationRequested)
+    struct addrinfo* DNSLookup::resolveUnCancellable(std::string& errMsg,
+                                                     const CancellationRequest& isCancellationRequested)
     {
         errMsg = "no error";
 
@@ -71,8 +71,8 @@ namespace ix
         return getAddrInfo(_hostname, _port, errMsg);
     }
 
-    struct addrinfo* DNSLookup::resolveAsync(std::string& errMsg,
-                                             const CancellationRequest& isCancellationRequested)
+    struct addrinfo* DNSLookup::resolveCancellable(std::string& errMsg,
+                                                   const CancellationRequest& isCancellationRequested)
     {
         errMsg = "no error";
 
