@@ -9,18 +9,19 @@ matrix:
     - os: osx
       compiler: clang
       script:
+        - brew install mbedtls
         - python test/run.py
         - make ws
 
     # # Linux
-    - os: linux
-      dist: xenial
-      script: 
-        - python test/run.py
-        - make ws
-      env:
-        - CC=gcc
-        - CXX=g++
+    # - os: linux
+    #   dist: xenial
+    #   script: 
+    #     - python test/run.py
+    #     - make ws
+    #   env:
+    #     - CC=gcc
+    #     - CXX=g++
 
     # Clang + Linux disabled for now
     # - os: linux
