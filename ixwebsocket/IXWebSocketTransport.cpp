@@ -755,7 +755,7 @@ namespace ix
     {
         if (_readyState != ReadyState::OPEN && _readyState != ReadyState::CLOSING)
         {
-            return WebSocketSendInfo();
+            return WebSocketSendInfo(false);
         }
 
         size_t payloadSize = message.size();

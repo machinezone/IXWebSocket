@@ -264,8 +264,9 @@ vcpkg install ixwebsocket
 Support for building with conan was contributed by Olivia Zoe (thanks !). The package name to reference is `IXWebSocket/5.0.0@LunarWatcher/stable`. The package is in the process to be published to the official conan package repo, but in the meantime, it can be accessed by adding a new remote 
 
 ```
-conan remote add remote_name_here https://api.bintray.com/conan/oliviazoe0/conan-packages).
+conan remote add remote_name_here https://api.bintray.com/conan/oliviazoe0/conan-packages
 ```
+
 ### Docker
 
 There is a Dockerfile for running the unittest on Linux, and to run the `ws` tool. It is also available on the docker registry.
