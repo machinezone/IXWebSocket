@@ -236,6 +236,8 @@ setOnConnectionCallback(
 
 ## Build
 
+### CMake
+
 CMakefiles for the library and the examples are available. This library has few dependencies, so it is possible to just add the source files into your project. Otherwise the usual way will suffice.
 
 ```
@@ -247,12 +249,32 @@ make install # will install to /usr/local on Unix, on macOS it is a good idea to
 ```
 
 Headers and a static library will be installed to the target dir.
-
-A [conan](https://conan.io/) file is available at [conan-IXWebSocket](https://github.com/Zinnion/conan-IXWebSocket).
-
 There is a unittest which can be executed by typing `make test`.
 
-There is a Dockerfile for running some code on Linux. To use docker-compose you must make a docker container first.
+### vcpkg
+
+It is possible to get IXWebSocket through Microsoft [vcpkg](https://github.com/microsoft/vcpkg).
+
+```
+vcpkg install ixwebsocket
+```
+
+### Conan
+
+Support for building with conan was contributed by Olivia Zoe (thanks !). The package name to reference is `IXWebSocket/5.0.0@LunarWatcher/stable`. The package is in the process to be published to the official conan package repo, but in the meantime, it can be accessed by adding a new remote 
+
+```
+conan remote add remote_name_here https://api.bintray.com/conan/oliviazoe0/conan-packages).
+```
+### Docker
+
+There is a Dockerfile for running the unittest on Linux, and to run the `ws` tool. It is also available on the docker registry.
+
+```
+docker run bsergean/ws
+```
+
+To use docker-compose you must make a docker container first.
 
 ```
 $ make docker
@@ -265,12 +287,6 @@ ws is a websocket tool
 ...
 ```
 
-Finally you can build and install the `ws command line tool` with Homebrew. The homebrew version might be slightly out of date.
-
-```
-brew tap bsergean/IXWebSocket
-brew install IXWebSocket
-```
 
 ## Implementation details
 
