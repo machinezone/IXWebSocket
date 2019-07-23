@@ -32,14 +32,14 @@ webSocket.setHeartBeatPeriod(45);
 webSocket.disablePerMessageDeflate();
 
 // Setup a callback to be fired when a message or an event (open, close, error) is received
-webSocket.setOnMessageCallback(
-    [](const ix::WebSocketMessagePtr& msg)
+webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
     {
         if (msg->type == ix::WebSocketMessageType::Message)
         {
             std::cout << msg->str << std::endl;
         }
-});
+    }
+);
 
 // Now that our callback is setup, we can start our background thread and receive messages
 webSocket.start();
@@ -380,8 +380,7 @@ If the connection was closed and sending failed, the return value will be set to
 The onMessage event will be fired when the connection is opened or closed. This is similar to the [Javascript browser API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket), which has `open` and `close` events notification that can be registered with the browser `addEventListener`.
 
 ```
-webSocket.setOnMessageCallback(
-    [](const ix::WebSocketMessagePtr& msg)
+webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
     {
         if (msg->type == ix::WebSocketMessageType::Open)
         {
@@ -412,8 +411,7 @@ webSocket.setOnMessageCallback(
 A message will be fired when there is an error with the connection. The message type will be `ix::WebSocketMessageType::Error`. Multiple fields will be available on the event to describe the error.
 
 ```
-webSocket.setOnMessageCallback(
-    [](const ix::WebSocketMessagePtr& msg)
+webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
     {
         if (msg->type == ix::WebSocketMessageType::Error)
         {
@@ -447,8 +445,7 @@ websocket.configure(url);
 Ping/pong messages are used to implement keep-alive. 2 message types exists to identify ping and pong messages. Note that when a ping message is received, a pong is instantly send back as requested by the WebSocket spec.
 
 ```
-webSocket.setOnMessageCallback(
-    [](const ix::WebSocketMessagePtr& msg)
+webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
     {
         if (msg->type == ix::WebSocketMessageType::Ping ||
             msg->type == ix::WebSocketMessageType::Pong)
