@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.0.1] - 2019-07-25
+### Unreleased
+- ws connect command has a new option to send in binary mode (still default to text)
+- ws connect command has readline history thanks to libnoise-cpp. Now ws connect one can use using arrows to lookup previous sent messages and edit them
+
 ## [5.0.0] - 2019-06-23
 ### Changed
 - New HTTP server / still very early. ws gained a new command, httpd can run a simple webserver serving local files.

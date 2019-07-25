@@ -19,7 +19,8 @@ namespace ix
         public:
             WebSocketConnect(const std::string& _url,
                              bool disableAutomaticReconnection,
-                             bool disablePerMessageDeflate);
+                             bool disablePerMessageDeflate,
+                             bool binaryMode);
 
             void subscribe(const std::string& channel);
             void start();
@@ -31,15 +32,18 @@ namespace ix
             std::string _url;
             ix::WebSocket _webSocket;
             bool _disablePerMessageDeflate;
+            bool _binaryMode;
 
             void log(const std::string& msg);
     };
 
     WebSocketConnect::WebSocketConnect(const std::string& url,
                                        bool disableAutomaticReconnection,
-                                       bool disablePerMessageDeflate) :
+                                       bool disablePerMessageDeflate,
+                                       bool binaryMode) :
         _url(url),
-        _disablePerMessageDeflate(disablePerMessageDeflate)
+        _disablePerMessageDeflate(disablePerMessageDeflate),
+        _binaryMode(binaryMode)
     {
         if (disableAutomaticReconnection)
         {
@@ -136,17 +140,26 @@ namespace ix
 
     void WebSocketConnect::sendMessage(const std::string& text)
     {
-        _webSocket.sendText(text);
+        if (_binaryMode)
+        {
+            _webSocket.sendBinary(text);
+        }
+        else
+        {
+            _webSocket.sendText(text);
+        }
     }
 
     int ws_connect_main(const std::string& url,
                         bool disableAutomaticReconnection,
-                        bool disablePerMessageDeflate)
+                        bool disablePerMessageDeflate,
+                        bool binaryMode)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketConnect webSocketChat(url,
                                        disableAutomaticReconnection,
-                                       disablePerMessageDeflate);
+                                       disablePerMessageDeflate,
+                                       binaryMode);
         webSocketChat.start();
 
         while (true)
