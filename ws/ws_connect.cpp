@@ -9,6 +9,9 @@
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXSocket.h>
 
+#include "linenoise.hpp"
+
+
 namespace ix
 {
     class WebSocketConnect
@@ -148,30 +151,33 @@ namespace ix
 
         while (true)
         {
-            std::string text;
-            std::cout << "> " << std::flush;
-            std::getline(std::cin, text);
+            // Read line
+            std::string line;
+            auto quit = linenoise::Readline("> ", line);
 
-            if (text == "/stop")
+            if (quit)
+            {
+                break;
+            }
+
+            if (line == "/stop")
             {
                 std::cout << "Stopping connection..." << std::endl;
                 webSocketChat.stop();
                 continue;
             }
 
-            if (text == "/start")
+            if (line == "/start")
             {
                 std::cout << "Starting connection..." << std::endl;
                 webSocketChat.start();
                 continue;
             }
 
-            if (!std::cin)
-            {
-                break;
-            }
+            webSocketChat.sendMessage(line);
 
-            webSocketChat.sendMessage(text);
+            // Add text to history
+            linenoise::AddHistory(line.c_str());
         }
 
         std::cout << std::endl;

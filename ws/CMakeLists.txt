@@ -23,6 +23,7 @@ include_directories(ws ..)
 include_directories(ws ../third_party)
 include_directories(ws ../third_party/statsd-client-cpp/src)
 include_directories(ws ../third_party/spdlog/include)
+include_directories(ws ../third_party/cpp-linenoise)
 include_directories(ws snake)
 
 if (UNIX)
