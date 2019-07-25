@@ -32,7 +32,8 @@ namespace ix
 
     int ws_connect_main(const std::string& url,
                         bool disableAutomaticReconnection,
-                        bool disablePerMessageDeflate);
+                        bool disablePerMessageDeflate,
+                        bool binaryMode);
 
     int ws_receive_main(const std::string& url, bool enablePerMessageDeflate, int delayMs);
 

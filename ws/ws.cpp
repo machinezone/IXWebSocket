@@ -82,6 +82,7 @@ int main(int argc, char** argv)
     bool disableAutomaticReconnection = false;
     bool disablePerMessageDeflate = false;
     bool greetings = false;
+    bool binaryMode = false;
     int port = 8008;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -113,6 +114,7 @@ int main(int argc, char** argv)
     connectApp->add_option("url", url, "Connection url")->required();
     connectApp->add_flag("-d", disableAutomaticReconnection, "Disable Automatic Reconnection");
     connectApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
+    connectApp->add_flag("-b", binaryMode, "Send in binary mode");
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
     chatApp->add_option("url", url, "Connection url")->required();
@@ -250,7 +252,7 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("connect"))
     {
         ret = ix::ws_connect_main(url, disableAutomaticReconnection,
-                                  disablePerMessageDeflate);
+                                  disablePerMessageDeflate, binaryMode);
     }
     else if (app.got_subcommand("chat"))
     {
