@@ -429,11 +429,17 @@ namespace ix
     }
 
     void CobraConnection::subscribe(const std::string& channel,
-                                     SubscriptionCallback cb)
+                                    const std::string& filter,
+                                    SubscriptionCallback cb)
     {
         // Create and send a subscribe pdu
         Json::Value body;
         body["channel"] = channel;
+
+        if (!filter.empty())
+        {
+            body["filter"] = filter;
+        }
 
         Json::Value pdu;
         pdu["action"] = "rtm/subscribe";

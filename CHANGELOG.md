@@ -1,8 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.0.2] - 2019-08-01
+- ws cobra_subscribe has a new -q (quiet) option
+- ws cobra_subscribe knows to and display msg stats (count and # of messages received per second)
+- ws cobra_subscribe, cobra_to_statsd and cobra_to_sentry commands have a new option, --filter to restrict the events they want to receive
+
 ## [5.0.1] - 2019-07-25
-### Unreleased
 - ws connect command has a new option to send in binary mode (still default to text)
 - ws connect command has readline history thanks to libnoise-cpp. Now ws connect one can use using arrows to lookup previous sent messages and edit them
 
