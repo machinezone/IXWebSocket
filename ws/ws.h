@@ -56,7 +56,9 @@ namespace ix
                                 const std::string& endpoint,
                                 const std::string& rolename,
                                 const std::string& rolesecret,
-                                const std::string& channel);
+                                const std::string& channel,
+                                const std::string& filter,
+                                bool quiet);
 
     int ws_cobra_publish_main(const std::string& appkey,
                               const std::string& endpoint,
@@ -71,6 +73,7 @@ namespace ix
                                 const std::string& rolename,
                                 const std::string& rolesecret,
                                 const std::string& channel,
+                                const std::string& filter,
                                 const std::string& host,
                                 int port,
                                 const std::string& prefix,
@@ -82,6 +85,7 @@ namespace ix
                                 const std::string& rolename,
                                 const std::string& rolesecret,
                                 const std::string& channel,
+                                const std::string& filter,
                                 const std::string& dsn,
                                 bool verbose,
                                 bool strict,

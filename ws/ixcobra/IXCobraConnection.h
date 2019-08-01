@@ -75,7 +75,9 @@ namespace ix
 
         // Subscribe to a channel, and execute a callback when an incoming
         // message arrives.
-        void subscribe(const std::string& channel, SubscriptionCallback cb);
+        void subscribe(const std::string& channel,
+                       const std::string& filter = std::string(),
+                       SubscriptionCallback cb = nullptr);
 
         /// Unsubscribe from a channel
         void unsubscribe(const std::string& channel);

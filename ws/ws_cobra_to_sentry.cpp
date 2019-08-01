@@ -25,6 +25,7 @@ namespace ix
                                 const std::string& rolename,
                                 const std::string& rolesecret,
                                 const std::string& channel,
+                                const std::string& filter,
                                 const std::string& dsn,
                                 bool verbose,
                                 bool strict,
@@ -94,7 +95,7 @@ namespace ix
         }
 
         conn.setEventCallback(
-            [&conn, &channel, &jsonWriter,
+            [&conn, &channel, &filter, &jsonWriter,
              verbose, &receivedCount, &sentCount,
              &condition, &conditionVariableMutex,
              &progressCondition, &queue]
@@ -119,7 +120,7 @@ namespace ix
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
                     std::cerr << "Subscriber authenticated" << std::endl;
-                    conn.subscribe(channel,
+                    conn.subscribe(channel, filter,
                                    [&jsonWriter, verbose,
                                     &sentCount, &receivedCount,
                                     &condition, &conditionVariableMutex,

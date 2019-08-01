@@ -9,15 +9,10 @@
 //
 #include "ws.h"
 
-//
-// Main drive for websocket utilities
-//
-
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <fstream>
-// #include <unistd.h>
 
 #include <cli11/CLI11.hpp>
 #include <spdlog/spdlog.h>
@@ -60,6 +55,7 @@ int main(int argc, char** argv)
     std::string hostname("127.0.0.1");
     std::string pidfile;
     std::string channel;
+    std::string filter;
     std::string message;
     std::string password;
     std::string appkey;
@@ -76,6 +72,7 @@ int main(int argc, char** argv)
     bool followRedirects = false;
     bool verbose = false;
     bool save = false;
+    bool quiet = false;
     bool compress = false;
     bool strict = false;
     bool stress = false;
@@ -170,6 +167,8 @@ int main(int argc, char** argv)
     cobraSubscribeApp->add_option("--rolesecret", rolesecret, "Role secret");
     cobraSubscribeApp->add_option("channel", channel, "Channel")->required();
     cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
+    cobraSubscribeApp->add_option("--filter", filter, "Stream SQL Filter");
+    cobraSubscribeApp->add_flag("-q", quiet, "Quiet / only display stats");
 
     CLI::App* cobraPublish = app.add_subcommand("cobra_publish", "Cobra publisher");
     cobraPublish->add_option("--appkey", appkey, "Appkey");
@@ -194,6 +193,7 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("channel", channel, "Channel")->required();
     cobra2statsd->add_flag("-v", verbose, "Verbose");
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
+    cobra2statsd->add_option("--filter", filter, "Stream SQL Filter");
 
     CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra to sentry");
     cobra2sentry->add_option("--appkey", appkey, "Appkey");
@@ -206,6 +206,7 @@ int main(int argc, char** argv)
     cobra2sentry->add_flag("-v", verbose, "Verbose");
     cobra2sentry->add_flag("-s", strict, "Strict mode. Error out when sending to sentry fails");
     cobra2sentry->add_option("--pidfile", pidfile, "Pid file");
+    cobra2sentry->add_option("--filter", filter, "Stream SQL Filter");
 
     CLI::App* runApp = app.add_subcommand("snake", "Snake server");
     runApp->add_option("--port", port, "Connection url");
@@ -290,7 +291,7 @@ int main(int argc, char** argv)
     {
         ret = ix::ws_cobra_subscribe_main(appkey, endpoint,
                                           rolename, rolesecret,
-                                          channel);
+                                          channel, filter, quiet);
     }
     else if (app.got_subcommand("cobra_publish"))
     {
@@ -302,14 +303,14 @@ int main(int argc, char** argv)
     {
         ret = ix::ws_cobra_to_statsd_main(appkey, endpoint,
                                           rolename, rolesecret,
-                                          channel, hostname, statsdPort,
+                                          channel, filter, hostname, statsdPort,
                                           prefix, fields, verbose);
     }
     else if (app.got_subcommand("cobra_to_sentry"))
     {
         ret = ix::ws_cobra_to_sentry_main(appkey, endpoint,
                                           rolename, rolesecret,
-                                          channel, dsn,
+                                          channel, filter, dsn,
                                           verbose, strict, jobs);
     }
     else if (app.got_subcommand("snake"))

@@ -63,6 +63,7 @@ namespace ix
                                 const std::string& rolename,
                                 const std::string& rolesecret,
                                 const std::string& channel,
+                                const std::string& filter,
                                 const std::string& host,
                                 int port,
                                 const std::string& prefix,
@@ -90,7 +91,7 @@ namespace ix
         uint64_t msgCount = 0;
 
         conn.setEventCallback(
-            [&conn, &channel, &jsonWriter, &statsdClient, verbose, &tokens, &prefix, &msgCount]
+            [&conn, &channel, &filter, &jsonWriter, &statsdClient, verbose, &tokens, &prefix, &msgCount]
             (ix::CobraConnectionEventType eventType,
              const std::string& errMsg,
              const ix::WebSocketHttpHeaders& headers,
@@ -112,7 +113,7 @@ namespace ix
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
                     spdlog::info("Subscriber authenticated");
-                    conn.subscribe(channel,
+                    conn.subscribe(channel, filter,
                                    [&jsonWriter, &statsdClient,
                                     verbose, &tokens, &prefix, &msgCount]
                                    (const Json::Value& msg)
