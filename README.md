@@ -243,13 +243,19 @@ CMakefiles for the library and the examples are available. This library has few 
 ```
 mkdir build # make a build dir so that you can build out of tree.
 cd build
-cmake ..
+cmake -DUSE_TLS=1 ..
 make -j
 make install # will install to /usr/local on Unix, on macOS it is a good idea to sudo chown -R `whoami`:staff /usr/local
 ```
 
 Headers and a static library will be installed to the target dir.
 There is a unittest which can be executed by typing `make test`.
+
+Options for building:
+
+* `-DUSE_TLS=1` will enable TLS support
+* `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support (default on Windows)
+* `-DUSE_WS=1` will build the ws interactive command line tool
 
 ### vcpkg
 
