@@ -16,7 +16,7 @@
 
 The [*ws*](https://github.com/machinezone/IXWebSocket/tree/master/ws) folder countains many interactive programs for chat, [file transfers](https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_send.cpp), [curl like](https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_http_client.cpp) http clients, demonstrating client and server usage.
 
-Here is what the client API looks like.
+### WebSocket client API
 
 ```
 ix::WebSocket webSocket;
@@ -56,7 +56,7 @@ webSocket.sendBinary("some serialized binary data");
 webSocket.stop()
 ```
 
-Here is what the server API looks like. Note that server support is very recent and subject to changes.
+### WebSocket server API
 
 ```
 // Run a server on localhost at a given port.
@@ -117,7 +117,7 @@ server.wait();
 
 ```
 
-Here is what the HTTP client API looks like.
+### HTTP client API
 
 ```
 //
@@ -196,7 +196,7 @@ bool ok = httpClient.performRequest(args, [](const HttpResponsePtr& response)
 // ok will be false if your httpClient is not async
 ```
 
-Here is what the HTTP server API looks like. Note that HTTP server support is very, very recent and subject to changes.
+### HTTP server API
 
 ```
 ix::HttpServer server(port, hostname);
