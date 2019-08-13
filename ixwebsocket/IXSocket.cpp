@@ -128,6 +128,10 @@ namespace ix
                 optval != 0)
             {
                 pollResult = PollResultType::Error;
+
+                // set errno to optval so that external callers can have an
+                // appropriate error description when calling strerror
+                errno = optval;
             }
 #endif
         }
