@@ -12,10 +12,10 @@
 
 #include "IXCancellationRequest.h"
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <set>
 #include <string>
-#include <memory>
 
 struct addrinfo;
 

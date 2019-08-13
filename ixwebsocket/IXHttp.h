@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "IXWebSocketHttpHeaders.h"
 #include "IXProgressCallback.h"
+#include "IXWebSocketHttpHeaders.h"
 #include <tuple>
 
 namespace ix
@@ -111,10 +111,12 @@ namespace ix
     class Http
     {
     public:
-        static std::tuple<bool, std::string, HttpRequestPtr> parseRequest(std::shared_ptr<Socket> socket);
+        static std::tuple<bool, std::string, HttpRequestPtr> parseRequest(
+            std::shared_ptr<Socket> socket);
         static bool sendResponse(HttpResponsePtr response, std::shared_ptr<Socket> socket);
 
-        static std::tuple<std::string, std::string, std::string> parseRequestLine(const std::string& line);
+        static std::tuple<std::string, std::string, std::string> parseRequestLine(
+            const std::string& line);
         static std::string trim(const std::string& str);
     };
-}
+} // namespace ix

@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "IXHttp.h"
 #include "IXSocket.h"
 #include "IXWebSocketHttpHeaders.h"
-#include "IXHttp.h"
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>

@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "IXHttp.h"
 #include "IXSocketServer.h"
 #include "IXWebSocket.h"
-#include "IXHttp.h"
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -47,4 +47,3 @@ namespace ix
         void setDefaultConnectionCallback();
     };
 } // namespace ix
-
