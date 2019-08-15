@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.0.3] - 2019-08-14
+- CobraMetricThreadedPublisher _enable flag is an atomic, and CobraMetricsPublisher is enabled by default
+
 ## [5.0.2] - 2019-08-01
 - ws cobra_subscribe has a new -q (quiet) option
 - ws cobra_subscribe knows to and display msg stats (count and # of messages received per second)

@@ -10,6 +10,7 @@
 #include <chrono>
 #include <jsoncpp/json/json.h>
 #include <string>
+#include <atomic>
 #include <unordered_map>
 
 namespace ix
@@ -132,8 +133,8 @@ namespace ix
         CobraMetricsThreadedPublisher _cobra_metrics_theaded_publisher;
 
         /// A boolean to enable or disable this system
-        /// push becomes a no-op when _enabled is true
-        bool _enabled;
+        /// push becomes a no-op when _enabled is false
+        std::atomic<bool> _enabled;
 
         /// A uuid used to uniquely identify a session
         std::string _session;
