@@ -17,7 +17,7 @@ namespace ix
     const std::string CobraMetricsPublisher::kSetBlacklistId = "sms_set_blacklist_id";
 
     CobraMetricsPublisher::CobraMetricsPublisher() :
-        _enabled(false)
+        _enabled(true)
     {
     }
 

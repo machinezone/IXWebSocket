@@ -14,6 +14,7 @@
 #include <vector>
 #include <cstring>
 
+#include <assert.h>
 #include <zlib.h>
 
 namespace ix
@@ -52,6 +53,8 @@ namespace ix
     bool HttpClient::performRequest(HttpRequestArgsPtr args,
                                     const OnResponseCallback& onResponseCallback)
     {
+        assert(_async && "HttpClient needs its async parameter set to true "
+                         "in order to call performRequest");
         if (!_async) return false;
 
         // Enqueue the task
