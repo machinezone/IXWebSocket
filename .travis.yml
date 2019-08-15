@@ -18,6 +18,8 @@ matrix:
     # Linux
     - os: linux
       dist: bionic
+      before_install:
+        - sudo apt-get install -y libmbedtls-dev
       script: 
         - python test/run.py
         - make ws
