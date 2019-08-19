@@ -16,9 +16,31 @@
 
 The [*ws*](https://github.com/machinezone/IXWebSocket/tree/master/ws) folder countains many interactive programs for chat, [file transfers](https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_send.cpp), [curl like](https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_http_client.cpp) http clients, demonstrating client and server usage.
 
+### Windows note
+
+On Windows, to use the network system, you need to initialize it, once with *WSAStartup()*, and cleaned up with *WSACleanup()*. We have helpers for that which you can use. This init would typically take place in your main function.
+
+```
+#include <ixwebsocket/IXNetSystem.h>
+
+int main()
+{
+    ix::initNetSystem();
+
+    ...
+
+    ix::uninitNetSystem();
+    return 0;
+}
+
 ### WebSocket client API
 
 ```
+#include <ixwebsocket/IXWebSocket.h>
+
+...
+
+# Our websocket object
 ix::WebSocket webSocket;
 
 std::string url("ws://localhost:8080/");
@@ -59,6 +81,10 @@ webSocket.stop()
 ### WebSocket server API
 
 ```
+#include <ixwebsocket/IXWebSocketServer.h>
+
+...
+
 // Run a server on localhost at a given port.
 // Bound host name, max connections and listen backlog can also be passed in as parameters.
 ix::WebSocketServer server(port);
@@ -120,6 +146,10 @@ server.wait();
 ### HTTP client API
 
 ```
+#include <ixwebsocket/IXHttpClient.h>
+
+...
+
 //
 // Preparation
 //
@@ -199,6 +229,8 @@ bool ok = httpClient.performRequest(args, [](const HttpResponsePtr& response)
 ### HTTP server API
 
 ```
+#include <ixwebsocket/IXHttpServer.h>
+
 ix::HttpServer server(port, hostname);
 
 auto res = server.listen();
