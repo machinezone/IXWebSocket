@@ -18,7 +18,7 @@ The [*ws*](https://github.com/machinezone/IXWebSocket/tree/master/ws) folder cou
 
 ### Windows note
 
-On Windows, to use the network system, you need to initialize it, once with *WSAStartup()*, and cleaned up with *WSACleanup()*. We have helpers for that which you can use. This init would typically take place in your main function.
+To use the network system on Windows, you need to initialize it once with *WSAStartup()* and clean it up with *WSACleanup()*. We have helpers for that which you can use, see below. This init would typically take place in your main function.
 
 ```
 #include <ixwebsocket/IXNetSystem.h>
