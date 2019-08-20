@@ -12,6 +12,12 @@
 #include <basetsd.h>
 #include <io.h>
 #include <ws2def.h>
+
+static inline int poll(struct pollfd *pfd, unsigned long nfds, int timeout)
+{
+    return WSAPoll(pfd, nfds, timeout);
+}
+
 #else
 #include <arpa/inet.h>
 #include <errno.h>
