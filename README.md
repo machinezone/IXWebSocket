@@ -32,6 +32,7 @@ int main()
     ix::uninitNetSystem();
     return 0;
 }
+```
 
 ### WebSocket client API
 
