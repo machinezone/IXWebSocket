@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.0.4] - 2019-08-20
+- Windows build fixes (there was a problem with the use of ::poll that has a different name on Windows (WSAPoll))
+
 ## [5.0.3] - 2019-08-14
 - CobraMetricThreadedPublisher _enable flag is an atomic, and CobraMetricsPublisher is enabled by default
 
