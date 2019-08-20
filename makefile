@@ -17,6 +17,9 @@ ws:
 uninstall:
 	xargs rm -fv < build/install_manifest.txt
 
+tag:
+	git tag v"`cat DOCKER_VERSION`"
+
 .PHONY: docker
 
 NAME   := bsergean/ws
