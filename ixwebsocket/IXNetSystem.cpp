@@ -34,7 +34,9 @@ namespace ix
         return true;
 #endif
     }
+}
 
+// This function should be in the global namespace
 #ifdef _WIN32
     //
     // That function could 'return WSAPoll(pfd, nfds, timeout);'
@@ -107,4 +109,3 @@ namespace ix
         return ret;
     }
 #endif
-}
