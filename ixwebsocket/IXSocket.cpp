@@ -58,7 +58,7 @@ namespace ix
         // shim to fallback to select on those platforms.
         // See https://github.com/mpv-player/mpv/pull/5203/files for such a select wrapper.
         //
-        int nfds = 1;
+        nfds_t nfds = 1;
         struct pollfd fds[2];
 
         fds[0].fd = sockfd;

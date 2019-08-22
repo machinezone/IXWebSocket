@@ -13,22 +13,22 @@
 #include <io.h>
 #include <ws2def.h>
 
-static inline int poll(struct pollfd *pfd, unsigned long nfds, int timeout)
-{
-    return WSAPoll(pfd, nfds, timeout);
-}
+// Define our own poll on Windows
+typedef unsigned long int nfds_t;
+
+int poll(struct pollfd* fds, nfds_t nfds, int timeout);
 
 #else
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/tcp.h>
+#include <poll.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <poll.h>
 #endif
 
 namespace ix
