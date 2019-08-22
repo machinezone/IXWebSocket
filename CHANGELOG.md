@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.0.5] - 2019-08-22
+- Windows: use select instead of WSAPoll, through a poll wrapper
+
 ## [5.0.4] - 2019-08-20
 - Windows build fixes (there was a problem with the use of ::poll that has a different name on Windows (WSAPoll))
 

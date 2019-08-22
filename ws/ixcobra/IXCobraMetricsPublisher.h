@@ -7,10 +7,10 @@
 #pragma once
 
 #include "IXCobraMetricsThreadedPublisher.h"
+#include <atomic>
 #include <chrono>
 #include <jsoncpp/json/json.h>
 #include <string>
-#include <atomic>
 #include <unordered_map>
 
 namespace ix
