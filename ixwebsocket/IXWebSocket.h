@@ -21,6 +21,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <unordered_map>
 
 namespace ix
 {
@@ -44,6 +45,8 @@ namespace ix
         ~WebSocket();
 
         void setUrl(const std::string& url);
+        void setExtraHeaders(const std::unordered_map<std::string, std::string>&
+                                 headers); // send extra headers in client handshake request
         void setPerMessageDeflateOptions(
             const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         void setHeartBeatPeriod(int heartBeatPeriodSecs);
@@ -111,6 +114,8 @@ namespace ix
         WebSocketTransport _ws;
 
         std::string _url;
+        std::unordered_map<std::string, std::string> _extraHeaders;
+
         WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
         mutable std::mutex _configMutex; // protect all config variables access
 

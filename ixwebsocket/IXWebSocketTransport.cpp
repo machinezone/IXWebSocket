@@ -127,8 +127,10 @@ namespace ix
     }
 
     // Client
-    WebSocketInitResult WebSocketTransport::connectToUrl(const std::string& url,
-                                                         int timeoutSecs)
+    WebSocketInitResult WebSocketTransport::connectToUrl(
+        const std::string& url,
+        const std::unordered_map<std::string, std::string>& headers,
+        int timeoutSecs)
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
@@ -156,8 +158,8 @@ namespace ix
                                               _perMessageDeflateOptions,
                                               _enablePerMessageDeflate);
 
-        auto result = webSocketHandshake.clientHandshake(url, host, path, port,
-                                                         timeoutSecs);
+        auto result = webSocketHandshake.clientHandshake(url, headers, host, path,
+                                                         port, timeoutSecs);
         if (result.success)
         {
             setReadyState(ReadyState::OPEN);

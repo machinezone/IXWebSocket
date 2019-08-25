@@ -88,6 +88,7 @@ namespace ix
     }
 
     WebSocketInitResult WebSocketHandshake::clientHandshake(const std::string& url,
+                                                            const std::unordered_map<std::string, std::string>& extraHeaders,
                                                             const std::string& host,
                                                             const std::string& path,
                                                             int port,
@@ -127,6 +128,9 @@ namespace ix
         ss << "Sec-WebSocket-Version: 13\r\n";
         ss << "Sec-WebSocket-Key: " << secWebSocketKey << "\r\n";
 
+        for (auto& it : extraHeaders) {
+            ss << it.first << ":" << it.second << "\r\n";
+        }
         if (_enablePerMessageDeflate)
         {
             ss << _perMessageDeflateOptions.generateHeader();

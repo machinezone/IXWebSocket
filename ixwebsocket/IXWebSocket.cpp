@@ -70,6 +70,11 @@ namespace ix
         std::lock_guard<std::mutex> lock(_configMutex);
         _url = url;
     }
+    void WebSocket::setExtraHeaders(const std::unordered_map<std::string, std::string>& headers)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _extraHeaders = headers;
+    }
 
     const std::string& WebSocket::getUrl() const
     {
@@ -176,7 +181,7 @@ namespace ix
                           _pingTimeoutSecs);
         }
 
-        WebSocketInitResult status = _ws.connectToUrl(_url, timeoutSecs);
+        WebSocketInitResult status = _ws.connectToUrl(_url, _extraHeaders, timeoutSecs);
         if (!status.success)
         {
             return status;
