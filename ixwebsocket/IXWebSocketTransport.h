@@ -24,6 +24,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace ix
@@ -75,8 +76,10 @@ namespace ix
                        int pingIntervalSecs,
                        int pingTimeoutSecs);
 
-        WebSocketInitResult connectToUrl(const std::string& url, // Client
-                                         int timeoutSecs);
+        WebSocketInitResult connectToUrl( // Client
+            const std::string& url,
+            const std::unordered_map<std::string, std::string>& headers,
+            int timeoutSecs);
         WebSocketInitResult connectToSocket(int fd, // Server
                                             int timeoutSecs);
 

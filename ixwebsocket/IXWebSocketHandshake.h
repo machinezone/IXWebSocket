@@ -16,6 +16,7 @@
 #include <memory>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 
 namespace ix
 {
@@ -50,11 +51,13 @@ namespace ix
                            WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
                            std::atomic<bool>& enablePerMessageDeflate);
 
-        WebSocketInitResult clientHandshake(const std::string& url,
-                                            const std::string& host,
-                                            const std::string& path,
-                                            int port,
-                                            int timeoutSecs);
+        WebSocketInitResult clientHandshake(
+            const std::string& url,
+            const std::unordered_map<std::string, std::string>& extraHeaders,
+            const std::string& host,
+            const std::string& path,
+            int port,
+            int timeoutSecs);
 
         WebSocketInitResult serverHandshake(int fd, int timeoutSecs);
 
