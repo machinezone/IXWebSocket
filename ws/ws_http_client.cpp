@@ -44,7 +44,7 @@ namespace ix
             if (pos == std::string::npos) continue;
 
             auto key = token.substr(0, pos);
-            auto val = token.substr(pos+2);
+            auto val = token.substr(pos+1);
 
             std::cerr << key << ": " << val << std::endl;
             headers[key] = val;

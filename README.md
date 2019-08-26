@@ -510,3 +510,13 @@ idle connection.
 ```
 webSocket.setHeartBeatPeriod(45);
 ```
+
+### Supply extra HTTP headers.
+
+You can set extra HTTP headers to be sent during the WebSocket handshake.
+
+```
+WebSocketHttpHeaders headers;
+headers["foo"] = "bar";
+webSocket.setExtraHeaders(headers);
+```

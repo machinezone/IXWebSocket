@@ -129,7 +129,7 @@ namespace ix
     // Client
     WebSocketInitResult WebSocketTransport::connectToUrl(
         const std::string& url,
-        const std::unordered_map<std::string, std::string>& headers,
+        const WebSocketHttpHeaders& headers,
         int timeoutSecs)
     {
         std::lock_guard<std::mutex> lock(_socketMutex);

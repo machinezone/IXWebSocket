@@ -18,6 +18,7 @@ namespace ix
     {
         public:
             WebSocketConnect(const std::string& _url,
+                             const std::string& headers,
                              bool disableAutomaticReconnection,
                              bool disablePerMessageDeflate,
                              bool binaryMode);
@@ -30,14 +31,17 @@ namespace ix
 
         private:
             std::string _url;
+            WebSocketHttpHeaders _headers;
             ix::WebSocket _webSocket;
             bool _disablePerMessageDeflate;
             bool _binaryMode;
 
             void log(const std::string& msg);
+            WebSocketHttpHeaders parseHeaders(const std::string& data);
     };
 
     WebSocketConnect::WebSocketConnect(const std::string& url,
+                                       const std::string& headers,
                                        bool disableAutomaticReconnection,
                                        bool disablePerMessageDeflate,
                                        bool binaryMode) :
@@ -49,11 +53,38 @@ namespace ix
         {
             _webSocket.disableAutomaticReconnection();
         }
+
+        _headers = parseHeaders(headers);
     }
 
     void WebSocketConnect::log(const std::string& msg)
     {
         std::cout << msg << std::endl;
+    }
+
+    WebSocketHttpHeaders WebSocketConnect::parseHeaders(const std::string& data)
+    {
+        WebSocketHttpHeaders headers;
+
+        // Split by \n
+        std::string token;
+        std::stringstream tokenStream(data);
+
+        while (std::getline(tokenStream, token))
+        {
+            std::size_t pos = token.rfind(':');
+
+            // Bail out if last '.' is found
+            if (pos == std::string::npos) continue;
+
+            auto key = token.substr(0, pos);
+            auto val = token.substr(pos+1);
+
+            std::cerr << key << ": " << val << std::endl;
+            headers[key] = val;
+        }
+
+        return headers;
     }
 
     void WebSocketConnect::stop()
@@ -64,6 +95,7 @@ namespace ix
     void WebSocketConnect::start()
     {
         _webSocket.setUrl(_url);
+        _webSocket.setExtraHeaders(_headers);
 
         if (_disablePerMessageDeflate)
         {
@@ -151,12 +183,14 @@ namespace ix
     }
 
     int ws_connect_main(const std::string& url,
+                        const std::string& headers,
                         bool disableAutomaticReconnection,
                         bool disablePerMessageDeflate,
                         bool binaryMode)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketConnect webSocketChat(url,
+                                       headers,
                                        disableAutomaticReconnection,
                                        disablePerMessageDeflate,
                                        binaryMode);
