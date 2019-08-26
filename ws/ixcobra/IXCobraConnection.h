@@ -168,6 +168,9 @@ namespace ix
 
         // Cap the queue size (100 elems so far -> ~100k)
         static constexpr size_t kQueueMaxSize = 256;
+
+        // Each pdu sent should have an incremental unique id
+        std::atomic<uint64_t> _id;
     };
 
 } // namespace ix

@@ -191,6 +191,19 @@ namespace ix
             msg["device"] = _device;
         }
 
+        {
+            //
+            // Bump a counter for each id
+            // This is used to make sure that we are not
+            // dropping messages, by checking that all the ids is the list of
+            // all natural numbers until the last value sent (0, 1, 2, ..., N)
+            //
+            std::lock_guard<std::mutex> lock(_device_mutex);
+            auto it = _counters.emplace(id, 0);
+            msg["per_id_counter"] = it.first->second;
+            it.first->second += 1;
+        }
+
         // Now actually enqueue the task
         _cobra_metrics_theaded_publisher.push(msg);
     }

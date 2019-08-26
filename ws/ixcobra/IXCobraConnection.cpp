@@ -24,7 +24,8 @@ namespace ix
         _webSocket(new WebSocket()),
         _publishMode(CobraConnection_PublishMode_Immediate),
         _authenticated(false),
-        _eventCallback(nullptr)
+        _eventCallback(nullptr),
+        _id(0)
     {
         _pdu["action"] = "rtm/publish";
 
@@ -244,6 +245,7 @@ namespace ix
         Json::Value pdu;
         pdu["action"] = "auth/handshake";
         pdu["body"] = body;
+        pdu["id"] = _id++;
 
         std::string serializedJson = serializeJson(pdu);
         CobraConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
@@ -306,6 +308,7 @@ namespace ix
         Json::Value pdu;
         pdu["action"] = "auth/authenticate";
         pdu["body"] = body;
+        pdu["id"] = _id++;
 
         std::string serializedJson = serializeJson(pdu);
         CobraConnection::invokeTrafficTrackerCallback(serializedJson.size(), false);
@@ -402,6 +405,7 @@ namespace ix
         _body["channels"] = channels;
         _body["message"] = msg;
         _pdu["body"] = _body;
+        _pdu["id"] = _id++;
 
         std::string serializedJson = serializeJson(_pdu);
 
@@ -444,6 +448,7 @@ namespace ix
         Json::Value pdu;
         pdu["action"] = "rtm/subscribe";
         pdu["body"] = body;
+        pdu["id"] = _id++;
 
         _webSocket->send(pdu.toStyledString());
 
@@ -469,6 +474,7 @@ namespace ix
         Json::Value pdu;
         pdu["action"] = "rtm/unsubscribe";
         pdu["body"] = body;
+        pdu["id"] = _id++;
 
         _webSocket->send(pdu.toStyledString());
     }
