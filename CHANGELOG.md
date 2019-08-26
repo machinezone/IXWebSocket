@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.0.7] - 2019-08-23
+- CobraConnection: sets a unique id field for all messages sent to [cobra](https://github.com/machinezone/cobra).
+- CobraConnection: sets a counter as a field for each event published.
+
+## [5.0.6] - 2019-08-22
+- Windows: silly compile error (poll should be in the global namespace)
+
 ## [5.0.5] - 2019-08-22
 - Windows: use select instead of WSAPoll, through a poll wrapper
 

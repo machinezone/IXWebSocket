@@ -151,6 +151,10 @@ namespace ix
             _last_update;
         mutable std::mutex _last_update_mutex; // protect access to _last_update
 
+        /// Bump a counter for each metric type
+        std::unordered_map<std::string, int> _counters;
+        mutable std::mutex _counters_mutex; // protect access to _counters
+
         // const strings for internal ids
         static const std::string kSetRateControlId;
         static const std::string kSetBlacklistId;
