@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 
 ## [5.0.7] - 2019-08-23
+- WebSocket: add new option to pass in extra HTTP headers when connecting.
+- `ws connect` add new option (-H, works like [curl](https://stackoverflow.com/questions/356705/how-to-send-a-header-using-a-http-request-through-a-curl-call)) to pass in extra HTTP headers when connecting 
+
+If you run against `ws echo_server` you will see the headers being received printed in the terminal.
+```
+ws connect -H "foo: bar" -H "baz: buz" ws://127.0.0.1:8008
+```
+
 - CobraConnection: sets a unique id field for all messages sent to [cobra](https://github.com/machinezone/cobra).
 - CobraConnection: sets a counter as a field for each event published.
 

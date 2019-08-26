@@ -88,7 +88,7 @@ namespace ix
     }
 
     WebSocketInitResult WebSocketHandshake::clientHandshake(const std::string& url,
-                                                            const std::unordered_map<std::string, std::string>& extraHeaders,
+                                                            const WebSocketHttpHeaders& extraHeaders,
                                                             const std::string& host,
                                                             const std::string& path,
                                                             int port,

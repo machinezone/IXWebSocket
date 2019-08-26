@@ -109,6 +109,7 @@ int main(int argc, char** argv)
 
     CLI::App* connectApp = app.add_subcommand("connect", "Connect to a remote server");
     connectApp->add_option("url", url, "Connection url")->required();
+    connectApp->add_option("-H", headers, "Header")->join();
     connectApp->add_flag("-d", disableAutomaticReconnection, "Disable Automatic Reconnection");
     connectApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
     connectApp->add_flag("-b", binaryMode, "Send in binary mode");
@@ -252,7 +253,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("connect"))
     {
-        ret = ix::ws_connect_main(url, disableAutomaticReconnection,
+        ret = ix::ws_connect_main(url, headers, disableAutomaticReconnection,
                                   disablePerMessageDeflate, binaryMode);
     }
     else if (app.got_subcommand("chat"))

@@ -70,7 +70,7 @@ namespace ix
         std::lock_guard<std::mutex> lock(_configMutex);
         _url = url;
     }
-    void WebSocket::setExtraHeaders(const std::unordered_map<std::string, std::string>& headers)
+    void WebSocket::setExtraHeaders(const WebSocketHttpHeaders& headers)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         _extraHeaders = headers;
