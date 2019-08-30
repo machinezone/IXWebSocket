@@ -6,6 +6,7 @@
 
 #include "IXHttpClient.h"
 #include "IXUrlParser.h"
+#include "IXUserAgent.h"
 #include "IXWebSocketHttpHeaders.h"
 #include "IXSocketFactory.h"
 
@@ -171,7 +172,7 @@ namespace ix
         // Set a default User agent if none is present
         if (headers.find("User-Agent") == headers.end())
         {
-            ss << "User-Agent: ixwebsocket" << "\r\n";
+            ss << "User-Agent: " << userAgent() << "\r\n";
         }
 
         if (verb == kPost || verb == kPut)

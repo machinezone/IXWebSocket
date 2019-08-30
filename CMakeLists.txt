@@ -37,6 +37,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSocketFactory.cpp
     ixwebsocket/IXSocketServer.cpp
     ixwebsocket/IXUrlParser.cpp
+    ixwebsocket/IXUserAgent.cpp
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketCloseConstants.cpp
     ixwebsocket/IXWebSocketHandshake.cpp
@@ -68,6 +69,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSocketFactory.h
     ixwebsocket/IXSocketServer.h
     ixwebsocket/IXUrlParser.h
+    ixwebsocket/IXUserAgent.h
     ixwebsocket/IXWebSocket.h
     ixwebsocket/IXWebSocketCloseConstants.h
     ixwebsocket/IXWebSocketCloseInfo.h
@@ -84,6 +86,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketSendInfo.h
     ixwebsocket/IXWebSocketServer.h
     ixwebsocket/IXWebSocketTransport.h
+    ixwebsocket/IXWebSocketVersion.h
     ixwebsocket/LUrlParser.h
     ixwebsocket/libwshandshake.hpp
 )

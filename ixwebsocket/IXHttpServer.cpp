@@ -133,6 +133,8 @@ namespace ix
                 std::stringstream ss;
                 ss << request->method
                    << " "
+                   << request->headers["User-Agent"]
+                   << " "
                    << request->uri
                    << " "
                    << content.size();
