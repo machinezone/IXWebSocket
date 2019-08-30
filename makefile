@@ -74,6 +74,12 @@ install_cmake_for_linux:
 	mkdir -p /tmp/cmake
 	(cd /tmp/cmake ; curl -L -O https://github.com/Kitware/CMake/releases/download/v3.14.0/cmake-3.14.0-Linux-x86_64.tar.gz ; tar zxf cmake-3.14.0-Linux-x86_64.tar.gz)
 
+#  python -m venv venv
+#  source venv/bin/activate
+#  pip install mkdocs
+doc:
+	./venv/bin/mkdocs build -d ../bsergean.github.io/IXWebSocket/site
+
 .PHONY: test
 .PHONY: build
 .PHONY: ws
