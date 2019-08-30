@@ -34,7 +34,8 @@ namespace ix
                         const std::string& headers,
                         bool disableAutomaticReconnection,
                         bool disablePerMessageDeflate,
-                        bool binaryMode);
+                        bool binaryMode,
+                        uint32_t maxWaitBetweenReconnectionRetries);
 
     int ws_receive_main(const std::string& url, bool enablePerMessageDeflate, int delayMs);
 

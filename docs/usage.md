@@ -187,6 +187,48 @@ headers["foo"] = "bar";
 webSocket.setExtraHeaders(headers);
 ```
 
+### Automatic reconnection
+
+Automatic reconnection kicks in when the connection is disconnected without the user consent. This feature is on by default and can be turned off.
+
+```
+webSocket.enableAutomaticReconnection();  // turn on
+webSocket.disableAutomaticReconnection(); // turn off
+bool enabled = webSocket.isAutomaticReconnectionEnabled(); // query state
+```
+
+The technique to calculate wait time is called [exponential
+backoff](https://docs.aws.amazon.com/general/latest/gr/api-retries.html). Here
+are the default waiting times between attempts (from connecting with `ws connect ws://foo.com`)
+
+```
+> Connection error: Got bad status connecting to foo.com, status: 301, HTTP Status line: HTTP/1.1 301 Moved Permanently
+
+#retries: 1
+Wait time(ms): 100
+#retries: 2
+Wait time(ms): 200
+#retries: 3
+Wait time(ms): 400
+#retries: 4
+Wait time(ms): 800
+#retries: 5
+Wait time(ms): 1600
+#retries: 6
+Wait time(ms): 3200
+#retries: 7
+Wait time(ms): 6400
+#retries: 8
+Wait time(ms): 10000
+```
+
+The waiting time is capped by default at 10s between 2 attempts, but that value can be changed and queried.
+
+```
+webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s 
+uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
+```
+
 ## WebSocket server API
 
 ```

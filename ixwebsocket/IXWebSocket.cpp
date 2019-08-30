@@ -7,29 +7,10 @@
 #include "IXWebSocket.h"
 #include "IXSetThreadName.h"
 #include "IXWebSocketHandshake.h"
+#include "IXExponentialBackoff.h"
 
 #include <cmath>
 #include <cassert>
-
-namespace
-{
-    uint64_t calculateRetryWaitMilliseconds(uint32_t retry_count)
-    {
-        uint64_t wait_time;
-
-        if (retry_count <= 6)
-        {
-            // max wait_time is 6400 ms (2 ^ 6 = 64)
-            wait_time = ((uint64_t)std::pow(2, retry_count) * 100L);
-        }
-        else
-        {
-            wait_time = 10 * 1000; // 10 sec
-        }
-
-        return wait_time;
-    }
-}
 
 namespace ix
 {
@@ -38,11 +19,13 @@ namespace ix
     const int WebSocket::kDefaultPingIntervalSecs(-1);
     const int WebSocket::kDefaultPingTimeoutSecs(-1);
     const bool WebSocket::kDefaultEnablePong(true);
+    const uint32_t WebSocket::kDefaultMaxWaitBetweenReconnectionRetries(10 * 1000); // 10s
 
     WebSocket::WebSocket() :
         _onMessageCallback(OnMessageCallback()),
         _stop(false),
         _automaticReconnection(true),
+        _maxWaitBetweenReconnectionRetries(kDefaultMaxWaitBetweenReconnectionRetries),
         _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs),
         _enablePong(kDefaultEnablePong),
         _pingIntervalSecs(kDefaultPingIntervalSecs),
@@ -147,6 +130,18 @@ namespace ix
         std::lock_guard<std::mutex> lock(_configMutex);
         WebSocketPerMessageDeflateOptions perMessageDeflateOptions(false);
         _perMessageDeflateOptions = perMessageDeflateOptions;
+    }
+
+    void WebSocket::setMaxWaitBetweenReconnectionRetries(uint32_t maxWaitBetweenReconnectionRetries)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _maxWaitBetweenReconnectionRetries = maxWaitBetweenReconnectionRetries;
+    }
+
+    uint32_t WebSocket::getMaxWaitBetweenReconnectionRetries() const
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _maxWaitBetweenReconnectionRetries;
     }
 
     void WebSocket::start()
@@ -276,7 +271,7 @@ namespace ix
 
                 if (_automaticReconnection)
                 {
-                    duration = millis(calculateRetryWaitMilliseconds(retries++));
+                    duration = millis(calculateRetryWaitMilliseconds(retries++, _maxWaitBetweenReconnectionRetries));
 
                     connectErr.wait_time = duration.count();
                     connectErr.retries = retries;
