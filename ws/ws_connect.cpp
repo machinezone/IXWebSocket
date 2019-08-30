@@ -21,7 +21,8 @@ namespace ix
                              const std::string& headers,
                              bool disableAutomaticReconnection,
                              bool disablePerMessageDeflate,
-                             bool binaryMode);
+                             bool binaryMode,
+                             uint32_t maxWaitBetweenReconnectionRetries);
 
             void subscribe(const std::string& channel);
             void start();
@@ -44,7 +45,8 @@ namespace ix
                                        const std::string& headers,
                                        bool disableAutomaticReconnection,
                                        bool disablePerMessageDeflate,
-                                       bool binaryMode) :
+                                       bool binaryMode,
+                                       uint32_t maxWaitBetweenReconnectionRetries) :
         _url(url),
         _disablePerMessageDeflate(disablePerMessageDeflate),
         _binaryMode(binaryMode)
@@ -53,6 +55,7 @@ namespace ix
         {
             _webSocket.disableAutomaticReconnection();
         }
+        _webSocket.setMaxWaitBetweenReconnectionRetries(maxWaitBetweenReconnectionRetries);
 
         _headers = parseHeaders(headers);
     }
@@ -186,14 +189,16 @@ namespace ix
                         const std::string& headers,
                         bool disableAutomaticReconnection,
                         bool disablePerMessageDeflate,
-                        bool binaryMode)
+                        bool binaryMode,
+                        uint32_t maxWaitBetweenReconnectionRetries)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketConnect webSocketChat(url,
                                        headers,
                                        disableAutomaticReconnection,
                                        disablePerMessageDeflate,
-                                       binaryMode);
+                                       binaryMode,
+                                       maxWaitBetweenReconnectionRetries);
         webSocketChat.start();
 
         while (true)

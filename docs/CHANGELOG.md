@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.0.9] - 2019-08-30
+
+New option to cap the max wait between reconnection attempts. Still default to 10s. (setMaxWaitBetweenReconnectionRetries).
+
+```
+ws connect --max_wait 5000 ws://example.com # will only wait 5 seconds max between reconnection attempts
+```
+
 ## [5.0.7] - 2019-08-23
 - WebSocket: add new option to pass in extra HTTP headers when connecting.
 - `ws connect` add new option (-H, works like [curl](https://stackoverflow.com/questions/356705/how-to-send-a-header-using-a-http-request-through-a-curl-call)) to pass in extra HTTP headers when connecting 

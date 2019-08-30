@@ -89,6 +89,7 @@ int main(int argc, char** argv)
     int delayMs = -1;
     int count = 1;
     int jobs = 4;
+    uint32_t maxWaitBetweenReconnectionRetries;
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
@@ -113,6 +114,7 @@ int main(int argc, char** argv)
     connectApp->add_flag("-d", disableAutomaticReconnection, "Disable Automatic Reconnection");
     connectApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
     connectApp->add_flag("-b", binaryMode, "Send in binary mode");
+    connectApp->add_option("--max_wait", maxWaitBetweenReconnectionRetries, "Max Wait Time between reconnection retries");
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
     chatApp->add_option("url", url, "Connection url")->required();
@@ -254,7 +256,8 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("connect"))
     {
         ret = ix::ws_connect_main(url, headers, disableAutomaticReconnection,
-                                  disablePerMessageDeflate, binaryMode);
+                                  disablePerMessageDeflate, binaryMode,
+                                  maxWaitBetweenReconnectionRetries);
     }
     else if (app.got_subcommand("chat"))
     {

@@ -97,6 +97,8 @@ namespace ix
         void enableAutomaticReconnection();
         void disableAutomaticReconnection();
         bool isAutomaticReconnectionEnabled() const;
+        void setMaxWaitBetweenReconnectionRetries(uint32_t maxWaitBetweenReconnectionRetries);
+        uint32_t getMaxWaitBetweenReconnectionRetries() const;
 
     private:
         WebSocketSendInfo sendMessage(const std::string& text,
@@ -123,9 +125,13 @@ namespace ix
         static OnTrafficTrackerCallback _onTrafficTrackerCallback;
 
         std::atomic<bool> _stop;
-        std::atomic<bool> _automaticReconnection;
         std::thread _thread;
         std::mutex _writeMutex;
+
+        // Automatic reconnection
+        std::atomic<bool> _automaticReconnection;
+        static const uint32_t kDefaultMaxWaitBetweenReconnectionRetries;
+        uint32_t _maxWaitBetweenReconnectionRetries;
 
         std::atomic<int> _handshakeTimeoutSecs;
         static const int kDefaultHandShakeTimeoutSecs;
