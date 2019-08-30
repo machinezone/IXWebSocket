@@ -8,6 +8,7 @@
 #include "IXSocketConnect.h"
 #include "IXUrlParser.h"
 #include "IXHttp.h"
+#include "IXUserAgent.h"
 
 #include "libwshandshake.hpp"
 
@@ -128,9 +129,17 @@ namespace ix
         ss << "Sec-WebSocket-Version: 13\r\n";
         ss << "Sec-WebSocket-Key: " << secWebSocketKey << "\r\n";
 
-        for (auto& it : extraHeaders) {
+        // User-Agent can be customized by users
+        if (extraHeaders.find("User-Agent") == extraHeaders.end())
+        {
+            ss << "User-Agent: " << userAgent() << "\r\n";
+        }
+
+        for (auto& it : extraHeaders)
+        {
             ss << it.first << ":" << it.second << "\r\n";
         }
+
         if (_enablePerMessageDeflate)
         {
             ss << _perMessageDeflateOptions.generateHeader();
