@@ -102,4 +102,6 @@ namespace ix
                       const std::string& appsConfigPath);
 
     int ws_httpd_main(int port, const std::string& hostname);
+
+    int ws_autobahn_main(const std::string& url);
 } // namespace ix

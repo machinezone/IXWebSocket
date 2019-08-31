@@ -57,7 +57,8 @@ namespace ix
             (ix::CobraConnectionEventType eventType,
              const std::string& errMsg,
              const ix::WebSocketHttpHeaders& headers,
-             const std::string& subscriptionId)
+             const std::string& subscriptionId,
+             CobraConnection::MsgId msgId)
             {
                 if (eventType == ix::CobraConnection_EventType_Open)
                 {
@@ -95,6 +96,10 @@ namespace ix
                 else if (eventType == ix::CobraConnection_EventType_Error)
                 {
                     spdlog::error("Subscriber: error {}", errMsg);
+                }
+                else if (eventType == ix::CobraConnection_EventType_Published)
+                {
+                    spdlog::error("Published message hacked: {}", msgId);
                 }
             }
         );

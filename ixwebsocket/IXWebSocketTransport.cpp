@@ -590,6 +590,17 @@ namespace ix
                 std::string pingData(_rxbuf.begin()+ws.header_size,
                                      _rxbuf.begin()+ws.header_size + (size_t) ws.N);
 
+                // too large
+                if (pingData.size() > 125)
+                {
+                    std::string reason("reason control frame with payload length > 125 octets");
+                    // Unexpected frame type
+                    close(1002,
+                          reason,
+                          reason.size());
+                    return;
+                }
+
                 if (_enablePong)
                 {
                     // Reply back right away

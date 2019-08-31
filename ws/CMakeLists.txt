@@ -70,6 +70,7 @@ add_executable(ws
   ws_cobra_to_sentry.cpp
   ws_snake.cpp
   ws_httpd.cpp
+  ws_autobahn.cpp
   ws.cpp)
 
 target_link_libraries(ws ixwebsocket)

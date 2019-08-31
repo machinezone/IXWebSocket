@@ -15,6 +15,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <limits>
 
 namespace ix
 {
@@ -27,7 +28,8 @@ namespace ix
         CobraConnection_EventType_Open = 2,
         CobraConnection_EventType_Closed = 3,
         CobraConnection_EventType_Subscribed = 4,
-        CobraConnection_EventType_UnSubscribed = 5
+        CobraConnection_EventType_UnSubscribed = 5,
+        CobraConnection_EventType_Published = 6
     };
 
     enum CobraConnectionPublishMode
@@ -40,12 +42,17 @@ namespace ix
     using EventCallback = std::function<void(CobraConnectionEventType,
                                              const std::string&,
                                              const WebSocketHttpHeaders&,
-                                             const std::string&)>;
+                                             const std::string&,
+                                             uint64_t msgId)>;
+
     using TrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
+    using PublishTrackerCallback = std::function<void(bool sent, bool acked)>;
 
     class CobraConnection
     {
     public:
+        using MsgId = uint64_t;
+
         CobraConnection();
         ~CobraConnection();
 
@@ -57,10 +64,17 @@ namespace ix
                        const std::string& rolesecret,
                        const WebSocketPerMessageDeflateOptions& webSocketPerMessageDeflateOptions);
 
+        /// Set the traffic tracker callback
         static void setTrafficTrackerCallback(const TrafficTrackerCallback& callback);
 
         /// Reset the traffic tracker callback to an no-op one.
         static void resetTrafficTrackerCallback();
+
+        /// Set the publish tracker callback
+        static void setPublishTrackerCallback(const PublishTrackerCallback& callback);
+
+        /// Reset the publish tracker callback to an no-op one.
+        static void resetPublishTrackerCallback();
 
         /// Set the closed callback
         void setEventCallback(const EventCallback& eventCallback);
@@ -71,7 +85,7 @@ namespace ix
         /// Publish a message to a channel
         ///
         /// No-op if the connection is not established
-        bool publish(const Json::Value& channels, const Json::Value& msg);
+        MsgId publish(const Json::Value& channels, const Json::Value& msg);
 
         // Subscribe to a channel, and execute a callback when an incoming
         // message arrives.
@@ -111,6 +125,7 @@ namespace ix
         bool handleSubscriptionData(const Json::Value& pdu);
         bool handleSubscriptionResponse(const Json::Value& pdu);
         bool handleUnsubscriptionResponse(const Json::Value& pdu);
+        bool handlePublishResponse(const Json::Value& pdu);
 
         void initWebSocketOnMessageCallback();
 
@@ -121,11 +136,15 @@ namespace ix
         /// Invoke the traffic tracker callback
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
+        /// Invoke the publish tracker callback
+        static void invokePublishTrackerCallback(bool sent, bool acked);
+
         /// Invoke event callbacks
         void invokeEventCallback(CobraConnectionEventType eventType,
                                  const std::string& errorMsg = std::string(),
                                  const WebSocketHttpHeaders& headers = WebSocketHttpHeaders(),
-                                 const std::string& subscriptionId = std::string());
+                                 const std::string& subscriptionId = std::string(),
+                                 uint64_t msgId = std::numeric_limits<uint64_t>::max());
         void invokeErrorCallback(const std::string& errorMsg, const std::string& serializedPdu);
 
         ///
@@ -149,6 +168,9 @@ namespace ix
 
         /// Traffic tracker callback
         static TrafficTrackerCallback _trafficTrackerCallback;
+
+        /// Publish tracker callback
+        static PublishTrackerCallback _publishTrackerCallback;
 
         /// Cobra events callbacks
         EventCallback _eventCallback;

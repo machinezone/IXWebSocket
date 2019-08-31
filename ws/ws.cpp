@@ -226,6 +226,9 @@ int main(int argc, char** argv)
     httpServerApp->add_option("--port", port, "Port");
     httpServerApp->add_option("--host", hostname, "Hostname");
 
+    CLI::App* autobahnApp = app.add_subcommand("autobahn", "Test client Autobahn compliance");
+    autobahnApp->add_option("--url", url, "url");
+
     CLI11_PARSE(app, argc, argv);
 
     // pid file handling
@@ -327,6 +330,10 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("httpd"))
     {
         ret = ix::ws_httpd_main(port, hostname);
+    }
+    else if (app.got_subcommand("autobahn"))
+    {
+        ret = ix::ws_autobahn_main(url);
     }
 
     ix::uninitNetSystem();

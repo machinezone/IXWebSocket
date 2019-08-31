@@ -18,6 +18,7 @@
 namespace ix
 {
     TrafficTrackerCallback CobraConnection::_trafficTrackerCallback = nullptr;
+    PublishTrackerCallback CobraConnection::_publishTrackerCallback = nullptr;
     constexpr size_t CobraConnection::kQueueMaxSize;
 
     CobraConnection::CobraConnection() :
@@ -56,6 +57,24 @@ namespace ix
         }
     }
 
+    void CobraConnection::setPublishTrackerCallback(const PublishTrackerCallback& callback)
+    {
+        _publishTrackerCallback = callback;
+    }
+
+    void CobraConnection::resetPublishTrackerCallback()
+    {
+        setPublishTrackerCallback(nullptr);
+    }
+
+    void CobraConnection::invokePublishTrackerCallback(bool sent, bool acked)
+    {
+        if (_publishTrackerCallback)
+        {
+            _publishTrackerCallback(sent, acked);
+        }
+    }
+
     void CobraConnection::setEventCallback(const EventCallback& eventCallback)
     {
         std::lock_guard<std::mutex> lock(_eventCallbackMutex);
@@ -63,19 +82,20 @@ namespace ix
     }
 
     void CobraConnection::invokeEventCallback(ix::CobraConnectionEventType eventType,
-                                               const std::string& errorMsg,
-                                               const WebSocketHttpHeaders& headers,
-                                               const std::string& subscriptionId)
+                                              const std::string& errorMsg,
+                                              const WebSocketHttpHeaders& headers,
+                                              const std::string& subscriptionId,
+                                              CobraConnection::MsgId msgId)
     {
         std::lock_guard<std::mutex> lock(_eventCallbackMutex);
         if (_eventCallback)
         {
-            _eventCallback(eventType, errorMsg, headers, subscriptionId);
+            _eventCallback(eventType, errorMsg, headers, subscriptionId, msgId);
         }
     }
 
     void CobraConnection::invokeErrorCallback(const std::string& errorMsg,
-                                               const std::string& serializedPdu)
+                                              const std::string& serializedPdu)
     {
         std::stringstream ss;
         ss << errorMsg << " : received pdu => " << serializedPdu;
@@ -177,6 +197,17 @@ namespace ix
                     else if (action == "rtm/unsubscribe/error")
                     {
                         invokeErrorCallback("Unsubscription error", msg->str);
+                    }
+                    else if (action == "rtm/publish/ok")
+                    {
+                        if (!handlePublishResponse(data))
+                        {
+                            invokeErrorCallback("Error processing publish response", msg->str);
+                        }
+                    }
+                    else if (action == "rtm/publish/error")
+                    {
+                        invokeErrorCallback("Publish error", msg->str);
                     }
                     else
                     {
@@ -374,6 +405,24 @@ namespace ix
         return true;
     }
 
+    bool CobraConnection::handlePublishResponse(const Json::Value& pdu)
+    {
+        if (!pdu.isMember("id")) return false;
+        Json::Value id = pdu["id"];
+
+        if (!id.isUInt64()) return false;
+
+        uint64_t msgId = id.asUInt64();
+
+        invokeEventCallback(ix::CobraConnection_EventType_Published,
+                            std::string(), WebSocketHttpHeaders(),
+                            std::string(), msgId);
+
+        invokePublishTrackerCallback(false, true);
+
+        return true;
+    }
+
     bool CobraConnection::connect()
     {
         _webSocket->start();
@@ -399,9 +448,11 @@ namespace ix
     //
     // publish is not thread safe as we are trying to reuse some Json objects.
     //
-    bool CobraConnection::publish(const Json::Value& channels,
-                                   const Json::Value& msg)
+    CobraConnection::MsgId CobraConnection::publish(const Json::Value& channels,
+                                                    const Json::Value& msg)
     {
+        invokePublishTrackerCallback(true, false);
+
         _body["channels"] = channels;
         _body["message"] = msg;
         _pdu["body"] = _body;
@@ -412,7 +463,7 @@ namespace ix
         if (_publishMode == CobraConnection_PublishMode_Batch)
         {
             enqueue(serializedJson);
-            return true;
+            return _id - 1;
         }
 
         //
@@ -421,14 +472,14 @@ namespace ix
         //
         if (_authenticated && publishMessage(serializedJson))
         {
-            return true;
+            return _id - 1;
         }
         else // Or else we enqueue
              // Slow code path is when we haven't connected yet (startup),
              // or when the connection drops for some reason.
         {
             enqueue(serializedJson);
-            return false;
+            return 0;
         }
     }
 
@@ -528,7 +579,7 @@ namespace ix
     {
         auto webSocketSendInfo = _webSocket->send(serializedJson);
         CobraConnection::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize,
-                                                       false);
+                                                      false);
         return webSocketSendInfo.success;
     }
 
