@@ -25,7 +25,8 @@ namespace ix
             (ix::CobraConnectionEventType eventType,
              const std::string& errMsg,
              const ix::WebSocketHttpHeaders& headers,
-             const std::string& subscriptionId)
+             const std::string& subscriptionId,
+             CobraConnection::MsgId msgId)
             {
                 std::stringstream ss;
 
@@ -57,6 +58,10 @@ namespace ix
                 else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
                 {
                     ss << "Unsubscribed through subscription id: " << subscriptionId;
+                }
+                else if (eventType == ix::CobraConnection_EventType_Published)
+                {
+                    ss << "Published message " << msgId << " acked";
                 }
 
                 ix::IXCoreLogger::Log(ss.str().c_str());

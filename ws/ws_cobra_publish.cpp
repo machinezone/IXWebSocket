@@ -12,6 +12,7 @@
 #include <atomic>
 #include <jsoncpp/json/json.h>
 #include <ixcobra/IXCobraMetricsPublisher.h>
+#include <spdlog/spdlog.h>
 
 namespace ix
 {
@@ -23,6 +24,16 @@ namespace ix
                               const std::string& path,
                               bool stress)
     {
+        std::atomic<int> sentMessages(0);
+        std::atomic<int> ackedMessages(0);
+        CobraConnection::setPublishTrackerCallback(
+            [&sentMessages, &ackedMessages](bool sent, bool acked)
+            {
+                if (sent) sentMessages++;
+                if (acked) ackedMessages++;
+            }
+        );
+
         CobraMetricsPublisher cobraMetricsPublisher;
         cobraMetricsPublisher.enable(true);
 
@@ -64,7 +75,10 @@ namespace ix
 
         // Wait a bit for the message to get a chance to be sent
         // there isn't any ack on publish right now so it's the best we can do
+        // FIXME: this comment is a lie now
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        spdlog::info("Sent messages: {} Acked messages {}", sentMessages, ackedMessages);
 
         return 0;
     }
