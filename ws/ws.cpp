@@ -228,6 +228,7 @@ int main(int argc, char** argv)
 
     CLI::App* autobahnApp = app.add_subcommand("autobahn", "Test client Autobahn compliance");
     autobahnApp->add_option("--url", url, "url");
+    autobahnApp->add_flag("-q", quiet, "Quiet");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -333,7 +334,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("autobahn"))
     {
-        ret = ix::ws_autobahn_main(url);
+        ret = ix::ws_autobahn_main(url, quiet);
     }
 
     ix::uninitNetSystem();
