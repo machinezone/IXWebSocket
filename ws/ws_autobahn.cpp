@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <atomic>
 #include <mutex>
 #include <condition_variable>
 #include <ixwebsocket/IXWebSocket.h>
@@ -130,19 +131,61 @@ namespace ix
         _webSocket.stop();
     }
 
+    void generateReport(const std::string& url)
+    {
+        ix::WebSocket webSocket;
+        std::string reportUrl(url);
+        reportUrl += "/updateReports?agent=ixwebsocket";
+        webSocket.setUrl(reportUrl);
+        webSocket.disableAutomaticReconnection();
+
+        std::atomic<bool> done(false);
+        webSocket.setOnMessageCallback(
+            [&done](const ix::WebSocketMessagePtr& msg)
+            {
+                if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    std::cerr << "Report generated" << std::endl;
+                    done = true;
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    std::stringstream ss;
+                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
+                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
+                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
+                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
+                    std::cerr << ss.str() << std::endl;
+                }
+            }
+        );
+        webSocket.start();
+
+        while (!done)
+        {
+            std::chrono::duration<double, std::milli> duration(10);
+            std::this_thread::sleep_for(duration);
+        }
+
+        webSocket.stop();
+    }
+
     //
-    // make && bench ws autobahn --url 'ws://localhost:9001/runCase?case=9&agent=ixwebsocket' && ws connect -d 'ws://localhost:9001/updateReports?agent=ixwebsocket'
+    // make && bench ws autobahn --url ws://localhost:9001
     //
     int ws_autobahn_main(const std::string& url, bool quiet)
     {
-        int N = 1; // 519;
+        int N = 519;
         N++;
         for (int i = 1 ; i < N; ++i)
         {
+            std::cerr << "Execute test case " << i << std::endl;
+
             int caseNumber = i;
 
             std::stringstream ss;
-            ss << "ws://localhost:9001/runCase?case="
+            ss << url
+               << "/runCase?case="
                << caseNumber
                << "&agent=ixwebsocket";
 
@@ -151,6 +194,8 @@ namespace ix
             AutobahnTestCase testCase(url, quiet);
             testCase.run();
         }
+
+        generateReport(url);
 
         return 0;
     }
