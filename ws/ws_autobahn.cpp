@@ -4,6 +4,36 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
+//
+// 1. First you need to generate a config file in a config folder, 
+//    which can use a white list of test to execute (with globbing),
+//    or a black list of tests to ignore
+//
+// config/fuzzingserver.json 
+// {
+//     "url": "ws://127.0.0.1:9001",
+//     "outdir": "./reports/clients",
+//     "cases": ["2.*"],
+//     "exclude-cases": [
+//     ],
+//     "exclude-agent-cases": {}
+// }
+//  
+//
+// 2 Run the test server (using docker)
+// docker run -it --rm \
+//     -v "${PWD}/config:/config" \
+//     -v "${PWD}/reports:/reports" \
+//     -p 9001:9001 \
+//     --name fuzzingserver \
+//     crossbario/autobahn-testsuite
+//
+// 3. Run this command
+//    ws autobahn -q --url ws://localhost:9001
+//
+// 4. A HTML report will be generated, you can inspect it to see if you are compliant or not
+//
+
 #include <iostream>
 #include <sstream>
 #include <atomic>
@@ -225,6 +255,8 @@ namespace ix
     int ws_autobahn_main(const std::string& url, bool quiet)
     {
         int N = getTestCaseCount(url);
+        std::cerr << "Test cases count: " << N << std::endl;
+
         N++;
 
         for (int i = 1 ; i < N; ++i)
