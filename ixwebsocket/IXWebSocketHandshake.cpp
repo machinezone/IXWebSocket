@@ -235,7 +235,7 @@ namespace ix
             else if (!_perMessageDeflate.init(webSocketPerMessageDeflateOptions))
             {
                 return WebSocketInitResult(
-                    false, 0,"Failed to initialize per message deflate engine");
+                    false, 0, "Failed to initialize per message deflate engine");
             }
         }
 

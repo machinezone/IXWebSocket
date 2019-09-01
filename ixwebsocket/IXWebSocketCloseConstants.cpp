@@ -20,4 +20,5 @@ namespace ix
     const std::string WebSocketCloseConstants::kPingTimeoutMessage("Ping timeout");
     const std::string WebSocketCloseConstants::kProtocolErrorMessage("Protocol error");
     const std::string WebSocketCloseConstants::kNoStatusCodeErrorMessage("No status code");
+    const std::string WebSocketCloseConstants::kProtocolErrorReservedBitUsed("Reserved bit used");
 }

@@ -25,5 +25,6 @@ namespace ix
         static const std::string kPingTimeoutMessage;
         static const std::string kProtocolErrorMessage;
         static const std::string kNoStatusCodeErrorMessage;
+        static const std::string kProtocolErrorReservedBitUsed;
     };
 } // namespace ix

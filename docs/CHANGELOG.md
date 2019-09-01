@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.1.1] - 2019-09-01
+
+Close connections when reserved bits are used (autobahn test: 3 Reserved Bits)
+
 ## [5.1.0] - 2019-08-31
 
 ws autobahn / Add code to test websocket client compliance with the autobahn test-suite
