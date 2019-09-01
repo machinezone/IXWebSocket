@@ -16,7 +16,7 @@ namespace ix
     class AutobahnTestCase
     {
         public:
-            AutobahnTestCase(const std::string& _url);
+            AutobahnTestCase(const std::string& _url, bool quiet);
             void run();
 
         private:
@@ -26,14 +26,17 @@ namespace ix
             ix::WebSocket _webSocket;
 
             std::atomic<bool> _done;
+            bool _quiet;
     };
 
-    AutobahnTestCase::AutobahnTestCase(const std::string& url) :
+    AutobahnTestCase::AutobahnTestCase(const std::string& url, bool quiet) :
         _url(url),
-        _done(false)
+        _done(false),
+        _quiet(quiet)
     {
         _webSocket.disableAutomaticReconnection();
 
+        // FIXME: this should be on by default
         ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(
             true, false, false, 15, 15);
         _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
@@ -41,7 +44,10 @@ namespace ix
 
     void AutobahnTestCase::log(const std::string& msg)
     {
-        std::cerr << msg << std::endl;
+        if (!_quiet)
+        {
+            std::cerr << msg;
+        }
     }
 
     void AutobahnTestCase::run()
@@ -58,11 +64,11 @@ namespace ix
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     log("autobahn: connected");
-                    std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-                    std::cout << "Handshake Headers:" << std::endl;
+                    ss << "Uri: " << msg->openInfo.uri << std::endl;
+                    ss << "Handshake Headers:" << std::endl;
                     for (auto it : msg->openInfo.headers)
                     {
-                        std::cout << it.first << ": " << it.second << std::endl;
+                        ss << it.first << ": " << it.second << std::endl;
                     }
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
@@ -70,17 +76,16 @@ namespace ix
                     ss << "autobahn: connection closed:";
                     ss << " code " << msg->closeInfo.code;
                     ss << " reason " << msg->closeInfo.reason << std::endl;
-                    log(ss.str());
 
                     _done = true;
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
+                    ss << "Received " << msg->wireSize << " bytes" << std::endl;
 
-                    // ss << "autobahn: received message: "
-                    //    << msg->str;
-                    // log(ss.str());
+                    ss << "autobahn: received message: "
+                       << msg->str
+                       << std::endl;
 
                     _webSocket.send(msg->str, msg->binary);
                 }
@@ -90,28 +95,28 @@ namespace ix
                     ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
                     ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
                     ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
-                    log(ss.str());
 
                     // And error can happen, in which case the test-case is marked done
                     _done = true;
                 }
                 else if (msg->type == ix::WebSocketMessageType::Fragment)
                 {
-                    std::cerr << "Received message fragment" << std::endl;
+                    ss << "Received message fragment" << std::endl;
                 }
                 else if (msg->type == ix::WebSocketMessageType::Ping)
                 {
-                    std::cerr << "Received ping" << std::endl;
+                    ss << "Received ping" << std::endl;
                 }
                 else if (msg->type == ix::WebSocketMessageType::Pong)
                 {
-                    std::cerr << "Received pong" << std::endl;
+                    ss << "Received pong" << std::endl;
                 }
                 else
                 {
-                    ss << "Invalid ix::WebSocketMessageType";
-                    log(ss.str());
+                    ss << "Invalid ix::WebSocketMessageType" << std::endl;
                 }
+
+                log(ss.str());
             });
 
         _webSocket.start();
@@ -129,7 +134,7 @@ namespace ix
     //
     // make && bench ws autobahn --url 'ws://localhost:9001/runCase?case=9&agent=ixwebsocket' && ws connect -d 'ws://localhost:9001/updateReports?agent=ixwebsocket'
     //
-    int ws_autobahn_main(const std::string& url)
+    int ws_autobahn_main(const std::string& url, bool quiet)
     {
         int N = 1; // 519;
         N++;
@@ -144,7 +149,7 @@ namespace ix
 
             std::string url(ss.str());
 
-            AutobahnTestCase testCase(url);
+            AutobahnTestCase testCase(url, quiet);
             testCase.run();
         }
 
