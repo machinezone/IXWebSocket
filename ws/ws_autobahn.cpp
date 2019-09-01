@@ -6,7 +6,8 @@
 
 #include <iostream>
 #include <sstream>
-#include <atomic>
+#include <mutex>
+#include <condition_variable>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXSocket.h>
 
@@ -25,13 +26,14 @@ namespace ix
             std::string _url;
             ix::WebSocket _webSocket;
 
-            std::atomic<bool> _done;
             bool _quiet;
+
+            std::mutex _mutex;
+            std::condition_variable _condition;
     };
 
     AutobahnTestCase::AutobahnTestCase(const std::string& url, bool quiet) :
         _url(url),
-        _done(false),
         _quiet(quiet)
     {
         _webSocket.disableAutomaticReconnection();
@@ -77,7 +79,7 @@ namespace ix
                     ss << " code " << msg->closeInfo.code;
                     ss << " reason " << msg->closeInfo.reason << std::endl;
 
-                    _done = true;
+                    _condition.notify_one();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
@@ -97,7 +99,7 @@ namespace ix
                     ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
 
                     // And error can happen, in which case the test-case is marked done
-                    _done = true;
+                    _condition.notify_one();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Fragment)
                 {
@@ -121,12 +123,9 @@ namespace ix
 
         _webSocket.start();
 
-        log("Waiting for being closed ...");
-        while (!_done)
-        {
-            std::chrono::duration<double, std::milli> duration(10);
-            std::this_thread::sleep_for(duration);
-        }
+        log("Waiting for test completion ...");
+        std::unique_lock<std::mutex> lock(_mutex);
+        _condition.wait(lock);
 
         _webSocket.stop();
     }
