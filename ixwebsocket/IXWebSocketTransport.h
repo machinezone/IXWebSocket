@@ -112,6 +112,8 @@ namespace ix
             unsigned header_size;
             bool fin;
             bool rsv1;
+            bool rsv2;
+            bool rsv3;
             bool mask;
             enum opcode_type
             {
