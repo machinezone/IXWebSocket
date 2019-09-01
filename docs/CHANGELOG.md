@@ -3,8 +3,8 @@ All notable changes to this project will be documented in this file.
 
 ## [5.1.0] - 2019-08-31
 
-add utf-8 validation code, not hooked up properly yet
 ws autobahn / Add code to test websocket client compliance with the autobahn test-suite
+add utf-8 validation code, not hooked up properly yet
 Ping received with a payload too large (> 125 bytes) trigger a connection closure
 cobra / add tracking about published messages
 cobra / publish returns a message id, that can be used when 
