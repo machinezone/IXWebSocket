@@ -170,13 +170,63 @@ namespace ix
         webSocket.stop();
     }
 
+    int getTestCaseCount(const std::string& url)
+    {
+        ix::WebSocket webSocket;
+        std::string caseCountUrl(url);
+        caseCountUrl += "/getCaseCount";
+        webSocket.setUrl(caseCountUrl);
+        webSocket.disableAutomaticReconnection();
+
+        int count = 0;
+
+        std::atomic<bool> done(false);
+        webSocket.setOnMessageCallback(
+            [&done, &count](const ix::WebSocketMessagePtr& msg)
+            {
+                if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    done = true;
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    std::stringstream ss;
+                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
+                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
+                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
+                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
+                    std::cerr << ss.str() << std::endl;
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    // response is a string
+                    std::stringstream ss;
+                    ss << msg->str;
+                    ss >> count;
+                }
+            }
+        );
+        webSocket.start();
+
+        while (!done)
+        {
+            std::chrono::duration<double, std::milli> duration(10);
+            std::this_thread::sleep_for(duration);
+        }
+
+        webSocket.stop();
+
+        return count;
+    }
+
     //
     // make && bench ws autobahn --url ws://localhost:9001
     //
     int ws_autobahn_main(const std::string& url, bool quiet)
     {
-        int N = 519;
+        int N = getTestCaseCount(url);
         N++;
+
         for (int i = 1 ; i < N; ++i)
         {
             std::cerr << "Execute test case " << i << std::endl;
