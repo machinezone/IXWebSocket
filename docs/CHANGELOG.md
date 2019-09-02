@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.1.2] - 2019-09-02
+
+Ping and Pong messages cannot be fragmented (autobahn test: 5.1 and 5.2 Fragmentation)
+
 ## [5.1.1] - 2019-09-01
 
 Close connections when reserved bits are used (autobahn test: 3 Reserved Bits)

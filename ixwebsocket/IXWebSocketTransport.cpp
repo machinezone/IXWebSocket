@@ -546,6 +546,17 @@ namespace ix
                 return; /* Need: ws.header_size+ws.N - _rxbuf.size() */
             }
 
+            if (!ws.fin && (
+                   ws.opcode == wsheader_type::PING
+                || ws.opcode == wsheader_type::PONG
+                || ws.opcode == wsheader_type::CLOSE
+            )){
+                // Cntrol messages should not be fragmented
+                close(WebSocketCloseConstants::kProtocolErrorCode,
+                      WebSocketCloseConstants::kProtocolErrorCodeControlMessageFragmented);
+                return;
+            }
+
             // We got a whole message, now do something with it:
             if (
                    ws.opcode == wsheader_type::TEXT_FRAME
@@ -603,11 +614,9 @@ namespace ix
                 // too large
                 if (pingData.size() > 125)
                 {
-                    std::string reason("reason control frame with payload length > 125 octets");
                     // Unexpected frame type
-                    close(1002,
-                          reason,
-                          reason.size());
+                    close(WebSocketCloseConstants::kProtocolErrorCode,
+                          WebSocketCloseConstants::kProtocolErrorPingPayloadOversized);
                     return;
                 }
 
@@ -1069,6 +1078,11 @@ namespace ix
         _requestInitCancellation = true;
 
         if (_readyState == ReadyState::CLOSING || _readyState == ReadyState::CLOSED) return;
+
+        if (closeWireSize == 0)
+        {
+            closeWireSize = reason.size();
+        }
 
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
