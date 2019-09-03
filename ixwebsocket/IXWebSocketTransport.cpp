@@ -37,6 +37,7 @@
 #include "IXWebSocketHttpHeaders.h"
 #include "IXUrlParser.h"
 #include "IXSocketFactory.h"
+#include "IXUtf8Validator.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -675,6 +676,13 @@ namespace ix
                     {
                         reason.assign(_rxbuf.begin()+ws.header_size + 2,
                                       _rxbuf.begin()+ws.header_size + (size_t) ws.N);
+                    }
+
+                    // Validate that the reason is proper utf-8. Autobahn 7.5.1
+                    if (!validateUtf8(reason))
+                    {
+                        code = WebSocketCloseConstants::kInvalidFramePayloadData;
+                        reason = WebSocketCloseConstants::kInvalidFramePayloadDataMessage;
                     }
                 }
                 else
