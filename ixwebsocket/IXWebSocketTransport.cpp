@@ -684,6 +684,20 @@ namespace ix
                         code = WebSocketCloseConstants::kInvalidFramePayloadData;
                         reason = WebSocketCloseConstants::kInvalidFramePayloadDataMessage;
                     }
+
+                    // Validate close codes. Autobahn 7.9.*
+                    // 1014, 1015 are debattable. The firefox MSDN has a description for them
+                    if (code < 1000 || code == 1004 || code == 1006 ||
+                        (code > 1013 && code < 3000))
+                    {
+                        // build up an error message containing the bad error code
+                        std::stringstream ss;
+                        ss << WebSocketCloseConstants::kInvalidCloseCodeMessage
+                           << ": " << code;
+                        reason = ss.str();
+
+                        code = WebSocketCloseConstants::kProtocolErrorCode;
+                    }
                 }
                 else
                 {
