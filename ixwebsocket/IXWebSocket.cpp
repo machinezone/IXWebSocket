@@ -461,8 +461,8 @@ namespace ix
     {
         if (!isValidUtf8(text))
         {
-            close(WebSocketCloseConstants::kNormalClosureCode,
-                  WebSocketCloseConstants::kInvalidUtf8);
+            close(WebSocketCloseConstants::kInvalidFramePayloadData,
+                  WebSocketCloseConstants::kInvalidFramePayloadDataMessage);
             return false;
         }
         return sendMessage(text, SendMessageKind::Text, onProgressCallback);

@@ -551,7 +551,7 @@ namespace ix
                 || ws.opcode == wsheader_type::PONG
                 || ws.opcode == wsheader_type::CLOSE
             )){
-                // Cntrol messages should not be fragmented
+                // Control messages should not be fragmented
                 close(WebSocketCloseConstants::kProtocolErrorCode,
                       WebSocketCloseConstants::kProtocolErrorCodeControlMessageFragmented);
                 return;
@@ -571,6 +571,19 @@ namespace ix
                         (ws.opcode == wsheader_type::TEXT_FRAME)
                         ? MessageKind::MSG_TEXT
                         : MessageKind::MSG_BINARY;
+
+                    // Continuation message needs to follow a non-fin TEXT or BINARY message
+                    if (!_chunks.empty())
+                    {
+                        close(WebSocketCloseConstants::kProtocolErrorCode,
+                              WebSocketCloseConstants::kProtocolErrorCodeDataOpcodeOutOfSequence);
+                    }
+                }
+                else if (_chunks.empty())
+                {
+                    // Continuation message need to follow a non-fin TEXT or BINARY message
+                    close(WebSocketCloseConstants::kProtocolErrorCode,
+                          WebSocketCloseConstants::kProtocolErrorCodeContinuationOpCodeOutOfSequence);
                 }
 
                 //

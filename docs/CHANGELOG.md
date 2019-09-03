@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.1.5] - 2019-09-03
+
+Framentation: data and continuation blocks received out of order (fix autobahn test: 5.9 through 5.20 Fragmentation)
+
 ## [5.1.4] - 2019-09-03
 
 Sending invalid UTF-8 TEXT message should fail and close the connection (fix **tons** of autobahn test: 6.X UTF-8 Handling)
@@ -19,17 +23,17 @@ Close connections when reserved bits are used (fix autobahn test: 3.X Reserved B
 
 ## [5.1.0] - 2019-08-31
 
-ws autobahn / Add code to test websocket client compliance with the autobahn test-suite
-add utf-8 validation code, not hooked up properly yet
-Ping received with a payload too large (> 125 bytes) trigger a connection closure
-cobra / add tracking about published messages
-cobra / publish returns a message id, that can be used when 
-cobra / new message type in the message received handler when publish/ok is received (can be used to implement an ack system).
+- ws autobahn / Add code to test websocket client compliance with the autobahn test-suite
+- add utf-8 validation code, not hooked up properly yet
+- Ping received with a payload too large (> 125 bytes) trigger a connection closure
+- cobra / add tracking about published messages
+- cobra / publish returns a message id, that can be used when 
+- cobra / new message type in the message received handler when publish/ok is received (can be used to implement an ack system).
 
 ## [5.0.9] - 2019-08-30
 
-User-Agent header is set when not specified.
-New option to cap the max wait between reconnection attempts. Still default to 10s. (setMaxWaitBetweenReconnectionRetries).
+- User-Agent header is set when not specified.
+- New option to cap the max wait between reconnection attempts. Still default to 10s. (setMaxWaitBetweenReconnectionRetries).
 
 ```
 ws connect --max_wait 5000 ws://example.com # will only wait 5 seconds max between reconnection attempts
