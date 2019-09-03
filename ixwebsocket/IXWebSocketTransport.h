@@ -149,7 +149,7 @@ namespace ix
         // messages (tested messages up to 700M) and we cannot put them in a single
         // buffer that is resized, as this operation can be slow when a buffer has its
         // size increased 2 fold, while appending to a list has a fixed cost.
-        std::list<std::vector<uint8_t>> _chunks;
+        std::list<std::string> _chunks;
 
         // Record the message kind (will be TEXT or BINARY) for a fragmented
         // message, present in the first chunk, since the final chunk will be a
