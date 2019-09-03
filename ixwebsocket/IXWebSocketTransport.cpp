@@ -789,11 +789,28 @@ namespace ix
         {
             std::string decompressedMessage;
             bool success = _perMessageDeflate.decompress(message, decompressedMessage);
-            onMessageCallback(decompressedMessage, wireSize, !success, messageKind);
+
+            if (messageKind == MessageKind::MSG_TEXT && !validateUtf8(decompressedMessage))
+            {
+                close(WebSocketCloseConstants::kInvalidFramePayloadData,
+                      WebSocketCloseConstants::kInvalidFramePayloadDataMessage);
+            }
+            else
+            {
+                onMessageCallback(decompressedMessage, wireSize, !success, messageKind);
+            }
         }
         else
         {
-            onMessageCallback(message, wireSize, false, messageKind);
+            if (messageKind == MessageKind::MSG_TEXT && !validateUtf8(message))
+            {
+                close(WebSocketCloseConstants::kInvalidFramePayloadData,
+                      WebSocketCloseConstants::kInvalidFramePayloadDataMessage);
+            }
+            else
+            {
+                onMessageCallback(message, wireSize, false, messageKind);
+            }
         }
     }
 
