@@ -1,13 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.1.3] - 2019-09-03
+
+Message type (TEXT or BINARY) is invalid for received fragmented messages (fix autobahn test: 5.3 through 5.8 Fragmentation)
+
 ## [5.1.2] - 2019-09-02
 
-Ping and Pong messages cannot be fragmented (autobahn test: 5.1 and 5.2 Fragmentation)
+Ping and Pong messages cannot be fragmented (fix autobahn test: 5.1 and 5.2 Fragmentation)
 
 ## [5.1.1] - 2019-09-01
 
-Close connections when reserved bits are used (autobahn test: 3 Reserved Bits)
+Close connections when reserved bits are used (fix autobahn test: 3.X Reserved Bits)
 
 ## [5.1.0] - 2019-08-31
 

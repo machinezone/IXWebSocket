@@ -151,6 +151,11 @@ namespace ix
         // size increased 2 fold, while appending to a list has a fixed cost.
         std::list<std::vector<uint8_t>> _chunks;
 
+        // Record the message kind (will be TEXT or BINARY) for a fragmented
+        // message, present in the first chunk, since the final chunk will be a
+        // CONTINUATION opcode and doesn't tell the full message kind
+        MessageKind _fragmentedMessageKind;
+
         // Fragments are 32K long
         static constexpr size_t kChunkSize = 1 << 15;
 
