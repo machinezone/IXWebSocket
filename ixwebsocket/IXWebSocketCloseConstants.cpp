@@ -11,6 +11,7 @@ namespace ix
     const uint16_t WebSocketCloseConstants::kNormalClosureCode(1000);
     const uint16_t WebSocketCloseConstants::kInternalErrorCode(1011);
     const uint16_t WebSocketCloseConstants::kAbnormalCloseCode(1006);
+    const uint16_t WebSocketCloseConstants::kInvalidFramePayloadData(1007);
     const uint16_t WebSocketCloseConstants::kProtocolErrorCode(1002);
     const uint16_t WebSocketCloseConstants::kNoStatusCodeErrorCode(1005);
 
@@ -23,5 +24,7 @@ namespace ix
     const std::string WebSocketCloseConstants::kProtocolErrorReservedBitUsed("Reserved bit used");
     const std::string WebSocketCloseConstants::kProtocolErrorPingPayloadOversized("Ping reason control frame with payload length > 125 octets");
     const std::string WebSocketCloseConstants::kProtocolErrorCodeControlMessageFragmented("Control message fragmented");
-    const std::string WebSocketCloseConstants::kInvalidUtf8("Invalid UTF-8");
+    const std::string WebSocketCloseConstants::kProtocolErrorCodeDataOpcodeOutOfSequence("Fragmentation: data message out of sequence");
+    const std::string WebSocketCloseConstants::kProtocolErrorCodeContinuationOpCodeOutOfSequence("Fragmentation: continuation opcode out of sequence");
+    const std::string WebSocketCloseConstants::kInvalidFramePayloadDataMessage("Invalid frame payload data");
 }
