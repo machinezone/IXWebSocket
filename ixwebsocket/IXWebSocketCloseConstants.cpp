@@ -23,4 +23,5 @@ namespace ix
     const std::string WebSocketCloseConstants::kProtocolErrorReservedBitUsed("Reserved bit used");
     const std::string WebSocketCloseConstants::kProtocolErrorPingPayloadOversized("Ping reason control frame with payload length > 125 octets");
     const std::string WebSocketCloseConstants::kProtocolErrorCodeControlMessageFragmented("Control message fragmented");
+    const std::string WebSocketCloseConstants::kInvalidUtf8("Invalid UTF-8");
 }

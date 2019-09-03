@@ -447,9 +447,7 @@ namespace ix
                                       bool binary,
                                       const OnProgressCallback& onProgressCallback)
     {
-        return sendMessage(data,
-                           (binary) ? SendMessageKind::Binary: SendMessageKind::Text,
-                           onProgressCallback);
+        return (binary) ? sendBinary(data, onProgressCallback) : sendText(data, onProgressCallback);
     }
 
     WebSocketSendInfo WebSocket::sendBinary(const std::string& text,
@@ -463,7 +461,8 @@ namespace ix
     {
         if (!isValidUtf8(text))
         {
-            stop();
+            close(WebSocketCloseConstants::kNormalClosureCode,
+                  WebSocketCloseConstants::kInvalidUtf8);
             return false;
         }
         return sendMessage(text, SendMessageKind::Text, onProgressCallback);
