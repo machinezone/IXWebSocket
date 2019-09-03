@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 - Sending invalid UTF-8 TEXT message should fail and close the connection (fix remaining autobahn test: 6.X UTF-8 Handling)
 - Fix failing unittest which was sending binary data in text mode with WebSocket::send to call properly call WebSocket::sendBinary instead.
 - Validate that the reason is proper utf-8. (fix autobahn test 7.5.1)
+- Validate close codes. Autobahn 7.9.*
 
 ## [5.1.5] - 2019-09-03
 

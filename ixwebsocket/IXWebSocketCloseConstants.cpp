@@ -27,4 +27,5 @@ namespace ix
     const std::string WebSocketCloseConstants::kProtocolErrorCodeDataOpcodeOutOfSequence("Fragmentation: data message out of sequence");
     const std::string WebSocketCloseConstants::kProtocolErrorCodeContinuationOpCodeOutOfSequence("Fragmentation: continuation opcode out of sequence");
     const std::string WebSocketCloseConstants::kInvalidFramePayloadDataMessage("Invalid frame payload data");
+    const std::string WebSocketCloseConstants::kInvalidCloseCodeMessage("Invalid close code");
 }
