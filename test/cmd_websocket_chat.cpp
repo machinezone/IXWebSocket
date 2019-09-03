@@ -206,7 +206,7 @@ namespace
 
     void WebSocketChat::sendMessage(const std::string& text)
     {
-        _webSocket.send(encodeMessage(text));
+        _webSocket.sendBinary(encodeMessage(text));
     }
 
     bool startServer(ix::WebSocketServer& server)
@@ -239,7 +239,7 @@ namespace
                             {
                                 if (client != webSocket)
                                 {
-                                    client->send(msg->str);
+                                    client->sendBinary(msg->str);
                                 }
                             }
                         }
