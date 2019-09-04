@@ -156,6 +156,9 @@ namespace ix
         // CONTINUATION opcode and doesn't tell the full message kind
         MessageKind _fragmentedMessageKind;
 
+        // Ditto for whether a message is compressed
+        bool _compressedMessage;
+
         // Fragments are 32K long
         static constexpr size_t kChunkSize = 1 << 15;
 
@@ -244,7 +247,7 @@ namespace ix
 
         void emitMessage(MessageKind messageKind,
                          const std::string& message,
-                         const wsheader_type& ws,
+                         bool compressedMessage,
                          const OnMessageCallback& onMessageCallback);
 
         bool isSendBufferEmpty() const;
