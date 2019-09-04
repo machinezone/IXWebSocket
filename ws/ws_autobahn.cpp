@@ -43,6 +43,21 @@
 #include <ixwebsocket/IXSocket.h>
 
 
+namespace
+{
+    std::string truncate(const std::string& str, size_t n)
+    {
+        if (str.size() < n)
+        {
+            return str;
+        }
+        else
+        {
+            return str.substr(0, n) + "...";
+        }
+    }
+}
+
 namespace ix
 {
     class AutobahnTestCase
@@ -117,7 +132,7 @@ namespace ix
                     ss << "Received " << msg->wireSize << " bytes" << std::endl;
 
                     ss << "autobahn: received message: "
-                       << msg->str
+                       << truncate(msg->str, 40)
                        << std::endl;
 
                     _webSocket.send(msg->str, msg->binary);
