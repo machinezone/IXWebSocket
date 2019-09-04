@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.1.9] - 2019-09-03
+
+- ws autobahn / report progress with spdlog::info to get timing info
+
 ## [5.1.8] - 2019-09-03
 
 - Per message deflate/compression: handle fragmented messages (fix autobahn test: 12.1.X and probably others)
