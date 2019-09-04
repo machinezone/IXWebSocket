@@ -42,6 +42,8 @@
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXSocket.h>
 
+#include <spdlog/spdlog.h>
+
 
 namespace
 {
@@ -276,7 +278,7 @@ namespace ix
 
         for (int i = 1 ; i < N; ++i)
         {
-            std::cerr << "Execute test case " << i << std::endl;
+            spdlog::info("Execute test case {}", i);
 
             int caseNumber = i;
 
