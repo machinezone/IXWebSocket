@@ -178,7 +178,7 @@ namespace ix
         _webSocket.stop();
     }
 
-    void generateReport(const std::string& url)
+    bool generateReport(const std::string& url)
     {
         ix::WebSocket webSocket;
         std::string reportUrl(url);
@@ -186,14 +186,16 @@ namespace ix
         webSocket.setUrl(reportUrl);
         webSocket.disableAutomaticReconnection();
 
-        std::atomic<bool> done(false);
+        std::atomic<bool> success(true);
+        std::condition_variable condition;
+
         webSocket.setOnMessageCallback(
-            [&done](const ix::WebSocketMessagePtr& msg)
+            [&condition, &success](const ix::WebSocketMessagePtr& msg)
             {
                 if (msg->type == ix::WebSocketMessageType::Close)
                 {
                     std::cerr << "Report generated" << std::endl;
-                    done = true;
+                    condition.notify_one();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
@@ -203,18 +205,24 @@ namespace ix
                     ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
                     ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
                     std::cerr << ss.str() << std::endl;
+
+                    success = false;
                 }
             }
         );
-        webSocket.start();
 
-        while (!done)
+        webSocket.start();
+        std::mutex mutex;
+        std::unique_lock<std::mutex> lock(mutex);
+        condition.wait(lock);
+        webSocket.stop();
+
+        if (!success)
         {
-            std::chrono::duration<double, std::milli> duration(10);
-            std::this_thread::sleep_for(duration);
+            spdlog::error("Cannot generate report at url {}", reportUrl);
         }
 
-        webSocket.stop();
+        return success;
     }
 
     int getTestCaseCount(const std::string& url)
@@ -225,15 +233,15 @@ namespace ix
         webSocket.setUrl(caseCountUrl);
         webSocket.disableAutomaticReconnection();
 
-        int count = 0;
+        int count = -1;
+        std::condition_variable condition;
 
-        std::atomic<bool> done(false);
         webSocket.setOnMessageCallback(
-            [&done, &count](const ix::WebSocketMessagePtr& msg)
+            [&condition, &count](const ix::WebSocketMessagePtr& msg)
             {
                 if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    done = true;
+                    condition.notify_one();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
@@ -243,6 +251,8 @@ namespace ix
                     ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
                     ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
                     std::cerr << ss.str() << std::endl;
+
+                    condition.notify_one();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
@@ -253,15 +263,17 @@ namespace ix
                 }
             }
         );
+
         webSocket.start();
-
-        while (!done)
-        {
-            std::chrono::duration<double, std::milli> duration(10);
-            std::this_thread::sleep_for(duration);
-        }
-
+        std::mutex mutex;
+        std::unique_lock<std::mutex> lock(mutex);
+        condition.wait(lock);
         webSocket.stop();
+
+        if (count == -1)
+        {
+            spdlog::error("Cannot retrieve test case count at url {}", caseCountUrl);
+        }
 
         return count;
     }
@@ -271,12 +283,18 @@ namespace ix
     //
     int ws_autobahn_main(const std::string& url, bool quiet)
     {
-        int N = getTestCaseCount(url);
-        std::cerr << "Test cases count: " << N << std::endl;
+        int testCasesCount = getTestCaseCount(url);
+        std::cerr << "Test cases count: " << testCasesCount << std::endl;
 
-        N++;
+        if (testCasesCount == -1)
+        {
+            spdlog::error("Cannot retrieve test case count at url {}", url);
+            return 1;
+        }
 
-        for (int i = 1 ; i < N; ++i)
+        testCasesCount++;
+
+        for (int i = 1 ; i < testCasesCount; ++i)
         {
             spdlog::info("Execute test case {}", i);
 
@@ -294,9 +312,7 @@ namespace ix
             testCase.run();
         }
 
-        generateReport(url);
-
-        return 0;
+        return generateReport(url) ? 0 : 1;
     }
 }
 
