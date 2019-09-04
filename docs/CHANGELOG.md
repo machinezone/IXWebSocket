@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## [5.1.9] - 2019-09-03
 
 - ws autobahn / report progress with spdlog::info to get timing info
+- ws autobahn / use condition variables for stopping test case + add more logging on errors
 
 ## [5.1.8] - 2019-09-03
 
