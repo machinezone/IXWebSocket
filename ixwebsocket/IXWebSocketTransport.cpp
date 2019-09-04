@@ -77,6 +77,7 @@ namespace ix
 
     WebSocketTransport::WebSocketTransport() :
         _useMask(true),
+        _compressedMessage(false),
         _readyState(ReadyState::CLOSED),
         _closeCode(WebSocketCloseConstants::kInternalErrorCode),
         _closeReason(WebSocketCloseConstants::kInternalErrorMessage),
@@ -576,6 +577,8 @@ namespace ix
                         ? MessageKind::MSG_TEXT
                         : MessageKind::MSG_BINARY;
 
+                    _compressedMessage = _enablePerMessageDeflate && ws.rsv1;
+
                     // Continuation message needs to follow a non-fin TEXT or BINARY message
                     if (!_chunks.empty())
                     {
@@ -597,8 +600,10 @@ namespace ix
                 {
                     emitMessage(_fragmentedMessageKind,
                                 frameData,
-                                ws,
+                                _compressedMessage,
                                 onMessageCallback);
+
+                    _compressedMessage = false;
                 }
                 else
                 {
@@ -614,12 +619,14 @@ namespace ix
                     if (ws.fin)
                     {
                         emitMessage(_fragmentedMessageKind, getMergedChunks(),
-                                    ws, onMessageCallback);
+                                    _compressedMessage, onMessageCallback);
+
                         _chunks.clear();
+                        _compressedMessage = false;
                     }
                     else
                     {
-                        emitMessage(MessageKind::FRAGMENT, std::string(), ws, onMessageCallback);
+                        emitMessage(MessageKind::FRAGMENT, std::string(), false, onMessageCallback);
                     }
                 }
             }
@@ -641,14 +648,14 @@ namespace ix
                     sendData(wsheader_type::PONG, frameData, compress);
                 }
 
-                emitMessage(MessageKind::PING, frameData, ws, onMessageCallback);
+                emitMessage(MessageKind::PING, frameData, false, onMessageCallback);
             }
             else if (ws.opcode == wsheader_type::PONG)
             {
                 std::lock_guard<std::mutex> lck(_lastReceivePongTimePointMutex);
                 _lastReceivePongTimePoint = std::chrono::steady_clock::now();
 
-                emitMessage(MessageKind::PONG, frameData, ws, onMessageCallback);
+                emitMessage(MessageKind::PONG, frameData, false, onMessageCallback);
             }
             else if (ws.opcode == wsheader_type::CLOSE)
             {
@@ -779,13 +786,13 @@ namespace ix
 
     void WebSocketTransport::emitMessage(MessageKind messageKind,
                                          const std::string& message,
-                                         const wsheader_type& ws,
+                                         bool compressedMessage,
                                          const OnMessageCallback& onMessageCallback)
     {
         size_t wireSize = message.size();
 
         // When the RSV1 bit is 1 it means the message is compressed
-        if (_enablePerMessageDeflate && ws.rsv1 && messageKind != MessageKind::FRAGMENT)
+        if (compressedMessage && messageKind != MessageKind::FRAGMENT)
         {
             std::string decompressedMessage;
             bool success = _perMessageDeflate.decompress(message, decompressedMessage);
