@@ -866,6 +866,8 @@ namespace ix
             message_end = compressedMessage.end();
         }
 
+        _txbuf.reserve(wireSize);
+
         // Common case for most message. No fragmentation required.
         if (wireSize < kChunkSize)
         {
@@ -953,8 +955,9 @@ namespace ix
             header[0] |= 0x80;
         }
 
-        // This bit indicate that the frame is compressed
-        if (compress)
+        // The rsv1 bit indicate that the frame is compressed
+        // continuation opcodes should not set it. Autobahn 12.2.10 and others 12.X
+        if (compress && type != wsheader_type::CONTINUATION)
         {
             header[0] |= 0x40;
         }
