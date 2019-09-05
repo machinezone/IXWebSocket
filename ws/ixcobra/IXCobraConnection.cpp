@@ -453,6 +453,8 @@ namespace ix
     {
         invokePublishTrackerCallback(true, false);
 
+        CobraConnection::MsgId msgId = _id;
+
         _body["channels"] = channels;
         _body["message"] = msg;
         _pdu["body"] = _body;
@@ -460,27 +462,22 @@ namespace ix
 
         std::string serializedJson = serializeJson(_pdu);
 
-        if (_publishMode == CobraConnection_PublishMode_Batch)
+        //
+        // 1. When we use batch mode, we just enqueue and will do the flush explicitely
+        // 2. When we aren't authenticated yet to the cobra server, we need to enqueue
+        //    and retry later
+        // 3. If the network connection was droped (WebSocket::send will return false),
+        //    it means the message won't be sent so we need to enqueue as well.
+        //
+        // The order of the conditionals is important.
+        //
+        if (_publishMode == CobraConnection_PublishMode_Batch || !_authenticated ||
+            !publishMessage(serializedJson))
         {
             enqueue(serializedJson);
-            return _id - 1;
         }
 
-        //
-        // Fast path. We are authenticated and the publishing succeed
-        //            This should happen for 99% of the cases.
-        //
-        if (_authenticated && publishMessage(serializedJson))
-        {
-            return _id - 1;
-        }
-        else // Or else we enqueue
-             // Slow code path is when we haven't connected yet (startup),
-             // or when the connection drops for some reason.
-        {
-            enqueue(serializedJson);
-            return 0;
-        }
+        return msgId;
     }
 
     void CobraConnection::subscribe(const std::string& channel,

@@ -12,7 +12,6 @@
 
 #include <cmath>
 #include <cassert>
-#include <iostream>
 
 
 namespace ix
