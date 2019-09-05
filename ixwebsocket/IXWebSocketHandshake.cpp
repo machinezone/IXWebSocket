@@ -295,7 +295,7 @@ namespace ix
             return sendErrorResponse(400, "Missing Sec-WebSocket-Key value");
         }
 
-        if (headers["upgrade"] != "websocket")
+        if (!insensitiveStringCompare(headers["upgrade"], "WebSocket"))
         {
             return sendErrorResponse(400, "Invalid or missing Upgrade header");
         }
@@ -326,6 +326,7 @@ namespace ix
         ss << "Sec-WebSocket-Accept: " << std::string(output) << "\r\n";
         ss << "Upgrade: websocket\r\n";
         ss << "Connection: Upgrade\r\n";
+        ss << "Server: " << userAgent() << "\r\n";
 
         // Parse the client headers. Does it support deflate ?
         std::string header = headers["sec-websocket-extensions"];
