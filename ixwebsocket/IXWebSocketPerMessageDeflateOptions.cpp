@@ -33,6 +33,8 @@ namespace ix
         _serverNoContextTakeover = serverNoContextTakeover;
         _clientMaxWindowBits = clientMaxWindowBits;
         _serverMaxWindowBits = serverMaxWindowBits;
+
+        sanitizeClientMaxWindowBits();
     }
 
     //
@@ -107,7 +109,19 @@ namespace ix
                 _clientMaxWindowBits =
                     std::min(maxClientMaxWindowBits,
                         std::max(x, minClientMaxWindowBits));
+
+                sanitizeClientMaxWindowBits();
             }
+        }
+    }
+
+    void WebSocketPerMessageDeflateOptions::sanitizeClientMaxWindowBits()
+    {
+        // zlib/deflate has a bug with windowsbits == 8, so we silently upgrade it to 9
+        // See https://bugs.chromium.org/p/chromium/issues/detail?id=691074
+        if (_clientMaxWindowBits == 8)
+        {
+            _clientMaxWindowBits = 9;
         }
     }
 

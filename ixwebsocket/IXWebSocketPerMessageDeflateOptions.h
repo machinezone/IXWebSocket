@@ -41,5 +41,7 @@ namespace ix
         bool _serverNoContextTakeover;
         int _clientMaxWindowBits;
         int _serverMaxWindowBits;
+
+        void sanitizeClientMaxWindowBits();
     };
 } // namespace ix
