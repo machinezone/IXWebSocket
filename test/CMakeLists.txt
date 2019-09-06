@@ -17,11 +17,15 @@ endif()
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/.. ixwebsocket)
 
+set (WS ../ws)
+
 include_directories(
   ${PROJECT_SOURCE_DIR}/Catch2/single_include
+  ../third_party
   ../third_party/msgpack11
   ../third_party/spdlog/include
   ../ws
+  ../ws/snake
 )
 
 # Shared sources
@@ -30,7 +34,24 @@ set (SOURCES
   IXTest.cpp
   IXGetFreePort.cpp
   ../third_party/msgpack11/msgpack11.cpp
-  ../ws/ixcore/utils/IXCoreLogger.cpp
+  ../third_party/jsoncpp/jsoncpp.cpp
+
+  ${WS}/ixcore/utils/IXCoreLogger.cpp
+
+  ${WS}/ixcrypto/IXBase64.cpp
+  ${WS}/ixcrypto/IXHash.cpp
+  ${WS}/ixcrypto/IXUuid.cpp
+  ${WS}/ixcrypto/IXHMac.cpp
+
+  ${WS}/ixcobra/IXCobraConnection.cpp
+  ${WS}/ixcobra/IXCobraMetricsPublisher.cpp
+  ${WS}/ixcobra/IXCobraMetricsThreadedPublisher.cpp
+
+  ${WS}/snake/IXSnakeServer.cpp
+  ${WS}/snake/IXSnakeProtocol.cpp
+  ${WS}/snake/IXAppConfig.cpp
+
+  ${WS}/IXRedisClient.cpp
 
   IXSocketTest.cpp
   IXSocketConnectTest.cpp
@@ -41,6 +62,7 @@ set (SOURCES
   IXHttpClientTest.cpp
   IXHttpServerTest.cpp
   IXUnityBuildsTest.cpp
+  IXCobraChatTest.cpp
 )
 
 # Some unittest don't work on windows yet

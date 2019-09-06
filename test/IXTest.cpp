@@ -137,4 +137,57 @@ namespace ix
         server.start();
         return true;
     }
+
+    std::vector<uint8_t> load(const std::string& path)
+    {
+        std::vector<uint8_t> memblock;
+
+        std::ifstream file(path);
+        if (!file.is_open()) return memblock;
+
+        file.seekg(0, file.end);
+        std::streamoff size = file.tellg();
+        file.seekg(0, file.beg);
+
+        memblock.resize((size_t) size);
+        file.read((char*)&memblock.front(), static_cast<std::streamsize>(size));
+
+        return memblock;
+    }
+
+    std::string readAsString(const std::string& path)
+    {
+        auto vec = load(path);
+        return std::string(vec.begin(), vec.end());
+    }
+
+    snake::AppConfig makeSnakeServerConfig()
+    {
+        snake::AppConfig appConfig;
+        appConfig.port = 8008;
+        appConfig.hostname = "127.0.0.1";
+        appConfig.verbose = true;
+        appConfig.redisPort = 6379;
+        appConfig.redisPassword = "";
+        appConfig.redisHosts.push_back("localhost"); // only one host supported now
+
+        std::string appsConfigPath("appsConfig.json");
+
+        // Parse config file
+        auto str = readAsString(appsConfigPath);
+        if (str.empty())
+        {
+            std::cout << "Cannot read content of " << appsConfigPath << std::endl;
+            return appConfig;
+        }
+
+        std::cout << str << std::endl;
+        auto apps = nlohmann::json::parse(str);
+        appConfig.apps = apps["apps"];
+
+        // Display config on the terminal for debugging
+        dumpConfig(appConfig);
+
+        return appConfig;
+    }
 }
