@@ -3,9 +3,6 @@ language: bash
 # See https://github.com/amaiorano/vectrexy/blob/master/.travis.yml
 # for ideas on installing vcpkg
 
-services:
-  - redis-server
-
 matrix:
   include:
     # macOS
@@ -14,21 +11,23 @@ matrix:
         - HOMEBREW_NO_AUTO_UPDATE=1
       compiler: clang
       script:
+        - brew install redis
+        - brew services start redis
         - brew install mbedtls
         - python test/run.py
         - make ws
 
     # Linux
-    - os: linux
-      dist: bionic
-      before_install:
-        - sudo apt-get install -y libmbedtls-dev
-      script: 
-        - python test/run.py
-        - make ws
-      env:
-        - CC=gcc
-        - CXX=g++
+    # - os: linux
+    #   dist: bionic
+    #   before_install:
+    #     - sudo apt-get install -y libmbedtls-dev
+    #   script: 
+    #     - python test/run.py
+    #     - make ws
+    #   env:
+    #     - CC=gcc
+    #     - CXX=g++
 
     # Clang + Linux disabled for now
     # - os: linux
