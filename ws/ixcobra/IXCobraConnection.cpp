@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cassert>
 #include <cstring>
+#include <iostream>
 
 
 namespace ix
@@ -300,6 +301,8 @@ namespace ix
     //
     bool CobraConnection::handleHandshakeResponse(const Json::Value& pdu)
     {
+        if (!pdu.isObject()) return false;
+
         if (!pdu.isMember("body")) return false;
         Json::Value body = pdu["body"];
 
@@ -349,6 +352,8 @@ namespace ix
 
     bool CobraConnection::handleSubscriptionResponse(const Json::Value& pdu)
     {
+        if (!pdu.isObject()) return false;
+
         if (!pdu.isMember("body")) return false;
         Json::Value body = pdu["body"];
 
@@ -365,6 +370,8 @@ namespace ix
 
     bool CobraConnection::handleUnsubscriptionResponse(const Json::Value& pdu)
     {
+        if (!pdu.isObject()) return false;
+
         if (!pdu.isMember("body")) return false;
         Json::Value body = pdu["body"];
 
@@ -381,6 +388,8 @@ namespace ix
 
     bool CobraConnection::handleSubscriptionData(const Json::Value& pdu)
     {
+        if (!pdu.isObject()) return false;
+
         if (!pdu.isMember("body")) return false;
         Json::Value body = pdu["body"];
 
@@ -407,6 +416,8 @@ namespace ix
 
     bool CobraConnection::handlePublishResponse(const Json::Value& pdu)
     {
+        if (!pdu.isObject()) return false;
+
         if (!pdu.isMember("id")) return false;
         Json::Value id = pdu["id"];
 
