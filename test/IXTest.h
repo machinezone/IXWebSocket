@@ -9,6 +9,7 @@
 #include "IXGetFreePort.h"
 #include <iostream>
 #include <ixwebsocket/IXWebSocketServer.h>
+#include "IXAppConfig.h"
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -48,4 +49,6 @@ namespace ix
     void log(const std::string& msg);
 
     bool startWebSocketEchoServer(ix::WebSocketServer& server);
+
+    snake::AppConfig makeSnakeServerConfig();
 } // namespace ix

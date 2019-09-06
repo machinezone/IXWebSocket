@@ -3,6 +3,9 @@ language: bash
 # See https://github.com/amaiorano/vectrexy/blob/master/.travis.yml
 # for ideas on installing vcpkg
 
+services:
+  - redis-server
+
 matrix:
   include:
     # macOS
