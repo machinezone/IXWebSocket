@@ -19,6 +19,8 @@ namespace snake
         ~SnakeServer() = default;
 
         bool run();
+        void runForever();
+        void stop();
 
     private:
         std::string parseAppKey(const std::string& path);

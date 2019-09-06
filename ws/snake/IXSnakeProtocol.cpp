@@ -163,6 +163,14 @@ namespace snake
                 return;
             }
         }
+
+        nlohmann::json response = {
+            {"action", "rtm/publish/ok"},
+            {"id", pdu.value("id", 1)},
+            {"body", {}}
+        };
+
+        ws->sendText(response.dump());
     }
 
     //
@@ -220,12 +228,14 @@ namespace snake
         {
             auto msg = nlohmann::json::parse(messageStr);
 
+            msg = msg["body"]["message"];
+
             nlohmann::json response = {
                 {"action", "rtm/subscription/data"},
                 {"id", id++},
                 {"body", {
                     {"subscription_id", subscriptionId},
-                    {"messages", {{msg}}}
+                    {"messages", {msg}}
                 }}
             };
 
@@ -271,6 +281,22 @@ namespace snake
                                 pdu);
     }
 
+    void handleUnSubscribe(
+        std::shared_ptr<SnakeConnectionState> state,
+        std::shared_ptr<ix::WebSocket> ws,
+        const AppConfig& appConfig,
+        const nlohmann::json& pdu)
+    {
+        state->redisClient().stop();
+
+        nlohmann::json response = {
+            {"action", "rtm/unsubscribe/ok"},
+            {"id", pdu.value("id", 1)},
+            {"body", {}}
+        };
+        ws->sendText(response.dump());
+    }
+
     void processCobraMessage(
         std::shared_ptr<SnakeConnectionState> state,
         std::shared_ptr<ix::WebSocket> ws,
@@ -298,6 +324,10 @@ namespace snake
         else if (action == "rtm/subscribe")
         {
             handleSubscribe(state, ws, appConfig, pdu);
+        }
+        else if (action == "rtm/unsubscribe")
+        {
+            handleUnSubscribe(state, ws, appConfig, pdu);
         }
         else
         {

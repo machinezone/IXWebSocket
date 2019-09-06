@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## [6.0.1] - 2019-09-05
 
+- ws snake (cobra simple server) add basic support for unsubscription + subscribe send the proper subscription data + redis client subscription can be cancelled
 - IXCobraConnection / pdu handlers can crash if they receive json data which is not an object
 
 ## [6.0.0] - 2019-09-04

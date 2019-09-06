@@ -76,6 +76,8 @@ namespace ix
         dumpConfig(appConfig);
 
         snake::SnakeServer snakeServer(appConfig);
-        return snakeServer.run() ? 0 : 1;
+        snakeServer.runForever();
+
+        return 0; // should never reach this
     }
 }
