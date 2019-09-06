@@ -24,7 +24,7 @@ matrix:
         - sudo apt-get install -y libmbedtls-dev
         - sudo apt-get install -y redis-server
       script: 
-      #- python test/run.py
+      - python test/run.py
       #  - make ws
       env:
         - CC=gcc
