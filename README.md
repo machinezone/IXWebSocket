@@ -6,7 +6,7 @@ IXWebSocket is a C++ library for WebSocket client and server development. It has
 
 It is been used on big mobile video game titles sending and receiving tons of messages since 2017 (iOS and Android).
 
-Interested ? Go read the [docs](https://bsergean.github.io/IXWebSocket/site/) ! If things don't work as expected, please create an issue in github, or even better a pull request if you know how to fix your problem.
+Interested ? Go read the [docs](https://machinezone.github.io/IXWebSocket/) ! If things don't work as expected, please create an issue in github, or even better a pull request if you know how to fix your problem.
 
 IXWebSocket is actively being developed, check out the [changelog](CHANGELOG.md) to know what's cooking. If you are looking for a real time messaging service (the chat-like 'server' your websocket code will talk to) with many features such as history, backed by Redis, look at [cobra](https://github.com/machinezone/cobra).
 
