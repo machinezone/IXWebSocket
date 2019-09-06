@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Examples - IXWebSocket</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">IXWebSocket</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../CHANGELOG/">Changelog</a>
+                            </li>
+                            <li >
+                                <a href="../build/">Build</a>
+                            </li>
+                            <li >
+                                <a href="../design/">Design</a>
+                            </li>
+                            <li class="active">
+                                <a href="./">Examples</a>
+                            </li>
+                            <li >
+                                <a href="../ws/">Ws</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../design/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../ws/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#examples">Examples</a></li>
+            <li><a href="#windows-note">Windows note</a></li>
+            <li><a href="#websocket-client-api">WebSocket client API</a></li>
+            <li><a href="#websocket-server-api">WebSocket server API</a></li>
+            <li><a href="#http-client-api">HTTP client API</a></li>
+            <li><a href="#http-server-api">HTTP server API</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="examples">Examples</h1>
+<p>The <a href="https://github.com/machinezone/IXWebSocket/tree/master/ws"><em>ws</em></a> folder countains many interactive programs for chat, <a href="https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_send.cpp">file transfers</a>, <a href="https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_http_client.cpp">curl like</a> http clients, demonstrating client and server usage.</p>
+<h2 id="windows-note">Windows note</h2>
+<p>To use the network system on Windows, you need to initialize it once with <em>WSAStartup()</em> and clean it up with <em>WSACleanup()</em>. We have helpers for that which you can use, see below. This init would typically take place in your main function.</p>
+<pre><code>#include &lt;ixwebsocket/IXNetSystem.h&gt;
+
+int main()
+{
+    ix::initNetSystem();
+
+    ...
+
+    ix::uninitNetSystem();
+    return 0;
+}
+</code></pre>
+
+<h2 id="websocket-client-api">WebSocket client API</h2>
+<pre><code>#include &lt;ixwebsocket/IXWebSocket.h&gt;
+
+...
+
+# Our websocket object
+ix::WebSocket webSocket;
+
+std::string url(&quot;ws://localhost:8080/&quot;);
+webSocket.setUrl(url);
+
+// Optional heart beat, sent every 45 seconds when there is not any traffic
+// to make sure that load balancers do not kill an idle connection.
+webSocket.setHeartBeatPeriod(45);
+
+// Per message deflate connection is enabled by default. You can tweak its parameters or disable it
+webSocket.disablePerMessageDeflate();
+
+// Setup a callback to be fired when a message or an event (open, close, error) is received
+webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
+    {
+        if (msg-&gt;type == ix::WebSocketMessageType::Message)
+        {
+            std::cout &lt;&lt; msg-&gt;str &lt;&lt; std::endl;
+        }
+    }
+);
+
+// Now that our callback is setup, we can start our background thread and receive messages
+webSocket.start();
+
+// Send a message to the server (default to TEXT mode)
+webSocket.send(&quot;hello world&quot;);
+
+// The message can be sent in BINARY mode (useful if you send MsgPack data for example)
+webSocket.sendBinary(&quot;some serialized binary data&quot;);
+
+// ... finally ...
+
+// Stop the connection
+webSocket.stop()
+</code></pre>
+
+<h3 id="sending-messages">Sending messages</h3>
+<p><code>websocket.send("foo")</code> will send a message.</p>
+<p>If the connection was closed and sending failed, the return value will be set to false.</p>
+<h3 id="readystate">ReadyState</h3>
+<p><code>getReadyState()</code> returns the state of the connection. There are 4 possible states.</p>
+<ol>
+<li>ReadyState::Connecting - The connection is not yet open.</li>
+<li>ReadyState::Open       - The connection is open and ready to communicate.</li>
+<li>ReadyState::Closing    - The connection is in the process of closing.</li>
+<li>ReadyState::Closed     - The connection is closed or could not be opened.</li>
+</ol>
+<h3 id="open-and-close-notifications">Open and Close notifications</h3>
+<p>The onMessage event will be fired when the connection is opened or closed. This is similar to the <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSocket">Javascript browser API</a>, which has <code>open</code> and <code>close</code> events notification that can be registered with the browser <code>addEventListener</code>.</p>
+<pre><code>webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
+    {
+        if (msg-&gt;type == ix::WebSocketMessageType::Open)
+        {
+            std::cout &lt;&lt; &quot;send greetings&quot; &lt;&lt; std::endl;
+
+            // Headers can be inspected (pairs of string/string)
+            std::cout &lt;&lt; &quot;Handshake Headers:&quot; &lt;&lt; std::endl;
+            for (auto it : msg-&gt;headers)
+            {
+                std::cout &lt;&lt; it.first &lt;&lt; &quot;: &quot; &lt;&lt; it.second &lt;&lt; std::endl;
+            }
+        }
+        else if (msg-&gt;type == ix::WebSocketMessageType::Close)
+        {
+            std::cout &lt;&lt; &quot;disconnected&quot; &lt;&lt; std::endl;
+
+            // The server can send an explicit code and reason for closing.
+            // This data can be accessed through the closeInfo object.
+            std::cout &lt;&lt; msg-&gt;closeInfo.code &lt;&lt; std::endl;
+            std::cout &lt;&lt; msg-&gt;closeInfo.reason &lt;&lt; std::endl;
+        }
+    }
+);
+</code></pre>
+
+<h3 id="error-notification">Error notification</h3>
+<p>A message will be fired when there is an error with the connection. The message type will be <code>ix::WebSocketMessageType::Error</code>. Multiple fields will be available on the event to describe the error.</p>
+<pre><code>webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
+    {
+        if (msg-&gt;type == ix::WebSocketMessageType::Error)
+        {
+            std::stringstream ss;
+            ss &lt;&lt; &quot;Error: &quot;         &lt;&lt; msg-&gt;errorInfo.reason      &lt;&lt; std::endl;
+            ss &lt;&lt; &quot;#retries: &quot;      &lt;&lt; msg-&gt;eventInfo.retries     &lt;&lt; std::endl;
+            ss &lt;&lt; &quot;Wait time(ms): &quot; &lt;&lt; msg-&gt;eventInfo.wait_time   &lt;&lt; std::endl;
+            ss &lt;&lt; &quot;HTTP Status: &quot;   &lt;&lt; msg-&gt;eventInfo.http_status &lt;&lt; std::endl;
+            std::cout &lt;&lt; ss.str() &lt;&lt; std::endl;
+        }
+    }
+);
+</code></pre>
+
+<h3 id="start-stop">start, stop</h3>
+<ol>
+<li><code>websocket.start()</code> connect to the remote server and starts the message receiving background thread.</li>
+<li><code>websocket.stop()</code> disconnect from the remote server and closes the background thread.</li>
+</ol>
+<h3 id="configuring-the-remote-url">Configuring the remote url</h3>
+<p>The url can be set and queried after a websocket object has been created. You will have to call <code>stop</code> and <code>start</code> if you want to disconnect and connect to that new url.</p>
+<pre><code>std::string url(&quot;wss://example.com&quot;);
+websocket.configure(url);
+</code></pre>
+
+<h3 id="pingpong-support">Ping/Pong support</h3>
+<p>Ping/pong messages are used to implement keep-alive. 2 message types exists to identify ping and pong messages. Note that when a ping message is received, a pong is instantly send back as requested by the WebSocket spec.</p>
+<pre><code>webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
+    {
+        if (msg-&gt;type == ix::WebSocketMessageType::Ping ||
+            msg-&gt;type == ix::WebSocketMessageType::Pong)
+        {
+            std::cout &lt;&lt; &quot;pong data: &quot; &lt;&lt; msg-&gt;str &lt;&lt; std::endl;
+        }
+    }
+);
+</code></pre>
+
+<p>A ping message can be sent to the server, with an optional data string.</p>
+<pre><code>websocket.ping(&quot;ping data, optional (empty string is ok): limited to 125 bytes long&quot;);
+</code></pre>
+
+<h3 id="heartbeat">Heartbeat.</h3>
+<p>You can configure an optional heart beat / keep-alive, sent every 45 seconds
+when there is no any traffic to make sure that load balancers do not kill an
+idle connection.</p>
+<pre><code>webSocket.setHeartBeatPeriod(45);
+</code></pre>
+
+<h3 id="supply-extra-http-headers">Supply extra HTTP headers.</h3>
+<p>You can set extra HTTP headers to be sent during the WebSocket handshake.</p>
+<pre><code>WebSocketHttpHeaders headers;
+headers[&quot;foo&quot;] = &quot;bar&quot;;
+webSocket.setExtraHeaders(headers);
+</code></pre>
+
+<h3 id="automatic-reconnection">Automatic reconnection</h3>
+<p>Automatic reconnection kicks in when the connection is disconnected without the user consent. This feature is on by default and can be turned off.</p>
+<pre><code>webSocket.enableAutomaticReconnection();  // turn on
+webSocket.disableAutomaticReconnection(); // turn off
+bool enabled = webSocket.isAutomaticReconnectionEnabled(); // query state
+</code></pre>
+
+<p>The technique to calculate wait time is called <a href="https://docs.aws.amazon.com/general/latest/gr/api-retries.html">exponential
+backoff</a>. Here
+are the default waiting times between attempts (from connecting with <code>ws connect ws://foo.com</code>)</p>
+<pre><code>&gt; Connection error: Got bad status connecting to foo.com, status: 301, HTTP Status line: HTTP/1.1 301 Moved Permanently
+
+#retries: 1
+Wait time(ms): 100
+#retries: 2
+Wait time(ms): 200
+#retries: 3
+Wait time(ms): 400
+#retries: 4
+Wait time(ms): 800
+#retries: 5
+Wait time(ms): 1600
+#retries: 6
+Wait time(ms): 3200
+#retries: 7
+Wait time(ms): 6400
+#retries: 8
+Wait time(ms): 10000
+</code></pre>
+
+<p>The waiting time is capped by default at 10s between 2 attempts, but that value can be changed and queried.</p>
+<pre><code>webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s 
+uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
+</code></pre>
+
+<h2 id="websocket-server-api">WebSocket server API</h2>
+<pre><code>#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
+
+...
+
+// Run a server on localhost at a given port.
+// Bound host name, max connections and listen backlog can also be passed in as parameters.
+ix::WebSocketServer server(port);
+
+server.setOnConnectionCallback(
+    [&amp;server](std::shared_ptr&lt;WebSocket&gt; webSocket,
+              std::shared_ptr&lt;ConnectionState&gt; connectionState)
+    {
+        webSocket-&gt;setOnMessageCallback(
+            [webSocket, connectionState, &amp;server](const ix::WebSocketMessagePtr msg)
+            {
+                if (msg-&gt;type == ix::WebSocketMessageType::Open)
+                {
+                    std::cerr &lt;&lt; &quot;New connection&quot; &lt;&lt; std::endl;
+
+                    // A connection state object is available, and has a default id
+                    // You can subclass ConnectionState and pass an alternate factory
+                    // to override it. It is useful if you want to store custom
+                    // attributes per connection (authenticated bool flag, attributes, etc...)
+                    std::cerr &lt;&lt; &quot;id: &quot; &lt;&lt; connectionState-&gt;getId() &lt;&lt; std::endl;
+
+                    // The uri the client did connect to.
+                    std::cerr &lt;&lt; &quot;Uri: &quot; &lt;&lt; msg-&gt;openInfo.uri &lt;&lt; std::endl;
+
+                    std::cerr &lt;&lt; &quot;Headers:&quot; &lt;&lt; std::endl;
+                    for (auto it : msg-&gt;openInfo.headers)
+                    {
+                        std::cerr &lt;&lt; it.first &lt;&lt; &quot;: &quot; &lt;&lt; it.second &lt;&lt; std::endl;
+                    }
+                }
+                else if (msg-&gt;type == ix::WebSocketMessageType::Message)
+                {
+                    // For an echo server, we just send back to the client whatever was received by the server
+                    // All connected clients are available in an std::set. See the broadcast cpp example.
+                    // Second parameter tells whether we are sending the message in binary or text mode.
+                    // Here we send it in the same mode as it was received.
+                    webSocket-&gt;send(msg-&gt;str, msg-&gt;binary);
+                }
+            }
+        );
+    }
+);
+
+auto res = server.listen();
+if (!res.first)
+{
+    // Error handling
+    return 1;
+}
+
+// Run the server in the background. Server can be stoped by calling server.stop()
+server.start();
+
+// Block until server.stop() is called.
+server.wait();
+
+</code></pre>
+
+<h2 id="http-client-api">HTTP client API</h2>
+<pre><code>#include &lt;ixwebsocket/IXHttpClient.h&gt;
+
+...
+
+//
+// Preparation
+//
+HttpClient httpClient;
+HttpRequestArgsPtr args = httpClient.createRequest();
+
+// Custom headers can be set
+WebSocketHttpHeaders headers;
+headers[&quot;Foo&quot;] = &quot;bar&quot;;
+args-&gt;extraHeaders = headers;
+
+// Timeout options
+args-&gt;connectTimeout = connectTimeout;
+args-&gt;transferTimeout = transferTimeout;
+
+// Redirect options
+args-&gt;followRedirects = followRedirects;
+args-&gt;maxRedirects = maxRedirects;
+
+// Misc
+args-&gt;compress = compress; // Enable gzip compression
+args-&gt;verbose = verbose;
+args-&gt;logger = [](const std::string&amp; msg)
+{
+    std::cout &lt;&lt; msg;
+};
+
+//
+// Synchronous Request
+//
+HttpResponsePtr out;
+std::string url = &quot;https://www.google.com&quot;;
+
+// HEAD request
+out = httpClient.head(url, args);
+
+// GET request
+out = httpClient.get(url, args);
+
+// POST request with parameters
+HttpParameters httpParameters;
+httpParameters[&quot;foo&quot;] = &quot;bar&quot;;
+out = httpClient.post(url, httpParameters, args);
+
+// POST request with a body
+out = httpClient.post(url, std::string(&quot;foo=bar&quot;), args);
+
+//
+// Result
+//
+auto statusCode = response-&gt;statusCode; // Can be HttpErrorCode::Ok, HttpErrorCode::UrlMalformed, etc...
+auto errorCode = response-&gt;errorCode; // 200, 404, etc...
+auto responseHeaders = response-&gt;headers; // All the headers in a special case-insensitive unordered_map of (string, string)
+auto payload = response-&gt;payload; // All the bytes from the response as an std::string
+auto errorMsg = response-&gt;errorMsg; // Descriptive error message in case of failure
+auto uploadSize = response-&gt;uploadSize; // Byte count of uploaded data
+auto downloadSize = response-&gt;downloadSize; // Byte count of downloaded data
+
+//
+// Asynchronous Request
+//
+bool async = true;
+HttpClient httpClient(async);
+auto args = httpClient.createRequest(url, HttpClient::kGet);
+
+// Push the request to a queue,
+bool ok = httpClient.performRequest(args, [](const HttpResponsePtr&amp; response)
+    {
+        // This callback execute in a background thread. Make sure you uses appropriate protection such as mutex
+        auto statusCode = response-&gt;statusCode; // acess results
+    }
+);
+
+// ok will be false if your httpClient is not async
+</code></pre>
+
+<h2 id="http-server-api">HTTP server API</h2>
+<pre><code>#include &lt;ixwebsocket/IXHttpServer.h&gt;
+
+ix::HttpServer server(port, hostname);
+
+auto res = server.listen();
+if (!res.first)
+{
+    std::cerr &lt;&lt; res.second &lt;&lt; std::endl;
+    return 1;
+}
+
+server.start();
+server.wait();
+</code></pre>
+
+<p>If you want to handle how requests are processed, implement the setOnConnectionCallback callback, which takes an HttpRequestPtr as input, and returns an HttpResponsePtr. You can look at HttpServer::setDefaultConnectionCallback for a slightly more advanced callback example.</p>
+<pre><code>setOnConnectionCallback(
+    [this](HttpRequestPtr request,
+           std::shared_ptr&lt;ConnectionState&gt; /*connectionState*/) -&gt; HttpResponsePtr
+    {
+        // Build a string for the response
+        std::stringstream ss;
+        ss &lt;&lt; request-&gt;method
+           &lt;&lt; &quot; &quot;
+           &lt;&lt; request-&gt;uri;
+
+        std::string content = ss.str();
+
+        return std::make_shared&lt;HttpResponse&gt;(200, &quot;OK&quot;,
+                                              HttpErrorCode::Ok,
+                                              WebSocketHttpHeaders(),
+                                              content);
+}
+</code></pre></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

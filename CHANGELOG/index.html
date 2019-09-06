@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Changelog - IXWebSocket</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">IXWebSocket</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li class="active">
+                                <a href="./">Changelog</a>
+                            </li>
+                            <li >
+                                <a href="../build/">Build</a>
+                            </li>
+                            <li >
+                                <a href="../design/">Design</a>
+                            </li>
+                            <li >
+                                <a href="../usage/">Examples</a>
+                            </li>
+                            <li >
+                                <a href="../ws/">Ws</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="..">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../build/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#changelog">Changelog</a></li>
+            <li><a href="#601-2019-09-05">[6.0.1] - 2019-09-05</a></li>
+            <li><a href="#600-2019-09-04">[6.0.0] - 2019-09-04</a></li>
+            <li><a href="#520-2019-09-04">[5.2.0] - 2019-09-04</a></li>
+            <li><a href="#519-2019-09-03">[5.1.9] - 2019-09-03</a></li>
+            <li><a href="#518-2019-09-03">[5.1.8] - 2019-09-03</a></li>
+            <li><a href="#517-2019-09-03">[5.1.7] - 2019-09-03</a></li>
+            <li><a href="#516-2019-09-03">[5.1.6] - 2019-09-03</a></li>
+            <li><a href="#515-2019-09-03">[5.1.5] - 2019-09-03</a></li>
+            <li><a href="#514-2019-09-03">[5.1.4] - 2019-09-03</a></li>
+            <li><a href="#513-2019-09-03">[5.1.3] - 2019-09-03</a></li>
+            <li><a href="#512-2019-09-02">[5.1.2] - 2019-09-02</a></li>
+            <li><a href="#511-2019-09-01">[5.1.1] - 2019-09-01</a></li>
+            <li><a href="#510-2019-08-31">[5.1.0] - 2019-08-31</a></li>
+            <li><a href="#509-2019-08-30">[5.0.9] - 2019-08-30</a></li>
+            <li><a href="#507-2019-08-23">[5.0.7] - 2019-08-23</a></li>
+            <li><a href="#506-2019-08-22">[5.0.6] - 2019-08-22</a></li>
+            <li><a href="#505-2019-08-22">[5.0.5] - 2019-08-22</a></li>
+            <li><a href="#504-2019-08-20">[5.0.4] - 2019-08-20</a></li>
+            <li><a href="#503-2019-08-14">[5.0.3] - 2019-08-14</a></li>
+            <li><a href="#502-2019-08-01">[5.0.2] - 2019-08-01</a></li>
+            <li><a href="#501-2019-07-25">[5.0.1] - 2019-07-25</a></li>
+            <li><a href="#500-2019-06-23">[5.0.0] - 2019-06-23</a></li>
+            <li><a href="#400-2019-06-09">[4.0.0] - 2019-06-09</a></li>
+            <li><a href="#312-2019-06-06">[3.1.2] - 2019-06-06</a></li>
+            <li><a href="#300-2019-06-xx">[3.0.0] - 2019-06-xx</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="changelog">Changelog</h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<h2 id="601-2019-09-05">[6.0.1] - 2019-09-05</h2>
+<ul>
+<li>add cobra metrics publisher + server unittest</li>
+<li>add cobra client + server unittest</li>
+<li>ws snake (cobra simple server) add basic support for unsubscription + subscribe send the proper subscription data + redis client subscription can be cancelled</li>
+<li>IXCobraConnection / pdu handlers can crash if they receive json data which is not an object</li>
+</ul>
+<h2 id="600-2019-09-04">[6.0.0] - 2019-09-04</h2>
+<ul>
+<li>all client autobahn test should pass !</li>
+<li>zlib/deflate has a bug with windowsbits == 8, so we silently upgrade it to 9/ (fix autobahn test 13.X which uses 8 for the windows size)</li>
+</ul>
+<h2 id="520-2019-09-04">[5.2.0] - 2019-09-04</h2>
+<ul>
+<li>Fragmentation: for sent messages which are compressed, the continuation fragments should not have the rsv1 bit set (fix all autobahn tests for zlib compression 12.X)</li>
+<li>Websocket Server / do a case insensitive string search when looking for an Upgrade header whose value is websocket. (some client use WebSocket with some upper-case characters)</li>
+</ul>
+<h2 id="519-2019-09-03">[5.1.9] - 2019-09-03</h2>
+<ul>
+<li>ws autobahn / report progress with spdlog::info to get timing info</li>
+<li>ws autobahn / use condition variables for stopping test case + add more logging on errors</li>
+</ul>
+<h2 id="518-2019-09-03">[5.1.8] - 2019-09-03</h2>
+<ul>
+<li>Per message deflate/compression: handle fragmented messages (fix autobahn test: 12.1.X and probably others)</li>
+</ul>
+<h2 id="517-2019-09-03">[5.1.7] - 2019-09-03</h2>
+<ul>
+<li>Receiving invalid UTF-8 TEXT message should fail and close the connection (fix remaining autobahn test: 6.X UTF-8 Handling)</li>
+</ul>
+<h2 id="516-2019-09-03">[5.1.6] - 2019-09-03</h2>
+<ul>
+<li>Sending invalid UTF-8 TEXT message should fail and close the connection (fix remaining autobahn test: 6.X UTF-8 Handling)</li>
+<li>Fix failing unittest which was sending binary data in text mode with WebSocket::send to call properly call WebSocket::sendBinary instead.</li>
+<li>Validate that the reason is proper utf-8. (fix autobahn test 7.5.1)</li>
+<li>Validate close codes. Autobahn 7.9.*</li>
+</ul>
+<h2 id="515-2019-09-03">[5.1.5] - 2019-09-03</h2>
+<p>Framentation: data and continuation blocks received out of order (fix autobahn test: 5.9 through 5.20 Fragmentation)</p>
+<h2 id="514-2019-09-03">[5.1.4] - 2019-09-03</h2>
+<p>Sending invalid UTF-8 TEXT message should fail and close the connection (fix <strong>tons</strong> of autobahn test: 6.X UTF-8 Handling)</p>
+<h2 id="513-2019-09-03">[5.1.3] - 2019-09-03</h2>
+<p>Message type (TEXT or BINARY) is invalid for received fragmented messages (fix autobahn test: 5.3 through 5.8 Fragmentation)</p>
+<h2 id="512-2019-09-02">[5.1.2] - 2019-09-02</h2>
+<p>Ping and Pong messages cannot be fragmented (fix autobahn test: 5.1 and 5.2 Fragmentation)</p>
+<h2 id="511-2019-09-01">[5.1.1] - 2019-09-01</h2>
+<p>Close connections when reserved bits are used (fix autobahn test: 3.X Reserved Bits)</p>
+<h2 id="510-2019-08-31">[5.1.0] - 2019-08-31</h2>
+<ul>
+<li>ws autobahn / Add code to test websocket client compliance with the autobahn test-suite</li>
+<li>add utf-8 validation code, not hooked up properly yet</li>
+<li>Ping received with a payload too large (&gt; 125 bytes) trigger a connection closure</li>
+<li>cobra / add tracking about published messages</li>
+<li>cobra / publish returns a message id, that can be used when </li>
+<li>cobra / new message type in the message received handler when publish/ok is received (can be used to implement an ack system).</li>
+</ul>
+<h2 id="509-2019-08-30">[5.0.9] - 2019-08-30</h2>
+<ul>
+<li>User-Agent header is set when not specified.</li>
+<li>New option to cap the max wait between reconnection attempts. Still default to 10s. (setMaxWaitBetweenReconnectionRetries).</li>
+</ul>
+<pre><code>ws connect --max_wait 5000 ws://example.com # will only wait 5 seconds max between reconnection attempts
+</code></pre>
+
+<h2 id="507-2019-08-23">[5.0.7] - 2019-08-23</h2>
+<ul>
+<li>WebSocket: add new option to pass in extra HTTP headers when connecting.</li>
+<li><code>ws connect</code> add new option (-H, works like <a href="https://stackoverflow.com/questions/356705/how-to-send-a-header-using-a-http-request-through-a-curl-call">curl</a>) to pass in extra HTTP headers when connecting </li>
+</ul>
+<p>If you run against <code>ws echo_server</code> you will see the headers being received printed in the terminal.</p>
+<pre><code>ws connect -H &quot;foo: bar&quot; -H &quot;baz: buz&quot; ws://127.0.0.1:8008
+</code></pre>
+
+<ul>
+<li>CobraConnection: sets a unique id field for all messages sent to <a href="https://github.com/machinezone/cobra">cobra</a>.</li>
+<li>CobraConnection: sets a counter as a field for each event published.</li>
+</ul>
+<h2 id="506-2019-08-22">[5.0.6] - 2019-08-22</h2>
+<ul>
+<li>Windows: silly compile error (poll should be in the global namespace)</li>
+</ul>
+<h2 id="505-2019-08-22">[5.0.5] - 2019-08-22</h2>
+<ul>
+<li>Windows: use select instead of WSAPoll, through a poll wrapper</li>
+</ul>
+<h2 id="504-2019-08-20">[5.0.4] - 2019-08-20</h2>
+<ul>
+<li>Windows build fixes (there was a problem with the use of ::poll that has a different name on Windows (WSAPoll))</li>
+</ul>
+<h2 id="503-2019-08-14">[5.0.3] - 2019-08-14</h2>
+<ul>
+<li>CobraMetricThreadedPublisher _enable flag is an atomic, and CobraMetricsPublisher is enabled by default</li>
+</ul>
+<h2 id="502-2019-08-01">[5.0.2] - 2019-08-01</h2>
+<ul>
+<li>ws cobra_subscribe has a new -q (quiet) option</li>
+<li>ws cobra_subscribe knows to and display msg stats (count and # of messages received per second)</li>
+<li>ws cobra_subscribe, cobra_to_statsd and cobra_to_sentry commands have a new option, --filter to restrict the events they want to receive</li>
+</ul>
+<h2 id="501-2019-07-25">[5.0.1] - 2019-07-25</h2>
+<ul>
+<li>ws connect command has a new option to send in binary mode (still default to text)</li>
+<li>ws connect command has readline history thanks to libnoise-cpp. Now ws connect one can use using arrows to lookup previous sent messages and edit them</li>
+</ul>
+<h2 id="500-2019-06-23">[5.0.0] - 2019-06-23</h2>
+<h3 id="changed">Changed</h3>
+<ul>
+<li>New HTTP server / still very early. ws gained a new command, httpd can run a simple webserver serving local files.</li>
+<li>IXDNSLookup. Uses weak pointer + smart_ptr + shared_from_this instead of static sets + mutex to handle object going away before dns lookup has resolved</li>
+<li>cobra_to_sentry / backtraces are reversed and line number is not extracted correctly</li>
+<li>mbedtls and zlib are searched with find_package, and we use the vendored version if nothing is found</li>
+<li>travis CI uses g++ on Linux</li>
+</ul>
+<h2 id="400-2019-06-09">[4.0.0] - 2019-06-09</h2>
+<h3 id="changed_1">Changed</h3>
+<ul>
+<li>WebSocket::send() sends message in TEXT mode by default</li>
+<li>WebSocketMessage sets a new binary field, which tells whether the received incoming message is binary or text</li>
+<li>WebSocket::send takes a third arg, binary which default to true (can be text too)</li>
+<li>WebSocket callback only take one object, a const ix::WebSocketMessagePtr&amp; msg</li>
+<li>Add explicit WebSocket::sendBinary method</li>
+<li>New headers + WebSocketMessage class to hold message data, still not used across the board</li>
+<li>Add test/compatibility folder with small servers and clients written in different languages and different libraries to test compatibility.</li>
+<li>ws echo_server has a -g option to print a greeting message on connect</li>
+<li>IXSocketMbedTLS: better error handling in close and connect</li>
+</ul>
+<h2 id="312-2019-06-06">[3.1.2] - 2019-06-06</h2>
+<h3 id="added">Added</h3>
+<ul>
+<li>ws connect has a -x option to disable per message deflate</li>
+<li>Add WebSocket::disablePerMessageDeflate() option.</li>
+</ul>
+<h2 id="300-2019-06-xx">[3.0.0] - 2019-06-xx</h2>
+<h3 id="changed_2">Changed</h3>
+<ul>
+<li>TLS, aka SSL works on Windows (websocket and http clients)</li>
+<li>ws command line tool build on Windows</li>
+<li>Async API for HttpClient</li>
+<li>HttpClient API changed to use shared_ptr for response and request</li>
+</ul></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
