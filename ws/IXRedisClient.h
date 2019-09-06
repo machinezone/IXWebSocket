@@ -32,7 +32,7 @@ namespace ix
                        const OnRedisSubscribeResponseCallback& responseCallback,
                        const OnRedisSubscribeCallback& callback);
 
-        bool stop();
+        void stop();
 
     private:
         std::string writeString(const std::string& str);
