@@ -6,28 +6,29 @@ language: bash
 matrix:
   include:
     # macOS
-    - os: osx
-      env:
-        - HOMEBREW_NO_AUTO_UPDATE=1
-      compiler: clang
-      script:
-        - brew install redis
-        - brew services start redis
-        - brew install mbedtls
-        - python test/run.py
-        - make ws
-
-    # Linux
-    # - os: linux
-    #   dist: bionic
-    #   before_install:
-    #     - sudo apt-get install -y libmbedtls-dev
-    #   script: 
+    # - os: osx
+    #   env:
+    #     - HOMEBREW_NO_AUTO_UPDATE=1
+    #   compiler: clang
+    #   script:
+    #     - brew install redis
+    #     - brew services start redis
+    #     - brew install mbedtls
     #     - python test/run.py
     #     - make ws
-    #   env:
-    #     - CC=gcc
-    #     - CXX=g++
+
+    Linux
+    - os: linux
+      dist: bionic
+      before_install:
+        - sudo apt-get install -y libmbedtls-dev
+        - sudo apt-get install -y redis-server
+      script: 
+      #- python test/run.py
+      #  - make ws
+      env:
+        - CC=gcc
+        - CXX=g++
 
     # Clang + Linux disabled for now
     # - os: linux
