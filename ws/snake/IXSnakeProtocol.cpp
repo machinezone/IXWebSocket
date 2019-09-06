@@ -284,7 +284,6 @@ namespace snake
     void handleUnSubscribe(
         std::shared_ptr<SnakeConnectionState> state,
         std::shared_ptr<ix::WebSocket> ws,
-        const AppConfig& appConfig,
         const nlohmann::json& pdu)
     {
         // extract subscription_id
@@ -333,7 +332,7 @@ namespace snake
         }
         else if (action == "rtm/unsubscribe")
         {
-            handleUnSubscribe(state, ws, appConfig, pdu);
+            handleUnSubscribe(state, ws, pdu);
         }
         else
         {
