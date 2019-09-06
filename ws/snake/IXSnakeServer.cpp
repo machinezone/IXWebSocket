@@ -4,10 +4,10 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <IXSnakeServer.h>
-#include <IXSnakeProtocol.h>
-#include <IXSnakeConnectionState.h>
-#include <IXAppConfig.h>
+#include "IXSnakeServer.h"
+#include "IXSnakeProtocol.h"
+#include "IXSnakeConnectionState.h"
+#include "IXAppConfig.h"
 
 #include <iostream>
 #include <sstream>
@@ -118,8 +118,19 @@ namespace snake
         }
 
         _server.start();
-        _server.wait();
-
         return true;
+    }
+
+    void SnakeServer::runForever()
+    {
+        if (run())
+        {
+            _server.wait();
+        }
+    }
+
+    void SnakeServer::stop()
+    {
+        _server.stop();
     }
 }

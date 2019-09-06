@@ -19,7 +19,7 @@ namespace ix
         using OnRedisSubscribeResponseCallback = std::function<void(const std::string&)>;
         using OnRedisSubscribeCallback = std::function<void(const std::string&)>;
 
-        RedisClient() = default;
+        RedisClient() : _stop(false) {}
         ~RedisClient() = default;
 
         bool connect(const std::string& hostname, int port);
@@ -32,9 +32,12 @@ namespace ix
                        const OnRedisSubscribeResponseCallback& responseCallback,
                        const OnRedisSubscribeCallback& callback);
 
+        bool stop();
+
     private:
         std::string writeString(const std::string& str);
 
         std::shared_ptr<Socket> _socket;
+        std::atomic<bool> _stop;
     };
 } // namespace ix

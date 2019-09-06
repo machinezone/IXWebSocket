@@ -128,6 +128,8 @@ namespace ix
                                 const OnRedisSubscribeResponseCallback& responseCallback,
                                 const OnRedisSubscribeCallback& callback)
     {
+        _stop = false;
+
         if (!_socket) return false;
 
         std::stringstream ss;
@@ -159,7 +161,7 @@ namespace ix
 
         if (!lineValid) return false;
 
-        // There are 5 items for the subscribe repply
+        // There are 5 items for the subscribe reply
         for (int i = 0; i < 5; ++i)
         {
             auto lineResult = _socket->readLine(nullptr);
@@ -175,11 +177,19 @@ namespace ix
         // Wait indefinitely for new messages
         while (true)
         {
+            if (_stop) break;
+
             // Wait until something is ready to read
-            auto pollResult = _socket->isReadyToRead(-1);
+            int timeoutMs = 10;
+            auto pollResult = _socket->isReadyToRead(timeoutMs);
             if (pollResult == PollResultType::Error)
             {
                 return false;
+            }
+
+            if (pollResult == PollResultType::Timeout)
+            {
+                continue;
             }
 
             // The first line of the response describe the return type,
@@ -230,5 +240,10 @@ namespace ix
         }
 
         return true;
+    }
+
+    bool RedisClient::stop()
+    {
+        _stop = true;
     }
 }
