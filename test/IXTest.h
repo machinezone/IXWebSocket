@@ -50,5 +50,5 @@ namespace ix
 
     bool startWebSocketEchoServer(ix::WebSocketServer& server);
 
-    snake::AppConfig makeSnakeServerConfig();
+    snake::AppConfig makeSnakeServerConfig(int port);
 } // namespace ix

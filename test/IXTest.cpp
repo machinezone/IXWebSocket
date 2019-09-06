@@ -161,10 +161,10 @@ namespace ix
         return std::string(vec.begin(), vec.end());
     }
 
-    snake::AppConfig makeSnakeServerConfig()
+    snake::AppConfig makeSnakeServerConfig(int port)
     {
         snake::AppConfig appConfig;
-        appConfig.port = 8008;
+        appConfig.port = port;
         appConfig.hostname = "127.0.0.1";
         appConfig.verbose = true;
         appConfig.redisPort = 6379;

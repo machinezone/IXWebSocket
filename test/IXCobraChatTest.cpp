@@ -172,7 +172,7 @@ namespace
     //
     void SatoriChat::run()
     {
-        snake::AppConfig appConfig = makeSnakeServerConfig();
+        snake::AppConfig appConfig = makeSnakeServerConfig(8008);
 
         // Display config on the terminal for debugging
         dumpConfig(appConfig);
@@ -182,16 +182,10 @@ namespace
 
         // "chat" conf
         std::string appkey("FC2F10139A2BAc53BB72D9db967b024f");
-        std::string endpoint("ws://localhost:8008");
         std::string channel = _session;
         std::string role = "_sub";
         std::string secret = "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba";
-
-        // appkey = "1121b8DfbB33E56dE1F82fC2A08cD1D7";
-        // endpoint = "ws://api-internal-cobra.addsrv.com";
-        // endpoint = "ws://localhost:8765";
-        // role = "unittest_subscriber";
-        // secret = "98B69bcdfc145C5fB7C2f4A5aFfe4fd3";
+        std::string endpoint("ws://localhost:8008");
 
         _conn.configure(appkey, endpoint, role, secret,
                         ix::WebSocketPerMessageDeflateOptions(true));
@@ -230,6 +224,10 @@ namespace
                 else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
                 {
                     log("Unsubscription ok: " + _user + " subscription_id " + subscriptionId);
+                }
+                else if (eventType == ix::CobraConnection_EventType_Published)
+                {
+                    Logger() << "Subscriber: published message acked: " << msgId;
                 }
             }
         );
@@ -279,7 +277,7 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
 {
     SECTION("Exchange and count sent/received messages.")
     {
-        snake::AppConfig appConfig = makeSnakeServerConfig();
+        snake::AppConfig appConfig = makeSnakeServerConfig(8008);
         snake::SnakeServer snakeServer(appConfig);
         snakeServer.run();
 

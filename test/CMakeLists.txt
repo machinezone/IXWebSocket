@@ -63,6 +63,7 @@ set (SOURCES
   IXHttpServerTest.cpp
   IXUnityBuildsTest.cpp
   IXCobraChatTest.cpp
+  IXCobraMetricsPublisherTest.cpp
 )
 
 # Some unittest don't work on windows yet
