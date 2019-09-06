@@ -287,12 +287,18 @@ namespace snake
         const AppConfig& appConfig,
         const nlohmann::json& pdu)
     {
+        // extract subscription_id
+        auto body = pdu["body"];
+        auto subscriptionId = body["subscription_id"];
+
         state->redisClient().stop();
 
         nlohmann::json response = {
             {"action", "rtm/unsubscribe/ok"},
             {"id", pdu.value("id", 1)},
-            {"body", {}}
+            {"body", {
+                {"subscription_id", subscriptionId}
+            }}
         };
         ws->sendText(response.dump());
     }

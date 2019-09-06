@@ -192,7 +192,7 @@ namespace ix
                     {
                         if (!handleUnsubscriptionResponse(data))
                         {
-                            invokeErrorCallback("Error processing subscribe response", msg->str);
+                            invokeErrorCallback("Error processing unsubscribe response", msg->str);
                         }
                     }
                     else if (action == "rtm/unsubscribe/error")
