@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.0.1] - 2019-09-05
+
+- IXCobraConnection / pdu handlers can crash if they receive json data which is not an object
+
 ## [6.0.0] - 2019-09-04
 
 - all client autobahn test should pass !
