@@ -20,7 +20,6 @@ namespace
     // This project / appkey is configure on cobra to not do any batching.
     // This way we can start a subscriber and receive all messages as they come in.
     //
-    std::string ENDPOINT("ws://localhost:8009");
     std::string APPKEY("FC2F10139A2BAc53BB72D9db967b024f");
     std::string CHANNEL("unittest_channel");
     std::string PUBLISHER_ROLE("_pub");
@@ -39,14 +38,14 @@ namespace
     //
     // Background thread subscribe to the channel and validates what was sent
     //
-    void startSubscriber()
+    void startSubscriber(const std::string& endpoint)
     {
         gSubscriberConnectedAndSubscribed = false;
         gUniqueMessageIdsCount = 0;
         gMessageCount = 0;
 
         ix::CobraConnection conn;
-        conn.configure(APPKEY, ENDPOINT, SUBSCRIBER_ROLE, SUBSCRIBER_SECRET,
+        conn.configure(APPKEY, endpoint, SUBSCRIBER_ROLE, SUBSCRIBER_SECRET,
                        ix::WebSocketPerMessageDeflateOptions(true));
         conn.connect();
 
@@ -122,15 +121,20 @@ namespace
 
 TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
 {
-    snake::AppConfig appConfig = makeSnakeServerConfig(8009);
+    int port = getFreePort();
+    snake::AppConfig appConfig = makeSnakeServerConfig(port);
     snake::SnakeServer snakeServer(appConfig);
     snakeServer.run();
+
+    std::stringstream ss;
+    ss << "ws://localhost:" << port;
+    std::string endpoint = ss.str();
 
     // Make channel name unique
     CHANNEL += uuid4();
 
     gStop = false;
-    std::thread bgThread(&startSubscriber);
+    std::thread bgThread(&startSubscriber, endpoint);
 
     int timeout = 10 * 1000; // 10s
     
@@ -150,7 +154,7 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
     ix::CobraMetricsPublisher cobraMetricsPublisher;
 
     bool perMessageDeflate = true;
-    cobraMetricsPublisher.configure(APPKEY, ENDPOINT, CHANNEL,
+    cobraMetricsPublisher.configure(APPKEY, endpoint, CHANNEL,
                                     PUBLISHER_ROLE, PUBLISHER_SECRET, perMessageDeflate);
     cobraMetricsPublisher.setSession(uuid4());
     cobraMetricsPublisher.enable(true); // disabled by default, needs to be enabled to be active
