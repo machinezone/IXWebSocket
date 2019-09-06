@@ -41,7 +41,8 @@ namespace
     {
         public:
             SatoriChat(const std::string& user,
-                       const std::string& session);
+                       const std::string& session,
+                       const std::string& endpoint);
 
             void subscribe(const std::string& channel);
             void start();
@@ -58,6 +59,7 @@ namespace
         private:
             std::string _user;
             std::string _session;
+            std::string _endpoint;
 
             std::queue<Json::Value> _publish_queue;
             mutable std::mutex _queue_mutex;
@@ -74,13 +76,14 @@ namespace
     };
 
     SatoriChat::SatoriChat(const std::string& user,
-                           const std::string& session) :
+                           const std::string& session,
+                           const std::string& endpoint) :
         _connectedAndSubscribed(false),
         _stop(false),
         _user(user),
-        _session(session)
+        _session(session),
+        _endpoint(endpoint)
     {
-        ;
     }
 
     void SatoriChat::start()
@@ -185,9 +188,8 @@ namespace
         std::string channel = _session;
         std::string role = "_sub";
         std::string secret = "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba";
-        std::string endpoint("ws://localhost:8008");
 
-        _conn.configure(appkey, endpoint, role, secret,
+        _conn.configure(appkey, _endpoint, role, secret,
                         ix::WebSocketPerMessageDeflateOptions(true));
         _conn.connect();
 
@@ -277,7 +279,8 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
 {
     SECTION("Exchange and count sent/received messages.")
     {
-        snake::AppConfig appConfig = makeSnakeServerConfig(8008);
+        int port = getFreePort();
+        snake::AppConfig appConfig = makeSnakeServerConfig(port);
         snake::SnakeServer snakeServer(appConfig);
         snakeServer.run();
 
@@ -285,8 +288,13 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
         setupTrafficTrackerCallback();
 
         std::string session = ix::generateSessionId();
-        SatoriChat chatA("jean", session);
-        SatoriChat chatB("paul", session);
+
+        std::stringstream ss;
+        ss << "ws://localhost:" << port;
+        std::string endpoint = ss.str();
+
+        SatoriChat chatA("jean", session, endpoint);
+        SatoriChat chatB("paul", session, endpoint);
 
         chatA.start();
         chatB.start();
