@@ -242,7 +242,7 @@ namespace ix
         return true;
     }
 
-    bool RedisClient::stop()
+    void RedisClient::stop()
     {
         _stop = true;
     }
