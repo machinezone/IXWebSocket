@@ -10,7 +10,7 @@ install:
 - cd test
 - mkdir build
 - cd build
-- cmake -G"NMake Makefiles" ..
+- cmake -DUSE_TLS=1 -G"NMake Makefiles" ..
 - nmake
 - ixwebsocket_unittest.exe
 
