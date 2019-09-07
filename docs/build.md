@@ -21,6 +21,8 @@ Options for building:
 * `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support (default on Windows)
 * `-DUSE_WS=1` will build the ws interactive command line tool
 
+If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file that has instructions for building dependencies.
+
 ### vcpkg
 
 It is possible to get IXWebSocket through Microsoft [vcpkg](https://github.com/microsoft/vcpkg).
