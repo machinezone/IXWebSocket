@@ -1,9 +1,11 @@
 image:
 - Visual Studio 2017
 
-# try it
 install:
-- ls -al
+- cd C:\Tools\vcpkg
+- git pull
+- .\bootstrap-vcpkg.bat
+- cd %APPVEYOR_BUILD_FOLDER%
 - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
 - cd test
 - mkdir build
@@ -11,5 +13,7 @@ install:
 - cmake -G"NMake Makefiles" ..
 - nmake
 - ixwebsocket_unittest.exe
+
+cache: c:\tools\vcpkg\installed\
 
 build: off
