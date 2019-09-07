@@ -15,7 +15,7 @@ install:
 - cmake -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DUSE_TLS=1 -G"NMake Makefiles" ..
 - nmake
 - cd ..
-- ixwebsocket_unittest.exe
+- build\ixwebsocket_unittest.exe
 
 cache: c:\tools\vcpkg\installed\
 
