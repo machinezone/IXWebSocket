@@ -12,7 +12,7 @@ install:
 - cd test
 - mkdir build
 - cd build
-- cmake -DUSE_TLS=1 -G"NMake Makefiles" ..
+- cmake -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DUSE_TLS=1 -G"NMake Makefiles" ..
 - nmake
 - ixwebsocket_unittest.exe
 
