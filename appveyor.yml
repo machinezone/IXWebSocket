@@ -7,6 +7,8 @@ install:
 - .\bootstrap-vcpkg.bat
 - cd %APPVEYOR_BUILD_FOLDER%
 - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+- vcpkg install zlib
+- vcpkg install mbedtls
 - cd test
 - mkdir build
 - cd build
