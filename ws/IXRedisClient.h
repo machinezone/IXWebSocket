@@ -8,6 +8,7 @@
 
 #include <functional>
 #include <memory>
+#include <atomic>
 
 namespace ix
 {
