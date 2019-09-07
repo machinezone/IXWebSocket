@@ -2,13 +2,21 @@ image:
 - Visual Studio 2017
 
 install:
-- ls -al
+- cd C:\Tools\vcpkg
+- git pull
+- .\bootstrap-vcpkg.bat
+- cd %APPVEYOR_BUILD_FOLDER%
 - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+- vcpkg install zlib:x64-windows
+- vcpkg install mbedtls:x64-windows
 - cd test
 - mkdir build
 - cd build
-- cmake -G"NMake Makefiles" ..
+- cmake -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DUSE_TLS=1 -G"NMake Makefiles" ..
 - nmake
-- ixwebsocket_unittest.exe
+- cd ..
+- build\ixwebsocket_unittest.exe
+
+cache: c:\tools\vcpkg\installed\
 
 build: off
