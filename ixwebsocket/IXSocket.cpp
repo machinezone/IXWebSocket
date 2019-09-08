@@ -79,7 +79,7 @@ namespace ix
             }
         }
 
-        int ret = ::poll(fds, nfds, timeoutMs);
+        int ret = ix::poll(fds, nfds, timeoutMs);
 
         PollResultType pollResult = PollResultType::ReadyForRead;
         if (ret < 0)
