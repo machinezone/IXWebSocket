@@ -13,10 +13,8 @@
 #include <io.h>
 #include <ws2def.h>
 
-// Define our own poll on Windows
+// Define our own poll on Windows, as a wrapper on top of select
 typedef unsigned long int nfds_t;
-
-int poll(struct pollfd* fds, nfds_t nfds, int timeout);
 
 #else
 #include <arpa/inet.h>
@@ -35,4 +33,6 @@ namespace ix
 {
     bool initNetSystem();
     bool uninitNetSystem();
+
+    int poll(struct pollfd* fds, nfds_t nfds, int timeout);
 } // namespace ix

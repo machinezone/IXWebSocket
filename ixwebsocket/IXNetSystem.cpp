@@ -34,10 +34,7 @@ namespace ix
         return true;
 #endif
     }
-}
 
-// This function should be in the global namespace
-#ifdef _WIN32
     //
     // That function could 'return WSAPoll(pfd, nfds, timeout);'
     // but WSAPoll is said to have weird behaviors on the internet
@@ -47,6 +44,7 @@ namespace ix
     //
     int poll(struct pollfd *fds, nfds_t nfds, int timeout)
     {
+#ifdef _WIN32
         int maxfd = 0;
         fd_set readfds, writefds, errorfds;
         FD_ZERO(&readfds);
@@ -107,5 +105,9 @@ namespace ix
         }
 
         return ret;
-    }
+#else
+        return ::poll(fds, nfds, timeout);
 #endif
+    }
+
+} // namespace ix
