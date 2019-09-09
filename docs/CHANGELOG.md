@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.2.0] - 2019-09-09
+
+- websocket and http server: server does not close the bound client socket in many cases
+
 ## [6.1.0] - 2019-09-08
 
 - move poll wrapper on top of select (only used on Windows) to the ix namespace

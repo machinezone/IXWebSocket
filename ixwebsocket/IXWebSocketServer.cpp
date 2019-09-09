@@ -93,7 +93,7 @@ namespace ix
         else
         {
             std::stringstream ss;
-            ss << "WebSocketServer::handleConnection() error: "
+            ss << "WebSocketServer::handleConnection() HTTP status: "
                << status.http_status
                << " error: "
                << status.errorStr;
@@ -111,6 +111,8 @@ namespace ix
 
         logInfo("WebSocketServer::handleConnection() done");
         connectionState->setTerminated();
+
+        Socket::closeSocket(fd);
     }
 
     std::set<std::shared_ptr<WebSocket>> WebSocketServer::getClients()
