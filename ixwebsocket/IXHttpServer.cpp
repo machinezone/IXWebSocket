@@ -95,6 +95,7 @@ namespace ix
             }
         }
         connectionState->setTerminated();
+        Socket::closeSocket(fd);
 
         _connectedClientsCount--;
     }
