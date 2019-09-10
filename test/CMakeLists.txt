@@ -62,6 +62,7 @@ set (SOURCES
   IXHttpClientTest.cpp
   IXHttpServerTest.cpp
   IXUnityBuildsTest.cpp
+  IXHttpTest.cpp
 )
 
 # Some unittest don't work on windows yet

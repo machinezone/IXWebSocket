@@ -164,20 +164,23 @@ namespace ix
         }
 
         // Validate status
-        int status;
+        auto statusLine = Http::parseStatusLine(line);
+        std::string httpVersion = statusLine.first;
+        int status = statusLine.second;
 
         // HTTP/1.0 is too old.
-        if (sscanf(line.c_str(), "HTTP/1.0 %d", &status) == 1)
+        if (httpVersion != "HTTP/1.1")
         {
             std::stringstream ss;
-            ss << "Server version is HTTP/1.0. Rejecting connection to " << host
+            ss << "Expecting HTTP/1.1, got " << httpVersion << ". "
+               << "Rejecting connection to " << host
                << ", status: " << status
                << ", HTTP Status line: " << line;
             return WebSocketInitResult(false, status, ss.str());
         }
 
         // We want an 101 HTTP status
-        if (sscanf(line.c_str(), "HTTP/1.1 %d", &status) != 1 || status != 101)
+        if (status != 101)
         {
             std::stringstream ss;
             ss << "Got bad status connecting to " << host
@@ -295,9 +298,15 @@ namespace ix
             return sendErrorResponse(400, "Missing Sec-WebSocket-Key value");
         }
 
+        if (headers.find("upgrade") == headers.end())
+        {
+            return sendErrorResponse(400, "Missing Upgrade header");
+        }
+
         if (!insensitiveStringCompare(headers["upgrade"], "WebSocket"))
         {
-            return sendErrorResponse(400, "Invalid or missing Upgrade header");
+            return sendErrorResponse(400, "Invalid Upgrade header, "
+                                          "need WebSocket, got " + headers["upgrade"]);
         }
 
         if (headers.find("sec-websocket-version") == headers.end())
@@ -314,7 +323,7 @@ namespace ix
             if (version != 13)
             {
                 return sendErrorResponse(400, "Invalid Sec-WebSocket-Version, "
-                                              "need 13, got" + ss.str());
+                                              "need 13, got " + ss.str());
             }
         }
 

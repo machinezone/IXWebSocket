@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 ## [6.2.0] - 2019-09-09
 
 - websocket and http server: server does not close the bound client socket in many cases
+- improve some websocket error messages
+- add a utility function with unittest to parse status line and stop using scanf which triggers warnings on Windows
 
 ## [6.1.0] - 2019-09-08
 

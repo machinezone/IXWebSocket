@@ -27,6 +27,36 @@ namespace ix
         return out;
     }
 
+    std::pair<std::string, int> Http::parseStatusLine(const std::string& line)
+    {
+        // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
+        std::string token;
+        std::stringstream tokenStream(line);
+        std::vector<std::string> tokens;
+
+        // Split by ' '
+        while (std::getline(tokenStream, token, ' '))
+        {
+            tokens.push_back(token);
+        }
+
+        std::string httpVersion;
+        if (tokens.size() >= 1)
+        {
+            httpVersion = trim(tokens[0]);
+        }
+
+        int statusCode = -1;
+        if (tokens.size() >= 2)
+        {
+            std::stringstream ss;
+            ss << trim(tokens[1]);
+            ss >> statusCode;
+        }
+
+        return std::make_pair(httpVersion, statusCode);
+    }
+
     std::tuple<std::string, std::string, std::string> Http::parseRequestLine(const std::string& line)
     {
         // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF

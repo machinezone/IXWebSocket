@@ -115,6 +115,8 @@ namespace ix
             std::shared_ptr<Socket> socket);
         static bool sendResponse(HttpResponsePtr response, std::shared_ptr<Socket> socket);
 
+        static std::pair<std::string, int> parseStatusLine(
+            const std::string& line);
         static std::tuple<std::string, std::string, std::string> parseRequestLine(
             const std::string& line);
         static std::string trim(const std::string& str);
