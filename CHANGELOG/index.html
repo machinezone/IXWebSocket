@@ -91,6 +91,8 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#changelog">Changelog</a></li>
+            <li><a href="#620-2019-09-09">[6.2.0] - 2019-09-09</a></li>
+            <li><a href="#610-2019-09-08">[6.1.0] - 2019-09-08</a></li>
             <li><a href="#601-2019-09-05">[6.0.1] - 2019-09-05</a></li>
             <li><a href="#600-2019-09-04">[6.0.0] - 2019-09-04</a></li>
             <li><a href="#520-2019-09-04">[5.2.0] - 2019-09-04</a></li>
@@ -122,6 +124,16 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All notable changes to this project will be documented in this file.</p>
+<h2 id="620-2019-09-09">[6.2.0] - 2019-09-09</h2>
+<ul>
+<li>websocket and http server: server does not close the bound client socket in many cases</li>
+<li>improve some websocket error messages</li>
+<li>add a utility function with unittest to parse status line and stop using scanf which triggers warnings on Windows</li>
+</ul>
+<h2 id="610-2019-09-08">[6.1.0] - 2019-09-08</h2>
+<ul>
+<li>move poll wrapper on top of select (only used on Windows) to the ix namespace</li>
+</ul>
 <h2 id="601-2019-09-05">[6.0.1] - 2019-09-05</h2>
 <ul>
 <li>add cobra metrics publisher + server unittest</li>
