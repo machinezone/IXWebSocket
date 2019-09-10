@@ -350,21 +350,22 @@ def generateXmlOutput(results, xmlOutput, testRunName, runTime):
 
 
 def run(testName, buildDir, sanitizer, xmlOutput,
-        testRunName, buildOnly, useLLDB, cpuCount):
+        testRunName, buildOnly, useLLDB, cpuCount, runOnly):
     '''Main driver. Run cmake, compiles, execute and validate the testsuite.'''
 
     # gen build files with CMake
-    runCMake(sanitizer, buildDir)
+    if not runOnly:
+        runCMake(sanitizer, buildDir)
 
-    if platform.system() == 'Linux':
-        # build with make -j
-        runCommand('make -C {} -j 2'.format(buildDir))
-    elif platform.system() == 'Darwin':
-        # build with make
-        runCommand('make -C {} -j 8'.format(buildDir))
-    else:
-        # build with cmake on recent
-        runCommand('cmake --build --parallel {}'.format(buildDir))
+        if platform.system() == 'Linux':
+            # build with make -j
+            runCommand('make -C {} -j 2'.format(buildDir))
+        elif platform.system() == 'Darwin':
+            # build with make
+            runCommand('make -C {} -j 8'.format(buildDir))
+        else:
+            # build with cmake on recent
+            runCommand('cmake --build --parallel {}'.format(buildDir))
 
     if buildOnly:
         return
@@ -454,6 +455,8 @@ def main():
                         help='Validate XML output.')
     parser.add_argument('--build_only', '-b', action='store_true',
                         help='Stop after building. Do not run the unittest.')
+    parser.add_argument('--run_only', '-r', action='store_true',
+                        help='Only run the test, do not build anything.')
     parser.add_argument('--output', '-o', help='Output XML file.')
     parser.add_argument('--lldb', action='store_true',
                         help='Run the test through lldb.')
@@ -492,7 +495,7 @@ def main():
     if platform.system() == 'Windows':
         TEST_EXE_PATH = os.path.join(buildDir, BUILD_TYPE, 'ixwebsocket_unittest.exe')
     else:
-        TEST_EXE_PATH = os.path.join(buildDir, 'ixwebsocket_unittest')
+        TEST_EXE_PATH = '../build/test/ixwebsocket_unittest'
 
     if args.list:
         # catch2 exit with a different error code when requesting the list of files
@@ -511,7 +514,7 @@ def main():
         args.lldb = False
 
     return run(args.test, buildDir, sanitizer, xmlOutput, 
-               testRunName, args.build_only, args.lldb, args.cpu_count)
+               testRunName, args.build_only, args.lldb, args.cpu_count, args.run_only)
 
 
 if __name__ == '__main__':

@@ -15,8 +15,6 @@ if (MAC)
   option(USE_TLS "Add TLS support" ON)
 endif()
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/.. ixwebsocket)
-
 set (WS ../ws)
 
 include_directories(
@@ -35,17 +33,6 @@ set (SOURCES
   IXGetFreePort.cpp
   ../third_party/msgpack11/msgpack11.cpp
   ../third_party/jsoncpp/jsoncpp.cpp
-
-  ${WS}/ixcore/utils/IXCoreLogger.cpp
-
-  ${WS}/ixcrypto/IXBase64.cpp
-  ${WS}/ixcrypto/IXHash.cpp
-  ${WS}/ixcrypto/IXUuid.cpp
-  ${WS}/ixcrypto/IXHMac.cpp
-
-  ${WS}/ixcobra/IXCobraConnection.cpp
-  ${WS}/ixcobra/IXCobraMetricsPublisher.cpp
-  ${WS}/ixcobra/IXCobraMetricsThreadedPublisher.cpp
 
   ${WS}/snake/IXSnakeServer.cpp
   ${WS}/snake/IXSnakeProtocol.cpp
@@ -99,5 +86,9 @@ if (APPLE AND USE_TLS)
     target_link_libraries(ixwebsocket_unittest "-framework foundation" "-framework security")
 endif()
 
+target_link_libraries(ixwebsocket_unittest ixcore)
+target_link_libraries(ixwebsocket_unittest ixcrypto)
+target_link_libraries(ixwebsocket_unittest ixcobra)
 target_link_libraries(ixwebsocket_unittest ixwebsocket)
+
 install(TARGETS ixwebsocket_unittest DESTINATION bin)

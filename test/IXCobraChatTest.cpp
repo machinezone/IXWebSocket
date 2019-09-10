@@ -309,6 +309,7 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
             timeout -= 10;
             if (timeout <= 0)
             {
+                snakeServer.stop();
                 REQUIRE(false); // timeout
             }
         }
@@ -332,6 +333,7 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
             timeout -= 10;
             if (timeout <= 0)
             {
+                snakeServer.stop();
                 REQUIRE(false); // timeout
             }
         }
