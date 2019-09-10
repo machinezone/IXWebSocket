@@ -22,9 +22,9 @@ add_library(ixcobra STATIC
 
 set(IXCOBRA_INCLUDE_DIRS
     .
+    ..
     ../ixcore
     ../ixcrypto
-    ../ixwebsocket
     ../third_party)
 
 target_include_directories( ixcobra PUBLIC ${IXCOBRA_INCLUDE_DIRS} )
