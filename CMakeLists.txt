@@ -12,8 +12,7 @@ set (CMAKE_CXX_STANDARD 14)
 set (CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
-# -Wshorten-64-to-32 does not work with clang
-if (NOT WIN32)
+if (UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 endif()
 
@@ -211,6 +210,15 @@ install(TARGETS ixwebsocket
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ixwebsocket/
 )
 
-if (USE_WS)
-    add_subdirectory(ws)
+if (USE_WS OR USE_TEST)
+  add_subdirectory(ixcore)
+  add_subdirectory(ixcrypto)
+  add_subdirectory(ixcobra)
+
+  if (USE_WS)
+      add_subdirectory(ws)
+  endif()
+  if (USE_TEST)
+      add_subdirectory(test)
+  endif()
 endif()

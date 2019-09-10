@@ -35,17 +35,6 @@ add_executable(ws
   ../third_party/jsoncpp/jsoncpp.cpp
   ${STATSD_CLIENT_SOURCES}
 
-  ixcore/utils/IXCoreLogger.cpp
-
-  ixcrypto/IXBase64.cpp
-  ixcrypto/IXHash.cpp
-  ixcrypto/IXUuid.cpp
-  ixcrypto/IXHMac.cpp
-
-  ixcobra/IXCobraConnection.cpp
-  ixcobra/IXCobraMetricsPublisher.cpp
-  ixcobra/IXCobraMetricsThreadedPublisher.cpp
-
   snake/IXSnakeServer.cpp
   snake/IXSnakeProtocol.cpp
   snake/IXAppConfig.cpp
@@ -73,6 +62,9 @@ add_executable(ws
   ws_autobahn.cpp
   ws.cpp)
 
+target_link_libraries(ws ixcore)
+target_link_libraries(ws ixcrypto)
+target_link_libraries(ws ixcobra)
 target_link_libraries(ws ixwebsocket)
 
 if(NOT APPLE AND NOT USE_MBED_TLS)
