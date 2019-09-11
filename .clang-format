@@ -11,7 +11,7 @@ AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortFunctionsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakTemplateDeclarations: true
@@ -42,5 +42,6 @@ NamespaceIndentation: All
 PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left
 SpaceAfterTemplateKeyword: false
+SpaceAfterCStyleCast: true
 Standard: Cpp11
 UseTab: Never
