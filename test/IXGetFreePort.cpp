@@ -23,7 +23,6 @@ namespace ix
 
     int getAnyFreePort()
     {
-        int defaultPort = 8090;
         int sockfd;
         if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
@@ -89,5 +88,3 @@ namespace ix
         return -1;
     }
 } // namespace ix
-
-

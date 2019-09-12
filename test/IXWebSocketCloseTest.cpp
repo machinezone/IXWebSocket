@@ -28,7 +28,6 @@ namespace
             void stop();
             void stop(uint16_t code, const std::string& reason);
             bool isReady() const;
-            void sendMessage(const std::string& text);
 
             uint16_t getCloseCode();
             const std::string& getCloseReason();
@@ -169,11 +168,6 @@ namespace
             });
 
         _webSocket.start();
-    }
-
-    void WebSocketClient::sendMessage(const std::string& text)
-    {
-        _webSocket.send(text);
     }
 
     bool startServer(ix::WebSocketServer& server,

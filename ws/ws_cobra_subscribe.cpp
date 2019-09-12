@@ -35,7 +35,7 @@ namespace ix
         // Display incoming messages
         std::atomic<int> msgPerSeconds(0);
         std::atomic<int> msgCount(0);
-        
+
         auto timer = [&msgPerSeconds, &msgCount]
         {
             while (true)

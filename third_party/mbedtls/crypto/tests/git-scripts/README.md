@@ -8,7 +8,7 @@ The mbed TLS git hooks are located in `<mbed TLS root>/tests/git-scripts` direct
 
 Example:
 
-Execute the following command to create a link on linux from the mbed TLS `.git/hooks` directory:  
+Execute the following command to create a link on linux from the mbed TLS `.git/hooks` directory:
 `ln -s ../../tests/git-scripts/pre-push.sh pre-push`
 
 **Note: Currently the mbed TLS git hooks work only on a GNU platform. If using a non-GNU platform, don't enable these hooks!**

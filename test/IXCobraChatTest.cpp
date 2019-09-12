@@ -135,12 +135,12 @@ namespace
                             if (!msg.isMember("user")) return;
                             if (!msg.isMember("text")) return;
                             if (!msg.isMember("session")) return;
-                        
+
                             std::string msg_user = msg["user"].asString();
                             std::string msg_text = msg["text"].asString();
                             std::string msg_session = msg["session"].asString();
 
-                            // We are not interested in messages 
+                            // We are not interested in messages
                             // from a different session.
                             if (msg_session != _session) return;
 
@@ -150,7 +150,7 @@ namespace
                             _receivedQueue.push(msg);
 
                             std::stringstream ss;
-                            ss << std::endl 
+                            ss << std::endl
                                << msg_user << " > " << msg_text
                                << std::endl
                                << _user << " > ";
@@ -246,7 +246,7 @@ namespace
                     std::stringstream ss;
                     ss << "Sending msg [" << text << "]";
                     log(ss.str());
-                    
+
                     Json::Value channels;
                     channels.append(channel);
                     _conn.publish(channels, msg);
@@ -260,7 +260,7 @@ namespace
 
         ix::msleep(50);
         _conn.disconnect();
-        
+
         _conn.setEventCallback([]
                                (ix::CobraConnectionEventType eventType,
                                 const std::string& errMsg,
@@ -305,7 +305,7 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
         {
             if (chatA.isReady() && chatB.isReady()) break;
             ix::msleep(10);
-            
+
             timeout -= 10;
             if (timeout <= 0)
             {
@@ -329,7 +329,7 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
         while (chatA.hasPendingMessages() || chatB.hasPendingMessages())
         {
             ix::msleep(10);
-            
+
             timeout -= 10;
             if (timeout <= 0)
             {

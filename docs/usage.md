@@ -225,7 +225,7 @@ Wait time(ms): 10000
 The waiting time is capped by default at 10s between 2 attempts, but that value can be changed and queried.
 
 ```
-webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s 
+webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
 uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 ```
 

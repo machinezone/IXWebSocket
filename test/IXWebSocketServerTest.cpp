@@ -112,6 +112,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 
         auto lineResult = socket->readLine(isCancellationRequested);
         auto lineValid = lineResult.first;
+        REQUIRE(lineValid);
+
         auto line = lineResult.second;
 
         int status = -1;
@@ -149,6 +151,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 
         auto lineResult = socket->readLine(isCancellationRequested);
         auto lineValid = lineResult.first;
+        REQUIRE(lineValid);
+
         auto line = lineResult.second;
 
         int status = -1;
@@ -190,6 +194,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 
         auto lineResult = socket->readLine(isCancellationRequested);
         auto lineValid = lineResult.first;
+        REQUIRE(lineValid);
+
         auto line = lineResult.second;
 
         int status = -1;
