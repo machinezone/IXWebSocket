@@ -80,7 +80,7 @@ namespace ix
         int ret = select(maxfd + 1, &readfds, &writefds, &errorfds,
                          timeout != -1 ? &tv : NULL);
 
-        if (ret < 0) 
+        if (ret < 0)
         {
             return ret;
         }

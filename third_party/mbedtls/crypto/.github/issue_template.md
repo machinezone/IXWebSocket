@@ -2,12 +2,12 @@
 
    ************************************** WARNING **************************************
 
-   The ciarcom bot parses this header automatically. Any deviation from the 
-   template may cause the bot to automatically correct this header or may result in a 
+   The ciarcom bot parses this header automatically. Any deviation from the
+   template may cause the bot to automatically correct this header or may result in a
    warning message, requesting updates.
 
-   Please ensure that nothing follows the Issue request type section, all 
-   issue details are within the Description section and no changes are made to the 
+   Please ensure that nothing follows the Issue request type section, all
+   issue details are within the Description section and no changes are made to the
    template format (as detailed below).
 
    *************************************************************************************
@@ -41,4 +41,3 @@
     [ ] Question
     [ ] Enhancement
     [ ] Bug
-

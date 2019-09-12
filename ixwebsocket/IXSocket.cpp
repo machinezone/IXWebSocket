@@ -54,7 +54,7 @@ namespace ix
         // which crash in FD_SET as they are larger than FD_SETSIZE.
         // Switching to ::poll does fix that.
         //
-        // However poll isn't as portable as select and has bugs on Windows, so we should write a 
+        // However poll isn't as portable as select and has bugs on Windows, so we should write a
         // shim to fallback to select on those platforms.
         // See https://github.com/mpv-player/mpv/pull/5203/files for such a select wrapper.
         //

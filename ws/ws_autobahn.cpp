@@ -5,11 +5,11 @@
  */
 
 //
-// 1. First you need to generate a config file in a config folder, 
+// 1. First you need to generate a config file in a config folder,
 //    which can use a white list of test to execute (with globbing),
 //    or a black list of tests to ignore
 //
-// config/fuzzingserver.json 
+// config/fuzzingserver.json
 // {
 //     "url": "ws://127.0.0.1:9001",
 //     "outdir": "./reports/clients",
@@ -18,15 +18,10 @@
 //     ],
 //     "exclude-agent-cases": {}
 // }
-//  
+//
 //
 // 2 Run the test server (using docker)
-// docker run -it --rm \
-//     -v "${PWD}/config:/config" \
-//     -v "${PWD}/reports:/reports" \
-//     -p 9001:9001 \
-//     --name fuzzingserver \
-//     crossbario/autobahn-testsuite
+// docker run -it --rm -v "${PWD}/config:/config" -v "${PWD}/reports:/reports" -p 9001:9001 --name fuzzingserver crossbario/autobahn-testsuite
 //
 // 3. Run this command
 //    ws autobahn -q --url ws://localhost:9001
@@ -315,4 +310,3 @@ namespace ix
         return generateReport(url) ? 0 : 1;
     }
 }
-

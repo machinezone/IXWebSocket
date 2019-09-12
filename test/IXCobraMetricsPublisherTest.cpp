@@ -137,13 +137,13 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
     std::thread bgThread(&startSubscriber, endpoint);
 
     int timeout = 10 * 1000; // 10s
-    
+
     // Wait until the subscriber is ready (authenticated + subscription successful)
     while (!gSubscriberConnectedAndSubscribed)
     {
         std::chrono::duration<double, std::milli> duration(10);
         std::this_thread::sleep_for(duration);
-        
+
         timeout -= 10;
         if (timeout <= 0)
         {

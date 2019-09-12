@@ -94,7 +94,7 @@ namespace ix
         int port = _port;
         std::string hostname(_hostname);
 
-        // We make the background thread doing the work a shared pointer 
+        // We make the background thread doing the work a shared pointer
         // instead of a member variable, because it can keep running when
         // this object goes out of scope, in case of cancellation
         auto t = std::make_shared<std::thread>(&DNSLookup::run, this, self, hostname, port);

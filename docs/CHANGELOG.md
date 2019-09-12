@@ -75,7 +75,7 @@ Close connections when reserved bits are used (fix autobahn test: 3.X Reserved B
 - add utf-8 validation code, not hooked up properly yet
 - Ping received with a payload too large (> 125 bytes) trigger a connection closure
 - cobra / add tracking about published messages
-- cobra / publish returns a message id, that can be used when 
+- cobra / publish returns a message id, that can be used when
 - cobra / new message type in the message received handler when publish/ok is received (can be used to implement an ack system).
 
 ## [5.0.9] - 2019-08-30
@@ -89,7 +89,7 @@ ws connect --max_wait 5000 ws://example.com # will only wait 5 seconds max betwe
 
 ## [5.0.7] - 2019-08-23
 - WebSocket: add new option to pass in extra HTTP headers when connecting.
-- `ws connect` add new option (-H, works like [curl](https://stackoverflow.com/questions/356705/how-to-send-a-header-using-a-http-request-through-a-curl-call)) to pass in extra HTTP headers when connecting 
+- `ws connect` add new option (-H, works like [curl](https://stackoverflow.com/questions/356705/how-to-send-a-header-using-a-http-request-through-a-curl-call)) to pass in extra HTTP headers when connecting
 
 If you run against `ws echo_server` you will see the headers being received printed in the terminal.
 ```
