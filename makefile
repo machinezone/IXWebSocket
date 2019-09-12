@@ -57,8 +57,8 @@ test_server:
 # env TEST=Websocket_server make test
 # env TEST=Websocket_chat make test
 # env TEST=heartbeat make test
-test: brew
-	# (cd test ; ../build/test/ixwebsocket_unittest)
+test:
+	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; make -j)
 	(cd test ; python2.7 run.py -r)
 
 ws_test: ws
