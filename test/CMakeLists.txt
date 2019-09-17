@@ -56,7 +56,7 @@ set (SOURCES
 if (UNIX)
   list(APPEND SOURCES
     IXDNSLookupTest.cpp
-    cmd_websocket_chat.cpp
+    IXWebSocketChatTest.cpp
     IXWebSocketCloseTest.cpp
     IXCobraChatTest.cpp
     IXCobraMetricsPublisherTest.cpp
