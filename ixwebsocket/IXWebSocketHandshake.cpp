@@ -173,7 +173,7 @@ namespace ix
         {
             std::stringstream ss;
             ss << "Expecting HTTP/1.1, got " << httpVersion << ". "
-               << "Rejecting connection to " << host
+               << "Rejecting connection to " << host << ":" << port
                << ", status: " << status
                << ", HTTP Status line: " << line;
             return WebSocketInitResult(false, status, ss.str());
@@ -183,7 +183,7 @@ namespace ix
         if (status != 101)
         {
             std::stringstream ss;
-            ss << "Got bad status connecting to " << host
+            ss << "Got bad status connecting to " << host << ":" << port
                << ", status: " << status
                << ", HTTP Status line: " << line;
             return WebSocketInitResult(false, status, ss.str());
