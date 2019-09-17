@@ -27,7 +27,7 @@ include_directories(
 )
 
 # Shared sources
-set (SOURCES 
+set (SOURCES
   test_runner.cpp
   IXTest.cpp
   IXGetFreePort.cpp

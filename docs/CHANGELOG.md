@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.2.1] - 2019-09-17
+
+- On error while doing a client handshake, additionally display port number next to the host name
+
 ## [6.2.0] - 2019-09-09
 
 - websocket and http server: server does not close the bound client socket in many cases
