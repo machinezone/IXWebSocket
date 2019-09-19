@@ -67,8 +67,15 @@ namespace ix
                               const std::string& rolename,
                               const std::string& rolesecret,
                               const std::string& channel,
-                              const std::string& path,
-                              bool stress);
+                              const std::string& path);
+
+    int ws_cobra_metrics_publish_main(const std::string& appkey,
+                                      const std::string& endpoint,
+                                      const std::string& rolename,
+                                      const std::string& rolesecret,
+                                      const std::string& channel,
+                                      const std::string& path,
+                                      bool stress);
 
     int ws_cobra_to_statsd_main(const std::string& appkey,
                                 const std::string& endpoint,

@@ -134,7 +134,7 @@ namespace ix
         std::string errMsg;
         struct addrinfo* res = getAddrInfo(hostname, port, errMsg);
 
-        if (self.lock())
+        if (auto lock = self.lock())
         {
             // Copy result into the member variables
             setRes(res);
