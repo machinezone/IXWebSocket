@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.2.2] - 2019-09-19
+
+- In DNS lookup code, make sure the weak pointer we use lives through the expected scope (if branch)
+
 ## [6.2.1] - 2019-09-17
 
 - On error while doing a client handshake, additionally display port number next to the host name

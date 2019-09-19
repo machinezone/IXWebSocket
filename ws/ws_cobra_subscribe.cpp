@@ -23,7 +23,6 @@ namespace ix
                                 const std::string& filter,
                                 bool quiet)
     {
-
         ix::CobraConnection conn;
         conn.configure(appkey, endpoint,
                        rolename, rolesecret,

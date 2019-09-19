@@ -182,7 +182,17 @@ int main(int argc, char** argv)
     cobraPublish->add_option("--pidfile", pidfile, "Pid file");
     cobraPublish->add_option("path", path, "Path to the file to send")
         ->required()->check(CLI::ExistingPath);
-    cobraPublish->add_flag("--stress", stress, "Stress mode");
+
+    CLI::App* cobraMetricsPublish = app.add_subcommand("cobra_metrics_publish", "Cobra metrics publisher");
+    cobraMetricsPublish->add_option("--appkey", appkey, "Appkey");
+    cobraMetricsPublish->add_option("--endpoint", endpoint, "Endpoint");
+    cobraMetricsPublish->add_option("--rolename", rolename, "Role name");
+    cobraMetricsPublish->add_option("--rolesecret", rolesecret, "Role secret");
+    cobraMetricsPublish->add_option("channel", channel, "Channel")->required();
+    cobraMetricsPublish->add_option("--pidfile", pidfile, "Pid file");
+    cobraMetricsPublish->add_option("path", path, "Path to the file to send")
+        ->required()->check(CLI::ExistingPath);
+    cobraMetricsPublish->add_flag("--stress", stress, "Stress mode");
 
     CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra to statsd");
     cobra2statsd->add_option("--appkey", appkey, "Appkey");
@@ -305,7 +315,13 @@ int main(int argc, char** argv)
     {
         ret = ix::ws_cobra_publish_main(appkey, endpoint,
                                         rolename, rolesecret,
-                                        channel, path, stress);
+                                        channel, path);
+    }
+    else if (app.got_subcommand("cobra_metrics_publish"))
+    {
+        ret = ix::ws_cobra_metrics_publish_main(appkey, endpoint,
+                                                rolename, rolesecret,
+                                                channel, path, stress);
     }
     else if (app.got_subcommand("cobra_to_statsd"))
     {
