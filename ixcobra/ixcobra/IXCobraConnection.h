@@ -118,6 +118,19 @@ namespace ix
         void suspend();
         void resume();
 
+        /// Prepare a message for transmission 
+        /// (update the pdu, compute a msgId, serialize json to a string)
+        std::pair<CobraConnection::MsgId, std::string> prePublish(
+            const Json::Value& channels,
+            const Json::Value& msg,
+            bool addToQueue);
+
+        /// Attempt to send next message from the internal queue
+        bool publishNext();
+
+        // An invalid message id, signifying an error.
+        static constexpr MsgId kInvalidMsgId = 0;
+
     private:
         bool sendHandshakeMessage();
         bool handleHandshakeResponse(const Json::Value& data);
@@ -146,6 +159,9 @@ namespace ix
                                  const std::string& subscriptionId = std::string(),
                                  uint64_t msgId = std::numeric_limits<uint64_t>::max());
         void invokeErrorCallback(const std::string& errorMsg, const std::string& serializedPdu);
+
+        /// Tells whether the internal queue is empty or not
+        bool isQueueEmpty();
 
         ///
         /// Member variables

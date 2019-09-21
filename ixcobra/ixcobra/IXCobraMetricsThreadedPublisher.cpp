@@ -101,17 +101,12 @@ namespace ix
                                     webSocketPerMessageDeflateOptions);
     }
 
-    void CobraMetricsThreadedPublisher::pushMessage(MessageKind messageKind,
-                                                    const Json::Value& msg)
+    void CobraMetricsThreadedPublisher::pushMessage(MessageKind messageKind)
     {
-        // Enqueue the task
         {
-            // acquire lock
             std::unique_lock<std::mutex> lock(_queue_mutex);
-
-            // add the task
-            _queue.push(std::make_pair(messageKind, msg));
-        } // release lock
+            _queue.push(messageKind);
+        }
 
         // wake up one thread
         _condition.notify_one();
@@ -130,11 +125,6 @@ namespace ix
     void CobraMetricsThreadedPublisher::run()
     {
         setThreadName("CobraMetricsPublisher");
-
-        Json::Value channels;
-        channels.append(std::string());
-        channels.append(std::string());
-        const std::string messageIdKey("id");
 
         _cobra_connection.connect();
 
@@ -156,11 +146,8 @@ namespace ix
                     return;
                 }
 
-                auto item = _queue.front();
+                messageKind = _queue.front();
                 _queue.pop();
-
-                messageKind = item.first;
-                msg = item.second;
             }
 
             switch (messageKind)
@@ -179,37 +166,44 @@ namespace ix
 
                 case MessageKind::Message:
                 {
-                    ;
+                    _cobra_connection.publishNext();
                 }; break;
             }
-
-            //
-            // Publish to multiple channels. This let the consumer side
-            // easily subscribe to all message of a certain type, without having
-            // to do manipulations on the messages on the server side.
-            //
-            channels[0] = _channel;
-            if (msg.isMember(messageIdKey))
-            {
-                channels[1] = msg[messageIdKey];
-            }
-            _cobra_connection.publish(channels, msg);
         }
     }
 
-    void CobraMetricsThreadedPublisher::push(const Json::Value& msg)
+    CobraConnection::MsgId CobraMetricsThreadedPublisher::push(const Json::Value& msg)
     {
-        pushMessage(MessageKind::Message, msg);
+        static const std::string messageIdKey("id");
+
+        //
+        // Publish to multiple channels. This let the consumer side
+        // easily subscribe to all message of a certain type, without having
+        // to do manipulations on the messages on the server side.
+        //
+        Json::Value channels;
+
+        channels.append(_channel);
+        if (msg.isMember(messageIdKey))
+        {
+            channels.append(msg[messageIdKey]);
+        }
+        auto res = _cobra_connection.prePublish(channels, msg, true);
+        auto msgId = res.first;
+
+        pushMessage(MessageKind::Message);
+
+        return msgId;
     }
 
     void CobraMetricsThreadedPublisher::suspend()
     {
-        pushMessage(MessageKind::Suspend, Json::Value());
+        pushMessage(MessageKind::Suspend);
     }
 
     void CobraMetricsThreadedPublisher::resume()
     {
-        pushMessage(MessageKind::Resume, Json::Value());
+        pushMessage(MessageKind::Resume);
     }
 
     bool CobraMetricsThreadedPublisher::isConnected() const

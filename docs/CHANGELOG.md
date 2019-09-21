@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.2.3] - 2019-09-21
+
+- Fix crash in the Linux unittest in the HTTP client code, in Socket::readBytes
+- Cobra Metrics Publisher code returns the message id of the message that got published, to be used to validated that it got sent properly when receiving an ack.
+
 ## [6.2.2] - 2019-09-19
 
 - In DNS lookup code, make sure the weak pointer we use lives through the expected scope (if branch)

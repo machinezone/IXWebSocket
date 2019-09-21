@@ -37,7 +37,7 @@ namespace ix
 
         /// Push a msg to our queue of messages to be published to cobra on the background
         //  thread. Main user right now is the Cobra Metrics System
-        void push(const Json::Value& msg);
+        CobraConnection::MsgId push(const Json::Value& msg);
 
         /// Set cobra connection publish mode
         void setPublishMode(CobraConnectionPublishMode publishMode);
@@ -64,7 +64,7 @@ namespace ix
         };
 
         /// Push a message to be processed by the background thread
-        void pushMessage(MessageKind messageKind, const Json::Value& msg);
+        void pushMessage(MessageKind messageKind);
 
         /// Get a wait time which is increasing exponentially based on the number of retries
         uint64_t getWaitTimeExp(int retry_count);
@@ -94,7 +94,7 @@ namespace ix
         /// that it should wake up and take care of publishing it to cobra
         /// To shutdown the worker thread one has to set the _stop boolean to true.
         /// This is done in the destructor
-        std::queue<std::pair<MessageKind, Json::Value>> _queue;
+        std::queue<MessageKind> _queue;
         mutable std::mutex _queue_mutex;
         std::condition_variable _condition;
         std::atomic<bool> _stop;

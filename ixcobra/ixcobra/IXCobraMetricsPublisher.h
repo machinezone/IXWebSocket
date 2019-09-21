@@ -59,8 +59,9 @@ namespace ix
 
         /// Simple interface, list of key value pairs where typeof(key) == typeof(value) == string
         typedef std::unordered_map<std::string, std::string> Message;
-        void push(const std::string& id,
-                  const CobraMetricsPublisher::Message& data = CobraMetricsPublisher::Message());
+        CobraConnection::MsgId push(
+            const std::string& id,
+            const CobraMetricsPublisher::Message& data = CobraMetricsPublisher::Message());
 
         /// Richer interface using json, which supports types (bool, int, float) and hierarchies of
         /// elements
@@ -69,10 +70,10 @@ namespace ix
         /// shouldPush method for places where we want to be as lightweight as possible when
         /// collecting metrics. When set to false, it is used so that we don't do double work when
         /// computing whether a metrics should be sent or not.
-        void push(const std::string& id, const Json::Value& data, bool shouldPushTest = true);
+        CobraConnection::MsgId push(const std::string& id, const Json::Value& data, bool shouldPushTest = true);
 
         /// Interface used by lua. msg is a json encoded string.
-        void push(const std::string& id, const std::string& data, bool shouldPushTest = true);
+        CobraConnection::MsgId push(const std::string& id, const std::string& data, bool shouldPushTest = true);
 
         /// Tells whether a metric can be pushed.
         /// A metric can be pushed if it satisfies those conditions:

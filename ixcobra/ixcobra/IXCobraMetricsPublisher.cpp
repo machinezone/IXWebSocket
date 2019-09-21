@@ -135,23 +135,23 @@ namespace ix
         return ms;
     }
 
-    void CobraMetricsPublisher::push(const std::string& id,
-                                     const std::string& data,
-                                     bool shouldPushTest)
+    CobraConnection::MsgId CobraMetricsPublisher::push(const std::string& id,
+                                                       const std::string& data,
+                                                       bool shouldPushTest)
     {
-        if (!_enabled) return;
+        if (!_enabled) return CobraConnection::kInvalidMsgId;
 
         Json::Value root;
         Json::Reader reader;
-        if (!reader.parse(data, root)) return;
+        if (!reader.parse(data, root)) return CobraConnection::kInvalidMsgId;
 
-        push(id, root, shouldPushTest);
+        return push(id, root, shouldPushTest);
     }
 
-    void CobraMetricsPublisher::push(const std::string& id,
-                                     const CobraMetricsPublisher::Message& data)
+    CobraConnection::MsgId CobraMetricsPublisher::push(const std::string& id,
+                                                       const CobraMetricsPublisher::Message& data)
     {
-        if (!_enabled) return;
+        if (!_enabled) return CobraConnection::kInvalidMsgId;
 
         Json::Value root;
         for (auto it : data)
@@ -159,7 +159,7 @@ namespace ix
             root[it.first] = it.second;
         }
 
-        push(id, root);
+        return push(id, root);
     }
 
     bool CobraMetricsPublisher::shouldPush(const std::string& id) const
@@ -171,11 +171,12 @@ namespace ix
         return true;
     }
 
-    void CobraMetricsPublisher::push(const std::string& id,
-                                     const Json::Value& data,
-                                     bool shouldPushTest)
+    CobraConnection::MsgId CobraMetricsPublisher::push(
+        const std::string& id,
+        const Json::Value& data,
+        bool shouldPushTest)
     {
-        if (shouldPushTest && !shouldPush(id)) return;
+        if (shouldPushTest && !shouldPush(id)) return CobraConnection::kInvalidMsgId;
 
         setLastUpdate(id);
 
@@ -205,7 +206,7 @@ namespace ix
         }
 
         // Now actually enqueue the task
-        _cobra_metrics_theaded_publisher.push(msg);
+        return _cobra_metrics_theaded_publisher.push(msg);
     }
 
     void CobraMetricsPublisher::setPublishMode(CobraConnectionPublishMode publishMode)

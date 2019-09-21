@@ -70,11 +70,11 @@ namespace ix
                     spdlog::info("Publisher authenticated");
                     authenticated = true;
 
-                    spdlog::info("Publishing data");
-
                     Json::Value channels;
                     channels[0] = channel;
-                    conn.publish(channels, data);
+                    auto msgId = conn.publish(channels, data);
+
+                    spdlog::info("Published msg {}", msgId);
                 }
                 else if (eventType == ix::CobraConnection_EventType_Subscribed)
                 {
@@ -91,7 +91,7 @@ namespace ix
                 }
                 else if (eventType == ix::CobraConnection_EventType_Published)
                 {
-                    spdlog::info("Published message acked: {}", msgId);
+                    spdlog::info("Published message id {} acked", msgId);
                     messageAcked = true;
                     condition.notify_one();
                 }

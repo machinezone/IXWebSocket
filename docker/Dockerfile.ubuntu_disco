@@ -20,4 +20,5 @@ COPY . .
 ARG CMAKE_BIN_PATH=/tmp/cmake/cmake-3.14.0-Linux-x86_64/bin
 ENV PATH="${CMAKE_BIN_PATH}:${PATH}"
 
-RUN ["make", "test"]
+# RUN ["make", "test"]
+CMD ["sh"]
