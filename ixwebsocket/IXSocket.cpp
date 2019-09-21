@@ -367,16 +367,15 @@ namespace ix
             size_t size = std::min(kChunkSize, length - output.size());
             ssize_t ret = recv((char*)&_readBuffer[0], size);
 
-            if (ret <= 0 && !Socket::isWaitNeeded())
-            {
-                // Error
-                return std::make_pair(false, std::string());
-            }
-            else
+            if (ret > 0)
             {
                 output.insert(output.end(),
                               _readBuffer.begin(),
                               _readBuffer.begin() + ret);
+            }
+            else if (ret <= 0 && !Socket::isWaitNeeded())
+            {
+                return std::make_pair(false, std::string());
             }
 
             if (onProgressCallback) onProgressCallback((int) output.size(), (int) length);

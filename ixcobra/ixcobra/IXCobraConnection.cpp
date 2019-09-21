@@ -21,13 +21,14 @@ namespace ix
     TrafficTrackerCallback CobraConnection::_trafficTrackerCallback = nullptr;
     PublishTrackerCallback CobraConnection::_publishTrackerCallback = nullptr;
     constexpr size_t CobraConnection::kQueueMaxSize;
+    constexpr CobraConnection::MsgId CobraConnection::kInvalidMsgId;
 
     CobraConnection::CobraConnection() :
         _webSocket(new WebSocket()),
         _publishMode(CobraConnection_PublishMode_Immediate),
         _authenticated(false),
         _eventCallback(nullptr),
-        _id(0)
+        _id(1)
     {
         _pdu["action"] = "rtm/publish";
 
@@ -456,11 +457,10 @@ namespace ix
         return _jsonWriter.write(value);
     }
 
-    //
-    // publish is not thread safe as we are trying to reuse some Json objects.
-    //
-    CobraConnection::MsgId CobraConnection::publish(const Json::Value& channels,
-                                                    const Json::Value& msg)
+    std::pair<CobraConnection::MsgId, std::string> CobraConnection::prePublish(
+        const Json::Value& channels,
+        const Json::Value& msg,
+        bool addToQueue)
     {
         invokePublishTrackerCallback(true, false);
 
@@ -472,6 +472,38 @@ namespace ix
         _pdu["id"] = Json::UInt64(_id++);
 
         std::string serializedJson = serializeJson(_pdu);
+
+        if (addToQueue)
+        {
+            enqueue(serializedJson);
+        }
+
+        return std::make_pair(msgId, serializedJson);
+    }
+
+    bool CobraConnection::publishNext()
+    {
+        std::lock_guard<std::mutex> lock(_queueMutex);
+
+        auto&& msg = _messageQueue.back();
+        if (!publishMessage(msg))
+        {
+            _messageQueue.push_back(msg);
+            return false;
+        }
+        _messageQueue.pop_back();
+        return true;
+    }
+
+    //
+    // publish is not thread safe as we are trying to reuse some Json objects.
+    //
+    CobraConnection::MsgId CobraConnection::publish(const Json::Value& channels,
+                                                    const Json::Value& msg)
+    {
+        auto p = prePublish(channels, msg, false);
+        auto msgId = p.first;
+        auto serializedJson = p.second;
 
         //
         // 1. When we use batch mode, we just enqueue and will do the flush explicitely
@@ -567,20 +599,19 @@ namespace ix
     //
     bool CobraConnection::flushQueue()
     {
-        std::lock_guard<std::mutex> lock(_queueMutex);
-
-        while (!_messageQueue.empty())
+        while (!isQueueEmpty())
         {
-            auto&& msg = _messageQueue.back();
-            if (!publishMessage(msg))
-            {
-                _messageQueue.push_back(msg);
-                return false;
-            }
-            _messageQueue.pop_back();
+            bool ok = publishNext();
+            if (!ok) return false;
         }
 
         return true;
+    }
+
+    bool CobraConnection::isQueueEmpty()
+    {
+        std::lock_guard<std::mutex> lock(_queueMutex);
+        return _messageQueue.empty();
     }
 
     bool CobraConnection::publishMessage(const std::string& serializedJson)

@@ -53,7 +53,8 @@ namespace ix
 
         if (!stress)
         {
-            cobraMetricsPublisher.push(channel, data);
+            auto msgId = cobraMetricsPublisher.push(channel, data);
+            spdlog::info("Sent message: {}", msgId);
         }
         else
         {
