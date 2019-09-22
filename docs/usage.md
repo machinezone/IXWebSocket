@@ -229,6 +229,39 @@ webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
 uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 ```
 
+### TLS support and configuration
+
+To leverage TLS features, the library must be compiled with the option `WITH_TLS=1`.
+
+Then, secure sockets are automatically used when connecting to a `wss://*` url.
+
+Additional TLS options can be configured by passing a `ix::SocketTLSOptions` instance to the
+`setTLSOptions` on `ix::WebSocket` (or `ix::WebSocketServer` or `ix::HttpServer`)
+
+```
+webSocket.setTLSOptions({
+    .certFile = "path/to/cert/file.pem",
+    .keyFile = "path/to/key/file.pem",
+    .caFile = "path/to/trust/bundle/file.pem"
+});
+```
+
+Specifying `certFile` and `keyFile` configures the certificate that will be used to communicate with TLS peers.
+
+On a client, this is only necessary for connecting to servers that require a client certificate.
+
+On a server, this is necessary for TLS support.
+
+Specifying `caFile` configures the trusted roots bundle file (in PEM format) that will be used to verify peer certificates. 
+ - The special value of `SYSTEM` (the default) indicates that the system-configured trust bundle should be used; this is generally what you want when connecting to any publicly exposed API/server.
+ - The special value of `NONE` can be used to disable peer verification; this is only recommended to rule out certificate verification when testing connectivity.
+
+For a client, specifying `caFile` can be used if connecting to a server that uses a self-signed cert, or when using a custom CA in an internal environment.
+
+For a server, specifying `caFile` implies that:
+1. You require clients to present a certificate
+1. It must be signed by one of the trusted roots in the file
+
 ## WebSocket server API
 
 ```
