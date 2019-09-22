@@ -115,12 +115,13 @@ namespace ix
         {
             if (!_tlsOptions.isPeerVerifyDisabled())
             {
-                // To skip verification, pass in SSL_VERIFY_NONE
                 SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, [](int preverify, X509_STORE_CTX*) -> int {
                     return preverify;
                 });
 
                 SSL_CTX_set_verify_depth(ctx, 4);
+            } else {
+                SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, nullptr);
             }
 
             SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
