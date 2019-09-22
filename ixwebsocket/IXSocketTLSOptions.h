@@ -12,6 +12,8 @@ namespace ix
 {
     struct SocketTLSOptions
     {
+        SocketTLSOptions();
+
         // the certificate presented to peers
         std::string certFile;
         // the key used for signing/encryption
@@ -21,16 +23,10 @@ namespace ix
         // leverage the system defaults, use 'NONE' to disable peer verification
         std::string caFile = "SYSTEM";
 
-        bool isUsingClientCert() const {
-            return !certFile.empty() && !keyFile.empty();
-        }
+        bool isUsingClientCert() const;
 
-        bool isUsingSystemDefaults() const {
-            return caFile == "SYSTEM";
-        }
+        bool isUsingSystemDefaults() const;
 
-        bool isPeerVerifyDisabled() const {
-            return caFile != "NONE";
-        }
+        bool isPeerVerifyDisabled() const;
     };
 } // namespace ix
