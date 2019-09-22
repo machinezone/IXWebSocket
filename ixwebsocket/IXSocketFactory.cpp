@@ -27,7 +27,8 @@
 namespace ix
 {
     std::shared_ptr<Socket> createSocket(bool tls,
-                                         std::string& errorMsg)
+                                         std::string& errorMsg,
+                                         const SocketTLSOptions& tlsOptions)
     {
         errorMsg.clear();
         std::shared_ptr<Socket> socket;
@@ -40,13 +41,13 @@ namespace ix
         {
 #ifdef IXWEBSOCKET_USE_TLS
 # if defined(IXWEBSOCKET_USE_MBED_TLS)
-            socket = std::make_shared<SocketMbedTLS>();
+            socket = std::make_shared<SocketMbedTLS>(tlsOptions);
 # elif defined(__APPLE__)
-            socket = std::make_shared<SocketAppleSSL>();
+            socket = std::make_shared<SocketAppleSSL>(tlsOptions);
 # elif defined(_WIN32)
-            socket = std::make_shared<SocketSChannel>();
+            socket = std::make_shared<SocketSChannel>(tlsOptions);
 # else
-            socket = std::make_shared<SocketOpenSSL>();
+            socket = std::make_shared<SocketOpenSSL>(tlsOptions);
 # endif
 #else
             errorMsg = "TLS support is not enabled on this platform.";

@@ -67,6 +67,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSocketConnect.h
     ixwebsocket/IXSocketFactory.h
     ixwebsocket/IXSocketServer.h
+    ixwebsocket/IXSocketTLSOptions.h
     ixwebsocket/IXUrlParser.h
     ixwebsocket/IXUtf8Validator.h
     ixwebsocket/IXUserAgent.h

@@ -10,6 +10,9 @@
 #pragma once
 
 #include "IXProgressCallback.h"
+#ifdef IXWEBSOCKET_USE_TLS
+#include "IXSocketTLSOptions.h"
+#endif
 #include "IXWebSocketCloseConstants.h"
 #include "IXWebSocketErrorInfo.h"
 #include "IXWebSocketHttpHeaders.h"
@@ -49,6 +52,9 @@ namespace ix
         void setExtraHeaders(const WebSocketHttpHeaders& headers);
         void setPerMessageDeflateOptions(
             const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
+#ifdef IXWEBSOCKET_USE_TLS
+        void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
+#endif
         void setHeartBeatPeriod(int heartBeatPeriodSecs);
         void setPingInterval(int pingIntervalSecs); // alias of setHeartBeatPeriod
         void setPingTimeout(int pingTimeoutSecs);
@@ -119,6 +125,9 @@ namespace ix
         WebSocketHttpHeaders _extraHeaders;
 
         WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
+
+        SocketTLSOptions _socketTLSOptions;
+
         mutable std::mutex _configMutex; // protect all config variables access
 
         OnMessageCallback _onMessageCallback;

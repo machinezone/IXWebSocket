@@ -32,6 +32,7 @@
 // Adapted from https://github.com/dhbaird/easywsclient
 //
 
+#include "IXSocketTLSOptions.h"
 #include "IXWebSocketTransport.h"
 #include "IXWebSocketHandshake.h"
 #include "IXWebSocketHttpHeaders.h"
@@ -103,12 +104,14 @@ namespace ix
     }
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
+                                       const SocketTLSOptions& socketTLSOptions,
                                        bool enablePong,
                                        int pingIntervalSecs,
                                        int pingTimeoutSecs)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
+        _socketTLSOptions = socketTLSOptions;
         _enablePong = enablePong;
         _pingIntervalSecs = pingIntervalSecs;
         _pingTimeoutSecs = pingTimeoutSecs;
@@ -147,7 +150,7 @@ namespace ix
 
         std::string errorMsg;
         bool tls = protocol == "wss";
-        _socket = createSocket(tls, errorMsg);
+        _socket = createSocket(tls, errorMsg, _socketTLSOptions);
 
         if (!_socket)
         {

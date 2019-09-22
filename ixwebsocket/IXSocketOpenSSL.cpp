@@ -22,7 +22,7 @@ namespace ix
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
 
-    SocketOpenSSL::SocketOpenSSL(int fd) : Socket(fd),
+    SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd) : Socket(fd),
         _ssl_connection(nullptr),
         _ssl_context(nullptr)
     {
@@ -114,14 +114,17 @@ namespace ix
         SSL_CTX* ctx = SSL_CTX_new(_ssl_method);
         if (ctx)
         {
-            // To skip verification, pass in SSL_VERIFY_NONE
-            SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER,
-                               [](int preverify, X509_STORE_CTX*) -> int
-                               {
-                                   return preverify;
-                               });
+            if (!_tlsOptions.isPeerVerifyDisabled()) {
+                // To skip verification, pass in SSL_VERIFY_NONE
+                SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER,
+                                [](int preverify, X509_STORE_CTX*) -> int
+                                {
+                                    return preverify;
+                                });
 
-            SSL_CTX_set_verify_depth(ctx, 4);
+                SSL_CTX_set_verify_depth(ctx, 4);
+            }
+
             SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
         }
         return ctx;
@@ -265,12 +268,53 @@ namespace ix
             }
 
             ERR_clear_error();
-            int cert_load_result = SSL_CTX_set_default_verify_paths(_ssl_context);
-            if (cert_load_result == 0)
-            {
-                unsigned long ssl_err = ERR_get_error();
-                errMsg = "OpenSSL failed - SSL_CTX_default_verify_paths loading failed: ";
-                errMsg += ERR_error_string(ssl_err, nullptr);
+            if (_tlsOptions.isUsingClientCert()) {
+                if (SSL_CTX_use_certificate_chain_file(_ssl_context, 
+                        _tlsOptions.cert_file.c_str()) != 1) {
+                    unsigned long ssl_err = ERR_get_error();
+                    errMsg = "OpenSSL failed - SSL_CTX_use_certificate_chain_file(\""
+                            + _tlsOptions.cert_file + "\") failed: ";
+                    errMsg += ERR_error_string(ssl_err, nullptr);
+                } else if (SSL_CTX_use_PrivateKey_file(_ssl_context, 
+                        _tlsOptions.key_file.c_str(), SSL_FILETYPE_PEM) != 1) {
+                    unsigned long ssl_err = ERR_get_error();
+                    errMsg = "OpenSSL failed - SSL_CTX_use_PrivateKey_file(\""
+                            + _tlsOptions.key_file + "\") failed: ";
+                    errMsg += ERR_error_string(ssl_err, nullptr);
+                }
+            }
+
+
+            ERR_clear_error();
+            if (!_tlsOptions.isPeerVerifyDisabled()) {
+            
+                if (_tlsOptions.isUsingSystemDefaults()) {
+                    int cert_load_result = SSL_CTX_set_default_verify_paths(_ssl_context);
+                    if (cert_load_result == 0)
+                    {
+                        unsigned long ssl_err = ERR_get_error();
+                        errMsg = "OpenSSL failed - SSL_CTX_default_verify_paths loading failed: ";
+                        errMsg += ERR_error_string(ssl_err, nullptr);
+                    }
+                } else {
+                    const char * root_ca_file = _tlsOptions.ca_file.c_str();
+                    STACK_OF(X509_NAME) *root_cas;
+                    root_cas = SSL_load_client_CA_file(root_ca_file);
+                    if (root_cas == NULL) {
+                        unsigned long ssl_err = ERR_get_error();
+                        errMsg = "OpenSSL failed - SSL_load_client_CA_file('"
+                                 + _tlsOptions.ca_file + "') failed: ";
+                        errMsg += ERR_error_string(ssl_err, nullptr);
+                    } else {
+                        SSL_CTX_set_client_CA_list(_ssl_context, root_cas); 
+                        if (SSL_CTX_load_verify_locations(_ssl_context, root_ca_file, NULL) != 1) {
+                            unsigned long ssl_err = ERR_get_error();
+                            errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\""
+                                    + _tlsOptions.ca_file + "\") failed: ";
+                            errMsg += ERR_error_string(ssl_err, nullptr);
+                        }
+                    }
+                }
             }
 
             _ssl_connection = SSL_new(_ssl_context);
@@ -283,17 +327,19 @@ namespace ix
             }
             SSL_set_fd(_ssl_connection, _sockfd);
 
-            // SNI support
-            SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
+            if (!_tlsOptions.isPeerVerifyDisabled()) {
+                // SNI support
+                SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
 
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
-            // Support for server name verification
-            // (The docs say that this should work from 1.0.2, and is the default from
-            // 1.1.0, but it does not. To be on the safe side, the manual test below is
-            // enabled for all versions prior to 1.1.0.)
-            X509_VERIFY_PARAM *param = SSL_get0_param(_ssl_connection);
-            X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0);
+                // Support for server name verification
+                // (The docs say that this should work from 1.0.2, and is the default from
+                // 1.1.0, but it does not. To be on the safe side, the manual test below is
+                // enabled for all versions prior to 1.1.0.)
+                X509_VERIFY_PARAM *param = SSL_get0_param(_ssl_connection);
+                X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0);
 #endif
+            }
 
             handshakeSuccessful = openSSLHandshake(host, errMsg);
         }
