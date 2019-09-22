@@ -52,9 +52,7 @@ namespace ix
         void setExtraHeaders(const WebSocketHttpHeaders& headers);
         void setPerMessageDeflateOptions(
             const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
-#ifdef IXWEBSOCKET_USE_TLS
         void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
-#endif
         void setHeartBeatPeriod(int heartBeatPeriodSecs);
         void setPingInterval(int pingIntervalSecs); // alias of setHeartBeatPeriod
         void setPingTimeout(int pingTimeoutSecs);

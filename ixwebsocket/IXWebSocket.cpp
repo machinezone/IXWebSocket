@@ -73,13 +73,11 @@ namespace ix
         _perMessageDeflateOptions = perMessageDeflateOptions;
     }
 
-#ifdef IXWEBSOCKET_USE_TLS
     void WebSocket::setTLSOptions(const SocketTLSOptions& socketTLSOptions)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         _socketTLSOptions = socketTLSOptions;
     }
-#endif
 
     const WebSocketPerMessageDeflateOptions& WebSocket::getPerMessageDeflateOptions() const
     {
