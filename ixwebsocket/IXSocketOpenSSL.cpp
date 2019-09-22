@@ -270,7 +270,7 @@ namespace ix
                 if (SSL_CTX_use_certificate_chain_file(_ssl_context,
                                                        _tlsOptions.certFile.c_str()) != 1)
                 {
-                    unsigned long ssl_err = ERR_get_error();
+                    auto ssl_err = ERR_get_error();
                     errMsg = "OpenSSL failed - SSL_CTX_use_certificate_chain_file(\"" +
                              _tlsOptions.certFile + "\") failed: ";
                     errMsg += ERR_error_string(ssl_err, nullptr);
@@ -278,7 +278,7 @@ namespace ix
                 else if (SSL_CTX_use_PrivateKey_file(
                              _ssl_context, _tlsOptions.keyFile.c_str(), SSL_FILETYPE_PEM) != 1)
                 {
-                    unsigned long ssl_err = ERR_get_error();
+                    auto ssl_err = ERR_get_error();
                     errMsg = "OpenSSL failed - SSL_CTX_use_PrivateKey_file(\"" +
                              _tlsOptions.keyFile + "\") failed: ";
                     errMsg += ERR_error_string(ssl_err, nullptr);
@@ -291,10 +291,9 @@ namespace ix
             {
                 if (_tlsOptions.isUsingSystemDefaults())
                 {
-                    int cert_load_result = SSL_CTX_set_default_verify_paths(_ssl_context);
-                    if (cert_load_result == 0)
+                    if (SSL_CTX_set_default_verify_paths(_ssl_context) == 0)
                     {
-                        unsigned long ssl_err = ERR_get_error();
+                        auto ssl_err = ERR_get_error();
                         errMsg = "OpenSSL failed - SSL_CTX_default_verify_paths loading failed: ";
                         errMsg += ERR_error_string(ssl_err, nullptr);
                     }
@@ -302,21 +301,21 @@ namespace ix
                 else
                 {
                     const char* root_ca_file = _tlsOptions.caFile.c_str();
-                    STACK_OF(X509_NAME) * root_cas;
-                    root_cas = SSL_load_client_CA_file(root_ca_file);
-                    if (root_cas == NULL)
+                    STACK_OF(X509_NAME) * rootCAs;
+                    rootCAs = SSL_load_client_CA_file(root_ca_file);
+                    if (rootCAs == NULL)
                     {
-                        unsigned long ssl_err = ERR_get_error();
+                        auto ssl_err = ERR_get_error();
                         errMsg = "OpenSSL failed - SSL_load_client_CA_file('" + _tlsOptions.caFile +
                                  "') failed: ";
                         errMsg += ERR_error_string(ssl_err, nullptr);
                     }
                     else
                     {
-                        SSL_CTX_set_client_CA_list(_ssl_context, root_cas);
+                        SSL_CTX_set_client_CA_list(_ssl_context, rootCAs);
                         if (SSL_CTX_load_verify_locations(_ssl_context, root_ca_file, NULL) != 1)
                         {
-                            unsigned long ssl_err = ERR_get_error();
+                            auto ssl_err = ERR_get_error();
                             errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +
                                      _tlsOptions.caFile + "\") failed: ";
                             errMsg += ERR_error_string(ssl_err, nullptr);
