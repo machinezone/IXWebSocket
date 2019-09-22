@@ -8,15 +8,15 @@
 
 #ifdef IXWEBSOCKET_USE_TLS
 
-# ifdef IXWEBSOCKET_USE_MBED_TLS
-#  include <ixwebsocket/IXSocketMbedTLS.h>
-# elif __APPLE__
-#  include <ixwebsocket/IXSocketAppleSSL.h>
-# elif defined(_WIN32)
-#  include <ixwebsocket/IXSocketSChannel.h>
-# elif defined(IXWEBSOCKET_USE_OPEN_SSL)
-#  include <ixwebsocket/IXSocketOpenSSL.h>
-# endif
+#ifdef IXWEBSOCKET_USE_MBED_TLS
+#include <ixwebsocket/IXSocketMbedTLS.h>
+#elif __APPLE__
+#include <ixwebsocket/IXSocketAppleSSL.h>
+#elif defined(_WIN32)
+#include <ixwebsocket/IXSocketSChannel.h>
+#elif defined(IXWEBSOCKET_USE_OPEN_SSL)
+#include <ixwebsocket/IXSocketOpenSSL.h>
+#endif
 
 #else
 
@@ -40,15 +40,15 @@ namespace ix
         else
         {
 #ifdef IXWEBSOCKET_USE_TLS
-# if defined(IXWEBSOCKET_USE_MBED_TLS)
+#if defined(IXWEBSOCKET_USE_MBED_TLS)
             socket = std::make_shared<SocketMbedTLS>(tlsOptions);
-# elif defined(__APPLE__)
+#elif defined(__APPLE__)
             socket = std::make_shared<SocketAppleSSL>(tlsOptions);
-# elif defined(_WIN32)
+#elif defined(_WIN32)
             socket = std::make_shared<SocketSChannel>(tlsOptions);
-# else
+#else
             socket = std::make_shared<SocketOpenSSL>(tlsOptions);
-# endif
+#endif
 #else
             errorMsg = "TLS support is not enabled on this platform.";
             return nullptr;
@@ -63,8 +63,7 @@ namespace ix
         return socket;
     }
 
-    std::shared_ptr<Socket> createSocket(int fd,
-                                         std::string& errorMsg)
+    std::shared_ptr<Socket> createSocket(int fd, std::string& errorMsg)
     {
         errorMsg.clear();
 
@@ -76,4 +75,4 @@ namespace ix
 
         return socket;
     }
-}
+} // namespace ix

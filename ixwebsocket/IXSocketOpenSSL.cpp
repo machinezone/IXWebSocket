@@ -7,14 +7,12 @@
  */
 
 #include "IXSocketOpenSSL.h"
+
 #include "IXSocketConnect.h"
-
 #include <cassert>
-
-#include <openssl/x509v3.h>
-
-#include <fnmatch.h>
 #include <errno.h>
+#include <fnmatch.h>
+#include <openssl/x509v3.h>
 #define socketerrno errno
 
 namespace ix
@@ -22,9 +20,10 @@ namespace ix
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
 
-    SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd) : Socket(fd),
-        _ssl_connection(nullptr),
-        _ssl_context(nullptr)
+    SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd)
+        : Socket(fd)
+        , _ssl_connection(nullptr)
+        , _ssl_context(nullptr)
     {
         std::call_once(_openSSLInitFlag, &SocketOpenSSL::openSSLInitialize, this);
     }
@@ -114,13 +113,12 @@ namespace ix
         SSL_CTX* ctx = SSL_CTX_new(_ssl_method);
         if (ctx)
         {
-            if (!_tlsOptions.isPeerVerifyDisabled()) {
+            if (!_tlsOptions.isPeerVerifyDisabled())
+            {
                 // To skip verification, pass in SSL_VERIFY_NONE
-                SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER,
-                                [](int preverify, X509_STORE_CTX*) -> int
-                                {
-                                    return preverify;
-                                });
+                SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, [](int preverify, X509_STORE_CTX*) -> int {
+                    return preverify;
+                });
 
                 SSL_CTX_set_verify_depth(ctx, 4);
             }
@@ -133,16 +131,16 @@ namespace ix
     /**
      * Check whether a hostname matches a pattern
      */
-    bool SocketOpenSSL::checkHost(const std::string& host, const char *pattern)
+    bool SocketOpenSSL::checkHost(const std::string& host, const char* pattern)
     {
         return fnmatch(pattern, host.c_str(), 0) != FNM_NOMATCH;
     }
 
-    bool SocketOpenSSL::openSSLCheckServerCert(SSL *ssl,
+    bool SocketOpenSSL::openSSLCheckServerCert(SSL* ssl,
                                                const std::string& hostname,
                                                std::string& errMsg)
     {
-        X509 *server_cert = SSL_get_peer_certificate(ssl);
+        X509* server_cert = SSL_get_peer_certificate(ssl);
         if (server_cert == nullptr)
         {
             errMsg = "OpenSSL failed - peer didn't present a X509 certificate.";
@@ -152,18 +150,17 @@ namespace ix
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
         // Check server name
         bool hostname_verifies_ok = false;
-        STACK_OF(GENERAL_NAME) *san_names =
-            (STACK_OF(GENERAL_NAME)*) X509_get_ext_d2i((X509 *)server_cert,
-                                                       NID_subject_alt_name, NULL, NULL);
+        STACK_OF(GENERAL_NAME)* san_names = (STACK_OF(GENERAL_NAME)*) X509_get_ext_d2i(
+            (X509*) server_cert, NID_subject_alt_name, NULL, NULL);
         if (san_names)
         {
-            for (int i=0; i<sk_GENERAL_NAME_num(san_names); i++)
+            for (int i = 0; i < sk_GENERAL_NAME_num(san_names); i++)
             {
-                const GENERAL_NAME *sk_name = sk_GENERAL_NAME_value(san_names, i);
+                const GENERAL_NAME* sk_name = sk_GENERAL_NAME_value(san_names, i);
                 if (sk_name->type == GEN_DNS)
                 {
-                    char *name = (char *)ASN1_STRING_data(sk_name->d.dNSName);
-                    if ((size_t)ASN1_STRING_length(sk_name->d.dNSName) == strlen(name) &&
+                    char* name = (char*) ASN1_STRING_data(sk_name->d.dNSName);
+                    if ((size_t) ASN1_STRING_length(sk_name->d.dNSName) == strlen(name) &&
                         checkHost(hostname, name))
                     {
                         hostname_verifies_ok = true;
@@ -176,20 +173,20 @@ namespace ix
 
         if (!hostname_verifies_ok)
         {
-            int cn_pos = X509_NAME_get_index_by_NID(X509_get_subject_name((X509 *)server_cert),
-                                                    NID_commonName, -1);
+            int cn_pos = X509_NAME_get_index_by_NID(
+                X509_get_subject_name((X509*) server_cert), NID_commonName, -1);
             if (cn_pos)
             {
-                X509_NAME_ENTRY *cn_entry = X509_NAME_get_entry(
-                    X509_get_subject_name((X509 *)server_cert), cn_pos);
+                X509_NAME_ENTRY* cn_entry =
+                    X509_NAME_get_entry(X509_get_subject_name((X509*) server_cert), cn_pos);
 
                 if (cn_entry)
                 {
-                    ASN1_STRING *cn_asn1 = X509_NAME_ENTRY_get_data(cn_entry);
-                    char *cn = (char *)ASN1_STRING_data(cn_asn1);
+                    ASN1_STRING* cn_asn1 = X509_NAME_ENTRY_get_data(cn_entry);
+                    char* cn = (char*) ASN1_STRING_data(cn_asn1);
 
-                    if ((size_t)ASN1_STRING_length(cn_asn1) == strlen(cn) &&
-                       checkHost(hostname, cn))
+                    if ((size_t) ASN1_STRING_length(cn_asn1) == strlen(cn) &&
+                        checkHost(hostname, cn))
                     {
                         hostname_verifies_ok = true;
                     }
@@ -268,27 +265,32 @@ namespace ix
             }
 
             ERR_clear_error();
-            if (_tlsOptions.isUsingClientCert()) {
-                if (SSL_CTX_use_certificate_chain_file(_ssl_context, 
-                        _tlsOptions.certFile.c_str()) != 1) {
+            if (_tlsOptions.isUsingClientCert())
+            {
+                if (SSL_CTX_use_certificate_chain_file(_ssl_context,
+                                                       _tlsOptions.certFile.c_str()) != 1)
+                {
                     unsigned long ssl_err = ERR_get_error();
-                    errMsg = "OpenSSL failed - SSL_CTX_use_certificate_chain_file(\""
-                            + _tlsOptions.certFile + "\") failed: ";
+                    errMsg = "OpenSSL failed - SSL_CTX_use_certificate_chain_file(\"" +
+                             _tlsOptions.certFile + "\") failed: ";
                     errMsg += ERR_error_string(ssl_err, nullptr);
-                } else if (SSL_CTX_use_PrivateKey_file(_ssl_context, 
-                        _tlsOptions.keyFile.c_str(), SSL_FILETYPE_PEM) != 1) {
+                }
+                else if (SSL_CTX_use_PrivateKey_file(
+                             _ssl_context, _tlsOptions.keyFile.c_str(), SSL_FILETYPE_PEM) != 1)
+                {
                     unsigned long ssl_err = ERR_get_error();
-                    errMsg = "OpenSSL failed - SSL_CTX_use_PrivateKey_file(\""
-                            + _tlsOptions.keyFile + "\") failed: ";
+                    errMsg = "OpenSSL failed - SSL_CTX_use_PrivateKey_file(\"" +
+                             _tlsOptions.keyFile + "\") failed: ";
                     errMsg += ERR_error_string(ssl_err, nullptr);
                 }
             }
 
 
             ERR_clear_error();
-            if (!_tlsOptions.isPeerVerifyDisabled()) {
-            
-                if (_tlsOptions.isUsingSystemDefaults()) {
+            if (!_tlsOptions.isPeerVerifyDisabled())
+            {
+                if (_tlsOptions.isUsingSystemDefaults())
+                {
                     int cert_load_result = SSL_CTX_set_default_verify_paths(_ssl_context);
                     if (cert_load_result == 0)
                     {
@@ -296,21 +298,27 @@ namespace ix
                         errMsg = "OpenSSL failed - SSL_CTX_default_verify_paths loading failed: ";
                         errMsg += ERR_error_string(ssl_err, nullptr);
                     }
-                } else {
-                    const char * root_ca_file = _tlsOptions.caFile.c_str();
-                    STACK_OF(X509_NAME) *root_cas;
+                }
+                else
+                {
+                    const char* root_ca_file = _tlsOptions.caFile.c_str();
+                    STACK_OF(X509_NAME) * root_cas;
                     root_cas = SSL_load_client_CA_file(root_ca_file);
-                    if (root_cas == NULL) {
+                    if (root_cas == NULL)
+                    {
                         unsigned long ssl_err = ERR_get_error();
-                        errMsg = "OpenSSL failed - SSL_load_client_CA_file('"
-                                 + _tlsOptions.caFile + "') failed: ";
+                        errMsg = "OpenSSL failed - SSL_load_client_CA_file('" + _tlsOptions.caFile +
+                                 "') failed: ";
                         errMsg += ERR_error_string(ssl_err, nullptr);
-                    } else {
-                        SSL_CTX_set_client_CA_list(_ssl_context, root_cas); 
-                        if (SSL_CTX_load_verify_locations(_ssl_context, root_ca_file, NULL) != 1) {
+                    }
+                    else
+                    {
+                        SSL_CTX_set_client_CA_list(_ssl_context, root_cas);
+                        if (SSL_CTX_load_verify_locations(_ssl_context, root_ca_file, NULL) != 1)
+                        {
                             unsigned long ssl_err = ERR_get_error();
-                            errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\""
-                                    + _tlsOptions.caFile + "\") failed: ";
+                            errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +
+                                     _tlsOptions.caFile + "\") failed: ";
                             errMsg += ERR_error_string(ssl_err, nullptr);
                         }
                     }
@@ -327,20 +335,17 @@ namespace ix
             }
             SSL_set_fd(_ssl_connection, _sockfd);
 
-            if (!_tlsOptions.isPeerVerifyDisabled()) {
-                // SNI support
-                SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
+            // SNI support
+            SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
 
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
-                // Support for server name verification
-                // (The docs say that this should work from 1.0.2, and is the default from
-                // 1.1.0, but it does not. To be on the safe side, the manual test below is
-                // enabled for all versions prior to 1.1.0.)
-                X509_VERIFY_PARAM *param = SSL_get0_param(_ssl_connection);
-                X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0);
+            // Support for server name verification
+            // (The docs say that this should work from 1.0.2, and is the default from
+            // 1.1.0, but it does not. To be on the safe side, the manual test below is
+            // enabled for all versions prior to 1.1.0.)
+            X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
+            X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0);
 #endif
-            }
-
             handshakeSuccessful = openSSLHandshake(host, errMsg);
         }
 
@@ -388,13 +393,18 @@ namespace ix
             ssize_t write_result = SSL_write(_ssl_connection, buf + sent, (int) nbyte);
             int reason = SSL_get_error(_ssl_connection, (int) write_result);
 
-            if (reason == SSL_ERROR_NONE) {
+            if (reason == SSL_ERROR_NONE)
+            {
                 nbyte -= write_result;
                 sent += write_result;
-            } else if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE) {
+            }
+            else if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
+            {
                 errno = EWOULDBLOCK;
                 return -1;
-            } else {
+            }
+            else
+            {
                 return -1;
             }
         }
@@ -403,7 +413,7 @@ namespace ix
 
     ssize_t SocketOpenSSL::send(const std::string& buffer)
     {
-        return send((char*)&buffer[0], buffer.size());
+        return send((char*) &buffer[0], buffer.size());
     }
 
     ssize_t SocketOpenSSL::recv(void* buf, size_t nbyte)
@@ -435,4 +445,4 @@ namespace ix
         }
     }
 
-}
+} // namespace ix
