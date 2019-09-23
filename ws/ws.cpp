@@ -89,14 +89,11 @@ int main(int argc, char** argv)
     uint32_t maxWaitBetweenReconnectionRetries;
 
     auto add_tls_options = [&certFile, &keyFile, &caFile](CLI::App* app) {
-        app->add_option("--keyFile", keyFile, "Path to the (PEM format) TLS key file")
-            ->required()
+        app->add_option("--key-file", keyFile, "Path to the (PEM format) TLS key file")
             ->check(CLI::ExistingPath);
-        app->add_option("--certFile", certFile, "Path to the (PEM format) TLS cert file")
-            ->required()
+        app->add_option("--cert-file", certFile, "Path to the (PEM format) TLS cert file")
             ->check(CLI::ExistingPath);
-        app->add_option("--caFile", caFile, "Path to the (PEM format) ca roots file")
-            ->required()
+        app->add_option("--ca-file", caFile, "Path to the (PEM format) ca roots file")
             ->check(CLI::ExistingPath);
     };
 
