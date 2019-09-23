@@ -15,15 +15,12 @@ if (MAC)
   option(USE_TLS "Add TLS support" ON)
 endif()
 
-set (WS ../ws)
-
 include_directories(
   ${PROJECT_SOURCE_DIR}/Catch2/single_include
   ../third_party
   ../third_party/msgpack11
   ../third_party/spdlog/include
   ../ws
-  ../ws/snake
 )
 
 # Shared sources
@@ -33,12 +30,6 @@ set (SOURCES
   IXGetFreePort.cpp
   ../third_party/msgpack11/msgpack11.cpp
   ../third_party/jsoncpp/jsoncpp.cpp
-
-  ${WS}/snake/IXSnakeServer.cpp
-  ${WS}/snake/IXSnakeProtocol.cpp
-  ${WS}/snake/IXAppConfig.cpp
-
-  ${WS}/IXRedisClient.cpp
 
   IXSocketTest.cpp
   IXSocketConnectTest.cpp
@@ -83,12 +74,13 @@ if (MAC)
 endif()
 
 if (APPLE AND USE_TLS)
-    target_link_libraries(ixwebsocket_unittest "-framework foundation" "-framework security")
+  target_link_libraries(ixwebsocket_unittest "-framework foundation" "-framework security")
 endif()
 
 target_link_libraries(ixwebsocket_unittest ixcore)
 target_link_libraries(ixwebsocket_unittest ixcrypto)
 target_link_libraries(ixwebsocket_unittest ixcobra)
 target_link_libraries(ixwebsocket_unittest ixwebsocket)
+target_link_libraries(ixwebsocket_unittest ixsnake)
 
 install(TARGETS ixwebsocket_unittest DESTINATION bin)

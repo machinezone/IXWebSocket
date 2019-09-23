@@ -4,7 +4,7 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include "IXSnakeServer.h"
+#include <ixsnake/IXSnakeServer.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
