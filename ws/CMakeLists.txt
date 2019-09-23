@@ -57,11 +57,11 @@ add_executable(ws
   ws_autobahn.cpp
   ws.cpp)
 
-target_link_libraries(ws ixcore)
-target_link_libraries(ws ixcrypto)
+target_link_libraries(ws ixsnake)
 target_link_libraries(ws ixcobra)
 target_link_libraries(ws ixwebsocket)
-target_link_libraries(ws ixsnake)
+target_link_libraries(ws ixcrypto)
+target_link_libraries(ws ixcore)
 
 if(NOT APPLE AND NOT USE_MBED_TLS)
   find_package(OpenSSL REQUIRED)
