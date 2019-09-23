@@ -24,10 +24,14 @@ namespace ix
         // leverage the system defaults, use 'NONE' to disable peer verification
         std::string caFile = "SYSTEM";
 
+        std::string ciphers = "DEFAULT";
+
         bool hasCertAndKey() const;
 
         bool isUsingSystemDefaults() const;
 
         bool isPeerVerifyDisabled() const;
+
+        bool isUsingDefaultCiphers() const;
     };
 } // namespace ix

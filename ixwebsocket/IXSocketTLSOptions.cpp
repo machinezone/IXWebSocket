@@ -33,4 +33,9 @@ namespace ix
         return caFile == "NONE";
     }
 
+    bool SocketTLSOptions::isUsingDefaultCiphers() const
+    {
+        return ciphers.empty() || ciphers == "DEFAULT";
+    }
+
 } // namespace ix
