@@ -30,7 +30,7 @@ namespace ix
 
     bool SocketTLSOptions::isPeerVerifyDisabled() const
     {
-        return caFile != "NONE";
+        return caFile == "NONE";
     }
 
 } // namespace ix
