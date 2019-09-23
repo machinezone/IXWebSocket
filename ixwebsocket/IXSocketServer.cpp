@@ -5,14 +5,14 @@
  */
 
 #include "IXSocketServer.h"
+
+#include "IXNetSystem.h"
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
-#include "IXNetSystem.h"
-
+#include <assert.h>
 #include <iostream>
 #include <sstream>
 #include <string.h>
-#include <assert.h>
 
 namespace ix
 {
@@ -24,17 +24,16 @@ namespace ix
     SocketServer::SocketServer(int port,
                                const std::string& host,
                                int backlog,
-                               size_t maxConnections) :
-        _port(port),
-        _host(host),
-        _backlog(backlog),
-        _maxConnections(maxConnections),
-        _serverFd(-1),
-        _stop(false),
-        _stopGc(false),
-        _connectionStateFactory(&ConnectionState::createConnectionState)
+                               size_t maxConnections)
+        : _port(port)
+        , _host(host)
+        , _backlog(backlog)
+        , _maxConnections(maxConnections)
+        , _serverFd(-1)
+        , _stop(false)
+        , _stopGc(false)
+        , _connectionStateFactory(&ConnectionState::createConnectionState)
     {
-
     }
 
     SocketServer::~SocketServer()
@@ -62,21 +61,18 @@ namespace ix
         if ((_serverFd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             std::stringstream ss;
-            ss << "SocketServer::listen() error creating socket): "
-               << strerror(Socket::getErrno());
+            ss << "SocketServer::listen() error creating socket): " << strerror(Socket::getErrno());
 
             return std::make_pair(false, ss.str());
         }
 
         // Make that socket reusable. (allow restarting this server at will)
         int enable = 1;
-        if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR,
-                       (char*) &enable, sizeof(enable)) < 0)
+        if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, (char*) &enable, sizeof(enable)) < 0)
         {
             std::stringstream ss;
             ss << "SocketServer::listen() error calling setsockopt(SO_REUSEADDR) "
-               << "at address " << _host << ":" << _port
-               << " : " << strerror(Socket::getErrno());
+               << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
 
             Socket::closeSocket(_serverFd);
             return std::make_pair(false, ss.str());
@@ -84,7 +80,7 @@ namespace ix
 
         // Bind the socket to the server address.
         server.sin_family = AF_INET;
-        server.sin_port   = htons(_port);
+        server.sin_port = htons(_port);
 
         // Using INADDR_ANY trigger a pop-up box as binding to any address is detected
         // by the osx firewall. We need to codesign the binary with a self-signed cert
@@ -95,12 +91,11 @@ namespace ix
         //
         server.sin_addr.s_addr = inet_addr(_host.c_str());
 
-        if (bind(_serverFd, (struct sockaddr *)&server, sizeof(server)) < 0)
+        if (bind(_serverFd, (struct sockaddr*) &server, sizeof(server)) < 0)
         {
             std::stringstream ss;
             ss << "SocketServer::listen() error calling bind "
-               << "at address " << _host << ":" << _port
-               << " : " << strerror(Socket::getErrno());
+               << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
 
             Socket::closeSocket(_serverFd);
             return std::make_pair(false, ss.str());
@@ -113,8 +108,7 @@ namespace ix
         {
             std::stringstream ss;
             ss << "SocketServer::listen() error calling listen "
-               << "at address " << _host << ":" << _port
-               << " : " << strerror(Socket::getErrno());
+               << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
 
             Socket::closeSocket(_serverFd);
             return std::make_pair(false, ss.str());
@@ -186,7 +180,7 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
         auto it = _connectionsThreads.begin();
-        auto itEnd  = _connectionsThreads.end();
+        auto itEnd = _connectionsThreads.end();
 
         while (it != itEnd)
         {
@@ -221,8 +215,7 @@ namespace ix
             if (pollResult == PollResultType::Error)
             {
                 std::stringstream ss;
-                ss << "SocketServer::run() error in select: "
-                   << strerror(Socket::getErrno());
+                ss << "SocketServer::run() error in select: " << strerror(Socket::getErrno());
                 logError(ss.str());
                 continue;
             }
@@ -238,15 +231,15 @@ namespace ix
             socklen_t addressLen = sizeof(client);
             memset(&client, 0, sizeof(client));
 
-            if ((clientFd = accept(_serverFd, (struct sockaddr *)&client, &addressLen)) < 0)
+            if ((clientFd = accept(_serverFd, (struct sockaddr*) &client, &addressLen)) < 0)
             {
                 if (!Socket::isWaitNeeded())
                 {
                     // FIXME: that error should be propagated
                     int err = Socket::getErrno();
                     std::stringstream ss;
-                    ss << "SocketServer::run() error accepting connection: "
-                       << err << ", " << strerror(err);
+                    ss << "SocketServer::run() error accepting connection: " << err << ", "
+                       << strerror(err);
                     logError(ss.str());
                 }
                 continue;
@@ -255,8 +248,7 @@ namespace ix
             if (getConnectedClientsCount() >= _maxConnections)
             {
                 std::stringstream ss;
-                ss << "SocketServer::run() reached max connections = "
-                   << _maxConnections << ". "
+                ss << "SocketServer::run() reached max connections = " << _maxConnections << ". "
                    << "Not accepting connection";
                 logError(ss.str());
 
@@ -276,11 +268,8 @@ namespace ix
             // Launch the handleConnection work asynchronously in its own thread.
             std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
             _connectionsThreads.push_back(std::make_pair(
-                    connectionState,
-                    std::thread(&SocketServer::handleConnection,
-                                this,
-                                clientFd,
-                                connectionState)));
+                connectionState,
+                std::thread(&SocketServer::handleConnection, this, clientFd, connectionState)));
         }
     }
 
@@ -308,5 +297,4 @@ namespace ix
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     }
-}
-
+} // namespace ix

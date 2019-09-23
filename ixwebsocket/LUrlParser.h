@@ -62,7 +62,10 @@ namespace LUrlParser
         }
 
         /// return 'true' if the parsing was successful
-        bool IsValid() const { return m_ErrorCode == LUrlParserError_Ok; }
+        bool IsValid() const
+        {
+            return m_ErrorCode == LUrlParserError_Ok;
+        }
 
         /// helper to convert the port number to int, return 'true' if the port is valid (within the
         /// 0..65535 range)

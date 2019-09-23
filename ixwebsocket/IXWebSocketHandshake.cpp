@@ -5,50 +5,45 @@
  */
 
 #include "IXWebSocketHandshake.h"
+
+#include "IXHttp.h"
 #include "IXSocketConnect.h"
 #include "IXUrlParser.h"
-#include "IXHttp.h"
 #include "IXUserAgent.h"
-
 #include "libwshandshake.hpp"
-
-#include <sstream>
-#include <random>
 #include <algorithm>
+#include <random>
+#include <sstream>
 
 
 namespace ix
 {
-    WebSocketHandshake::WebSocketHandshake(std::atomic<bool>& requestInitCancellation,
-                                           std::shared_ptr<Socket> socket,
-                                           WebSocketPerMessageDeflate& perMessageDeflate,
-                                           WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
-                                           std::atomic<bool>& enablePerMessageDeflate) :
-        _requestInitCancellation(requestInitCancellation),
-        _socket(socket),
-        _perMessageDeflate(perMessageDeflate),
-        _perMessageDeflateOptions(perMessageDeflateOptions),
-        _enablePerMessageDeflate(enablePerMessageDeflate)
+    WebSocketHandshake::WebSocketHandshake(
+        std::atomic<bool>& requestInitCancellation,
+        std::shared_ptr<Socket> socket,
+        WebSocketPerMessageDeflate& perMessageDeflate,
+        WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
+        std::atomic<bool>& enablePerMessageDeflate)
+        : _requestInitCancellation(requestInitCancellation)
+        , _socket(socket)
+        , _perMessageDeflate(perMessageDeflate)
+        , _perMessageDeflateOptions(perMessageDeflateOptions)
+        , _enablePerMessageDeflate(enablePerMessageDeflate)
     {
-
     }
 
     bool WebSocketHandshake::insensitiveStringCompare(const std::string& a, const std::string& b)
     {
-        return std::equal(a.begin(), a.end(),
-                          b.begin(), b.end(),
-                          [](char a, char b)
-                          {
-                              return tolower(a) == tolower(b);
-                          });
+        return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](char a, char b) {
+            return tolower(a) == tolower(b);
+        });
     }
 
     std::string WebSocketHandshake::genRandomString(const int len)
     {
-        std::string alphanum =
-            "0123456789"
-            "ABCDEFGH"
-            "abcdefgh";
+        std::string alphanum = "0123456789"
+                               "ABCDEFGH"
+                               "abcdefgh";
 
         std::random_device r;
         std::default_random_engine e1(r());
@@ -88,12 +83,13 @@ namespace ix
         return WebSocketInitResult(false, code, reason);
     }
 
-    WebSocketInitResult WebSocketHandshake::clientHandshake(const std::string& url,
-                                                            const WebSocketHttpHeaders& extraHeaders,
-                                                            const std::string& host,
-                                                            const std::string& path,
-                                                            int port,
-                                                            int timeoutSecs)
+    WebSocketInitResult WebSocketHandshake::clientHandshake(
+        const std::string& url,
+        const WebSocketHttpHeaders& extraHeaders,
+        const std::string& host,
+        const std::string& path,
+        int port,
+        int timeoutSecs)
     {
         _requestInitCancellation = false;
 
@@ -105,9 +101,7 @@ namespace ix
         if (!success)
         {
             std::stringstream ss;
-            ss << "Unable to connect to " << host
-               << " on port " << port
-               << ", error: " << errMsg;
+            ss << "Unable to connect to " << host << " on port " << port << ", error: " << errMsg;
             return WebSocketInitResult(false, 0, ss.str());
         }
 
@@ -123,7 +117,7 @@ namespace ix
 
         std::stringstream ss;
         ss << "GET " << path << " HTTP/1.1\r\n";
-        ss << "Host: "<< host << ":" << port << "\r\n";
+        ss << "Host: " << host << ":" << port << "\r\n";
         ss << "Upgrade: websocket\r\n";
         ss << "Connection: Upgrade\r\n";
         ss << "Sec-WebSocket-Version: 13\r\n";
@@ -149,7 +143,8 @@ namespace ix
 
         if (!_socket->writeBytes(ss.str(), isCancellationRequested))
         {
-            return WebSocketInitResult(false, 0, std::string("Failed sending GET request to ") + url);
+            return WebSocketInitResult(
+                false, 0, std::string("Failed sending GET request to ") + url);
         }
 
         // Read HTTP status line
@@ -159,8 +154,8 @@ namespace ix
 
         if (!lineValid)
         {
-            return WebSocketInitResult(false, 0,
-                                       std::string("Failed reading HTTP status line from ") + url);
+            return WebSocketInitResult(
+                false, 0, std::string("Failed reading HTTP status line from ") + url);
         }
 
         // Validate status
@@ -173,8 +168,7 @@ namespace ix
         {
             std::stringstream ss;
             ss << "Expecting HTTP/1.1, got " << httpVersion << ". "
-               << "Rejecting connection to " << host << ":" << port
-               << ", status: " << status
+               << "Rejecting connection to " << host << ":" << port << ", status: " << status
                << ", HTTP Status line: " << line;
             return WebSocketInitResult(false, status, ss.str());
         }
@@ -183,8 +177,7 @@ namespace ix
         if (status != 101)
         {
             std::stringstream ss;
-            ss << "Got bad status connecting to " << host << ":" << port
-               << ", status: " << status
+            ss << "Got bad status connecting to " << host << ":" << port << ", status: " << status
                << ", HTTP Status line: " << line;
             return WebSocketInitResult(false, status, ss.str());
         }
@@ -269,8 +262,8 @@ namespace ix
 
         // Validate request line (GET /foo HTTP/1.1\r\n)
         auto requestLine = Http::parseRequestLine(line);
-        auto method      = std::get<0>(requestLine);
-        auto uri         = std::get<1>(requestLine);
+        auto method = std::get<0>(requestLine);
+        auto uri = std::get<1>(requestLine);
         auto httpVersion = std::get<2>(requestLine);
 
         if (method != "GET")
@@ -280,7 +273,8 @@ namespace ix
 
         if (httpVersion != "HTTP/1.1")
         {
-            return sendErrorResponse(400, "Invalid HTTP version, need HTTP/1.1, got: " + httpVersion);
+            return sendErrorResponse(400,
+                                     "Invalid HTTP version, need HTTP/1.1, got: " + httpVersion);
         }
 
         // Retrieve and validate HTTP headers
@@ -305,8 +299,10 @@ namespace ix
 
         if (!insensitiveStringCompare(headers["upgrade"], "WebSocket"))
         {
-            return sendErrorResponse(400, "Invalid Upgrade header, "
-                                          "need WebSocket, got " + headers["upgrade"]);
+            return sendErrorResponse(400,
+                                     "Invalid Upgrade header, "
+                                     "need WebSocket, got " +
+                                         headers["upgrade"]);
         }
 
         if (headers.find("sec-websocket-version") == headers.end())
@@ -322,8 +318,10 @@ namespace ix
 
             if (version != 13)
             {
-                return sendErrorResponse(400, "Invalid Sec-WebSocket-Version, "
-                                              "need 13, got " + ss.str());
+                return sendErrorResponse(400,
+                                         "Invalid Sec-WebSocket-Version, "
+                                         "need 13, got " +
+                                             ss.str());
             }
         }
 
@@ -349,7 +347,7 @@ namespace ix
             if (!_perMessageDeflate.init(webSocketPerMessageDeflateOptions))
             {
                 return WebSocketInitResult(
-                    false, 0,"Failed to initialize per message deflate engine");
+                    false, 0, "Failed to initialize per message deflate engine");
             }
             ss << webSocketPerMessageDeflateOptions.generateHeader();
         }
@@ -358,9 +356,10 @@ namespace ix
 
         if (!_socket->writeBytes(ss.str(), isCancellationRequested))
         {
-            return WebSocketInitResult(false, 0, std::string("Failed sending response to ") + remote);
+            return WebSocketInitResult(
+                false, 0, std::string("Failed sending response to ") + remote);
         }
 
         return WebSocketInitResult(true, 200, "", headers, uri);
     }
-}
+} // namespace ix

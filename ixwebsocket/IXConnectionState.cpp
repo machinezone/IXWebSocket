@@ -10,7 +10,8 @@ namespace ix
 {
     std::atomic<uint64_t> ConnectionState::_globalId(0);
 
-    ConnectionState::ConnectionState() : _terminated(false)
+    ConnectionState::ConnectionState()
+        : _terminated(false)
     {
         computeId();
     }
@@ -39,5 +40,4 @@ namespace ix
     {
         _terminated = true;
     }
-}
-
+} // namespace ix

@@ -13,12 +13,12 @@
 #include "IXSocketSChannel.h"
 
 #ifdef _WIN32
-# include <basetsd.h>
-# include <WinSock2.h>
-# include <ws2def.h>
-# include <WS2tcpip.h>
-# include <schannel.h>
-# include <io.h>
+#include <WS2tcpip.h>
+#include <WinSock2.h>
+#include <basetsd.h>
+#include <io.h>
+#include <schannel.h>
+#include <ws2def.h>
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -26,14 +26,15 @@
 #define UNICODE
 #endif
 
-#include <windows.h>
-#include <winsock2.h>
 #include <mstcpip.h>
-#include <ws2tcpip.h>
-#include <rpc.h>
 #include <ntdsapi.h>
+#include <rpc.h>
 #include <stdio.h>
 #include <tchar.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#include <windows.h>
 
 #define RECV_DATA_BUF_SIZE 256
 
@@ -50,12 +51,8 @@
 // has already been initialized
 
 
-
-
-
-
 #else
-# error("This file should only be built on Windows")
+#error("This file should only be built on Windows")
 #endif
 
 namespace ix
@@ -67,12 +64,9 @@ namespace ix
 
     SocketSChannel::~SocketSChannel()
     {
-
     }
 
-    bool SocketSChannel::connect(const std::string& host,
-                                 int port,
-                                 std::string& errMsg)
+    bool SocketSChannel::connect(const std::string& host, int port, std::string& errMsg)
     {
         return Socket::connect(host, port, errMsg, nullptr);
     }
@@ -103,4 +97,4 @@ namespace ix
         return Socket::recv(buf, nbyte);
     }
 
-}
+} // namespace ix

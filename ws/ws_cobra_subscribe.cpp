@@ -4,14 +4,13 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
-#include <sstream>
-#include <chrono>
-#include <thread>
 #include <atomic>
+#include <chrono>
+#include <iostream>
 #include <ixcobra/IXCobraConnection.h>
-
 #include <spdlog/spdlog.h>
+#include <sstream>
+#include <thread>
 
 namespace ix
 {
@@ -24,9 +23,8 @@ namespace ix
                                 bool quiet)
     {
         ix::CobraConnection conn;
-        conn.configure(appkey, endpoint,
-                       rolename, rolesecret,
-                       ix::WebSocketPerMessageDeflateOptions(true));
+        conn.configure(
+            appkey, endpoint, rolename, rolesecret, ix::WebSocketPerMessageDeflateOptions(true));
         conn.connect();
 
         Json::FastWriter jsonWriter;
@@ -35,13 +33,11 @@ namespace ix
         std::atomic<int> msgPerSeconds(0);
         std::atomic<int> msgCount(0);
 
-        auto timer = [&msgPerSeconds, &msgCount]
-        {
+        auto timer = [&msgPerSeconds, &msgCount] {
             while (true)
             {
                 std::cout << "#messages " << msgCount << " "
-                          << "msg/s " << msgPerSeconds
-                          << std::endl;
+                          << "msg/s " << msgPerSeconds << std::endl;
 
                 msgPerSeconds = 0;
                 auto duration = std::chrono::seconds(1);
@@ -52,13 +48,12 @@ namespace ix
         std::thread t(timer);
 
         conn.setEventCallback(
-            [&conn, &channel, &jsonWriter, &filter, &msgCount, &msgPerSeconds, &quiet]
-            (ix::CobraConnectionEventType eventType,
-             const std::string& errMsg,
-             const ix::WebSocketHttpHeaders& headers,
-             const std::string& subscriptionId,
-             CobraConnection::MsgId msgId)
-            {
+            [&conn, &channel, &jsonWriter, &filter, &msgCount, &msgPerSeconds, &quiet](
+                ix::CobraConnectionEventType eventType,
+                const std::string& errMsg,
+                const ix::WebSocketHttpHeaders& headers,
+                const std::string& subscriptionId,
+                CobraConnection::MsgId msgId) {
                 if (eventType == ix::CobraConnection_EventType_Open)
                 {
                     spdlog::info("Subscriber connected");
@@ -71,18 +66,18 @@ namespace ix
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
                     spdlog::info("Subscriber authenticated");
-                    conn.subscribe(channel, filter,
-                                   [&jsonWriter, &quiet,
-                                    &msgPerSeconds, &msgCount](const Json::Value& msg)
-                                   {
-                                       if (!quiet)
-                                       {
-                                           std::cout << jsonWriter.write(msg) << std::endl;
-                                       }
+                    conn.subscribe(
+                        channel,
+                        filter,
+                        [&jsonWriter, &quiet, &msgPerSeconds, &msgCount](const Json::Value& msg) {
+                            if (!quiet)
+                            {
+                                std::cout << jsonWriter.write(msg) << std::endl;
+                            }
 
-                                       msgPerSeconds++;
-                                       msgCount++;
-                                   });
+                            msgPerSeconds++;
+                            msgCount++;
+                        });
                 }
                 else if (eventType == ix::CobraConnection_EventType_Subscribed)
                 {
@@ -100,8 +95,7 @@ namespace ix
                 {
                     spdlog::error("Published message hacked: {}", msgId);
                 }
-            }
-        );
+            });
 
         while (true)
         {
@@ -111,4 +105,4 @@ namespace ix
 
         return 0;
     }
-}
+} // namespace ix

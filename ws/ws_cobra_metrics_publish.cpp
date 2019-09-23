@@ -4,15 +4,15 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <chrono>
-#include <thread>
 #include <atomic>
-#include <jsoncpp/json/json.h>
+#include <chrono>
+#include <fstream>
+#include <iostream>
 #include <ixcobra/IXCobraMetricsPublisher.h>
+#include <jsoncpp/json/json.h>
 #include <spdlog/spdlog.h>
+#include <sstream>
+#include <thread>
 
 namespace ix
 {
@@ -27,25 +27,23 @@ namespace ix
         std::atomic<int> sentMessages(0);
         std::atomic<int> ackedMessages(0);
         CobraConnection::setPublishTrackerCallback(
-            [&sentMessages, &ackedMessages](bool sent, bool acked)
-            {
+            [&sentMessages, &ackedMessages](bool sent, bool acked) {
                 if (sent) sentMessages++;
                 if (acked) ackedMessages++;
-            }
-        );
+            });
 
         CobraMetricsPublisher cobraMetricsPublisher;
         cobraMetricsPublisher.enable(true);
 
         bool enablePerMessageDeflate = true;
-        cobraMetricsPublisher.configure(appkey, endpoint, channel,
-                                        rolename, rolesecret, enablePerMessageDeflate);
+        cobraMetricsPublisher.configure(
+            appkey, endpoint, channel, rolename, rolesecret, enablePerMessageDeflate);
 
-        while (!cobraMetricsPublisher.isAuthenticated()) ;
+        while (!cobraMetricsPublisher.isAuthenticated())
+            ;
 
         std::ifstream f(path);
-        std::string str((std::istreambuf_iterator<char>(f)),
-                         std::istreambuf_iterator<char>());
+        std::string str((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 
         Json::Value data;
         Json::Reader reader;
@@ -61,7 +59,7 @@ namespace ix
             // Stress mode to try to trigger server and client bugs
             while (true)
             {
-                for (int i = 0 ; i < 1000; ++i)
+                for (int i = 0; i < 1000; ++i)
                 {
                     cobraMetricsPublisher.push(channel, data);
                 }
@@ -70,7 +68,8 @@ namespace ix
                 cobraMetricsPublisher.resume();
 
                 // FIXME: investigate why without this check we trigger a lock
-                while (!cobraMetricsPublisher.isAuthenticated()) ;
+                while (!cobraMetricsPublisher.isAuthenticated())
+                    ;
             }
         }
 
@@ -83,5 +82,4 @@ namespace ix
 
         return 0;
     }
-}
-
+} // namespace ix

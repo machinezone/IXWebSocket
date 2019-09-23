@@ -216,6 +216,7 @@ if (USE_WS OR USE_TEST)
   add_subdirectory(ixcore)
   add_subdirectory(ixcrypto)
   add_subdirectory(ixcobra)
+  add_subdirectory(ixsnake)
 
   if (USE_WS)
       add_subdirectory(ws)

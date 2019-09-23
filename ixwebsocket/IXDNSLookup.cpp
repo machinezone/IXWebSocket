@@ -5,22 +5,22 @@
  */
 
 #include "IXDNSLookup.h"
-#include "IXNetSystem.h"
 
-#include <string.h>
+#include "IXNetSystem.h"
 #include <chrono>
+#include <string.h>
 #include <thread>
 
 namespace ix
 {
     const int64_t DNSLookup::kDefaultWait = 1; // ms
 
-    DNSLookup::DNSLookup(const std::string& hostname, int port, int64_t wait) :
-        _hostname(hostname),
-        _port(port),
-        _wait(wait),
-        _res(nullptr),
-        _done(false)
+    DNSLookup::DNSLookup(const std::string& hostname, int port, int64_t wait)
+        : _hostname(hostname)
+        , _port(port)
+        , _wait(wait)
+        , _res(nullptr)
+        , _done(false)
     {
         ;
     }
@@ -38,8 +38,7 @@ namespace ix
         std::string sport = std::to_string(port);
 
         struct addrinfo* res;
-        int getaddrinfo_result = getaddrinfo(hostname.c_str(), sport.c_str(),
-                                             &hints, &res);
+        int getaddrinfo_result = getaddrinfo(hostname.c_str(), sport.c_str(), &hints, &res);
         if (getaddrinfo_result)
         {
             errMsg = gai_strerror(getaddrinfo_result);
@@ -56,8 +55,8 @@ namespace ix
                            : resolveUnCancellable(errMsg, isCancellationRequested);
     }
 
-    struct addrinfo* DNSLookup::resolveUnCancellable(std::string& errMsg,
-                                                     const CancellationRequest& isCancellationRequested)
+    struct addrinfo* DNSLookup::resolveUnCancellable(
+        std::string& errMsg, const CancellationRequest& isCancellationRequested)
     {
         errMsg = "no error";
 
@@ -71,8 +70,8 @@ namespace ix
         return getAddrInfo(_hostname, _port, errMsg);
     }
 
-    struct addrinfo* DNSLookup::resolveCancellable(std::string& errMsg,
-                                                   const CancellationRequest& isCancellationRequested)
+    struct addrinfo* DNSLookup::resolveCancellable(
+        std::string& errMsg, const CancellationRequest& isCancellationRequested)
     {
         errMsg = "no error";
 
@@ -126,7 +125,9 @@ namespace ix
         return getRes();
     }
 
-    void DNSLookup::run(std::weak_ptr<DNSLookup> self, std::string hostname, int port) // thread runner
+    void DNSLookup::run(std::weak_ptr<DNSLookup> self,
+                        std::string hostname,
+                        int port) // thread runner
     {
         // We don't want to read or write into members variables of an object that could be
         // gone, so we use temporary variables (res) or we pass in by copy everything that
@@ -167,4 +168,4 @@ namespace ix
         std::lock_guard<std::mutex> lock(_resMutex);
         return _res;
     }
-}
+} // namespace ix

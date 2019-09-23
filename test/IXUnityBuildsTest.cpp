@@ -4,6 +4,7 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
+#include "catch.hpp"
 #include <ixwebsocket/IXCancellationRequest.h>
 #include <ixwebsocket/IXConnectionState.h>
 #include <ixwebsocket/IXDNSLookup.h>
@@ -38,8 +39,6 @@
 #include <ixwebsocket/IXWebSocketTransport.h>
 #include <ixwebsocket/LUrlParser.h>
 #include <ixwebsocket/libwshandshake.hpp>
-
-#include "catch.hpp"
 
 using namespace ix;
 

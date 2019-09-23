@@ -41,19 +41,21 @@
  *  - Added more documentation.
  *
  *  Per message Deflate RFC: https://tools.ietf.org/html/rfc7692
- *  Chrome websocket -> https://github.com/chromium/chromium/tree/2ca8c5037021c9d2ecc00b787d58a31ed8fc8bcb/net/websockets
+ *  Chrome websocket ->
+ * https://github.com/chromium/chromium/tree/2ca8c5037021c9d2ecc00b787d58a31ed8fc8bcb/net/websockets
  *
  */
 
 #include "IXWebSocketPerMessageDeflate.h"
-#include "IXWebSocketPerMessageDeflateOptions.h"
+
 #include "IXWebSocketPerMessageDeflateCodec.h"
+#include "IXWebSocketPerMessageDeflateOptions.h"
 
 namespace ix
 {
-    WebSocketPerMessageDeflate::WebSocketPerMessageDeflate() :
-        _compressor(std::make_unique<WebSocketPerMessageDeflateCompressor>()),
-        _decompressor(std::make_unique<WebSocketPerMessageDeflateDecompressor>())
+    WebSocketPerMessageDeflate::WebSocketPerMessageDeflate()
+        : _compressor(std::make_unique<WebSocketPerMessageDeflateCompressor>())
+        , _decompressor(std::make_unique<WebSocketPerMessageDeflateDecompressor>())
     {
         ;
     }
@@ -63,10 +65,10 @@ namespace ix
         ;
     }
 
-    bool WebSocketPerMessageDeflate::init(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
+    bool WebSocketPerMessageDeflate::init(
+        const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
     {
-        bool clientNoContextTakeover =
-            perMessageDeflateOptions.getClientNoContextTakeover();
+        bool clientNoContextTakeover = perMessageDeflateOptions.getClientNoContextTakeover();
 
         uint8_t deflateBits = perMessageDeflateOptions.getClientMaxWindowBits();
         uint8_t inflateBits = perMessageDeflateOptions.getServerMaxWindowBits();
@@ -75,16 +77,14 @@ namespace ix
                _decompressor->init(inflateBits, clientNoContextTakeover);
     }
 
-    bool WebSocketPerMessageDeflate::compress(const std::string& in,
-                                              std::string& out)
+    bool WebSocketPerMessageDeflate::compress(const std::string& in, std::string& out)
     {
         return _compressor->compress(in, out);
     }
 
-    bool WebSocketPerMessageDeflate::decompress(const std::string& in,
-                                                std::string &out)
+    bool WebSocketPerMessageDeflate::decompress(const std::string& in, std::string& out)
     {
         return _decompressor->decompress(in, out);
     }
 
-}
+} // namespace ix

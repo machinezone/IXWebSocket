@@ -21,7 +21,8 @@
 //
 //
 // 2 Run the test server (using docker)
-// docker run -it --rm -v "${PWD}/config:/config" -v "${PWD}/reports:/reports" -p 9001:9001 --name fuzzingserver crossbario/autobahn-testsuite
+// docker run -it --rm -v "${PWD}/config:/config" -v "${PWD}/reports:/reports" -p 9001:9001 --name
+// fuzzingserver crossbario/autobahn-testsuite
 //
 // 3. Run this command
 //    ws autobahn -q --url ws://localhost:9001
@@ -29,15 +30,14 @@
 // 4. A HTML report will be generated, you can inspect it to see if you are compliant or not
 //
 
-#include <iostream>
-#include <sstream>
 #include <atomic>
-#include <mutex>
 #include <condition_variable>
-#include <ixwebsocket/IXWebSocket.h>
+#include <iostream>
 #include <ixwebsocket/IXSocket.h>
-
+#include <ixwebsocket/IXWebSocket.h>
+#include <mutex>
 #include <spdlog/spdlog.h>
+#include <sstream>
 
 
 namespace
@@ -53,31 +53,31 @@ namespace
             return str.substr(0, n) + "...";
         }
     }
-}
+} // namespace
 
 namespace ix
 {
     class AutobahnTestCase
     {
-        public:
-            AutobahnTestCase(const std::string& _url, bool quiet);
-            void run();
+    public:
+        AutobahnTestCase(const std::string& _url, bool quiet);
+        void run();
 
-        private:
-            void log(const std::string& msg);
+    private:
+        void log(const std::string& msg);
 
-            std::string _url;
-            ix::WebSocket _webSocket;
+        std::string _url;
+        ix::WebSocket _webSocket;
 
-            bool _quiet;
+        bool _quiet;
 
-            std::mutex _mutex;
-            std::condition_variable _condition;
+        std::mutex _mutex;
+        std::condition_variable _condition;
     };
 
-    AutobahnTestCase::AutobahnTestCase(const std::string& url, bool quiet) :
-        _url(url),
-        _quiet(quiet)
+    AutobahnTestCase::AutobahnTestCase(const std::string& url, bool quiet)
+        : _url(url)
+        , _quiet(quiet)
     {
         _webSocket.disableAutomaticReconnection();
 
@@ -102,67 +102,63 @@ namespace ix
         std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
-        _webSocket.setOnMessageCallback(
-            [this](const ix::WebSocketMessagePtr& msg)
+        _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
+            std::stringstream ss;
+            if (msg->type == ix::WebSocketMessageType::Open)
             {
-                std::stringstream ss;
-                if (msg->type == ix::WebSocketMessageType::Open)
+                log("autobahn: connected");
+                ss << "Uri: " << msg->openInfo.uri << std::endl;
+                ss << "Handshake Headers:" << std::endl;
+                for (auto it : msg->openInfo.headers)
                 {
-                    log("autobahn: connected");
-                    ss << "Uri: " << msg->openInfo.uri << std::endl;
-                    ss << "Handshake Headers:" << std::endl;
-                    for (auto it : msg->openInfo.headers)
-                    {
-                        ss << it.first << ": " << it.second << std::endl;
-                    }
+                    ss << it.first << ": " << it.second << std::endl;
                 }
-                else if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    ss << "autobahn: connection closed:";
-                    ss << " code " << msg->closeInfo.code;
-                    ss << " reason " << msg->closeInfo.reason << std::endl;
+            }
+            else if (msg->type == ix::WebSocketMessageType::Close)
+            {
+                ss << "autobahn: connection closed:";
+                ss << " code " << msg->closeInfo.code;
+                ss << " reason " << msg->closeInfo.reason << std::endl;
 
-                    _condition.notify_one();
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    ss << "Received " << msg->wireSize << " bytes" << std::endl;
+                _condition.notify_one();
+            }
+            else if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                ss << "Received " << msg->wireSize << " bytes" << std::endl;
 
-                    ss << "autobahn: received message: "
-                       << truncate(msg->str, 40)
-                       << std::endl;
+                ss << "autobahn: received message: " << truncate(msg->str, 40) << std::endl;
 
-                    _webSocket.send(msg->str, msg->binary);
-                }
-                else if (msg->type == ix::WebSocketMessageType::Error)
-                {
-                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
-                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
-                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
-                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
+                _webSocket.send(msg->str, msg->binary);
+            }
+            else if (msg->type == ix::WebSocketMessageType::Error)
+            {
+                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
 
-                    // And error can happen, in which case the test-case is marked done
-                    _condition.notify_one();
-                }
-                else if (msg->type == ix::WebSocketMessageType::Fragment)
-                {
-                    ss << "Received message fragment" << std::endl;
-                }
-                else if (msg->type == ix::WebSocketMessageType::Ping)
-                {
-                    ss << "Received ping" << std::endl;
-                }
-                else if (msg->type == ix::WebSocketMessageType::Pong)
-                {
-                    ss << "Received pong" << std::endl;
-                }
-                else
-                {
-                    ss << "Invalid ix::WebSocketMessageType" << std::endl;
-                }
+                // And error can happen, in which case the test-case is marked done
+                _condition.notify_one();
+            }
+            else if (msg->type == ix::WebSocketMessageType::Fragment)
+            {
+                ss << "Received message fragment" << std::endl;
+            }
+            else if (msg->type == ix::WebSocketMessageType::Ping)
+            {
+                ss << "Received ping" << std::endl;
+            }
+            else if (msg->type == ix::WebSocketMessageType::Pong)
+            {
+                ss << "Received pong" << std::endl;
+            }
+            else
+            {
+                ss << "Invalid ix::WebSocketMessageType" << std::endl;
+            }
 
-                log(ss.str());
-            });
+            log(ss.str());
+        });
 
         _webSocket.start();
 
@@ -184,27 +180,24 @@ namespace ix
         std::atomic<bool> success(true);
         std::condition_variable condition;
 
-        webSocket.setOnMessageCallback(
-            [&condition, &success](const ix::WebSocketMessagePtr& msg)
+        webSocket.setOnMessageCallback([&condition, &success](const ix::WebSocketMessagePtr& msg) {
+            if (msg->type == ix::WebSocketMessageType::Close)
             {
-                if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    std::cerr << "Report generated" << std::endl;
-                    condition.notify_one();
-                }
-                else if (msg->type == ix::WebSocketMessageType::Error)
-                {
-                    std::stringstream ss;
-                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
-                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
-                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
-                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
-                    std::cerr << ss.str() << std::endl;
-
-                    success = false;
-                }
+                std::cerr << "Report generated" << std::endl;
+                condition.notify_one();
             }
-        );
+            else if (msg->type == ix::WebSocketMessageType::Error)
+            {
+                std::stringstream ss;
+                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                std::cerr << ss.str() << std::endl;
+
+                success = false;
+            }
+        });
 
         webSocket.start();
         std::mutex mutex;
@@ -231,33 +224,30 @@ namespace ix
         int count = -1;
         std::condition_variable condition;
 
-        webSocket.setOnMessageCallback(
-            [&condition, &count](const ix::WebSocketMessagePtr& msg)
+        webSocket.setOnMessageCallback([&condition, &count](const ix::WebSocketMessagePtr& msg) {
+            if (msg->type == ix::WebSocketMessageType::Close)
             {
-                if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    condition.notify_one();
-                }
-                else if (msg->type == ix::WebSocketMessageType::Error)
-                {
-                    std::stringstream ss;
-                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
-                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
-                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
-                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
-                    std::cerr << ss.str() << std::endl;
-
-                    condition.notify_one();
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    // response is a string
-                    std::stringstream ss;
-                    ss << msg->str;
-                    ss >> count;
-                }
+                condition.notify_one();
             }
-        );
+            else if (msg->type == ix::WebSocketMessageType::Error)
+            {
+                std::stringstream ss;
+                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                std::cerr << ss.str() << std::endl;
+
+                condition.notify_one();
+            }
+            else if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                // response is a string
+                std::stringstream ss;
+                ss << msg->str;
+                ss >> count;
+            }
+        });
 
         webSocket.start();
         std::mutex mutex;
@@ -289,17 +279,14 @@ namespace ix
 
         testCasesCount++;
 
-        for (int i = 1 ; i < testCasesCount; ++i)
+        for (int i = 1; i < testCasesCount; ++i)
         {
             spdlog::info("Execute test case {}", i);
 
             int caseNumber = i;
 
             std::stringstream ss;
-            ss << url
-               << "/runCase?case="
-               << caseNumber
-               << "&agent=ixwebsocket";
+            ss << url << "/runCase?case=" << caseNumber << "&agent=ixwebsocket";
 
             std::string url(ss.str());
 
@@ -309,4 +296,4 @@ namespace ix
 
         return generateReport(url) ? 0 : 1;
     }
-}
+} // namespace ix

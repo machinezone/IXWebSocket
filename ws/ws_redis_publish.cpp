@@ -4,9 +4,9 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
+#include <ixsnake/IXRedisClient.h>
 #include <iostream>
 #include <sstream>
-#include "IXRedisClient.h"
 
 namespace ix
 {
@@ -41,8 +41,7 @@ namespace ix
         {
             if (!redisClient.publish(channel, message, errMsg))
             {
-                std::cerr << "Error publishing to channel " << channel
-                          << "error: " << errMsg
+                std::cerr << "Error publishing to channel " << channel << "error: " << errMsg
                           << std::endl;
                 return 1;
             }
@@ -50,4 +49,4 @@ namespace ix
 
         return 0;
     }
-}
+} // namespace ix

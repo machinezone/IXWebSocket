@@ -5,13 +5,13 @@
  */
 
 #include "IXWebSocket.h"
-#include "IXSetThreadName.h"
-#include "IXWebSocketHandshake.h"
-#include "IXExponentialBackoff.h"
-#include "IXUtf8Validator.h"
 
-#include <cmath>
+#include "IXExponentialBackoff.h"
+#include "IXSetThreadName.h"
+#include "IXUtf8Validator.h"
+#include "IXWebSocketHandshake.h"
 #include <cassert>
+#include <cmath>
 
 
 namespace ix
@@ -23,26 +23,26 @@ namespace ix
     const bool WebSocket::kDefaultEnablePong(true);
     const uint32_t WebSocket::kDefaultMaxWaitBetweenReconnectionRetries(10 * 1000); // 10s
 
-    WebSocket::WebSocket() :
-        _onMessageCallback(OnMessageCallback()),
-        _stop(false),
-        _automaticReconnection(true),
-        _maxWaitBetweenReconnectionRetries(kDefaultMaxWaitBetweenReconnectionRetries),
-        _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs),
-        _enablePong(kDefaultEnablePong),
-        _pingIntervalSecs(kDefaultPingIntervalSecs),
-        _pingTimeoutSecs(kDefaultPingTimeoutSecs)
+    WebSocket::WebSocket()
+        : _onMessageCallback(OnMessageCallback())
+        , _stop(false)
+        , _automaticReconnection(true)
+        , _maxWaitBetweenReconnectionRetries(kDefaultMaxWaitBetweenReconnectionRetries)
+        , _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs)
+        , _enablePong(kDefaultEnablePong)
+        , _pingIntervalSecs(kDefaultPingIntervalSecs)
+        , _pingTimeoutSecs(kDefaultPingTimeoutSecs)
     {
         _ws.setOnCloseCallback(
-            [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
-            {
+            [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote) {
                 _onMessageCallback(
-                    std::make_shared<WebSocketMessage>(
-                        WebSocketMessageType::Close, "", wireSize,
-                        WebSocketErrorInfo(), WebSocketOpenInfo(),
-                        WebSocketCloseInfo(code, reason, remote)));
-            }
-        );
+                    std::make_shared<WebSocketMessage>(WebSocketMessageType::Close,
+                                                       "",
+                                                       wireSize,
+                                                       WebSocketErrorInfo(),
+                                                       WebSocketOpenInfo(),
+                                                       WebSocketCloseInfo(code, reason, remote)));
+            });
     }
 
     WebSocket::~WebSocket()
@@ -67,7 +67,8 @@ namespace ix
         return _url;
     }
 
-    void WebSocket::setPerMessageDeflateOptions(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
+    void WebSocket::setPerMessageDeflateOptions(
+        const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         _perMessageDeflateOptions = perMessageDeflateOptions;
@@ -159,8 +160,7 @@ namespace ix
         _thread = std::thread(&WebSocket::run, this);
     }
 
-    void WebSocket::stop(uint16_t code,
-                         const std::string& reason)
+    void WebSocket::stop(uint16_t code, const std::string& reason)
     {
         close(code, reason);
 
@@ -193,11 +193,12 @@ namespace ix
         }
 
         _onMessageCallback(
-            std::make_shared<WebSocketMessage>(
-                WebSocketMessageType::Open, "", 0,
-                WebSocketErrorInfo(),
-                WebSocketOpenInfo(status.uri, status.headers),
-                WebSocketCloseInfo()));
+            std::make_shared<WebSocketMessage>(WebSocketMessageType::Open,
+                                               "",
+                                               0,
+                                               WebSocketErrorInfo(),
+                                               WebSocketOpenInfo(status.uri, status.headers),
+                                               WebSocketCloseInfo()));
         return status;
     }
 
@@ -220,11 +221,12 @@ namespace ix
         }
 
         _onMessageCallback(
-                std::make_shared<WebSocketMessage>(
-                    WebSocketMessageType::Open, "", 0,
-                    WebSocketErrorInfo(),
-                    WebSocketOpenInfo(status.uri, status.headers),
-                    WebSocketCloseInfo()));
+            std::make_shared<WebSocketMessage>(WebSocketMessageType::Open,
+                                               "",
+                                               0,
+                                               WebSocketErrorInfo(),
+                                               WebSocketOpenInfo(status.uri, status.headers),
+                                               WebSocketCloseInfo()));
         return status;
     }
 
@@ -238,8 +240,7 @@ namespace ix
         return getReadyState() == ReadyState::Closing;
     }
 
-    void WebSocket::close(uint16_t code,
-                          const std::string& reason)
+    void WebSocket::close(uint16_t code, const std::string& reason)
     {
         _ws.close(code, reason);
     }
@@ -283,20 +284,22 @@ namespace ix
 
                 if (_automaticReconnection)
                 {
-                    duration = millis(calculateRetryWaitMilliseconds(retries++, _maxWaitBetweenReconnectionRetries));
+                    duration = millis(calculateRetryWaitMilliseconds(
+                        retries++, _maxWaitBetweenReconnectionRetries));
 
                     connectErr.wait_time = duration.count();
                     connectErr.retries = retries;
                 }
 
-                connectErr.reason      = status.errorStr;
+                connectErr.reason = status.errorStr;
                 connectErr.http_status = status.http_status;
 
-                _onMessageCallback(
-                     std::make_shared<WebSocketMessage>(
-                        WebSocketMessageType::Error, "", 0,
-                        connectErr, WebSocketOpenInfo(),
-                        WebSocketCloseInfo()));
+                _onMessageCallback(std::make_shared<WebSocketMessage>(WebSocketMessageType::Error,
+                                                                      "",
+                                                                      0,
+                                                                      connectErr,
+                                                                      WebSocketOpenInfo(),
+                                                                      WebSocketCloseInfo()));
             }
         }
     }
@@ -332,8 +335,7 @@ namespace ix
                 [this](const std::string& msg,
                        size_t wireSize,
                        bool decompressionError,
-                       WebSocketTransport::MessageKind messageKind)
-                {
+                       WebSocketTransport::MessageKind messageKind) {
                     WebSocketMessageType webSocketMessageType;
                     switch (messageKind)
                     {
@@ -341,22 +343,26 @@ namespace ix
                         case WebSocketTransport::MessageKind::MSG_BINARY:
                         {
                             webSocketMessageType = WebSocketMessageType::Message;
-                        } break;
+                        }
+                        break;
 
                         case WebSocketTransport::MessageKind::PING:
                         {
                             webSocketMessageType = WebSocketMessageType::Ping;
-                        } break;
+                        }
+                        break;
 
                         case WebSocketTransport::MessageKind::PONG:
                         {
                             webSocketMessageType = WebSocketMessageType::Pong;
-                        } break;
+                        }
+                        break;
 
                         case WebSocketTransport::MessageKind::FRAGMENT:
                         {
                             webSocketMessageType = WebSocketMessageType::Fragment;
-                        } break;
+                        }
+                        break;
                     }
 
                     WebSocketErrorInfo webSocketErrorInfo;
@@ -364,11 +370,13 @@ namespace ix
 
                     bool binary = messageKind == WebSocketTransport::MessageKind::MSG_BINARY;
 
-                    _onMessageCallback(
-                         std::make_shared<WebSocketMessage>(
-                            webSocketMessageType, msg, wireSize,
-                            webSocketErrorInfo, WebSocketOpenInfo(),
-                            WebSocketCloseInfo(), binary));
+                    _onMessageCallback(std::make_shared<WebSocketMessage>(webSocketMessageType,
+                                                                          msg,
+                                                                          wireSize,
+                                                                          webSocketErrorInfo,
+                                                                          WebSocketOpenInfo(),
+                                                                          WebSocketCloseInfo(),
+                                                                          binary));
 
                     WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
                 });
@@ -455,17 +463,20 @@ namespace ix
             case SendMessageKind::Text:
             {
                 webSocketSendInfo = _ws.sendText(text, onProgressCallback);
-            } break;
+            }
+            break;
 
             case SendMessageKind::Binary:
             {
                 webSocketSendInfo = _ws.sendBinary(text, onProgressCallback);
-            } break;
+            }
+            break;
 
             case SendMessageKind::Ping:
             {
                 webSocketSendInfo = _ws.sendPing(text);
-            } break;
+            }
+            break;
         }
 
         WebSocket::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize, false);
@@ -477,10 +488,10 @@ namespace ix
     {
         switch (_ws.getReadyState())
         {
-            case ix::WebSocketTransport::ReadyState::OPEN      : return ReadyState::Open;
+            case ix::WebSocketTransport::ReadyState::OPEN: return ReadyState::Open;
             case ix::WebSocketTransport::ReadyState::CONNECTING: return ReadyState::Connecting;
-            case ix::WebSocketTransport::ReadyState::CLOSING   : return ReadyState::Closing;
-            case ix::WebSocketTransport::ReadyState::CLOSED    : return ReadyState::Closed;
+            case ix::WebSocketTransport::ReadyState::CLOSING: return ReadyState::Closing;
+            case ix::WebSocketTransport::ReadyState::CLOSED: return ReadyState::Closed;
             default: return ReadyState::Closed;
         }
     }
@@ -489,10 +500,10 @@ namespace ix
     {
         switch (readyState)
         {
-            case ReadyState::Open      : return "OPEN";
+            case ReadyState::Open: return "OPEN";
             case ReadyState::Connecting: return "CONNECTING";
-            case ReadyState::Closing   : return "CLOSING";
-            case ReadyState::Closed    : return "CLOSED";
+            case ReadyState::Closing: return "CLOSING";
+            case ReadyState::Closed: return "CLOSED";
             default: return "UNKNOWN";
         }
     }
@@ -516,4 +527,4 @@ namespace ix
     {
         return _ws.bufferedAmount();
     }
-}
+} // namespace ix

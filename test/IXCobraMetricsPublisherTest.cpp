@@ -3,14 +3,13 @@
  *  Copyright (c) 2018 Machine Zone. All rights reserved.
  */
 
-#include <iostream>
-#include <set>
-#include <ixcrypto/IXUuid.h>
-#include <ixcobra/IXCobraMetricsPublisher.h>
 #include "IXTest.h"
-#include "IXSnakeServer.h"
-
 #include "catch.hpp"
+#include <iostream>
+#include <ixcobra/IXCobraMetricsPublisher.h>
+#include <ixcrypto/IXUuid.h>
+#include <ixsnake/IXSnakeServer.h>
+#include <set>
 
 using namespace ix;
 
@@ -45,70 +44,67 @@ namespace
         gMessageCount = 0;
 
         ix::CobraConnection conn;
-        conn.configure(APPKEY, endpoint, SUBSCRIBER_ROLE, SUBSCRIBER_SECRET,
+        conn.configure(APPKEY,
+                       endpoint,
+                       SUBSCRIBER_ROLE,
+                       SUBSCRIBER_SECRET,
                        ix::WebSocketPerMessageDeflateOptions(true));
         conn.connect();
 
-        conn.setEventCallback(
-            [&conn]
-            (ix::CobraConnectionEventType eventType,
-             const std::string& errMsg,
-             const ix::WebSocketHttpHeaders& /*headers*/,
-             const std::string& subscriptionId,
-             CobraConnection::MsgId msgId)
+        conn.setEventCallback([&conn](ix::CobraConnectionEventType eventType,
+                                      const std::string& errMsg,
+                                      const ix::WebSocketHttpHeaders& /*headers*/,
+                                      const std::string& subscriptionId,
+                                      CobraConnection::MsgId msgId) {
+            if (eventType == ix::CobraConnection_EventType_Open)
             {
-                if (eventType == ix::CobraConnection_EventType_Open)
-                {
-                    Logger() << "Subscriber connected:";
-                }
-                if (eventType == ix::CobraConnection_EventType_Error)
-                {
-                    Logger() << "Subscriber error:" << errMsg;
-                }
-                else if (eventType == ix::CobraConnection_EventType_Authenticated)
-                {
-                    log("Subscriber authenticated");
-                    std::string filter;
-                    conn.subscribe(CHANNEL, filter,
-                                   [](const Json::Value& msg)
-                                   {
-                                       log(msg.toStyledString());
+                Logger() << "Subscriber connected:";
+            }
+            if (eventType == ix::CobraConnection_EventType_Error)
+            {
+                Logger() << "Subscriber error:" << errMsg;
+            }
+            else if (eventType == ix::CobraConnection_EventType_Authenticated)
+            {
+                log("Subscriber authenticated");
+                std::string filter;
+                conn.subscribe(CHANNEL, filter, [](const Json::Value& msg) {
+                    log(msg.toStyledString());
 
-                                       std::string id = msg["id"].asString();
-                                       {
-                                           std::lock_guard<std::mutex> guard(gProtectIds);
-                                           gIds.insert(id);
-                                       }
+                    std::string id = msg["id"].asString();
+                    {
+                        std::lock_guard<std::mutex> guard(gProtectIds);
+                        gIds.insert(id);
+                    }
 
-                                       gMessageCount++;
-                                   });
-                }
-                else if (eventType == ix::CobraConnection_EventType_Subscribed)
+                    gMessageCount++;
+                });
+            }
+            else if (eventType == ix::CobraConnection_EventType_Subscribed)
+            {
+                Logger() << "Subscriber: subscribed to channel " << subscriptionId;
+                if (subscriptionId == CHANNEL)
                 {
-                    Logger() << "Subscriber: subscribed to channel " << subscriptionId;
-                    if (subscriptionId == CHANNEL)
-                    {
-                        gSubscriberConnectedAndSubscribed = true;
-                    }
-                    else
-                    {
-                        Logger() << "Subscriber: unexpected channel " << subscriptionId;
-                    }
+                    gSubscriberConnectedAndSubscribed = true;
                 }
-                else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+                else
                 {
-                    Logger() << "Subscriber: ununexpected from channel " << subscriptionId;
-                    if (subscriptionId != CHANNEL)
-                    {
-                        Logger() << "Subscriber: unexpected channel " << subscriptionId;
-                    }
-                }
-                else if (eventType == ix::CobraConnection_EventType_Published)
-                {
-                    Logger() << "Subscriber: published message acked: " << msgId;
+                    Logger() << "Subscriber: unexpected channel " << subscriptionId;
                 }
             }
-        );
+            else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+            {
+                Logger() << "Subscriber: ununexpected from channel " << subscriptionId;
+                if (subscriptionId != CHANNEL)
+                {
+                    Logger() << "Subscriber: unexpected channel " << subscriptionId;
+                }
+            }
+            else if (eventType == ix::CobraConnection_EventType_Published)
+            {
+                Logger() << "Subscriber: published message acked: " << msgId;
+            }
+        });
 
         while (!gStop)
         {
@@ -121,7 +117,7 @@ namespace
 
         gUniqueMessageIdsCount = gIds.size();
     }
-}
+} // namespace
 
 TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
 {
@@ -158,8 +154,8 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
     ix::CobraMetricsPublisher cobraMetricsPublisher;
 
     bool perMessageDeflate = true;
-    cobraMetricsPublisher.configure(APPKEY, endpoint, CHANNEL,
-                                    PUBLISHER_ROLE, PUBLISHER_SECRET, perMessageDeflate);
+    cobraMetricsPublisher.configure(
+        APPKEY, endpoint, CHANNEL, PUBLISHER_ROLE, PUBLISHER_SECRET, perMessageDeflate);
     cobraMetricsPublisher.setSession(uuid4());
     cobraMetricsPublisher.enable(true); // disabled by default, needs to be enabled to be active
 
@@ -189,7 +185,7 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
 
     // (msg #6)
     cobraMetricsPublisher.setRateControl({
-        {"sms_metric_C_id", 1},  // published once per minute (60 seconds) max
+        {"sms_metric_C_id", 1}, // published once per minute (60 seconds) max
     });
     // (msg #7)
     cobraMetricsPublisher.push("sms_metric_C_id", data);
@@ -205,7 +201,7 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
     log("Testing suspend/resume now, which will disconnect the cobraMetricsPublisher.");
 
     // Test suspend + resume
-    for (int i = 0 ; i < 3 ; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         cobraMetricsPublisher.suspend();
         ix::msleep(500);
@@ -214,7 +210,7 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
         cobraMetricsPublisher.push("sms_metric_D_id", data); // will not be sent this time
 
         cobraMetricsPublisher.resume();
-        ix::msleep(2000); // give cobra 2s to connect
+        ix::msleep(2000);                             // give cobra 2s to connect
         REQUIRE(cobraMetricsPublisher.isConnected()); // Check that we are connected now
 
         cobraMetricsPublisher.push("sms_metric_E_id", data);

@@ -4,10 +4,9 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
+#include "catch.hpp"
 #include <iostream>
 #include <ixwebsocket/IXHttpClient.h>
-
-#include "catch.hpp"
 
 using namespace ix;
 
@@ -28,14 +27,10 @@ TEST_CASE("http client", "[http]")
         args->maxRedirects = 10;
         args->verbose = true;
         args->compress = true;
-        args->logger = [](const std::string& msg)
-        {
-            std::cout << msg;
-        };
-        args->onProgressCallback = [](int current, int total) -> bool
-        {
-            std::cerr << "\r" << "Downloaded "
-                      << current << " bytes out of " << total;
+        args->logger = [](const std::string& msg) { std::cout << msg; };
+        args->onProgressCallback = [](int current, int total) -> bool {
+            std::cerr << "\r"
+                      << "Downloaded " << current << " bytes out of " << total;
             return true;
         };
 
@@ -70,14 +65,10 @@ TEST_CASE("http client", "[http]")
         args->maxRedirects = 10;
         args->verbose = true;
         args->compress = true;
-        args->logger = [](const std::string& msg)
-        {
-            std::cout << msg;
-        };
-        args->onProgressCallback = [](int current, int total) -> bool
-        {
-            std::cerr << "\r" << "Downloaded "
-                      << current << " bytes out of " << total;
+        args->logger = [](const std::string& msg) { std::cout << msg; };
+        args->onProgressCallback = [](int current, int total) -> bool {
+            std::cerr << "\r"
+                      << "Downloaded " << current << " bytes out of " << total;
             return true;
         };
 
@@ -113,23 +104,18 @@ TEST_CASE("http client", "[http]")
         args->maxRedirects = 10;
         args->verbose = true;
         args->compress = true;
-        args->logger = [](const std::string& msg)
-        {
-            std::cout << msg;
-        };
-        args->onProgressCallback = [](int current, int total) -> bool
-        {
-            std::cerr << "\r" << "Downloaded "
-                      << current << " bytes out of " << total;
+        args->logger = [](const std::string& msg) { std::cout << msg; };
+        args->onProgressCallback = [](int current, int total) -> bool {
+            std::cerr << "\r"
+                      << "Downloaded " << current << " bytes out of " << total;
             return true;
         };
 
         std::atomic<bool> requestCompleted(false);
         std::atomic<int> statusCode(0);
 
-        httpClient.performRequest(args, [&requestCompleted, &statusCode]
-            (const HttpResponsePtr& response)
-            {
+        httpClient.performRequest(
+            args, [&requestCompleted, &statusCode](const HttpResponsePtr& response) {
                 std::cerr << "Upload size: " << response->uploadSize << std::endl;
                 std::cerr << "Download size: " << response->downloadSize << std::endl;
                 std::cerr << "Status: " << response->statusCode << std::endl;
@@ -138,8 +124,7 @@ TEST_CASE("http client", "[http]")
                 // In case of failure, print response->errorMsg
                 statusCode = response->statusCode;
                 requestCompleted = true;
-            }
-        );
+            });
 
         int wait = 0;
         while (wait < 5000)
@@ -171,14 +156,10 @@ TEST_CASE("http client", "[http]")
         args->maxRedirects = 10;
         args->verbose = true;
         args->compress = true;
-        args->logger = [](const std::string& msg)
-        {
-            std::cout << msg;
-        };
-        args->onProgressCallback = [](int current, int total) -> bool
-        {
-            std::cerr << "\r" << "Downloaded "
-                      << current << " bytes out of " << total;
+        args->logger = [](const std::string& msg) { std::cout << msg; };
+        args->onProgressCallback = [](int current, int total) -> bool {
+            std::cerr << "\r"
+                      << "Downloaded " << current << " bytes out of " << total;
             return true;
         };
 
@@ -189,9 +170,10 @@ TEST_CASE("http client", "[http]")
 
         for (int i = 0; i < 3; ++i)
         {
-            httpClient.performRequest(args, [i, &requestCompleted, &statusCode0, &statusCode1, &statusCode2]
-                (const HttpResponsePtr& response)
-                {
+            httpClient.performRequest(
+                args,
+                [i, &requestCompleted, &statusCode0, &statusCode1, &statusCode2](
+                    const HttpResponsePtr& response) {
                     std::cerr << "Upload size: " << response->uploadSize << std::endl;
                     std::cerr << "Download size: " << response->downloadSize << std::endl;
                     std::cerr << "Status: " << response->statusCode << std::endl;
@@ -211,8 +193,7 @@ TEST_CASE("http client", "[http]")
                         statusCode2 = response->statusCode;
                         requestCompleted = true;
                     }
-                }
-            );
+                });
         }
 
         int wait = 0;

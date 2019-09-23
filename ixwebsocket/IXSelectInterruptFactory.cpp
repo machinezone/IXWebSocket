@@ -7,9 +7,9 @@
 #include "IXSelectInterruptFactory.h"
 
 #if defined(__linux__) || defined(__APPLE__)
-# include <ixwebsocket/IXSelectInterruptPipe.h>
+#include <ixwebsocket/IXSelectInterruptPipe.h>
 #else
-# include <ixwebsocket/IXSelectInterrupt.h>
+#include <ixwebsocket/IXSelectInterrupt.h>
 #endif
 
 namespace ix
@@ -22,4 +22,4 @@ namespace ix
         return std::make_shared<SelectInterrupt>();
 #endif
     }
-}
+} // namespace ix

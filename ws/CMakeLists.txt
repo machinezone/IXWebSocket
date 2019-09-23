@@ -24,7 +24,6 @@ include_directories(ws ../third_party)
 include_directories(ws ../third_party/statsd-client-cpp/src)
 include_directories(ws ../third_party/spdlog/include)
 include_directories(ws ../third_party/cpp-linenoise)
-include_directories(ws snake)
 
 if (UNIX)
   set( STATSD_CLIENT_SOURCES ../third_party/statsd-client-cpp/src/statsd_client.cpp)
@@ -35,11 +34,6 @@ add_executable(ws
   ../third_party/jsoncpp/jsoncpp.cpp
   ${STATSD_CLIENT_SOURCES}
 
-  snake/IXSnakeServer.cpp
-  snake/IXSnakeProtocol.cpp
-  snake/IXAppConfig.cpp
-
-  IXRedisClient.cpp
   IXSentryClient.cpp
 
   ws_http_client.cpp
@@ -53,21 +47,22 @@ add_executable(ws
   ws_receive.cpp
   ws_redis_publish.cpp
   ws_redis_subscribe.cpp
+  ws_snake.cpp
   ws_cobra_subscribe.cpp
   ws_cobra_metrics_publish.cpp
   ws_cobra_publish.cpp
   ws_cobra_to_statsd.cpp
   ws_cobra_to_sentry.cpp
-  ws_snake.cpp
   ws_tls_support.cpp
   ws_httpd.cpp
   ws_autobahn.cpp
   ws.cpp)
 
-target_link_libraries(ws ixcore)
-target_link_libraries(ws ixcrypto)
+target_link_libraries(ws ixsnake)
 target_link_libraries(ws ixcobra)
 target_link_libraries(ws ixwebsocket)
+target_link_libraries(ws ixcrypto)
+target_link_libraries(ws ixcore)
 
 if(NOT APPLE AND NOT USE_MBED_TLS)
   find_package(OpenSSL REQUIRED)

@@ -4,14 +4,13 @@
  *  Copyright (c) 2017 Machine Zone. All rights reserved.
  */
 
-#include <iostream>
+#include <ixsnake/IXSnakeServer.h>
+#include "IXTest.h"
+#include "catch.hpp"
 #include <chrono>
+#include <iostream>
 #include <ixcobra/IXCobraConnection.h>
 #include <ixcrypto/IXUuid.h>
-#include "IXTest.h"
-#include "IXSnakeServer.h"
-
-#include "catch.hpp"
 
 using namespace ix;
 
@@ -22,67 +21,64 @@ namespace
 
     void setupTrafficTrackerCallback()
     {
-        ix::CobraConnection::setTrafficTrackerCallback(
-            [](size_t size, bool incoming)
+        ix::CobraConnection::setTrafficTrackerCallback([](size_t size, bool incoming) {
+            if (incoming)
             {
-                if (incoming)
-                {
-                    incomingBytes += size;
-                }
-                else
-                {
-                    outgoingBytes += size;
-                }
+                incomingBytes += size;
             }
-        );
+            else
+            {
+                outgoingBytes += size;
+            }
+        });
     }
 
     class SatoriChat
     {
-        public:
-            SatoriChat(const std::string& user,
-                       const std::string& session,
-                       const std::string& endpoint);
+    public:
+        SatoriChat(const std::string& user,
+                   const std::string& session,
+                   const std::string& endpoint);
 
-            void subscribe(const std::string& channel);
-            void start();
-            void stop();
-            void run();
-            bool isReady() const;
+        void subscribe(const std::string& channel);
+        void start();
+        void stop();
+        void run();
+        bool isReady() const;
 
-            void sendMessage(const std::string& text);
-            size_t getReceivedMessagesCount() const;
+        void sendMessage(const std::string& text);
+        size_t getReceivedMessagesCount() const;
 
-            bool hasPendingMessages() const;
-            Json::Value popMessage();
+        bool hasPendingMessages() const;
+        Json::Value popMessage();
 
-        private:
-            std::string _user;
-            std::string _session;
-            std::string _endpoint;
+    private:
+        std::string _user;
+        std::string _session;
+        std::string _endpoint;
 
-            std::queue<Json::Value> _publish_queue;
-            mutable std::mutex _queue_mutex;
+        std::queue<Json::Value> _publish_queue;
+        mutable std::mutex _queue_mutex;
 
-            std::thread _thread;
-            std::atomic<bool> _stop;
+        std::thread _thread;
+        std::atomic<bool> _stop;
 
-            ix::CobraConnection _conn;
-            std::atomic<bool> _connectedAndSubscribed;
+        ix::CobraConnection _conn;
+        std::atomic<bool> _connectedAndSubscribed;
 
-            std::queue<Json::Value> _receivedQueue;
+        std::queue<Json::Value> _receivedQueue;
 
-            std::mutex _logMutex;
+        std::mutex _logMutex;
     };
 
     SatoriChat::SatoriChat(const std::string& user,
                            const std::string& session,
-                           const std::string& endpoint) :
-        _user(user),
-        _session(session),
-        _endpoint(endpoint),
-        _stop(false),
-        _connectedAndSubscribed(false)
+                           const std::string& endpoint)
+        : _user(user)
+        , _session(session)
+        , _endpoint(endpoint)
+        , _stop(false)
+        , _connectedAndSubscribed(false)
     {
     }
 
@@ -127,35 +123,30 @@ namespace
     void SatoriChat::subscribe(const std::string& channel)
     {
         std::string filter;
-        _conn.subscribe(channel, filter,
-                        [this](const Json::Value& msg)
-                        {
-                            std::cout << msg.toStyledString() << std::endl;
-                            if (!msg.isObject()) return;
-                            if (!msg.isMember("user")) return;
-                            if (!msg.isMember("text")) return;
-                            if (!msg.isMember("session")) return;
+        _conn.subscribe(channel, filter, [this](const Json::Value& msg) {
+            std::cout << msg.toStyledString() << std::endl;
+            if (!msg.isObject()) return;
+            if (!msg.isMember("user")) return;
+            if (!msg.isMember("text")) return;
+            if (!msg.isMember("session")) return;
 
-                            std::string msg_user = msg["user"].asString();
-                            std::string msg_text = msg["text"].asString();
-                            std::string msg_session = msg["session"].asString();
+            std::string msg_user = msg["user"].asString();
+            std::string msg_text = msg["text"].asString();
+            std::string msg_session = msg["session"].asString();
 
-                            // We are not interested in messages
-                            // from a different session.
-                            if (msg_session != _session) return;
+            // We are not interested in messages
+            // from a different session.
+            if (msg_session != _session) return;
 
-                            // We are not interested in our own messages
-                            if (msg_user == _user) return;
+            // We are not interested in our own messages
+            if (msg_user == _user) return;
 
-                            _receivedQueue.push(msg);
+            _receivedQueue.push(msg);
 
-                            std::stringstream ss;
-                            ss << std::endl
-                               << msg_user << " > " << msg_text
-                               << std::endl
-                               << _user << " > ";
-                            log(ss.str());
-                        });
+            std::stringstream ss;
+            ss << std::endl << msg_user << " > " << msg_text << std::endl << _user << " > ";
+            log(ss.str());
+        });
     }
 
     void SatoriChat::sendMessage(const std::string& text)
@@ -189,50 +180,46 @@ namespace
         std::string role = "_sub";
         std::string secret = "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba";
 
-        _conn.configure(appkey, _endpoint, role, secret,
-                        ix::WebSocketPerMessageDeflateOptions(true));
+        _conn.configure(
+            appkey, _endpoint, role, secret, ix::WebSocketPerMessageDeflateOptions(true));
         _conn.connect();
 
-        _conn.setEventCallback(
-            [this, channel]
-            (ix::CobraConnectionEventType eventType,
-             const std::string& errMsg,
-             const ix::WebSocketHttpHeaders& /*headers*/,
-             const std::string& subscriptionId,
-             CobraConnection::MsgId msgId)
+        _conn.setEventCallback([this, channel](ix::CobraConnectionEventType eventType,
+                                               const std::string& errMsg,
+                                               const ix::WebSocketHttpHeaders& /*headers*/,
+                                               const std::string& subscriptionId,
+                                               CobraConnection::MsgId msgId) {
+            if (eventType == ix::CobraConnection_EventType_Open)
             {
-                if (eventType == ix::CobraConnection_EventType_Open)
-                {
-                    log("Subscriber connected: " + _user);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Authenticated)
-                {
-                    log("Subscriber authenticated: " + _user);
-                    subscribe(channel);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Error)
-                {
-                    log(errMsg + _user);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Closed)
-                {
-                    log("Connection closed: " + _user);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Subscribed)
-                {
-                    log("Subscription ok: " + _user + " subscription_id " + subscriptionId);
-                    _connectedAndSubscribed = true;
-                }
-                else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
-                {
-                    log("Unsubscription ok: " + _user + " subscription_id " + subscriptionId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Published)
-                {
-                    Logger() << "Subscriber: published message acked: " << msgId;
-                }
+                log("Subscriber connected: " + _user);
             }
-        );
+            else if (eventType == ix::CobraConnection_EventType_Authenticated)
+            {
+                log("Subscriber authenticated: " + _user);
+                subscribe(channel);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Error)
+            {
+                log(errMsg + _user);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Closed)
+            {
+                log("Connection closed: " + _user);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Subscribed)
+            {
+                log("Subscription ok: " + _user + " subscription_id " + subscriptionId);
+                _connectedAndSubscribed = true;
+            }
+            else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+            {
+                log("Unsubscription ok: " + _user + " subscription_id " + subscriptionId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Published)
+            {
+                Logger() << "Subscriber: published message acked: " << msgId;
+            }
+        });
 
         while (!_stop)
         {
@@ -261,19 +248,15 @@ namespace
         ix::msleep(50);
         _conn.disconnect();
 
-        _conn.setEventCallback([]
-                               (ix::CobraConnectionEventType /*eventType*/,
-                                const std::string& /*errMsg*/,
-                                const ix::WebSocketHttpHeaders& /*headers*/,
-                                const std::string& /*subscriptionId*/,
-                                CobraConnection::MsgId /*msgId*/)
-        {
-            ;
-        });
+        _conn.setEventCallback([](ix::CobraConnectionEventType /*eventType*/,
+                                  const std::string& /*errMsg*/,
+                                  const ix::WebSocketHttpHeaders& /*headers*/,
+                                  const std::string& /*subscriptionId*/,
+                                  CobraConnection::MsgId /*msgId*/) { ; });
 
         snakeServer.stop();
     }
-}
+} // namespace
 
 TEST_CASE("Cobra_chat", "[cobra_chat]")
 {

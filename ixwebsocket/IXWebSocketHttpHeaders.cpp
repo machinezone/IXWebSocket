@@ -5,13 +5,15 @@
  */
 
 #include "IXWebSocketHttpHeaders.h"
+
 #include "IXSocket.h"
 #include <algorithm>
 #include <locale>
 
 namespace ix
 {
-    bool CaseInsensitiveLess::NocaseCompare::operator()(const unsigned char & c1, const unsigned char & c2) const
+    bool CaseInsensitiveLess::NocaseCompare::operator()(const unsigned char& c1,
+                                                        const unsigned char& c2) const
     {
 #ifdef _WIN32
         return std::tolower(c1, std::locale()) < std::tolower(c2, std::locale());
@@ -20,17 +22,17 @@ namespace ix
 #endif
     }
 
-    bool CaseInsensitiveLess::operator()(const std::string & s1, const std::string & s2) const
+    bool CaseInsensitiveLess::operator()(const std::string& s1, const std::string& s2) const
     {
-        return std::lexicographical_compare
-                (s1.begin(), s1.end(),   // source range
-                 s2.begin(), s2.end(),   // dest range
-                 NocaseCompare());       // comparison
+        return std::lexicographical_compare(s1.begin(),
+                                            s1.end(), // source range
+                                            s2.begin(),
+                                            s2.end(),         // dest range
+                                            NocaseCompare()); // comparison
     }
 
     std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(
-        std::shared_ptr<Socket> socket,
-        const CancellationRequest& isCancellationRequested)
+        std::shared_ptr<Socket> socket, const CancellationRequest& isCancellationRequested)
     {
         WebSocketHttpHeaders headers;
 
@@ -41,11 +43,9 @@ namespace ix
         {
             int colon = 0;
 
-            for (i = 0;
-                 i < 2 || (i < 1023 && line[i-2] != '\r' && line[i-1] != '\n');
-                 ++i)
+            for (i = 0; i < 2 || (i < 1023 && line[i - 2] != '\r' && line[i - 1] != '\n'); ++i)
             {
-                if (!socket->readByte(line+i, isCancellationRequested))
+                if (!socket->readByte(line + i, isCancellationRequested))
                 {
                     return std::make_pair(false, headers);
                 }
@@ -79,4 +79,4 @@ namespace ix
 
         return std::make_pair(true, headers);
     }
-}
+} // namespace ix

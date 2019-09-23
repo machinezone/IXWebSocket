@@ -5,18 +5,18 @@
  */
 
 #include "IXSnakeServer.h"
-#include "IXSnakeProtocol.h"
-#include "IXSnakeConnectionState.h"
-#include "IXAppConfig.h"
 
+#include "IXAppConfig.h"
+#include "IXSnakeConnectionState.h"
+#include "IXSnakeProtocol.h"
 #include <iostream>
 #include <sstream>
 
 namespace snake
 {
-    SnakeServer::SnakeServer(const AppConfig& appConfig) :
-        _appConfig(appConfig),
-        _server(appConfig.port, appConfig.hostname)
+    SnakeServer::SnakeServer(const AppConfig& appConfig)
+        : _appConfig(appConfig)
+        , _server(appConfig.port, appConfig.hostname)
     {
         ;
     }
@@ -32,7 +32,7 @@ namespace snake
         idx = path.rfind('=');
         if (idx != std::string::npos)
         {
-            std::string appkey = path.substr(idx+1);
+            std::string appkey = path.substr(idx + 1);
             return appkey;
         }
         else
@@ -45,21 +45,18 @@ namespace snake
     {
         std::cout << "Listening on " << _appConfig.hostname << ":" << _appConfig.port << std::endl;
 
-        auto factory = []() -> std::shared_ptr<ix::ConnectionState>
-        {
+        auto factory = []() -> std::shared_ptr<ix::ConnectionState> {
             return std::make_shared<SnakeConnectionState>();
         };
         _server.setConnectionStateFactory(factory);
 
         _server.setOnConnectionCallback(
             [this](std::shared_ptr<ix::WebSocket> webSocket,
-                   std::shared_ptr<ix::ConnectionState> connectionState)
-            {
+                   std::shared_ptr<ix::ConnectionState> connectionState) {
                 auto state = std::dynamic_pointer_cast<SnakeConnectionState>(connectionState);
 
                 webSocket->setOnMessageCallback(
-                    [this, webSocket, state](const ix::WebSocketMessagePtr& msg)
-                    {
+                    [this, webSocket, state](const ix::WebSocketMessagePtr& msg) {
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             std::cerr << "New connection" << std::endl;
@@ -84,16 +81,16 @@ namespace snake
                         else if (msg->type == ix::WebSocketMessageType::Close)
                         {
                             std::cerr << "Closed connection"
-                                      << " code " << msg->closeInfo.code
-                                      << " reason " << msg->closeInfo.reason << std::endl;
+                                      << " code " << msg->closeInfo.code << " reason "
+                                      << msg->closeInfo.reason << std::endl;
                         }
                         else if (msg->type == ix::WebSocketMessageType::Error)
                         {
                             std::stringstream ss;
-                            ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
-                            ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
-                            ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
-                            ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
+                            ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                            ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                            ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                            ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
                             std::cerr << ss.str();
                         }
                         else if (msg->type == ix::WebSocketMessageType::Fragment)
@@ -105,10 +102,8 @@ namespace snake
                             std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
                             processCobraMessage(state, webSocket, _appConfig, msg->str);
                         }
-                    }
-                );
-            }
-        );
+                    });
+            });
 
         auto res = _server.listen();
         if (!res.first)
@@ -133,4 +128,4 @@ namespace snake
     {
         _server.stop();
     }
-}
+} // namespace snake

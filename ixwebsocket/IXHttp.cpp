@@ -5,9 +5,9 @@
  */
 
 #include "IXHttp.h"
+
 #include "IXCancellationRequest.h"
 #include "IXSocket.h"
-
 #include <sstream>
 #include <vector>
 
@@ -57,7 +57,8 @@ namespace ix
         return std::make_pair(httpVersion, statusCode);
     }
 
-    std::tuple<std::string, std::string, std::string> Http::parseRequestLine(const std::string& line)
+    std::tuple<std::string, std::string, std::string> Http::parseRequestLine(
+        const std::string& line)
     {
         // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
         std::string token;
@@ -114,8 +115,8 @@ namespace ix
 
         // Parse request line (GET /foo HTTP/1.1\r\n)
         auto requestLine = Http::parseRequestLine(line);
-        auto method      = std::get<0>(requestLine);
-        auto uri         = std::get<1>(requestLine);
+        auto method = std::get<0>(requestLine);
+        auto uri = std::get<1>(requestLine);
         auto httpVersion = std::get<2>(requestLine);
 
         // Retrieve and validate HTTP headers
@@ -161,8 +162,6 @@ namespace ix
             return false;
         }
 
-        return response->payload.empty()
-            ? true
-            : socket->writeBytes(response->payload, nullptr);
+        return response->payload.empty() ? true : socket->writeBytes(response->payload, nullptr);
     }
-}
+} // namespace ix

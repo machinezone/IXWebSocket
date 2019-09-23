@@ -5,14 +5,14 @@
  */
 
 #include "IXRedisClient.h"
-#include <ixwebsocket/IXSocketFactory.h>
-#include <ixwebsocket/IXSocket.h>
 
-#include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <vector>
 #include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketFactory.h>
+#include <sstream>
+#include <vector>
 
 namespace ix
 {
@@ -31,8 +31,7 @@ namespace ix
         return _socket->connect(hostname, port, errMsg, nullptr);
     }
 
-    bool RedisClient::auth(const std::string& password,
-                           std::string& response)
+    bool RedisClient::auth(const std::string& password, std::string& response)
     {
         response.clear();
 
@@ -203,7 +202,7 @@ namespace ix
             int arraySize;
             {
                 std::stringstream ss;
-                ss << line.substr(1, line.size()-1);
+                ss << line.substr(1, line.size() - 1);
                 ss >> arraySize;
             }
 
@@ -220,7 +219,7 @@ namespace ix
                 // => $7 (7 bytes)
                 int stringSize;
                 std::stringstream ss;
-                ss << line.substr(1, line.size()-1);
+                ss << line.substr(1, line.size() - 1);
                 ss >> stringSize;
 
                 auto readResult = _socket->readBytes(stringSize, nullptr, nullptr);
@@ -246,4 +245,4 @@ namespace ix
     {
         _stop = true;
     }
-}
+} // namespace ix

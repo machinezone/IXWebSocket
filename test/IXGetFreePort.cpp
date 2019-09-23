@@ -5,11 +5,11 @@
  */
 
 #include "IXGetFreePort.h"
+
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocket.h>
-
-#include <string>
 #include <random>
+#include <string>
 
 namespace ix
 {
@@ -30,8 +30,7 @@ namespace ix
         }
 
         int enable = 1;
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
-                       (char*) &enable, sizeof(enable)) < 0)
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*) &enable, sizeof(enable)) < 0)
         {
             return getAnyFreePortRandom();
         }
@@ -39,10 +38,10 @@ namespace ix
         // Bind to port 0. This is the standard way to get a free port.
         struct sockaddr_in server; // server address information
         server.sin_family = AF_INET;
-        server.sin_port   = htons(0);
+        server.sin_port = htons(0);
         server.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-        if (bind(sockfd, (struct sockaddr *)&server, sizeof(server)) < 0)
+        if (bind(sockfd, (struct sockaddr*) &server, sizeof(server)) < 0)
         {
             Socket::closeSocket(sockfd);
             return getAnyFreePortRandom();
@@ -50,7 +49,7 @@ namespace ix
 
         struct sockaddr_in sa; // server address information
         socklen_t len = sizeof(sa);
-        if (getsockname(sockfd, (struct sockaddr *) &sa, &len) < 0)
+        if (getsockname(sockfd, (struct sockaddr*) &sa, &len) < 0)
         {
             Socket::closeSocket(sockfd);
             return getAnyFreePortRandom();
@@ -67,11 +66,11 @@ namespace ix
         while (true)
         {
 #if defined(__has_feature)
-# if __has_feature(address_sanitizer)
+#if __has_feature(address_sanitizer)
             int port = getAnyFreePortRandom();
-# else
+#else
             int port = getAnyFreePort();
-# endif
+#endif
 #else
             int port = getAnyFreePort();
 #endif

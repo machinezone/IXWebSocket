@@ -4,15 +4,13 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
+#include "IXTest.h"
+#include "catch.hpp"
 #include <iostream>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXWebSocketServer.h>
-#include <ixwebsocket/IXSocketFactory.h>
-
-#include "IXTest.h"
-
-#include "catch.hpp"
 
 using namespace ix;
 
@@ -28,55 +26,48 @@ namespace ix
         }
     };
 
-    bool startServer(ix::WebSocketServer& server,
-                     std::string& connectionId)
+    bool startServer(ix::WebSocketServer& server, std::string& connectionId)
     {
-        auto factory = []() -> std::shared_ptr<ConnectionState>
-        {
+        auto factory = []() -> std::shared_ptr<ConnectionState> {
             return std::make_shared<ConnectionStateCustom>();
         };
         server.setConnectionStateFactory(factory);
 
-        server.setOnConnectionCallback(
-            [&server, &connectionId](std::shared_ptr<ix::WebSocket> webSocket,
-                                     std::shared_ptr<ConnectionState> connectionState)
-            {
-                webSocket->setOnMessageCallback(
-                    [webSocket, connectionState,
-                     &connectionId, &server](const ix::WebSocketMessagePtr& msg)
+        server.setOnConnectionCallback([&server, &connectionId](
+                                           std::shared_ptr<ix::WebSocket> webSocket,
+                                           std::shared_ptr<ConnectionState> connectionState) {
+            webSocket->setOnMessageCallback([webSocket, connectionState, &connectionId, &server](
+                                                const ix::WebSocketMessagePtr& msg) {
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    Logger() << "New connection";
+                    connectionState->computeId();
+                    Logger() << "id: " << connectionState->getId();
+                    Logger() << "Uri: " << msg->openInfo.uri;
+                    Logger() << "Headers:";
+                    for (auto it : msg->openInfo.headers)
                     {
-                        if (msg->type == ix::WebSocketMessageType::Open)
-                        {
-                            Logger() << "New connection";
-                            connectionState->computeId();
-                            Logger() << "id: " << connectionState->getId();
-                            Logger() << "Uri: " << msg->openInfo.uri;
-                            Logger() << "Headers:";
-                            for (auto it : msg->openInfo.headers)
-                            {
-                                Logger() << it.first << ": " << it.second;
-                            }
+                        Logger() << it.first << ": " << it.second;
+                    }
 
-                            connectionId = connectionState->getId();
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Close)
+                    connectionId = connectionState->getId();
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    Logger() << "Closed connection";
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    for (auto&& client : server.getClients())
+                    {
+                        if (client != webSocket)
                         {
-                            Logger() << "Closed connection";
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Message)
-                        {
-                            for (auto&& client : server.getClients())
-                            {
-                                if (client != webSocket)
-                                {
-                                    client->send(msg->str);
-                                }
-                            }
+                            client->send(msg->str);
                         }
                     }
-                );
-            }
-        );
+                }
+            });
+        });
 
         auto res = server.listen();
         if (!res.first)
@@ -88,7 +79,7 @@ namespace ix
         server.start();
         return true;
     }
-}
+} // namespace ix
 
 TEST_CASE("Websocket_server", "[websocket_server]")
 {
@@ -103,10 +94,7 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         bool tls = false;
         std::shared_ptr<Socket> socket = createSocket(tls, errMsg);
         std::string host("127.0.0.1");
-        auto isCancellationRequested = []() -> bool
-        {
-            return false;
-        };
+        auto isCancellationRequested = []() -> bool { return false; };
         bool success = socket->connect(host, port, errMsg, isCancellationRequested);
         REQUIRE(success);
 
@@ -139,10 +127,7 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         bool tls = false;
         std::shared_ptr<Socket> socket = createSocket(tls, errMsg);
         std::string host("127.0.0.1");
-        auto isCancellationRequested = []() -> bool
-        {
-            return false;
-        };
+        auto isCancellationRequested = []() -> bool { return false; };
         bool success = socket->connect(host, port, errMsg, isCancellationRequested);
         REQUIRE(success);
 
@@ -178,10 +163,7 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         bool tls = false;
         std::shared_ptr<Socket> socket = createSocket(tls, errMsg);
         std::string host("127.0.0.1");
-        auto isCancellationRequested = []() -> bool
-        {
-            return false;
-        };
+        auto isCancellationRequested = []() -> bool { return false; };
         bool success = socket->connect(host, port, errMsg, isCancellationRequested);
         REQUIRE(success);
 

@@ -111,7 +111,8 @@ namespace ix
         }
 
         std::stringstream ss;
-        log(std::string("Connecti,ng to url: ") + _url);
+        log(std::string("Connecting to url: ") + _url);
+
         _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
             std::stringstream ss;
             if (msg->type == ix::WebSocketMessageType::Open)

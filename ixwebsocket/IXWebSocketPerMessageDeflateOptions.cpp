@@ -6,9 +6,9 @@
 
 #include "IXWebSocketPerMessageDeflateOptions.h"
 
-#include <sstream>
 #include <algorithm>
 #include <cctype>
+#include <sstream>
 
 namespace ix
 {
@@ -48,7 +48,8 @@ namespace ix
     //
     // Server response could look like that:
     //
-    // Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_no_context_takeover
+    // Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover;
+    // server_no_context_takeover
     //
     WebSocketPerMessageDeflateOptions::WebSocketPerMessageDeflateOptions(std::string extension)
     {
@@ -92,8 +93,7 @@ namespace ix
                 // Sanitize values to be in the proper range [8, 15] in
                 // case a server would give us bogus values
                 _serverMaxWindowBits =
-                    std::min(maxServerMaxWindowBits,
-                        std::max(x, minServerMaxWindowBits));
+                    std::min(maxServerMaxWindowBits, std::max(x, minServerMaxWindowBits));
             }
 
             if (startsWith(token, "client_max_window_bits="))
@@ -107,8 +107,7 @@ namespace ix
                 // Sanitize values to be in the proper range [8, 15] in
                 // case a server would give us bogus values
                 _clientMaxWindowBits =
-                    std::min(maxClientMaxWindowBits,
-                        std::max(x, minClientMaxWindowBits));
+                    std::min(maxClientMaxWindowBits, std::max(x, minClientMaxWindowBits));
 
                 sanitizeClientMaxWindowBits();
             }
@@ -175,11 +174,10 @@ namespace ix
     std::string WebSocketPerMessageDeflateOptions::removeSpaces(const std::string& str)
     {
         std::string out(str);
-        out.erase(std::remove_if(out.begin(),
-                                 out.end(),
-                                 [](unsigned char x){ return std::isspace(x); }),
-                  out.end());
+        out.erase(
+            std::remove_if(out.begin(), out.end(), [](unsigned char x) { return std::isspace(x); }),
+            out.end());
 
         return out;
     }
-}
+} // namespace ix
