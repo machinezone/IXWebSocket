@@ -5,13 +5,13 @@
  */
 
 #include "IXWebSocketServer.h"
-#include "IXWebSocketTransport.h"
-#include "IXWebSocket.h"
-#include "IXSocketConnect.h"
-#include "IXNetSystem.h"
 
-#include <sstream>
+#include "IXNetSystem.h"
+#include "IXSocketConnect.h"
+#include "IXWebSocket.h"
+#include "IXWebSocketTransport.h"
 #include <future>
+#include <sstream>
 #include <string.h>
 
 namespace ix
@@ -23,11 +23,11 @@ namespace ix
                                      const std::string& host,
                                      int backlog,
                                      size_t maxConnections,
-                                     int handshakeTimeoutSecs) : SocketServer(port, host, backlog, maxConnections),
-        _handshakeTimeoutSecs(handshakeTimeoutSecs),
-        _enablePong(kDefaultEnablePong)
+                                     int handshakeTimeoutSecs)
+        : SocketServer(port, host, backlog, maxConnections)
+        , _handshakeTimeoutSecs(handshakeTimeoutSecs)
+        , _enablePong(kDefaultEnablePong)
     {
-
     }
 
     WebSocketServer::~WebSocketServer()
@@ -58,16 +58,19 @@ namespace ix
         _enablePong = false;
     }
 
+    void WebSocketServer::setTLSOptions(const SocketTLSOptions& tlsOptions) {
+        _tlsOptions = tlsOptions.validated();
+    }
+
     void WebSocketServer::setOnConnectionCallback(const OnConnectionCallback& callback)
     {
         _onConnectionCallback = callback;
     }
 
-    void WebSocketServer::handleConnection(
-        int fd,
-        std::shared_ptr<ConnectionState> connectionState)
+    void WebSocketServer::handleConnection(int fd, std::shared_ptr<ConnectionState> connectionState)
     {
         auto webSocket = std::make_shared<WebSocket>();
+        webSocket->setTLSOptions(_tlsOptions);
         _onConnectionCallback(webSocket, connectionState);
 
         webSocket->disableAutomaticReconnection();
@@ -93,10 +96,8 @@ namespace ix
         else
         {
             std::stringstream ss;
-            ss << "WebSocketServer::handleConnection() HTTP status: "
-               << status.http_status
-               << " error: "
-               << status.errorStr;
+            ss << "WebSocketServer::handleConnection() HTTP status: " << status.http_status
+               << " error: " << status.errorStr;
             logError(ss.str());
         }
 
@@ -126,4 +127,4 @@ namespace ix
         std::lock_guard<std::mutex> lock(_clientsMutex);
         return _clients.size();
     }
-}
+} // namespace ix

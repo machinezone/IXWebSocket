@@ -8,6 +8,7 @@
 
 #include "IXSocketServer.h"
 #include "IXWebSocket.h"
+#include "IXSocketTLSOptions.h"
 #include <condition_variable>
 #include <functional>
 #include <memory>
@@ -36,6 +37,8 @@ namespace ix
         void enablePong();
         void disablePong();
 
+        void setTLSOptions(const SocketTLSOptions& tlsOptions);
+
         void setOnConnectionCallback(const OnConnectionCallback& callback);
 
         // Get all the connected clients
@@ -47,6 +50,8 @@ namespace ix
         bool _enablePong;
 
         OnConnectionCallback _onConnectionCallback;
+
+        SocketTLSOptions _tlsOptions;
 
         std::mutex _clientsMutex;
         std::set<std::shared_ptr<WebSocket>> _clients;

@@ -4,41 +4,40 @@
  *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
-#include <sstream>
-#include <ixwebsocket/IXWebSocket.h>
-#include <ixwebsocket/IXSocket.h>
-
 #include "linenoise.hpp"
-
+#include "ws_tls_support.h"
+#include <iostream>
+#include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXWebSocket.h>
+#include <sstream>
 
 namespace ix
 {
-    class WebSocketConnect
+    class WebSocketConnect : public TLSSupport
     {
-        public:
-            WebSocketConnect(const std::string& _url,
-                             const std::string& headers,
-                             bool disableAutomaticReconnection,
-                             bool disablePerMessageDeflate,
-                             bool binaryMode,
-                             uint32_t maxWaitBetweenReconnectionRetries);
+    public:
+        WebSocketConnect(const std::string& _url,
+                         const std::string& headers,
+                         bool disableAutomaticReconnection,
+                         bool disablePerMessageDeflate,
+                         bool binaryMode,
+                         uint32_t maxWaitBetweenReconnectionRetries);
 
-            void subscribe(const std::string& channel);
-            void start();
-            void stop();
+        void subscribe(const std::string& channel);
+        void start();
+        void stop();
 
-            void sendMessage(const std::string& text);
+        void sendMessage(const std::string& text);
 
-        private:
-            std::string _url;
-            WebSocketHttpHeaders _headers;
-            ix::WebSocket _webSocket;
-            bool _disablePerMessageDeflate;
-            bool _binaryMode;
+    private:
+        std::string _url;
+        WebSocketHttpHeaders _headers;
+        ix::WebSocket _webSocket;
+        bool _disablePerMessageDeflate;
+        bool _binaryMode;
 
-            void log(const std::string& msg);
-            WebSocketHttpHeaders parseHeaders(const std::string& data);
+        void log(const std::string& msg);
+        WebSocketHttpHeaders parseHeaders(const std::string& data);
     };
 
     WebSocketConnect::WebSocketConnect(const std::string& url,
@@ -46,10 +45,10 @@ namespace ix
                                        bool disableAutomaticReconnection,
                                        bool disablePerMessageDeflate,
                                        bool binaryMode,
-                                       uint32_t maxWaitBetweenReconnectionRetries) :
-        _url(url),
-        _disablePerMessageDeflate(disablePerMessageDeflate),
-        _binaryMode(binaryMode)
+                                       uint32_t maxWaitBetweenReconnectionRetries)
+        : _url(url)
+        , _disablePerMessageDeflate(disablePerMessageDeflate)
+        , _binaryMode(binaryMode)
     {
         if (disableAutomaticReconnection)
         {
@@ -81,7 +80,7 @@ namespace ix
             if (pos == std::string::npos) continue;
 
             auto key = token.substr(0, pos);
-            auto val = token.substr(pos+1);
+            auto val = token.substr(pos + 1);
 
             std::cerr << key << ": " << val << std::endl;
             headers[key] = val;
@@ -112,63 +111,59 @@ namespace ix
         }
 
         std::stringstream ss;
-        log(std::string("Connecting to url: ") + _url);
-
-        _webSocket.setOnMessageCallback(
-            [this](const ix::WebSocketMessagePtr& msg)
+        log(std::string("Connecti,ng to url: ") + _url);
+        _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
+            std::stringstream ss;
+            if (msg->type == ix::WebSocketMessageType::Open)
             {
-                std::stringstream ss;
-                if (msg->type == ix::WebSocketMessageType::Open)
+                log("ws_connect: connected");
+                std::cout << "Uri: " << msg->openInfo.uri << std::endl;
+                std::cout << "Handshake Headers:" << std::endl;
+                for (auto it : msg->openInfo.headers)
                 {
-                    log("ws_connect: connected");
-                    std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-                    std::cout << "Handshake Headers:" << std::endl;
-                    for (auto it : msg->openInfo.headers)
-                    {
-                        std::cout << it.first << ": " << it.second << std::endl;
-                    }
+                    std::cout << it.first << ": " << it.second << std::endl;
                 }
-                else if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    ss << "ws_connect: connection closed:";
-                    ss << " code " << msg->closeInfo.code;
-                    ss << " reason " << msg->closeInfo.reason << std::endl;
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
+            }
+            else if (msg->type == ix::WebSocketMessageType::Close)
+            {
+                ss << "ws_connect: connection closed:";
+                ss << " code " << msg->closeInfo.code;
+                ss << " reason " << msg->closeInfo.reason << std::endl;
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
 
-                    ss << "ws_connect: received message: "
-                       << msg->str;
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Error)
-                {
-                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
-                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
-                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
-                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Fragment)
-                {
-                    std::cerr << "Received message fragment" << std::endl;
-                }
-                else if (msg->type == ix::WebSocketMessageType::Ping)
-                {
-                    std::cerr << "Received ping" << std::endl;
-                }
-                else if (msg->type == ix::WebSocketMessageType::Pong)
-                {
-                    std::cerr << "Received pong" << std::endl;
-                }
-                else
-                {
-                    ss << "Invalid ix::WebSocketMessageType";
-                    log(ss.str());
-                }
-            });
+                ss << "ws_connect: received message: " << msg->str;
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Error)
+            {
+                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Fragment)
+            {
+                std::cerr << "Received message fragment" << std::endl;
+            }
+            else if (msg->type == ix::WebSocketMessageType::Ping)
+            {
+                std::cerr << "Received ping" << std::endl;
+            }
+            else if (msg->type == ix::WebSocketMessageType::Pong)
+            {
+                std::cerr << "Received pong" << std::endl;
+            }
+            else
+            {
+                ss << "Invalid ix::WebSocketMessageType";
+                log(ss.str());
+            }
+        });
 
         _webSocket.start();
     }
@@ -190,7 +185,10 @@ namespace ix
                         bool disableAutomaticReconnection,
                         bool disablePerMessageDeflate,
                         bool binaryMode,
-                        uint32_t maxWaitBetweenReconnectionRetries)
+                        uint32_t maxWaitBetweenReconnectionRetries,
+                        const std::string& certFile,
+                        const std::string& keyFile,
+                        const std::string& caFile)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketConnect webSocketChat(url,
@@ -199,6 +197,7 @@ namespace ix
                                        disablePerMessageDeflate,
                                        binaryMode,
                                        maxWaitBetweenReconnectionRetries);
+        webSocketChat.setTLSOptions(certFile, keyFile, caFile);
         webSocketChat.start();
 
         while (true)
@@ -237,5 +236,4 @@ namespace ix
 
         return 0;
     }
-}
-
+} // namespace ix

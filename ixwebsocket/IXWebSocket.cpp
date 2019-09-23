@@ -76,7 +76,7 @@ namespace ix
     void WebSocket::setTLSOptions(const SocketTLSOptions& socketTLSOptions)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
-        _socketTLSOptions = socketTLSOptions;
+        _socketTLSOptions = socketTLSOptions.validated();
     }
 
     const WebSocketPerMessageDeflateOptions& WebSocket::getPerMessageDeflateOptions() const

@@ -12,7 +12,8 @@ namespace ix
 {
     struct SocketTLSOptions
     {
-        SocketTLSOptions();
+        // pass through - validate assertions returning this object
+        const SocketTLSOptions&& validated() const;
 
         // the certificate presented to peers
         std::string certFile;

@@ -42,6 +42,12 @@ namespace ix
         _thread.join();
     }
 
+
+    void HttpClient::setTLSOptions(const SocketTLSOptions& tlsOptions)
+    {
+        _tlsOptions = tlsOptions.validated();
+    }
+
     HttpRequestArgsPtr HttpClient::createRequest(const std::string& url,
                                                  const std::string& verb)
     {
@@ -138,8 +144,7 @@ namespace ix
 
         bool tls = protocol == "https";
         std::string errorMsg;
-        SocketTLSOptions tlsOptions;
-        _socket = createSocket(tls, errorMsg, tlsOptions);
+        _socket = createSocket(tls, errorMsg, _tlsOptions);
 
         if (!_socket)
         {
