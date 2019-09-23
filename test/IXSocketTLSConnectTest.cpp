@@ -25,19 +25,20 @@ TEST_CASE("tls_socket_connect", "[net]")
                                    SocketServer::kDefaultMaxConnections,
                                    60);
         server.setTLSOptions({".certs/trusted-server-crt.pem",
-                              ".certs/trusted-server-key.pem", "NONE"
+                              ".certs/trusted-server-key.pem",
                               ".certs/trusted-ca-crt.pem"});
         REQUIRE(startWebSocketEchoServer(server));
 
         std::cerr << "server listening on port " << port << std::endl;
-        // std::this_thread::sleep_for(std::chrono::minutes(60));
+        // std::this_thread::sleep_for(std::chrono::minutes(300));
 
         ix::WebSocket client;
-        auto url = "wss://127.0.0.1:" + std::to_string(port) + "/";
+        auto url = "wss://localhost:" + std::to_string(port) + "/";
         client.setUrl(url);
         client.setTLSOptions({".certs/trusted-client-crt.pem",
-                              ".certs/trusted-client-key.pem",
-                              ".certs/trusted-ca-crt.pem"});
+                              ".certs/trusted-client-key.pem", 
+                              ".certs/trusted-ca-crt.pem"
+                              });
         client.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message)
             {
