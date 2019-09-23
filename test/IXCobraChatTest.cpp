@@ -4,7 +4,7 @@
  *  Copyright (c) 2017 Machine Zone. All rights reserved.
  */
 
-#include "IXSnakeServer.h"
+#include <ixsnake/IXSnakeServer.h>
 #include "IXTest.h"
 #include "catch.hpp"
 #include <chrono>

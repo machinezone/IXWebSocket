@@ -3,12 +3,12 @@
  *  Copyright (c) 2018 Machine Zone. All rights reserved.
  */
 
-#include "IXSnakeServer.h"
 #include "IXTest.h"
 #include "catch.hpp"
 #include <iostream>
 #include <ixcobra/IXCobraMetricsPublisher.h>
 #include <ixcrypto/IXUuid.h>
+#include <ixsnake/IXSnakeServer.h>
 #include <set>
 
 using namespace ix;

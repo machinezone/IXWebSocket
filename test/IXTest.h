@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "IXAppConfig.h"
+#include <ixsnake/IXAppConfig.h>
 #include "IXGetFreePort.h"
 #include <iostream>
 #include <ixwebsocket/IXWebSocketServer.h>
