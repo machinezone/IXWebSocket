@@ -138,7 +138,8 @@ namespace ix
 
         bool tls = protocol == "https";
         std::string errorMsg;
-        _socket = createSocket(tls, errorMsg);
+        SocketTLSOptions tlsOptions;
+        _socket = createSocket(tls, errorMsg, tlsOptions);
 
         if (!_socket)
         {

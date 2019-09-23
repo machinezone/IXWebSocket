@@ -82,7 +82,8 @@ TEST_CASE("socket", "[socket]")
     {
         std::string errMsg;
         bool tls = true;
-        std::shared_ptr<Socket> socket = createSocket(tls, errMsg);
+        SocketTLSOptions tlsOptions;
+        std::shared_ptr<Socket> socket = createSocket(tls, errMsg, tlsOptions);
         std::string host("www.google.com");
         int port = 443;
         std::string request("GET / HTTP/1.1\r\n\r\n");
