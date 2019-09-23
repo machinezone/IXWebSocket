@@ -239,10 +239,11 @@ Additional TLS options can be configured by passing a `ix::SocketTLSOptions` ins
 `setTLSOptions` on `ix::WebSocket` (or `ix::WebSocketServer` or `ix::HttpServer`)
 
 ```
-webSocket.setTLSOptions({
-    .certFile = "path/to/cert/file.pem",
-    .keyFile = "path/to/key/file.pem",
-    .caFile = "path/to/trust/bundle/file.pem"
+ix::SocketTLSOptions tlsOpts;
+tlsOpts.certFile = "path/to/cert/file.pem";
+tlsOpts.keyFile = "path/to/key/file.pem";
+tlsOpts.caFile = "path/to/trust/bundle/file.pem";
+tlsOpts.ciphers = "MY-CUSTOM-CIPHER:MY-OTHER-CIPHER";
 });
 ```
 
@@ -261,6 +262,9 @@ For a client, specifying `caFile` can be used if connecting to a server that use
 For a server, specifying `caFile` implies that:
 1. You require clients to present a certificate
 1. It must be signed by one of the trusted roots in the file
+
+Specifying `ciphers` can be used to configure the supported ciphers.
+ - The special value of `DEFAULT` (the default) indicates that the defaults (for a given TLS implementation in this codebase) should be used.
 
 ## WebSocket server API
 
