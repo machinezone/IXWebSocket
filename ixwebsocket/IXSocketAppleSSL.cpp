@@ -141,8 +141,9 @@ std::string getSSLErrorDescription(OSStatus status)
 
 namespace ix
 {
-    SocketAppleSSL::SocketAppleSSL(int fd) : Socket(fd),
-        _sslContext(nullptr)
+    SocketAppleSSL::SocketAppleSSL(const SocketTLSOptions& tlsOptions, int fd) : Socket(fd),
+        _sslContext(nullptr),
+        _tlsOptions(tlsOptions)
     {
         ;
     }
