@@ -58,7 +58,8 @@ namespace ix
         _enablePong = false;
     }
 
-    void WebSocketServer::setTLSOptions(const SocketTLSOptions& tlsOptions) {
+    void WebSocketServer::setTLSOptions(const SocketTLSOptions& tlsOptions)
+    {
         _tlsOptions = tlsOptions.validated();
     }
 
@@ -85,8 +86,9 @@ namespace ix
             std::lock_guard<std::mutex> lock(_clientsMutex);
             _clients.insert(webSocket);
         }
- 
-        auto status = webSocket->connectToSocket(fd, _handshakeTimeoutSecs, _tlsOptions.hasCertAndKey());
+
+        auto status =
+            webSocket->connectToSocket(fd, _handshakeTimeoutSecs, _tlsOptions.hasCertAndKey());
         if (status.success)
         {
             // Process incoming messages and execute callbacks

@@ -384,7 +384,7 @@ namespace ix
             {
                 SSL_CTX_set_verify(_ssl_context, SSL_VERIFY_NONE, nullptr);
             }
-            
+
             if (_tlsOptions.isUsingDefaultCiphers())
             {
                 if (SSL_CTX_set_cipher_list(_ssl_context, kDefaultCiphers) != 1)

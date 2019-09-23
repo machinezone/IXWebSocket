@@ -4,13 +4,13 @@
  *  Copyright (c) 2017 Machine Zone. All rights reserved.
  */
 
-#include <ixsnake/IXSnakeServer.h>
 #include "IXTest.h"
 #include "catch.hpp"
 #include <chrono>
 #include <iostream>
 #include <ixcobra/IXCobraConnection.h>
 #include <ixcrypto/IXUuid.h>
+#include <ixsnake/IXSnakeServer.h>
 
 using namespace ix;
 

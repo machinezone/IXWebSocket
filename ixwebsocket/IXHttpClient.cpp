@@ -49,8 +49,7 @@ namespace ix
         _tlsOptions = tlsOptions.validated();
     }
 
-    HttpRequestArgsPtr HttpClient::createRequest(const std::string& url,
-                                                 const std::string& verb)
+    HttpRequestArgsPtr HttpClient::createRequest(const std::string& url, const std::string& verb)
     {
         auto request = std::make_shared<HttpRequestArgs>();
         request->url = url;

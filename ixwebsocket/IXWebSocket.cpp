@@ -472,9 +472,7 @@ namespace ix
             }
             break;
 
-            case SendMessageKind::Ping:
-            {
-                webSocketSendInfo = _ws.sendPing(text);
+            case SendMessageKind::Ping: { webSocketSendInfo = _ws.sendPing(text);
             }
             break;
         }

@@ -7,8 +7,8 @@
 #pragma once
 
 #include "IXSocketServer.h"
-#include "IXWebSocket.h"
 #include "IXSocketTLSOptions.h"
+#include "IXWebSocket.h"
 #include <condition_variable>
 #include <functional>
 #include <memory>

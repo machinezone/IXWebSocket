@@ -36,9 +36,8 @@ TEST_CASE("tls_socket_connect", "[net]")
         auto url = "wss://localhost:" + std::to_string(port) + "/";
         client.setUrl(url);
         client.setTLSOptions({".certs/trusted-client-crt.pem",
-                              ".certs/trusted-client-key.pem", 
-                              ".certs/trusted-ca-crt.pem"
-                              });
+                              ".certs/trusted-client-key.pem",
+                              ".certs/trusted-ca-crt.pem"});
         client.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message)
             {
