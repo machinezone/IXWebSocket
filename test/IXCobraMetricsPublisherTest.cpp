@@ -29,7 +29,7 @@ namespace
 
     std::atomic<bool> gStop;
     std::atomic<bool> gSubscriberConnectedAndSubscribed;
-    std::atomic<int> gUniqueMessageIdsCount;
+    std::atomic<size_t> gUniqueMessageIdsCount;
     std::atomic<int> gMessageCount;
 
     std::set<std::string> gIds;
@@ -53,13 +53,17 @@ namespace
             [&conn]
             (ix::CobraConnectionEventType eventType,
              const std::string& errMsg,
-             const ix::WebSocketHttpHeaders& headers,
+             const ix::WebSocketHttpHeaders& /*headers*/,
              const std::string& subscriptionId,
              CobraConnection::MsgId msgId)
             {
                 if (eventType == ix::CobraConnection_EventType_Open)
                 {
                     Logger() << "Subscriber connected:";
+                }
+                if (eventType == ix::CobraConnection_EventType_Error)
+                {
+                    Logger() << "Subscriber error:" << errMsg;
                 }
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
