@@ -17,6 +17,12 @@
 
 namespace ix
 {
+    SocketMbedTLS::SocketMbedTLS(const SocketTLSOptions& tlsOptions) :
+        _tlsOptions(tlsOptions)
+    {
+        ;
+    }
+
     SocketMbedTLS::~SocketMbedTLS()
     {
         close();

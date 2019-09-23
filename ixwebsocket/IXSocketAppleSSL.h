@@ -8,6 +8,7 @@
 
 #include "IXCancellationRequest.h"
 #include "IXSocket.h"
+#include "IXSocketTLSOptions.h"
 #include <Security/SecureTransport.h>
 #include <Security/Security.h>
 #include <mutex>
@@ -17,7 +18,7 @@ namespace ix
     class SocketAppleSSL final : public Socket
     {
     public:
-        SocketAppleSSL(int fd = -1);
+        SocketAppleSSL(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketAppleSSL();
 
         virtual bool connect(const std::string& host,
@@ -33,6 +34,8 @@ namespace ix
     private:
         SSLContextRef _sslContext;
         mutable std::mutex _mutex; // AppleSSL routines are not thread-safe
+
+        SocketTLSOptions _tlsOptions;
     };
 
 } // namespace ix
