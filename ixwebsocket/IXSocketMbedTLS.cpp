@@ -17,7 +17,7 @@
 
 namespace ix
 {
-    SocketMbedTLS(const SocketTLSOptions& tlsOptions) :
+    SocketMbedTLS::SocketMbedTLS(const SocketTLSOptions& tlsOptions) :
         _tlsOptions(tlsOptions)
     {
         ;
