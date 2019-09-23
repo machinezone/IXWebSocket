@@ -32,232 +32,249 @@
 #include <stdlib.h>
 
 // check if the scheme name is valid
-static bool IsSchemeValid( const std::string& SchemeName )
+static bool IsSchemeValid(const std::string& SchemeName)
 {
-	for ( auto c : SchemeName  )
-	{
-		if ( !isalpha( c ) && c != '+' && c != '-' && c != '.' ) return false;
-	}
+    for (auto c : SchemeName)
+    {
+        if (!isalpha(c) && c != '+' && c != '-' && c != '.') return false;
+    }
 
-	return true;
+    return true;
 }
 
-bool LUrlParser::clParseURL::GetPort( int* OutPort ) const
+bool LUrlParser::clParseURL::GetPort(int* OutPort) const
 {
-	if ( !IsValid() ) { return false; }
+    if (!IsValid())
+    {
+        return false;
+    }
 
-	int Port = atoi( m_Port.c_str() );
+    int Port = atoi(m_Port.c_str());
 
-	if ( Port <= 0 || Port > 65535 ) { return false; }
+    if (Port <= 0 || Port > 65535)
+    {
+        return false;
+    }
 
-	if ( OutPort ) { *OutPort = Port; }
+    if (OutPort)
+    {
+        *OutPort = Port;
+    }
 
-	return true;
+    return true;
 }
 
 // based on RFC 1738 and RFC 3986
-LUrlParser::clParseURL LUrlParser::clParseURL::ParseURL( const std::string& URL )
+LUrlParser::clParseURL LUrlParser::clParseURL::ParseURL(const std::string& URL)
 {
-	LUrlParser::clParseURL Result;
+    LUrlParser::clParseURL Result;
 
-	const char* CurrentString = URL.c_str();
+    const char* CurrentString = URL.c_str();
 
-	/*
-	 *	<scheme>:<scheme-specific-part>
-	 *	<scheme> := [a-z\+\-\.]+
-	 *	For resiliency, programs interpreting URLs should treat upper case letters as equivalent to lower case in scheme names
-	 */
+    /*
+     *	<scheme>:<scheme-specific-part>
+     *	<scheme> := [a-z\+\-\.]+
+     *	For resiliency, programs interpreting URLs should treat upper case letters as equivalent to
+     *lower case in scheme names
+     */
 
-	// try to read scheme
-	{
-		const char* LocalString = strchr( CurrentString, ':' );
+    // try to read scheme
+    {
+        const char* LocalString = strchr(CurrentString, ':');
 
-		if ( !LocalString )
-		{
-			return clParseURL( LUrlParserError_NoUrlCharacter );
-		}
+        if (!LocalString)
+        {
+            return clParseURL(LUrlParserError_NoUrlCharacter);
+        }
 
-		// save the scheme name
-		Result.m_Scheme = std::string( CurrentString, LocalString - CurrentString );
+        // save the scheme name
+        Result.m_Scheme = std::string(CurrentString, LocalString - CurrentString);
 
-		if ( !IsSchemeValid( Result.m_Scheme ) )
-		{
-			return clParseURL( LUrlParserError_InvalidSchemeName );
-		}
+        if (!IsSchemeValid(Result.m_Scheme))
+        {
+            return clParseURL(LUrlParserError_InvalidSchemeName);
+        }
 
-		// scheme should be lowercase
-		std::transform( Result.m_Scheme.begin(), Result.m_Scheme.end(), Result.m_Scheme.begin(), ::tolower );
+        // scheme should be lowercase
+        std::transform(
+            Result.m_Scheme.begin(), Result.m_Scheme.end(), Result.m_Scheme.begin(), ::tolower);
 
-		// skip ':'
-		CurrentString = LocalString+1;
-	}
+        // skip ':'
+        CurrentString = LocalString + 1;
+    }
 
-	/*
-	 *	//<user>:<password>@<host>:<port>/<url-path>
-	 *	any ":", "@" and "/" must be normalized
-	 */
+    /*
+     *	//<user>:<password>@<host>:<port>/<url-path>
+     *	any ":", "@" and "/" must be normalized
+     */
 
-	// skip "//"
-	if ( *CurrentString++ != '/' ) return clParseURL( LUrlParserError_NoDoubleSlash );
-	if ( *CurrentString++ != '/' ) return clParseURL( LUrlParserError_NoDoubleSlash );
+    // skip "//"
+    if (*CurrentString++ != '/') return clParseURL(LUrlParserError_NoDoubleSlash);
+    if (*CurrentString++ != '/') return clParseURL(LUrlParserError_NoDoubleSlash);
 
-	// check if the user name and password are specified
-	bool bHasUserName = false;
+    // check if the user name and password are specified
+    bool bHasUserName = false;
 
-	const char* LocalString = CurrentString;
+    const char* LocalString = CurrentString;
 
-	while ( *LocalString )
-	{
-		if ( *LocalString == '@' )
-		{
-			// user name and password are specified
-			bHasUserName = true;
-			break;
-		}
-		else if ( *LocalString == '/' )
-		{
-			// end of <host>:<port> specification
-			bHasUserName = false;
-			break;
-		}
+    while (*LocalString)
+    {
+        if (*LocalString == '@')
+        {
+            // user name and password are specified
+            bHasUserName = true;
+            break;
+        }
+        else if (*LocalString == '/')
+        {
+            // end of <host>:<port> specification
+            bHasUserName = false;
+            break;
+        }
 
-		LocalString++;
-	}
+        LocalString++;
+    }
 
-	// user name and password
-	LocalString = CurrentString;
+    // user name and password
+    LocalString = CurrentString;
 
-	if ( bHasUserName )
-	{
-		// read user name
-		while ( *LocalString && *LocalString != ':' && *LocalString != '@' ) LocalString++;
+    if (bHasUserName)
+    {
+        // read user name
+        while (*LocalString && *LocalString != ':' && *LocalString != '@')
+            LocalString++;
 
-		Result.m_UserName = std::string( CurrentString, LocalString - CurrentString );
+        Result.m_UserName = std::string(CurrentString, LocalString - CurrentString);
 
-		// proceed with the current pointer
-		CurrentString = LocalString;
+        // proceed with the current pointer
+        CurrentString = LocalString;
 
-		if ( *CurrentString == ':' )
-		{
-			// skip ':'
-			CurrentString++;
+        if (*CurrentString == ':')
+        {
+            // skip ':'
+            CurrentString++;
 
-			// read password
-			LocalString = CurrentString;
+            // read password
+            LocalString = CurrentString;
 
-			while ( *LocalString && *LocalString != '@' ) LocalString++;
+            while (*LocalString && *LocalString != '@')
+                LocalString++;
 
-			Result.m_Password = std::string( CurrentString, LocalString - CurrentString );
+            Result.m_Password = std::string(CurrentString, LocalString - CurrentString);
 
-			CurrentString = LocalString;
-		}
+            CurrentString = LocalString;
+        }
 
-		// skip '@'
-		if ( *CurrentString != '@' )
-		{
-			return clParseURL( LUrlParserError_NoAtSign );
-		}
+        // skip '@'
+        if (*CurrentString != '@')
+        {
+            return clParseURL(LUrlParserError_NoAtSign);
+        }
 
-		CurrentString++;
-	}
+        CurrentString++;
+    }
 
-	bool bHasBracket = ( *CurrentString == '[' );
+    bool bHasBracket = (*CurrentString == '[');
 
-	// go ahead, read the host name
-	LocalString = CurrentString;
+    // go ahead, read the host name
+    LocalString = CurrentString;
 
-	while ( *LocalString )
-	{
-		if ( bHasBracket && *LocalString == ']' )
-		{
-			// end of IPv6 address
-			LocalString++;
-			break;
-		}
-		else if ( !bHasBracket && ( *LocalString == ':' || *LocalString == '/' ) )
-		{
-			// port number is specified
-			break;
-		}
+    while (*LocalString)
+    {
+        if (bHasBracket && *LocalString == ']')
+        {
+            // end of IPv6 address
+            LocalString++;
+            break;
+        }
+        else if (!bHasBracket && (*LocalString == ':' || *LocalString == '/'))
+        {
+            // port number is specified
+            break;
+        }
 
-		LocalString++;
-	}
+        LocalString++;
+    }
 
-	Result.m_Host = std::string( CurrentString, LocalString - CurrentString );
+    Result.m_Host = std::string(CurrentString, LocalString - CurrentString);
 
-	CurrentString = LocalString;
+    CurrentString = LocalString;
 
-	// is port number specified?
-	if ( *CurrentString == ':' )
-	{
-		CurrentString++;
+    // is port number specified?
+    if (*CurrentString == ':')
+    {
+        CurrentString++;
 
-		// read port number
-		LocalString = CurrentString;
+        // read port number
+        LocalString = CurrentString;
 
-		while ( *LocalString && *LocalString != '/' ) LocalString++;
+        while (*LocalString && *LocalString != '/')
+            LocalString++;
 
-		Result.m_Port = std::string( CurrentString, LocalString - CurrentString );
+        Result.m_Port = std::string(CurrentString, LocalString - CurrentString);
 
-		CurrentString = LocalString;
-	}
+        CurrentString = LocalString;
+    }
 
-	// end of string
-	if ( !*CurrentString )
-	{
-		Result.m_ErrorCode = LUrlParserError_Ok;
+    // end of string
+    if (!*CurrentString)
+    {
+        Result.m_ErrorCode = LUrlParserError_Ok;
 
-		return Result;
-	}
+        return Result;
+    }
 
-	// skip '/'
-	if ( *CurrentString != '/' )
-	{
-		return clParseURL( LUrlParserError_NoSlash );
-	}
+    // skip '/'
+    if (*CurrentString != '/')
+    {
+        return clParseURL(LUrlParserError_NoSlash);
+    }
 
-	CurrentString++;
+    CurrentString++;
 
-	// parse the path
-	LocalString = CurrentString;
+    // parse the path
+    LocalString = CurrentString;
 
-	while ( *LocalString && *LocalString != '#' && *LocalString != '?' ) LocalString++;
+    while (*LocalString && *LocalString != '#' && *LocalString != '?')
+        LocalString++;
 
-	Result.m_Path = std::string( CurrentString, LocalString - CurrentString );
+    Result.m_Path = std::string(CurrentString, LocalString - CurrentString);
 
-	CurrentString = LocalString;
+    CurrentString = LocalString;
 
-	// check for query
-	if ( *CurrentString == '?' )
-	{
-		// skip '?'
-		CurrentString++;
+    // check for query
+    if (*CurrentString == '?')
+    {
+        // skip '?'
+        CurrentString++;
 
-		// read query
-		LocalString = CurrentString;
+        // read query
+        LocalString = CurrentString;
 
-		while ( *LocalString && *LocalString != '#' ) LocalString++;
+        while (*LocalString && *LocalString != '#')
+            LocalString++;
 
-		Result.m_Query = std::string( CurrentString, LocalString - CurrentString );
+        Result.m_Query = std::string(CurrentString, LocalString - CurrentString);
 
-		CurrentString = LocalString;
-	}
+        CurrentString = LocalString;
+    }
 
-	// check for fragment
-	if ( *CurrentString == '#' )
-	{
-		// skip '#'
-		CurrentString++;
+    // check for fragment
+    if (*CurrentString == '#')
+    {
+        // skip '#'
+        CurrentString++;
 
-		// read fragment
-		LocalString = CurrentString;
+        // read fragment
+        LocalString = CurrentString;
 
-		while ( *LocalString ) LocalString++;
+        while (*LocalString)
+            LocalString++;
 
-		Result.m_Fragment = std::string( CurrentString, LocalString - CurrentString );
-	}
+        Result.m_Fragment = std::string(CurrentString, LocalString - CurrentString);
+    }
 
-	Result.m_ErrorCode = LUrlParserError_Ok;
+    Result.m_ErrorCode = LUrlParserError_Ok;
 
-	return Result;
+    return Result;
 }

@@ -6,41 +6,32 @@
 
 #include "IXSnakeProtocol.h"
 
-#include <ixwebsocket/IXWebSocket.h>
-#include <ixcrypto/IXHMac.h>
-
-#include "IXSnakeConnectionState.h"
 #include "IXAppConfig.h"
-
+#include "IXSnakeConnectionState.h"
 #include "nlohmann/json.hpp"
-#include <sstream>
 #include <iostream>
+#include <ixcrypto/IXHMac.h>
+#include <ixwebsocket/IXWebSocket.h>
+#include <sstream>
 
 namespace snake
 {
-    void handleError(
-        const std::string& action,
-        std::shared_ptr<ix::WebSocket> ws,
-        nlohmann::json pdu,
-        const std::string& errMsg)
+    void handleError(const std::string& action,
+                     std::shared_ptr<ix::WebSocket> ws,
+                     nlohmann::json pdu,
+                     const std::string& errMsg)
     {
         std::string actionError(action);
         actionError += "/error";
 
         nlohmann::json response = {
-            {"action", actionError},
-            {"id", pdu.value("id", 1)},
-            {"body", {
-                {"reason", errMsg}
-            }}
-        };
+            {"action", actionError}, {"id", pdu.value("id", 1)}, {"body", {{"reason", errMsg}}}};
         ws->sendText(response.dump());
     }
 
-    void handleHandshake(
-        std::shared_ptr<SnakeConnectionState> state,
-        std::shared_ptr<ix::WebSocket> ws,
-        const nlohmann::json& pdu)
+    void handleHandshake(std::shared_ptr<SnakeConnectionState> state,
+                         std::shared_ptr<ix::WebSocket> ws,
+                         const nlohmann::json& pdu)
     {
         std::string role = pdu["body"]["data"]["role"];
 
@@ -50,13 +41,10 @@ namespace snake
         nlohmann::json response = {
             {"action", "auth/handshake/ok"},
             {"id", pdu.value("id", 1)},
-            {"body", {
-                {"data", {
-                    {"nonce", state->getNonce()},
-                    {"connection_id", state->getId()}
-                }},
-            }}
-        };
+            {"body",
+             {
+                 {"data", {{"nonce", state->getNonce()}, {"connection_id", state->getId()}}},
+             }}};
 
         auto serializedResponse = response.dump();
         std::cout << "response = " << serializedResponse << std::endl;
@@ -64,11 +52,10 @@ namespace snake
         ws->sendText(serializedResponse);
     }
 
-    void handleAuth(
-        std::shared_ptr<SnakeConnectionState> state,
-        std::shared_ptr<ix::WebSocket> ws,
-        const AppConfig& appConfig,
-        const nlohmann::json& pdu)
+    void handleAuth(std::shared_ptr<SnakeConnectionState> state,
+                    std::shared_ptr<ix::WebSocket> ws,
+                    const AppConfig& appConfig,
+                    const nlohmann::json& pdu)
     {
         auto secret = getRoleSecret(appConfig, state->appkey(), state->role());
         std::cout << "secret = " << secret << std::endl;
@@ -78,11 +65,7 @@ namespace snake
             nlohmann::json response = {
                 {"action", "auth/authenticate/error"},
                 {"id", pdu.value("id", 1)},
-                {"body", {
-                    {"error", "authentication_failed"},
-                    {"reason", "invalid secret"}
-                }}
-            };
+                {"body", {{"error", "authentication_failed"}, {"reason", "invalid secret"}}}};
             ws->sendText(response.dump());
             return;
         }
@@ -102,28 +85,20 @@ namespace snake
             nlohmann::json response = {
                 {"action", "auth/authenticate/error"},
                 {"id", pdu.value("id", 1)},
-                {"body", {
-                    {"error", "authentication_failed"},
-                    {"reason", "invalid hash"}
-                }}
-            };
+                {"body", {{"error", "authentication_failed"}, {"reason", "invalid hash"}}}};
             ws->sendText(response.dump());
             return;
         }
 
         nlohmann::json response = {
-            {"action", "auth/authenticate/ok"},
-            {"id", pdu.value("id", 1)},
-            {"body", {}}
-        };
+            {"action", "auth/authenticate/ok"}, {"id", pdu.value("id", 1)}, {"body", {}}};
 
         ws->sendText(response.dump());
     }
 
-    void handlePublish(
-        std::shared_ptr<SnakeConnectionState> state,
-        std::shared_ptr<ix::WebSocket> ws,
-        const nlohmann::json& pdu)
+    void handlePublish(std::shared_ptr<SnakeConnectionState> state,
+                       std::shared_ptr<ix::WebSocket> ws,
+                       const nlohmann::json& pdu)
     {
         std::vector<std::string> channels;
 
@@ -150,9 +125,7 @@ namespace snake
         for (auto&& channel : channels)
         {
             std::stringstream ss;
-            ss << state->appkey()
-               << "::"
-               << channel;
+            ss << state->appkey() << "::" << channel;
 
             std::string errMsg;
             if (!state->redisClient().publish(ss.str(), pdu.dump(), errMsg))
@@ -165,10 +138,7 @@ namespace snake
         }
 
         nlohmann::json response = {
-            {"action", "rtm/publish/ok"},
-            {"id", pdu.value("id", 1)},
-            {"body", {}}
-        };
+            {"action", "rtm/publish/ok"}, {"id", pdu.value("id", 1)}, {"body", {}}};
 
         ws->sendText(response.dump());
     }
@@ -176,19 +146,16 @@ namespace snake
     //
     // FIXME: this is not cancellable. We should be able to cancel the redis subscription
     //
-    void handleRedisSubscription(
-        std::shared_ptr<SnakeConnectionState> state,
-        std::shared_ptr<ix::WebSocket> ws,
-        const AppConfig& appConfig,
-        const nlohmann::json& pdu)
+    void handleRedisSubscription(std::shared_ptr<SnakeConnectionState> state,
+                                 std::shared_ptr<ix::WebSocket> ws,
+                                 const AppConfig& appConfig,
+                                 const nlohmann::json& pdu)
     {
         std::string channel = pdu["body"]["channel"];
         std::string subscriptionId = channel;
 
         std::stringstream ss;
-        ss << state->appkey()
-           << "::"
-           << channel;
+        ss << state->appkey() << "::" << channel;
 
         std::string appChannel(ss.str());
 
@@ -224,8 +191,7 @@ namespace snake
         }
 
         int id = 0;
-        auto callback = [ws, &id, &subscriptionId](const std::string& messageStr)
-        {
+        auto callback = [ws, &id, &subscriptionId](const std::string& messageStr) {
             auto msg = nlohmann::json::parse(messageStr);
 
             msg = msg["body"]["message"];
@@ -233,27 +199,18 @@ namespace snake
             nlohmann::json response = {
                 {"action", "rtm/subscription/data"},
                 {"id", id++},
-                {"body", {
-                    {"subscription_id", subscriptionId},
-                    {"messages", {msg}}
-                }}
-            };
+                {"body", {{"subscription_id", subscriptionId}, {"messages", {msg}}}}};
 
             ws->sendText(response.dump());
         };
 
-        auto responseCallback = [ws, pdu, &subscriptionId](const std::string& redisResponse)
-        {
+        auto responseCallback = [ws, pdu, &subscriptionId](const std::string& redisResponse) {
             std::cout << "Redis subscribe response: " << redisResponse << std::endl;
 
             // Success
-            nlohmann::json response = {
-                {"action", "rtm/subscribe/ok"},
-                {"id", pdu.value("id", 1)},
-                {"body", {
-                    {"subscription_id", subscriptionId}
-                }}
-            };
+            nlohmann::json response = {{"action", "rtm/subscribe/ok"},
+                                       {"id", pdu.value("id", 1)},
+                                       {"body", {{"subscription_id", subscriptionId}}}};
             ws->sendText(response.dump());
         };
 
@@ -267,24 +224,18 @@ namespace snake
         }
     }
 
-    void handleSubscribe(
-        std::shared_ptr<SnakeConnectionState> state,
-        std::shared_ptr<ix::WebSocket> ws,
-        const AppConfig& appConfig,
-        const nlohmann::json& pdu)
+    void handleSubscribe(std::shared_ptr<SnakeConnectionState> state,
+                         std::shared_ptr<ix::WebSocket> ws,
+                         const AppConfig& appConfig,
+                         const nlohmann::json& pdu)
     {
-        state->fut = std::async(std::launch::async,
-                                handleRedisSubscription,
-                                state,
-                                ws,
-                                appConfig,
-                                pdu);
+        state->fut =
+            std::async(std::launch::async, handleRedisSubscription, state, ws, appConfig, pdu);
     }
 
-    void handleUnSubscribe(
-        std::shared_ptr<SnakeConnectionState> state,
-        std::shared_ptr<ix::WebSocket> ws,
-        const nlohmann::json& pdu)
+    void handleUnSubscribe(std::shared_ptr<SnakeConnectionState> state,
+                           std::shared_ptr<ix::WebSocket> ws,
+                           const nlohmann::json& pdu)
     {
         // extract subscription_id
         auto body = pdu["body"];
@@ -292,21 +243,16 @@ namespace snake
 
         state->redisClient().stop();
 
-        nlohmann::json response = {
-            {"action", "rtm/unsubscribe/ok"},
-            {"id", pdu.value("id", 1)},
-            {"body", {
-                {"subscription_id", subscriptionId}
-            }}
-        };
+        nlohmann::json response = {{"action", "rtm/unsubscribe/ok"},
+                                   {"id", pdu.value("id", 1)},
+                                   {"body", {{"subscription_id", subscriptionId}}}};
         ws->sendText(response.dump());
     }
 
-    void processCobraMessage(
-        std::shared_ptr<SnakeConnectionState> state,
-        std::shared_ptr<ix::WebSocket> ws,
-        const AppConfig& appConfig,
-        const std::string& str)
+    void processCobraMessage(std::shared_ptr<SnakeConnectionState> state,
+                             std::shared_ptr<ix::WebSocket> ws,
+                             const AppConfig& appConfig,
+                             const std::string& str)
     {
         auto pdu = nlohmann::json::parse(str);
         std::cout << "Got " << str << std::endl;
@@ -339,4 +285,4 @@ namespace snake
             std::cerr << "Unhandled action: " << action << std::endl;
         }
     }
-}
+} // namespace snake

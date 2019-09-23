@@ -5,19 +5,19 @@
  */
 
 #include "IXTest.h"
-#include <ixwebsocket/IXWebSocket.h>
-#include <ixwebsocket/IXNetSystem.h>
 
 #include <chrono>
-#include <thread>
-#include <mutex>
-#include <string>
 #include <fstream>
-#include <iostream>
-#include <stdlib.h>
-#include <stack>
 #include <iomanip>
+#include <iostream>
+#include <ixwebsocket/IXNetSystem.h>
+#include <ixwebsocket/IXWebSocket.h>
+#include <mutex>
 #include <random>
+#include <stack>
+#include <stdlib.h>
+#include <string>
+#include <thread>
 
 
 namespace ix
@@ -29,19 +29,16 @@ namespace ix
 
     void setupWebSocketTrafficTrackerCallback()
     {
-        ix::WebSocket::setTrafficTrackerCallback(
-            [](size_t size, bool incoming)
+        ix::WebSocket::setTrafficTrackerCallback([](size_t size, bool incoming) {
+            if (incoming)
             {
-                if (incoming)
-                {
-                    incomingBytes += size;
-                }
-                else
-                {
-                    outgoingBytes += size;
-                }
+                incomingBytes += size;
             }
-        );
+            else
+            {
+                outgoingBytes += size;
+            }
+        });
     }
 
     void reportWebSocketTraffic()
@@ -61,8 +58,7 @@ namespace ix
     {
         auto now = std::chrono::system_clock::now();
         auto seconds =
-            std::chrono::duration_cast<std::chrono::seconds>(
-                now.time_since_epoch()).count();
+            std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
 
         return std::to_string(seconds);
     }
@@ -72,18 +68,15 @@ namespace ix
         Logger() << msg;
     }
 
-    void hexDump(const std::string& prefix,
-                 const std::string& s)
+    void hexDump(const std::string& prefix, const std::string& s)
     {
         std::ostringstream ss;
         bool upper_case = false;
 
         for (std::string::size_type i = 0; i < s.length(); ++i)
         {
-            ss << std::hex
-               << std::setfill('0')
-               << std::setw(2)
-               << (upper_case ? std::uppercase : std::nouppercase) << (int)s[i];
+            ss << std::hex << std::setfill('0') << std::setw(2)
+               << (upper_case ? std::uppercase : std::nouppercase) << (int) s[i];
         }
 
         std::cout << prefix << ": " << s << " => " << ss.str() << std::endl;
@@ -91,41 +84,36 @@ namespace ix
 
     bool startWebSocketEchoServer(ix::WebSocketServer& server)
     {
-        server.setOnConnectionCallback(
-            [&server](std::shared_ptr<ix::WebSocket> webSocket,
-                      std::shared_ptr<ConnectionState> connectionState)
-            {
-                webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, &server](const ix::WebSocketMessagePtr& msg)
+        server.setOnConnectionCallback([&server](std::shared_ptr<ix::WebSocket> webSocket,
+                                                 std::shared_ptr<ConnectionState> connectionState) {
+            webSocket->setOnMessageCallback(
+                [webSocket, connectionState, &server](const ix::WebSocketMessagePtr& msg) {
+                    if (msg->type == ix::WebSocketMessageType::Open)
                     {
-                        if (msg->type == ix::WebSocketMessageType::Open)
+                        Logger() << "New connection";
+                        Logger() << "Uri: " << msg->openInfo.uri;
+                        Logger() << "Headers:";
+                        for (auto it : msg->openInfo.headers)
                         {
-                            Logger() << "New connection";
-                            Logger() << "Uri: " << msg->openInfo.uri;
-                            Logger() << "Headers:";
-                            for (auto it : msg->openInfo.headers)
-                            {
-                                Logger() << it.first << ": " << it.second;
-                            }
+                            Logger() << it.first << ": " << it.second;
                         }
-                        else if (msg->type == ix::WebSocketMessageType::Close)
+                    }
+                    else if (msg->type == ix::WebSocketMessageType::Close)
+                    {
+                        Logger() << "Closed connection";
+                    }
+                    else if (msg->type == ix::WebSocketMessageType::Message)
+                    {
+                        for (auto&& client : server.getClients())
                         {
-                            Logger() << "Closed connection";
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Message)
-                        {
-                            for (auto&& client : server.getClients())
+                            if (client != webSocket)
                             {
-                                if (client != webSocket)
-                                {
-                                    client->send(msg->str, msg->binary);
-                                }
+                                client->send(msg->str, msg->binary);
                             }
                         }
                     }
-                );
-            }
-        );
+                });
+        });
 
         auto res = server.listen();
         if (!res.first)
@@ -150,7 +138,7 @@ namespace ix
         file.seekg(0, file.beg);
 
         memblock.resize((size_t) size);
-        file.read((char*)&memblock.front(), static_cast<std::streamsize>(size));
+        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
 
         return memblock;
     }
@@ -190,4 +178,4 @@ namespace ix
 
         return appConfig;
     }
-}
+} // namespace ix

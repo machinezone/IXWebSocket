@@ -17,4 +17,4 @@ namespace ix
         //
         pthread_setname_np(name.substr(0, 63).c_str());
     }
-}
+} // namespace ix

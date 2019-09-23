@@ -4,12 +4,12 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
+#include "IXRedisClient.h"
+#include <atomic>
+#include <chrono>
 #include <iostream>
 #include <sstream>
-#include <chrono>
 #include <thread>
-#include <atomic>
-#include "IXRedisClient.h"
 
 namespace ix
 {
@@ -41,9 +41,7 @@ namespace ix
         std::atomic<int> msgPerSeconds(0);
         std::atomic<int> msgCount(0);
 
-        auto callback = [&msgPerSeconds, &msgCount, verbose]
-                         (const std::string& message)
-        {
+        auto callback = [&msgPerSeconds, &msgCount, verbose](const std::string& message) {
             if (verbose)
             {
                 std::cout << "received: " << message << std::endl;
@@ -53,18 +51,15 @@ namespace ix
             msgCount++;
         };
 
-        auto responseCallback = [](const std::string& redisResponse)
-        {
+        auto responseCallback = [](const std::string& redisResponse) {
             std::cout << "Redis subscribe response: " << redisResponse << std::endl;
         };
 
-        auto timer = [&msgPerSeconds, &msgCount]
-        {
+        auto timer = [&msgPerSeconds, &msgCount] {
             while (true)
             {
                 std::cout << "#messages " << msgCount << " "
-                          << "msg/s " << msgPerSeconds
-                          << std::endl;
+                          << "msg/s " << msgPerSeconds << std::endl;
 
                 msgPerSeconds = 0;
                 auto duration = std::chrono::seconds(1);
@@ -83,4 +78,4 @@ namespace ix
 
         return 0;
     }
-}
+} // namespace ix

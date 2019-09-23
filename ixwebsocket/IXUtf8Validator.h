@@ -24,7 +24,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
-*/
+ */
 
 /*
  *  IXUtf8Validator.h
@@ -48,20 +48,31 @@ namespace ix
 
     /// Lookup table for the UTF8 decode state machine
     static uint8_t const utf8d[] = {
-      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 00..1f
-      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 20..3f
-      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 40..5f
-      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 60..7f
-      1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9, // 80..9f
-      7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, // a0..bf
-      8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, // c0..df
-      0xa,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x4,0x3,0x3, // e0..ef
-      0xb,0x6,0x6,0x6,0x5,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8, // f0..ff
-      0x0,0x1,0x2,0x3,0x5,0x8,0x7,0x1,0x1,0x1,0x4,0x6,0x1,0x1,0x1,0x1, // s0..s0
-      1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,1, // s1..s2
-      1,2,1,1,1,1,1,2,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1, // s3..s4
-      1,2,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,3,1,1,1,1,1,1, // s5..s6
-      1,3,1,1,1,1,1,3,1,3,1,1,1,1,1,1,1,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1, // s7..s8
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 00..1f
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 20..3f
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 40..5f
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 60..7f
+        1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+        9,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9, // 80..9f
+        7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+        7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7, // a0..bf
+        8,   8,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,
+        2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   // c0..df
+        0xa, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x4, 0x3, 0x3, // e0..ef
+        0xb, 0x6, 0x6, 0x6, 0x5, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, // f0..ff
+        0x0, 0x1, 0x2, 0x3, 0x5, 0x8, 0x7, 0x1, 0x1, 0x1, 0x4, 0x6, 0x1, 0x1, 0x1, 0x1, // s0..s0
+        1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+        1,   0,   1,   1,   1,   1,   1,   0,   1,   0,   1,   1,   1,   1,   1,   1, // s1..s2
+        1,   2,   1,   1,   1,   1,   1,   2,   1,   2,   1,   1,   1,   1,   1,   1,
+        1,   1,   1,   1,   1,   1,   1,   2,   1,   1,   1,   1,   1,   1,   1,   1, // s3..s4
+        1,   2,   1,   1,   1,   1,   1,   1,   1,   2,   1,   1,   1,   1,   1,   1,
+        1,   1,   1,   1,   1,   1,   1,   3,   1,   3,   1,   1,   1,   1,   1,   1, // s5..s6
+        1,   3,   1,   1,   1,   1,   1,   3,   1,   3,   1,   1,   1,   1,   1,   1,
+        1,   3,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1, // s7..s8
     };
 
     /// Decode the next byte of a UTF8 sequence
@@ -71,16 +82,14 @@ namespace ix
      * @param [in] byte The byte to input
      * @return The ending state of the decode operation
      */
-    inline uint32_t decodeNextByte(uint32_t * state, uint32_t * codep, uint8_t byte)
+    inline uint32_t decodeNextByte(uint32_t* state, uint32_t* codep, uint8_t byte)
     {
-      uint32_t type = utf8d[byte];
+        uint32_t type = utf8d[byte];
 
-      *codep = (*state != utf8_accept) ?
-        (byte & 0x3fu) | (*codep << 6) :
-        (0xff >> type) & (byte);
+        *codep = (*state != utf8_accept) ? (byte & 0x3fu) | (*codep << 6) : (0xff >> type) & (byte);
 
-      *state = utf8d[256 + *state*16 + type];
-      return *state;
+        *state = utf8d[256 + *state * 16 + type];
+        return *state;
     }
 
     /// Provides streaming UTF8 validation functionality
@@ -88,7 +97,11 @@ namespace ix
     {
     public:
         /// Construct and initialize the validator
-        Utf8Validator() : m_state(utf8_accept),m_codepoint(0) {}
+        Utf8Validator()
+            : m_state(utf8_accept)
+            , m_codepoint(0)
+        {
+        }
 
         /// Advance the state of the validator with the next input byte
         /**
@@ -97,7 +110,7 @@ namespace ix
          */
         bool consume(uint8_t byte)
         {
-            if (decodeNextByte(&m_state,&m_codepoint,byte) == utf8_reject)
+            if (decodeNextByte(&m_state, &m_codepoint, byte) == utf8_reject)
             {
                 return false;
             }
@@ -110,16 +123,13 @@ namespace ix
          * @param end Input iterator to the end of the input range
          * @return Whether or not decoding the bytes resulted in a validation error.
          */
-        template <typename iterator_type>
+        template<typename iterator_type>
         bool decode(iterator_type begin, iterator_type end)
         {
             for (iterator_type it = begin; it != end; ++it)
             {
-                unsigned int result = decodeNextByte(
-                    &m_state,
-                    &m_codepoint,
-                    static_cast<uint8_t>(*it)
-                );
+                unsigned int result =
+                    decodeNextByte(&m_state, &m_codepoint, static_cast<uint8_t>(*it));
 
                 if (result == utf8_reject)
                 {
@@ -144,9 +154,10 @@ namespace ix
             m_state = utf8_accept;
             m_codepoint = 0;
         }
+
     private:
-        uint32_t    m_state;
-        uint32_t    m_codepoint;
+        uint32_t m_state;
+        uint32_t m_codepoint;
     };
 
     /// Validate a UTF8 string
@@ -154,10 +165,10 @@ namespace ix
      * convenience function that creates a Validator, validates a complete string
      * and returns the result.
      */
-    inline bool validateUtf8(std::string const & s)
+    inline bool validateUtf8(std::string const& s)
     {
         Utf8Validator v;
-        if (!v.decode(s.begin(),s.end()))
+        if (!v.decode(s.begin(), s.end()))
         {
             return false;
         }

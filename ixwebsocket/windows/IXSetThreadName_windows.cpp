@@ -4,13 +4,14 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 #include "../IXSetThreadName.h"
+
 #include <Windows.h>
 
 namespace ix
 {
     const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
-#pragma pack(push,8)
+#pragma pack(push, 8)
     typedef struct tagTHREADNAME_INFO
     {
         DWORD dwType;     // Must be 0x1000.
@@ -30,7 +31,8 @@ namespace ix
 
         __try
         {
-            RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)& info);
+            RaiseException(
+                MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*) &info);
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
@@ -41,4 +43,4 @@ namespace ix
     {
         SetThreadName(-1, name.c_str());
     }
-}
+} // namespace ix

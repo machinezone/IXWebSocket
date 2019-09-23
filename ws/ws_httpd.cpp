@@ -4,12 +4,12 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
-#include <vector>
 #include <fstream>
-#include <sstream>
+#include <iostream>
 #include <ixwebsocket/IXHttpServer.h>
 #include <spdlog/spdlog.h>
+#include <sstream>
+#include <vector>
 
 namespace ix
 {
@@ -31,4 +31,4 @@ namespace ix
 
         return 0;
     }
-}
+} // namespace ix

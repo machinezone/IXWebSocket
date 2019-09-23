@@ -4,19 +4,18 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
-#include <sstream>
-#include <chrono>
-#include <thread>
-#include <atomic>
-#include <vector>
-#include <queue>
-#include <mutex>
-#include <condition_variable>
-#include <ixcobra/IXCobraConnection.h>
-#include <spdlog/spdlog.h>
-
 #include "IXSentryClient.h"
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <iostream>
+#include <ixcobra/IXCobraConnection.h>
+#include <mutex>
+#include <queue>
+#include <spdlog/spdlog.h>
+#include <sstream>
+#include <thread>
+#include <vector>
 
 namespace ix
 {
@@ -32,9 +31,8 @@ namespace ix
                                 int jobs)
     {
         ix::CobraConnection conn;
-        conn.configure(appkey, endpoint,
-                       rolename, rolesecret,
-                       ix::WebSocketPerMessageDeflateOptions(true));
+        conn.configure(
+            appkey, endpoint, rolename, rolesecret, ix::WebSocketPerMessageDeflateOptions(true));
         conn.connect();
 
         Json::FastWriter jsonWriter;
@@ -48,10 +46,15 @@ namespace ix
         std::condition_variable progressCondition;
         std::queue<Json::Value> queue;
 
-        auto sentrySender = [&condition, &progressCondition, &conditionVariableMutex,
-                             &queue, verbose, &errorSending, &sentCount,
-                             &stop, &dsn]
-        {
+        auto sentrySender = [&condition,
+                             &progressCondition,
+                             &conditionVariableMutex,
+                             &queue,
+                             verbose,
+                             &errorSending,
+                             &sentCount,
+                             &stop,
+                             &dsn] {
             SentryClient sentryClient(dsn);
 
             while (true)
@@ -60,7 +63,7 @@ namespace ix
 
                 {
                     std::unique_lock<std::mutex> lock(conditionVariableMutex);
-                    condition.wait(lock, [&queue, &stop]{ return !queue.empty() && !stop; });
+                    condition.wait(lock, [&queue, &stop] { return !queue.empty() && !stop; });
 
                     msg = queue.front();
                     queue.pop();
@@ -94,88 +97,93 @@ namespace ix
             pool.push_back(std::thread(sentrySender));
         }
 
-        conn.setEventCallback(
-            [&conn, &channel, &filter, &jsonWriter,
-             verbose, &receivedCount, &sentCount,
-             &condition, &conditionVariableMutex,
-             &progressCondition, &queue]
-            (ix::CobraConnectionEventType eventType,
-             const std::string& errMsg,
-             const ix::WebSocketHttpHeaders& headers,
-             const std::string& subscriptionId,
-             CobraConnection::MsgId msgId)
+        conn.setEventCallback([&conn,
+                               &channel,
+                               &filter,
+                               &jsonWriter,
+                               verbose,
+                               &receivedCount,
+                               &sentCount,
+                               &condition,
+                               &conditionVariableMutex,
+                               &progressCondition,
+                               &queue](ix::CobraConnectionEventType eventType,
+                                       const std::string& errMsg,
+                                       const ix::WebSocketHttpHeaders& headers,
+                                       const std::string& subscriptionId,
+                                       CobraConnection::MsgId msgId) {
+            if (eventType == ix::CobraConnection_EventType_Open)
             {
-                if (eventType == ix::CobraConnection_EventType_Open)
-                {
-                    spdlog::info("Subscriber connected");
+                spdlog::info("Subscriber connected");
 
-                    for (auto it : headers)
-                    {
-                        spdlog::info("{}: {}", it.first, it.second);
-                    }
-                }
-                if (eventType == ix::CobraConnection_EventType_Closed)
+                for (auto it : headers)
                 {
-                    spdlog::info("Subscriber closed");
+                    spdlog::info("{}: {}", it.first, it.second);
                 }
-                else if (eventType == ix::CobraConnection_EventType_Authenticated)
-                {
-                    std::cerr << "Subscriber authenticated" << std::endl;
-                    conn.subscribe(channel, filter,
-                                   [&jsonWriter, verbose,
-                                    &sentCount, &receivedCount,
-                                    &condition, &conditionVariableMutex,
-                                    &progressCondition, &queue]
-                                   (const Json::Value& msg)
+            }
+            if (eventType == ix::CobraConnection_EventType_Closed)
+            {
+                spdlog::info("Subscriber closed");
+            }
+            else if (eventType == ix::CobraConnection_EventType_Authenticated)
+            {
+                std::cerr << "Subscriber authenticated" << std::endl;
+                conn.subscribe(channel,
+                               filter,
+                               [&jsonWriter,
+                                verbose,
+                                &sentCount,
+                                &receivedCount,
+                                &condition,
+                                &conditionVariableMutex,
+                                &progressCondition,
+                                &queue](const Json::Value& msg) {
+                                   if (verbose)
                                    {
-                                       if (verbose)
-                                       {
-                                           spdlog::info(jsonWriter.write(msg));
-                                       }
+                                       spdlog::info(jsonWriter.write(msg));
+                                   }
 
-                                       // If we cannot send to sentry fast enough, drop the message
-                                       const uint64_t scaleFactor = 2;
+                                   // If we cannot send to sentry fast enough, drop the message
+                                   const uint64_t scaleFactor = 2;
 
-                                       if (sentCount != 0 &&
-                                           receivedCount != 0 &&
-                                           (sentCount * scaleFactor < receivedCount))
-                                       {
-                                           spdlog::warn("message dropped: sending is backlogged !");
-
-                                           condition.notify_one();
-                                           progressCondition.notify_one();
-                                           return;
-                                       }
-
-                                       ++receivedCount;
-
-                                       {
-                                           std::unique_lock<std::mutex> lock(conditionVariableMutex);
-                                           queue.push(msg);
-                                       }
+                                   if (sentCount != 0 && receivedCount != 0 &&
+                                       (sentCount * scaleFactor < receivedCount))
+                                   {
+                                       spdlog::warn("message dropped: sending is backlogged !");
 
                                        condition.notify_one();
                                        progressCondition.notify_one();
-                                   });
-                }
-                else if (eventType == ix::CobraConnection_EventType_Subscribed)
-                {
-                    spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
-                {
-                    spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Error)
-                {
-                    spdlog::error("Subscriber: error {}", errMsg);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Published)
-                {
-                    spdlog::error("Published message hacked: {}", msgId);
-                }
+                                       return;
+                                   }
+
+                                   ++receivedCount;
+
+                                   {
+                                       std::unique_lock<std::mutex> lock(conditionVariableMutex);
+                                       queue.push(msg);
+                                   }
+
+                                   condition.notify_one();
+                                   progressCondition.notify_one();
+                               });
             }
-        );
+            else if (eventType == ix::CobraConnection_EventType_Subscribed)
+            {
+                spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+            {
+                spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Error)
+            {
+                spdlog::error("Subscriber: error {}", errMsg);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Published)
+            {
+                spdlog::error("Published message hacked: {}", msgId);
+            }
+        });
 
         std::mutex progressConditionVariableMutex;
         while (true)
@@ -200,4 +208,4 @@ namespace ix
 
         return (strict && errorSending) ? 1 : 0;
     }
-}
+} // namespace ix

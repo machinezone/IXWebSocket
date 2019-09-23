@@ -4,24 +4,20 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include "IXSnakeProtocol.h"
 #include "IXAppConfig.h"
+
+#include "IXSnakeProtocol.h"
 #include <iostream>
 #include <ixcrypto/IXUuid.h>
 
 namespace snake
 {
-    bool isAppKeyValid(
-        const AppConfig& appConfig,
-        std::string appkey)
+    bool isAppKeyValid(const AppConfig& appConfig, std::string appkey)
     {
         return appConfig.apps.count(appkey) != 0;
     }
 
-    std::string getRoleSecret(
-        const AppConfig& appConfig,
-        std::string appkey,
-        std::string role)
+    std::string getRoleSecret(const AppConfig& appConfig, std::string appkey, std::string role)
     {
         if (!isAppKeyValid(appConfig, appkey))
         {
@@ -49,4 +45,4 @@ namespace snake
         std::cout << "redis password: " << appConfig.redisPassword << std::endl;
         std::cout << "redis port: " << appConfig.redisPort << std::endl;
     }
-}
+} // namespace snake

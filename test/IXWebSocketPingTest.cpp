@@ -4,15 +4,13 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
+#include "IXTest.h"
+#include "catch.hpp"
 #include <iostream>
-#include <sstream>
-#include <queue>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXWebSocketServer.h>
-
-#include "IXTest.h"
-
-#include "catch.hpp"
+#include <queue>
+#include <sstream>
 
 using namespace ix;
 
@@ -20,23 +18,23 @@ namespace
 {
     class WebSocketClient
     {
-        public:
-            WebSocketClient(int port, bool useHeartBeatMethod);
+    public:
+        WebSocketClient(int port, bool useHeartBeatMethod);
 
-            void start();
-            void stop();
-            bool isReady() const;
-            void sendMessage(const std::string& text);
+        void start();
+        void stop();
+        bool isReady() const;
+        void sendMessage(const std::string& text);
 
-        private:
-            ix::WebSocket _webSocket;
-            int _port;
-            bool _useHeartBeatMethod;
+    private:
+        ix::WebSocket _webSocket;
+        int _port;
+        bool _useHeartBeatMethod;
     };
 
     WebSocketClient::WebSocketClient(int port, bool useHeartBeatMethod)
-        : _port(port),
-          _useHeartBeatMethod(useHeartBeatMethod)
+        : _port(port)
+        , _useHeartBeatMethod(useHeartBeatMethod)
     {
         ;
     }
@@ -56,9 +54,7 @@ namespace
         std::string url;
         {
             std::stringstream ss;
-            ss << "ws://127.0.0.1:"
-               << _port
-               << "/";
+            ss << "ws://127.0.0.1:" << _port << "/";
 
             url = ss.str();
         }
@@ -79,48 +75,46 @@ namespace
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
 
-        _webSocket.setOnMessageCallback(
-            [](ix::WebSocketMessageType messageType,
-               const std::string& str,
-               size_t wireSize,
-               const ix::WebSocketErrorInfo& error,
-               const ix::WebSocketOpenInfo& openInfo,
-                   const ix::WebSocketCloseInfo& closeInfo)
+        _webSocket.setOnMessageCallback([](ix::WebSocketMessageType messageType,
+                                           const std::string& str,
+                                           size_t wireSize,
+                                           const ix::WebSocketErrorInfo& error,
+                                           const ix::WebSocketOpenInfo& openInfo,
+                                           const ix::WebSocketCloseInfo& closeInfo) {
+            std::stringstream ss;
+            if (messageType == ix::WebSocketMessageType::Open)
             {
-                std::stringstream ss;
-                if (messageType == ix::WebSocketMessageType::Open)
-                {
-                    log("client connected");
-                }
-                else if (messageType == ix::WebSocketMessageType::Close)
-                {
-                    log("client disconnected");
-                }
-                else if (messageType == ix::WebSocketMessageType::Error)
-                {
-                    ss << "Error ! " << error.reason;
-                    log(ss.str());
-                }
-                else if (messageType == ix::WebSocketMessageType::Pong)
-                {
-                    ss << "Received pong message " << str;
-                    log(ss.str());
-                }
-                else if (messageType == ix::WebSocketMessageType::Ping)
-                {
-                    ss << "Received ping message " << str;
-                    log(ss.str());
-                }
-                else if (messageType == ix::WebSocketMessageType::Message)
-                {
-                    // too many messages to log
-                }
-                else
-                {
-                    ss << "Invalid ix::WebSocketMessageType";
-                    log(ss.str());
-                }
-            });
+                log("client connected");
+            }
+            else if (messageType == ix::WebSocketMessageType::Close)
+            {
+                log("client disconnected");
+            }
+            else if (messageType == ix::WebSocketMessageType::Error)
+            {
+                ss << "Error ! " << error.reason;
+                log(ss.str());
+            }
+            else if (messageType == ix::WebSocketMessageType::Pong)
+            {
+                ss << "Received pong message " << str;
+                log(ss.str());
+            }
+            else if (messageType == ix::WebSocketMessageType::Ping)
+            {
+                ss << "Received ping message " << str;
+                log(ss.str());
+            }
+            else if (messageType == ix::WebSocketMessageType::Message)
+            {
+                // too many messages to log
+            }
+            else
+            {
+                ss << "Invalid ix::WebSocketMessageType";
+                log(ss.str());
+            }
+        });
 
         _webSocket.start();
     }
@@ -135,16 +129,15 @@ namespace
         // A dev/null server
         server.setOnConnectionCallback(
             [&server, &receivedPingMessages](std::shared_ptr<ix::WebSocket> webSocket,
-                                             std::shared_ptr<ConnectionState> connectionState)
-            {
+                                             std::shared_ptr<ConnectionState> connectionState) {
                 webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, &server, &receivedPingMessages](ix::WebSocketMessageType messageType,
-                       const std::string& str,
-                       size_t wireSize,
-                       const ix::WebSocketErrorInfo& error,
-                       const ix::WebSocketOpenInfo& openInfo,
-                       const ix::WebSocketCloseInfo& closeInfo)
-                    {
+                    [webSocket, connectionState, &server, &receivedPingMessages](
+                        ix::WebSocketMessageType messageType,
+                        const std::string& str,
+                        size_t wireSize,
+                        const ix::WebSocketErrorInfo& error,
+                        const ix::WebSocketOpenInfo& openInfo,
+                        const ix::WebSocketCloseInfo& closeInfo) {
                         if (messageType == ix::WebSocketMessageType::Open)
                         {
                             Logger() << "New server connection";
@@ -168,15 +161,13 @@ namespace
                         else if (messageType == ix::WebSocketMessageType::Message)
                         {
                             // to many messages to log
-                            for(auto client: server.getClients())
+                            for (auto client : server.getClients())
                             {
                                 client->sendText("reply");
                             }
                         }
-                    }
-                );
-            }
-        );
+                    });
+            });
 
         auto res = server.listen();
         if (!res.first)
@@ -188,7 +179,7 @@ namespace
         server.start();
         return true;
     }
-}
+} // namespace
 
 TEST_CASE("Websocket_ping_no_data_sent_setPingInterval", "[setPingInterval]")
 {
@@ -282,7 +273,8 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval", "[setPingInterval]")
 
 TEST_CASE("Websocket_ping_data_sent_setPingInterval_half_full", "[setPingInterval]")
 {
-    SECTION("Make sure that ping messages are sent, even if other messages are sent continuously during a given time")
+    SECTION("Make sure that ping messages are sent, even if other messages are sent continuously "
+            "during a given time")
     {
         ix::setupWebSocketTrafficTrackerCallback();
 
@@ -309,7 +301,7 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval_half_full", "[setPingInterva
         // send continuously for 1100ms
         auto now = std::chrono::steady_clock::now();
 
-        while(std::chrono::steady_clock::now() - now <= std::chrono::milliseconds(900))
+        while (std::chrono::steady_clock::now() - now <= std::chrono::milliseconds(900))
         {
             webSocketClient.sendMessage("message");
             ix::msleep(1);
@@ -335,7 +327,8 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval_half_full", "[setPingInterva
 
 TEST_CASE("Websocket_ping_data_sent_setPingInterval_full", "[setPingInterval]")
 {
-    SECTION("Make sure that ping messages are sent, even if other messages are sent continuously for longer than ping interval")
+    SECTION("Make sure that ping messages are sent, even if other messages are sent continuously "
+            "for longer than ping interval")
     {
         ix::setupWebSocketTrafficTrackerCallback();
 
@@ -362,7 +355,7 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval_full", "[setPingInterval]")
         // send continuously for 1100ms
         auto now = std::chrono::steady_clock::now();
 
-        while(std::chrono::steady_clock::now() - now <= std::chrono::milliseconds(1100))
+        while (std::chrono::steady_clock::now() - now <= std::chrono::milliseconds(1100))
         {
             webSocketClient.sendMessage("message");
             ix::msleep(1);

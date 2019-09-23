@@ -4,11 +4,10 @@
  *  Copyright (c) 2018 Machine Zone. All rights reserved.
  */
 
-#include "catch.hpp"
-
 #include "IXTest.h"
-#include <ixwebsocket/IXSocketConnect.h>
+#include "catch.hpp"
 #include <iostream>
+#include <ixwebsocket/IXSocketConnect.h>
 
 using namespace ix;
 

@@ -5,6 +5,7 @@
  */
 
 #include "IXUrlParser.h"
+
 #include "LUrlParser.h"
 
 namespace ix
@@ -24,9 +25,9 @@ namespace ix
         }
 
         protocol = res.m_Scheme;
-        host     = res.m_Host;
-        path     = res.m_Path;
-        query    = res.m_Query;
+        host = res.m_Host;
+        path = res.m_Path;
+        query = res.m_Query;
 
         if (!res.GetPort(&port))
         {
@@ -64,4 +65,4 @@ namespace ix
         return true;
     }
 
-}
+} // namespace ix

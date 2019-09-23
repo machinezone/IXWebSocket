@@ -5,10 +5,9 @@
  */
 
 #include "IXSnakeServer.h"
-
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 
 namespace
 {
@@ -24,7 +23,7 @@ namespace
         file.seekg(0, file.beg);
 
         memblock.resize((size_t) size);
-        file.read((char*)&memblock.front(), static_cast<std::streamsize>(size));
+        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
 
         return memblock;
     }
@@ -34,7 +33,7 @@ namespace
         auto vec = load(path);
         return std::string(vec.begin(), vec.end());
     }
-}
+} // namespace
 
 namespace ix
 {
@@ -80,4 +79,4 @@ namespace ix
 
         return 0; // should never reach this
     }
-}
+} // namespace ix

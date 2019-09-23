@@ -4,15 +4,13 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
+#include "IXTest.h"
+#include "catch.hpp"
 #include <iostream>
-#include <sstream>
-#include <queue>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXWebSocketServer.h>
-
-#include "IXTest.h"
-
-#include "catch.hpp"
+#include <queue>
+#include <sstream>
 
 using namespace ix;
 
@@ -20,32 +18,32 @@ namespace
 {
     class WebSocketClient
     {
-        public:
-            WebSocketClient(int port, int pingInterval, int pingTimeout);
+    public:
+        WebSocketClient(int port, int pingInterval, int pingTimeout);
 
-            void start();
-            void stop();
-            bool isReady() const;
-            bool isClosed() const;
-            void sendMessage(const std::string& text);
-            int getReceivedPongMessages();
-            bool closedDueToPingTimeout();
+        void start();
+        void stop();
+        bool isReady() const;
+        bool isClosed() const;
+        void sendMessage(const std::string& text);
+        int getReceivedPongMessages();
+        bool closedDueToPingTimeout();
 
-        private:
-            ix::WebSocket _webSocket;
-            int _port;
-            int _pingInterval;
-            int _pingTimeout;
-            std::atomic<int> _receivedPongMessages;
-            std::atomic<bool> _closedDueToPingTimeout;
+    private:
+        ix::WebSocket _webSocket;
+        int _port;
+        int _pingInterval;
+        int _pingTimeout;
+        std::atomic<int> _receivedPongMessages;
+        std::atomic<bool> _closedDueToPingTimeout;
     };
 
     WebSocketClient::WebSocketClient(int port, int pingInterval, int pingTimeout)
-        : _port(port),
-         _receivedPongMessages(0),
-         _closedDueToPingTimeout(false),
-         _pingInterval(pingInterval),
-         _pingTimeout(pingTimeout)
+        : _port(port)
+        , _receivedPongMessages(0)
+        , _closedDueToPingTimeout(false)
+        , _pingInterval(pingInterval)
+        , _pingTimeout(pingTimeout)
     {
         ;
     }
@@ -70,9 +68,7 @@ namespace
         std::string url;
         {
             std::stringstream ss;
-            ss << "ws://127.0.0.1:"
-               << _port
-               << "/";
+            ss << "ws://127.0.0.1:" << _port << "/";
 
             url = ss.str();
         }
@@ -88,58 +84,54 @@ namespace
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
 
-        _webSocket.setOnMessageCallback(
-            [this](ix::WebSocketMessageType messageType,
-               const std::string& str,
-               size_t wireSize,
-               const ix::WebSocketErrorInfo& error,
-               const ix::WebSocketOpenInfo& openInfo,
-                   const ix::WebSocketCloseInfo& closeInfo)
+        _webSocket.setOnMessageCallback([this](ix::WebSocketMessageType messageType,
+                                               const std::string& str,
+                                               size_t wireSize,
+                                               const ix::WebSocketErrorInfo& error,
+                                               const ix::WebSocketOpenInfo& openInfo,
+                                               const ix::WebSocketCloseInfo& closeInfo) {
+            std::stringstream ss;
+            if (messageType == ix::WebSocketMessageType::Open)
             {
-                std::stringstream ss;
-                if (messageType == ix::WebSocketMessageType::Open)
-                {
-                    log("client connected");
+                log("client connected");
+            }
+            else if (messageType == ix::WebSocketMessageType::Close)
+            {
+                log("client disconnected");
 
-                }
-                else if (messageType == ix::WebSocketMessageType::Close)
+                if (msg->closeInfo.code == 1011)
                 {
-                    log("client disconnected");
+                    _closedDueToPingTimeout = true;
+                }
+            }
+            else if (messageType == ix::WebSocketMessageType::Error)
+            {
+                ss << "Error ! " << error.reason;
+                log(ss.str());
+            }
+            else if (messageType == ix::WebSocketMessageType::Pong)
+            {
+                _receivedPongMessages++;
 
-                    if (msg->closeInfo.code == 1011)
-                    {
-                        _closedDueToPingTimeout = true;
-                    }
-
-                }
-                else if (messageType == ix::WebSocketMessageType::Error)
-                {
-                    ss << "Error ! " << error.reason;
-                    log(ss.str());
-                }
-                else if (messageType == ix::WebSocketMessageType::Pong)
-                {
-                    _receivedPongMessages++;
-
-                    ss << "Received pong message " << str;
-                    log(ss.str());
-                }
-                else if (messageType == ix::WebSocketMessageType::Ping)
-                {
-                    ss << "Received ping message " << str;
-                    log(ss.str());
-                }
-                else if (messageType == ix::WebSocketMessageType::Message)
-                {
-                    ss << "Received message " << str;
-                    log(ss.str());
-                }
-                else
-                {
-                    ss << "Invalid ix::WebSocketMessageType";
-                    log(ss.str());
-                }
-            });
+                ss << "Received pong message " << str;
+                log(ss.str());
+            }
+            else if (messageType == ix::WebSocketMessageType::Ping)
+            {
+                ss << "Received ping message " << str;
+                log(ss.str());
+            }
+            else if (messageType == ix::WebSocketMessageType::Message)
+            {
+                ss << "Received message " << str;
+                log(ss.str());
+            }
+            else
+            {
+                ss << "Invalid ix::WebSocketMessageType";
+                log(ss.str());
+            }
+        });
 
         _webSocket.start();
     }
@@ -159,21 +151,22 @@ namespace
         return _closedDueToPingTimeout;
     }
 
-    bool startServer(ix::WebSocketServer& server, std::atomic<int>& receivedPingMessages, bool enablePong)
+    bool startServer(ix::WebSocketServer& server,
+                     std::atomic<int>& receivedPingMessages,
+                     bool enablePong)
     {
         // A dev/null server
         server.setOnConnectionCallback(
             [&server, &receivedPingMessages](std::shared_ptr<ix::WebSocket> webSocket,
-                                             std::shared_ptr<ConnectionState> connectionState)
-            {
+                                             std::shared_ptr<ConnectionState> connectionState) {
                 webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, &server, &receivedPingMessages](ix::WebSocketMessageType messageType,
-                       const std::string& str,
-                       size_t wireSize,
-                       const ix::WebSocketErrorInfo& error,
-                       const ix::WebSocketOpenInfo& openInfo,
-                       const ix::WebSocketCloseInfo& closeInfo)
-                    {
+                    [webSocket, connectionState, &server, &receivedPingMessages](
+                        ix::WebSocketMessageType messageType,
+                        const std::string& str,
+                        size_t wireSize,
+                        const ix::WebSocketErrorInfo& error,
+                        const ix::WebSocketOpenInfo& openInfo,
+                        const ix::WebSocketCloseInfo& closeInfo) {
                         if (messageType == ix::WebSocketMessageType::Open)
                         {
                             Logger() << "New server connection";
@@ -194,10 +187,8 @@ namespace
                             log("Server received a ping");
                             receivedPingMessages++;
                         }
-                    }
-                );
-            }
-        );
+                    });
+            });
 
         if (!enablePong)
         {
@@ -215,7 +206,7 @@ namespace
         server.start();
         return true;
     }
-}
+} // namespace
 
 TEST_CASE("Websocket_ping_timeout_not_checked", "[setPingTimeout]")
 {
@@ -336,7 +327,7 @@ TEST_CASE("Websocket_no_ping_but_timeout", "[setPingTimeout]")
         REQUIRE(startServer(server, serverReceivedPingMessages, enablePong));
 
         std::string session = ix::generateSessionId();
-        int pingIntervalSecs = -1;  // no ping set
+        int pingIntervalSecs = -1; // no ping set
         int pingTimeoutSecs = 3;
         WebSocketClient webSocketClient(port, pingIntervalSecs, pingTimeoutSecs);
         webSocketClient.start();

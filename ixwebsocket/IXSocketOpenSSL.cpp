@@ -121,7 +121,9 @@ namespace ix
                 });
 
                 SSL_CTX_set_verify_depth(ctx, 4);
-            } else {
+            }
+            else
+            {
                 SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, nullptr);
             }
 

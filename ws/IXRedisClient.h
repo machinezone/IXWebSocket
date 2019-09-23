@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include <atomic>
 #include <functional>
 #include <memory>
-#include <atomic>
 
 namespace ix
 {
@@ -20,7 +20,10 @@ namespace ix
         using OnRedisSubscribeResponseCallback = std::function<void(const std::string&)>;
         using OnRedisSubscribeCallback = std::function<void(const std::string&)>;
 
-        RedisClient() : _stop(false) {}
+        RedisClient()
+            : _stop(false)
+        {
+        }
         ~RedisClient() = default;
 
         bool connect(const std::string& hostname, int port);
