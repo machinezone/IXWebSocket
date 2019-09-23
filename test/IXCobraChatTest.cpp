@@ -78,11 +78,11 @@ namespace
     SatoriChat::SatoriChat(const std::string& user,
                            const std::string& session,
                            const std::string& endpoint) :
-        _connectedAndSubscribed(false),
-        _stop(false),
         _user(user),
         _session(session),
-        _endpoint(endpoint)
+        _endpoint(endpoint),
+        _stop(false),
+        _connectedAndSubscribed(false)
     {
     }
 
@@ -197,7 +197,7 @@ namespace
             [this, channel]
             (ix::CobraConnectionEventType eventType,
              const std::string& errMsg,
-             const ix::WebSocketHttpHeaders& headers,
+             const ix::WebSocketHttpHeaders& /*headers*/,
              const std::string& subscriptionId,
              CobraConnection::MsgId msgId)
             {
@@ -262,11 +262,11 @@ namespace
         _conn.disconnect();
 
         _conn.setEventCallback([]
-                               (ix::CobraConnectionEventType eventType,
-                                const std::string& errMsg,
-                                const ix::WebSocketHttpHeaders& headers,
-                                const std::string& subscriptionId,
-                                CobraConnection::MsgId msgId)
+                               (ix::CobraConnectionEventType /*eventType*/,
+                                const std::string& /*errMsg*/,
+                                const ix::WebSocketHttpHeaders& /*headers*/,
+                                const std::string& /*subscriptionId*/,
+                                CobraConnection::MsgId /*msgId*/)
         {
             ;
         });

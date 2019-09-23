@@ -178,11 +178,11 @@ namespace
     {
         // A dev/null server
         server.setOnConnectionCallback(
-            [&server, &receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite](std::shared_ptr<ix::WebSocket> webSocket,
+            [&receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite](std::shared_ptr<ix::WebSocket> webSocket,
                                              std::shared_ptr<ConnectionState> connectionState)
             {
                 webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, &server, &receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite](const ix::WebSocketMessagePtr& msg)
+                    [webSocket, connectionState, &receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite](const ix::WebSocketMessagePtr& msg)
                     {
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
