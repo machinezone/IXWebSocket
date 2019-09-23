@@ -16,15 +16,13 @@ generate_cert_and_key() {
     openssl req -new -sha256 \
         -key "${path}/${CN}-key.pem" \
         -subj "/O=machinezone/O=IXWebSocket/CN=${CN}" \
-        -reqexts SAN \
-        -config <(cat /etc/ssl/openssl.cnf \
-            <(printf "\n[SAN]\nsubjectAltName=DNS:localhost,DNS:127.0.0.1")) \
         -out "${path}/${CN}.csr" &>/dev/null
-    
+
     if [ -z "${ca_path}" ]; then
         # self-signed
         openssl x509 -req -in "${path}/${CN}.csr" \
             -signkey "${path}/${CN}-key.pem" -days 365 -sha256 \
+            -extfile <(printf "subjectAltName=DNS:localhost,IP:127.0.0.1") \
             -outform PEM -out "${path}/${CN}-crt.pem" &>/dev/null
     
     else
@@ -32,6 +30,7 @@ generate_cert_and_key() {
             -CA "${ca_path}/${ca_name}-crt.pem" \
             -CAkey "${ca_path}/${ca_name}-key.pem" \
             -CAcreateserial -days 365 -sha256 \
+            -extfile <(printf "subjectAltName=DNS:localhost,IP:127.0.0.1") \
             -outform PEM -out "${path}/${CN}-crt.pem" &>/dev/null
     fi
 
