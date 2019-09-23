@@ -5,36 +5,35 @@
  */
 
 #include "IXSocketConnect.h"
+
 #include "IXDNSLookup.h"
 #include "IXNetSystem.h"
 #include "IXSocket.h"
-
-#include <string.h>
 #include <fcntl.h>
+#include <string.h>
 #include <sys/types.h>
 
 // Android needs extra headers for TCP_NODELAY and IPPROTO_TCP
 #ifdef ANDROID
-# include <linux/in.h>
-# include <linux/tcp.h>
+#include <linux/in.h>
+#include <linux/tcp.h>
 #endif
 
 namespace ix
 {
     //
     // This function can be cancelled every 50 ms
-    // This is important so that we don't block the main UI thread when shutting down a connection which is
-    // already trying to reconnect, and can be blocked waiting for ::connect to respond.
+    // This is important so that we don't block the main UI thread when shutting down a connection
+    // which is already trying to reconnect, and can be blocked waiting for ::connect to respond.
     //
-    int SocketConnect::connectToAddress(const struct addrinfo *address,
+    int SocketConnect::connectToAddress(const struct addrinfo* address,
                                         std::string& errMsg,
-                                        const CancellationRequest& isCancellationRequested)
+                                        const CancellationRequest& isCancellationRequested,
+                                        const SocketTLSOptions& tlsOptions)
     {
         errMsg = "no error";
 
-        int fd = socket(address->ai_family,
-                        address->ai_socktype,
-                        address->ai_protocol);
+        int fd = socket(address->ai_family, address->ai_socktype, address->ai_protocol);
         if (fd < 0)
         {
             errMsg = "Cannot create a socket";
@@ -74,8 +73,7 @@ namespace ix
             else if (pollResult == PollResultType::Error)
             {
                 Socket::closeSocket(fd);
-                errMsg = std::string("Connect error: ") +
-                            strerror(Socket::getErrno());
+                errMsg = std::string("Connect error: ") + strerror(Socket::getErrno());
                 return -1;
             }
             else if (pollResult == PollResultType::ReadyForWrite)
@@ -85,8 +83,7 @@ namespace ix
             else
             {
                 Socket::closeSocket(fd);
-                errMsg = std::string("Connect error: ") +
-                            strerror(Socket::getErrno());
+                errMsg = std::string("Connect error: ") + strerror(Socket::getErrno());
                 return -1;
             }
         }
@@ -99,13 +96,14 @@ namespace ix
     int SocketConnect::connect(const std::string& hostname,
                                int port,
                                std::string& errMsg,
-                               const CancellationRequest& isCancellationRequested)
+                               const CancellationRequest& isCancellationRequested,
+                               const SocketTLSOptions& tlsOptions)
     {
         //
         // First do DNS resolution
         //
         auto dnsLookup = std::make_shared<DNSLookup>(hostname, port);
-        struct addrinfo *res = dnsLookup->resolve(errMsg, isCancellationRequested);
+        struct addrinfo* res = dnsLookup->resolve(errMsg, isCancellationRequested);
         if (res == nullptr)
         {
             return -1;
@@ -114,7 +112,7 @@ namespace ix
         int sockfd = -1;
 
         // iterate through the records to find a working peer
-        struct addrinfo *address;
+        struct addrinfo* address;
         for (address = res; address != nullptr; address = address->ai_next)
         {
             //
@@ -149,8 +147,7 @@ namespace ix
         // 3. (apple) prevent SIGPIPE from being emitted when the remote end disconnect
 #ifdef SO_NOSIGPIPE
         int value = 1;
-        setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE,
-                   (void *)&value, sizeof(value));
+        setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, (void*) &value, sizeof(value));
 #endif
     }
-}
+} // namespace ix

@@ -64,6 +64,8 @@ namespace ix
         PollResultType isReadyToRead(int timeoutMs);
 
         // Virtual methods
+        virtual bool accept(std::string& errMsg);
+
         virtual bool connect(const std::string& url,
                              int port,
                              std::string& errMsg,

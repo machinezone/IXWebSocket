@@ -23,6 +23,7 @@ namespace ix
     public:
         SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketOpenSSL();
+        virtual bool accept(std::string& errMsg) final;
 
         virtual bool connect(const std::string& host,
                              int port,
@@ -38,7 +39,8 @@ namespace ix
         void openSSLInitialize();
         std::string getSSLError(int ret);
         SSL_CTX* openSSLCreateContext(std::string& errMsg);
-        bool openSSLHandshake(const std::string& hostname, std::string& errMsg);
+        bool openSSLClientHandshake(const std::string& hostname, std::string& errMsg);
+        bool openSSLServerHandshake(std::string& errMsg);
         bool openSSLCheckServerCert(SSL* ssl, const std::string& hostname, std::string& errMsg);
         bool checkHost(const std::string& host, const char* pattern);
 

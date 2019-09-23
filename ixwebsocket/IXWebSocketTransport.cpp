@@ -104,6 +104,7 @@ namespace ix
     }
 
     void WebSocketTransport::configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
+                                       bool isTLS,
                                        const SocketTLSOptions& socketTLSOptions,
                                        bool enablePong,
                                        int pingIntervalSecs,
@@ -111,6 +112,7 @@ namespace ix
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
+        _isTLS = isTLS;
         _socketTLSOptions = socketTLSOptions;
         _enablePong = enablePong;
         _pingIntervalSecs = pingIntervalSecs;
@@ -181,9 +183,14 @@ namespace ix
         _useMask = false;
 
         std::string errorMsg;
-        _socket = createSocket(fd, errorMsg);
+        _socket = createSocket(fd, _isTLS, errorMsg, _socketTLSOptions);
 
         if (!_socket)
+        {
+            return WebSocketInitResult(false, 0, errorMsg);
+        }
+
+        if (!_socket->accept(errorMsg))
         {
             return WebSocketInitResult(false, 0, errorMsg);
         }

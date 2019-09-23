@@ -79,7 +79,7 @@ namespace ix
         _connectedClientsCount++;
 
         std::string errorMsg;
-        auto socket = createSocket(fd, errorMsg);
+        auto socket = createSocket(fd, false, errorMsg);
 
         // Set the socket to non blocking mode + other tweaks
         SocketConnect::configure(fd);

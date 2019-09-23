@@ -18,7 +18,7 @@ namespace ix
         return std::move(*this);
     }
 
-    bool SocketTLSOptions::isUsingClientCert() const
+    bool SocketTLSOptions::hasCertAndKey() const
     {
         return !certFile.empty() && !keyFile.empty();
     }

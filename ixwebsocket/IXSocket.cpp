@@ -166,6 +166,12 @@ namespace ix
         return _selectInterrupt->notify(wakeUpCode);
     }
 
+    bool Socket::accept(std::string& errMsg)
+    {
+        // no-op; called from server to initialize already-connected sockets as needed
+        return _sockfd != -1;
+    }
+
     bool Socket::connect(const std::string& host,
                          int port,
                          std::string& errMsg,

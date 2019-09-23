@@ -25,7 +25,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-
 #include <vector>
 
 namespace ix
@@ -73,6 +72,7 @@ namespace ix
         ~WebSocketTransport();
 
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
+                       bool isTLS,
                        const SocketTLSOptions& socketTLSOptions,
                        bool enablePong,
                        int pingIntervalSecs,
@@ -108,6 +108,7 @@ namespace ix
 
     private:
         std::string _url;
+        bool _isTLS;
 
         struct wsheader_type
         {

@@ -115,7 +115,7 @@ namespace ix
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
         // Server
-        WebSocketInitResult connectToSocket(int fd, int timeoutSecs);
+        WebSocketInitResult connectToSocket(int fd, int timeoutSecs, bool isTLS = false);
 
         WebSocketTransport _ws;
 

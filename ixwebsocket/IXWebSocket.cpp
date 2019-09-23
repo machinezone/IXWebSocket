@@ -179,6 +179,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(_perMessageDeflateOptions,
+                          false,
                           _socketTLSOptions,
                           _enablePong,
                           _pingIntervalSecs,
@@ -200,11 +201,12 @@ namespace ix
         return status;
     }
 
-    WebSocketInitResult WebSocket::connectToSocket(int fd, int timeoutSecs)
+    WebSocketInitResult WebSocket::connectToSocket(int fd, int timeoutSecs, bool isTLS)
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(_perMessageDeflateOptions,
+                          isTLS,
                           _socketTLSOptions,
                           _enablePong,
                           _pingIntervalSecs,

@@ -24,7 +24,7 @@ namespace ix
         // leverage the system defaults, use 'NONE' to disable peer verification
         std::string caFile = "SYSTEM";
 
-        bool isUsingClientCert() const;
+        bool hasCertAndKey() const;
 
         bool isUsingSystemDefaults() const;
 

@@ -15,8 +15,12 @@
 #include <openssl/x509v3.h>
 #define socketerrno errno
 
+
 namespace ix
 {
+    const char* kOWASPAPlusCiphers = "DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-"
+                                     "RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256";
+
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
 
@@ -104,9 +108,10 @@ namespace ix
     SSL_CTX* SocketOpenSSL::openSSLCreateContext(std::string& errMsg)
     {
         const SSL_METHOD* method = SSLv23_client_method();
+        // const SSL_METHOD* method = TLSv1_2_client_method();
         if (method == nullptr)
         {
-            errMsg = "SSLv23_client_method failure";
+            errMsg = "TLSv1_2_client_method failure";
             return nullptr;
         }
         _ssl_method = method;
@@ -114,17 +119,7 @@ namespace ix
         SSL_CTX* ctx = SSL_CTX_new(_ssl_method);
         if (ctx)
         {
-            if (!_tlsOptions.isPeerVerifyDisabled())
-            {
-                SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, [](int preverify, X509_STORE_CTX*) -> int {
-                    return preverify;
-                });
-
-                SSL_CTX_set_verify_depth(ctx, 4);
-            } else {
-                SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, nullptr);
-            }
-
+            SSL_CTX_set_mode(ctx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
             SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
         }
         return ctx;
@@ -179,7 +174,7 @@ namespace ix
                 X509_get_subject_name((X509*) server_cert), NID_commonName, -1);
             if (cn_pos)
             {
-                X509_NAME_ENTRY* cn_entry =
+                X509__ssl_connectionNAME_ENTRY* cn_entry =
                     X509_NAME_get_entry(X509_get_subject_name((X509*) server_cert), cn_pos);
 
                 if (cn_entry)
@@ -207,7 +202,7 @@ namespace ix
         return true;
     }
 
-    bool SocketOpenSSL::openSSLHandshake(const std::string& host, std::string& errMsg)
+    bool SocketOpenSSL::openSSLClientHandshake(const std::string& host, std::string& errMsg)
     {
         while (true)
         {
@@ -242,6 +237,42 @@ namespace ix
         }
     }
 
+    bool SocketOpenSSL::openSSLServerHandshake(std::string& errMsg)
+    {
+        while (true)
+        {
+            if (_ssl_connection == nullptr || _ssl_context == nullptr)
+            {
+                return false;
+            }
+
+            ERR_clear_error();
+            int accept_result = SSL_accept(_ssl_connection);
+            if (accept_result == 1)
+            {
+                // return openSSLCheckServerCert(_ssl_connection, host, errMsg);
+                return true;
+            }
+            int reason = SSL_get_error(_ssl_connection, accept_result);
+
+            bool rc = false;
+            if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
+            {
+                rc = true;
+            }
+            else
+            {
+                errMsg = getSSLError(accept_result);
+                rc = false;
+            }
+
+            if (!rc)
+            {
+                return false;
+            }
+        }
+    }
+
     bool SocketOpenSSL::connect(const std::string& host,
                                 int port,
                                 std::string& errMsg,
@@ -257,8 +288,11 @@ namespace ix
                 return false;
             }
 
-            _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
-            if (_sockfd == -1) return false;
+            if (_sockfd == -1)
+            {
+                _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
+                if (_sockfd == -1) return false;
+            }
 
             _ssl_context = openSSLCreateContext(errMsg);
             if (_ssl_context == nullptr)
@@ -267,7 +301,186 @@ namespace ix
             }
 
             ERR_clear_error();
-            if (_tlsOptions.isUsingClientCert())
+            if (_tlsOptions.hasCertAndKey())
+            {
+                // if (SSL_CTX_use_certificate_chain_file(_ssl_context,
+                //                                        _tlsOptions.certFile.c_str()) != 1)
+                // {
+                //     auto sslErr = ERR_get_error();
+                //     errMsg = "OpenSSL failed - SSL_CTX_use_certificate_chain_file(\"" +
+                //              _tlsOptions.certFile + "\") failed: ";
+                //     errMsg += ERR_error_string(sslErr, nullptr);
+                // }
+                // else if (SSL_CTX_use_PrivateKey_file(
+                //              _ssl_context, _tlsOptions.keyFile.c_str(), SSL_FILETYPE_PEM) != 1)
+                // {
+                //     auto sslErr = ERR_get_error();
+                //     errMsg = "OpenSSL failed - SSL_CTX_use_PrivateKey_file(\"" +
+                //              _tlsOptions.keyFile + "\") failed: ";
+                //     errMsg += ERR_error_string(sslErr, nullptr);
+                // }
+
+                if (SSL_CTX_use_certificate_file(
+                        _ssl_context, _tlsOptions.certFile.c_str(), SSL_FILETYPE_PEM) != 1)
+                {
+                    auto sslErr = ERR_get_error();
+                    errMsg = "OpenSSL failed - SSL_CTX_use_certificate_file(\"" +
+                             _tlsOptions.certFile + "\") failed: ";
+                    errMsg += ERR_error_string(sslErr, nullptr);
+                }
+                /* set the private key from KeyFile (may be the same as CertFile) */
+                if (SSL_CTX_use_PrivateKey_file(
+                        _ssl_context, _tlsOptions.keyFile.c_str(), SSL_FILETYPE_PEM) != 1)
+                {
+                    auto sslErr = ERR_get_error();
+                    errMsg = "OpenSSL failed - SSL_CTX_use_PrivateKey_file(\"" +
+                             _tlsOptions.keyFile + "\") failed: ";
+                    errMsg += ERR_error_string(sslErr, nullptr);
+                }
+                /* verify private key */
+                if (!SSL_CTX_check_private_key(_ssl_context))
+                {
+                    auto sslErr = ERR_get_error();
+                    errMsg = "OpenSSL failed - cert/key mismatch(\"" + _tlsOptions.certFile + ", " +
+                             _tlsOptions.keyFile + "\")";
+                    errMsg += ERR_error_string(sslErr, nullptr);
+                }
+            }
+
+
+            ERR_clear_error();
+            if (!_tlsOptions.isPeerVerifyDisabled())
+            {
+                if (_tlsOptions.isUsingSystemDefaults())
+                {
+                    if (SSL_CTX_set_default_verify_paths(_ssl_context) == 0)
+                    {
+                        auto sslErr = ERR_get_error();
+                        errMsg = "OpenSSL failed - SSL_CTX_default_verify_paths loading failed: ";
+                        errMsg += ERR_error_string(sslErr, nullptr);
+                    }
+                }
+                else
+                {
+                    // const char* root_ca_file = _tlsOptions.caFile.c_str();
+                    // STACK_OF(X509_NAME) * rootCAs;
+                    // rootCAs = SSL_load_client_CA_file(root_ca_file);
+                    // if (rootCAs == NULL)
+                    // {
+                    //     auto sslErr = ERR_get_error();
+                    //     errMsg = "OpenSSL failed - SSL_load_client_CA_file('" +
+                    //     _tlsOptions.caFile +
+                    //              "') failed: ";
+                    //     errMsg += ERR_error_string(sslErr, nullptr);
+                    // }
+                    // else
+                    // {
+                    // SSL_CTX_set_client_CA_list(_ssl_context, rootCAs);
+                    if (SSL_CTX_load_verify_locations(
+                            _ssl_context, _tlsOptions.caFile.c_str(), NULL) != 1)
+                    {
+                        auto sslErr = ERR_get_error();
+                        errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +
+                                 _tlsOptions.caFile + "\") failed: ";
+                        errMsg += ERR_error_string(sslErr, nullptr);
+                    }
+                    // }
+                }
+
+                SSL_CTX_set_verify(_ssl_context,
+                                   SSL_VERIFY_PEER,
+                                   [](int preverify, X509_STORE_CTX*) -> int { return preverify; });
+                SSL_CTX_set_verify_depth(_ssl_context, 4);
+            }
+            else
+            {
+                SSL_CTX_set_verify(_ssl_context, SSL_VERIFY_NONE, nullptr);
+            }
+            if (SSL_CTX_set_cipher_list(_ssl_context, "HIGH:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4") != 1)
+            {
+                return false;
+            }
+
+            _ssl_connection = SSL_new(_ssl_context);
+            if (_ssl_connection == nullptr)
+            {
+                errMsg = "OpenSSL failed to connect";
+                SSL_CTX_free(_ssl_context);
+                _ssl_context = nullptr;
+                return false;
+            }
+            SSL_set_fd(_ssl_connection, _sockfd);
+
+            // SNI support
+            SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
+
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+            // Support for server name verification
+            // (The docs say that this should work from 1.0.2, and is the default from
+            // 1.1.0, buTLSv1_server_method()t it does not. To be on the safe side, the manual test
+            // below is enabled for all versions prior to 1.1.0.)
+            X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
+            X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0);
+#endif
+            handshakeSuccessful = openSSLClientHandshake(host, errMsg);
+        }
+
+        if (!handshakeSuccessful)
+        {
+            close();
+            return false;
+        }
+
+        return true;
+    }
+
+    bool SocketOpenSSL::accept(std::string& errMsg)
+    {
+        bool handshakeSuccessful = false;
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+
+            if (!_openSSLInitializationSuccessful)
+            {
+                errMsg = "OPENSSL_init_ssl failure";
+                return false;
+            }
+
+            if (_sockfd == -1)
+            {
+                return false;
+            }
+
+            // _ssl_context = openSSLCreateContext(errMsg);
+            {
+                const SSL_METHOD* method = SSLv23_server_method();
+                if (method == nullptr)
+                {
+                    errMsg = "SSLv23_server_method failure";
+                    _ssl_context = nullptr;
+                }
+                else
+                {
+                    _ssl_method = method;
+
+                    _ssl_context = SSL_CTX_new(_ssl_method);
+                    if (_ssl_context)
+                    {
+                        SSL_CTX_set_mode(_ssl_context, SSL_MODE_ENABLE_PARTIAL_WRITE);
+                        SSL_CTX_set_mode(_ssl_context, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+                        SSL_CTX_set_options(_ssl_context,
+                                            SSL_OP_ALL | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+                    }
+                }
+            }
+
+            if (_ssl_context == nullptr)
+            {
+                return false;
+            }
+
+            ERR_clear_error();
+            if (_tlsOptions.hasCertAndKey())
             {
                 if (SSL_CTX_use_certificate_chain_file(_ssl_context,
                                                        _tlsOptions.certFile.c_str()) != 1)
@@ -315,7 +528,7 @@ namespace ix
                     else
                     {
                         SSL_CTX_set_client_CA_list(_ssl_context, rootCAs);
-                        if (SSL_CTX_load_verify_locations(_ssl_context, root_ca_file, NULL) != 1)
+                        if (SSL_CTX_load_verify_locations(_ssl_context, root_ca_file, nullptr) != 1)
                         {
                             auto sslErr = ERR_get_error();
                             errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +
@@ -324,6 +537,19 @@ namespace ix
                         }
                     }
                 }
+
+                SSL_CTX_set_verify(
+                    _ssl_context, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
+                SSL_CTX_set_verify_depth(_ssl_context, 4);
+            }
+            else
+            {
+                SSL_CTX_set_verify(_ssl_context, SSL_VERIFY_NONE, nullptr);
+            }
+
+            if (SSL_CTX_set_cipher_list(_ssl_context, "HIGH:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4") != 1)
+            {
+                return false;
             }
 
             _ssl_connection = SSL_new(_ssl_context);
@@ -334,20 +560,33 @@ namespace ix
                 _ssl_context = nullptr;
                 return false;
             }
+
             SSL_set_fd(_ssl_connection, _sockfd);
 
-            // SNI support
-            SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
+            BIO* sbio = BIO_new_socket(_sockfd, BIO_NOCLOSE);
+            if (sbio)
+            {
+                SSL_set_bio(_ssl_connection, sbio, sbio);
+                SSL_set_accept_state(_ssl_connection);
+            }
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
-            // Support for server name verification
-            // (The docs say that this should work from 1.0.2, and is the default from
-            // 1.1.0, but it does not. To be on the safe side, the manual test below is
-            // enabled for all versions prior to 1.1.0.)
-            X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
-            X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0);
-#endif
-            handshakeSuccessful = openSSLHandshake(host, errMsg);
+            // SSL_set_fd(_ssl_connection, _sockfd);
+
+            //             // SNI support
+            //             SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
+
+            // #if OPENSSL_VERSION_NUMBER >= 0x10002000L
+            //             // Support for server name verification
+            //             // (The docs say that this should work from 1.0.2, and is the default
+            //             from
+            //             // 1.1.0, but it does not. To be on the safe side, the manual test below
+            //             is
+            //             // enabled for all versions prior to 1.1.0.)
+            //             X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
+            //             X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0);
+            // #endif
+            // handshakeSuccessful = true;
+            handshakeSuccessful = openSSLServerHandshake(errMsg);
         }
 
         if (!handshakeSuccessful)
