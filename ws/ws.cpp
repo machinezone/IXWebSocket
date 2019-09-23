@@ -258,6 +258,7 @@ int main(int argc, char** argv)
     CLI::App* httpServerApp = app.add_subcommand("httpd", "HTTP server");
     httpServerApp->add_option("--port", port, "Port");
     httpServerApp->add_option("--host", hostname, "Hostname");
+    add_tls_options(httpServerApp);
 
     CLI::App* autobahnApp = app.add_subcommand("autobahn", "Test client Autobahn compliance");
     autobahnApp->add_option("--url", url, "url");

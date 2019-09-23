@@ -22,6 +22,7 @@ namespace ix
         spdlog::info("Listening on {}:{}", hostname, port);
 
         ix::HttpServer server(port, hostname);
+        server.setTLSOptions({certFile, keyFile, caFile});
 
         auto res = server.listen();
         if (!res.first)

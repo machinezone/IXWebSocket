@@ -79,7 +79,7 @@ namespace ix
         _connectedClientsCount++;
 
         std::string errorMsg;
-        auto socket = createSocket(fd, false, errorMsg);
+        auto socket = createSocket(fd, _tlsOptions.hasCertAndKey(), errorMsg, _tlsOptions);
 
         // Set the socket to non blocking mode + other tweaks
         SocketConnect::configure(fd);
