@@ -1,0 +1,50 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: make test
+      run: make test
+
+  mac:
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: install redis
+      run: brew install redis
+
+    - name: start redis server
+      run: brew services start redis
+
+    - name: make test
+      run: make test
+
+      #  # Windows does not work yet, I'm stuck at getting CMake to run + finding vcpkg
+      #  win:
+      #    runs-on: windows-2016
+      #
+      #    steps:
+      #    - uses: actions/checkout@v1
+      #
+      #    - name: run cmake
+      #      run: |
+      #        "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+      #        mkdir build
+      #        cd build
+      #        cmake -DCMAKE_TOOLCHAIN_FILE=%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake -DUSE_WS=1 -DUSE_TEST=1 -DUSE_TLS=1 -G"NMake Makefiles" ..
+      #    - name: build
+      #      run: |
+      #        "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+      #        cd build
+      #        nmake
+      #    - name: run tests
+      #      run: 
+      #        cd test
+      #        ..\build\test\ixwebsocket_unittest.exe
