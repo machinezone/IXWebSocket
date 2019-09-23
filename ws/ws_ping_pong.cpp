@@ -4,34 +4,35 @@
  *  Copyright (c) 2018-2019 Machine Zone, Inc. All rights reserved.
  */
 
+#include "ws_tls_support.h"
 #include <iostream>
-#include <sstream>
-#include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXWebSocket.h>
+#include <sstream>
 
 namespace ix
 {
-    class WebSocketPingPong
+    class WebSocketPingPong : public TLSSupport
     {
-        public:
-            WebSocketPingPong(const std::string& _url);
+    public:
+        WebSocketPingPong(const std::string& _url);
 
-            void subscribe(const std::string& channel);
-            void start();
-            void stop();
+        void subscribe(const std::string& channel);
+        void start();
+        void stop();
 
-            void ping(const std::string& text);
-            void send(const std::string& text);
+        void ping(const std::string& text);
+        void send(const std::string& text);
 
-        private:
-            std::string _url;
-            ix::WebSocket _webSocket;
+    private:
+        std::string _url;
+        ix::WebSocket _webSocket;
 
-            void log(const std::string& msg);
+        void log(const std::string& msg);
     };
 
-    WebSocketPingPong::WebSocketPingPong(const std::string& url) :
-        _url(url)
+    WebSocketPingPong::WebSocketPingPong(const std::string& url)
+        : _url(url)
     {
         ;
     }
@@ -53,63 +54,57 @@ namespace ix
         std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
-        _webSocket.setOnMessageCallback(
-            [this](const ix::WebSocketMessagePtr& msg)
+        _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
+            std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
+
+            std::stringstream ss;
+            if (msg->type == ix::WebSocketMessageType::Open)
             {
-                std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
+                log("ping_pong: connected");
 
-                std::stringstream ss;
-                if (msg->type == ix::WebSocketMessageType::Open)
+                std::cout << "Uri: " << msg->openInfo.uri << std::endl;
+                std::cout << "Handshake Headers:" << std::endl;
+                for (auto it : msg->openInfo.headers)
                 {
-                    log("ping_pong: connected");
-
-                    std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-                    std::cout << "Handshake Headers:" << std::endl;
-                    for (auto it : msg->openInfo.headers)
-                    {
-                        std::cout << it.first << ": " << it.second << std::endl;
-                    }
+                    std::cout << it.first << ": " << it.second << std::endl;
                 }
-                else if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    ss << "ping_pong: disconnected:"
-                       << " code " << msg->closeInfo.code
-                       << " reason " << msg->closeInfo.reason
-                       << msg->str;
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    ss << "ping_pong: received message: "
-                       << msg->str;
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Ping)
-                {
-                    ss << "ping_pong: received ping message: "
-                       << msg->str;
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Pong)
-                {
-                    ss << "ping_pong: received pong message: "
-                       << msg->str;
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Error)
-                {
-                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
-                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
-                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
-                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
-                    log(ss.str());
-                }
-                else
-                {
-                    ss << "Invalid ix::WebSocketMessageType";
-                    log(ss.str());
-                }
-            });
+            }
+            else if (msg->type == ix::WebSocketMessageType::Close)
+            {
+                ss << "ping_pong: disconnected:"
+                   << " code " << msg->closeInfo.code << " reason " << msg->closeInfo.reason
+                   << msg->str;
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                ss << "ping_pong: received message: " << msg->str;
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Ping)
+            {
+                ss << "ping_pong: received ping message: " << msg->str;
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Pong)
+            {
+                ss << "ping_pong: received pong message: " << msg->str;
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Error)
+            {
+                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                log(ss.str());
+            }
+            else
+            {
+                ss << "Invalid ix::WebSocketMessageType";
+                log(ss.str());
+            }
+        });
 
         _webSocket.start();
     }
@@ -118,7 +113,8 @@ namespace ix
     {
         if (!_webSocket.ping(text).success)
         {
-            std::cerr << "Failed to send ping message. Message too long (> 125 bytes) or endpoint is disconnected"
+            std::cerr << "Failed to send ping message. Message too long (> 125 bytes) or endpoint "
+                         "is disconnected"
                       << std::endl;
         }
     }
@@ -128,10 +124,14 @@ namespace ix
         _webSocket.send(text);
     }
 
-    int ws_ping_pong_main(const std::string& url)
+    int ws_ping_pong_main(const std::string& url,
+                          const std::string& certFile,
+                          const std::string& keyFile,
+                          const std::string& caFile)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketPingPong webSocketPingPong(url);
+        webSocketPingPong.setTLSOptions(certFile, keyFile, caFile);
         webSocketPingPong.start();
 
         while (true)
@@ -160,4 +160,4 @@ namespace ix
 
         return 0;
     }
-}
+} // namespace ix

@@ -4,11 +4,11 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
-#include <sstream>
 #include <fstream>
+#include <iostream>
 #include <ixwebsocket/IXHttpClient.h>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
+#include <sstream>
 
 namespace ix
 {
@@ -19,7 +19,7 @@ namespace ix
         idx = path.rfind('/');
         if (idx != std::string::npos)
         {
-            std::string filename = path.substr(idx+1);
+            std::string filename = path.substr(idx + 1);
             return filename;
         }
         else
@@ -44,7 +44,7 @@ namespace ix
             if (pos == std::string::npos) continue;
 
             auto key = token.substr(0, pos);
-            auto val = token.substr(pos+1);
+            auto val = token.substr(pos + 1);
 
             std::cerr << key << ": " << val << std::endl;
             headers[key] = val;
@@ -73,7 +73,7 @@ namespace ix
             if (pos == std::string::npos) continue;
 
             auto key = token.substr(0, pos);
-            auto val = token.substr(pos+1);
+            auto val = token.substr(pos + 1);
 
             std::cerr << key << ": " << val << std::endl;
             httpParameters[key] = val;
@@ -93,9 +93,13 @@ namespace ix
                             bool verbose,
                             bool save,
                             const std::string& output,
-                            bool compress)
+                            bool compress,
+                            const std::string& certFile,
+                            const std::string& keyFile,
+                            const std::string& caFile)
     {
         HttpClient httpClient;
+        httpClient.setTLSOptions({certFile, keyFile, caFile});
         auto args = httpClient.createRequest();
         args->extraHeaders = parseHeaders(headersData);
         args->connectTimeout = connectTimeout;
@@ -104,14 +108,10 @@ namespace ix
         args->maxRedirects = maxRedirects;
         args->verbose = verbose;
         args->compress = compress;
-        args->logger = [](const std::string& msg)
-        {
-            std::cout << msg;
-        };
-        args->onProgressCallback = [](int current, int total) -> bool
-        {
-            std::cerr << "\r" << "Downloaded "
-                      << current << " bytes out of " << total;
+        args->logger = [](const std::string& msg) { std::cout << msg; };
+        args->onProgressCallback = [](int current, int total) -> bool {
+            std::cerr << "\r"
+                      << "Downloaded " << current << " bytes out of " << total;
             return true;
         };
 
@@ -160,7 +160,7 @@ namespace ix
 
                 std::cout << "Writing to disk: " << filename << std::endl;
                 std::ofstream out(filename);
-                out.write((char*)&response->payload.front(), response->payload.size());
+                out.write((char*) &response->payload.front(), response->payload.size());
                 out.close();
             }
             else
@@ -173,11 +173,12 @@ namespace ix
                 {
                     std::cerr << "Binary output can mess up your terminal." << std::endl;
                     std::cerr << "Use the -O flag to save the file to disk." << std::endl;
-                    std::cerr << "You can also use the --output option to specify a filename." << std::endl;
+                    std::cerr << "You can also use the --output option to specify a filename."
+                              << std::endl;
                 }
             }
         }
 
         return 0;
     }
-}
+} // namespace ix

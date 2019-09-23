@@ -4,16 +4,20 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
-#include <vector>
 #include <fstream>
-#include <sstream>
+#include <iostream>
 #include <ixwebsocket/IXHttpServer.h>
 #include <spdlog/spdlog.h>
+#include <sstream>
+#include <vector>
 
 namespace ix
 {
-    int ws_httpd_main(int port, const std::string& hostname)
+    int ws_httpd_main(int port,
+                      const std::string& hostname,
+                      const std::string& certFile,
+                      const std::string& keyFile,
+                      const std::string& caFile)
     {
         spdlog::info("Listening on {}:{}", hostname, port);
 
@@ -31,4 +35,4 @@ namespace ix
 
         return 0;
     }
-}
+} // namespace ix

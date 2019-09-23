@@ -9,6 +9,7 @@
 #include "IXHttp.h"
 #include "IXSocket.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXSocketTLSOptions.h"
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
@@ -26,6 +27,8 @@ namespace ix
     public:
         HttpClient(bool async = false);
         ~HttpClient();
+
+        void setTLSOptions(const SocketTLSOptions& tlsOptions);
 
         HttpResponsePtr get(const std::string& url, HttpRequestArgsPtr args);
         HttpResponsePtr head(const std::string& url, HttpRequestArgsPtr args);
@@ -78,6 +81,7 @@ namespace ix
 
         // Async API
         bool _async;
+        SocketTLSOptions _tlsOptions;
         std::queue<std::pair<HttpRequestArgsPtr, OnResponseCallback>> _queue;
         mutable std::mutex _queueMutex;
         std::condition_variable _condition;

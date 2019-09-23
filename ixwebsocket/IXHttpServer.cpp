@@ -5,13 +5,13 @@
  */
 
 #include "IXHttpServer.h"
+
+#include "IXNetSystem.h"
 #include "IXSocketConnect.h"
 #include "IXSocketFactory.h"
-#include "IXNetSystem.h"
-
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 #include <vector>
 
 namespace
@@ -28,7 +28,7 @@ namespace
         file.seekg(0, file.beg);
 
         memblock.resize((size_t) size);
-        file.read((char*)&memblock.front(), static_cast<std::streamsize>(size));
+        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
 
         return std::make_pair(true, memblock);
     }
@@ -39,15 +39,13 @@ namespace
         auto vec = res.second;
         return std::make_pair(res.first, std::string(vec.begin(), vec.end()));
     }
-}
+} // namespace
 
 namespace ix
 {
-    HttpServer::HttpServer(int port,
-                           const std::string& host,
-                           int backlog,
-                           size_t maxConnections) : SocketServer(port, host, backlog, maxConnections),
-        _connectedClientsCount(0)
+    HttpServer::HttpServer(int port, const std::string& host, int backlog, size_t maxConnections)
+        : SocketServer(port, host, backlog, maxConnections)
+        , _connectedClientsCount(0)
     {
         setDefaultConnectionCallback();
     }
@@ -71,9 +69,12 @@ namespace ix
         _onConnectionCallback = callback;
     }
 
-    void HttpServer::handleConnection(
-        int fd,
-        std::shared_ptr<ConnectionState> connectionState)
+    void HttpServer::setTLSOptions(const SocketTLSOptions& tlsOptions)
+    {
+        _tlsOptions = tlsOptions.validated();
+    }
+
+    void HttpServer::handleConnection(int fd, std::shared_ptr<ConnectionState> connectionState)
     {
         _connectedClientsCount++;
 
@@ -109,8 +110,7 @@ namespace ix
     {
         setOnConnectionCallback(
             [this](HttpRequestPtr request,
-                   std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr
-            {
+                   std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
                 std::string uri(request->uri);
                 if (uri.empty() || uri == "/")
                 {
@@ -122,23 +122,16 @@ namespace ix
                 bool found = res.first;
                 if (!found)
                 {
-                    return std::make_shared<HttpResponse>(404, "Not Found",
-                                                          HttpErrorCode::Ok,
-                                                          WebSocketHttpHeaders(),
-                                                          std::string());
+                    return std::make_shared<HttpResponse>(
+                        404, "Not Found", HttpErrorCode::Ok, WebSocketHttpHeaders(), std::string());
                 }
 
                 std::string content = res.second;
 
                 // Log request
                 std::stringstream ss;
-                ss << request->method
-                   << " "
-                   << request->headers["User-Agent"]
-                   << " "
-                   << request->uri
-                   << " "
-                   << content.size();
+                ss << request->method << " " << request->headers["User-Agent"] << " "
+                   << request->uri << " " << content.size();
                 logInfo(ss.str());
 
                 WebSocketHttpHeaders headers;
@@ -151,11 +144,8 @@ namespace ix
                     headers[it.first] = it.second;
                 }
 
-                return std::make_shared<HttpResponse>(200, "OK",
-                                                      HttpErrorCode::Ok,
-                                                      headers,
-                                                      content);
-            }
-        );
+                return std::make_shared<HttpResponse>(
+                    200, "OK", HttpErrorCode::Ok, headers, content);
+            });
     }
-}
+} // namespace ix

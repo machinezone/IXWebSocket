@@ -5,24 +5,28 @@
  */
 
 #include <iostream>
-#include <sstream>
 #include <ixwebsocket/IXWebSocketServer.h>
+#include <sstream>
 
 namespace ix
 {
-    int ws_echo_server_main(int port, bool greetings, const std::string& hostname)
+    int ws_echo_server_main(int port,
+                            bool greetings,
+                            const std::string& hostname,
+                            const std::string& certFile,
+                            const std::string& keyFile,
+                            const std::string& caFile)
     {
         std::cout << "Listening on " << hostname << ":" << port << std::endl;
 
         ix::WebSocketServer server(port, hostname);
+        server.setTLSOptions({certFile, keyFile, caFile});
 
         server.setOnConnectionCallback(
             [greetings](std::shared_ptr<ix::WebSocket> webSocket,
-                        std::shared_ptr<ConnectionState> connectionState)
-            {
+                        std::shared_ptr<ConnectionState> connectionState) {
                 webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, greetings](const WebSocketMessagePtr& msg)
-                    {
+                    [webSocket, connectionState, greetings](const WebSocketMessagePtr& msg) {
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             std::cerr << "New connection" << std::endl;
@@ -42,29 +46,25 @@ namespace ix
                         else if (msg->type == ix::WebSocketMessageType::Close)
                         {
                             std::cerr << "Closed connection"
-                                      << " code " << msg->closeInfo.code
-                                      << " reason " << msg->closeInfo.reason << std::endl;
+                                      << " code " << msg->closeInfo.code << " reason "
+                                      << msg->closeInfo.reason << std::endl;
                         }
                         else if (msg->type == ix::WebSocketMessageType::Error)
                         {
                             std::stringstream ss;
-                            ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
-                            ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
-                            ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
-                            ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
+                            ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                            ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                            ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                            ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
                             std::cerr << ss.str();
                         }
                         else if (msg->type == ix::WebSocketMessageType::Message)
                         {
-                            std::cerr << "Received "
-                                      << msg->wireSize << " bytes"
-                                      << std::endl;
+                            std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
                             webSocket->send(msg->str, msg->binary);
                         }
-                    }
-                );
-            }
-        );
+                    });
+            });
 
         auto res = server.listen();
         if (!res.first)
@@ -78,4 +78,4 @@ namespace ix
 
         return 0;
     }
-}
+} // namespace ix

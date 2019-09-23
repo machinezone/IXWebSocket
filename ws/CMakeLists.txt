@@ -59,6 +59,7 @@ add_executable(ws
   ws_cobra_to_statsd.cpp
   ws_cobra_to_sentry.cpp
   ws_snake.cpp
+  ws_tls_support.cpp
   ws_httpd.cpp
   ws_autobahn.cpp
   ws.cpp)

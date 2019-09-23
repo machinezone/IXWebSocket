@@ -8,6 +8,7 @@
 
 #include "IXHttp.h"
 #include "IXSocketServer.h"
+#include "IXSocketTLSOptions.h"
 #include "IXWebSocket.h"
 #include <functional>
 #include <memory>
@@ -32,12 +33,15 @@ namespace ix
         virtual ~HttpServer();
         virtual void stop() final;
 
+        void setTLSOptions(const SocketTLSOptions& tlsOptions);
+
         void setOnConnectionCallback(const OnConnectionCallback& callback);
 
     private:
         // Member variables
         OnConnectionCallback _onConnectionCallback;
         std::atomic<int> _connectedClientsCount;
+        SocketTLSOptions _tlsOptions;
 
         // Methods
         virtual void handleConnection(int fd,
