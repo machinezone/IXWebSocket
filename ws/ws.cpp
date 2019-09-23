@@ -88,10 +88,10 @@ int main(int argc, char** argv)
     int jobs = 4;
     uint32_t maxWaitBetweenReconnectionRetries;
 
-    auto add_tls_options = [&certFile, &keyFile, &caFile](CLI::App* app) {
-        app->add_option("--key-file", keyFile, "Path to the (PEM format) TLS key file")
-            ->check(CLI::ExistingPath);
+    auto addTLSOptions = [&certFile, &keyFile, &caFile](CLI::App* app) {
         app->add_option("--cert-file", certFile, "Path to the (PEM format) TLS cert file")
+            ->check(CLI::ExistingPath);
+        app->add_option("--key-file", keyFile, "Path to the (PEM format) TLS key file")
             ->check(CLI::ExistingPath);
         app->add_option("--ca-file", caFile, "Path to the (PEM format) ca roots file")
             ->check(CLI::ExistingPath);
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
         ->required()
         ->check(CLI::ExistingPath);
     sendApp->add_option("--pidfile", pidfile, "Pid file");
-    add_tls_options(sendApp);
+    addTLSOptions(sendApp);
 
     CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
     receiveApp->add_option("url", url, "Connection url")->required();
@@ -112,13 +112,13 @@ int main(int argc, char** argv)
                            "Delay (ms) to wait after receiving a fragment"
                            " to artificially slow down the receiver");
     receiveApp->add_option("--pidfile", pidfile, "Pid file");
-    add_tls_options(receiveApp);
+    addTLSOptions(receiveApp);
 
     CLI::App* transferApp = app.add_subcommand("transfer", "Broadcasting server");
     transferApp->add_option("--port", port, "Connection url");
     transferApp->add_option("--host", hostname, "Hostname");
     transferApp->add_option("--pidfile", pidfile, "Pid file");
-    add_tls_options(transferApp);
+    addTLSOptions(transferApp);
 
     CLI::App* connectApp = app.add_subcommand("connect", "Connect to a remote server");
     connectApp->add_option("url", url, "Connection url")->required();
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
     connectApp->add_option("--max_wait",
                            maxWaitBetweenReconnectionRetries,
                            "Max Wait Time between reconnection retries");
-    add_tls_options(connectApp);
+    addTLSOptions(connectApp);
 
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
@@ -140,16 +140,16 @@ int main(int argc, char** argv)
     echoServerApp->add_option("--port", port, "Port");
     echoServerApp->add_option("--host", hostname, "Hostname");
     echoServerApp->add_flag("-g", greetings, "Verbose");
-    add_tls_options(echoServerApp);
+    addTLSOptions(echoServerApp);
 
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
     broadcastServerApp->add_option("--port", port, "Port");
     broadcastServerApp->add_option("--host", hostname, "Hostname");
-    add_tls_options(broadcastServerApp);
+    addTLSOptions(broadcastServerApp);
 
     CLI::App* pingPongApp = app.add_subcommand("ping", "Ping pong");
     pingPongApp->add_option("url", url, "Connection url")->required();
-    add_tls_options(pingPongApp);
+    addTLSOptions(pingPongApp);
 
     CLI::App* httpClientApp = app.add_subcommand("curl", "HTTP Client");
     httpClientApp->add_option("url", url, "Connection url")->required();
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
     httpClientApp->add_flag("--compress", compress, "Enable gzip compression");
     httpClientApp->add_option("--connect-timeout", connectTimeOut, "Connection timeout");
     httpClientApp->add_option("--transfer-timeout", transferTimeout, "Transfer timeout");
-    add_tls_options(httpClientApp);
+    addTLSOptions(httpClientApp);
 
     CLI::App* redisPublishApp = app.add_subcommand("redis_publish", "Redis publisher");
     redisPublishApp->add_option("--port", redisPort, "Port");
@@ -258,7 +258,7 @@ int main(int argc, char** argv)
     CLI::App* httpServerApp = app.add_subcommand("httpd", "HTTP server");
     httpServerApp->add_option("--port", port, "Port");
     httpServerApp->add_option("--host", hostname, "Hostname");
-    add_tls_options(httpServerApp);
+    addTLSOptions(httpServerApp);
 
     CLI::App* autobahnApp = app.add_subcommand("autobahn", "Test client Autobahn compliance");
     autobahnApp->add_option("--url", url, "url");
