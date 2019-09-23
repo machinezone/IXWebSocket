@@ -7,6 +7,7 @@
 #pragma once
 
 #include "IXSocket.h"
+#include "IXSocketTLSOptions.h"
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/debug.h>
 #include <mbedtls/entropy.h>
@@ -20,7 +21,7 @@ namespace ix
     class SocketMbedTLS final : public Socket
     {
     public:
-        SocketMbedTLS() = default;
+        SocketMbedTLS(const SocketTLSOptions& tlsOptions);
         ~SocketMbedTLS();
 
         virtual bool connect(const std::string& host,
@@ -40,6 +41,7 @@ namespace ix
         mbedtls_ctr_drbg_context _ctr_drbg;
 
         std::mutex _mutex;
+        SocketTLSOptions _tlsOptions;
 
         bool init(const std::string& host, std::string& errMsg);
     };
