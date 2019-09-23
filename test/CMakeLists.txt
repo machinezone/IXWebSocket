@@ -77,10 +77,10 @@ if (APPLE AND USE_TLS)
   target_link_libraries(ixwebsocket_unittest "-framework foundation" "-framework security")
 endif()
 
-target_link_libraries(ixwebsocket_unittest ixcore)
-target_link_libraries(ixwebsocket_unittest ixcrypto)
+target_link_libraries(ixwebsocket_unittest ixsnake)
 target_link_libraries(ixwebsocket_unittest ixcobra)
 target_link_libraries(ixwebsocket_unittest ixwebsocket)
-target_link_libraries(ixwebsocket_unittest ixsnake)
+target_link_libraries(ixwebsocket_unittest ixcrypto)
+target_link_libraries(ixwebsocket_unittest ixcore)
 
 install(TARGETS ixwebsocket_unittest DESTINATION bin)
