@@ -12,12 +12,10 @@ namespace ix
                                    const std::string& keyFile,
                                    const std::string& caFile)
     {
-        _tlsOptions.certFile = certFile;
-        _tlsOptions.keyFile = keyFile;
-        _tlsOptions.caFile = caFile;
+        _tlsOptions = (SocketTLSOptions{certFile, keyFile, caFile}).validated();
     }
     void TLSSupport::setTLSOptions(const SocketTLSOptions& tlsOptions)
     {
-        _tlsOptions = tlsOptions;
+        _tlsOptions = tlsOptions.validated();
     }
 } // namespace ix
