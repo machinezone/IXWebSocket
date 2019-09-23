@@ -73,6 +73,12 @@ namespace ix
         _perMessageDeflateOptions = perMessageDeflateOptions;
     }
 
+    void WebSocket::setTLSOptions(const SocketTLSOptions& socketTLSOptions)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _socketTLSOptions = socketTLSOptions;
+    }
+
     const WebSocketPerMessageDeflateOptions& WebSocket::getPerMessageDeflateOptions() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
@@ -173,6 +179,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(_perMessageDeflateOptions,
+                          _socketTLSOptions,
                           _enablePong,
                           _pingIntervalSecs,
                           _pingTimeoutSecs);
@@ -198,6 +205,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(_perMessageDeflateOptions,
+                          _socketTLSOptions,
                           _enablePong,
                           _pingIntervalSecs,
                           _pingTimeoutSecs);

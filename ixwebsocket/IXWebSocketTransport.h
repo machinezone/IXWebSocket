@@ -12,6 +12,7 @@
 
 #include "IXCancellationRequest.h"
 #include "IXProgressCallback.h"
+#include "IXSocketTLSOptions.h"
 #include "IXWebSocketCloseConstants.h"
 #include "IXWebSocketHandshake.h"
 #include "IXWebSocketHttpHeaders.h"
@@ -72,6 +73,7 @@ namespace ix
         ~WebSocketTransport();
 
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
+                       const SocketTLSOptions& socketTLSOptions,
                        bool enablePong,
                        int pingIntervalSecs,
                        int pingTimeoutSecs);
@@ -180,6 +182,9 @@ namespace ix
         WebSocketPerMessageDeflate _perMessageDeflate;
         WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
         std::atomic<bool> _enablePerMessageDeflate;
+
+        // Used to control TLS connection behavior
+        SocketTLSOptions _socketTLSOptions;
 
         // Used to cancel dns lookup + socket connect + http upgrade
         std::atomic<bool> _requestInitCancellation;

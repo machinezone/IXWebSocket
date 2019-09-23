@@ -8,6 +8,7 @@
 
 #include "IXCancellationRequest.h"
 #include "IXSocket.h"
+#include "IXSocketTLSOptions.h"
 #include <mutex>
 #include <openssl/bio.h>
 #include <openssl/conf.h>
@@ -20,7 +21,7 @@ namespace ix
     class SocketOpenSSL final : public Socket
     {
     public:
-        SocketOpenSSL(int fd = -1);
+        SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketOpenSSL();
 
         virtual bool connect(const std::string& host,
@@ -44,6 +45,8 @@ namespace ix
         SSL* _ssl_connection;
         SSL_CTX* _ssl_context;
         const SSL_METHOD* _ssl_method;
+        SocketTLSOptions _tlsOptions;
+
         mutable std::mutex _mutex; // OpenSSL routines are not thread-safe
 
         static std::once_flag _openSSLInitFlag;
