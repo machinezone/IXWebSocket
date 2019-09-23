@@ -174,7 +174,7 @@ namespace ix
                 X509_get_subject_name((X509*) server_cert), NID_commonName, -1);
             if (cn_pos)
             {
-                X509__ssl_connectionNAME_ENTRY* cn_entry =
+                X509_NAME_ENTRY* cn_entry =
                     X509_NAME_get_entry(X509_get_subject_name((X509*) server_cert), cn_pos);
 
                 if (cn_entry)
@@ -250,7 +250,6 @@ namespace ix
             int accept_result = SSL_accept(_ssl_connection);
             if (accept_result == 1)
             {
-                // return openSSLCheckServerCert(_ssl_connection, host, errMsg);
                 return true;
             }
             int reason = SSL_get_error(_ssl_connection, accept_result);
@@ -396,10 +395,10 @@ namespace ix
             {
                 SSL_CTX_set_verify(_ssl_context, SSL_VERIFY_NONE, nullptr);
             }
-            if (SSL_CTX_set_cipher_list(_ssl_context, "HIGH:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4") != 1)
-            {
-                return false;
-            }
+            // if (SSL_CTX_set_cipher_list(_ssl_context, "HIGH:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4") != 1)
+            // {
+            //     return false;
+            // }
 
             _ssl_connection = SSL_new(_ssl_context);
             if (_ssl_connection == nullptr)
@@ -547,10 +546,10 @@ namespace ix
                 SSL_CTX_set_verify(_ssl_context, SSL_VERIFY_NONE, nullptr);
             }
 
-            if (SSL_CTX_set_cipher_list(_ssl_context, "HIGH:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4") != 1)
-            {
-                return false;
-            }
+            // if (SSL_CTX_set_cipher_list(_ssl_context, "HIGH:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4") != 1)
+            // {
+            //     return false;
+            // }
 
             _ssl_connection = SSL_new(_ssl_context);
             if (_ssl_connection == nullptr)
