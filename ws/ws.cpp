@@ -9,27 +9,22 @@
 //
 #include "ws.h"
 
-#include <string>
-#include <sstream>
-#include <iostream>
-#include <fstream>
-
 #include <cli11/CLI11.hpp>
-#include <spdlog/spdlog.h>
-
-#include <ixwebsocket/IXSocket.h>
-#include <ixwebsocket/IXNetSystem.h>
+#include <fstream>
+#include <iostream>
 #include <ixcore/utils/IXCoreLogger.h>
+#include <ixwebsocket/IXNetSystem.h>
+#include <ixwebsocket/IXSocket.h>
+#include <spdlog/spdlog.h>
+#include <sstream>
+#include <string>
 
 
 int main(int argc, char** argv)
 {
     ix::initNetSystem();
 
-    ix::IXCoreLogger::LogFunc logFunc = [](const char* msg)
-    {
-        spdlog::info(msg);
-    };
+    ix::IXCoreLogger::LogFunc logFunc = [](const char* msg) { spdlog::info(msg); };
     ix::IXCoreLogger::setLogFunction(logFunc);
 
     // Display command.
@@ -43,7 +38,7 @@ int main(int argc, char** argv)
         std::cout << std::endl;
     }
 
-    CLI::App app{"ws is a websocket tool"};
+    CLI::App app {"ws is a websocket tool"};
     app.require_subcommand();
 
     std::string url("ws://127.0.0.1:8008");
@@ -94,13 +89,16 @@ int main(int argc, char** argv)
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
     sendApp->add_option("path", path, "Path to the file to send")
-        ->required()->check(CLI::ExistingPath);
+        ->required()
+        ->check(CLI::ExistingPath);
     sendApp->add_option("--pidfile", pidfile, "Pid file");
 
     CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
     receiveApp->add_option("url", url, "Connection url")->required();
-    receiveApp->add_option("--delay", delayMs, "Delay (ms) to wait after receiving a fragment"
-                                               " to artificially slow down the receiver");
+    receiveApp->add_option("--delay",
+                           delayMs,
+                           "Delay (ms) to wait after receiving a fragment"
+                           " to artificially slow down the receiver");
     receiveApp->add_option("--pidfile", pidfile, "Pid file");
 
     CLI::App* transferApp = app.add_subcommand("transfer", "Broadcasting server");
@@ -114,7 +112,9 @@ int main(int argc, char** argv)
     connectApp->add_flag("-d", disableAutomaticReconnection, "Disable Automatic Reconnection");
     connectApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
     connectApp->add_flag("-b", binaryMode, "Send in binary mode");
-    connectApp->add_option("--max_wait", maxWaitBetweenReconnectionRetries, "Max Wait Time between reconnection retries");
+    connectApp->add_option("--max_wait",
+                           maxWaitBetweenReconnectionRetries,
+                           "Max Wait Time between reconnection retries");
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
     chatApp->add_option("url", url, "Connection url")->required();
@@ -181,9 +181,11 @@ int main(int argc, char** argv)
     cobraPublish->add_option("channel", channel, "Channel")->required();
     cobraPublish->add_option("--pidfile", pidfile, "Pid file");
     cobraPublish->add_option("path", path, "Path to the file to send")
-        ->required()->check(CLI::ExistingPath);
+        ->required()
+        ->check(CLI::ExistingPath);
 
-    CLI::App* cobraMetricsPublish = app.add_subcommand("cobra_metrics_publish", "Cobra metrics publisher");
+    CLI::App* cobraMetricsPublish =
+        app.add_subcommand("cobra_metrics_publish", "Cobra metrics publisher");
     cobraMetricsPublish->add_option("--appkey", appkey, "Appkey");
     cobraMetricsPublish->add_option("--endpoint", endpoint, "Endpoint");
     cobraMetricsPublish->add_option("--rolename", rolename, "Role name");
@@ -191,7 +193,8 @@ int main(int argc, char** argv)
     cobraMetricsPublish->add_option("channel", channel, "Channel")->required();
     cobraMetricsPublish->add_option("--pidfile", pidfile, "Pid file");
     cobraMetricsPublish->add_option("path", path, "Path to the file to send")
-        ->required()->check(CLI::ExistingPath);
+        ->required()
+        ->check(CLI::ExistingPath);
     cobraMetricsPublish->add_flag("--stress", stress, "Stress mode");
 
     CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra to statsd");
@@ -269,8 +272,11 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("connect"))
     {
-        ret = ix::ws_connect_main(url, headers, disableAutomaticReconnection,
-                                  disablePerMessageDeflate, binaryMode,
+        ret = ix::ws_connect_main(url,
+                                  headers,
+                                  disableAutomaticReconnection,
+                                  disablePerMessageDeflate,
+                                  binaryMode,
                                   maxWaitBetweenReconnectionRetries);
     }
     else if (app.got_subcommand("chat"))
@@ -291,15 +297,22 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("curl"))
     {
-        ret = ix::ws_http_client_main(url, headers, data, headersOnly,
-                                      connectTimeOut, transferTimeout,
-                                      followRedirects, maxRedirects, verbose,
-                                      save, output, compress);
+        ret = ix::ws_http_client_main(url,
+                                      headers,
+                                      data,
+                                      headersOnly,
+                                      connectTimeOut,
+                                      transferTimeout,
+                                      followRedirects,
+                                      maxRedirects,
+                                      verbose,
+                                      save,
+                                      output,
+                                      compress);
     }
     else if (app.got_subcommand("redis_publish"))
     {
-        ret = ix::ws_redis_publish_main(hostname, redisPort, password,
-                                        channel, message, count);
+        ret = ix::ws_redis_publish_main(hostname, redisPort, password, channel, message, count);
     }
     else if (app.got_subcommand("redis_subscribe"))
     {
@@ -307,42 +320,41 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_subscribe"))
     {
-        ret = ix::ws_cobra_subscribe_main(appkey, endpoint,
-                                          rolename, rolesecret,
-                                          channel, filter, quiet);
+        ret = ix::ws_cobra_subscribe_main(
+            appkey, endpoint, rolename, rolesecret, channel, filter, quiet);
     }
     else if (app.got_subcommand("cobra_publish"))
     {
-        ret = ix::ws_cobra_publish_main(appkey, endpoint,
-                                        rolename, rolesecret,
-                                        channel, path);
+        ret = ix::ws_cobra_publish_main(appkey, endpoint, rolename, rolesecret, channel, path);
     }
     else if (app.got_subcommand("cobra_metrics_publish"))
     {
-        ret = ix::ws_cobra_metrics_publish_main(appkey, endpoint,
-                                                rolename, rolesecret,
-                                                channel, path, stress);
+        ret = ix::ws_cobra_metrics_publish_main(
+            appkey, endpoint, rolename, rolesecret, channel, path, stress);
     }
     else if (app.got_subcommand("cobra_to_statsd"))
     {
-        ret = ix::ws_cobra_to_statsd_main(appkey, endpoint,
-                                          rolename, rolesecret,
-                                          channel, filter, hostname, statsdPort,
-                                          prefix, fields, verbose);
+        ret = ix::ws_cobra_to_statsd_main(appkey,
+                                          endpoint,
+                                          rolename,
+                                          rolesecret,
+                                          channel,
+                                          filter,
+                                          hostname,
+                                          statsdPort,
+                                          prefix,
+                                          fields,
+                                          verbose);
     }
     else if (app.got_subcommand("cobra_to_sentry"))
     {
-        ret = ix::ws_cobra_to_sentry_main(appkey, endpoint,
-                                          rolename, rolesecret,
-                                          channel, filter, dsn,
-                                          verbose, strict, jobs);
+        ret = ix::ws_cobra_to_sentry_main(
+            appkey, endpoint, rolename, rolesecret, channel, filter, dsn, verbose, strict, jobs);
     }
     else if (app.got_subcommand("snake"))
     {
-        ret = ix::ws_snake_main(port, hostname,
-                                redisHosts, redisPort,
-                                redisPassword, verbose,
-                                appsConfigPath);
+        ret = ix::ws_snake_main(
+            port, hostname, redisHosts, redisPort, redisPassword, verbose, appsConfigPath);
     }
     else if (app.got_subcommand("httpd"))
     {

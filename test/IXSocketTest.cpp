@@ -4,13 +4,12 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
-#include <iostream>
-#include <ixwebsocket/IXSocketFactory.h>
-#include <ixwebsocket/IXSocket.h>
-#include <ixwebsocket/IXCancellationRequest.h>
-
 #include "IXTest.h"
 #include "catch.hpp"
+#include <iostream>
+#include <ixwebsocket/IXCancellationRequest.h>
+#include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketFactory.h>
 #include <string.h>
 
 using namespace ix;
@@ -33,8 +32,7 @@ namespace ix
         Logger() << "errMsg: " << errMsg;
         REQUIRE(success);
 
-        Logger() << "Sending request: " << request
-                 << "to " << host << ":" << port;
+        Logger() << "Sending request: " << request << "to " << host << ":" << port;
         REQUIRE(socket->writeBytes(request, isCancellationRequested));
 
         auto lineResult = socket->readLine(isCancellationRequested);
@@ -49,11 +47,12 @@ namespace ix
         REQUIRE(sscanf(line.c_str(), "HTTP/1.1 %d", &status) == 1);
         REQUIRE(status == expectedStatus);
     }
-}
+} // namespace ix
 
 TEST_CASE("socket", "[socket]")
 {
-    SECTION("Connect to a local websocket server over a free port. Send GET request without header. Should return 400")
+    SECTION("Connect to a local websocket server over a free port. Send GET request without "
+            "header. Should return 400")
     {
         // Start a server first which we'll hit with our socket code
         int port = getFreePort();
@@ -78,7 +77,8 @@ TEST_CASE("socket", "[socket]")
     }
 
 #if defined(IXWEBSOCKET_USE_TLS)
-    SECTION("Connect to google HTTPS server over port 443. Send GET request without header. Should return 200")
+    SECTION("Connect to google HTTPS server over port 443. Send GET request without header. Should "
+            "return 200")
     {
         std::string errMsg;
         bool tls = true;

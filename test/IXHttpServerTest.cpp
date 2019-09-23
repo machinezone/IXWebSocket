@@ -4,12 +4,11 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
+#include "IXGetFreePort.h"
+#include "catch.hpp"
 #include <iostream>
 #include <ixwebsocket/IXHttpClient.h>
 #include <ixwebsocket/IXHttpServer.h>
-#include "IXGetFreePort.h"
-
-#include "catch.hpp"
 
 using namespace ix;
 
@@ -39,14 +38,10 @@ TEST_CASE("http server", "[httpd]")
         args->maxRedirects = 10;
         args->verbose = true;
         args->compress = true;
-        args->logger = [](const std::string& msg)
-        {
-            std::cout << msg;
-        };
-        args->onProgressCallback = [](int current, int total) -> bool
-        {
-            std::cerr << "\r" << "Downloaded "
-                      << current << " bytes out of " << total;
+        args->logger = [](const std::string& msg) { std::cout << msg; };
+        args->onProgressCallback = [](int current, int total) -> bool {
+            std::cerr << "\r"
+                      << "Downloaded " << current << " bytes out of " << total;
             return true;
         };
 

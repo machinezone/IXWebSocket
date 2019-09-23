@@ -4,16 +4,17 @@
  *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include <assert.h>
 #include "IXSocketTLSOptions.h"
+
+#include <assert.h>
 
 namespace ix
 {
-
-    SocketTLSOptions::SocketTLSOptions() {
+    SocketTLSOptions::SocketTLSOptions()
+    {
 #ifndef IXWEBSOCKET_USE_TLS
         assert(false && "To use TLS features the library must be compiled with USE_TLS");
-#endif 
+#endif
     }
 
     bool SocketTLSOptions::isUsingClientCert() const

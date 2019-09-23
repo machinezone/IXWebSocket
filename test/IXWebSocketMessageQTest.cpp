@@ -4,12 +4,11 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
-#include <ixwebsocket/IXWebSocket.h>
-#include <ixwebsocket/IXWebSocketServer.h>
-#include <ixwebsocket/IXWebSocketMessageQueue.h>
-
 #include "IXTest.h"
 #include "catch.hpp"
+#include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXWebSocketMessageQueue.h>
+#include <ixwebsocket/IXWebSocketServer.h>
 #include <thread>
 
 using namespace ix;
@@ -18,42 +17,37 @@ namespace
 {
     bool startServer(ix::WebSocketServer& server)
     {
-        server.setOnConnectionCallback(
-            [&server](std::shared_ptr<ix::WebSocket> webSocket,
-                      std::shared_ptr<ConnectionState> connectionState)
-        {
+        server.setOnConnectionCallback([&server](std::shared_ptr<ix::WebSocket> webSocket,
+                                                 std::shared_ptr<ConnectionState> connectionState) {
             webSocket->setOnMessageCallback(
-                [connectionState, &server](const WebSocketMessagePtr& msg)
-            {
-                if (msg->type == ix::WebSocketMessageType::Open)
-                {
-                    Logger() << "New connection";
-                    connectionState->computeId();
-                    Logger() << "id: " << connectionState->getId();
-                    Logger() << "Uri: " << msg->openInfo.uri;
-                    Logger() << "Headers:";
-                    for (auto&& it : msg->openInfo.headers)
+                [connectionState, &server](const WebSocketMessagePtr& msg) {
+                    if (msg->type == ix::WebSocketMessageType::Open)
                     {
-                        Logger() << it.first << ": " << it.second;
+                        Logger() << "New connection";
+                        connectionState->computeId();
+                        Logger() << "id: " << connectionState->getId();
+                        Logger() << "Uri: " << msg->openInfo.uri;
+                        Logger() << "Headers:";
+                        for (auto&& it : msg->openInfo.headers)
+                        {
+                            Logger() << it.first << ": " << it.second;
+                        }
                     }
-                }
-                else if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    Logger() << "Closed connection";
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    Logger() << "Message received: " << msg->str;
+                    else if (msg->type == ix::WebSocketMessageType::Close)
+                    {
+                        Logger() << "Closed connection";
+                    }
+                    else if (msg->type == ix::WebSocketMessageType::Message)
+                    {
+                        Logger() << "Message received: " << msg->str;
 
-                    for (auto&& client : server.getClients())
-                    {
-                        client->send(msg->str);
+                        for (auto&& client : server.getClients())
+                        {
+                            client->send(msg->str);
+                        }
                     }
-                }
-            }
-            );
-        }
-        );
+                });
+        });
 
         auto res = server.listen();
         if (!res.first)
@@ -73,8 +67,7 @@ namespace
         {
             msgQ.bindWebsocket(&ws);
 
-            msgQ.setOnMessageCallback([this](const WebSocketMessagePtr& msg)
-            {
+            msgQ.setOnMessageCallback([this](const WebSocketMessagePtr& msg) {
                 REQUIRE(mainThreadId == std::this_thread::get_id());
 
                 std::stringstream ss;
@@ -153,7 +146,10 @@ namespace
             }
         }
 
-        bool isSucceeded() const { return succeeded; }
+        bool isSucceeded() const
+        {
+            return succeeded;
+        }
 
     private:
         WebSocket ws;
@@ -163,7 +159,7 @@ namespace
         std::thread::id mainThreadId;
         bool succeeded = false;
     };
-}
+} // namespace
 
 TEST_CASE("Websocket_message_queue", "[websocket_message_q]")
 {

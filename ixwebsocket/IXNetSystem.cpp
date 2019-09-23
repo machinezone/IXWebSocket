@@ -42,7 +42,7 @@ namespace ix
     //
     // So we make it a select wrapper
     //
-    int poll(struct pollfd *fds, nfds_t nfds, int timeout)
+    int poll(struct pollfd* fds, nfds_t nfds, int timeout)
     {
 #ifdef _WIN32
         int maxfd = 0;
@@ -53,7 +53,7 @@ namespace ix
 
         for (nfds_t i = 0; i < nfds; ++i)
         {
-            struct pollfd *fd = &fds[i];
+            struct pollfd* fd = &fds[i];
 
             if (fd->fd > maxfd)
             {
@@ -77,8 +77,7 @@ namespace ix
         tv.tv_sec = timeout / 1000;
         tv.tv_usec = (timeout % 1000) * 1000;
 
-        int ret = select(maxfd + 1, &readfds, &writefds, &errorfds,
-                         timeout != -1 ? &tv : NULL);
+        int ret = select(maxfd + 1, &readfds, &writefds, &errorfds, timeout != -1 ? &tv : NULL);
 
         if (ret < 0)
         {
@@ -87,7 +86,7 @@ namespace ix
 
         for (nfds_t i = 0; i < nfds; ++i)
         {
-            struct pollfd *fd = &fds[i];
+            struct pollfd* fd = &fds[i];
             fd->revents = 0;
 
             if (FD_ISSET(fd->fd, &readfds))

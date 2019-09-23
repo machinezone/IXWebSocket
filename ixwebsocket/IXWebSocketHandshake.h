@@ -49,13 +49,12 @@ namespace ix
                            WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
                            std::atomic<bool>& enablePerMessageDeflate);
 
-        WebSocketInitResult clientHandshake(
-            const std::string& url,
-            const WebSocketHttpHeaders& extraHeaders,
-            const std::string& host,
-            const std::string& path,
-            int port,
-            int timeoutSecs);
+        WebSocketInitResult clientHandshake(const std::string& url,
+                                            const WebSocketHttpHeaders& extraHeaders,
+                                            const std::string& host,
+                                            const std::string& path,
+                                            int port,
+                                            int timeoutSecs);
 
         WebSocketInitResult serverHandshake(int fd, int timeoutSecs);
 

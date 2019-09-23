@@ -8,7 +8,6 @@
 
 namespace ix
 {
-
     WebSocketMessageQueue::WebSocketMessageQueue(WebSocket* websocket)
     {
         bindWebsocket(websocket);
@@ -24,7 +23,7 @@ namespace ix
         bindWebsocket(nullptr);
     }
 
-    void WebSocketMessageQueue::bindWebsocket(WebSocket * websocket)
+    void WebSocketMessageQueue::bindWebsocket(WebSocket* websocket)
     {
         if (_websocket == websocket) return;
 
@@ -40,8 +39,7 @@ namespace ix
         // bind new
         if (_websocket)
         {
-            _websocket->setOnMessageCallback([this](const WebSocketMessagePtr& msg)
-            {
+            _websocket->setOnMessageCallback([this](const WebSocketMessagePtr& msg) {
                 std::lock_guard<std::mutex> lock(_messagesMutex);
                 _messages.emplace_back(std::move(msg));
             });
@@ -74,8 +72,7 @@ namespace ix
 
     void WebSocketMessageQueue::poll(int count)
     {
-        if (!_onMessageUserCallback)
-            return;
+        if (!_onMessageUserCallback) return;
 
         WebSocketMessagePtr message;
 
@@ -86,4 +83,4 @@ namespace ix
         }
     }
 
-}
+} // namespace ix

@@ -9,17 +9,15 @@
 // websocket_chat_server/broacast-server.js
 //
 
+#include "IXTest.h"
+#include "catch.hpp"
+#include "msgpack11.hpp"
 #include <iostream>
-#include <sstream>
-#include <vector>
-#include <mutex>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXWebSocketServer.h>
-#include "msgpack11.hpp"
-
-#include "IXTest.h"
-
-#include "catch.hpp"
+#include <mutex>
+#include <sstream>
+#include <vector>
 
 using msgpack11::MsgPack;
 using namespace ix;
@@ -28,41 +26,37 @@ namespace
 {
     class WebSocketChat
     {
-        public:
-            WebSocketChat(const std::string& user,
-                          const std::string& session,
-                          int port);
+    public:
+        WebSocketChat(const std::string& user, const std::string& session, int port);
 
-            void subscribe(const std::string& channel);
-            void start();
-            void stop();
-            bool isReady() const;
+        void subscribe(const std::string& channel);
+        void start();
+        void stop();
+        bool isReady() const;
 
-            void sendMessage(const std::string& text);
-            size_t getReceivedMessagesCount() const;
-            const std::vector<std::string>& getReceivedMessages() const;
+        void sendMessage(const std::string& text);
+        size_t getReceivedMessagesCount() const;
+        const std::vector<std::string>& getReceivedMessages() const;
 
-            std::string encodeMessage(const std::string& text);
-            std::pair<std::string, std::string> decodeMessage(const std::string& str);
-            void appendMessage(const std::string& message);
+        std::string encodeMessage(const std::string& text);
+        std::pair<std::string, std::string> decodeMessage(const std::string& str);
+        void appendMessage(const std::string& message);
 
-        private:
-            std::string _user;
-            std::string _session;
-            int _port;
+    private:
+        std::string _user;
+        std::string _session;
+        int _port;
 
-            ix::WebSocket _webSocket;
+        ix::WebSocket _webSocket;
 
-            std::vector<std::string> _receivedMessages;
-            mutable std::mutex _mutex;
+        std::vector<std::string> _receivedMessages;
+        mutable std::mutex _mutex;
     };
 
-    WebSocketChat::WebSocketChat(const std::string& user,
-                                 const std::string& session,
-                                 int port) :
-        _user(user),
-        _session(session),
-        _port(port)
+    WebSocketChat::WebSocketChat(const std::string& user, const std::string& session, int port)
+        : _user(user)
+        , _session(session)
+        , _port(port)
     {
         ;
     }
@@ -100,10 +94,7 @@ namespace
         std::string url;
         {
             std::stringstream ss;
-            ss << "ws://127.0.0.1:"
-               << _port
-               << "/"
-               << _user;
+            ss << "ws://127.0.0.1:" << _port << "/" << _user;
 
             url = ss.str();
         }
@@ -113,70 +104,61 @@ namespace
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
 
-        _webSocket.setOnMessageCallback(
-            [this](const ix::WebSocketMessagePtr& msg)
+        _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
+            std::stringstream ss;
+            if (msg->type == ix::WebSocketMessageType::Open)
             {
-                std::stringstream ss;
-                if (msg->type == ix::WebSocketMessageType::Open)
-                {
-                    ss << "cmd_websocket_chat: user "
-                       << _user
-                       << " Connected !";
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    ss << "cmd_websocket_chat: user "
-                       << _user
-                       << " disconnected !";
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    auto result = decodeMessage(msg->str);
+                ss << "cmd_websocket_chat: user " << _user << " Connected !";
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Close)
+            {
+                ss << "cmd_websocket_chat: user " << _user << " disconnected !";
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                auto result = decodeMessage(msg->str);
 
-                    // Our "chat" / "broacast" node.js server does not send us
-                    // the messages we send, so we don't need to have a msg_user != user
-                    // as we do for the satori chat example.
+                // Our "chat" / "broacast" node.js server does not send us
+                // the messages we send, so we don't need to have a msg_user != user
+                // as we do for the satori chat example.
 
-                    // store text
-                    appendMessage(result.second);
+                // store text
+                appendMessage(result.second);
 
-                    std::string payload = result.second;
-                    if (payload.size() > 2000)
-                    {
-                        payload = "<message too large>";
-                    }
+                std::string payload = result.second;
+                if (payload.size() > 2000)
+                {
+                    payload = "<message too large>";
+                }
 
-                    ss << std::endl
-                       << result.first << " > " << payload
-                       << std::endl
-                       << _user << " > ";
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Error)
-                {
-                    ss << "cmd_websocket_chat: Error ! " << msg->errorInfo.reason;
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Ping)
-                {
-                    log("cmd_websocket_chat: received ping message");
-                }
-                else if (msg->type == ix::WebSocketMessageType::Pong)
-                {
-                    log("cmd_websocket_chat: received pong message");
-                }
-                else if (msg->type == ix::WebSocketMessageType::Fragment)
-                {
-                    log("cmd_websocket_chat: received message fragment");
-                }
-                else
-                {
-                    ss << "Unexpected ix::WebSocketMessageType";
-                    log(ss.str());
-                }
-            });
+                ss << std::endl << result.first << " > " << payload << std::endl << _user << " > ";
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Error)
+            {
+                ss << "cmd_websocket_chat: Error ! " << msg->errorInfo.reason;
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Ping)
+            {
+                log("cmd_websocket_chat: received ping message");
+            }
+            else if (msg->type == ix::WebSocketMessageType::Pong)
+            {
+                log("cmd_websocket_chat: received pong message");
+            }
+            else if (msg->type == ix::WebSocketMessageType::Fragment)
+            {
+                log("cmd_websocket_chat: received message fragment");
+            }
+            else
+            {
+                ss << "Unexpected ix::WebSocketMessageType";
+                log(ss.str());
+            }
+        });
 
         _webSocket.start();
     }
@@ -211,42 +193,37 @@ namespace
 
     bool startServer(ix::WebSocketServer& server)
     {
-        server.setOnConnectionCallback(
-            [&server](std::shared_ptr<ix::WebSocket> webSocket,
-                      std::shared_ptr<ConnectionState> connectionState)
-            {
-                webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, &server](const ix::WebSocketMessagePtr& msg)
+        server.setOnConnectionCallback([&server](std::shared_ptr<ix::WebSocket> webSocket,
+                                                 std::shared_ptr<ConnectionState> connectionState) {
+            webSocket->setOnMessageCallback(
+                [webSocket, connectionState, &server](const ix::WebSocketMessagePtr& msg) {
+                    if (msg->type == ix::WebSocketMessageType::Open)
                     {
-                        if (msg->type == ix::WebSocketMessageType::Open)
+                        Logger() << "New connection";
+                        Logger() << "id: " << connectionState->getId();
+                        Logger() << "Uri: " << msg->openInfo.uri;
+                        Logger() << "Headers:";
+                        for (auto it : msg->openInfo.headers)
                         {
-                            Logger() << "New connection";
-                            Logger() << "id: " << connectionState->getId();
-                            Logger() << "Uri: " << msg->openInfo.uri;
-                            Logger() << "Headers:";
-                            for (auto it : msg->openInfo.headers)
-                            {
-                                Logger() << it.first << ": " << it.second;
-                            }
+                            Logger() << it.first << ": " << it.second;
                         }
-                        else if (msg->type == ix::WebSocketMessageType::Close)
+                    }
+                    else if (msg->type == ix::WebSocketMessageType::Close)
+                    {
+                        log("Closed connection");
+                    }
+                    else if (msg->type == ix::WebSocketMessageType::Message)
+                    {
+                        for (auto&& client : server.getClients())
                         {
-                            log("Closed connection");
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Message)
-                        {
-                            for (auto&& client : server.getClients())
+                            if (client != webSocket)
                             {
-                                if (client != webSocket)
-                                {
-                                    client->sendBinary(msg->str);
-                                }
+                                client->sendBinary(msg->str);
                             }
                         }
                     }
-                );
-            }
-        );
+                });
+        });
 
         auto res = server.listen();
         if (!res.first)
@@ -258,7 +235,7 @@ namespace
         server.start();
         return true;
     }
-}
+} // namespace
 
 TEST_CASE("Websocket_chat", "[websocket_chat]")
 {
@@ -305,8 +282,7 @@ TEST_CASE("Websocket_chat", "[websocket_chat]")
 
         // Wait until all messages are received. 10s timeout
         int attempts = 0;
-        while (chatA.getReceivedMessagesCount() != 3 ||
-               chatB.getReceivedMessagesCount() != 3)
+        while (chatA.getReceivedMessagesCount() != 3 || chatB.getReceivedMessagesCount() != 3)
         {
             REQUIRE(attempts++ < 10);
             ix::msleep(1000);

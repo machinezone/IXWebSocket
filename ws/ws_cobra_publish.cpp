@@ -4,17 +4,17 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <chrono>
-#include <thread>
 #include <atomic>
-#include <mutex>
+#include <chrono>
 #include <condition_variable>
-#include <jsoncpp/json/json.h>
+#include <fstream>
+#include <iostream>
 #include <ixcobra/IXCobraMetricsPublisher.h>
+#include <jsoncpp/json/json.h>
+#include <mutex>
 #include <spdlog/spdlog.h>
+#include <sstream>
+#include <thread>
 
 namespace ix
 {
@@ -26,8 +26,7 @@ namespace ix
                               const std::string& path)
     {
         std::ifstream f(path);
-        std::string str((std::istreambuf_iterator<char>(f)),
-                         std::istreambuf_iterator<char>());
+        std::string str((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 
         Json::Value data;
         Json::Reader reader;
@@ -38,9 +37,8 @@ namespace ix
         }
 
         ix::CobraConnection conn;
-        conn.configure(appkey, endpoint,
-                       rolename, rolesecret,
-                       ix::WebSocketPerMessageDeflateOptions(true));
+        conn.configure(
+            appkey, endpoint, rolename, rolesecret, ix::WebSocketPerMessageDeflateOptions(true));
         conn.connect();
 
         // Display incoming messages
@@ -48,59 +46,58 @@ namespace ix
         std::atomic<bool> messageAcked(false);
         std::condition_variable condition;
 
-        conn.setEventCallback(
-            [&conn, &channel, &data, &authenticated, &messageAcked, &condition]
-            (ix::CobraConnectionEventType eventType,
-             const std::string& errMsg,
-             const ix::WebSocketHttpHeaders& headers,
-             const std::string& subscriptionId,
-             CobraConnection::MsgId msgId)
+        conn.setEventCallback([&conn, &channel, &data, &authenticated, &messageAcked, &condition](
+                                  ix::CobraConnectionEventType eventType,
+                                  const std::string& errMsg,
+                                  const ix::WebSocketHttpHeaders& headers,
+                                  const std::string& subscriptionId,
+                                  CobraConnection::MsgId msgId) {
+            if (eventType == ix::CobraConnection_EventType_Open)
             {
-                if (eventType == ix::CobraConnection_EventType_Open)
-                {
-                    spdlog::info("Publisher connected");
+                spdlog::info("Publisher connected");
 
-                    for (auto it : headers)
-                    {
-                        spdlog::info("{}: {}", it.first, it.second);
-                    }
-                }
-                else if (eventType == ix::CobraConnection_EventType_Authenticated)
+                for (auto it : headers)
                 {
-                    spdlog::info("Publisher authenticated");
-                    authenticated = true;
-
-                    Json::Value channels;
-                    channels[0] = channel;
-                    auto msgId = conn.publish(channels, data);
-
-                    spdlog::info("Published msg {}", msgId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Subscribed)
-                {
-                    spdlog::info("Publisher: subscribed to channel {}", subscriptionId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
-                {
-                    spdlog::info("Publisher: unsubscribed from channel {}", subscriptionId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Error)
-                {
-                    spdlog::error("Publisher: error {}", errMsg);
-                    condition.notify_one();
-                }
-                else if (eventType == ix::CobraConnection_EventType_Published)
-                {
-                    spdlog::info("Published message id {} acked", msgId);
-                    messageAcked = true;
-                    condition.notify_one();
+                    spdlog::info("{}: {}", it.first, it.second);
                 }
             }
-        );
+            else if (eventType == ix::CobraConnection_EventType_Authenticated)
+            {
+                spdlog::info("Publisher authenticated");
+                authenticated = true;
 
-        while (!authenticated) ;
-        while (!messageAcked) ;
+                Json::Value channels;
+                channels[0] = channel;
+                auto msgId = conn.publish(channels, data);
+
+                spdlog::info("Published msg {}", msgId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Subscribed)
+            {
+                spdlog::info("Publisher: subscribed to channel {}", subscriptionId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+            {
+                spdlog::info("Publisher: unsubscribed from channel {}", subscriptionId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Error)
+            {
+                spdlog::error("Publisher: error {}", errMsg);
+                condition.notify_one();
+            }
+            else if (eventType == ix::CobraConnection_EventType_Published)
+            {
+                spdlog::info("Published message id {} acked", msgId);
+                messageAcked = true;
+                condition.notify_one();
+            }
+        });
+
+        while (!authenticated)
+            ;
+        while (!messageAcked)
+            ;
 
         return 0;
     }
-}
+} // namespace ix

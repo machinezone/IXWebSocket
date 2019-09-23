@@ -4,15 +4,14 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
-#include <sstream>
-#include <chrono>
-#include <thread>
 #include <atomic>
-#include <vector>
+#include <chrono>
+#include <iostream>
 #include <ixcobra/IXCobraConnection.h>
-
 #include <spdlog/spdlog.h>
+#include <sstream>
+#include <thread>
+#include <vector>
 
 #ifndef _WIN32
 #include <statsd_client.h>
@@ -41,8 +40,7 @@ namespace ix
     // Extract an attribute from a Json Value.
     // extractAttr("foo.bar", {"foo": {"bar": "baz"}}) => baz
     //
-    std::string extractAttr(const std::string& attr,
-                            const Json::Value& jsonValue)
+    std::string extractAttr(const std::string& attr, const Json::Value& jsonValue)
     {
         // Split by .
         std::string token;
@@ -71,9 +69,8 @@ namespace ix
                                 bool verbose)
     {
         ix::CobraConnection conn;
-        conn.configure(appkey, endpoint,
-                       rolename, rolesecret,
-                       ix::WebSocketPerMessageDeflateOptions(true));
+        conn.configure(
+            appkey, endpoint, rolename, rolesecret, ix::WebSocketPerMessageDeflateOptions(true));
         conn.connect();
 
         auto tokens = parseFields(fields);
@@ -90,72 +87,75 @@ namespace ix
         Json::FastWriter jsonWriter;
         uint64_t msgCount = 0;
 
-        conn.setEventCallback(
-            [&conn, &channel, &filter, &jsonWriter, &statsdClient, verbose, &tokens, &prefix, &msgCount]
-            (ix::CobraConnectionEventType eventType,
-             const std::string& errMsg,
-             const ix::WebSocketHttpHeaders& headers,
-             const std::string& subscriptionId,
-             CobraConnection::MsgId msgId)
+        conn.setEventCallback([&conn,
+                               &channel,
+                               &filter,
+                               &jsonWriter,
+                               &statsdClient,
+                               verbose,
+                               &tokens,
+                               &prefix,
+                               &msgCount](ix::CobraConnectionEventType eventType,
+                                          const std::string& errMsg,
+                                          const ix::WebSocketHttpHeaders& headers,
+                                          const std::string& subscriptionId,
+                                          CobraConnection::MsgId msgId) {
+            if (eventType == ix::CobraConnection_EventType_Open)
             {
-                if (eventType == ix::CobraConnection_EventType_Open)
-                {
-                    spdlog::info("Subscriber connected");
+                spdlog::info("Subscriber connected");
 
-                    for (auto it : headers)
-                    {
-                        spdlog::info("{}: {}", it.first, it.second);
-                    }
-                }
-                if (eventType == ix::CobraConnection_EventType_Closed)
+                for (auto it : headers)
                 {
-                    spdlog::info("Subscriber closed");
-                }
-                else if (eventType == ix::CobraConnection_EventType_Authenticated)
-                {
-                    spdlog::info("Subscriber authenticated");
-                    conn.subscribe(channel, filter,
-                                   [&jsonWriter, &statsdClient,
-                                    verbose, &tokens, &prefix, &msgCount]
-                                   (const Json::Value& msg)
-                                   {
-                                       if (verbose)
-                                       {
-                                           spdlog::info(jsonWriter.write(msg));
-                                       }
-
-                                       std::string id;
-                                       for (auto&& attr : tokens)
-                                       {
-                                           id += ".";
-                                           id += extractAttr(attr, msg);
-                                       }
-
-                                       spdlog::info("{} {}{}", msgCount++, prefix, id);
-
-#ifndef _WIN32
-                                       statsdClient.count(id, 1);
-#endif
-                                   });
-                }
-                else if (eventType == ix::CobraConnection_EventType_Subscribed)
-                {
-                    spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
-                {
-                    spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Error)
-                {
-                    spdlog::error("Subscriber: error {}", errMsg);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Published)
-                {
-                    spdlog::error("Published message hacked: {}", msgId);
+                    spdlog::info("{}: {}", it.first, it.second);
                 }
             }
-        );
+            if (eventType == ix::CobraConnection_EventType_Closed)
+            {
+                spdlog::info("Subscriber closed");
+            }
+            else if (eventType == ix::CobraConnection_EventType_Authenticated)
+            {
+                spdlog::info("Subscriber authenticated");
+                conn.subscribe(channel,
+                               filter,
+                               [&jsonWriter, &statsdClient, verbose, &tokens, &prefix, &msgCount](
+                                   const Json::Value& msg) {
+                                   if (verbose)
+                                   {
+                                       spdlog::info(jsonWriter.write(msg));
+                                   }
+
+                                   std::string id;
+                                   for (auto&& attr : tokens)
+                                   {
+                                       id += ".";
+                                       id += extractAttr(attr, msg);
+                                   }
+
+                                   spdlog::info("{} {}{}", msgCount++, prefix, id);
+
+#ifndef _WIN32
+                                   statsdClient.count(id, 1);
+#endif
+                               });
+            }
+            else if (eventType == ix::CobraConnection_EventType_Subscribed)
+            {
+                spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+            {
+                spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Error)
+            {
+                spdlog::error("Subscriber: error {}", errMsg);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Published)
+            {
+                spdlog::error("Published message hacked: {}", msgId);
+            }
+        });
 
         while (true)
         {
@@ -165,4 +165,4 @@ namespace ix
 
         return 0;
     }
-}
+} // namespace ix

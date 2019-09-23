@@ -5,20 +5,19 @@
  */
 
 #include "IXSocket.h"
-#include "IXSocketConnect.h"
+
 #include "IXNetSystem.h"
 #include "IXSelectInterrupt.h"
 #include "IXSelectInterruptFactory.h"
-
+#include "IXSocketConnect.h"
+#include <algorithm>
+#include <assert.h>
+#include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <stdint.h>
-#include <fcntl.h>
 #include <sys/types.h>
-
-#include <algorithm>
 
 #ifdef min
 #undef min
@@ -32,9 +31,9 @@ namespace ix
     const uint64_t Socket::kCloseRequest = 2;
     constexpr size_t Socket::kChunkSize;
 
-    Socket::Socket(int fd) :
-        _sockfd(fd),
-        _selectInterrupt(createSelectInterrupt())
+    Socket::Socket(int fd)
+        : _sockfd(fd)
+        , _selectInterrupt(createSelectInterrupt())
     {
         ;
     }
@@ -123,8 +122,7 @@ namespace ix
 
             // getsockopt() puts the errno value for connect into optval so 0
             // means no-error.
-            if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, &optlen) == -1 ||
-                optval != 0)
+            if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, &optlen) == -1 || optval != 0)
             {
                 pollResult = PollResultType::Error;
 
@@ -201,7 +199,7 @@ namespace ix
 
     ssize_t Socket::send(const std::string& buffer)
     {
-        return send((char*)&buffer[0], buffer.size());
+        return send((char*) &buffer[0], buffer.size());
     }
 
     ssize_t Socket::recv(void* buffer, size_t length)
@@ -263,7 +261,7 @@ namespace ix
         {
             if (isCancellationRequested && isCancellationRequested()) return false;
 
-            ssize_t ret = send((char*)&str[offset], len);
+            ssize_t ret = send((char*) &str[offset], len);
 
             // We wrote some bytes, as needed, all good.
             if (ret > 0)
@@ -292,8 +290,7 @@ namespace ix
         }
     }
 
-    bool Socket::readByte(void* buffer,
-                          const CancellationRequest& isCancellationRequested)
+    bool Socket::readByte(void* buffer, const CancellationRequest& isCancellationRequested)
     {
         while (true)
         {
@@ -332,7 +329,7 @@ namespace ix
         std::string line;
         line.reserve(64);
 
-        for (int i = 0; i < 2 || (line[i-2] != '\r' && line[i-1] != '\n'); ++i)
+        for (int i = 0; i < 2 || (line[i - 2] != '\r' && line[i - 1] != '\n'); ++i)
         {
             if (!readByte(&c, isCancellationRequested))
             {
@@ -365,13 +362,11 @@ namespace ix
             }
 
             size_t size = std::min(kChunkSize, length - output.size());
-            ssize_t ret = recv((char*)&_readBuffer[0], size);
+            ssize_t ret = recv((char*) &_readBuffer[0], size);
 
             if (ret > 0)
             {
-                output.insert(output.end(),
-                              _readBuffer.begin(),
-                              _readBuffer.begin() + ret);
+                output.insert(output.end(), _readBuffer.begin(), _readBuffer.begin() + ret);
             }
             else if (ret <= 0 && !Socket::isWaitNeeded())
             {
@@ -388,7 +383,6 @@ namespace ix
             }
         }
 
-        return std::make_pair(true, std::string(output.begin(),
-                                                output.end()));
+        return std::make_pair(true, std::string(output.begin(), output.end()));
     }
-}
+} // namespace ix

@@ -4,19 +4,19 @@
  *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <condition_variable>
-#include <mutex>
 #include <chrono>
-#include <ixwebsocket/IXWebSocket.h>
-#include <ixwebsocket/IXSocket.h>
-#include <ixcrypto/IXUuid.h>
+#include <condition_variable>
+#include <fstream>
+#include <iostream>
 #include <ixcrypto/IXBase64.h>
 #include <ixcrypto/IXHash.h>
+#include <ixcrypto/IXUuid.h>
+#include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXWebSocket.h>
 #include <msgpack11/msgpack11.hpp>
+#include <mutex>
+#include <sstream>
+#include <vector>
 
 using msgpack11::MsgPack;
 
@@ -24,35 +24,33 @@ namespace ix
 {
     class WebSocketSender
     {
-        public:
-            WebSocketSender(const std::string& _url,
-                            bool enablePerMessageDeflate);
+    public:
+        WebSocketSender(const std::string& _url, bool enablePerMessageDeflate);
 
-            void subscribe(const std::string& channel);
-            void start();
-            void stop();
+        void subscribe(const std::string& channel);
+        void start();
+        void stop();
 
-            void waitForConnection();
-            void waitForAck();
+        void waitForConnection();
+        void waitForAck();
 
-            void sendMessage(const std::string& filename, bool throttle);
+        void sendMessage(const std::string& filename, bool throttle);
 
-        private:
-            std::string _url;
-            std::string _id;
-            ix::WebSocket _webSocket;
-            bool _enablePerMessageDeflate;
+    private:
+        std::string _url;
+        std::string _id;
+        ix::WebSocket _webSocket;
+        bool _enablePerMessageDeflate;
 
-            std::mutex _conditionVariableMutex;
-            std::condition_variable _condition;
+        std::mutex _conditionVariableMutex;
+        std::condition_variable _condition;
 
-            void log(const std::string& msg);
+        void log(const std::string& msg);
     };
 
-    WebSocketSender::WebSocketSender(const std::string& url,
-                                     bool enablePerMessageDeflate) :
-        _url(url),
-        _enablePerMessageDeflate(enablePerMessageDeflate)
+    WebSocketSender::WebSocketSender(const std::string& url, bool enablePerMessageDeflate)
+        : _url(url)
+        , _enablePerMessageDeflate(enablePerMessageDeflate)
     {
         ;
     }
@@ -95,7 +93,7 @@ namespace ix
         file.seekg(0, file.beg);
 
         memblock.resize((size_t) size);
-        file.read((char*)&memblock.front(), static_cast<std::streamsize>(size));
+        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
 
         return memblock;
     }
@@ -111,114 +109,110 @@ namespace ix
         std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
-        _webSocket.setOnMessageCallback(
-            [this](const WebSocketMessagePtr& msg)
+        _webSocket.setOnMessageCallback([this](const WebSocketMessagePtr& msg) {
+            std::stringstream ss;
+            if (msg->type == ix::WebSocketMessageType::Open)
             {
-                std::stringstream ss;
-                if (msg->type == ix::WebSocketMessageType::Open)
-                {
-                    _condition.notify_one();
+                _condition.notify_one();
 
-                    log("ws_send: connected");
-                    std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-                    std::cout << "Handshake Headers:" << std::endl;
-                    for (auto it : msg->openInfo.headers)
-                    {
-                        std::cout << it.first << ": " << it.second << std::endl;
-                    }
-                }
-                else if (msg->type == ix::WebSocketMessageType::Close)
+                log("ws_send: connected");
+                std::cout << "Uri: " << msg->openInfo.uri << std::endl;
+                std::cout << "Handshake Headers:" << std::endl;
+                for (auto it : msg->openInfo.headers)
                 {
-                    ss << "ws_send: connection closed:";
-                    ss << " code " << msg->closeInfo.code;
-                    ss << " reason " << msg->closeInfo.reason << std::endl;
-                    log(ss.str());
+                    std::cout << it.first << ": " << it.second << std::endl;
                 }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    _condition.notify_one();
+            }
+            else if (msg->type == ix::WebSocketMessageType::Close)
+            {
+                ss << "ws_send: connection closed:";
+                ss << " code " << msg->closeInfo.code;
+                ss << " reason " << msg->closeInfo.reason << std::endl;
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                _condition.notify_one();
 
-                    ss << "ws_send: received message (" << msg->wireSize << " bytes)";
-                    log(ss.str());
+                ss << "ws_send: received message (" << msg->wireSize << " bytes)";
+                log(ss.str());
 
-                    std::string errMsg;
-                    MsgPack data = MsgPack::parse(msg->str, errMsg);
-                    if (!errMsg.empty())
-                    {
-                        std::cerr << "Invalid MsgPack response" << std::endl;
-                        return;
-                    }
+                std::string errMsg;
+                MsgPack data = MsgPack::parse(msg->str, errMsg);
+                if (!errMsg.empty())
+                {
+                    std::cerr << "Invalid MsgPack response" << std::endl;
+                    return;
+                }
 
-                    std::string id = data["id"].string_value();
-                    if (_id != id)
-                    {
-                        std::cerr << "Invalid id" << std::endl;
-                    }
-                }
-                else if (msg->type == ix::WebSocketMessageType::Error)
+                std::string id = data["id"].string_value();
+                if (_id != id)
                 {
-                    ss << "ws_send ";
-                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
-                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
-                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
-                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
-                    log(ss.str());
+                    std::cerr << "Invalid id" << std::endl;
                 }
-                else
-                {
-                    ss << "Invalid ix::WebSocketMessageType";
-                    log(ss.str());
-                }
-            });
+            }
+            else if (msg->type == ix::WebSocketMessageType::Error)
+            {
+                ss << "ws_send ";
+                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                log(ss.str());
+            }
+            else
+            {
+                ss << "Invalid ix::WebSocketMessageType";
+                log(ss.str());
+            }
+        });
 
         _webSocket.start();
     }
 
     class Bench
     {
-        public:
-            Bench(const std::string& description) :
-                _description(description),
-                _start(std::chrono::system_clock::now()),
-                _reported(false)
+    public:
+        Bench(const std::string& description)
+            : _description(description)
+            , _start(std::chrono::system_clock::now())
+            , _reported(false)
+        {
+            ;
+        }
+
+        ~Bench()
+        {
+            if (!_reported)
             {
-                ;
+                report();
             }
+        }
 
-            ~Bench()
-            {
-                if (!_reported)
-                {
-                    report();
-                }
-            }
+        void report()
+        {
+            auto now = std::chrono::system_clock::now();
+            auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _start);
 
-            void report()
-            {
-                auto now = std::chrono::system_clock::now();
-                auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _start);
+            _ms = milliseconds.count();
+            std::cout << _description << " completed in " << _ms << "ms" << std::endl;
 
-                _ms = milliseconds.count();
-                std::cout << _description << " completed in "
-                          << _ms << "ms" << std::endl;
+            _reported = true;
+        }
 
-                _reported = true;
-            }
+        uint64_t getDuration() const
+        {
+            return _ms;
+        }
 
-            uint64_t getDuration() const
-            {
-                return _ms;
-            }
-
-        private:
-            std::string _description;
-            std::chrono::time_point<std::chrono::system_clock> _start;
-            uint64_t _ms;
-            bool _reported;
+    private:
+        std::string _description;
+        std::chrono::time_point<std::chrono::system_clock> _start;
+        uint64_t _ms;
+        bool _reported;
     };
 
-    void WebSocketSender::sendMessage(const std::string& filename,
-                                      bool throttle)
+    void WebSocketSender::sendMessage(const std::string& filename, bool throttle)
     {
         std::vector<uint8_t> content;
         {
@@ -239,9 +233,7 @@ namespace ix
         MsgPack msg(pdu);
 
         Bench bench("Sending file through websocket");
-        _webSocket.sendBinary(msg.dump(),
-                              [throttle](int current, int total) -> bool
-        {
+        _webSocket.sendBinary(msg.dump(), [throttle](int current, int total) -> bool {
             std::cout << "ws_send: Step " << current << " out of " << total << std::endl;
 
             if (throttle)
@@ -256,8 +248,7 @@ namespace ix
         do
         {
             size_t bufferedAmount = _webSocket.bufferedAmount();
-            std::cout << "ws_send: " << bufferedAmount
-                      << " bytes left to be sent" << std::endl;
+            std::cout << "ws_send: " << bufferedAmount << " bytes left to be sent" << std::endl;
 
             std::chrono::duration<double, std::milli> duration(10);
             std::this_thread::sleep_for(duration);
@@ -289,8 +280,7 @@ namespace ix
         webSocketSender.stop();
     }
 
-    int ws_send_main(const std::string& url,
-                     const std::string& path)
+    int ws_send_main(const std::string& url, const std::string& path)
     {
         bool throttle = false;
         bool enablePerMessageDeflate = false;
@@ -298,4 +288,4 @@ namespace ix
         wsSend(url, path, enablePerMessageDeflate, throttle);
         return 0;
     }
-}
+} // namespace ix

@@ -9,16 +9,16 @@
  */
 
 #include "IXSocketMbedTLS.h"
-#include "IXSocketConnect.h"
+
 #include "IXNetSystem.h"
 #include "IXSocket.h"
-
+#include "IXSocketConnect.h"
 #include <string.h>
 
 namespace ix
 {
-    SocketMbedTLS::SocketMbedTLS(const SocketTLSOptions& tlsOptions) :
-        _tlsOptions(tlsOptions)
+    SocketMbedTLS::SocketMbedTLS(const SocketTLSOptions& tlsOptions)
+        : _tlsOptions(tlsOptions)
     {
         ;
     }
@@ -36,13 +36,13 @@ namespace ix
         mbedtls_ssl_config_init(&_conf);
         mbedtls_ctr_drbg_init(&_ctr_drbg);
 
-        const char *pers = "IXSocketMbedTLS";
+        const char* pers = "IXSocketMbedTLS";
 
         mbedtls_entropy_init(&_entropy);
         if (mbedtls_ctr_drbg_seed(&_ctr_drbg,
                                   mbedtls_entropy_func,
                                   &_entropy,
-                                  (const unsigned char *) pers,
+                                  (const unsigned char*) pers,
                                   strlen(pers)) != 0)
         {
             errMsg = "Setting entropy seed failed";
@@ -52,7 +52,7 @@ namespace ix
         if (mbedtls_ssl_config_defaults(&_conf,
                                         MBEDTLS_SSL_IS_CLIENT,
                                         MBEDTLS_SSL_TRANSPORT_STREAM,
-                                        MBEDTLS_SSL_PRESET_DEFAULT ) != 0)
+                                        MBEDTLS_SSL_PRESET_DEFAULT) != 0)
         {
             errMsg = "Setting config default failed";
             return false;
@@ -102,8 +102,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_mutex);
             res = mbedtls_ssl_handshake(&_ssl);
-        }
-        while (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE);
+        } while (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE);
 
         if (res != 0)
         {
@@ -142,13 +141,18 @@ namespace ix
 
             ssize_t res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
 
-            if (res > 0) {
+            if (res > 0)
+            {
                 nbyte -= res;
                 sent += res;
-            } else if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE) {
+            }
+            else if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
+            {
                 errno = EWOULDBLOCK;
                 return -1;
-            } else {
+            }
+            else
+            {
                 return -1;
             }
         }
@@ -157,7 +161,7 @@ namespace ix
 
     ssize_t SocketMbedTLS::send(const std::string& buffer)
     {
-        return send((char*)&buffer[0], buffer.size());
+        return send((char*) &buffer[0], buffer.size());
     }
 
     ssize_t SocketMbedTLS::recv(void* buf, size_t nbyte)
@@ -181,4 +185,4 @@ namespace ix
         }
     }
 
-}
+} // namespace ix

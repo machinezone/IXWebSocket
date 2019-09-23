@@ -9,13 +9,12 @@
 // Broadcast server can be ran with `ws broadcast_server`
 //
 
-#include <iostream>
-#include <sstream>
-#include <queue>
-#include <ixwebsocket/IXWebSocket.h>
-#include <ixwebsocket/IXSocket.h>
-
 #include "nlohmann/json.hpp"
+#include <iostream>
+#include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXWebSocket.h>
+#include <queue>
+#include <sstream>
 
 // for convenience
 using json = nlohmann::json;
@@ -24,34 +23,32 @@ namespace ix
 {
     class WebSocketChat
     {
-        public:
-            WebSocketChat(const std::string& url,
-                          const std::string& user);
+    public:
+        WebSocketChat(const std::string& url, const std::string& user);
 
-            void subscribe(const std::string& channel);
-            void start();
-            void stop();
-            bool isReady() const;
+        void subscribe(const std::string& channel);
+        void start();
+        void stop();
+        bool isReady() const;
 
-            void sendMessage(const std::string& text);
-            size_t getReceivedMessagesCount() const;
+        void sendMessage(const std::string& text);
+        size_t getReceivedMessagesCount() const;
 
-            std::string encodeMessage(const std::string& text);
-            std::pair<std::string, std::string> decodeMessage(const std::string& str);
+        std::string encodeMessage(const std::string& text);
+        std::pair<std::string, std::string> decodeMessage(const std::string& str);
 
-        private:
-            std::string _url;
-            std::string _user;
-            ix::WebSocket _webSocket;
-            std::queue<std::string> _receivedQueue;
+    private:
+        std::string _url;
+        std::string _user;
+        ix::WebSocket _webSocket;
+        std::queue<std::string> _receivedQueue;
 
-            void log(const std::string& msg);
+        void log(const std::string& msg);
     };
 
-    WebSocketChat::WebSocketChat(const std::string& url,
-                                 const std::string& user) :
-        _url(url),
-        _user(user)
+    WebSocketChat::WebSocketChat(const std::string& url, const std::string& user)
+        : _url(url)
+        , _user(user)
     {
         ;
     }
@@ -83,64 +80,57 @@ namespace ix
         std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
-        _webSocket.setOnMessageCallback(
-            [this](const WebSocketMessagePtr& msg)
+        _webSocket.setOnMessageCallback([this](const WebSocketMessagePtr& msg) {
+            std::stringstream ss;
+            if (msg->type == ix::WebSocketMessageType::Open)
             {
-                std::stringstream ss;
-                if (msg->type == ix::WebSocketMessageType::Open)
+                log("ws chat: connected");
+                std::cout << "Uri: " << msg->openInfo.uri << std::endl;
+                std::cout << "Handshake Headers:" << std::endl;
+                for (auto it : msg->openInfo.headers)
                 {
-                    log("ws chat: connected");
-                    std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-                    std::cout << "Handshake Headers:" << std::endl;
-                    for (auto it : msg->openInfo.headers)
-                    {
-                        std::cout << it.first << ": " << it.second << std::endl;
-                    }
+                    std::cout << it.first << ": " << it.second << std::endl;
+                }
 
-                    ss << "ws chat: user "
-                       << _user
-                       << " Connected !";
-                       log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    ss << "ws chat: user "
-                       << _user
-                       << " disconnected !"
-                       << " code " << msg->closeInfo.code
-                       << " reason " << msg->closeInfo.reason;
-                       log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    auto result = decodeMessage(msg->str);
+                ss << "ws chat: user " << _user << " Connected !";
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Close)
+            {
+                ss << "ws chat: user " << _user << " disconnected !"
+                   << " code " << msg->closeInfo.code << " reason " << msg->closeInfo.reason;
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                auto result = decodeMessage(msg->str);
 
-                    // Our "chat" / "broacast" node.js server does not send us
-                    // the messages we send, so we don't have to filter it out.
+                // Our "chat" / "broacast" node.js server does not send us
+                // the messages we send, so we don't have to filter it out.
 
-                    // store text
-                    _receivedQueue.push(result.second);
+                // store text
+                _receivedQueue.push(result.second);
 
-                    ss << std::endl
-                       << result.first << "(" << msg->wireSize << " bytes)" << " > " << result.second
-                       << std::endl
-                       << _user << " > ";
-                    log(ss.str());
-                }
-                else if (msg->type == ix::WebSocketMessageType::Error)
-                {
-                    ss << "Connection error: " << msg->errorInfo.reason      << std::endl;
-                    ss << "#retries: "         << msg->errorInfo.retries     << std::endl;
-                    ss << "Wait time(ms): "    << msg->errorInfo.wait_time   << std::endl;
-                    ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
-                    log(ss.str());
-                }
-                else
-                {
-                    ss << "Invalid ix::WebSocketMessageType";
-                    log(ss.str());
-                }
-            });
+                ss << std::endl
+                   << result.first << "(" << msg->wireSize << " bytes)"
+                   << " > " << result.second << std::endl
+                   << _user << " > ";
+                log(ss.str());
+            }
+            else if (msg->type == ix::WebSocketMessageType::Error)
+            {
+                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                log(ss.str());
+            }
+            else
+            {
+                ss << "Invalid ix::WebSocketMessageType";
+                log(ss.str());
+            }
+        });
 
         _webSocket.start();
     }
@@ -170,8 +160,7 @@ namespace ix
         _webSocket.sendText(encodeMessage(text));
     }
 
-    int ws_chat_main(const std::string& url,
-                     const std::string& user)
+    int ws_chat_main(const std::string& url, const std::string& user)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketChat webSocketChat(url, user);
@@ -196,4 +185,4 @@ namespace ix
 
         return 0;
     }
-}
+} // namespace ix

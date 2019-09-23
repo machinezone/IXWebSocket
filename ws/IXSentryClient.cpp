@@ -8,17 +8,16 @@
 
 #include <chrono>
 #include <iostream>
-#include <spdlog/spdlog.h>
-
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
+#include <spdlog/spdlog.h>
 
 
 namespace ix
 {
-    SentryClient::SentryClient(const std::string& dsn) :
-        _dsn(dsn),
-        _validDsn(false),
-        _luaFrameRegex("\t([^/]+):([0-9]+): in function '([^/]+)'")
+    SentryClient::SentryClient(const std::string& dsn)
+        : _dsn(dsn)
+        , _validDsn(false)
+        , _luaFrameRegex("\t([^/]+):([0-9]+): in function '([^/]+)'")
     {
         const std::regex dsnRegex("(http[s]?)://([^:]+):([^@]+)@([^/]+)/([0-9]+)");
         std::smatch group;
@@ -168,8 +167,7 @@ namespace ix
         return _jsonWriter.write(payload);
     }
 
-    std::pair<HttpResponsePtr, std::string> SentryClient::send(const Json::Value& msg,
-                                                               bool verbose)
+    std::pair<HttpResponsePtr, std::string> SentryClient::send(const Json::Value& msg, bool verbose)
     {
         auto args = _httpClient.createRequest();
         args->extraHeaders["X-Sentry-Auth"] = SentryClient::computeAuthHeader();
@@ -177,10 +175,7 @@ namespace ix
         args->transferTimeout = 5 * 60;
         args->followRedirects = true;
         args->verbose = verbose;
-        args->logger = [](const std::string& msg)
-        {
-            spdlog::info("request logger: {}", msg);
-        };
+        args->logger = [](const std::string& msg) { spdlog::info("request logger: {}", msg); };
 
         std::string body = computePayload(msg);
         HttpResponsePtr response = _httpClient.post(_url, body, args);

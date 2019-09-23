@@ -26,14 +26,13 @@
 
 #include "IXSelectInterruptEventFd.h"
 
-#include <sys/eventfd.h>
-
-#include <unistd.h> // for write
-#include <string.h> // for strerror
-#include <fcntl.h>
-#include <errno.h>
 #include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <sstream>
+#include <string.h> // for strerror
+#include <sys/eventfd.h>
+#include <unistd.h> // for write
 
 namespace ix
 {
@@ -113,4 +112,4 @@ namespace ix
     {
         return _eventfd;
     }
-}
+} // namespace ix

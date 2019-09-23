@@ -5,17 +5,16 @@
  */
 
 #include "IXHttpClient.h"
+
+#include "IXSocketFactory.h"
 #include "IXUrlParser.h"
 #include "IXUserAgent.h"
 #include "IXWebSocketHttpHeaders.h"
-#include "IXSocketFactory.h"
-
-#include <sstream>
-#include <iomanip>
-#include <vector>
-#include <cstring>
-
 #include <assert.h>
+#include <cstring>
+#include <iomanip>
+#include <sstream>
+#include <vector>
 #include <zlib.h>
 
 namespace ix
@@ -26,7 +25,9 @@ namespace ix
     const std::string HttpClient::kDel = "DEL";
     const std::string HttpClient::kPut = "PUT";
 
-    HttpClient::HttpClient(bool async) : _async(async), _stop(false)
+    HttpClient::HttpClient(bool async)
+        : _async(async)
+        , _stop(false)
     {
         if (!_async) return;
 
@@ -42,8 +43,7 @@ namespace ix
         _thread.join();
     }
 
-    HttpRequestArgsPtr HttpClient::createRequest(const std::string& url,
-                                                 const std::string& verb)
+    HttpRequestArgsPtr HttpClient::createRequest(const std::string& url, const std::string& verb)
     {
         auto request = std::make_shared<HttpRequestArgs>();
         request->url = url;
@@ -106,12 +106,11 @@ namespace ix
         }
     }
 
-    HttpResponsePtr HttpClient::request(
-        const std::string& url,
-        const std::string& verb,
-        const std::string& body,
-        HttpRequestArgsPtr args,
-        int redirects)
+    HttpResponsePtr HttpClient::request(const std::string& url,
+                                        const std::string& verb,
+                                        const std::string& body,
+                                        HttpRequestArgsPtr args,
+                                        int redirects)
     {
         // We only have one socket connection, so we cannot
         // make multiple requests concurrently.
@@ -131,9 +130,14 @@ namespace ix
         {
             std::stringstream ss;
             ss << "Cannot parse url: " << url;
-            return std::make_shared<HttpResponse>(code, description, HttpErrorCode::UrlMalformed,
-                                                  headers, payload, ss.str(),
-                                                  uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::UrlMalformed,
+                                                  headers,
+                                                  payload,
+                                                  ss.str(),
+                                                  uploadSize,
+                                                  downloadSize);
         }
 
         bool tls = protocol == "https";
@@ -143,9 +147,14 @@ namespace ix
 
         if (!_socket)
         {
-            return std::make_shared<HttpResponse>(code, description, HttpErrorCode::CannotCreateSocket,
-                                                  headers, payload, errorMsg,
-                                                  uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::CannotCreateSocket,
+                                                  headers,
+                                                  payload,
+                                                  errorMsg,
+                                                  uploadSize,
+                                                  downloadSize);
         }
 
         // Build request string
@@ -155,7 +164,8 @@ namespace ix
 
         if (args->compress)
         {
-            ss << "Accept-Encoding: gzip" << "\r\n";
+            ss << "Accept-Encoding: gzip"
+               << "\r\n";
         }
 
         // Append extra headers
@@ -167,7 +177,8 @@ namespace ix
         // Set a default Accept header if none is present
         if (headers.find("Accept") == headers.end())
         {
-            ss << "Accept: */*" << "\r\n";
+            ss << "Accept: */*"
+               << "\r\n";
         }
 
         // Set a default User agent if none is present
@@ -183,7 +194,8 @@ namespace ix
             // Set default Content-Type if unspecified
             if (args->extraHeaders.find("Content-Type") == args->extraHeaders.end())
             {
-                ss << "Content-Type: application/x-www-form-urlencoded" << "\r\n";
+                ss << "Content-Type: application/x-www-form-urlencoded"
+                   << "\r\n";
             }
             ss << "\r\n";
             ss << body;
@@ -206,9 +218,14 @@ namespace ix
         {
             std::stringstream ss;
             ss << "Cannot connect to url: " << url << " / error : " << errMsg;
-            return std::make_shared<HttpResponse>(code, description, HttpErrorCode::CannotConnect,
-                                                  headers, payload, ss.str(),
-                                                  uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::CannotConnect,
+                                                  headers,
+                                                  payload,
+                                                  ss.str(),
+                                                  uploadSize,
+                                                  downloadSize);
         }
 
         // Make a new cancellation object dealing with transfer timeout
@@ -222,8 +239,7 @@ namespace ix
                << "to " << host << ":" << port << std::endl
                << "request size: " << req.size() << " bytes" << std::endl
                << "=============" << std::endl
-               << req
-               << "=============" << std::endl
+               << req << "=============" << std::endl
                << std::endl;
 
             log(ss.str(), args);
@@ -232,9 +248,14 @@ namespace ix
         if (!_socket->writeBytes(req, isCancellationRequested))
         {
             std::string errorMsg("Cannot send request");
-            return std::make_shared<HttpResponse>(code, description, HttpErrorCode::SendError,
-                                                  headers, payload, errorMsg,
-                                                  uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::SendError,
+                                                  headers,
+                                                  payload,
+                                                  errorMsg,
+                                                  uploadSize,
+                                                  downloadSize);
         }
 
         uploadSize = req.size();
@@ -246,9 +267,14 @@ namespace ix
         if (!lineValid)
         {
             std::string errorMsg("Cannot retrieve status line");
-            return std::make_shared<HttpResponse>(code, description, HttpErrorCode::CannotReadStatusLine,
-                                                  headers, payload, errorMsg,
-                                                  uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::CannotReadStatusLine,
+                                                  headers,
+                                                  payload,
+                                                  errorMsg,
+                                                  uploadSize,
+                                                  downloadSize);
         }
 
         if (args->verbose)
@@ -261,9 +287,14 @@ namespace ix
         if (sscanf(line.c_str(), "HTTP/1.1 %d", &code) != 1)
         {
             std::string errorMsg("Cannot parse response code from status line");
-            return std::make_shared<HttpResponse>(code, description, HttpErrorCode::MissingStatus,
-                                                  headers, payload, errorMsg,
-                                                  uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::MissingStatus,
+                                                  headers,
+                                                  payload,
+                                                  errorMsg,
+                                                  uploadSize,
+                                                  downloadSize);
         }
 
         auto result = parseHttpHeaders(_socket, isCancellationRequested);
@@ -273,9 +304,14 @@ namespace ix
         if (!headersValid)
         {
             std::string errorMsg("Cannot parse http headers");
-            return std::make_shared<HttpResponse>(code, description, HttpErrorCode::HeaderParsingError,
-                                                  headers, payload, errorMsg,
-                                                  uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::HeaderParsingError,
+                                                  headers,
+                                                  payload,
+                                                  errorMsg,
+                                                  uploadSize,
+                                                  downloadSize);
         }
 
         // Redirect ?
@@ -284,30 +320,45 @@ namespace ix
             if (headers.find("Location") == headers.end())
             {
                 std::string errorMsg("Missing location header for redirect");
-                return std::make_shared<HttpResponse>(code, description, HttpErrorCode::MissingLocation,
-                                                      headers, payload, errorMsg,
-                                                      uploadSize, downloadSize);
+                return std::make_shared<HttpResponse>(code,
+                                                      description,
+                                                      HttpErrorCode::MissingLocation,
+                                                      headers,
+                                                      payload,
+                                                      errorMsg,
+                                                      uploadSize,
+                                                      downloadSize);
             }
 
             if (redirects >= args->maxRedirects)
             {
                 std::stringstream ss;
                 ss << "Too many redirects: " << redirects;
-                return std::make_shared<HttpResponse>(code, description, HttpErrorCode::TooManyRedirects,
-                                                      headers, payload, ss.str(),
-                                                      uploadSize, downloadSize);
+                return std::make_shared<HttpResponse>(code,
+                                                      description,
+                                                      HttpErrorCode::TooManyRedirects,
+                                                      headers,
+                                                      payload,
+                                                      ss.str(),
+                                                      uploadSize,
+                                                      downloadSize);
             }
 
             // Recurse
             std::string location = headers["Location"];
-            return request(location, verb, body, args, redirects+1);
+            return request(location, verb, body, args, redirects + 1);
         }
 
         if (verb == "HEAD")
         {
-            return std::make_shared<HttpResponse>(code, description, HttpErrorCode::Ok,
-                                                  headers, payload, std::string(),
-                                                  uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::Ok,
+                                                  headers,
+                                                  payload,
+                                                  std::string(),
+                                                  uploadSize,
+                                                  downloadSize);
         }
 
         // Parse response:
@@ -320,15 +371,19 @@ namespace ix
 
             payload.reserve(contentLength);
 
-            auto chunkResult = _socket->readBytes(contentLength,
-                                                  args->onProgressCallback,
-                                                  isCancellationRequested);
+            auto chunkResult = _socket->readBytes(
+                contentLength, args->onProgressCallback, isCancellationRequested);
             if (!chunkResult.first)
             {
                 errorMsg = "Cannot read chunk";
-                return std::make_shared<HttpResponse>(code, description, HttpErrorCode::ChunkReadError,
-                                                      headers, payload, errorMsg,
-                                                      uploadSize, downloadSize);
+                return std::make_shared<HttpResponse>(code,
+                                                      description,
+                                                      HttpErrorCode::ChunkReadError,
+                                                      headers,
+                                                      payload,
+                                                      errorMsg,
+                                                      uploadSize,
+                                                      downloadSize);
             }
             payload += chunkResult.second;
         }
@@ -344,9 +399,14 @@ namespace ix
 
                 if (!lineResult.first)
                 {
-                    return std::make_shared<HttpResponse>(code, description, HttpErrorCode::ChunkReadError,
-                                                          headers, payload, errorMsg,
-                                                          uploadSize, downloadSize);
+                    return std::make_shared<HttpResponse>(code,
+                                                          description,
+                                                          HttpErrorCode::ChunkReadError,
+                                                          headers,
+                                                          payload,
+                                                          errorMsg,
+                                                          uploadSize,
+                                                          downloadSize);
                 }
 
                 uint64_t chunkSize;
@@ -357,23 +417,26 @@ namespace ix
                 if (args->verbose)
                 {
                     std::stringstream oss;
-                    oss << "Reading " << chunkSize << " bytes"
-                        << std::endl;
+                    oss << "Reading " << chunkSize << " bytes" << std::endl;
                     log(oss.str(), args);
                 }
 
                 payload.reserve(payload.size() + (size_t) chunkSize);
 
                 // Read a chunk
-                auto chunkResult = _socket->readBytes((size_t) chunkSize,
-                                                      args->onProgressCallback,
-                                                      isCancellationRequested);
+                auto chunkResult = _socket->readBytes(
+                    (size_t) chunkSize, args->onProgressCallback, isCancellationRequested);
                 if (!chunkResult.first)
                 {
                     errorMsg = "Cannot read chunk";
-                    return std::make_shared<HttpResponse>(code, description, HttpErrorCode::ChunkReadError,
-                                                          headers, payload, errorMsg,
-                                                          uploadSize, downloadSize);
+                    return std::make_shared<HttpResponse>(code,
+                                                          description,
+                                                          HttpErrorCode::ChunkReadError,
+                                                          headers,
+                                                          payload,
+                                                          errorMsg,
+                                                          uploadSize,
+                                                          downloadSize);
                 }
                 payload += chunkResult.second;
 
@@ -382,9 +445,14 @@ namespace ix
 
                 if (!lineResult.first)
                 {
-                    return std::make_shared<HttpResponse>(code, description, HttpErrorCode::ChunkReadError,
-                                                          headers, payload, errorMsg,
-                                                          uploadSize, downloadSize);
+                    return std::make_shared<HttpResponse>(code,
+                                                          description,
+                                                          HttpErrorCode::ChunkReadError,
+                                                          headers,
+                                                          payload,
+                                                          errorMsg,
+                                                          uploadSize,
+                                                          downloadSize);
                 }
 
                 if (chunkSize == 0) break;
@@ -397,9 +465,14 @@ namespace ix
         else
         {
             std::string errorMsg("Cannot read http body");
-            return std::make_shared<HttpResponse>(code, description, HttpErrorCode::CannotReadBody,
-                                                  headers, payload, errorMsg,
-                                                  uploadSize, downloadSize);
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::CannotReadBody,
+                                                  headers,
+                                                  payload,
+                                                  errorMsg,
+                                                  uploadSize,
+                                                  downloadSize);
         }
 
         downloadSize = payload.size();
@@ -411,32 +484,39 @@ namespace ix
             if (!gzipInflate(payload, decompressedPayload))
             {
                 std::string errorMsg("Error decompressing payload");
-                return std::make_shared<HttpResponse>(code, description, HttpErrorCode::Gzip,
-                                                      headers, payload, errorMsg,
-                                                      uploadSize, downloadSize);
+                return std::make_shared<HttpResponse>(code,
+                                                      description,
+                                                      HttpErrorCode::Gzip,
+                                                      headers,
+                                                      payload,
+                                                      errorMsg,
+                                                      uploadSize,
+                                                      downloadSize);
             }
             payload = decompressedPayload;
         }
 
-        return std::make_shared<HttpResponse>(code, description, HttpErrorCode::Ok,
-                                              headers, payload, std::string(),
-                                              uploadSize, downloadSize);
+        return std::make_shared<HttpResponse>(code,
+                                              description,
+                                              HttpErrorCode::Ok,
+                                              headers,
+                                              payload,
+                                              std::string(),
+                                              uploadSize,
+                                              downloadSize);
     }
 
-    HttpResponsePtr HttpClient::get(const std::string& url,
-                                    HttpRequestArgsPtr args)
+    HttpResponsePtr HttpClient::get(const std::string& url, HttpRequestArgsPtr args)
     {
         return request(url, kGet, std::string(), args);
     }
 
-    HttpResponsePtr HttpClient::head(const std::string& url,
-                                     HttpRequestArgsPtr args)
+    HttpResponsePtr HttpClient::head(const std::string& url, HttpRequestArgsPtr args)
     {
         return request(url, kHead, std::string(), args);
     }
 
-    HttpResponsePtr HttpClient::del(const std::string& url,
-                                    HttpRequestArgsPtr args)
+    HttpResponsePtr HttpClient::del(const std::string& url, HttpRequestArgsPtr args)
     {
         return request(url, kDel, std::string(), args);
     }
@@ -475,8 +555,7 @@ namespace ix
         escaped.fill('0');
         escaped << std::hex;
 
-        for (std::string::const_iterator i = value.begin(), n = value.end();
-             i != n; ++i)
+        for (std::string::const_iterator i = value.begin(), n = value.end(); i != n; ++i)
         {
             std::string::value_type c = (*i);
 
@@ -504,21 +583,17 @@ namespace ix
 
         for (auto&& it : httpParameters)
         {
-            ss << urlEncode(it.first)
-               << "="
-               << urlEncode(it.second);
+            ss << urlEncode(it.first) << "=" << urlEncode(it.second);
 
-            if (i++ < (count-1))
+            if (i++ < (count - 1))
             {
-               ss << "&";
+                ss << "&";
             }
         }
         return ss.str();
     }
 
-    bool HttpClient::gzipInflate(
-        const std::string& in,
-        std::string& out)
+    bool HttpClient::gzipInflate(const std::string& in, std::string& out)
     {
         z_stream inflateState;
         std::memset(&inflateState, 0, sizeof(inflateState));
@@ -529,13 +604,13 @@ namespace ix
         inflateState.avail_in = 0;
         inflateState.next_in = Z_NULL;
 
-        if (inflateInit2(&inflateState, 16+MAX_WBITS) != Z_OK)
+        if (inflateInit2(&inflateState, 16 + MAX_WBITS) != Z_OK)
         {
             return false;
         }
 
         inflateState.avail_in = (uInt) in.size();
-        inflateState.next_in = (unsigned char *)(const_cast<char *>(in.data()));
+        inflateState.next_in = (unsigned char*) (const_cast<char*>(in.data()));
 
         const int kBufferSize = 1 << 14;
 
@@ -555,22 +630,19 @@ namespace ix
                 return false;
             }
 
-            out.append(
-                reinterpret_cast<char *>(compressBuffer.get()),
-                kBufferSize - inflateState.avail_out
-            );
+            out.append(reinterpret_cast<char*>(compressBuffer.get()),
+                       kBufferSize - inflateState.avail_out);
         } while (inflateState.avail_out == 0);
 
         inflateEnd(&inflateState);
         return true;
     }
 
-    void HttpClient::log(const std::string& msg,
-                         HttpRequestArgsPtr args)
+    void HttpClient::log(const std::string& msg, HttpRequestArgsPtr args)
     {
         if (args->logger)
         {
             args->logger(msg);
         }
     }
-}
+} // namespace ix

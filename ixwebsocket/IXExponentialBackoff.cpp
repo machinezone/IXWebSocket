@@ -10,9 +10,8 @@
 
 namespace ix
 {
-    uint32_t calculateRetryWaitMilliseconds(
-        uint32_t retry_count,
-        uint32_t maxWaitBetweenReconnectionRetries)
+    uint32_t calculateRetryWaitMilliseconds(uint32_t retry_count,
+                                            uint32_t maxWaitBetweenReconnectionRetries)
     {
         uint32_t wait_time = std::pow(2, retry_count) * 100;
 
@@ -23,4 +22,4 @@ namespace ix
 
         return wait_time;
     }
-}
+} // namespace ix

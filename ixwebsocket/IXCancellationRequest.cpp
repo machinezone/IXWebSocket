@@ -10,14 +10,13 @@
 
 namespace ix
 {
-    CancellationRequest makeCancellationRequestWithTimeout(int secs,
-                                                           std::atomic<bool>& requestInitCancellation)
+    CancellationRequest makeCancellationRequestWithTimeout(
+        int secs, std::atomic<bool>& requestInitCancellation)
     {
         auto start = std::chrono::system_clock::now();
         auto timeout = std::chrono::seconds(secs);
 
-        auto isCancellationRequested = [&requestInitCancellation, start, timeout]() -> bool
-        {
+        auto isCancellationRequested = [&requestInitCancellation, start, timeout]() -> bool {
             // Was an explicit cancellation requested ?
             if (requestInitCancellation) return true;
 
@@ -30,4 +29,4 @@ namespace ix
 
         return isCancellationRequested;
     }
-}
+} // namespace ix
