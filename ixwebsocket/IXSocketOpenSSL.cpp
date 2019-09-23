@@ -22,7 +22,7 @@ namespace ix
 
     SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd)
         : Socket(fd)
-        , _tlsOptions(tlsOptions),
+        , _tlsOptions(tlsOptions)
         , _ssl_connection(nullptr)
         , _ssl_context(nullptr)
     {
