@@ -73,7 +73,7 @@ TEST_CASE("tls_socket_connect", "[net]")
 
         ix::WebSocket client;
         auto url = "wss://localhost:" + std::to_string(port) + "/";
-        
+
         ix::WebSocketErrorInfo errInfo;
         client.setUrl(url);
         client.setTLSOptions({".certs/untrusted-client-crt.pem",
@@ -105,7 +105,7 @@ TEST_CASE("tls_socket_connect", "[net]")
         auto status = client.sendText("Hello");
         client.stop();
         REQUIRE(status.success == false);
-        
+
         using Catch::Matchers::Contains;
         REQUIRE_THAT(errInfo.reason, Contains("tlsv1 alert unknown ca"));
     }
@@ -123,7 +123,7 @@ TEST_CASE("tls_socket_connect", "[net]")
 
         ix::WebSocket client;
         auto url = "wss://localhost:" + std::to_string(port) + "/";
-        
+
         ix::WebSocketErrorInfo errInfo;
         client.setUrl(url);
         client.setTLSOptions({".certs/selfsigned-client-crt.pem",
@@ -170,12 +170,11 @@ TEST_CASE("tls_socket_connect", "[net]")
 
         ix::WebSocket client;
         auto url = "wss://localhost:" + std::to_string(port) + "/";
-        
+
         ix::WebSocketErrorInfo errInfo;
         client.setUrl(url);
-        client.setTLSOptions({".certs/selfsigned-client-crt.pem",
-                              ".certs/selfsigned-client-key.pem",
-                              "NONE"});
+        client.setTLSOptions(
+            {".certs/selfsigned-client-crt.pem", ".certs/selfsigned-client-key.pem", "NONE"});
         client.setOnMessageCallback([&errInfo](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message)
             {
@@ -204,7 +203,8 @@ TEST_CASE("tls_socket_connect", "[net]")
         REQUIRE(status.success);
     }
 
-    SECTION("client uses trusted self-signed cert, untrusted server, no client verification, ALL ciphers")
+    SECTION("client uses trusted self-signed cert, untrusted server, no client verification, ALL "
+            "ciphers")
     {
         int port = getFreePort();
         ix::WebSocketServer server(port);
@@ -217,14 +217,15 @@ TEST_CASE("tls_socket_connect", "[net]")
 
         ix::WebSocket client;
         auto url = "wss://localhost:" + std::to_string(port) + "/";
-        
+
         ix::WebSocketErrorInfo errInfo;
         client.setUrl(url);
-        client.setTLSOptions({".certs/selfsigned-client-crt.pem",
-                              ".certs/selfsigned-client-key.pem",
-                              "NONE", // client doesn't verify server
-                              "ALL" // client is okay with any possible cipher
-                              });
+        client.setTLSOptions({
+            ".certs/selfsigned-client-crt.pem",
+            ".certs/selfsigned-client-key.pem",
+            "NONE", // client doesn't verify server
+            "ALL"   // client is okay with any possible cipher
+        });
         client.setOnMessageCallback([&errInfo](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message)
             {
