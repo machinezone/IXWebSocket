@@ -4,7 +4,6 @@
  *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include "ws_tls_support.h"
 #include <chrono>
 #include <condition_variable>
 #include <fstream>
@@ -13,6 +12,7 @@
 #include <ixcrypto/IXHash.h>
 #include <ixcrypto/IXUuid.h>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <msgpack11/msgpack11.hpp>
 #include <mutex>
@@ -23,7 +23,7 @@ using msgpack11::MsgPack;
 
 namespace ix
 {
-    class WebSocketReceiver : public TLSSupport
+    class WebSocketReceiver : public TLSConfigurable
     {
     public:
         WebSocketReceiver(const std::string& _url, bool enablePerMessageDeflate, int delayMs);

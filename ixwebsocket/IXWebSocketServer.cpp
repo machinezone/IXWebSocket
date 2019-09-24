@@ -58,11 +58,6 @@ namespace ix
         _enablePong = false;
     }
 
-    void WebSocketServer::setTLSOptions(const SocketTLSOptions& tlsOptions)
-    {
-        _tlsOptions = tlsOptions.validated();
-    }
-
     void WebSocketServer::setOnConnectionCallback(const OnConnectionCallback& callback)
     {
         _onConnectionCallback = callback;

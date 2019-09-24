@@ -4,15 +4,15 @@
  *  Copyright (c) 2018-2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include "ws_tls_support.h"
 #include <iostream>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <sstream>
 
 namespace ix
 {
-    class WebSocketPingPong : public TLSSupport
+    class WebSocketPingPong : public TLSConfigurable
     {
     public:
         WebSocketPingPong(const std::string& _url);

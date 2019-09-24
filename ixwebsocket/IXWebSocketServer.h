@@ -20,7 +20,7 @@
 
 namespace ix
 {
-    class WebSocketServer final : public SocketServer
+    class WebSocketServer final : public SocketServer, public TLSConfigurable
     {
     public:
         using OnConnectionCallback =
@@ -37,21 +37,17 @@ namespace ix
         void enablePong();
         void disablePong();
 
-        void setTLSOptions(const SocketTLSOptions& tlsOptions);
-
         void setOnConnectionCallback(const OnConnectionCallback& callback);
 
         // Get all the connected clients
         std::set<std::shared_ptr<WebSocket>> getClients();
 
     private:
-        // Member variables
+        // Member variablesSocketTLSOptions _tlsOptions;
         int _handshakeTimeoutSecs;
         bool _enablePong;
 
         OnConnectionCallback _onConnectionCallback;
-
-        SocketTLSOptions _tlsOptions;
 
         std::mutex _clientsMutex;
         std::set<std::shared_ptr<WebSocket>> _clients;

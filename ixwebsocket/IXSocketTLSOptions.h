@@ -34,4 +34,14 @@ namespace ix
 
         bool isUsingDefaultCiphers() const;
     };
+
+    // trait class to supply common tls options validation
+    class TLSConfigurable
+    {
+    protected:
+        SocketTLSOptions _tlsOptions;
+
+    public:
+        virtual void setTLSOptions(const SocketTLSOptions& tlsOptions);
+    };
 } // namespace ix

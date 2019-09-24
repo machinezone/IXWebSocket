@@ -5,15 +5,15 @@
  */
 
 #include "linenoise.hpp"
-#include "ws_tls_support.h"
 #include <iostream>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <sstream>
 
 namespace ix
 {
-    class WebSocketConnect : public TLSSupport
+    class WebSocketConnect : public TLSConfigurable
     {
     public:
         WebSocketConnect(const std::string& _url,

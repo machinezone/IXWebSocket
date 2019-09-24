@@ -40,7 +40,7 @@ namespace ix
 
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
-    class WebSocket
+    class WebSocket : public TLSConfigurable
     {
     public:
         WebSocket();
@@ -52,7 +52,7 @@ namespace ix
         void setExtraHeaders(const WebSocketHttpHeaders& headers);
         void setPerMessageDeflateOptions(
             const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
-        void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
+        void setTLSOptions(const SocketTLSOptions& socketTLSOptions) override;
         void setHeartBeatPeriod(int heartBeatPeriodSecs);
         void setPingInterval(int pingIntervalSecs); // alias of setHeartBeatPeriod
         void setPingTimeout(int pingTimeoutSecs);
@@ -123,8 +123,6 @@ namespace ix
         WebSocketHttpHeaders _extraHeaders;
 
         WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
-
-        SocketTLSOptions _socketTLSOptions;
 
         mutable std::mutex _configMutex; // protect all config variables access
 

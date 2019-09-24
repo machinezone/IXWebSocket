@@ -43,12 +43,6 @@ namespace ix
         _thread.join();
     }
 
-
-    void HttpClient::setTLSOptions(const SocketTLSOptions& tlsOptions)
-    {
-        _tlsOptions = tlsOptions.validated();
-    }
-
     HttpRequestArgsPtr HttpClient::createRequest(const std::string& url, const std::string& verb)
     {
         auto request = std::make_shared<HttpRequestArgs>();

@@ -22,13 +22,11 @@
 
 namespace ix
 {
-    class HttpClient
+    class HttpClient : public TLSConfigurable
     {
     public:
         HttpClient(bool async = false);
         ~HttpClient();
-
-        void setTLSOptions(const SocketTLSOptions& tlsOptions);
 
         HttpResponsePtr get(const std::string& url, HttpRequestArgsPtr args);
         HttpResponsePtr head(const std::string& url, HttpRequestArgsPtr args);
@@ -81,7 +79,6 @@ namespace ix
 
         // Async API
         bool _async;
-        SocketTLSOptions _tlsOptions;
         std::queue<std::pair<HttpRequestArgsPtr, OnResponseCallback>> _queue;
         mutable std::mutex _queueMutex;
         std::condition_variable _condition;

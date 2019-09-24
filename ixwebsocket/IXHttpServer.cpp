@@ -69,11 +69,6 @@ namespace ix
         _onConnectionCallback = callback;
     }
 
-    void HttpServer::setTLSOptions(const SocketTLSOptions& tlsOptions)
-    {
-        _tlsOptions = tlsOptions.validated();
-    }
-
     void HttpServer::handleConnection(int fd, std::shared_ptr<ConnectionState> connectionState)
     {
         _connectedClientsCount++;

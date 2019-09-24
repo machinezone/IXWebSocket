@@ -4,7 +4,6 @@
  *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include "ws_tls_support.h"
 #include <chrono>
 #include <condition_variable>
 #include <fstream>
@@ -24,7 +23,7 @@ using msgpack11::MsgPack;
 
 namespace ix
 {
-    class WebSocketSender : public TLSSupport
+    class WebSocketSender : public TLSConfigurable
     {
     public:
         WebSocketSender(const std::string& _url, bool enablePerMessageDeflate);

@@ -50,4 +50,9 @@ namespace ix
         return ciphers.empty() || ciphers == "DEFAULT";
     }
 
+    void TLSConfigurable::setTLSOptions(const SocketTLSOptions& tlsOptions)
+    {
+        _tlsOptions = tlsOptions.validated();
+    };
+
 } // namespace ix
