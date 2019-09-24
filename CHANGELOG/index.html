@@ -91,6 +91,12 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#changelog">Changelog</a></li>
+            <li><a href="#626-2019-09-24">[6.2.6] - 2019-09-24</a></li>
+            <li><a href="#625-2019-09-23">[6.2.5] - 2019-09-23</a></li>
+            <li><a href="#624-2019-09-22">[6.2.4] - 2019-09-22</a></li>
+            <li><a href="#623-2019-09-21">[6.2.3] - 2019-09-21</a></li>
+            <li><a href="#622-2019-09-19">[6.2.2] - 2019-09-19</a></li>
+            <li><a href="#621-2019-09-17">[6.2.1] - 2019-09-17</a></li>
             <li><a href="#620-2019-09-09">[6.2.0] - 2019-09-09</a></li>
             <li><a href="#610-2019-09-08">[6.1.0] - 2019-09-08</a></li>
             <li><a href="#601-2019-09-05">[6.0.1] - 2019-09-05</a></li>
@@ -124,11 +130,37 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All notable changes to this project will be documented in this file.</p>
+<h2 id="626-2019-09-24">[6.2.6] - 2019-09-24</h2>
+<ul>
+<li>Fix 2 race conditions detected with TSan, one in CobraMetricsPublisher::push and another one in WebSocketTransport::sendData (that one was bad).</li>
+</ul>
+<h2 id="625-2019-09-23">[6.2.5] - 2019-09-23</h2>
+<ul>
+<li>Add simple Redis Server which is only capable of doing publish / subscribe. New ws redis_server sub-command to use it. The server is used in the unittest, so that we can run on CI in environment where redis isn not available like github actions env.</li>
+</ul>
+<h2 id="624-2019-09-22">[6.2.4] - 2019-09-22</h2>
+<ul>
+<li>Add options to configure TLS ; contributed by Matt DeBoer. Only implemented for OpenSSL TLS backend for now.</li>
+</ul>
+<h2 id="623-2019-09-21">[6.2.3] - 2019-09-21</h2>
+<ul>
+<li>Fix crash in the Linux unittest in the HTTP client code, in Socket::readBytes</li>
+<li>Cobra Metrics Publisher code returns the message id of the message that got published, to be used to validated that it got sent properly when receiving an ack.</li>
+</ul>
+<h2 id="622-2019-09-19">[6.2.2] - 2019-09-19</h2>
+<ul>
+<li>In DNS lookup code, make sure the weak pointer we use lives through the expected scope (if branch)</li>
+</ul>
+<h2 id="621-2019-09-17">[6.2.1] - 2019-09-17</h2>
+<ul>
+<li>On error while doing a client handshake, additionally display port number next to the host name</li>
+</ul>
 <h2 id="620-2019-09-09">[6.2.0] - 2019-09-09</h2>
 <ul>
 <li>websocket and http server: server does not close the bound client socket in many cases</li>
 <li>improve some websocket error messages</li>
 <li>add a utility function with unittest to parse status line and stop using scanf which triggers warnings on Windows</li>
+<li>update ws CLI11 (our command line argument parsing library) to the latest, which fix a compiler bug about optional</li>
 </ul>
 <h2 id="610-2019-09-08">[6.1.0] - 2019-09-08</h2>
 <ul>
@@ -187,7 +219,7 @@
 <li>add utf-8 validation code, not hooked up properly yet</li>
 <li>Ping received with a payload too large (&gt; 125 bytes) trigger a connection closure</li>
 <li>cobra / add tracking about published messages</li>
-<li>cobra / publish returns a message id, that can be used when </li>
+<li>cobra / publish returns a message id, that can be used when</li>
 <li>cobra / new message type in the message received handler when publish/ok is received (can be used to implement an ack system).</li>
 </ul>
 <h2 id="509-2019-08-30">[5.0.9] - 2019-08-30</h2>
@@ -201,7 +233,7 @@
 <h2 id="507-2019-08-23">[5.0.7] - 2019-08-23</h2>
 <ul>
 <li>WebSocket: add new option to pass in extra HTTP headers when connecting.</li>
-<li><code>ws connect</code> add new option (-H, works like <a href="https://stackoverflow.com/questions/356705/how-to-send-a-header-using-a-http-request-through-a-curl-call">curl</a>) to pass in extra HTTP headers when connecting </li>
+<li><code>ws connect</code> add new option (-H, works like <a href="https://stackoverflow.com/questions/356705/how-to-send-a-header-using-a-http-request-through-a-curl-call">curl</a>) to pass in extra HTTP headers when connecting</li>
 </ul>
 <p>If you run against <code>ws echo_server</code> you will see the headers being received printed in the terminal.</p>
 <pre><code>ws connect -H &quot;foo: bar&quot; -H &quot;baz: buz&quot; ws://127.0.0.1:8008
