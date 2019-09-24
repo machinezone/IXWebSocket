@@ -868,7 +868,7 @@ namespace ix
         }
 
         {
-            std::lock_guard<std::mutex> lock(_socketMutex);
+            std::lock_guard<std::mutex> lock(_txbufMutex);
             _txbuf.reserve(wireSize);
         }
 
