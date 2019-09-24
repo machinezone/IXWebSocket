@@ -17,7 +17,8 @@ namespace ix
                       const std::string& hostname,
                       const std::string& certFile,
                       const std::string& keyFile,
-                      const std::string& caFile)
+                      const std::string& caFile,
+                      const std::string& ciphers)
     {
         spdlog::info("Listening on {}:{}", hostname, port);
 

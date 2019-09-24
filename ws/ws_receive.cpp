@@ -244,10 +244,11 @@ namespace ix
                    int delayMs,
                    const std::string& certFile,
                    const std::string& keyFile,
-                   const std::string& caFile)
+                   const std::string& caFile,
+                   const std::string& ciphers)
     {
         WebSocketReceiver webSocketReceiver(url, enablePerMessageDeflate, delayMs);
-        webSocketReceiver.setTLSOptions(certFile, keyFile, caFile);
+        webSocketReceiver.setTLSOptions(certFile, keyFile, caFile, ciphers);
         webSocketReceiver.start();
 
         webSocketReceiver.waitForConnection();
@@ -266,7 +267,8 @@ namespace ix
                         int delayMs,
                         const std::string& certFile,
                         const std::string& keyFile,
-                        const std::string& caFile)
+                        const std::string& caFile,
+                        const std::string& ciphers)
     {
         wsReceive(url, enablePerMessageDeflate, delayMs, certFile, keyFile, caFile);
         return 0;

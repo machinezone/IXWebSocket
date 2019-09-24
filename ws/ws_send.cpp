@@ -271,10 +271,11 @@ namespace ix
                 bool throttle,
                 const std::string& certFile,
                 const std::string& keyFile,
-                const std::string& caFile)
+                const std::string& caFile,
+                const std::string& ciphers)
     {
         WebSocketSender webSocketSender(url, enablePerMessageDeflate);
-        webSocketSender.setTLSOptions(certFile, keyFile, caFile);
+        webSocketSender.setTLSOptions(certFile, keyFile, caFile, ciphers);
         webSocketSender.start();
 
         webSocketSender.waitForConnection();
@@ -292,7 +293,8 @@ namespace ix
                      const std::string& path,
                      const std::string& certFile,
                      const std::string& keyFile,
-                     const std::string& caFile)
+                     const std::string& caFile,
+                     const std::string& ciphers)
     {
         bool throttle = false;
         bool enablePerMessageDeflate = false;

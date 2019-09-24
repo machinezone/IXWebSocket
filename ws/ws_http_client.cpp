@@ -96,7 +96,8 @@ namespace ix
                             bool compress,
                             const std::string& certFile,
                             const std::string& keyFile,
-                            const std::string& caFile)
+                            const std::string& caFile,
+                            const std::string& ciphers)
     {
         HttpClient httpClient;
         httpClient.setTLSOptions({certFile, keyFile, caFile});

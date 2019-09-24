@@ -14,7 +14,8 @@ namespace ix
                          const std::string& hostname,
                          const std::string& certFile,
                          const std::string& keyFile,
-                         const std::string& caFile)
+                         const std::string& caFile,
+                         const std::string& ciphers)
     {
         std::cout << "Listening on " << hostname << ":" << port << std::endl;
 
