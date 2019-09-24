@@ -119,6 +119,8 @@ namespace ix
 
     void SocketServer::start()
     {
+        _stop = false;
+
         if (!_thread.joinable())
         {
             _thread = std::thread(&SocketServer::run, this);

@@ -4,13 +4,14 @@
  *  Copyright (c) 2017 Machine Zone. All rights reserved.
  */
 
-#include <ixsnake/IXSnakeServer.h>
 #include "IXTest.h"
 #include "catch.hpp"
 #include <chrono>
 #include <iostream>
 #include <ixcobra/IXCobraConnection.h>
 #include <ixcrypto/IXUuid.h>
+#include <ixsnake/IXRedisServer.h>
+#include <ixsnake/IXSnakeServer.h>
 
 using namespace ix;
 
@@ -166,14 +167,6 @@ namespace
     //
     void SatoriChat::run()
     {
-        snake::AppConfig appConfig = makeSnakeServerConfig(8008);
-
-        // Display config on the terminal for debugging
-        dumpConfig(appConfig);
-
-        snake::SnakeServer snakeServer(appConfig);
-        snakeServer.run();
-
         // "chat" conf
         std::string appkey("FC2F10139A2BAc53BB72D9db967b024f");
         std::string channel = _session;
@@ -186,12 +179,16 @@ namespace
 
         _conn.setEventCallback([this, channel](ix::CobraConnectionEventType eventType,
                                                const std::string& errMsg,
-                                               const ix::WebSocketHttpHeaders& /*headers*/,
+                                               const ix::WebSocketHttpHeaders& headers,
                                                const std::string& subscriptionId,
                                                CobraConnection::MsgId msgId) {
             if (eventType == ix::CobraConnection_EventType_Open)
             {
                 log("Subscriber connected: " + _user);
+                for (auto&& it : headers)
+                {
+                    log("Headers " + it.first + " " + it.second);
+                }
             }
             else if (eventType == ix::CobraConnection_EventType_Authenticated)
             {
@@ -253,8 +250,6 @@ namespace
                                   const ix::WebSocketHttpHeaders& /*headers*/,
                                   const std::string& /*subscriptionId*/,
                                   CobraConnection::MsgId /*msgId*/) { ; });
-
-        snakeServer.stop();
     }
 } // namespace
 
@@ -264,6 +259,14 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
     {
         int port = getFreePort();
         snake::AppConfig appConfig = makeSnakeServerConfig(port);
+
+        // Start a redis server
+        ix::RedisServer redisServer(appConfig.redisPort);
+        auto res = redisServer.listen();
+        REQUIRE(res.first);
+        redisServer.start();
+
+        // Start a snake server
         snake::SnakeServer snakeServer(appConfig);
         snakeServer.run();
 
@@ -293,6 +296,7 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
             if (timeout <= 0)
             {
                 snakeServer.stop();
+                redisServer.stop();
                 REQUIRE(false); // timeout
             }
         }
@@ -317,6 +321,7 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
             if (timeout <= 0)
             {
                 snakeServer.stop();
+                redisServer.stop();
                 REQUIRE(false); // timeout
             }
         }
@@ -327,15 +332,18 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
         chatA.stop();
         chatB.stop();
 
-        // FIXME: improve this and make it exact matches
-        //        we get unreliable result set
         REQUIRE(chatA.getReceivedMessagesCount() == 2);
         REQUIRE(chatB.getReceivedMessagesCount() == 3);
 
-        std::cout << incomingBytes << std::endl;
         std::cout << "Incoming bytes: " << incomingBytes << std::endl;
         std::cout << "Outgoing bytes: " << outgoingBytes << std::endl;
 
+        std::cerr << "Stopping snake server... ";
         snakeServer.stop();
+        std::cerr << "OK" << std::endl;
+
+        std::cerr << "Stopping redis server... ";
+        redisServer.stop();
+        std::cerr << "OK" << std::endl;
     }
 }

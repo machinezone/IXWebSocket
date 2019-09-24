@@ -132,9 +132,9 @@ namespace ix
         if (!_socket) return false;
 
         std::stringstream ss;
-        ss << "SUBSCRIBE ";
-        ss << channel;
-        ss << "\r\n";
+        ss << "*2\r\n";
+        ss << writeString("SUBSCRIBE");
+        ss << writeString(channel);
 
         bool sent = _socket->writeBytes(ss.str(), nullptr);
         if (!sent)
