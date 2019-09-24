@@ -242,13 +242,10 @@ namespace ix
     void wsReceive(const std::string& url,
                    bool enablePerMessageDeflate,
                    int delayMs,
-                   const std::string& certFile,
-                   const std::string& keyFile,
-                   const std::string& caFile,
-                   const std::string& ciphers)
+                   const ix::SocketTLSOptions& tlsOptions)
     {
         WebSocketReceiver webSocketReceiver(url, enablePerMessageDeflate, delayMs);
-        webSocketReceiver.setTLSOptions(certFile, keyFile, caFile, ciphers);
+        webSocketReceiver.setTLSOptions(tlsOptions);
         webSocketReceiver.start();
 
         webSocketReceiver.waitForConnection();
@@ -265,12 +262,9 @@ namespace ix
     int ws_receive_main(const std::string& url,
                         bool enablePerMessageDeflate,
                         int delayMs,
-                        const std::string& certFile,
-                        const std::string& keyFile,
-                        const std::string& caFile,
-                        const std::string& ciphers)
+                        const ix::SocketTLSOptions& tlsOptions)
     {
-        wsReceive(url, enablePerMessageDeflate, delayMs, certFile, keyFile, caFile);
+        wsReceive(url, enablePerMessageDeflate, delayMs, tlsOptions);
         return 0;
     }
 } // namespace ix

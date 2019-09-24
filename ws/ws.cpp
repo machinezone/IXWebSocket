@@ -62,6 +62,7 @@ int main(int argc, char** argv)
     std::string redisHosts("127.0.0.1");
     std::string redisPassword;
     std::string appsConfigPath("appsConfig.json");
+    ix::SocketTLSOptions tlsOptions;
     std::string certFile;
     std::string keyFile;
     std::string caFile;
@@ -89,15 +90,17 @@ int main(int argc, char** argv)
     int jobs = 4;
     uint32_t maxWaitBetweenReconnectionRetries;
 
-    auto addTLSOptions = [&certFile, &keyFile, &caFile, &ciphers](CLI::App* app) {
-        app->add_option("--cert-file", certFile, "Path to the (PEM format) TLS cert file")
-            ->check(CLI::ExistingPath);
-        app->add_option("--key-file", keyFile, "Path to the (PEM format) TLS key file")
-            ->check(CLI::ExistingPath);
-        app->add_option("--ca-file", caFile, "Path to the (PEM format) ca roots file")
-            ->check(CLI::ExistingPath);
+    auto addTLSOptions = [&tlsOptions](CLI::App* app) {
         app->add_option(
-            "--ciphers", ciphers, "A (comma/space/colon) separated list of ciphers to use for TLS");
+               "--cert-file", tlsOptions.certFile, "Path to the (PEM format) TLS cert file")
+            ->check(CLI::ExistingPath);
+        app->add_option("--key-file", tlsOptions.keyFile, "Path to the (PEM format) TLS key file")
+            ->check(CLI::ExistingPath);
+        app->add_option("--ca-file", tlsOptions.caFile, "Path to the (PEM format) ca roots file")
+            ->check(CLI::ExistingPath);
+        app->add_option("--ciphers",
+                        tlsOptions.ciphers,
+                        "A (comma/space/colon) separated list of ciphers to use for TLS");
     };
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
@@ -287,17 +290,16 @@ int main(int argc, char** argv)
     int ret = 1;
     if (app.got_subcommand("transfer"))
     {
-        ret = ix::ws_transfer_main(port, hostname, certFile, keyFile, caFile, ciphers);
+        ret = ix::ws_transfer_main(port, hostname, tlsOptions);
     }
     else if (app.got_subcommand("send"))
     {
-        ret = ix::ws_send_main(url, path, certFile, keyFile, caFile, ciphers);
+        ret = ix::ws_send_main(url, path, tlsOptions);
     }
     else if (app.got_subcommand("receive"))
     {
         bool enablePerMessageDeflate = false;
-        ret = ix::ws_receive_main(
-            url, enablePerMessageDeflate, delayMs, certFile, keyFile, caFile, ciphers);
+        ret = ix::ws_receive_main(url, enablePerMessageDeflate, delayMs, tlsOptions);
     }
     else if (app.got_subcommand("connect"))
     {
@@ -307,10 +309,7 @@ int main(int argc, char** argv)
                                   disablePerMessageDeflate,
                                   binaryMode,
                                   maxWaitBetweenReconnectionRetries,
-                                  certFile,
-                                  keyFile,
-                                  caFile,
-                                  ciphers);
+                                  tlsOptions);
     }
     else if (app.got_subcommand("chat"))
     {
@@ -318,16 +317,15 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("echo_server"))
     {
-        ret =
-            ix::ws_echo_server_main(port, greetings, hostname, certFile, keyFile, caFile, ciphers);
+        ret = ix::ws_echo_server_main(port, greetings, hostname, tlsOptions);
     }
     else if (app.got_subcommand("broadcast_server"))
     {
-        ret = ix::ws_broadcast_server_main(port, hostname, certFile, keyFile, caFile, ciphers);
+        ret = ix::ws_broadcast_server_main(port, hostname, tlsOptions);
     }
     else if (app.got_subcommand("ping"))
     {
-        ret = ix::ws_ping_pong_main(url, certFile, keyFile, caFile, ciphers);
+        ret = ix::ws_ping_pong_main(url, tlsOptions);
     }
     else if (app.got_subcommand("curl"))
     {
@@ -343,10 +341,7 @@ int main(int argc, char** argv)
                                       save,
                                       output,
                                       compress,
-                                      certFile,
-                                      keyFile,
-                                      caFile,
-                                      ciphers);
+                                      tlsOptions);
     }
     else if (app.got_subcommand("redis_publish"))
     {
@@ -396,7 +391,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("httpd"))
     {
-        ret = ix::ws_httpd_main(port, hostname, certFile, keyFile, caFile, ciphers);
+        ret = ix::ws_httpd_main(port, hostname, tlsOptions);
     }
     else if (app.got_subcommand("autobahn"))
     {

@@ -125,15 +125,11 @@ namespace ix
         _webSocket.send(text);
     }
 
-    int ws_ping_pong_main(const std::string& url,
-                          const std::string& certFile,
-                          const std::string& keyFile,
-                          const std::string& caFile,
-                          const std::string& ciphers)
+    int ws_ping_pong_main(const std::string& url, const ix::SocketTLSOptions& tlsOptions)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketPingPong webSocketPingPong(url);
-        webSocketPingPong.setTLSOptions(certFile, keyFile, caFile, ciphers);
+        webSocketPingPong.setTLSOptions(tlsOptions);
         webSocketPingPong.start();
 
         while (true)

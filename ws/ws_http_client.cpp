@@ -94,13 +94,10 @@ namespace ix
                             bool save,
                             const std::string& output,
                             bool compress,
-                            const std::string& certFile,
-                            const std::string& keyFile,
-                            const std::string& caFile,
-                            const std::string& ciphers)
+                            const ix::SocketTLSOptions& tlsOptions)
     {
         HttpClient httpClient;
-        httpClient.setTLSOptions({certFile, keyFile, caFile});
+        httpClient.setTLSOptions(tlsOptions);
         auto args = httpClient.createRequest();
         args->extraHeaders = parseHeaders(headersData);
         args->connectTimeout = connectTimeout;

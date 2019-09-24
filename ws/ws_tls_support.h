@@ -12,10 +12,6 @@ namespace ix
     class TLSSupport
     {
     public:
-        void setTLSOptions(const std::string& certFile,
-                           const std::string& keyFile,
-                           const std::string& caFile,
-                           const std::string& ciphers);
         void setTLSOptions(const SocketTLSOptions& tlsOptions);
 
     protected:

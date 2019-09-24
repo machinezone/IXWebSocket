@@ -187,10 +187,7 @@ namespace ix
                         bool disablePerMessageDeflate,
                         bool binaryMode,
                         uint32_t maxWaitBetweenReconnectionRetries,
-                        const std::string& certFile,
-                        const std::string& keyFile,
-                        const std::string& caFile,
-                        const std::string& ciphers)
+                        const ix::SocketTLSOptions& tlsOptions)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketConnect webSocketChat(url,
@@ -199,7 +196,7 @@ namespace ix
                                        disablePerMessageDeflate,
                                        binaryMode,
                                        maxWaitBetweenReconnectionRetries);
-        webSocketChat.setTLSOptions(certFile, keyFile, caFile, ciphers);
+        webSocketChat.setTLSOptions(tlsOptions);
         webSocketChat.start();
 
         while (true)

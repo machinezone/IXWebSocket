@@ -13,17 +13,12 @@
 
 namespace ix
 {
-    int ws_httpd_main(int port,
-                      const std::string& hostname,
-                      const std::string& certFile,
-                      const std::string& keyFile,
-                      const std::string& caFile,
-                      const std::string& ciphers)
+    int ws_httpd_main(int port, const std::string& hostname, const ix::SocketTLSOptions& tlsOptions)
     {
         spdlog::info("Listening on {}:{}", hostname, port);
 
         ix::HttpServer server(port, hostname);
-        server.setTLSOptions({certFile, keyFile, caFile});
+        server.setTLSOptions(tlsOptions);
 
         auto res = server.listen();
         if (!res.first)

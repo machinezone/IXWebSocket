@@ -5,6 +5,7 @@
  */
 #pragma once
 
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <string>
 
 namespace ix
@@ -21,36 +22,20 @@ namespace ix
                             bool save,
                             const std::string& output,
                             bool compress,
-                            const std::string& certFile,
-                            const std::string& keyFile,
-                            const std::string& caFile,
-                            const std::string& ciphers);
+                            const ix::SocketTLSOptions& tlsOptions);
 
-    int ws_ping_pong_main(const std::string& url,
-                          const std::string& certFile,
-                          const std::string& keyFile,
-                          const std::string& caFile,
-                          const std::string& ciphers);
+    int ws_ping_pong_main(const std::string& url, const ix::SocketTLSOptions& tlsOptions);
 
     int ws_echo_server_main(int port,
                             bool greetings,
                             const std::string& hostname,
-                            const std::string& certFile,
-                            const std::string& keyFile,
-                            const std::string& caFile,
-                            const std::string& ciphers);
+                            const ix::SocketTLSOptions& tlsOptions);
     int ws_broadcast_server_main(int port,
                                  const std::string& hostname,
-                                 const std::string& certFile,
-                                 const std::string& keyFile,
-                                 const std::string& caFile,
-                                 const std::string& ciphers);
+                                 const ix::SocketTLSOptions& tlsOptions);
     int ws_transfer_main(int port,
                          const std::string& hostname,
-                         const std::string& certFile,
-                         const std::string& keyFile,
-                         const std::string& caFile,
-                         const std::string& ciphers);
+                         const ix::SocketTLSOptions& tlsOptions);
 
     int ws_chat_main(const std::string& url, const std::string& user);
 
@@ -60,25 +45,16 @@ namespace ix
                         bool disablePerMessageDeflate,
                         bool binaryMode,
                         uint32_t maxWaitBetweenReconnectionRetries,
-                        const std::string& certFile,
-                        const std::string& keyFile,
-                        const std::string& caFile,
-                        const std::string& ciphers);
+                        const ix::SocketTLSOptions& tlsOptions);
 
     int ws_receive_main(const std::string& url,
                         bool enablePerMessageDeflate,
                         int delayMs,
-                        const std::string& certFile,
-                        const std::string& keyFile,
-                        const std::string& caFile,
-                        const std::string& ciphers);
+                        const ix::SocketTLSOptions& tlsOptions);
 
     int ws_send_main(const std::string& url,
                      const std::string& path,
-                     const std::string& certFile,
-                     const std::string& keyFile,
-                     const std::string& caFile,
-                     const std::string& ciphers);
+                     const ix::SocketTLSOptions& tlsOptions);
 
     int ws_redis_publish_main(const std::string& hostname,
                               int port,
@@ -149,10 +125,7 @@ namespace ix
 
     int ws_httpd_main(int port,
                       const std::string& hostname,
-                      const std::string& certFile,
-                      const std::string& keyFile,
-                      const std::string& caFile,
-                      const std::string& ciphers);
+                      const ix::SocketTLSOptions& tlsOptions);
 
     int ws_autobahn_main(const std::string& url, bool quiet);
 

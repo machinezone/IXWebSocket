@@ -8,13 +8,6 @@
 
 namespace ix
 {
-    void TLSSupport::setTLSOptions(const std::string& certFile,
-                                   const std::string& keyFile,
-                                   const std::string& caFile,
-                                   const std::string& ciphers)
-    {
-        _tlsOptions = (SocketTLSOptions {certFile, keyFile, caFile, ciphers}).validated();
-    }
     void TLSSupport::setTLSOptions(const SocketTLSOptions& tlsOptions)
     {
         _tlsOptions = tlsOptions.validated();

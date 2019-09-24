@@ -269,13 +269,10 @@ namespace ix
                 const std::string& path,
                 bool enablePerMessageDeflate,
                 bool throttle,
-                const std::string& certFile,
-                const std::string& keyFile,
-                const std::string& caFile,
-                const std::string& ciphers)
+                const ix::SocketTLSOptions& tlsOptions)
     {
         WebSocketSender webSocketSender(url, enablePerMessageDeflate);
-        webSocketSender.setTLSOptions(certFile, keyFile, caFile, ciphers);
+        webSocketSender.setTLSOptions(tlsOptions);
         webSocketSender.start();
 
         webSocketSender.waitForConnection();
@@ -291,15 +288,12 @@ namespace ix
 
     int ws_send_main(const std::string& url,
                      const std::string& path,
-                     const std::string& certFile,
-                     const std::string& keyFile,
-                     const std::string& caFile,
-                     const std::string& ciphers)
+                     const ix::SocketTLSOptions& tlsOptions)
     {
         bool throttle = false;
         bool enablePerMessageDeflate = false;
 
-        wsSend(url, path, enablePerMessageDeflate, throttle, certFile, keyFile, caFile);
+        wsSend(url, path, enablePerMessageDeflate, throttle, tlsOptions);
         return 0;
     }
 } // namespace ix

@@ -12,15 +12,12 @@ namespace ix
 {
     int ws_broadcast_server_main(int port,
                                  const std::string& hostname,
-                                 const std::string& certFile,
-                                 const std::string& keyFile,
-                                 const std::string& caFile,
-                                 const std::string& ciphers)
+                                 const ix::SocketTLSOptions& tlsOptions)
     {
         std::cout << "Listening on " << hostname << ":" << port << std::endl;
 
         ix::WebSocketServer server(port, hostname);
-        server.setTLSOptions({certFile, keyFile, caFile});
+        server.setTLSOptions(tlsOptions);
 
         server.setOnConnectionCallback([&server](std::shared_ptr<WebSocket> webSocket,
                                                  std::shared_ptr<ConnectionState> connectionState) {
