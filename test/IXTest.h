@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include <ixsnake/IXAppConfig.h>
 #include "IXGetFreePort.h"
 #include <iostream>
+#include <ixsnake/IXAppConfig.h>
 #include <ixwebsocket/IXWebSocketServer.h>
 #include <mutex>
 #include <spdlog/spdlog.h>

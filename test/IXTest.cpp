@@ -155,7 +155,7 @@ namespace ix
         appConfig.port = port;
         appConfig.hostname = "127.0.0.1";
         appConfig.verbose = true;
-        appConfig.redisPort = 6379;
+        appConfig.redisPort = getFreePort();
         appConfig.redisPassword = "";
         appConfig.redisHosts.push_back("localhost"); // only one host supported now
 

@@ -243,6 +243,10 @@ int main(int argc, char** argv)
     autobahnApp->add_option("--url", url, "url");
     autobahnApp->add_flag("-q", quiet, "Quiet");
 
+    CLI::App* redisServerApp = app.add_subcommand("redis_server", "Redis server");
+    redisServerApp->add_option("--port", port, "Port");
+    redisServerApp->add_option("--host", hostname, "Hostname");
+
     CLI11_PARSE(app, argc, argv);
 
     // pid file handling
@@ -363,6 +367,10 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("autobahn"))
     {
         ret = ix::ws_autobahn_main(url, quiet);
+    }
+    else if (app.got_subcommand("redis_server"))
+    {
+        ret = ix::ws_redis_server_main(port, hostname);
     }
 
     ix::uninitNetSystem();

@@ -4,8 +4,8 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <ixsnake/IXRedisClient.h>
 #include <iostream>
+#include <ixsnake/IXRedisClient.h>
 #include <sstream>
 
 namespace ix

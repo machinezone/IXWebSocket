@@ -8,6 +8,7 @@
 #include <iostream>
 #include <ixcobra/IXCobraMetricsPublisher.h>
 #include <ixcrypto/IXUuid.h>
+#include <ixsnake/IXRedisServer.h>
 #include <ixsnake/IXSnakeServer.h>
 #include <set>
 
@@ -15,6 +16,23 @@ using namespace ix;
 
 namespace
 {
+    std::atomic<size_t> incomingBytes(0);
+    std::atomic<size_t> outgoingBytes(0);
+
+    void setupTrafficTrackerCallback()
+    {
+        ix::CobraConnection::setTrafficTrackerCallback([](size_t size, bool incoming) {
+            if (incoming)
+            {
+                incomingBytes += size;
+            }
+            else
+            {
+                outgoingBytes += size;
+            }
+        });
+    }
+
     //
     // This project / appkey is configure on cobra to not do any batching.
     // This way we can start a subscriber and receive all messages as they come in.
@@ -53,12 +71,16 @@ namespace
 
         conn.setEventCallback([&conn](ix::CobraConnectionEventType eventType,
                                       const std::string& errMsg,
-                                      const ix::WebSocketHttpHeaders& /*headers*/,
+                                      const ix::WebSocketHttpHeaders& headers,
                                       const std::string& subscriptionId,
                                       CobraConnection::MsgId msgId) {
             if (eventType == ix::CobraConnection_EventType_Open)
             {
                 Logger() << "Subscriber connected:";
+                for (auto&& it : headers)
+                {
+                    log("Headers " + it.first + " " + it.second);
+                }
             }
             if (eventType == ix::CobraConnection_EventType_Error)
             {
@@ -123,8 +145,18 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
 {
     int port = getFreePort();
     snake::AppConfig appConfig = makeSnakeServerConfig(port);
+
+    // Start a redis server
+    ix::RedisServer redisServer(appConfig.redisPort);
+    auto res = redisServer.listen();
+    REQUIRE(res.first);
+    redisServer.start();
+
+    // Start a snake server
     snake::SnakeServer snakeServer(appConfig);
     snakeServer.run();
+
+    setupTrafficTrackerCallback();
 
     std::stringstream ss;
     ss << "ws://localhost:" << port;
@@ -147,6 +179,8 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
         timeout -= 10;
         if (timeout <= 0)
         {
+            snakeServer.stop();
+            redisServer.stop();
             REQUIRE(false); // timeout
         }
     }
@@ -233,5 +267,14 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
     CHECK(gIds.count("sms_set_rate_control_id") == 1);
     CHECK(gIds.count("sms_set_blacklist_id") == 1);
 
+    std::cout << "Incoming bytes: " << incomingBytes << std::endl;
+    std::cout << "Outgoing bytes: " << outgoingBytes << std::endl;
+
+    std::cerr << "Stopping snake server... ";
     snakeServer.stop();
+    std::cerr << "OK" << std::endl;
+
+    std::cerr << "Stopping redis server... ";
+    redisServer.stop();
+    std::cerr << "OK" << std::endl;
 }

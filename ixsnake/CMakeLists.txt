@@ -8,6 +8,7 @@ set (IXSNAKE_SOURCES
     ixsnake/IXSnakeProtocol.cpp
     ixsnake/IXAppConfig.cpp
     ixsnake/IXRedisClient.cpp
+    ixsnake/IXRedisServer.cpp
 )
 
 set (IXSNAKE_HEADERS
@@ -15,6 +16,7 @@ set (IXSNAKE_HEADERS
     ixsnake/IXSnakeProtocol.h
     ixsnake/IXAppConfig.h
     ixsnake/IXRedisClient.h
+    ixsnake/IXRedisServer.h
 )
 
 add_library(ixsnake STATIC

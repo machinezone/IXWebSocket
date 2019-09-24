@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.2.5] - 2019-09-23
+
+- Add simple Redis Server which is only capable of doing publish / subscribe. New ws redis_server sub-command to use it. The server is used in the unittest, so that we can run on CI in environment where redis isn not available like github actions env.
+
 ## [6.2.4] - 2019-09-22
 
 - Add options to configure TLS ; contributed by Matt DeBoer. Only implemented for OpenSSL TLS backend for now.

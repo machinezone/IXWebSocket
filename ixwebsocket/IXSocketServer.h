@@ -58,6 +58,8 @@ namespace ix
 
         void stopAcceptingConnections();
 
+        std::atomic<bool> _stop;
+
     private:
         // Member variables
         int _port;
@@ -71,7 +73,6 @@ namespace ix
         std::mutex _logMutex;
 
         // background thread to wait for incoming connections
-        std::atomic<bool> _stop;
         std::thread _thread;
         void run();
 
