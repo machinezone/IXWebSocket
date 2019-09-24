@@ -41,6 +41,8 @@ set (SOURCES
   IXHttpServerTest.cpp
   IXUnityBuildsTest.cpp
   IXHttpTest.cpp
+  IXCobraChatTest.cpp
+  IXCobraMetricsPublisherTest.cpp
 )
 
 # Some unittest don't work on windows yet
@@ -49,8 +51,6 @@ if (UNIX)
     IXDNSLookupTest.cpp
     IXWebSocketChatTest.cpp
     IXWebSocketCloseTest.cpp
-    IXCobraChatTest.cpp
-    IXCobraMetricsPublisherTest.cpp
   )
 endif()
 
