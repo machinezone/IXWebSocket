@@ -11,6 +11,10 @@
 
 namespace ix
 {
+    const char* kTLSCAFileUseSystemDefaults = "SYSTEM";
+    const char* kTLSCAFileDisableVerify = "NONE";
+    const char* kTLSCiphersUseDefault = "DEFAULT";
+
     bool SocketTLSOptions::isValid() const
     {
 #ifndef IXWEBSOCKET_USE_TLS
@@ -29,8 +33,8 @@ namespace ix
                 _errMsg = "keyFile not found: " + keyFile;
                 return false;
             }
-            if (!caFile.empty() && caFile != "NONE" && caFile != "DEFAULT" &&
-                !std::ifstream(caFile))
+            if (!caFile.empty() && caFile != kTLSCAFileDisableVerify &&
+                caFile != kTLSCAFileUseSystemDefaults && !std::ifstream(caFile))
             {
                 _errMsg = "caFile not found: " + caFile;
                 return false;
@@ -54,17 +58,17 @@ namespace ix
 
     bool SocketTLSOptions::isUsingSystemDefaults() const
     {
-        return caFile == "SYSTEM";
+        return caFile == kTLSCAFileUseSystemDefaults;
     }
 
     bool SocketTLSOptions::isPeerVerifyDisabled() const
     {
-        return caFile == "NONE";
+        return caFile == kTLSCAFileDisableVerify;
     }
 
     bool SocketTLSOptions::isUsingDefaultCiphers() const
     {
-        return ciphers.empty() || ciphers == "DEFAULT";
+        return ciphers.empty() || ciphers == kTLSCiphersUseDefault;
     }
 
     bool TLSConfigurable::setTLSOptions(const SocketTLSOptions& tlsOptions)
