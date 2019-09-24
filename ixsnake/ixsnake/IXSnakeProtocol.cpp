@@ -12,6 +12,7 @@
 #include <iostream>
 #include <ixcrypto/IXHMac.h>
 #include <ixwebsocket/IXWebSocket.h>
+#include <ixcore/utils/IXCoreLogger.h>
 #include <sstream>
 
 namespace snake
@@ -47,7 +48,6 @@ namespace snake
              }}};
 
         auto serializedResponse = response.dump();
-        std::cout << "response = " << serializedResponse << std::endl;
 
         ws->sendText(serializedResponse);
     }
@@ -58,7 +58,6 @@ namespace snake
                     const nlohmann::json& pdu)
     {
         auto secret = getRoleSecret(appConfig, state->appkey(), state->role());
-        std::cout << "secret = " << secret << std::endl;
 
         if (secret.empty())
         {
@@ -73,12 +72,6 @@ namespace snake
         auto nonce = state->getNonce();
         auto serverHash = ix::hmac(nonce, secret);
         std::string clientHash = pdu["body"]["credentials"]["hash"];
-
-        if (appConfig.verbose)
-        {
-            std::cout << serverHash << std::endl;
-            std::cout << clientHash << std::endl;
-        }
 
         if (serverHash != clientHash)
         {
@@ -174,8 +167,6 @@ namespace snake
             return;
         }
 
-        std::cout << "Connected to redis host " << hostname << ":" << port << std::endl;
-
         // Now authenticate, if needed
         if (!appConfig.redisPassword.empty())
         {
@@ -187,7 +178,6 @@ namespace snake
                 handleError("rtm/subscribe", ws, pdu, ss.str());
                 return;
             }
-            std::cout << "Auth response: " << authResponse << ":" << port << std::endl;
         }
 
         int id = 0;
@@ -205,8 +195,6 @@ namespace snake
         };
 
         auto responseCallback = [ws, pdu, &subscriptionId](const std::string& redisResponse) {
-            std::cout << "Redis subscribe response: " << redisResponse << std::endl;
-
             // Success
             nlohmann::json response = {{"action", "rtm/subscribe/ok"},
                                        {"id", pdu.value("id", 1)},
@@ -214,7 +202,12 @@ namespace snake
             ws->sendText(response.dump());
         };
 
-        std::cerr << "Subscribing to " << appChannel << "..." << std::endl;
+        {
+            std::stringstream ss;
+            ss << "Subscribing to " << appChannel << "...";
+            ix::IXCoreLogger::Log(ss.str().c_str());
+        }
+        
         if (!redisClient.subscribe(appChannel, responseCallback, callback))
         {
             std::stringstream ss;
@@ -255,10 +248,7 @@ namespace snake
                              const std::string& str)
     {
         auto pdu = nlohmann::json::parse(str);
-        std::cout << "Got " << str << std::endl;
-
         auto action = pdu["action"];
-        std::cout << "action = " << action << std::endl;
 
         if (action == "auth/handshake")
         {

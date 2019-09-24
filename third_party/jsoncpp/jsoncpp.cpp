@@ -205,6 +205,7 @@ static inline void fixNumericLocale(char* begin, char* end) {
 #include <memory>
 #include <set>
 #include <limits>
+#include <atomic>
 #if defined(__BORLANDC__)
 #include <stdio.h>
 #endif
@@ -227,8 +228,8 @@ static inline void fixNumericLocale(char* begin, char* end) {
 #pragma warning(disable : 4996)
 #endif
 
-static int const stackLimit_g = 1000;
-static int       stackDepth_g = 0;  // see readValue()
+static std::atomic<int> const stackLimit_g(1000);
+static std::atomic<int>       stackDepth_g(0);  // see readValue()
 
 namespace Json {
 
