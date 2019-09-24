@@ -267,14 +267,12 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
     CHECK(gIds.count("sms_set_rate_control_id") == 1);
     CHECK(gIds.count("sms_set_blacklist_id") == 1);
 
-    std::cout << "Incoming bytes: " << incomingBytes << std::endl;
-    std::cout << "Outgoing bytes: " << outgoingBytes << std::endl;
+    spdlog::info("Incoming bytes {}", incomingBytes);
+    spdlog::info("Outgoing bytes {}", outgoingBytes);
 
-    std::cerr << "Stopping snake server... ";
+    spdlog::info("Stopping snake server...");
     snakeServer.stop();
-    std::cerr << "OK" << std::endl;
 
-    std::cerr << "Stopping redis server... ";
+    spdlog::info("Stopping redis server...");
     redisServer.stop();
-    std::cerr << "OK" << std::endl;
 }

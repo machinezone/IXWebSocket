@@ -125,7 +125,8 @@ namespace
     {
         std::string filter;
         _conn.subscribe(channel, filter, [this](const Json::Value& msg) {
-            std::cout << msg.toStyledString() << std::endl;
+            spdlog::info("receive {}", msg.toStyledString());
+
             if (!msg.isObject()) return;
             if (!msg.isMember("user")) return;
             if (!msg.isMember("text")) return;
@@ -335,15 +336,13 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
         REQUIRE(chatA.getReceivedMessagesCount() == 2);
         REQUIRE(chatB.getReceivedMessagesCount() == 3);
 
-        std::cout << "Incoming bytes: " << incomingBytes << std::endl;
-        std::cout << "Outgoing bytes: " << outgoingBytes << std::endl;
+        spdlog::info("Incoming bytes {}", incomingBytes);
+        spdlog::info("Outgoing bytes {}", outgoingBytes);
 
-        std::cerr << "Stopping snake server... ";
+        spdlog::info("Stopping snake server...");
         snakeServer.stop();
-        std::cerr << "OK" << std::endl;
 
-        std::cerr << "Stopping redis server... ";
+        spdlog::info("Stopping redis server...");
         redisServer.stop();
-        std::cerr << "OK" << std::endl;
     }
 }
