@@ -2,65 +2,84 @@
 
 set -eo pipefail
 
-generate_cert_and_key() {
-    local path=$1
-    # "ec" or "rsa"
-    local type=${2}
-    local is_ca=${3:-"false"}
-    local CN=$4
-    local ca_path=$5
-    local ca_name=${6:-ca}
 
+generate_key() {
+    local path=${1}
+    local base=${2}
+    local type=${3:-'rsa'} # "ec" or "rsa"
+    
     mkdir -p ${path}
-
     if [[ "${type}" == "rsa" ]]; then
-        openssl genrsa -out "${path}/${CN}-key.pem"
+        openssl genrsa -out "${path}/${base}-key.pem"
     elif [[ "${type}" == "ec" ]]; then
-        openssl ecparam -genkey -param_enc named_curve -name prime256v1 -out "${path}/${CN}-key.pem"
+        openssl ecparam -genkey -param_enc named_curve -name prime256v1 -out "${path}/${base}-key.pem"
     else
         echo "Error: usage: type (param \$2) should be 'rsa' or 'ec'" >&2 && exit 1
     fi
-    echo "generated ${path}/${CN}-key.pem"
+    echo "generated ${path}/${base}-key.pem"
+}
 
-    if [[ "${is_ca}" == "true" ]]; then
-        openssl req  -new -x509 -sha256 -days 3650 \
-            -reqexts v3_req -extensions v3_ca \
-            -subj "/O=machinezone/O=IXWebSocket/CN=${CN}" \
-            -key "${path}/${CN}-key.pem" \
-            -out "${path}/${CN}-crt.pem"
+generate_ca() {
+    local path="${1}"
+    local base="${2:-'root-ca'}"
+    local type="${3:-'rsa'}" # "ec" or "rsa"
+    local org="${4:-'/O=machinezone/O=IXWebSocket'}"
+    
+    mkdir -p ${path}
 
-    else
-        openssl req -new -sha256 \
-            -key "${path}/${CN}-key.pem" \
-            -subj "/O=machinezone/O=IXWebSocket/CN=${CN}" \
-            -out "${path}/${CN}.csr"
+    generate_key "${path}" "${base}" "${type}"
+
+    openssl req -new -x509 -sha256 -days 3650 \
+        -reqexts v3_req -extensions v3_ca \
+        -subj "${org}/CN=${base}" \
+        -key "${path}/${base}-key.pem" \
+        -out "${path}/${base}-crt.pem"
+
+    echo "generated ${path}/${base}-crt.pem"
+}
+
+generate_cert() {
+    local path="$1"
+    local base="$2"
+    local cabase="$3"
+    local type="${4:-'rsa'}" # "ec" or "rsa"
+    local org="${5:-'/O=machinezone/O=IXWebSocket'}"
+    local san="${6:-'DNS:localhost,IP:127.0.0.1'}"
+
+    mkdir -p ${path}
+
+    generate_key "${path}" "${base}" "${type}"
+
+    openssl req -new -sha256 \
+        -key "${path}/${base}-key.pem" \
+        -subj "${org}/CN=${base}" \
+        -out "${path}/${base}.csr"
     
 
-        if [ -z "${ca_path}" ]; then
-            # self-signed
-            openssl x509 -req -in "${path}/${CN}.csr" \
-                -signkey "${path}/${CN}-key.pem" -days 365 -sha256 \
-                -extfile <(printf "subjectAltName=DNS:localhost,IP:127.0.0.1") \
-                -outform PEM -out "${path}/${CN}-crt.pem"
-        
-        else
-            openssl x509 -req -in ${path}/${CN}.csr \
-                -CA "${ca_path}/${ca_name}-crt.pem" \
-                -CAkey "${ca_path}/${ca_name}-key.pem" \
-                -CAcreateserial -days 365 -sha256 \
-                -extfile <(printf "subjectAltName=DNS:localhost,IP:127.0.0.1") \
-                -outform PEM -out "${path}/${CN}-crt.pem"
-        fi
+    if [ "${base}" == "${cabase}" ]; then
+        # self-signed
+        openssl x509 -req -in "${path}/${base}.csr" \
+            -signkey "${path}/${base}-key.pem" -days 365 -sha256 \
+            -extfile <(printf "subjectAltName=${san}") \
+            -outform PEM -out "${path}/${base}-crt.pem" 
+    else
+        openssl x509 -req -in ${path}/${base}.csr \
+            -CA "${path}/${cabase}-crt.pem" \
+            -CAkey "${path}/${cabase}-key.pem" \
+            -CAcreateserial -days 365 -sha256 \
+            -extfile <(printf "subjectAltName=${san}") \
+            -outform PEM -out "${path}/${base}-crt.pem"
     fi
 
-    rm -f ${path}/${CN}.csr
-    echo "generated ${path}/${CN}-crt.pem"
+    rm -f ${path}/${base}.csr
+    echo "generated ${path}/${base}-crt.pem"
 }
 
 # main
 
-outdir=${1:-"./.certs"}
-type=${2:-"rsa"}
+outdir=${1:-'./.certs'}
+type=${2:-'rsa'}
+org=${3:-'/O=machinezone/O=IXWebSocket'}
 
 if ! which openssl &>/dev/null; then
     
@@ -72,11 +91,14 @@ if ! which openssl &>/dev/null; then
     fi
 else
     
-    generate_cert_and_key "${outdir}" "${type}" "true" "trusted-ca"
-    generate_cert_and_key "${outdir}" "${type}" "false" "trusted-server" "${outdir}" "trusted-ca"
-    generate_cert_and_key "${outdir}" "${type}" "false" "trusted-client" "${outdir}" "trusted-ca"
+    generate_ca   "${outdir}" "trusted-ca" "${type}" "${org}"
+    
+    generate_cert "${outdir}" "trusted-server" "trusted-ca" "${type}" "${org}"
+    generate_cert "${outdir}" "trusted-client" "trusted-ca" "${type}" "${org}"
 
-    generate_cert_and_key "${outdir}" "${type}" "true" "untrusted-ca"
-    generate_cert_and_key "${outdir}" "${type}" "false" "untrusted-client" "${outdir}" "untrusted-ca"
-    generate_cert_and_key "${outdir}" "${type}" "false" "selfsigned-client"
+    generate_ca   "${outdir}" "untrusted-ca" "${type}" "${org}"
+
+    generate_cert "${outdir}" "untrusted-client"  "untrusted-ca"        "${type}" "${org}"
+    generate_cert "${outdir}" "selfsigned-client" "selfsigned-client" "${type}" "${org}"
+
 fi
