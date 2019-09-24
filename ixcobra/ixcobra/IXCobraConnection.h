@@ -181,6 +181,7 @@ namespace ix
         Json::Value _pdu;
         Json::FastWriter _jsonWriter;
         mutable std::mutex _jsonWriterMutex;
+        std::mutex _prePublishMutex;
 
         /// Traffic tracker callback
         static TrafficTrackerCallback _trafficTrackerCallback;

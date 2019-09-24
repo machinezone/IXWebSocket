@@ -462,6 +462,8 @@ namespace ix
         const Json::Value& msg,
         bool addToQueue)
     {
+        std::lock_guard<std::mutex> lock(_prePublishMutex);
+
         invokePublishTrackerCallback(true, false);
 
         CobraConnection::MsgId msgId = _id;
