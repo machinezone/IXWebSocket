@@ -20,9 +20,11 @@ TEST_CASE("tls_socket_connect", "[net]")
     {
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        server.setTLSOptions({".certs/trusted-server-crt.pem",
-                              ".certs/trusted-server-key.pem",
-                              ".certs/trusted-ca-crt.pem"});
+        ix::SocketTLSOptions serverTLS;
+        serverTLS.certFile = ".certs/trusted-server-crt.pem";
+        serverTLS.keyFile = ".certs/trusted-server-key.pem";
+        serverTLS.caFile = ".certs/trusted-ca-crt.pem";
+        server.setTLSOptions(serverTLS);
         REQUIRE(startWebSocketEchoServer(server));
 
         std::cerr << "server listening on port " << port << std::endl;
@@ -30,9 +32,11 @@ TEST_CASE("tls_socket_connect", "[net]")
         ix::WebSocket client;
         auto url = "wss://localhost:" + std::to_string(port) + "/";
         client.setUrl(url);
-        client.setTLSOptions({".certs/trusted-client-crt.pem",
-                              ".certs/trusted-client-key.pem",
-                              ".certs/trusted-ca-crt.pem"});
+        ix::SocketTLSOptions clientTLS;
+        clientTLS.certFile = ".certs/trusted-client-crt.pem";
+        clientTLS.keyFile = ".certs/trusted-client-key.pem";
+        clientTLS.caFile = ".certs/trusted-ca-crt.pem";
+        client.setTLSOptions(clientTLS);
         client.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message)
             {
@@ -64,9 +68,11 @@ TEST_CASE("tls_socket_connect", "[net]")
     {
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        server.setTLSOptions({".certs/trusted-server-crt.pem",
-                              ".certs/trusted-server-key.pem",
-                              ".certs/trusted-ca-crt.pem"});
+        ix::SocketTLSOptions serverTLS;
+        serverTLS.certFile = ".certs/untrusted-server-crt.pem";
+        serverTLS.keyFile = ".certs/untrusted-server-key.pem";
+        serverTLS.caFile = ".certs/trusted-ca-crt.pem";
+        server.setTLSOptions(serverTLS);
         REQUIRE(startWebSocketEchoServer(server));
 
         std::cerr << "server listening on port " << port << std::endl;
@@ -76,9 +82,11 @@ TEST_CASE("tls_socket_connect", "[net]")
 
         ix::WebSocketErrorInfo errInfo;
         client.setUrl(url);
-        client.setTLSOptions({".certs/untrusted-client-crt.pem",
-                              ".certs/untrusted-client-key.pem",
-                              ".certs/trusted-ca-crt.pem"});
+        ix::SocketTLSOptions clientTLS;
+        clientTLS.certFile = ".certs/untrusted-client-crt.pem";
+        clientTLS.keyFile = ".certs/untrusted-client-key.pem";
+        clientTLS.caFile = ".certs/trusted-ca-crt.pem";
+        client.setTLSOptions(clientTLS);
         client.setOnMessageCallback([&errInfo](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message)
             {
@@ -114,9 +122,11 @@ TEST_CASE("tls_socket_connect", "[net]")
     {
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        server.setTLSOptions({".certs/trusted-server-crt.pem",
-                              ".certs/trusted-server-key.pem",
-                              ".certs/selfsigned-client-crt.pem"});
+        ix::SocketTLSOptions serverTLS;
+        serverTLS.certFile = ".certs/trusted-server-crt.pem";
+        serverTLS.keyFile = ".certs/trusted-server-key.pem";
+        serverTLS.caFile = ".certs/selfsigned-client-crt.pem";
+        server.setTLSOptions(serverTLS);
         REQUIRE(startWebSocketEchoServer(server));
 
         std::cerr << "server listening on port " << port << std::endl;
@@ -126,9 +136,11 @@ TEST_CASE("tls_socket_connect", "[net]")
 
         ix::WebSocketErrorInfo errInfo;
         client.setUrl(url);
-        client.setTLSOptions({".certs/selfsigned-client-crt.pem",
-                              ".certs/selfsigned-client-key.pem",
-                              ".certs/trusted-ca-crt.pem"});
+        ix::SocketTLSOptions clientTLS;
+        clientTLS.certFile = ".certs/selfsigned-client-crt.pem";
+        clientTLS.keyFile = ".certs/selfsigned-client-key.pem";
+        clientTLS.caFile = ".certs/trusted-ca-crt.pem";
+        client.setTLSOptions(clientTLS);
         client.setOnMessageCallback([&errInfo](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message)
             {
@@ -161,9 +173,11 @@ TEST_CASE("tls_socket_connect", "[net]")
     {
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        server.setTLSOptions({".certs/trusted-server-crt.pem",
-                              ".certs/trusted-server-key.pem",
-                              ".certs/selfsigned-client-crt.pem"});
+        ix::SocketTLSOptions serverTLS;
+        serverTLS.certFile = ".certs/trusted-server-crt.pem";
+        serverTLS.keyFile = ".certs/trusted-server-key.pem";
+        serverTLS.caFile = ".certs/selfsigned-client-crt.pem";
+        server.setTLSOptions(serverTLS);
         REQUIRE(startWebSocketEchoServer(server));
 
         std::cerr << "server listening on port " << port << std::endl;
@@ -173,8 +187,11 @@ TEST_CASE("tls_socket_connect", "[net]")
 
         ix::WebSocketErrorInfo errInfo;
         client.setUrl(url);
-        client.setTLSOptions(
-            {".certs/selfsigned-client-crt.pem", ".certs/selfsigned-client-key.pem", "NONE"});
+        ix::SocketTLSOptions clientTLS;
+        clientTLS.certFile = ".certs/selfsigned-client-crt.pem";
+        clientTLS.keyFile = ".certs/selfsigned-client-key.pem";
+        clientTLS.caFile = "NONE";
+        client.setTLSOptions(clientTLS);
         client.setOnMessageCallback([&errInfo](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message)
             {
@@ -208,9 +225,11 @@ TEST_CASE("tls_socket_connect", "[net]")
     {
         int port = getFreePort();
         ix::WebSocketServer server(port);
-        server.setTLSOptions({".certs/trusted-server-crt.pem",
-                              ".certs/trusted-server-key.pem",
-                              ".certs/selfsigned-client-crt.pem"});
+        ix::SocketTLSOptions serverTLS;
+        serverTLS.certFile = ".certs/trusted-server-crt.pem";
+        serverTLS.keyFile = ".certs/trusted-server-key.pem";
+        serverTLS.caFile = ".certs/selfsigned-client-crt.pem";
+        server.setTLSOptions(serverTLS);
         REQUIRE(startWebSocketEchoServer(server));
 
         std::cerr << "server listening on port " << port << std::endl;
@@ -220,12 +239,12 @@ TEST_CASE("tls_socket_connect", "[net]")
 
         ix::WebSocketErrorInfo errInfo;
         client.setUrl(url);
-        client.setTLSOptions({
-            ".certs/selfsigned-client-crt.pem",
-            ".certs/selfsigned-client-key.pem",
-            "NONE", // client doesn't verify server
-            "ALL"   // client is okay with any possible cipher
-        });
+        ix::SocketTLSOptions clientTLS;
+        clientTLS.certFile = ".certs/selfsigned-client-crt.pem";
+        clientTLS.keyFile = ".certs/selfsigned-client-key.pem";
+        clientTLS.caFile = "NONE";
+        clientTLS.ciphers = "ALL";
+        client.setTLSOptions(clientTLS);
         client.setOnMessageCallback([&errInfo](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message)
             {

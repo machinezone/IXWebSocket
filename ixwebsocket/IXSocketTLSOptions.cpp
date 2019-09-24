@@ -71,6 +71,11 @@ namespace ix
         return ciphers.empty() || ciphers == kTLSCiphersUseDefault;
     }
 
+    const std::string& SocketTLSOptions::getErrorMsg() const
+    {
+        return _errMsg;
+    }
+
     bool TLSConfigurable::setTLSOptions(const SocketTLSOptions& tlsOptions)
     {
         bool valid = tlsOptions.isValid();
