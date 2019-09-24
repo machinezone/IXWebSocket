@@ -195,6 +195,12 @@ namespace ix
             tokens.push_back(readResult.second);
         }
 
+        for (auto&& token : tokens)
+        {
+            std::cerr << token << " ";
+        }
+        std::cerr << std::endl;
+
         return true;
     }
 

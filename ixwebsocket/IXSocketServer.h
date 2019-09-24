@@ -58,8 +58,6 @@ namespace ix
 
         void stopAcceptingConnections();
 
-        std::atomic<bool> _stop;
-
     private:
         // Member variables
         int _port;
@@ -69,6 +67,8 @@ namespace ix
 
         // socket for accepting connections
         int _serverFd;
+
+        std::atomic<bool> _stop;
 
         std::mutex _logMutex;
 
