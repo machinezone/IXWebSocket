@@ -11,23 +11,40 @@
 
 namespace ix
 {
-    const SocketTLSOptions&& SocketTLSOptions::validated() const
+    bool SocketTLSOptions::isValid() const
     {
 #ifndef IXWEBSOCKET_USE_TLS
-        assert(false && "To use TLS features the library must be compiled with USE_TLS");
+        _errMsg = "To use TLS features the library must be compiled with USE_TLS";
+        return false;
 #endif
-        assert((certFile.empty() || std::ifstream(certFile)) &&
-               ("certFile not found: " + certFile).c_str());
-        assert((keyFile.empty() || !!std::ifstream(keyFile)) &&
-               ("keyFile not found: " + keyFile).c_str());
-        assert((caFile.empty() || caFile == "NONE" || caFile == "DEFAULT" ||
-                !!std::ifstream(caFile)) &&
-               ("caFile not found: " + caFile).c_str());
+        if (!_validated)
+        {
+            if (!certFile.empty() && !std::ifstream(certFile))
+            {
+                _errMsg = "certFile not found: " + certFile;
+                return false;
+            }
+            if (!keyFile.empty() && !std::ifstream(keyFile))
+            {
+                _errMsg = "keyFile not found: " + keyFile;
+                return false;
+            }
+            if (!caFile.empty() && caFile != "NONE" && caFile != "DEFAULT" &&
+                !std::ifstream(caFile))
+            {
+                _errMsg = "caFile not found: " + caFile;
+                return false;
+            }
 
-        assert(certFile.empty() == keyFile.empty() &&
-               "certFile and keyFile must be both present, or both absent");
+            if (certFile.empty() != keyFile.empty())
+            {
+                _errMsg = "certFile and keyFile must be both present, or both absent";
+                return false;
+            }
 
-        return std::move(*this);
+            _validated = true;
+        }
+        return true;
     }
 
     bool SocketTLSOptions::hasCertAndKey() const
@@ -50,9 +67,14 @@ namespace ix
         return ciphers.empty() || ciphers == "DEFAULT";
     }
 
-    void TLSConfigurable::setTLSOptions(const SocketTLSOptions& tlsOptions)
+    bool TLSConfigurable::setTLSOptions(const SocketTLSOptions& tlsOptions)
     {
-        _tlsOptions = tlsOptions.validated();
+        bool valid = tlsOptions.isValid();
+        if (tlsOptions.isValid())
+        {
+            _tlsOptions = tlsOptions;
+        }
+        return valid;
     };
 
 } // namespace ix

@@ -12,8 +12,13 @@ namespace ix
 {
     struct SocketTLSOptions
     {
-        // pass through - validate assertions returning this object
-        const SocketTLSOptions&& validated() const;
+    private:
+        mutable std::string _errMsg;
+        mutable bool _validated;
+
+    public:
+        // check validity of the object
+        bool isValid() const;
 
         // the certificate presented to peers
         std::string certFile;
@@ -33,6 +38,8 @@ namespace ix
         bool isPeerVerifyDisabled() const;
 
         bool isUsingDefaultCiphers() const;
+
+        const std::string& getErrorMsg() const;
     };
 
     // trait class to supply common tls options validation
@@ -42,6 +49,10 @@ namespace ix
         SocketTLSOptions _tlsOptions;
 
     public:
-        virtual void setTLSOptions(const SocketTLSOptions& tlsOptions);
+        // set the provided tls options, returning true if the
+        // supplied options are valid. When invalid options are
+        // present, false is returned, and 'getErrorMsg()' may be
+        // called on the options object to deterimine the cause
+        virtual bool setTLSOptions(const SocketTLSOptions& tlsOptions);
     };
 } // namespace ix
