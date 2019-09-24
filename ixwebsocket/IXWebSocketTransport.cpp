@@ -1093,7 +1093,7 @@ namespace ix
         {
             // See list of close events here:
             // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
-            std::string closure{(char) (code >> 8), (char) (code & 0xff)};
+            std::string closure {(char) (code >> 8), (char) (code & 0xff)};
 
             // copy reason after code
             closure.append(reason);

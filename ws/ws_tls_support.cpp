@@ -12,7 +12,7 @@ namespace ix
                                    const std::string& keyFile,
                                    const std::string& caFile)
     {
-        _tlsOptions = (SocketTLSOptions{certFile, keyFile, caFile}).validated();
+        _tlsOptions = (SocketTLSOptions {certFile, keyFile, caFile}).validated();
     }
     void TLSSupport::setTLSOptions(const SocketTLSOptions& tlsOptions)
     {
