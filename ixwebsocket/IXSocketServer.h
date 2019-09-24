@@ -68,10 +68,11 @@ namespace ix
         // socket for accepting connections
         int _serverFd;
 
+        std::atomic<bool> _stop;
+
         std::mutex _logMutex;
 
         // background thread to wait for incoming connections
-        std::atomic<bool> _stop;
         std::thread _thread;
         void run();
 
