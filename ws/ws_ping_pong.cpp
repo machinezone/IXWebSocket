@@ -50,6 +50,7 @@ namespace ix
     void WebSocketPingPong::start()
     {
         _webSocket.setUrl(_url);
+        _webSocket.setTLSOptions(_tlsOptions);
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
