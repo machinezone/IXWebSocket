@@ -36,13 +36,19 @@ namespace ix
 
     std::string base64_encode(const std::string& data, size_t len)
     {
+        const char* bytes_to_encode = data.c_str();
+        return base64_encode(bytes_to_encode, len);
+    }
+
+    std::string base64_encode(const char* bytes_to_encode, size_t len)
+    {
         std::string ret;
+        ret.reserve(((len + 2) / 3) * 4);
+
         int i = 0;
         int j = 0;
         unsigned char char_array_3[3];
         unsigned char char_array_4[4];
-
-        const char* bytes_to_encode = data.c_str();
 
         while(len--)
         {
@@ -95,6 +101,7 @@ namespace ix
         int in_ = 0;
         unsigned char char_array_4[4], char_array_3[3];
         std::string ret;
+        ret.reserve(((in_len + 3) / 4) * 3);
 
         while(in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
         {
