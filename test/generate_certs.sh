@@ -44,7 +44,7 @@ generate_cert() {
     local cabase="$3"
     local type="${4:-'rsa'}" # "ec" or "rsa"
     local org="${5:-'/O=machinezone/O=IXWebSocket'}"
-    local san="${6:-'DNS:localhost,IP:127.0.0.1'}"
+    local san="${6:-'DNS:localhost,DNS:127.0.0.1'}"
 
     mkdir -p ${path}
 
