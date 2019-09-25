@@ -273,7 +273,7 @@ TEST_CASE("Websocket_chat", "[websocket_chat]")
         chatB.sendMessage("from B1");
         chatB.sendMessage("from B2");
 
-        // Test large messages that needs to be broken into small fragments
+        // Test large messages that need to be broken into small fragments
         size_t size = 1 * 1024 * 1024; // ~1Mb
         std::string bigMessage(size, 'a');
         chatB.sendMessage(bigMessage);
