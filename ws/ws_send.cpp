@@ -42,7 +42,6 @@ namespace ix
         std::string _id;
         ix::WebSocket _webSocket;
         bool _enablePerMessageDeflate;
-        ix::SocketTLSOptions _tlsOptions;
 
         std::mutex _conditionVariableMutex;
         std::condition_variable _condition;
@@ -69,7 +68,7 @@ namespace ix
 
     void WebSocketSender::waitForConnection()
     {
-        std::cout << "Connecting..." << std::endl;
+        std::cout << "ws_send: Connecting..." << std::endl;
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
         _condition.wait(lock);
@@ -77,7 +76,7 @@ namespace ix
 
     void WebSocketSender::waitForAck()
     {
-        std::cout << "Waiting for ack..." << std::endl;
+        std::cout << "ws_send: Waiting for ack..." << std::endl;
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
         _condition.wait(lock);
@@ -110,7 +109,7 @@ namespace ix
         _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
 
         std::stringstream ss;
-        log(std::string("Connecting to url: ") + _url);
+        log(std::string("ws_send: Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback([this](const WebSocketMessagePtr& msg) {
             std::stringstream ss;
@@ -165,7 +164,7 @@ namespace ix
             }
             else
             {
-                ss << "Invalid ix::WebSocketMessageType";
+                ss << "ws_send: Invalid ix::WebSocketMessageType";
                 log(ss.str());
             }
         });
@@ -261,7 +260,7 @@ namespace ix
         auto duration = bench.getDuration();
         auto transferRate = 1000 * content.size() / duration;
         transferRate /= (1024 * 1024);
-        std::cout << "Send transfer rate: " << transferRate << "MB/s" << std::endl;
+        std::cout << "ws_send: Send transfer rate: " << transferRate << "MB/s" << std::endl;
     }
 
     void wsSend(const std::string& url,
@@ -276,12 +275,12 @@ namespace ix
 
         webSocketSender.waitForConnection();
 
-        std::cout << "Sending..." << std::endl;
+        std::cout << "ws_send: Sending..." << std::endl;
         webSocketSender.sendMessage(path, throttle);
 
         webSocketSender.waitForAck();
 
-        std::cout << "Done !" << std::endl;
+        std::cout << "ws_send: Done !" << std::endl;
         webSocketSender.stop();
     }
 

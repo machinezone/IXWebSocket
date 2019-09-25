@@ -18,6 +18,8 @@ rm -rf /tmp/ws_test
 mkdir -p /tmp/ws_test
 client_tls=''
 server_tls=''
+protocol='ws://'
+delay='--delay 10'
 if [ "$WITH_TLS" == "1" ]; then
     certs="/tmp/ws_test/certs"
     ../test/generate_certs.sh "${certs}"
@@ -27,6 +29,8 @@ if [ "$WITH_TLS" == "1" ]; then
     server_tls="--cert-file ${certs}/trusted-server-crt.pem"
     server_tls="${server_tls} --key-file ${certs}/trusted-server-key.pem"
     server_tls="${server_tls} --ca-file ${certs}/trusted-ca-crt.pem"
+    protocol='wss://'
+    delay=''
 fi
 
 # Start a transport server
@@ -47,20 +51,16 @@ done
 # Start a receiver
 mkdir -p /tmp/ws_test/receive
 cd /tmp/ws_test/receive
-ws receive --delay 10 ${server_tls} ws://127.0.0.1:8090 --pidfile /tmp/ws_test/pidfile.receive &
+ws receive "${protocol}127.0.0.1:8090" ${delay} --pidfile /tmp/ws_test/pidfile.receive ${server_tls} &
 
-mkdir /tmp/ws_test/send
+mkdir -p /tmp/ws_test/send
 cd /tmp/ws_test/send
-dd if=/dev/urandom of=20M_file count=20000 bs=1024
+dd if=/dev/urandom of=/tmp/ws_test/send/20M_file count=20000 bs=1024
 
 # Start the sender job
-ws send --pidfile ${client_tls} /tmp/ws_test/pidfile.send ws://127.0.0.1:8090 20M_file
+ws send ${client_tls} --pidfile /tmp/ws_test/pidfile.send "${protocol}127.0.0.1:8090" /tmp/ws_test/send/20M_file 
 
-echo
-echo "|| >> waiting for file send to complete..."
-echo
-
-# Wait until the file has been written to disk
+Wait until the file has been written to disk
 while true
 do
     if test -f /tmp/ws_test/receive/20M_file ; then
