@@ -9,6 +9,7 @@
 #include "IXNetSystem.h"
 #include "IXSocketConnect.h"
 #include "IXSocketFactory.h"
+#include "IXUserAgent.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -112,6 +113,9 @@ namespace ix
                     uri = "/index.html";
                 }
 
+                WebSocketHttpHeaders headers;
+                headers["Server"] = userAgent();
+
                 std::string path("." + uri);
                 auto res = readAsString(path);
                 bool found = res.first;
@@ -129,7 +133,6 @@ namespace ix
                    << request->uri << " " << content.size();
                 logInfo(ss.str());
 
-                WebSocketHttpHeaders headers;
                 // FIXME: check extensions to set the content type
                 // headers["Content-Type"] = "application/octet-stream";
                 headers["Accept-Ranges"] = "none";
@@ -141,6 +144,38 @@ namespace ix
 
                 return std::make_shared<HttpResponse>(
                     200, "OK", HttpErrorCode::Ok, headers, content);
+            });
+    }
+
+    void HttpServer::makeRedirectServer(const std::string& redirectUrl)
+    {
+        //
+        // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
+        //
+        setOnConnectionCallback(
+            [this, redirectUrl](
+                HttpRequestPtr request,
+                std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
+
+                WebSocketHttpHeaders headers;
+                headers["Server"] = userAgent();
+
+                // Log request
+                std::stringstream ss;
+                ss << request->method << " " << request->headers["User-Agent"] << " "
+                   << request->uri;
+                logInfo(ss.str());
+
+                if (request->method == "POST")
+                {
+                    return std::make_shared<HttpResponse>(
+                        200, "OK", HttpErrorCode::Ok, headers, std::string());
+                }
+
+                headers["Location"] = redirectUrl;
+
+                return std::make_shared<HttpResponse>(
+                    301, "OK", HttpErrorCode::Ok, headers, std::string());
             });
     }
 } // namespace ix

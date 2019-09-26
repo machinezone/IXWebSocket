@@ -69,6 +69,7 @@ namespace ix
         ss << " ";
         ss << reason;
         ss << "\r\n";
+        ss << "Server: " << userAgent() << "\r\n";
 
         // Socket write can only be cancelled through a timeout here, not manually.
         static std::atomic<bool> requestInitCancellation(false);
