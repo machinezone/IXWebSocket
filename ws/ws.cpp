@@ -37,7 +37,7 @@ int main(int argc, char** argv)
         std::cout << std::endl;
     }
 
-    CLI::App app{"ws is a websocket tool"};
+    CLI::App app {"ws is a websocket tool"};
     app.require_subcommand();
 
     std::string url("ws://127.0.0.1:8008");

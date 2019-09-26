@@ -14,7 +14,7 @@ namespace ix
                          const std::string& hostname,
                          const ix::SocketTLSOptions& tlsOptions)
     {
-        std::cout << "Listening on " << hostname << ":" << port << std::endl;
+        std::cout << "ws_transfer: Listening on " << hostname << ":" << port << std::endl;
 
         ix::WebSocketServer server(port, hostname);
         server.setTLSOptions(tlsOptions);
@@ -25,7 +25,7 @@ namespace ix
                                                 const WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    std::cerr << "New connection" << std::endl;
+                    std::cerr << "ws_transfer: New connection" << std::endl;
                     std::cerr << "id: " << connectionState->getId() << std::endl;
                     std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
                     std::cerr << "Headers:" << std::endl;
@@ -36,14 +36,14 @@ namespace ix
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    std::cerr << "Closed connection"
+                    std::cerr << "ws_transfer: Closed connection"
                               << " code " << msg->closeInfo.code << " reason "
                               << msg->closeInfo.reason << std::endl;
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
                     std::stringstream ss;
-                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                    ss << "ws_transfer: Connection error: " << msg->errorInfo.reason << std::endl;
                     ss << "#retries: " << msg->errorInfo.retries << std::endl;
                     ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
                     ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
@@ -51,11 +51,11 @@ namespace ix
                 }
                 else if (msg->type == ix::WebSocketMessageType::Fragment)
                 {
-                    std::cerr << "Received message fragment " << std::endl;
+                    std::cerr << "ws_transfer: Received message fragment " << std::endl;
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
+                    std::cerr << "ws_transfer: Received " << msg->wireSize << " bytes" << std::endl;
                     for (auto&& client : server.getClients())
                     {
                         if (client != webSocket)
