@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.2.8] - 2019-09-26
+
+- Http server: add options to ws https to redirect all requests to a given url.
+
+```
+ws httpd -L --redirect_url https://www.google.com
+```
+
 ## [6.2.7] - 2019-09-25
 
 - Stop having ws send subcommand send a binary message in text mode, which would cause error in `make ws_test` shell script test.
