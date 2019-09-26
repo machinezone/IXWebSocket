@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## [6.2.8] - 2019-09-26
 
-- Http server: add options to ws https to redirect all requests to a given url.
+- Http server: add options to ws https to redirect all requests to a given url. POST requests will get a 200 and an empty response.
 
 ```
 ws httpd -L --redirect_url https://www.google.com
