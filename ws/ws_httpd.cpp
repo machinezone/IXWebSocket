@@ -24,33 +24,7 @@ namespace ix
 
         if (redirect)
         {
-            //
-            // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
-            //
-            server.setOnConnectionCallback(
-                [redirectUrl](
-                    HttpRequestPtr request,
-                    std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
-
-                    WebSocketHttpHeaders headers;
-
-                    // Log request
-                    std::stringstream ss;
-                    ss << request->method << " " << request->headers["User-Agent"] << " "
-                       << request->uri;
-                    spdlog::info(ss.str());
-
-                    if (request->method == "POST")
-                    {
-                        return std::make_shared<HttpResponse>(
-                            200, "OK", HttpErrorCode::Ok, headers, std::string());
-                    }
-
-                    headers["Location"] = redirectUrl;
-
-                    return std::make_shared<HttpResponse>(
-                        301, "OK", HttpErrorCode::Ok, headers, std::string());
-                });
+            server.makeRedirectServer(redirectUrl);
         }
 
         auto res = server.listen();
