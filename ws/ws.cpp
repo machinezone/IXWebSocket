@@ -63,6 +63,7 @@ int main(int argc, char** argv)
     std::string redisHosts("127.0.0.1");
     std::string redisPassword;
     std::string appsConfigPath("appsConfig.json");
+    std::string redirectUrl;
     bool headersOnly = false;
     bool followRedirects = false;
     bool verbose = false;
@@ -75,6 +76,7 @@ int main(int argc, char** argv)
     bool disablePerMessageDeflate = false;
     bool greetings = false;
     bool binaryMode = false;
+    bool redirect = false;
     int port = 8008;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -238,6 +240,8 @@ int main(int argc, char** argv)
     CLI::App* httpServerApp = app.add_subcommand("httpd", "HTTP server");
     httpServerApp->add_option("--port", port, "Port");
     httpServerApp->add_option("--host", hostname, "Hostname");
+    httpServerApp->add_flag("-L", redirect, "Redirect all request to redirect_url");
+    httpServerApp->add_option("--redirect_url", redirectUrl, "Url to redirect to");
 
     CLI::App* autobahnApp = app.add_subcommand("autobahn", "Test client Autobahn compliance");
     autobahnApp->add_option("--url", url, "url");
@@ -362,7 +366,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("httpd"))
     {
-        ret = ix::ws_httpd_main(port, hostname);
+        ret = ix::ws_httpd_main(port, hostname, redirect, redirectUrl);
     }
     else if (app.got_subcommand("autobahn"))
     {

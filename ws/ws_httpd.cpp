@@ -13,11 +13,31 @@
 
 namespace ix
 {
-    int ws_httpd_main(int port, const std::string& hostname)
+    int ws_httpd_main(int port,
+                      const std::string& hostname,
+                      bool redirect,
+                      const std::string& redirectUrl)
     {
         spdlog::info("Listening on {}:{}", hostname, port);
 
         ix::HttpServer server(port, hostname);
+
+        if (redirect)
+        {
+            //
+            // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
+            //
+            server.setOnConnectionCallback(
+                [redirectUrl](
+                    HttpRequestPtr request,
+                    std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
+                    WebSocketHttpHeaders headers;
+                    headers["Location"] = redirectUrl;
+
+                    return std::make_shared<HttpResponse>(
+                        301, "OK", HttpErrorCode::Ok, headers, std::string());
+                });
+        }
 
         auto res = server.listen();
         if (!res.first)
