@@ -60,7 +60,7 @@ namespace ix
         , _delayMs(delayMs)
         , _receivedFragmentCounter(0)
     {
-        ;
+        _webSocket.disableAutomaticReconnection();
     }
 
     void WebSocketReceiver::stop()
@@ -114,7 +114,7 @@ namespace ix
         pdu["message"] = errMsg;
 
         MsgPack msg(pdu);
-        _webSocket.send(msg.dump());
+        _webSocket.sendBinary(msg.dump());
     }
 
     void WebSocketReceiver::handleMessage(const std::string& str)
@@ -165,8 +165,9 @@ namespace ix
         pdu["id"] = data["id"];
         pdu["filename"] = data["filename"];
 
+        std::cout << "Sending ack to sender" << std::endl;
         MsgPack msg(pdu);
-        _webSocket.send(msg.dump());
+        _webSocket.sendBinary(msg.dump());
     }
 
     void WebSocketReceiver::start()

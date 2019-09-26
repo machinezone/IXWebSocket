@@ -139,6 +139,21 @@ namespace
 
         gUniqueMessageIdsCount = gIds.size();
     }
+
+    // publish 100 messages, during roughly 100ms
+    // this is used to test thread safety of CobraMetricsPublisher::push
+    void runAdditionalPublisher(ix::CobraMetricsPublisher* cobraMetricsPublisher)
+    {
+        Json::Value data;
+        data["foo"] = "bar";
+
+        for (int i = 0; i < 100; ++i)
+        {
+            cobraMetricsPublisher->push("sms_metric_F_id", data);
+            ix::msleep(1);
+        }
+    }
+
 } // namespace
 
 TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
@@ -252,6 +267,19 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
 
     ix::msleep(500);
 
+    // Test multi-threaded publish
+    std::thread bgPublisher1(&runAdditionalPublisher, &cobraMetricsPublisher);
+    std::thread bgPublisher2(&runAdditionalPublisher, &cobraMetricsPublisher);
+    std::thread bgPublisher3(&runAdditionalPublisher, &cobraMetricsPublisher);
+    std::thread bgPublisher4(&runAdditionalPublisher, &cobraMetricsPublisher);
+    std::thread bgPublisher5(&runAdditionalPublisher, &cobraMetricsPublisher);
+
+    bgPublisher1.join();
+    bgPublisher2.join();
+    bgPublisher3.join();
+    bgPublisher4.join();
+    bgPublisher5.join();
+
     // Now stop the thread
     gStop = true;
     bgThread.join();
@@ -264,17 +292,16 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
     CHECK(gIds.count("sms_metric_C_id") == 1);
     CHECK(gIds.count("sms_metric_D_id") == 1);
     CHECK(gIds.count("sms_metric_E_id") == 1);
+    CHECK(gIds.count("sms_metric_F_id") == 1);
     CHECK(gIds.count("sms_set_rate_control_id") == 1);
     CHECK(gIds.count("sms_set_blacklist_id") == 1);
 
-    std::cout << "Incoming bytes: " << incomingBytes << std::endl;
-    std::cout << "Outgoing bytes: " << outgoingBytes << std::endl;
+    spdlog::info("Incoming bytes {}", incomingBytes);
+    spdlog::info("Outgoing bytes {}", outgoingBytes);
 
-    std::cerr << "Stopping snake server... ";
+    spdlog::info("Stopping snake server...");
     snakeServer.stop();
-    std::cerr << "OK" << std::endl;
 
-    std::cerr << "Stopping redis server... ";
+    spdlog::info("Stopping redis server...");
     redisServer.stop();
-    std::cerr << "OK" << std::endl;
 }

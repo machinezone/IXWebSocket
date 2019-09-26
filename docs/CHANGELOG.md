@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.2.7] - 2019-09-25
+
+- Stop having ws send subcommand send a binary message in text mode, which would cause error in `make ws_test` shell script test.
+
+## [6.2.6] - 2019-09-24
+
+- Fix 2 race conditions detected with TSan, one in CobraMetricsPublisher::push and another one in WebSocketTransport::sendData (that one was bad).
+
 ## [6.2.5] - 2019-09-23
 
 - Add simple Redis Server which is only capable of doing publish / subscribe. New ws redis_server sub-command to use it. The server is used in the unittest, so that we can run on CI in environment where redis isn not available like github actions env.

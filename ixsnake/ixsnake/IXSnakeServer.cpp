@@ -11,6 +11,8 @@
 #include "IXSnakeProtocol.h"
 #include <iostream>
 #include <sstream>
+#include <ixcore/utils/IXCoreLogger.h>
+
 
 namespace snake
 {
@@ -43,8 +45,6 @@ namespace snake
 
     bool SnakeServer::run()
     {
-        std::cout << "Listening on " << _appConfig.hostname << ":" << _appConfig.port << std::endl;
-
         auto factory = []() -> std::shared_ptr<ix::ConnectionState> {
             return std::make_shared<SnakeConnectionState>();
         };
@@ -57,15 +57,16 @@ namespace snake
 
                 webSocket->setOnMessageCallback(
                     [this, webSocket, state](const ix::WebSocketMessagePtr& msg) {
+                        std::stringstream ss;
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
-                            std::cerr << "New connection" << std::endl;
-                            std::cerr << "id: " << state->getId() << std::endl;
-                            std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
-                            std::cerr << "Headers:" << std::endl;
+                            ss << "New connection" << std::endl;
+                            ss << "id: " << state->getId() << std::endl;
+                            ss << "Uri: " << msg->openInfo.uri << std::endl;
+                            ss << "Headers:" << std::endl;
                             for (auto it : msg->openInfo.headers)
                             {
-                                std::cerr << it.first << ": " << it.second << std::endl;
+                                ss << it.first << ": " << it.second << std::endl;
                             }
 
                             std::string appkey = parseAppKey(msg->openInfo.uri);
@@ -75,14 +76,14 @@ namespace snake
                             if (!state->redisClient().connect(_appConfig.redisHosts[0],
                                                               _appConfig.redisPort))
                             {
-                                std::cerr << "Cannot connect to redis host" << std::endl;
+                                ss << "Cannot connect to redis host" << std::endl;
                             }
                         }
                         else if (msg->type == ix::WebSocketMessageType::Close)
                         {
-                            std::cerr << "Closed connection"
-                                      << " code " << msg->closeInfo.code << " reason "
-                                      << msg->closeInfo.reason << std::endl;
+                            ss << "Closed connection"
+                               << " code " << msg->closeInfo.code << " reason "
+                               << msg->closeInfo.reason << std::endl;
                         }
                         else if (msg->type == ix::WebSocketMessageType::Error)
                         {
@@ -91,17 +92,18 @@ namespace snake
                             ss << "#retries: " << msg->errorInfo.retries << std::endl;
                             ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
                             ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                            std::cerr << ss.str();
                         }
                         else if (msg->type == ix::WebSocketMessageType::Fragment)
                         {
-                            std::cerr << "Received message fragment" << std::endl;
+                            ss << "Received message fragment" << std::endl;
                         }
                         else if (msg->type == ix::WebSocketMessageType::Message)
                         {
-                            std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
+                            ss << "Received " << msg->wireSize << " bytes" << std::endl;
                             processCobraMessage(state, webSocket, _appConfig, msg->str);
                         }
+                        
+                        ix::IXCoreLogger::Log(ss.str().c_str());
                     });
             });
 

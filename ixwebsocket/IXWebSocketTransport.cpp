@@ -874,7 +874,10 @@ namespace ix
             message_end = compressedMessage.end();
         }
 
-        _txbuf.reserve(wireSize);
+        {
+            std::lock_guard<std::mutex> lock(_txbufMutex);
+            _txbuf.reserve(wireSize);
+        }
 
         // Common case for most message. No fragmentation required.
         if (wireSize < kChunkSize)

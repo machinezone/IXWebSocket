@@ -54,7 +54,7 @@ namespace ix
         : _url(url)
         , _enablePerMessageDeflate(enablePerMessageDeflate)
     {
-        ;
+        _webSocket.disableAutomaticReconnection();
     }
 
     void WebSocketSender::stop()
