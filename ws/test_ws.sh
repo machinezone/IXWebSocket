@@ -3,7 +3,7 @@
 # Handle Ctrl-C by killing all sub-processing AND exiting
 trap cleanup INT
 
-function cleanup {
+cleanup() {
     kill `cat /tmp/ws_test/pidfile.transfer`
     kill `cat /tmp/ws_test/pidfile.receive`
     kill `cat /tmp/ws_test/pidfile.send`
