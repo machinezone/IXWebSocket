@@ -195,6 +195,10 @@ namespace snake
         };
 
         auto responseCallback = [ws, pdu, &subscriptionId](const std::string& redisResponse) {
+            std::stringstream ss;
+            ss << "Redis Response: " << redisResponse << "...";
+            ix::IXCoreLogger::Log(ss.str().c_str());
+
             // Success
             nlohmann::json response = {{"action", "rtm/subscribe/ok"},
                                        {"id", pdu.value("id", 1)},

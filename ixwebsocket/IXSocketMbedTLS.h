@@ -44,6 +44,7 @@ namespace ix
         SocketTLSOptions _tlsOptions;
 
         bool init(const std::string& host, std::string& errMsg);
+        void initMBedTLS();
     };
 
 } // namespace ix
