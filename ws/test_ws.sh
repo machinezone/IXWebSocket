@@ -60,7 +60,7 @@ dd if=/dev/urandom of=/tmp/ws_test/send/20M_file count=20000 bs=1024
 # Start the sender job
 ws send ${client_tls} --pidfile /tmp/ws_test/pidfile.send "${protocol}127.0.0.1:8090" /tmp/ws_test/send/20M_file 
 
-Wait until the file has been written to disk
+# Wait until the file has been written to disk
 while true
 do
     if test -f /tmp/ws_test/receive/20M_file ; then
