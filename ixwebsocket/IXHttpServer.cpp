@@ -153,10 +153,9 @@ namespace ix
         // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
         //
         setOnConnectionCallback(
-            [this, redirectUrl](
-                HttpRequestPtr request,
-                std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
-
+            [this,
+             redirectUrl](HttpRequestPtr request,
+                          std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
                 WebSocketHttpHeaders headers;
                 headers["Server"] = userAgent();
 

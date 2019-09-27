@@ -10,7 +10,7 @@
 
 using namespace ix;
 
-TEST_CASE("http client", "[http]")
+TEST_CASE("http_client", "[http]")
 {
     SECTION("Connect to a remote HTTP server")
     {

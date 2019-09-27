@@ -20,25 +20,31 @@ namespace ix
     SocketMbedTLS::SocketMbedTLS(const SocketTLSOptions& tlsOptions)
         : _tlsOptions(tlsOptions)
     {
-        ;
+        initMBedTLS();
     }
 
     SocketMbedTLS::~SocketMbedTLS()
     {
-        close();
+        SocketMbedTLS::close();
     }
 
-    bool SocketMbedTLS::init(const std::string& host, std::string& errMsg)
+    void SocketMbedTLS::initMBedTLS()
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
         mbedtls_ssl_init(&_ssl);
         mbedtls_ssl_config_init(&_conf);
         mbedtls_ctr_drbg_init(&_ctr_drbg);
+        mbedtls_entropy_init(&_entropy);
+    }
+
+    bool SocketMbedTLS::init(const std::string& host, std::string& errMsg)
+    {
+        initMBedTLS();
+        std::lock_guard<std::mutex> lock(_mutex);
 
         const char* pers = "IXSocketMbedTLS";
 
-        mbedtls_entropy_init(&_entropy);
         if (mbedtls_ctr_drbg_seed(&_ctr_drbg,
                                   mbedtls_entropy_func,
                                   &_entropy,
@@ -89,7 +95,8 @@ namespace ix
             if (_sockfd == -1) return false;
         }
 
-        if (!init(host, errMsg))
+        bool initialized = init(host, errMsg);
+        if (!initialized)
         {
             close();
             return false;
