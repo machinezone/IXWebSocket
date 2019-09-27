@@ -43,12 +43,12 @@ set (SOURCES
   IXHttpTest.cpp
   IXCobraChatTest.cpp
   IXCobraMetricsPublisherTest.cpp
+  IXDNSLookupTest.cpp
 )
 
 # Some unittest don't work on windows yet
 if (UNIX)
   list(APPEND SOURCES
-    IXDNSLookupTest.cpp
     IXWebSocketChatTest.cpp
     IXWebSocketCloseTest.cpp
   )
