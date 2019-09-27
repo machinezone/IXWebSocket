@@ -35,6 +35,8 @@ namespace ix
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
 
+        void makeRedirectServer(const std::string& redirectUrl);
+
     private:
         // Member variables
         OnConnectionCallback _onConnectionCallback;

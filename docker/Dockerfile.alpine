@@ -30,4 +30,5 @@ USER app
 WORKDIR /home/app
 
 ENTRYPOINT ["ws"]
+EXPOSE 8008
 CMD ["--help"]
