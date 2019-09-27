@@ -10,7 +10,7 @@ function cleanup_and_exit {
     kill `cat /tmp/ws_test/pidfile.transfer` &>/dev/null
     kill `cat /tmp/ws_test/pidfile.receive` &>/dev/null
     kill `cat /tmp/ws_test/pidfile.send` &>/dev/null
-    exit 1
+    exit ${exit_code}
 }
 
 WITH_TLS=${WITH_TLS:-0}
