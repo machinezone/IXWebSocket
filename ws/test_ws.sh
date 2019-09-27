@@ -1,14 +1,15 @@
 #!/bin/bash
 
 # Handle Ctrl-C by killing all sub-processing AND exiting
-trap cleanup INT
+trap cleanup_and_exit INT
 
-function cleanup {
+function cleanup_and_exit {
+    local exit_code=${1:-1}
     echo "cleaning up..."
     echo
-    kill `cat /tmp/ws_test/pidfile.transfer`
-    kill `cat /tmp/ws_test/pidfile.receive`
-    kill `cat /tmp/ws_test/pidfile.send`
+    kill `cat /tmp/ws_test/pidfile.transfer` &>/dev/null
+    kill `cat /tmp/ws_test/pidfile.receive` &>/dev/null
+    kill `cat /tmp/ws_test/pidfile.send` &>/dev/null
     exit 1
 }
 
@@ -33,6 +34,7 @@ if [ "$WITH_TLS" == "1" ]; then
     delay=''
 fi
 
+2148414327 20480000 /tmp/ws_test/receive/20M_file
 # Start a transport server
 cd /tmp/ws_test
 ws transfer --port 8090 ${server_tls} --pidfile /tmp/ws_test/pidfile.transfer &
@@ -78,7 +80,4 @@ cksum /tmp/ws_test/receive/20M_file
 sleep 2
 
 # Cleanup
-kill `cat /tmp/ws_test/pidfile.transfer`
-kill `cat /tmp/ws_test/pidfile.receive`
-kill `cat /tmp/ws_test/pidfile.send`
-exit 0
+cleanup_and_exit 0
