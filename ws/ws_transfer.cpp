@@ -58,6 +58,7 @@ namespace ix
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
                     std::cerr << "ws_transfer: Received " << msg->wireSize << " bytes" << std::endl;
+                    size_t receivers = 0;
                     for (auto&& client : server.getClients())
                     {
                         if (client != webSocket)
@@ -65,6 +66,7 @@ namespace ix
                             auto readyState = client->getReadyState();
                             if (readyState == ReadyState::Open)
                             {
+                                ++receivers;
                                 client->send(msg->str,
                                              msg->binary,
                                              [id = connectionState->getId()](int current,
@@ -82,9 +84,7 @@ namespace ix
                                               << "]: " << bufferedAmount
                                               << " bytes left to be sent, " << std::endl;
 
-
-                                    std::chrono::duration<double, std::milli> duration(250);
-                                    std::this_thread::sleep_for(duration);
+                                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
                                 } while (client->bufferedAmount() != 0 &&
                                          client->getReadyState() == ReadyState::Open);
@@ -102,6 +102,9 @@ namespace ix
                                           << std::endl;
                             }
                         }
+                    }
+                    if (!receivers) {
+                        std::cerr << "ws_transfer: no remaining receivers" << std::endl;
                     }
                 }
             });
