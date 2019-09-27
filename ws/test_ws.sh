@@ -34,7 +34,6 @@ if [ "$WITH_TLS" == "1" ]; then
     delay=''
 fi
 
-2148414327 20480000 /tmp/ws_test/receive/20M_file
 # Start a transport server
 cd /tmp/ws_test
 ws transfer --port 8090 ${server_tls} --pidfile /tmp/ws_test/pidfile.transfer &
