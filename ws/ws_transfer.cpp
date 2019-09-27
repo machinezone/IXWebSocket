@@ -36,9 +36,11 @@ namespace ix
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    std::cerr << "ws_transfer: Closed connection"
-                              << " code " << msg->closeInfo.code << " reason "
+                    std::cerr << "ws_transfer: [client " << connectionState->getId()
+                              << "]: Closed connection, code " << msg->closeInfo.code << " reason "
                               << msg->closeInfo.reason << std::endl;
+                    auto remaining = server.getClients().erase(webSocket);
+                    std::cerr << "ws_transfer: " << remaining << " remaining clients " << std::endl;
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
@@ -60,21 +62,45 @@ namespace ix
                     {
                         if (client != webSocket)
                         {
-                            client->send(msg->str, msg->binary, [](int current, int total) -> bool {
-                                std::cerr << "ws_transfer: Step " << current << " out of " << total
-                                          << std::endl;
-                                return true;
-                            });
-
-                            do
+                            auto readyState = client->getReadyState();
+                            if (readyState == ReadyState::Open)
                             {
-                                size_t bufferedAmount = client->bufferedAmount();
-                                std::cerr << "ws_transfer: " << bufferedAmount
-                                          << " bytes left to be sent" << std::endl;
+                                client->send(msg->str,
+                                             msg->binary,
+                                             [id = connectionState->getId()](int current,
+                                                                             int total) -> bool {
+                                                 std::cerr << "ws_transfer: [client " << id
+                                                           << "]: Step " << current << " out of "
+                                                           << total << std::endl;
+                                                 return true;
+                                             });
 
-                                std::chrono::duration<double, std::milli> duration(10);
-                                std::this_thread::sleep_for(duration);
-                            } while (client->bufferedAmount() != 0);
+                                do
+                                {
+                                    size_t bufferedAmount = client->bufferedAmount();
+                                    std::cerr << "ws_transfer: [client " << connectionState->getId()
+                                              << "]: " << bufferedAmount
+                                              << " bytes left to be sent, " << std::endl;
+
+
+                                    std::chrono::duration<double, std::milli> duration(250);
+                                    std::this_thread::sleep_for(duration);
+
+                                } while (client->bufferedAmount() != 0 &&
+                                         client->getReadyState() == ReadyState::Open);
+                            }
+                            else
+                            {
+                                std::string readyStateString =
+                                    readyState == ReadyState::Connecting
+                                        ? "Connecting"
+                                        : readyState == ReadyState::Closing ? "Closing" : "Closed";
+                                size_t bufferedAmount = client->bufferedAmount();
+                                std::cerr << "ws_transfer: [client " << connectionState->getId()
+                                          << "]: has readystate '" << readyStateString << "' and "
+                                          << bufferedAmount << " bytes left to be sent, "
+                                          << std::endl;
+                            }
                         }
                     }
                 }
