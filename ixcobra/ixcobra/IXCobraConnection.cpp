@@ -233,6 +233,11 @@ namespace ix
         _publishMode = publishMode;
     }
 
+    CobraConnectionPublishMode CobraConnection::getPublishMode()
+    {
+        return _publishMode;
+    }
+
     void CobraConnection::configure(const std::string& appkey,
                                     const std::string& endpoint,
                                     const std::string& rolename,
@@ -487,10 +492,11 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_queueMutex);
 
+        if (_messageQueue.empty()) return true;
+
         auto&& msg = _messageQueue.back();
         if (!publishMessage(msg))
         {
-            _messageQueue.push_back(msg);
             return false;
         }
         _messageQueue.pop_back();
