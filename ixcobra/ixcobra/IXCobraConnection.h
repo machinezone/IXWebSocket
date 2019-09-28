@@ -114,6 +114,9 @@ namespace ix
         /// Set the publish mode
         void setPublishMode(CobraConnectionPublishMode publishMode);
 
+        /// Query the publish mode
+        CobraConnectionPublishMode getPublishMode();
+
         /// Lifecycle management. Free resources when backgrounding
         void suspend();
         void resume();

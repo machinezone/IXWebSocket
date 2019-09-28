@@ -166,7 +166,10 @@ namespace ix
 
                 case MessageKind::Message:
                 {
-                    _cobra_connection.publishNext();
+                    if (_cobra_connection.getPublishMode() == CobraConnection_PublishMode_Immediate)
+                    {
+                        _cobra_connection.publishNext();
+                    }
                 }; break;
             }
         }
