@@ -218,6 +218,8 @@ if (USE_WS OR USE_TEST)
   add_subdirectory(ixcobra)
   add_subdirectory(ixsnake)
 
+  add_subdirectory(third_party/spdlog spdlog)
+
   if (USE_WS)
       add_subdirectory(ws)
   endif()

@@ -1,11 +1,8 @@
 //
 // Copyright(c) 2015 Gabi Melman.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
-//
-//
+
 // spdlog usage example
-//
-//
 
 #include <cstdio>
 
@@ -20,13 +17,12 @@ void multi_sink_example();
 void user_defined_example();
 void err_handler_example();
 void syslog_example();
-void clone_example();
 
 #include "spdlog/spdlog.h"
 
 int main(int, char *[])
 {
-    spdlog::info("Welcome to spdlog version {}.{}.{} !", SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH);
+    spdlog::info("Welcome to spdlog version {}.{}.{}  !", SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH);
     spdlog::warn("Easy padding in numbers like {:08d}", 12);
     spdlog::critical("Support for int: {0:d};  hex: {0:x};  oct: {0:o}; bin: {0:b}", 42);
     spdlog::info("Support for floats {:03.2f}", 1.23456);
@@ -43,6 +39,18 @@ int main(int, char *[])
     spdlog::set_pattern("[%H:%M:%S %z] [%^%L%$] [thread %t] %v");
     spdlog::info("This an info message with custom format");
     spdlog::set_pattern("%+"); // back to default format
+    spdlog::set_level(spdlog::level::info);
+
+    // Backtrace support
+    // Loggers can store in a ring buffer all messages (including debug/trace) for later inspection.
+    // When needed, call dump_backtrace() to see what happened:
+    spdlog::enable_backtrace(10); // create ring buffer with capacity of 10  messages
+    for (int i = 0; i < 100; i++)
+    {
+        spdlog::debug("Backtrace message {}", i); // not logged..
+    }
+    // e.g. if some error happened:
+    spdlog::dump_backtrace(); // log them now!
 
     try
     {
@@ -50,7 +58,6 @@ int main(int, char *[])
         basic_example();
         rotating_example();
         daily_example();
-        clone_example();
         async_example();
         binary_example();
         multi_sink_example();
@@ -107,14 +114,6 @@ void daily_example()
 {
     // Create a daily logger - a new file is created every day on 2:30am.
     auto daily_logger = spdlog::daily_logger_mt("daily_logger", "logs/daily.txt", 2, 30);
-}
-
-// Clone a logger and give it new name.
-// Useful for creating component/subsystem loggers from some "root" logger.
-void clone_example()
-{
-    auto network_logger = spdlog::default_logger()->clone("network");
-    network_logger->info("Logging network stuff..");
 }
 
 #include "spdlog/async.h"

@@ -1,24 +1,21 @@
 # spdlog
 
-Very fast, header only, C++ logging library. [![Build Status](https://travis-ci.org/gabime/spdlog.svg?branch=master)](https://travis-ci.org/gabime/spdlog)&nbsp; [![Build status](https://ci.appveyor.com/api/projects/status/d2jnxclg20vd0o50?svg=true)](https://ci.appveyor.com/project/gabime/spdlog)
+Very fast, header-only/compiled, C++ logging library. [![Build Status](https://travis-ci.org/gabime/spdlog.svg?branch=master)](https://travis-ci.org/gabime/spdlog)&nbsp; [![Build status](https://ci.appveyor.com/api/projects/status/d2jnxclg20vd0o50?svg=true)](https://ci.appveyor.com/project/gabime/spdlog)
 
 
 
-## Install
-#### Just copy the headers:
+## Install 
+#### Header only version
+Copy the source [folder](https://github.com/gabime/spdlog/tree/v1.x/include/spdlog) to your build tree and use a C++11 compiler.
 
-* Copy the source [folder](https://github.com/gabime/spdlog/tree/v1.x/include/spdlog) to your build tree and use a C++11 compiler.
-
-#### Or use your favorite package manager:
-
-* Ubuntu: `apt-get install libspdlog-dev`
-* Homebrew: `brew install spdlog`
-* FreeBSD:  `cd /usr/ports/devel/spdlog/ && make install clean`
-* Fedora: `yum install spdlog`
-* Gentoo: `emerge dev-libs/spdlog`
-* Arch Linux: `yaourt -S spdlog-git`
-* vcpkg: `vcpkg install spdlog`
-
+#### Static lib version (recommended - much faster compile times)
+```console
+$ git clone https://github.com/gabime/spdlog.git
+$ cd spdlog && mkdir build && cd build
+$ cmake .. && make -j
+```
+      
+   see example [CMakeLists.txt](https://github.com/gabime/spdlog/blob/v1.x/example/CMakeLists.txt) on how to use.
 
 ## Platforms
  * Linux, FreeBSD, OpenBSD, Solaris, AIX
@@ -26,10 +23,19 @@ Very fast, header only, C++ logging library. [![Build Status](https://travis-ci.
  * macOS (clang 3.5+)
  * Android
 
+## Package managers:
+* Homebrew: `brew install spdlog`
+* FreeBSD:  `cd /usr/ports/devel/spdlog/ && make install clean`
+* Fedora: `yum install spdlog`
+* Gentoo: `emerge dev-libs/spdlog`
+* Arch Linux: `yaourt -S spdlog-git`
+* vcpkg: `vcpkg install spdlog`
+
 ## Features
 * Very fast (see [benchmarks](#benchmarks) below).
-* Headers only, just copy and use.
+* Headers only, just copy and use. Or use as a compiled library.
 * Feature rich formatting, using the excellent [fmt](https://github.com/fmtlib/fmt) library.
+* **New!** [Backtrace](#backtrace-support) support - store debug or other messages in a ring buffer and display later on demand.
 * Fast asynchronous mode (optional)
 * [Custom](https://github.com/gabime/spdlog/wiki/3.-Custom-formatting) formatting.
 * Multi/Single threaded loggers.
@@ -41,67 +47,40 @@ Very fast, header only, C++ logging library. [![Build Status](https://travis-ci.
     * Windows debugger (```OutputDebugString(..)```)
     * Easily extendable with custom log targets  (just implement a single function in the [sink](include/spdlog/sinks/sink.h) interface).
 * Severity based filtering - threshold levels can be modified in runtime as well as in compile time.
-* Binary data logging.
 
-
-## Benchmarks
-
-Below are some [benchmarks](https://github.com/gabime/spdlog/blob/v1.x/bench/bench.cpp) done in Ubuntu 64 bit, Intel i7-4770 CPU @ 3.40GHz
-
-#### Synchronous mode
-```
-*******************************************************************************
-Single thread, 1,000,000 iterations
-*******************************************************************************
-basic_st...             Elapsed: 0.181652       5,505,042/sec
-rotating_st...          Elapsed: 0.181781       5,501,117/sec
-daily_st...             Elapsed: 0.187595       5,330,630/sec
-null_st...              Elapsed: 0.0504704      19,813,602/sec
-*******************************************************************************
-10 threads sharing same logger, 1,000,000 iterations
-*******************************************************************************
-basic_mt...             Elapsed: 0.616035       1,623,284/sec
-rotating_mt...          Elapsed: 0.620344       1,612,008/sec
-daily_mt...             Elapsed: 0.648353       1,542,369/sec
-null_mt...              Elapsed: 0.151972       6,580,166/sec
-```
-#### Asynchronous mode
-```
-*******************************************************************************
-10 threads sharing same logger, 1,000,000 iterations
-*******************************************************************************
-async...                Elapsed: 0.350066       2,856,606/sec
-async...                Elapsed: 0.314865       3,175,960/sec
-async...                Elapsed: 0.349851       2,858,358/sec
-```
-
+ 
 ## Usage samples
 
 #### Basic usage
 ```c++
 #include "spdlog/spdlog.h"
-int main()
+#include "spdlog/sinks/basic_file_sink.h"
+
+int main() 
 {
     spdlog::info("Welcome to spdlog!");
     spdlog::error("Some error message with arg: {}", 1);
-
+    
     spdlog::warn("Easy padding in numbers like {:08d}", 12);
     spdlog::critical("Support for int: {0:d};  hex: {0:x};  oct: {0:o}; bin: {0:b}", 42);
     spdlog::info("Support for floats {:03.2f}", 1.23456);
     spdlog::info("Positional args are {1} {0}..", "too", "supported");
     spdlog::info("{:<30}", "left aligned");
-
+    
     spdlog::set_level(spdlog::level::debug); // Set global log level to debug
-    spdlog::debug("This message should be displayed..");
-
+    spdlog::debug("This message should be displayed..");    
+    
     // change log pattern
     spdlog::set_pattern("[%H:%M:%S %z] [%n] [%^---%L---%$] [thread %t] %v");
-
+    
     // Compile time log levels
     // define SPDLOG_ACTIVE_LEVEL to desired level
     SPDLOG_TRACE("Some trace message with param {}", {});
     SPDLOG_DEBUG("Some debug message");
-
+    
+    // Set the default logger to file logger
+    auto file_logger = spdlog::basic_logger_mt("basic_logger", "logs/basic.txt");
+    spdlog::set_default_logger(file_logger);            
 }
 ```
 #### create stdout/stderr logger object
@@ -111,8 +90,8 @@ int main()
 void stdout_example()
 {
     // create color multi threaded logger
-    auto console = spdlog::stdout_color_mt("console");
-    auto err_logger = spdlog::stderr_color_mt("stderr");
+    auto console = spdlog::stdout_color_mt("console");    
+    auto err_logger = spdlog::stderr_color_mt("stderr");    
     spdlog::get("console")->info("loggers can be retrieved from a global registry using the spdlog::get(logger_name)");
 }
 ```
@@ -122,7 +101,7 @@ void stdout_example()
 #include "spdlog/sinks/basic_file_sink.h"
 void basic_logfile_example()
 {
-    try
+    try 
     {
         auto my_logger = spdlog::basic_logger_mt("basic_logger", "logs/basic-log.txt");
     }
@@ -157,15 +136,20 @@ void daily_example()
 ```
 
 ---
-#### Cloning loggers
+#### Backtrace support
 ```c++
-// clone a logger and give it new name.
-// Useful for creating subsystem loggers from some "root" logger
-void clone_example()
+// Loggers can store in a ring buffer all messages (including debug/trace) and display later on demand.
+// When needed, call dump_backtrace() to see them
+spdlog::enable_backtrace(32); // create ring buffer with capacity of 32  messages
+// or my_logger->enable_backtrace(32)..
+for(int i = 0; i < 100; i++)
 {
-    auto network_logger = spdlog::get("root")->clone("network");
-    network_logger->info("Logging network stuff..");
+  spdlog::debug("Backtrace message {}", i); // not logged yet..
 }
+// e.g. if some error happened:
+spdlog::dump_backtrace(); // log them now! show the last 32 messages
+
+// or my_logger->dump_backtrace(32)..
 ```
 
 ---
@@ -178,9 +162,8 @@ spdlog::flush_every(std::chrono::seconds(3));
 ```
 
 ---
-#### Binary logging
+#### Log binary data in hex
 ```c++
-// log binary data as hex.
 // many types of std::container<char> types can be used.
 // ranges are supported too.
 // format flags:
@@ -238,13 +221,13 @@ void async_example()
     // spdlog::init_thread_pool(8192, 1); // queue with 8k items and 1 backing thread.
     auto async_file = spdlog::basic_logger_mt<spdlog::async_factory>("async_file_logger", "logs/async_log.txt");
     // alternatively:
-    // auto async_file = spdlog::create_async<spdlog::sinks::basic_file_sink_mt>("async_file_logger", "logs/async_log.txt");
+    // auto async_file = spdlog::create_async<spdlog::sinks::basic_file_sink_mt>("async_file_logger", "logs/async_log.txt");   
 }
 
 ```
 
 ---
-#### Asynchronous logger with multi sinks
+#### Asynchronous logger with multi sinks  
 ```c++
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/rotating_file_sink.h"
@@ -259,7 +242,7 @@ void multi_sink_example2()
     spdlog::register_logger(logger);
 }
 ```
-
+ 
 ---
 #### User defined types
 ```c++
@@ -293,7 +276,7 @@ void err_handler_example()
 
 ```
 ---
-#### syslog
+#### syslog 
 ```c++
 #include "spdlog/sinks/syslog_sink.h"
 void syslog_example()
@@ -304,15 +287,69 @@ void syslog_example()
 }
 ```
 ---
-#### Android example
+#### Android example 
 ```c++
 #include "spdlog/sinks/android_sink.h"
 void android_example()
 {
     std::string tag = "spdlog-android";
-    auto android_logger = spdlog::android_logger("android", tag);
+    auto android_logger = spdlog::android_logger_mt("android", tag);
     android_logger->critical("Use \"adb shell logcat\" to view this message.");
 }
+```
+
+## Benchmarks
+
+Below are some [benchmarks](https://github.com/gabime/spdlog/blob/v1.x/bench/bench.cpp) done in Ubuntu 64 bit, Intel i7-4770 CPU @ 3.40GHz
+
+#### Synchronous mode
+```
+[info] **************************************************************
+[info] Single thread, 1,000,000 iterations
+[info] **************************************************************
+[info] basic_st         Elapsed: 0.17 secs        5,777,626/sec
+[info] rotating_st      Elapsed: 0.18 secs        5,475,894/sec
+[info] daily_st         Elapsed: 0.20 secs        5,062,659/sec
+[info] empty_logger     Elapsed: 0.07 secs       14,127,300/sec
+[info] **************************************************************
+[info] C-string (400 bytes). Single thread, 1,000,000 iterations
+[info] **************************************************************
+[info] basic_st         Elapsed: 0.41 secs        2,412,483/sec
+[info] rotating_st      Elapsed: 0.72 secs        1,389,196/sec
+[info] daily_st         Elapsed: 0.42 secs        2,393,298/sec
+[info] null_st          Elapsed: 0.04 secs       27,446,957/sec
+[info] **************************************************************
+[info] 10 threads sharing same logger, 1,000,000 iterations
+[info] **************************************************************
+[info] basic_mt         Elapsed: 0.60 secs        1,659,613/sec
+[info] rotating_mt      Elapsed: 0.62 secs        1,612,493/sec
+[info] daily_mt         Elapsed: 0.61 secs        1,638,305/sec
+[info] null_mt          Elapsed: 0.16 secs        6,272,758/sec
+```
+#### ASynchronous mode
+```
+[info] -------------------------------------------------
+[info] Messages     : 1,000,000
+[info] Threads      : 10
+[info] Queue        : 8,192 slots
+[info] Queue memory : 8,192 x 272 = 2,176 KB 
+[info] Total iters  : 3
+[info] -------------------------------------------------
+[info] 
+[info] *********************************
+[info] Queue Overflow Policy: block
+[info] *********************************
+[info] Elapsed: 1.70784 secs     585,535/sec
+[info] Elapsed: 1.69805 secs     588,910/sec
+[info] Elapsed: 1.7026 secs      587,337/sec
+[info] 
+[info] *********************************
+[info] Queue Overflow Policy: overrun
+[info] *********************************
+[info] Elapsed: 0.372816 secs    2,682,285/sec
+[info] Elapsed: 0.379758 secs    2,633,255/sec
+[info] Elapsed: 0.373532 secs    2,677,147/sec
+
 ```
 
 ## Documentation

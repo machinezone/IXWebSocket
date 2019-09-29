@@ -5,6 +5,7 @@
 sudo: required
 language: cpp
 
+# gcc 4.8
 addons: &gcc48
   apt:
     packages:
@@ -12,6 +13,7 @@ addons: &gcc48
     sources:
       - ubuntu-toolchain-r-test
 
+# gcc 7.0
 addons: &gcc7
   apt:
     packages:
@@ -19,6 +21,7 @@ addons: &gcc7
     sources:
       - ubuntu-toolchain-r-test
 
+# Clang 3.5
 addons: &clang35
   apt:
     packages:
@@ -26,14 +29,16 @@ addons: &clang35
     sources:
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise-3.5
-
-addons: &clang6
+      
+# Clang 7.0
+addons: &clang70
   apt:
     packages:
-      - clang-6.0
+      - clang-7      
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-6.0
+      - llvm-toolchain-trusty-7
+
 
 
 matrix:
@@ -46,7 +51,7 @@ matrix:
     - env: GCC_VERSION=4.8 BUILD_TYPE=Release CPP=11
       os: linux
       addons: *gcc48
-  
+
     - env: GCC_VERSION=7 BUILD_TYPE=Release CPP=11
       os: linux
       addons: *gcc7
@@ -60,28 +65,16 @@ matrix:
       os: linux
       addons: *clang35
 
-      # Test clang-6.0: C++11, Build=Debug, ASAN=On
-    - env: CLANG_VERSION=6.0 BUILD_TYPE=Debug CPP=11 ASAN=On TSAN=Off
-      os: linux
-      addons: *clang6
-      
-    - env: CLANG_VERSION=6.0 BUILD_TYPE=Release CPP=11 ASAN=On TSAN=Off
-      os: linux
-      addons: *clang6
-      
-      # Test clang-6.0: C++11, Build=Debug, TSAN=On
-    - env: CLANG_VERSION=6.0 BUILD_TYPE=Debug CPP=11 ASAN=Off TSAN=On
-      os: linux
-      addons: *clang6
-      
-    - env: CLANG_VERSION=6.0 BUILD_TYPE=Release CPP=11 ASAN=Off TSAN=On
-      os: linux
-      addons: *clang6
+      # Test clang-7.0: C++11, Build=Debug, ASAN=On
+    - env: CLANG_VERSION=7 BUILD_TYPE=Debug CPP=11 ASAN=On TSAN=Off
+      dist: bionic      
 
+    - env: CLANG_VERSION=7 BUILD_TYPE=Release CPP=11 ASAN=On TSAN=Off
+      dist: bionic
+      
       # osx
     - env: BUILD_TYPE=Release CPP=11 ASAN=Off TSAN=Off
       os: osx
-    
 
 
 
@@ -102,11 +95,13 @@ script:
       --warn-uninitialized \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
       -DCMAKE_CXX_STANDARD=$CPP \
-      -DSPDLOG_BUILD_EXAMPLES=ON \
+      -DSPDLOG_BUILD_EXAMPLE=ON \
+      -DSPDLOG_BUILD_EXAMPLE_HO=ON \
       -DSPDLOG_BUILD_BENCH=OFF \
       -DSPDLOG_BUILD_TESTS=ON \
-      -DSPDLOG_SANITIZE_ADDRESS=$ASAN \
-      -DSPDLOG_SANITIZE_THREAD=$TSAN
+      -DSPDLOG_BUILD_TESTS_HO=OFf \
+      -DSPDLOG_SANITIZE_ADDRESS=$ASAN 
+      
   - make VERBOSE=1 -j2
   - ctest -j2 --output-on-failure
 
