@@ -10,12 +10,12 @@
 
 #ifdef IXWEBSOCKET_USE_MBED_TLS
 #include <ixwebsocket/IXSocketMbedTLS.h>
-#elif __APPLE__
-#include <ixwebsocket/IXSocketAppleSSL.h>
 #elif defined(_WIN32)
 #include <ixwebsocket/IXSocketSChannel.h>
 #elif defined(IXWEBSOCKET_USE_OPEN_SSL)
 #include <ixwebsocket/IXSocketOpenSSL.h>
+#elif __APPLE__
+#include <ixwebsocket/IXSocketAppleSSL.h>
 #endif
 
 #else
@@ -42,12 +42,12 @@ namespace ix
 #ifdef IXWEBSOCKET_USE_TLS
 #if defined(IXWEBSOCKET_USE_MBED_TLS)
             socket = std::make_shared<SocketMbedTLS>(tlsOptions);
-#elif defined(__APPLE__)
-            socket = std::make_shared<SocketAppleSSL>(tlsOptions);
+#elif defined(IXWEBSOCKET_USE_OPEN_SSL)
+            socket = std::make_shared<SocketOpenSSL>(tlsOptions);
 #elif defined(_WIN32)
             socket = std::make_shared<SocketSChannel>(tlsOptions);
-#else
-            socket = std::make_shared<SocketOpenSSL>(tlsOptions);
+#elif defined(__APPLE__)
+            socket = std::make_shared<SocketAppleSSL>(tlsOptions);
 #endif
 #else
             errorMsg = "TLS support is not enabled on this platform.";
