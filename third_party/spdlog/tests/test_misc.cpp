@@ -1,5 +1,6 @@
 #include "includes.h"
 #include "test_sink.h"
+#include "spdlog/fmt/bin_to_hex.h"
 
 template<class T>
 std::string log_info(const T &what, spdlog::level::level_enum logger_level = spdlog::level::info)
@@ -95,8 +96,9 @@ TEST_CASE("periodic flush", "[periodic_flush]")
 TEST_CASE("clone-logger", "[clone]")
 {
     using namespace spdlog;
-
-    auto logger = spdlog::create<sinks::test_sink_mt>("orig");
+    auto test_sink = std::make_shared<sinks::test_sink_mt>();
+    auto logger = std::make_shared<spdlog::logger>("orig", test_sink);
+    logger->set_pattern("%v");
     auto cloned = logger->clone("clone");
 
     REQUIRE(cloned->name() == "clone");
@@ -106,8 +108,9 @@ TEST_CASE("clone-logger", "[clone]")
     logger->info("Some message 1");
     cloned->info("Some message 2");
 
-    auto test_sink = std::static_pointer_cast<sinks::test_sink_mt>(cloned->sinks()[0]);
-    REQUIRE(test_sink->msg_counter() == 2);
+    REQUIRE(test_sink->lines().size() == 2);
+    REQUIRE(test_sink->lines()[0] == "Some message 1");
+    REQUIRE(test_sink->lines()[1] == "Some message 2");
 
     spdlog::drop_all();
 }
@@ -116,7 +119,10 @@ TEST_CASE("clone async", "[clone]")
 {
     using namespace spdlog;
 
-    auto logger = spdlog::create_async<sinks::test_sink_mt>("orig");
+    spdlog::init_thread_pool(4, 1);
+    auto test_sink = std::make_shared<sinks::test_sink_st>();
+    auto logger = std::make_shared<spdlog::async_logger>("orig", test_sink, spdlog::thread_pool());
+    logger->set_pattern("%v");
     auto cloned = logger->clone("clone");
 
     REQUIRE(cloned->name() == "clone");
@@ -129,13 +135,12 @@ TEST_CASE("clone async", "[clone]")
 
     spdlog::details::os::sleep_for_millis(10);
 
-    auto test_sink = std::static_pointer_cast<sinks::test_sink_mt>(cloned->sinks()[0]);
-    REQUIRE(test_sink->msg_counter() == 2);
+    REQUIRE(test_sink->lines().size() == 2);
+    REQUIRE(test_sink->lines()[0] == "Some message 1");
+    REQUIRE(test_sink->lines()[1] == "Some message 2");
 
     spdlog::drop_all();
 }
-
-#include "spdlog/fmt/bin_to_hex.h"
 
 TEST_CASE("to_hex", "[to_hex]")
 {
@@ -174,22 +179,6 @@ TEST_CASE("to_hex_no_delimiter", "[to_hex]")
 
     auto output = oss.str();
     REQUIRE(ends_with(output, "0000: 090A0B0CFFFF" + std::string(spdlog::details::os::default_eol)));
-}
-
-TEST_CASE("message_counter", "[message_counter]")
-{
-    std::ostringstream oss;
-    auto oss_sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(oss);
-    spdlog::logger oss_logger("oss", oss_sink);
-    oss_logger.set_pattern("%i %v");
-
-    oss_logger.info("Hello");
-    REQUIRE(oss.str() == "000001 Hello" + std::string(spdlog::details::os::default_eol));
-
-    oss.str("");
-    oss_logger.info("Hello again");
-
-    REQUIRE(oss.str() == "000002 Hello again" + std::string(spdlog::details::os::default_eol));
 }
 
 TEST_CASE("default logger API", "[default logger]")

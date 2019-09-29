@@ -1,5 +1,10 @@
 #include "includes.h"
 
+#ifndef _WIN32
+#include <sys/types.h>
+#include <dirent.h>
+#endif
+
 void prepare_logdir()
 {
     spdlog::drop_all();
@@ -65,3 +70,50 @@ bool ends_with(std::string const &value, std::string const &ending)
     }
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
+
+#ifdef _WIN32
+// Based on: https://stackoverflow.com/a/37416569/192001
+std::size_t count_files(const std::string &folder)
+{
+    size_t counter = 0;
+    WIN32_FIND_DATA ffd;
+
+    // Start iterating over the files in the folder directory.
+    HANDLE hFind = ::FindFirstFileA((folder + "\\*").c_str(), &ffd);
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+        do // Managed to locate and create an handle to that folder.
+        {
+            if (ffd.cFileName[0] != '.')
+                counter++;
+        } while (::FindNextFile(hFind, &ffd) != 0);
+        ::FindClose(hFind);
+    }
+    else
+    {
+        throw std::runtime_error("Failed open folder " + folder);
+    }
+
+    return counter;
+}
+#else
+// Based on: https://stackoverflow.com/a/2802255/192001
+std::size_t count_files(const std::string &folder)
+{
+    size_t counter = 0;
+    DIR *dp = opendir(folder.c_str());
+    if (dp == nullptr)
+    {
+        throw std::runtime_error("Failed open folder " + folder);
+    }
+
+    struct dirent *ep;
+    while ((ep = readdir(dp)) != nullptr)
+    {
+        if (ep->d_name[0] != '.')
+            counter++;
+    }
+    (void)closedir(dp);
+    return counter;
+}
+#endif
