@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.3.1] - 2019-09-29
+
+- Add ability to use OpenSSL on apple platforms.
+
 ## [6.3.0] - 2019-09-28
 
 - ixcobra / fix crash in CobraConnection::publishNext when the queue is empty + handle CobraConnection_PublishMode_Batch in CobraMetricsThreadedPublisher
