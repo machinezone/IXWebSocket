@@ -280,6 +280,7 @@ namespace ix
                     auto sslErr = ERR_get_error();
                     errMsg = "OpenSSL failed - SSL_CTX_default_verify_paths loading failed: ";
                     errMsg += ERR_error_string(sslErr, nullptr);
+                    return false;
                 }
             }
             else if (SSL_CTX_load_verify_locations(
@@ -289,6 +290,7 @@ namespace ix
                 errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +
                          _tlsOptions.caFile + "\") failed: ";
                 errMsg += ERR_error_string(sslErr, nullptr);
+                return false;
             }
 
             SSL_CTX_set_verify(_ssl_context,

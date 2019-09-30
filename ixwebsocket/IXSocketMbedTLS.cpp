@@ -17,8 +17,9 @@
 
 namespace ix
 {
-    SocketMbedTLS::SocketMbedTLS(const SocketTLSOptions& tlsOptions)
-        : _tlsOptions(tlsOptions)
+    SocketMbedTLS::SocketMbedTLS(const SocketTLSOptions& tlsOptions, int fd)
+        : Socket(fd)
+        , _tlsOptions(tlsOptions)
     {
         initMBedTLS();
     }
@@ -36,6 +37,7 @@ namespace ix
         mbedtls_ssl_config_init(&_conf);
         mbedtls_ctr_drbg_init(&_ctr_drbg);
         mbedtls_entropy_init(&_entropy);
+        mbedtls_x509_crt_init(&_cacert);
     }
 
     bool SocketMbedTLS::init(const std::string& host, std::string& errMsg)
@@ -66,8 +68,27 @@ namespace ix
 
         mbedtls_ssl_conf_rng(&_conf, mbedtls_ctr_drbg_random, &_ctr_drbg);
 
-        // FIXME: cert verification is disabled
-        mbedtls_ssl_conf_authmode(&_conf, MBEDTLS_SSL_VERIFY_NONE);
+        if (_tlsOptions.isPeerVerifyDisabled())
+        {
+            mbedtls_ssl_conf_authmode(&_conf, MBEDTLS_SSL_VERIFY_NONE);
+        }
+        else
+        {
+            mbedtls_ssl_conf_ca_chain(&_conf, &_cacert, NULL);
+
+            // FIXME: should we call mbedtls_ssl_conf_verify ?
+
+            if (_tlsOptions.isUsingSystemDefaults())
+            {
+                ; // FIXME
+            }
+            else if (mbedtls_x509_crt_parse_file(&_cacert, _tlsOptions.caFile.c_str()) < 0)
+            {
+                errMsg = "Cannot parse CA file '" + _tlsOptions.caFile + "'";
+                return false;
+            }
+            mbedtls_ssl_conf_authmode(&_conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+        }
 
         if (mbedtls_ssl_setup(&_ssl, &_conf) != 0)
         {
@@ -134,6 +155,7 @@ namespace ix
         mbedtls_ssl_config_free(&_conf);
         mbedtls_ctr_drbg_free(&_ctr_drbg);
         mbedtls_entropy_free(&_entropy);
+        mbedtls_x509_crt_free(&_cacert);
 
         Socket::close();
     }

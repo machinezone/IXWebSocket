@@ -17,10 +17,6 @@ namespace ix
 
     bool SocketTLSOptions::isValid() const
     {
-#ifndef IXWEBSOCKET_USE_TLS
-        _errMsg = "To use TLS features the library must be compiled with USE_TLS";
-        return false;
-#endif
         if (!_validated)
         {
             if (!certFile.empty() && !std::ifstream(certFile))
