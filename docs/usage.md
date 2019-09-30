@@ -231,7 +231,7 @@ uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 
 ### TLS support and configuration
 
-To leverage TLS features, the library must be compiled with the option `WITH_TLS=1`.
+To leverage TLS features, the library must be compiled with the option `USE_TLS=1`.
 
 Then, secure sockets are automatically used when connecting to a `wss://*` url.
 
