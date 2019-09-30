@@ -47,6 +47,10 @@ namespace
     {
         _webSocket.setUrl(url);
 
+        SocketTLSOptions tlsOptions;
+        tlsOptions.caFile = "cacert.pem";
+        _webSocket.setTLSOptions(tlsOptions);
+
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
 

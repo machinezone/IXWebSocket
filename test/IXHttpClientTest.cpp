@@ -55,6 +55,10 @@ TEST_CASE("http_client", "[http]")
         HttpClient httpClient;
         WebSocketHttpHeaders headers;
 
+        SocketTLSOptions tlsOptions;
+        tlsOptions.caFile = "cacert.pem";
+        httpClient.setTLSOptions(tlsOptions);
+
         std::string url("https://httpbin.org/");
         auto args = httpClient.createRequest(url);
 
@@ -93,6 +97,10 @@ TEST_CASE("http_client", "[http]")
         bool async = true;
         HttpClient httpClient(async);
         WebSocketHttpHeaders headers;
+
+        SocketTLSOptions tlsOptions;
+        tlsOptions.caFile = "cacert.pem";
+        httpClient.setTLSOptions(tlsOptions);
 
         std::string url("https://httpbin.org/");
         auto args = httpClient.createRequest(url);
