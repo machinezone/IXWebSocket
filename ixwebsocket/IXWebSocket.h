@@ -10,9 +10,7 @@
 #pragma once
 
 #include "IXProgressCallback.h"
-#ifdef IXWEBSOCKET_USE_TLS
 #include "IXSocketTLSOptions.h"
-#endif
 #include "IXWebSocketCloseConstants.h"
 #include "IXWebSocketErrorInfo.h"
 #include "IXWebSocketHttpHeaders.h"

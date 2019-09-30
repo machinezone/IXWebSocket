@@ -98,6 +98,8 @@ namespace ix
                             const ix::SocketTLSOptions& tlsOptions)
     {
         HttpClient httpClient;
+        httpClient.setTLSOptions(tlsOptions);
+
         auto args = httpClient.createRequest();
         args->extraHeaders = parseHeaders(headersData);
         args->connectTimeout = connectTimeout;

@@ -14,6 +14,8 @@
 #include <mbedtls/error.h>
 #include <mbedtls/net.h>
 #include <mbedtls/platform.h>
+#include <mbedtls/x509.h>
+#include <mbedtls/x509_crt.h>
 #include <mutex>
 
 namespace ix
@@ -21,7 +23,7 @@ namespace ix
     class SocketMbedTLS final : public Socket
     {
     public:
-        SocketMbedTLS(const SocketTLSOptions& tlsOptions);
+        SocketMbedTLS(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketMbedTLS();
 
         virtual bool connect(const std::string& host,
@@ -39,6 +41,7 @@ namespace ix
         mbedtls_ssl_config _conf;
         mbedtls_entropy_context _entropy;
         mbedtls_ctr_drbg_context _ctr_drbg;
+        mbedtls_x509_crt _cacert;
 
         std::mutex _mutex;
         SocketTLSOptions _tlsOptions;

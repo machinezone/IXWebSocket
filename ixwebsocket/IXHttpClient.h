@@ -9,6 +9,7 @@
 #include "IXHttp.h"
 #include "IXSocket.h"
 #include "IXWebSocketHttpHeaders.h"
+#include "IXSocketTLSOptions.h"
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
@@ -58,6 +59,9 @@ namespace ix
         bool performRequest(HttpRequestArgsPtr request,
                             const OnResponseCallback& onResponseCallback);
 
+        // TLS
+        void setTLSOptions(const SocketTLSOptions& tlsOptions);
+
         std::string serializeHttpParameters(const HttpParameters& httpParameters);
 
         std::string urlEncode(const std::string& value);
@@ -86,5 +90,7 @@ namespace ix
 
         std::shared_ptr<Socket> _socket;
         std::mutex _mutex; // to protect accessing the _socket (only one socket per client)
+
+        SocketTLSOptions _tlsOptions;
     };
 } // namespace ix
