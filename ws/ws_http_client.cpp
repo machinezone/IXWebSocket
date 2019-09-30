@@ -8,6 +8,7 @@
 #include <iostream>
 #include <ixwebsocket/IXHttpClient.h>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <sstream>
 
 namespace ix
@@ -93,7 +94,8 @@ namespace ix
                             bool verbose,
                             bool save,
                             const std::string& output,
-                            bool compress)
+                            bool compress,
+                            const ix::SocketTLSOptions& tlsOptions)
     {
         HttpClient httpClient;
         auto args = httpClient.createRequest();

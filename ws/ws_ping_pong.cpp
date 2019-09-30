@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <sstream>
 
@@ -123,7 +124,7 @@ namespace ix
         _webSocket.send(text);
     }
 
-    int ws_ping_pong_main(const std::string& url)
+    int ws_ping_pong_main(const std::string& url, const ix::SocketTLSOptions& tlsOptions)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketPingPong webSocketPingPong(url);

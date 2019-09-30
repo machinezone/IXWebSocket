@@ -5,6 +5,7 @@
  */
 #pragma once
 
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <string>
 
 namespace ix
@@ -20,13 +21,21 @@ namespace ix
                             bool verbose,
                             bool save,
                             const std::string& output,
-                            bool compress);
+                            bool compress,
+                            const ix::SocketTLSOptions& tlsOptions);
 
-    int ws_ping_pong_main(const std::string& url);
+    int ws_ping_pong_main(const std::string& url, const ix::SocketTLSOptions& tlsOptions);
 
-    int ws_echo_server_main(int port, bool greetings, const std::string& hostname);
-    int ws_broadcast_server_main(int port, const std::string& hostname);
-    int ws_transfer_main(int port, const std::string& hostname);
+    int ws_echo_server_main(int port,
+                            bool greetings,
+                            const std::string& hostname,
+                            const ix::SocketTLSOptions& tlsOptions);
+    int ws_broadcast_server_main(int port,
+                                 const std::string& hostname,
+                                 const ix::SocketTLSOptions& tlsOptions);
+    int ws_transfer_main(int port,
+                         const std::string& hostname,
+                         const ix::SocketTLSOptions& tlsOptions);
 
     int ws_chat_main(const std::string& url, const std::string& user);
 
@@ -35,11 +44,17 @@ namespace ix
                         bool disableAutomaticReconnection,
                         bool disablePerMessageDeflate,
                         bool binaryMode,
-                        uint32_t maxWaitBetweenReconnectionRetries);
+                        uint32_t maxWaitBetweenReconnectionRetries,
+                        const ix::SocketTLSOptions& tlsOptions);
 
-    int ws_receive_main(const std::string& url, bool enablePerMessageDeflate, int delayMs);
+    int ws_receive_main(const std::string& url,
+                        bool enablePerMessageDeflate,
+                        int delayMs,
+                        const ix::SocketTLSOptions& tlsOptions);
 
-    int ws_send_main(const std::string& url, const std::string& path);
+    int ws_send_main(const std::string& url,
+                     const std::string& path,
+                     const ix::SocketTLSOptions& tlsOptions);
 
     int ws_redis_publish_main(const std::string& hostname,
                               int port,
@@ -111,7 +126,8 @@ namespace ix
     int ws_httpd_main(int port,
                       const std::string& hostname,
                       bool redirect,
-                      const std::string& redirectUrl);
+                      const std::string& redirectUrl,
+                      const ix::SocketTLSOptions& tlsOptions);
 
     int ws_autobahn_main(const std::string& url, bool quiet);
 

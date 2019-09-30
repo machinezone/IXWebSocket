@@ -7,6 +7,7 @@
 #include "linenoise.hpp"
 #include <iostream>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <sstream>
 
@@ -186,7 +187,8 @@ namespace ix
                         bool disableAutomaticReconnection,
                         bool disablePerMessageDeflate,
                         bool binaryMode,
-                        uint32_t maxWaitBetweenReconnectionRetries)
+                        uint32_t maxWaitBetweenReconnectionRetries,
+                        const ix::SocketTLSOptions& tlsOptions)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketConnect webSocketChat(url,

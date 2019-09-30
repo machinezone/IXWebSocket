@@ -12,6 +12,7 @@
 #include <ixcrypto/IXHash.h>
 #include <ixcrypto/IXUuid.h>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <msgpack11/msgpack11.hpp>
 #include <mutex>
@@ -264,7 +265,8 @@ namespace ix
     void wsSend(const std::string& url,
                 const std::string& path,
                 bool enablePerMessageDeflate,
-                bool throttle)
+                bool throttle,
+                const ix::SocketTLSOptions& tlsOptions)
     {
         WebSocketSender webSocketSender(url, enablePerMessageDeflate);
         webSocketSender.start();
@@ -280,12 +282,14 @@ namespace ix
         webSocketSender.stop();
     }
 
-    int ws_send_main(const std::string& url, const std::string& path)
+    int ws_send_main(const std::string& url,
+                     const std::string& path,
+                     const ix::SocketTLSOptions& tlsOptions)
     {
         bool throttle = false;
         bool enablePerMessageDeflate = false;
 
-        wsSend(url, path, enablePerMessageDeflate, throttle);
+        wsSend(url, path, enablePerMessageDeflate, throttle, tlsOptions);
         return 0;
     }
 } // namespace ix

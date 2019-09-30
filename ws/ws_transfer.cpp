@@ -10,7 +10,9 @@
 
 namespace ix
 {
-    int ws_transfer_main(int port, const std::string& hostname)
+    int ws_transfer_main(int port,
+                         const std::string& hostname,
+                         const ix::SocketTLSOptions& tlsOptions)
     {
         std::cout << "ws_transfer: Listening on " << hostname << ":" << port << std::endl;
 
