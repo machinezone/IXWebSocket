@@ -1,7 +1,7 @@
 /*
  *  IXSocketTLSOptions.h
- *  Author: Benjamin Sergeant
- *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
+ *  Author: Matt DeBoer
+ *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
 #pragma once
@@ -12,7 +12,9 @@ namespace ix
 {
     struct SocketTLSOptions
     {
-        SocketTLSOptions();
+    public:
+        // check validity of the object
+        bool isValid() const;
 
         // the certificate presented to peers
         std::string certFile;
@@ -23,10 +25,20 @@ namespace ix
         // leverage the system defaults, use 'NONE' to disable peer verification
         std::string caFile = "SYSTEM";
 
-        bool isUsingClientCert() const;
+        std::string ciphers = "DEFAULT";
+
+        bool hasCertAndKey() const;
 
         bool isUsingSystemDefaults() const;
 
         bool isPeerVerifyDisabled() const;
+
+        bool isUsingDefaultCiphers() const;
+
+        const std::string& getErrorMsg() const;
+
+    private:
+        mutable std::string _errMsg;
+        mutable bool _validated;
     };
 } // namespace ix
