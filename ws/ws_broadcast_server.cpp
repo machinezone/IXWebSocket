@@ -10,7 +10,9 @@
 
 namespace ix
 {
-    int ws_broadcast_server_main(int port, const std::string& hostname)
+    int ws_broadcast_server_main(int port,
+                                 const std::string& hostname,
+                                 const ix::SocketTLSOptions& tlsOptions)
     {
         std::cout << "Listening on " << hostname << ":" << port << std::endl;
 

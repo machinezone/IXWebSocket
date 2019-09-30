@@ -63,6 +63,8 @@ int main(int argc, char** argv)
     std::string redisHosts("127.0.0.1");
     std::string redisPassword;
     std::string appsConfigPath("appsConfig.json");
+    ix::SocketTLSOptions tlsOptions;
+    std::string ciphers;
     std::string redirectUrl;
     bool headersOnly = false;
     bool followRedirects = false;
@@ -88,12 +90,26 @@ int main(int argc, char** argv)
     int jobs = 4;
     uint32_t maxWaitBetweenReconnectionRetries;
 
+    auto addTLSOptions = [&tlsOptions](CLI::App* app) {
+        app->add_option(
+               "--cert-file", tlsOptions.certFile, "Path to the (PEM format) TLS cert file")
+            ->check(CLI::ExistingPath);
+        app->add_option("--key-file", tlsOptions.keyFile, "Path to the (PEM format) TLS key file")
+            ->check(CLI::ExistingPath);
+        app->add_option("--ca-file", tlsOptions.caFile, "Path to the (PEM format) ca roots file")
+            ->check(CLI::ExistingPath);
+        app->add_option("--ciphers",
+                        tlsOptions.ciphers,
+                        "A (comma/space/colon) separated list of ciphers to use for TLS");
+    };
+
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
     sendApp->add_option("path", path, "Path to the file to send")
         ->required()
         ->check(CLI::ExistingPath);
     sendApp->add_option("--pidfile", pidfile, "Pid file");
+    addTLSOptions(sendApp);
 
     CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
     receiveApp->add_option("url", url, "Connection url")->required();
@@ -102,11 +118,13 @@ int main(int argc, char** argv)
                            "Delay (ms) to wait after receiving a fragment"
                            " to artificially slow down the receiver");
     receiveApp->add_option("--pidfile", pidfile, "Pid file");
+    addTLSOptions(receiveApp);
 
     CLI::App* transferApp = app.add_subcommand("transfer", "Broadcasting server");
     transferApp->add_option("--port", port, "Connection url");
     transferApp->add_option("--host", hostname, "Hostname");
     transferApp->add_option("--pidfile", pidfile, "Pid file");
+    addTLSOptions(transferApp);
 
     CLI::App* connectApp = app.add_subcommand("connect", "Connect to a remote server");
     connectApp->add_option("url", url, "Connection url")->required();
@@ -117,6 +135,7 @@ int main(int argc, char** argv)
     connectApp->add_option("--max_wait",
                            maxWaitBetweenReconnectionRetries,
                            "Max Wait Time between reconnection retries");
+    addTLSOptions(connectApp);
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
     chatApp->add_option("url", url, "Connection url")->required();
@@ -126,13 +145,16 @@ int main(int argc, char** argv)
     echoServerApp->add_option("--port", port, "Port");
     echoServerApp->add_option("--host", hostname, "Hostname");
     echoServerApp->add_flag("-g", greetings, "Verbose");
+    addTLSOptions(echoServerApp);
 
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
     broadcastServerApp->add_option("--port", port, "Port");
     broadcastServerApp->add_option("--host", hostname, "Hostname");
+    addTLSOptions(broadcastServerApp);
 
     CLI::App* pingPongApp = app.add_subcommand("ping", "Ping pong");
     pingPongApp->add_option("url", url, "Connection url")->required();
+    addTLSOptions(pingPongApp);
 
     CLI::App* httpClientApp = app.add_subcommand("curl", "HTTP Client");
     httpClientApp->add_option("url", url, "Connection url")->required();
@@ -148,6 +170,7 @@ int main(int argc, char** argv)
     httpClientApp->add_flag("--compress", compress, "Enable gzip compression");
     httpClientApp->add_option("--connect-timeout", connectTimeOut, "Connection timeout");
     httpClientApp->add_option("--transfer-timeout", transferTimeout, "Transfer timeout");
+    addTLSOptions(httpClientApp);
 
     CLI::App* redisPublishApp = app.add_subcommand("redis_publish", "Redis publisher");
     redisPublishApp->add_option("--port", redisPort, "Port");
@@ -242,6 +265,7 @@ int main(int argc, char** argv)
     httpServerApp->add_option("--host", hostname, "Hostname");
     httpServerApp->add_flag("-L", redirect, "Redirect all request to redirect_url");
     httpServerApp->add_option("--redirect_url", redirectUrl, "Url to redirect to");
+    addTLSOptions(httpServerApp);
 
     CLI::App* autobahnApp = app.add_subcommand("autobahn", "Test client Autobahn compliance");
     autobahnApp->add_option("--url", url, "url");
@@ -267,16 +291,16 @@ int main(int argc, char** argv)
     int ret = 1;
     if (app.got_subcommand("transfer"))
     {
-        ret = ix::ws_transfer_main(port, hostname);
+        ret = ix::ws_transfer_main(port, hostname, tlsOptions);
     }
     else if (app.got_subcommand("send"))
     {
-        ret = ix::ws_send_main(url, path);
+        ret = ix::ws_send_main(url, path, tlsOptions);
     }
     else if (app.got_subcommand("receive"))
     {
         bool enablePerMessageDeflate = false;
-        ret = ix::ws_receive_main(url, enablePerMessageDeflate, delayMs);
+        ret = ix::ws_receive_main(url, enablePerMessageDeflate, delayMs, tlsOptions);
     }
     else if (app.got_subcommand("connect"))
     {
@@ -285,7 +309,8 @@ int main(int argc, char** argv)
                                   disableAutomaticReconnection,
                                   disablePerMessageDeflate,
                                   binaryMode,
-                                  maxWaitBetweenReconnectionRetries);
+                                  maxWaitBetweenReconnectionRetries,
+                                  tlsOptions);
     }
     else if (app.got_subcommand("chat"))
     {
@@ -293,15 +318,15 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("echo_server"))
     {
-        ret = ix::ws_echo_server_main(port, greetings, hostname);
+        ret = ix::ws_echo_server_main(port, greetings, hostname, tlsOptions);
     }
     else if (app.got_subcommand("broadcast_server"))
     {
-        ret = ix::ws_broadcast_server_main(port, hostname);
+        ret = ix::ws_broadcast_server_main(port, hostname, tlsOptions);
     }
     else if (app.got_subcommand("ping"))
     {
-        ret = ix::ws_ping_pong_main(url);
+        ret = ix::ws_ping_pong_main(url, tlsOptions);
     }
     else if (app.got_subcommand("curl"))
     {
@@ -316,7 +341,8 @@ int main(int argc, char** argv)
                                       verbose,
                                       save,
                                       output,
-                                      compress);
+                                      compress,
+                                      tlsOptions);
     }
     else if (app.got_subcommand("redis_publish"))
     {
@@ -366,7 +392,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("httpd"))
     {
-        ret = ix::ws_httpd_main(port, hostname, redirect, redirectUrl);
+        ret = ix::ws_httpd_main(port, hostname, redirect, redirectUrl, tlsOptions);
     }
     else if (app.got_subcommand("autobahn"))
     {

@@ -12,6 +12,7 @@
 #include <ixcrypto/IXHash.h>
 #include <ixcrypto/IXUuid.h>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <msgpack11/msgpack11.hpp>
 #include <mutex>
@@ -238,7 +239,10 @@ namespace ix
         _webSocket.start();
     }
 
-    void wsReceive(const std::string& url, bool enablePerMessageDeflate, int delayMs)
+    void wsReceive(const std::string& url,
+                   bool enablePerMessageDeflate,
+                   int delayMs,
+                   const ix::SocketTLSOptions& tlsOptions)
     {
         WebSocketReceiver webSocketReceiver(url, enablePerMessageDeflate, delayMs);
         webSocketReceiver.start();
@@ -254,9 +258,12 @@ namespace ix
         webSocketReceiver.stop();
     }
 
-    int ws_receive_main(const std::string& url, bool enablePerMessageDeflate, int delayMs)
+    int ws_receive_main(const std::string& url,
+                        bool enablePerMessageDeflate,
+                        int delayMs,
+                        const ix::SocketTLSOptions& tlsOptions)
     {
-        wsReceive(url, enablePerMessageDeflate, delayMs);
+        wsReceive(url, enablePerMessageDeflate, delayMs, tlsOptions);
         return 0;
     }
 } // namespace ix

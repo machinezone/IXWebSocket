@@ -10,7 +10,10 @@
 
 namespace ix
 {
-    int ws_echo_server_main(int port, bool greetings, const std::string& hostname)
+    int ws_echo_server_main(int port,
+                            bool greetings,
+                            const std::string& hostname,
+                            const ix::SocketTLSOptions& tlsOptions)
     {
         std::cout << "Listening on " << hostname << ":" << port << std::endl;
 
