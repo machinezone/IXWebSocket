@@ -46,7 +46,9 @@
 #endif
 
 // SSL
-#if defined(IXWEBSOCKET_USE_OPEN_SSL)
+#ifdef IXWEBSOCKET_USE_MBED_TLS
+#include <mbedtls/version.h>
+#elif defined(IXWEBSOCKET_USE_OPEN_SSL)
 #include <openssl/opensslv.h>
 #endif
 
@@ -65,11 +67,11 @@ namespace ix
         // TLS
 #ifdef IXWEBSOCKET_USE_TLS
 #ifdef IXWEBSOCKET_USE_MBED_TLS
-        ss << " ssl/mbedtls";
-#elif __APPLE__
-        ss << " ssl/DarwinSSL";
+        ss << " ssl/mbedtls " << MBEDTLS_VERSION_STRING;
 #elif defined(IXWEBSOCKET_USE_OPEN_SSL)
         ss << " ssl/OpenSSL " << OPENSSL_VERSION_TEXT;
+#elif __APPLE__
+        ss << " ssl/DarwinSSL";
 #endif
 #else
         ss << " nossl";
