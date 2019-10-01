@@ -26,7 +26,9 @@ namespace ix
     class WebSocketReceiver
     {
     public:
-        WebSocketReceiver(const std::string& _url, bool enablePerMessageDeflate, int delayMs,
+        WebSocketReceiver(const std::string& _url,
+                          bool enablePerMessageDeflate,
+                          int delayMs,
                           const ix::SocketTLSOptions& tlsOptions);
 
         void subscribe(const std::string& channel);

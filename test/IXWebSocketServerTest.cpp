@@ -92,7 +92,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 
         std::string errMsg;
         bool tls = false;
-        std::shared_ptr<Socket> socket = createSocket(tls, errMsg);
+        SocketTLSOptions tlsOptions;
+        std::shared_ptr<Socket> socket = createSocket(tls, -1, errMsg, tlsOptions);
         std::string host("127.0.0.1");
         auto isCancellationRequested = []() -> bool { return false; };
         bool success = socket->connect(host, port, errMsg, isCancellationRequested);
@@ -125,7 +126,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 
         std::string errMsg;
         bool tls = false;
-        std::shared_ptr<Socket> socket = createSocket(tls, errMsg);
+        SocketTLSOptions tlsOptions;
+        std::shared_ptr<Socket> socket = createSocket(tls, -1, errMsg, tlsOptions);
         std::string host("127.0.0.1");
         auto isCancellationRequested = []() -> bool { return false; };
         bool success = socket->connect(host, port, errMsg, isCancellationRequested);
@@ -161,7 +163,8 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 
         std::string errMsg;
         bool tls = false;
-        std::shared_ptr<Socket> socket = createSocket(tls, errMsg);
+        SocketTLSOptions tlsOptions;
+        std::shared_ptr<Socket> socket = createSocket(tls, -1, errMsg, tlsOptions);
         std::string host("127.0.0.1");
         auto isCancellationRequested = []() -> bool { return false; };
         bool success = socket->connect(host, port, errMsg, isCancellationRequested);

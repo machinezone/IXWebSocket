@@ -11,6 +11,7 @@
 #include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketFactory.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <sstream>
 #include <vector>
 
@@ -20,7 +21,8 @@ namespace ix
     {
         bool tls = false;
         std::string errorMsg;
-        _socket = createSocket(tls, errorMsg);
+        SocketTLSOptions tlsOptions;
+        _socket = createSocket(tls, -1, errorMsg, tlsOptions);
 
         if (!_socket)
         {

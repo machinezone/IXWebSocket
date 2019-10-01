@@ -252,7 +252,7 @@ On a client, this is only necessary for connecting to servers that require a cli
 
 On a server, this is necessary for TLS support.
 
-Specifying `caFile` configures the trusted roots bundle file (in PEM format) that will be used to verify peer certificates. 
+Specifying `caFile` configures the trusted roots bundle file (in PEM format) that will be used to verify peer certificates.
  - The special value of `SYSTEM` (the default) indicates that the system-configured trust bundle should be used; this is generally what you want when connecting to any publicly exposed API/server.
  - The special value of `NONE` can be used to disable peer verification; this is only recommended to rule out certificate verification when testing connectivity.
 

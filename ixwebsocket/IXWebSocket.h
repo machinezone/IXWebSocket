@@ -113,8 +113,7 @@ namespace ix
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
         // Server
-        WebSocketInitResult connectToSocket(std::shared_ptr<Socket>,
-                                            int timeoutSecs);
+        WebSocketInitResult connectToSocket(std::shared_ptr<Socket>, int timeoutSecs);
 
         WebSocketTransport _ws;
 

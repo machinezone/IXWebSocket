@@ -121,7 +121,7 @@ namespace ix
         void suspend();
         void resume();
 
-        /// Prepare a message for transmission 
+        /// Prepare a message for transmission
         /// (update the pdu, compute a msgId, serialize json to a string)
         std::pair<CobraConnection::MsgId, std::string> prePublish(
             const Json::Value& channels,

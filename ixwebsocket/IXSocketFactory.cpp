@@ -27,6 +27,7 @@
 namespace ix
 {
     std::shared_ptr<Socket> createSocket(bool tls,
+                                         int fd,
                                          std::string& errorMsg,
                                          const SocketTLSOptions& tlsOptions)
     {
@@ -35,19 +36,19 @@ namespace ix
 
         if (!tls)
         {
-            socket = std::make_shared<Socket>();
+            socket = std::make_shared<Socket>(fd);
         }
         else
         {
 #ifdef IXWEBSOCKET_USE_TLS
 #if defined(IXWEBSOCKET_USE_MBED_TLS)
-            socket = std::make_shared<SocketMbedTLS>(tlsOptions);
+            socket = std::make_shared<SocketMbedTLS>(tlsOptions, fd);
 #elif defined(IXWEBSOCKET_USE_OPEN_SSL)
-            socket = std::make_shared<SocketOpenSSL>(tlsOptions);
+            socket = std::make_shared<SocketOpenSSL>(tlsOptions, fd);
 #elif defined(_WIN32)
-            socket = std::make_shared<SocketSChannel>(tlsOptions);
+            socket = std::make_shared<SocketSChannel>(tlsOptions, fd);
 #elif defined(__APPLE__)
-            socket = std::make_shared<SocketAppleSSL>(tlsOptions);
+            socket = std::make_shared<SocketAppleSSL>(tlsOptions, fd);
 #endif
 #else
             errorMsg = "TLS support is not enabled on this platform.";
@@ -55,19 +56,6 @@ namespace ix
 #endif
         }
 
-        if (!socket->init(errorMsg))
-        {
-            socket.reset();
-        }
-
-        return socket;
-    }
-
-    std::shared_ptr<Socket> createSocket(int fd, std::string& errorMsg)
-    {
-        errorMsg.clear();
-
-        std::shared_ptr<Socket> socket = std::make_shared<Socket>(fd);
         if (!socket->init(errorMsg))
         {
             socket.reset();

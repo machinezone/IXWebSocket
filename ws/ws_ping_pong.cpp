@@ -15,8 +15,7 @@ namespace ix
     class WebSocketPingPong
     {
     public:
-        WebSocketPingPong(const std::string& _url,
-                          const ix::SocketTLSOptions& tlsOptions);
+        WebSocketPingPong(const std::string& _url, const ix::SocketTLSOptions& tlsOptions);
 
         void subscribe(const std::string& channel);
         void start();
