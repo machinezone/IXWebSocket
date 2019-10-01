@@ -20,6 +20,10 @@
 #include <sstream>
 #include <string>
 
+#ifndef _WIN32
+#include <signal.h>
+#endif
+
 
 int main(int argc, char** argv)
 {
