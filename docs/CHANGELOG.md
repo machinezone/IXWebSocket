@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.3.3] - 2019-09-30
+
+- ws has a --version option
+
 ## [6.3.2] - 2019-09-29
 
 - (http + websocket clients) can specify cacert and some other tls options (not implemented on all backend). This makes it so that server certs can finally be validated on windows.

@@ -15,6 +15,7 @@
 #include <ixcore/utils/IXCoreLogger.h>
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXUserAgent.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
@@ -39,7 +40,6 @@ int main(int argc, char** argv)
     }
 
     CLI::App app {"ws is a websocket tool"};
-    app.require_subcommand();
 
     std::string url("ws://127.0.0.1:8008");
     std::string path;
@@ -79,6 +79,7 @@ int main(int argc, char** argv)
     bool greetings = false;
     bool binaryMode = false;
     bool redirect = false;
+    bool version = false;
     int port = 8008;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -102,6 +103,8 @@ int main(int argc, char** argv)
                         tlsOptions.ciphers,
                         "A (comma/space/colon) separated list of ciphers to use for TLS");
     };
+
+    app.add_flag("--version", version, "Connection url");
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
@@ -401,6 +404,14 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("redis_server"))
     {
         ret = ix::ws_redis_server_main(port, hostname);
+    }
+    else if (version)
+    {
+        std::cout << "ws " << ix::userAgent() << std::endl;
+    }
+    else
+    {
+        std::cerr << "A subcommand or --version is required" << std::endl;
     }
 
     ix::uninitNetSystem();
