@@ -245,8 +245,7 @@ namespace ix
         ERR_clear_error();
         if (_tlsOptions.hasCertAndKey())
         {
-            if (SSL_CTX_use_certificate_chain_file(_ssl_context,
-                                                   _tlsOptions.certFile.c_str()) != 1)
+            if (SSL_CTX_use_certificate_chain_file(_ssl_context, _tlsOptions.certFile.c_str()) != 1)
             {
                 auto sslErr = ERR_get_error();
                 errMsg = "OpenSSL failed - SSL_CTX_use_certificate_chain_file(\"" +
@@ -257,8 +256,8 @@ namespace ix
                          _ssl_context, _tlsOptions.keyFile.c_str(), SSL_FILETYPE_PEM) != 1)
             {
                 auto sslErr = ERR_get_error();
-                errMsg = "OpenSSL failed - SSL_CTX_use_PrivateKey_file(\"" +
-                         _tlsOptions.keyFile + "\") failed: ";
+                errMsg = "OpenSSL failed - SSL_CTX_use_PrivateKey_file(\"" + _tlsOptions.keyFile +
+                         "\") failed: ";
                 errMsg += ERR_error_string(sslErr, nullptr);
             }
             else if (!SSL_CTX_check_private_key(_ssl_context))
@@ -287,8 +286,8 @@ namespace ix
                          _ssl_context, _tlsOptions.caFile.c_str(), NULL) != 1)
             {
                 auto sslErr = ERR_get_error();
-                errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +
-                         _tlsOptions.caFile + "\") failed: ";
+                errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" + _tlsOptions.caFile +
+                         "\") failed: ";
                 errMsg += ERR_error_string(sslErr, nullptr);
                 return false;
             }
@@ -308,8 +307,8 @@ namespace ix
             if (SSL_CTX_set_cipher_list(_ssl_context, kDefaultCiphers.c_str()) != 1)
             {
                 auto sslErr = ERR_get_error();
-                errMsg = "OpenSSL failed - SSL_CTX_set_cipher_list(\"" +
-                         kDefaultCiphers + "\") failed: ";
+                errMsg = "OpenSSL failed - SSL_CTX_set_cipher_list(\"" + kDefaultCiphers +
+                         "\") failed: ";
                 errMsg += ERR_error_string(sslErr, nullptr);
                 return false;
             }
@@ -317,8 +316,8 @@ namespace ix
         else if (SSL_CTX_set_cipher_list(_ssl_context, _tlsOptions.ciphers.c_str()) != 1)
         {
             auto sslErr = ERR_get_error();
-            errMsg = "OpenSSL failed - SSL_CTX_set_cipher_list(\"" +
-                     _tlsOptions.ciphers + "\") failed: ";
+            errMsg = "OpenSSL failed - SSL_CTX_set_cipher_list(\"" + _tlsOptions.ciphers +
+                     "\") failed: ";
             errMsg += ERR_error_string(sslErr, nullptr);
             return false;
         }

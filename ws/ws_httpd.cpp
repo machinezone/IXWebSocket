@@ -13,11 +13,11 @@
 
 namespace ix
 {
-    int ws_httpd_main(int port, 
-	                  const std::string& hostname,
-					  bool redirect,
-                      const std::string& redirectUrl, 
-					  const ix::SocketTLSOptions& tlsOptions)
+    int ws_httpd_main(int port,
+                      const std::string& hostname,
+                      bool redirect,
+                      const std::string& redirectUrl,
+                      const ix::SocketTLSOptions& tlsOptions)
     {
         spdlog::info("Listening on {}:{}", hostname, port);
 
