@@ -171,20 +171,15 @@ namespace ix
     }
 
     // Server
-    WebSocketInitResult WebSocketTransport::connectToSocket(int fd, int timeoutSecs)
+    WebSocketInitResult WebSocketTransport::connectToSocket(std::shared_ptr<Socket> socket,
+                                                            int timeoutSecs)
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
         // Server should not mask the data it sends to the client
         _useMask = false;
 
-        std::string errorMsg;
-        _socket = createSocket(fd, errorMsg);
-
-        if (!_socket)
-        {
-            return WebSocketInitResult(false, 0, errorMsg);
-        }
+        _socket = socket;
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,
                                               _socket,
@@ -192,7 +187,7 @@ namespace ix
                                               _perMessageDeflateOptions,
                                               _enablePerMessageDeflate);
 
-        auto result = webSocketHandshake.serverHandshake(fd, timeoutSecs);
+        auto result = webSocketHandshake.serverHandshake(timeoutSecs);
         if (result.success)
         {
             setReadyState(ReadyState::OPEN);

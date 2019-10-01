@@ -8,7 +8,6 @@
 
 #include "IXNetSystem.h"
 #include "IXSocketConnect.h"
-#include "IXSocketFactory.h"
 #include "IXUserAgent.h"
 #include <fstream>
 #include <iostream>
@@ -70,15 +69,10 @@ namespace ix
         _onConnectionCallback = callback;
     }
 
-    void HttpServer::handleConnection(int fd, std::shared_ptr<ConnectionState> connectionState)
+    void HttpServer::handleConnection(std::shared_ptr<Socket> socket,
+                                      std::shared_ptr<ConnectionState> connectionState)
     {
         _connectedClientsCount++;
-
-        std::string errorMsg;
-        auto socket = createSocket(fd, errorMsg);
-
-        // Set the socket to non blocking mode + other tweaks
-        SocketConnect::configure(fd);
 
         auto ret = Http::parseRequest(socket);
         // FIXME: handle errors in parseRequest
@@ -92,7 +86,6 @@ namespace ix
             }
         }
         connectionState->setTerminated();
-        Socket::closeSocket(fd);
 
         _connectedClientsCount--;
     }
