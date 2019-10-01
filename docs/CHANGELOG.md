@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.0.0] - 2019-10-01
+
+- TLS support in server code, only implemented for the OpenSSL SSL backend for now.
+
 ## [6.3.4] - 2019-09-30
 
 - all ws subcommands propagate tls options to servers (unimplemented) or ws or http client (implemented) (contributed by Matt DeBoer)
