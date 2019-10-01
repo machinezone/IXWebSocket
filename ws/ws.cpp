@@ -102,6 +102,9 @@ int main(int argc, char** argv)
         app->add_option("--ciphers",
                         tlsOptions.ciphers,
                         "A (comma/space/colon) separated list of ciphers to use for TLS");
+        app->add_flag("--tls",
+                      tlsOptions.tls,
+                      "Enable TLS");
     };
 
     app.add_flag("--version", version, "Connection url");

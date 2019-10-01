@@ -18,14 +18,20 @@ namespace ix
 
         // the certificate presented to peers
         std::string certFile;
+
         // the key used for signing/encryption
         std::string keyFile;
+
         // the ca certificate (or certificate bundle) file containing
         // certificates to be trusted by peers; use 'SYSTEM' to
         // leverage the system defaults, use 'NONE' to disable peer verification
         std::string caFile = "SYSTEM";
 
+        // list of ciphers (rsa, etc...)
         std::string ciphers = "DEFAULT";
+
+        // whether tls is enabled, used for server code
+        bool tls = false;
 
         bool hasCertAndKey() const;
 
