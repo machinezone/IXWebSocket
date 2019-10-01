@@ -270,7 +270,8 @@ namespace ix
 
             // create socket
             std::string errorMsg;
-            auto socket = createSocket(clientFd, errorMsg);
+            bool tls = false;
+            auto socket = createSocket(tls, clientFd, errorMsg, _socketTLSOptions);
 
             if (socket == nullptr)
             {

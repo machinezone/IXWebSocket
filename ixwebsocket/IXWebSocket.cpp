@@ -201,8 +201,7 @@ namespace ix
         return status;
     }
 
-    WebSocketInitResult WebSocket::connectToSocket(std::shared_ptr<Socket> socket,
-                                                   int timeoutSecs)
+    WebSocketInitResult WebSocket::connectToSocket(std::shared_ptr<Socket> socket, int timeoutSecs)
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);

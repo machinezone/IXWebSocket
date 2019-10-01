@@ -148,7 +148,7 @@ namespace ix
 
         std::string errorMsg;
         bool tls = protocol == "wss";
-        _socket = createSocket(tls, errorMsg, _socketTLSOptions);
+        _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions);
 
         if (!_socket)
         {

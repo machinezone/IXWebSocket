@@ -211,7 +211,7 @@ namespace snake
             ss << "Subscribing to " << appChannel << "...";
             ix::IXCoreLogger::Log(ss.str().c_str());
         }
-        
+
         if (!redisClient.subscribe(appChannel, responseCallback, callback))
         {
             std::stringstream ss;

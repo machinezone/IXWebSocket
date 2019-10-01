@@ -40,7 +40,7 @@ namespace ix
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
         _stopHandlingConnections = false;
-        
+
         SocketServer::stop();
     }
 
@@ -270,7 +270,7 @@ namespace ix
         // now dispatch the message to subscribers (write custom method)
         std::lock_guard<std::mutex> lock(_mutex);
         auto it = _subscribers.find(channel);
-        if (it == _subscribers.end()) 
+        if (it == _subscribers.end())
         {
             // return the number of clients that received the message, 0 in that case
             socket->writeBytes(":0\r\n", cb);

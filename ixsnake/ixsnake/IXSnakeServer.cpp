@@ -102,7 +102,7 @@ namespace snake
                             ss << "Received " << msg->wireSize << " bytes" << std::endl;
                             processCobraMessage(state, webSocket, _appConfig, msg->str);
                         }
-                        
+
                         ix::IXCoreLogger::Log(ss.str().c_str());
                     });
             });
