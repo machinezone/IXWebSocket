@@ -7,8 +7,8 @@
 #include <fstream>
 #include <iostream>
 #include <ixwebsocket/IXHttpClient.h>
-#include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
+#include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <sstream>
 
 namespace ix

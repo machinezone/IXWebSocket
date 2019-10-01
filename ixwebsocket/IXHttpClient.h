@@ -8,8 +8,8 @@
 
 #include "IXHttp.h"
 #include "IXSocket.h"
-#include "IXWebSocketHttpHeaders.h"
 #include "IXSocketTLSOptions.h"
+#include "IXWebSocketHttpHeaders.h"
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
