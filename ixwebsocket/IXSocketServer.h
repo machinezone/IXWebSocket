@@ -7,6 +7,7 @@
 #pragma once
 
 #include "IXConnectionState.h"
+#include "IXSocketTLSOptions.h"
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -50,6 +51,8 @@ namespace ix
         void start();
         std::pair<bool, std::string> listen();
         void wait();
+
+        void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
 
     protected:
         // Logging
@@ -99,5 +102,7 @@ namespace ix
         // Returns true if all connection threads are joined
         void closeTerminatedThreads();
         size_t getConnectionsThreadsCount();
+
+        SocketTLSOptions _socketTLSOptions;
     };
 } // namespace ix

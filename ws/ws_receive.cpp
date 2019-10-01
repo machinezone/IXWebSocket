@@ -26,7 +26,8 @@ namespace ix
     class WebSocketReceiver
     {
     public:
-        WebSocketReceiver(const std::string& _url, bool enablePerMessageDeflate, int delayMs);
+        WebSocketReceiver(const std::string& _url, bool enablePerMessageDeflate, int delayMs,
+                          const ix::SocketTLSOptions& tlsOptions);
 
         void subscribe(const std::string& channel);
         void start();
@@ -54,13 +55,15 @@ namespace ix
 
     WebSocketReceiver::WebSocketReceiver(const std::string& url,
                                          bool enablePerMessageDeflate,
-                                         int delayMs)
+                                         int delayMs,
+                                         const ix::SocketTLSOptions& tlsOptions)
         : _url(url)
         , _enablePerMessageDeflate(enablePerMessageDeflate)
         , _delayMs(delayMs)
         , _receivedFragmentCounter(0)
     {
         _webSocket.disableAutomaticReconnection();
+        _webSocket.setTLSOptions(tlsOptions);
     }
 
     void WebSocketReceiver::stop()
@@ -244,7 +247,7 @@ namespace ix
                    int delayMs,
                    const ix::SocketTLSOptions& tlsOptions)
     {
-        WebSocketReceiver webSocketReceiver(url, enablePerMessageDeflate, delayMs);
+        WebSocketReceiver webSocketReceiver(url, enablePerMessageDeflate, delayMs, tlsOptions);
         webSocketReceiver.start();
 
         webSocketReceiver.waitForConnection();

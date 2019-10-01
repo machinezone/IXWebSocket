@@ -26,7 +26,9 @@ namespace ix
     class WebSocketSender
     {
     public:
-        WebSocketSender(const std::string& _url, bool enablePerMessageDeflate);
+        WebSocketSender(const std::string& _url,
+                        bool enablePerMessageDeflate,
+                        const ix::SocketTLSOptions& tlsOptions);
 
         void subscribe(const std::string& channel);
         void start();
@@ -49,11 +51,14 @@ namespace ix
         void log(const std::string& msg);
     };
 
-    WebSocketSender::WebSocketSender(const std::string& url, bool enablePerMessageDeflate)
+    WebSocketSender::WebSocketSender(const std::string& url,
+                                     bool enablePerMessageDeflate,
+                                     const ix::SocketTLSOptions& tlsOptions)
         : _url(url)
         , _enablePerMessageDeflate(enablePerMessageDeflate)
     {
         _webSocket.disableAutomaticReconnection();
+        _webSocket.setTLSOptions(tlsOptions);
     }
 
     void WebSocketSender::stop()
@@ -268,7 +273,7 @@ namespace ix
                 bool throttle,
                 const ix::SocketTLSOptions& tlsOptions)
     {
-        WebSocketSender webSocketSender(url, enablePerMessageDeflate);
+        WebSocketSender webSocketSender(url, enablePerMessageDeflate, tlsOptions);
         webSocketSender.start();
 
         webSocketSender.waitForConnection();

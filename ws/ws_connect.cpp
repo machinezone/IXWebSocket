@@ -22,7 +22,8 @@ namespace ix
                          bool disableAutomaticReconnection,
                          bool disablePerMessageDeflate,
                          bool binaryMode,
-                         uint32_t maxWaitBetweenReconnectionRetries);
+                         uint32_t maxWaitBetweenReconnectionRetries,
+                         const ix::SocketTLSOptions& tlsOptions);
 
         void subscribe(const std::string& channel);
         void start();
@@ -46,7 +47,8 @@ namespace ix
                                        bool disableAutomaticReconnection,
                                        bool disablePerMessageDeflate,
                                        bool binaryMode,
-                                       uint32_t maxWaitBetweenReconnectionRetries)
+                                       uint32_t maxWaitBetweenReconnectionRetries,
+                                       const ix::SocketTLSOptions& tlsOptions)
         : _url(url)
         , _disablePerMessageDeflate(disablePerMessageDeflate)
         , _binaryMode(binaryMode)
@@ -56,6 +58,7 @@ namespace ix
             _webSocket.disableAutomaticReconnection();
         }
         _webSocket.setMaxWaitBetweenReconnectionRetries(maxWaitBetweenReconnectionRetries);
+        _webSocket.setTLSOptions(tlsOptions);
 
         _headers = parseHeaders(headers);
     }
@@ -196,7 +199,8 @@ namespace ix
                                        disableAutomaticReconnection,
                                        disablePerMessageDeflate,
                                        binaryMode,
-                                       maxWaitBetweenReconnectionRetries);
+                                       maxWaitBetweenReconnectionRetries,
+                                       tlsOptions);
         webSocketChat.start();
 
         while (true)

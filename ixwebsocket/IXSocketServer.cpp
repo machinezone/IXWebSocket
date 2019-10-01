@@ -299,4 +299,9 @@ namespace ix
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     }
+
+    void SocketServer::setTLSOptions(const SocketTLSOptions& socketTLSOptions)
+    {
+        _socketTLSOptions = socketTLSOptions;
+    }
 } // namespace ix

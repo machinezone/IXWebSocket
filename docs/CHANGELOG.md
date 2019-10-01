@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.3.4] - 2019-09-30
+
+- all ws subcommands propagate tls options to servers (unimplemented) or ws or http client (implemented) (contributed by Matt DeBoer)
+
 ## [6.3.3] - 2019-09-30
 
 - ws has a --version option
