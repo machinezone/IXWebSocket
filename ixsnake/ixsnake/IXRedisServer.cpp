@@ -8,7 +8,6 @@
 
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocketConnect.h>
-#include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXCancellationRequest.h>
 #include <fstream>
@@ -45,15 +44,10 @@ namespace ix
         SocketServer::stop();
     }
 
-    void RedisServer::handleConnection(int fd, std::shared_ptr<ConnectionState> connectionState)
+    void RedisServer::handleConnection(std::shared_ptr<Socket> socket,
+                                       std::shared_ptr<ConnectionState> connectionState)
     {
         _connectedClientsCount++;
-
-        std::string errorMsg;
-        auto socket = createSocket(fd, errorMsg);
-
-        // Set the socket to non blocking mode + other tweaks
-        SocketConnect::configure(fd);
 
         while (!_stopHandlingConnections)
         {
@@ -105,7 +99,6 @@ namespace ix
 
         logInfo("Connection closed for connection id " + connectionState->getId());
         connectionState->setTerminated();
-        Socket::closeSocket(fd);
 
         _connectedClientsCount--;
     }

@@ -9,6 +9,7 @@
 #include "IXNetSystem.h"
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
+#include "IXSocketFactory.h"
 #include <assert.h>
 #include <iostream>
 #include <sstream>
@@ -267,11 +268,25 @@ namespace ix
 
             if (_stop) return;
 
+            // create socket
+            std::string errorMsg;
+            auto socket = createSocket(clientFd, errorMsg);
+
+            if (socket == nullptr)
+            {
+                logError("SocketServer::run() cannot create socket: " + errorMsg);
+                Socket::closeSocket(clientFd);
+                continue;
+            }
+
+            // Set the socket to non blocking mode + other tweaks
+            SocketConnect::configure(clientFd);
+
             // Launch the handleConnection work asynchronously in its own thread.
             std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
             _connectionsThreads.push_back(std::make_pair(
                 connectionState,
-                std::thread(&SocketServer::handleConnection, this, clientFd, connectionState)));
+                std::thread(&SocketServer::handleConnection, this, socket, connectionState)));
         }
     }
 

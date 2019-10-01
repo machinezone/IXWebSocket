@@ -63,7 +63,8 @@ namespace ix
         _onConnectionCallback = callback;
     }
 
-    void WebSocketServer::handleConnection(int fd, std::shared_ptr<ConnectionState> connectionState)
+    void WebSocketServer::handleConnection(std::shared_ptr<Socket> socket,
+                                           std::shared_ptr<ConnectionState> connectionState)
     {
         auto webSocket = std::make_shared<WebSocket>();
         _onConnectionCallback(webSocket, connectionState);
@@ -81,7 +82,7 @@ namespace ix
             _clients.insert(webSocket);
         }
 
-        auto status = webSocket->connectToSocket(fd, _handshakeTimeoutSecs);
+        auto status = webSocket->connectToSocket(socket, _handshakeTimeoutSecs);
         if (status.success)
         {
             // Process incoming messages and execute callbacks
@@ -107,8 +108,6 @@ namespace ix
 
         logInfo("WebSocketServer::handleConnection() done");
         connectionState->setTerminated();
-
-        Socket::closeSocket(fd);
     }
 
     std::set<std::shared_ptr<WebSocket>> WebSocketServer::getClients()

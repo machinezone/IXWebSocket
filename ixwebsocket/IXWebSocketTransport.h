@@ -77,11 +77,14 @@ namespace ix
                        int pingIntervalSecs,
                        int pingTimeoutSecs);
 
-        WebSocketInitResult connectToUrl( // Client
+        // Client
+        WebSocketInitResult connectToUrl(
             const std::string& url,
             const WebSocketHttpHeaders& headers,
             int timeoutSecs);
-        WebSocketInitResult connectToSocket(int fd, // Server
+
+        // Server
+        WebSocketInitResult connectToSocket(std::shared_ptr<Socket> socket,
                                             int timeoutSecs);
 
         PollResult poll();

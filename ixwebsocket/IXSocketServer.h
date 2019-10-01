@@ -21,6 +21,8 @@
 
 namespace ix
 {
+    class Socket;
+
     class SocketServer
     {
     public:
@@ -96,7 +98,8 @@ namespace ix
         // the factory to create ConnectionState objects
         ConnectionStateFactory _connectionStateFactory;
 
-        virtual void handleConnection(int fd, std::shared_ptr<ConnectionState> connectionState) = 0;
+        virtual void handleConnection(std::shared_ptr<Socket>,
+                                      std::shared_ptr<ConnectionState> connectionState) = 0;
         virtual size_t getConnectedClientsCount() = 0;
 
         // Returns true if all connection threads are joined

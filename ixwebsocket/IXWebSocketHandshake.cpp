@@ -239,17 +239,12 @@ namespace ix
         return WebSocketInitResult(true, status, "", headers, path);
     }
 
-    WebSocketInitResult WebSocketHandshake::serverHandshake(int fd, int timeoutSecs)
+    WebSocketInitResult WebSocketHandshake::serverHandshake(int timeoutSecs)
     {
         _requestInitCancellation = false;
 
-        // Set the socket to non blocking mode + other tweaks
-        SocketConnect::configure(fd);
-
         auto isCancellationRequested =
             makeCancellationRequestWithTimeout(timeoutSecs, _requestInitCancellation);
-
-        std::string remote = std::string("remote fd ") + std::to_string(fd);
 
         // Read first line
         auto lineResult = _socket->readLine(isCancellationRequested);
@@ -358,7 +353,7 @@ namespace ix
         if (!_socket->writeBytes(ss.str(), isCancellationRequested))
         {
             return WebSocketInitResult(
-                false, 0, std::string("Failed sending response to ") + remote);
+                false, 0, std::string("Failed sending response to remote end"));
         }
 
         return WebSocketInitResult(true, 200, "", headers, uri);
