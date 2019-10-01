@@ -18,6 +18,7 @@ namespace ix
         std::cout << "Listening on " << hostname << ":" << port << std::endl;
 
         ix::WebSocketServer server(port, hostname);
+        server.setTLSOptions(tlsOptions);
 
         server.setOnConnectionCallback(
             [greetings](std::shared_ptr<ix::WebSocket> webSocket,

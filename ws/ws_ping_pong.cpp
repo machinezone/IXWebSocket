@@ -15,7 +15,8 @@ namespace ix
     class WebSocketPingPong
     {
     public:
-        WebSocketPingPong(const std::string& _url);
+        WebSocketPingPong(const std::string& _url,
+                          const ix::SocketTLSOptions& tlsOptions);
 
         void subscribe(const std::string& channel);
         void start();
@@ -31,10 +32,11 @@ namespace ix
         void log(const std::string& msg);
     };
 
-    WebSocketPingPong::WebSocketPingPong(const std::string& url)
+    WebSocketPingPong::WebSocketPingPong(const std::string& url,
+                                         const ix::SocketTLSOptions& tlsOptions)
         : _url(url)
     {
-        ;
+        _webSocket.setTLSOptions(tlsOptions);
     }
 
     void WebSocketPingPong::log(const std::string& msg)
@@ -127,7 +129,7 @@ namespace ix
     int ws_ping_pong_main(const std::string& url, const ix::SocketTLSOptions& tlsOptions)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
-        WebSocketPingPong webSocketPingPong(url);
+        WebSocketPingPong webSocketPingPong(url, tlsOptions);
         webSocketPingPong.start();
 
         while (true)
