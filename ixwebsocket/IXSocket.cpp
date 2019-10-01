@@ -49,13 +49,13 @@ namespace ix
                                 std::shared_ptr<SelectInterrupt> selectInterrupt)
     {
         //
-        // We used to use ::select to poll but on Android 9 we get large fds out of ::connect
-        // which crash in FD_SET as they are larger than FD_SETSIZE.
-        // Switching to ::poll does fix that.
+        // We used to use ::select to poll but on Android 9 we get large fds out of
+        // ::connect which crash in FD_SET as they are larger than FD_SETSIZE. Switching
+        // to ::poll does fix that.
         //
-        // However poll isn't as portable as select and has bugs on Windows, so we should write a
-        // shim to fallback to select on those platforms.
-        // See https://github.com/mpv-player/mpv/pull/5203/files for such a select wrapper.
+        // However poll isn't as portable as select and has bugs on Windows, so we
+        // should write a shim to fallback to select on those platforms. See
+        // https://github.com/mpv-player/mpv/pull/5203/files for such a select wrapper.
         //
         nfds_t nfds = 1;
         struct pollfd fds[2];
@@ -162,6 +162,16 @@ namespace ix
     bool Socket::wakeUpFromPoll(uint64_t wakeUpCode)
     {
         return _selectInterrupt->notify(wakeUpCode);
+    }
+
+    bool Socket::accept(std::string& errMsg)
+    {
+        if (_sockfd == -1)
+        {
+            errMsg = "Socket is uninitialized";
+            return false;
+        }
+        return true;
     }
 
     bool Socket::connect(const std::string& host,

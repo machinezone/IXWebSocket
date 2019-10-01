@@ -24,6 +24,8 @@ namespace ix
         SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketOpenSSL();
 
+        virtual bool accept(std::string& errMsg) final;
+
         virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg,
@@ -42,6 +44,7 @@ namespace ix
         bool openSSLCheckServerCert(SSL* ssl, const std::string& hostname, std::string& errMsg);
         bool checkHost(const std::string& host, const char* pattern);
         bool handleTLSOptions(std::string& errMsg);
+        bool openSSLServerHandshake(std::string& errMsg);
 
         SSL* _ssl_connection;
         SSL_CTX* _ssl_context;

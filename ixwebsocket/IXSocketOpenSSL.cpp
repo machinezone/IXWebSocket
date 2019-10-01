@@ -22,8 +22,8 @@ namespace ix
         "ECDHE-ECDSA-AES256-SHA ECDHE-ECDSA-AES128-SHA256 ECDHE-ECDSA-AES256-SHA384 "
         "ECDHE-RSA-AES128-GCM-SHA256 ECDHE-RSA-AES256-GCM-SHA384 ECDHE-RSA-AES128-SHA "
         "ECDHE-RSA-AES256-SHA ECDHE-RSA-AES128-SHA256 ECDHE-RSA-AES256-SHA384 "
-        "DHE-RSA-AES128-GCM-SHA256 DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES128-SHA DHE-RSA-AES256-SHA "
-        "DHE-RSA-AES128-SHA256 DHE-RSA-AES256-SHA256";
+        "DHE-RSA-AES128-GCM-SHA256 DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES128-SHA "
+        "DHE-RSA-AES256-SHA DHE-RSA-AES128-SHA256 DHE-RSA-AES256-SHA256";
 
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
@@ -122,6 +122,9 @@ namespace ix
         SSL_CTX* ctx = SSL_CTX_new(_ssl_method);
         if (ctx)
         {
+            SSL_CTX_set_mode(ctx,
+                             SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+
             SSL_CTX_set_options(
                 ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE);
         }
@@ -240,6 +243,41 @@ namespace ix
         }
     }
 
+    bool SocketOpenSSL::openSSLServerHandshake(std::string& errMsg)
+    {
+        while (true)
+        {
+            if (_ssl_connection == nullptr || _ssl_context == nullptr)
+            {
+                return false;
+            }
+
+            ERR_clear_error();
+            int accept_result = SSL_accept(_ssl_connection);
+            if (accept_result == 1)
+            {
+                return true;
+            }
+            int reason = SSL_get_error(_ssl_connection, accept_result);
+
+            bool rc = false;
+            if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
+            {
+                rc = true;
+            }
+            else
+            {
+                errMsg = getSSLError(accept_result);
+                rc = false;
+            }
+
+            if (!rc)
+            {
+                return false;
+            }
+        }
+    }
+
     bool SocketOpenSSL::handleTLSOptions(std::string& errMsg)
     {
         ERR_clear_error();
@@ -319,6 +357,154 @@ namespace ix
             errMsg = "OpenSSL failed - SSL_CTX_set_cipher_list(\"" + _tlsOptions.ciphers +
                      "\") failed: ";
             errMsg += ERR_error_string(sslErr, nullptr);
+            return false;
+        }
+
+        return true;
+    }
+
+    bool SocketOpenSSL::accept(std::string& errMsg)
+    {
+        bool handshakeSuccessful = false;
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+
+            if (!_openSSLInitializationSuccessful)
+            {
+                errMsg = "OPENSSL_init_ssl failure";
+                return false;
+            }
+
+            if (_sockfd == -1)
+            {
+                return false;
+            }
+
+            {
+                const SSL_METHOD* method = SSLv23_server_method();
+                if (method == nullptr)
+                {
+                    errMsg = "SSLv23_server_method failure";
+                    _ssl_context = nullptr;
+                }
+                else
+                {
+                    _ssl_method = method;
+
+                    _ssl_context = SSL_CTX_new(_ssl_method);
+                    if (_ssl_context)
+                    {
+                        SSL_CTX_set_mode(_ssl_context, SSL_MODE_ENABLE_PARTIAL_WRITE);
+                        SSL_CTX_set_mode(_ssl_context, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+                        SSL_CTX_set_options(_ssl_context,
+                                            SSL_OP_ALL | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+                    }
+                }
+            }
+
+            if (_ssl_context == nullptr)
+            {
+                return false;
+            }
+
+            ERR_clear_error();
+            if (_tlsOptions.hasCertAndKey())
+            {
+                if (SSL_CTX_use_certificate_chain_file(_ssl_context,
+                                                       _tlsOptions.certFile.c_str()) != 1)
+                {
+                    auto sslErr = ERR_get_error();
+                    errMsg = "OpenSSL failed - SSL_CTX_use_certificate_chain_file(\"" +
+                             _tlsOptions.certFile + "\") failed: ";
+                    errMsg += ERR_error_string(sslErr, nullptr);
+                }
+                else if (SSL_CTX_use_PrivateKey_file(
+                             _ssl_context, _tlsOptions.keyFile.c_str(), SSL_FILETYPE_PEM) != 1)
+                {
+                    auto sslErr = ERR_get_error();
+                    errMsg = "OpenSSL failed - SSL_CTX_use_PrivateKey_file(\"" +
+                             _tlsOptions.keyFile + "\") failed: ";
+                    errMsg += ERR_error_string(sslErr, nullptr);
+                }
+            }
+
+
+            ERR_clear_error();
+            if (!_tlsOptions.isPeerVerifyDisabled())
+            {
+                if (_tlsOptions.isUsingSystemDefaults())
+                {
+                    if (SSL_CTX_set_default_verify_paths(_ssl_context) == 0)
+                    {
+                        auto sslErr = ERR_get_error();
+                        errMsg = "OpenSSL failed - SSL_CTX_default_verify_paths loading failed: ";
+                        errMsg += ERR_error_string(sslErr, nullptr);
+                    }
+                }
+                else
+                {
+                    const char* root_ca_file = _tlsOptions.caFile.c_str();
+                    STACK_OF(X509_NAME) * rootCAs;
+                    rootCAs = SSL_load_client_CA_file(root_ca_file);
+                    if (rootCAs == NULL)
+                    {
+                        auto sslErr = ERR_get_error();
+                        errMsg = "OpenSSL failed - SSL_load_client_CA_file('" + _tlsOptions.caFile +
+                                 "') failed: ";
+                        errMsg += ERR_error_string(sslErr, nullptr);
+                    }
+                    else
+                    {
+                        SSL_CTX_set_client_CA_list(_ssl_context, rootCAs);
+                        if (SSL_CTX_load_verify_locations(_ssl_context, root_ca_file, nullptr) != 1)
+                        {
+                            auto sslErr = ERR_get_error();
+                            errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +
+                                     _tlsOptions.caFile + "\") failed: ";
+                            errMsg += ERR_error_string(sslErr, nullptr);
+                        }
+                    }
+                }
+
+                SSL_CTX_set_verify(
+                    _ssl_context, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
+                SSL_CTX_set_verify_depth(_ssl_context, 4);
+            }
+            else
+            {
+                SSL_CTX_set_verify(_ssl_context, SSL_VERIFY_NONE, nullptr);
+            }
+            if (_tlsOptions.isUsingDefaultCiphers())
+            {
+                if (SSL_CTX_set_cipher_list(_ssl_context, kDefaultCiphers.c_str()) != 1)
+                {
+                    return false;
+                }
+            }
+            else if (SSL_CTX_set_cipher_list(_ssl_context, _tlsOptions.ciphers.c_str()) != 1)
+            {
+                return false;
+            }
+
+            _ssl_connection = SSL_new(_ssl_context);
+            if (_ssl_connection == nullptr)
+            {
+                errMsg = "OpenSSL failed to connect";
+                SSL_CTX_free(_ssl_context);
+                _ssl_context = nullptr;
+                return false;
+            }
+
+            SSL_set_ecdh_auto(_ssl_connection, 1);
+
+            SSL_set_fd(_ssl_connection, _sockfd);
+
+            handshakeSuccessful = openSSLServerHandshake(errMsg);
+        }
+
+        if (!handshakeSuccessful)
+        {
+            close();
             return false;
         }
 
