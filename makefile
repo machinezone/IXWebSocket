@@ -29,6 +29,9 @@ tag:
 xcode:
 	cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 -GXcode && open ixwebsocket.xcodeproj
 
+xcode_openssl:
+	cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 -GXcode && open ixwebsocket.xcodeproj
+
 .PHONY: docker
 
 NAME   := bsergean/ws

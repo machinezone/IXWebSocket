@@ -283,6 +283,13 @@ namespace ix
             // Set the socket to non blocking mode + other tweaks
             SocketConnect::configure(clientFd);
 
+            if (!socket->accept(errorMsg))
+            {
+                logError("SocketServer::run() tls accept failed: " + errorMsg);
+                Socket::closeSocket(clientFd);
+                continue;
+            }
+
             // Launch the handleConnection work asynchronously in its own thread.
             std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
             _connectionsThreads.push_back(std::make_pair(

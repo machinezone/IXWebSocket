@@ -23,8 +23,9 @@ namespace ix
 {
     //
     // This function can be cancelled every 50 ms
-    // This is important so that we don't block the main UI thread when shutting down a connection
-    // which is already trying to reconnect, and can be blocked waiting for ::connect to respond.
+    // This is important so that we don't block the main UI thread when shutting down a
+    // connection which is already trying to reconnect, and can be blocked waiting for
+    // ::connect to respond.
     //
     int SocketConnect::connectToAddress(const struct addrinfo* address,
                                         std::string& errMsg,

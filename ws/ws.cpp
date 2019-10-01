@@ -28,6 +28,10 @@ int main(int argc, char** argv)
     ix::IXCoreLogger::LogFunc logFunc = [](const char* msg) { spdlog::info(msg); };
     ix::IXCoreLogger::setLogFunction(logFunc);
 
+#ifndef _WIN32
+    signal(SIGPIPE, SIG_IGN);
+#endif
+
     // Display command.
     if (getenv("DEBUG"))
     {
@@ -80,6 +84,7 @@ int main(int argc, char** argv)
     bool binaryMode = false;
     bool redirect = false;
     bool version = false;
+    bool verifyNone = false;
     int port = 8008;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -91,7 +96,7 @@ int main(int argc, char** argv)
     int jobs = 4;
     uint32_t maxWaitBetweenReconnectionRetries;
 
-    auto addTLSOptions = [&tlsOptions](CLI::App* app) {
+    auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* app) {
         app->add_option(
                "--cert-file", tlsOptions.certFile, "Path to the (PEM format) TLS cert file")
             ->check(CLI::ExistingPath);
@@ -102,9 +107,8 @@ int main(int argc, char** argv)
         app->add_option("--ciphers",
                         tlsOptions.ciphers,
                         "A (comma/space/colon) separated list of ciphers to use for TLS");
-        app->add_flag("--tls",
-                      tlsOptions.tls,
-                      "Enable TLS");
+        app->add_flag("--tls", tlsOptions.tls, "Enable TLS (server only)");
+        app->add_flag("--verify_none", verifyNone, "Disable peer cert verification");
     };
 
     app.add_flag("--version", version, "Connection url");
@@ -292,6 +296,11 @@ int main(int argc, char** argv)
         f.open(pidfile);
         f << getpid();
         f.close();
+    }
+
+    if (verifyNone)
+    {
+        tlsOptions.caFile = "NONE";
     }
 
     int ret = 1;
