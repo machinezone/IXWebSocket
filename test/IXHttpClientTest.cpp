@@ -50,6 +50,7 @@ TEST_CASE("http_client", "[http]")
         REQUIRE(response->statusCode == 200);
     }
 
+#ifdef IXWEBSOCKET_USE_TLS
     SECTION("Connect to a remote HTTPS server")
     {
         HttpClient httpClient;
@@ -91,6 +92,7 @@ TEST_CASE("http_client", "[http]")
         REQUIRE(response->errorCode == HttpErrorCode::Ok);
         REQUIRE(response->statusCode == 200);
     }
+#endif
 
     SECTION("Async API, one call")
     {
@@ -102,7 +104,7 @@ TEST_CASE("http_client", "[http]")
         tlsOptions.caFile = "cacert.pem";
         httpClient.setTLSOptions(tlsOptions);
 
-        std::string url("https://httpbin.org/");
+        std::string url("http://httpbin.org/");
         auto args = httpClient.createRequest(url);
 
         args->extraHeaders = headers;
