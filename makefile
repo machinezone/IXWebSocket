@@ -20,6 +20,9 @@ ws_openssl:
 ws_mbedtls:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j 4)
 
+ws_no_ssl:
+	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_WS=1 .. ; make -j 4)
+
 uninstall:
 	xargs rm -fv < build/install_manifest.txt
 
