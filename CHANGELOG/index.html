@@ -91,6 +91,15 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#changelog">Changelog</a></li>
+            <li><a href="#700-2019-10-01">[7.0.0] - 2019-10-01</a></li>
+            <li><a href="#634-2019-09-30">[6.3.4] - 2019-09-30</a></li>
+            <li><a href="#633-2019-09-30">[6.3.3] - 2019-09-30</a></li>
+            <li><a href="#632-2019-09-29">[6.3.2] - 2019-09-29</a></li>
+            <li><a href="#631-2019-09-29">[6.3.1] - 2019-09-29</a></li>
+            <li><a href="#630-2019-09-28">[6.3.0] - 2019-09-28</a></li>
+            <li><a href="#629-2019-09-27">[6.2.9] - 2019-09-27</a></li>
+            <li><a href="#628-2019-09-26">[6.2.8] - 2019-09-26</a></li>
+            <li><a href="#627-2019-09-25">[6.2.7] - 2019-09-25</a></li>
             <li><a href="#626-2019-09-24">[6.2.6] - 2019-09-24</a></li>
             <li><a href="#625-2019-09-23">[6.2.5] - 2019-09-23</a></li>
             <li><a href="#624-2019-09-22">[6.2.4] - 2019-09-22</a></li>
@@ -130,6 +139,45 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All notable changes to this project will be documented in this file.</p>
+<h2 id="700-2019-10-01">[7.0.0] - 2019-10-01</h2>
+<ul>
+<li>TLS support in server code, only implemented for the OpenSSL SSL backend for now.</li>
+</ul>
+<h2 id="634-2019-09-30">[6.3.4] - 2019-09-30</h2>
+<ul>
+<li>all ws subcommands propagate tls options to servers (unimplemented) or ws or http client (implemented) (contributed by Matt DeBoer)</li>
+</ul>
+<h2 id="633-2019-09-30">[6.3.3] - 2019-09-30</h2>
+<ul>
+<li>ws has a --version option</li>
+</ul>
+<h2 id="632-2019-09-29">[6.3.2] - 2019-09-29</h2>
+<ul>
+<li>(http + websocket clients) can specify cacert and some other tls options (not implemented on all backend). This makes it so that server certs can finally be validated on windows.</li>
+</ul>
+<h2 id="631-2019-09-29">[6.3.1] - 2019-09-29</h2>
+<ul>
+<li>Add ability to use OpenSSL on apple platforms.</li>
+</ul>
+<h2 id="630-2019-09-28">[6.3.0] - 2019-09-28</h2>
+<ul>
+<li>ixcobra / fix crash in CobraConnection::publishNext when the queue is empty + handle CobraConnection_PublishMode_Batch in CobraMetricsThreadedPublisher</li>
+</ul>
+<h2 id="629-2019-09-27">[6.2.9] - 2019-09-27</h2>
+<ul>
+<li>mbedtls fixes / the unittest now pass on macOS, and hopefully will on Windows/AppVeyor as well.</li>
+</ul>
+<h2 id="628-2019-09-26">[6.2.8] - 2019-09-26</h2>
+<ul>
+<li>Http server: add options to ws https to redirect all requests to a given url. POST requests will get a 200 and an empty response.</li>
+</ul>
+<pre><code>ws httpd -L --redirect_url https://www.google.com
+</code></pre>
+
+<h2 id="627-2019-09-25">[6.2.7] - 2019-09-25</h2>
+<ul>
+<li>Stop having ws send subcommand send a binary message in text mode, which would cause error in <code>make ws_test</code> shell script test.</li>
+</ul>
 <h2 id="626-2019-09-24">[6.2.6] - 2019-09-24</h2>
 <ul>
 <li>Fix 2 race conditions detected with TSan, one in CobraMetricsPublisher::push and another one in WebSocketTransport::sendData (that one was bad).</li>
