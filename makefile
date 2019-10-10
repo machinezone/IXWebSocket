@@ -109,7 +109,7 @@ install_cmake_for_linux:
 #  source venv/bin/activate
 #  pip install mkdocs
 doc:
-	./venv/bin/mkdocs build -d ../bsergean.github.io/IXWebSocket/site
+	mkdocs gh-deploy
 
 .PHONY: test
 .PHONY: build
