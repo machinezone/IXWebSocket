@@ -45,7 +45,8 @@ namespace ix
                         bool disablePerMessageDeflate,
                         bool binaryMode,
                         uint32_t maxWaitBetweenReconnectionRetries,
-                        const ix::SocketTLSOptions& tlsOptions);
+                        const ix::SocketTLSOptions& tlsOptions,
+                        const std::string& subprotocol);
 
     int ws_receive_main(const std::string& url,
                         bool enablePerMessageDeflate,

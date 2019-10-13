@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.1.0] - 2019-10-13
+
+- Add client support for websocket subprotocol. Look for the new addSubProtocol method for details.
+
 ## [7.0.0] - 2019-10-01
 
 - TLS support in server code, only implemented for the OpenSSL SSL backend for now.

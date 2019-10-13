@@ -185,19 +185,32 @@ namespace ix
                           _pingTimeoutSecs);
         }
 
-        WebSocketInitResult status = _ws.connectToUrl(_url, _extraHeaders, timeoutSecs);
+        WebSocketHttpHeaders headers(_extraHeaders);
+        std::string subProtocolsHeader;
+        auto subProtocols = getSubProtocols();
+        if (!subProtocols.empty())
+        {
+            for (auto subProtocol : subProtocols)
+            {
+                subProtocolsHeader += ",";
+                subProtocolsHeader += subProtocol;
+            }
+            headers["Sec-WebSocket-Protocol"] = subProtocolsHeader;
+        }
+
+        WebSocketInitResult status = _ws.connectToUrl(_url, headers, timeoutSecs);
         if (!status.success)
         {
             return status;
         }
 
-        _onMessageCallback(
-            std::make_shared<WebSocketMessage>(WebSocketMessageType::Open,
-                                               "",
-                                               0,
-                                               WebSocketErrorInfo(),
-                                               WebSocketOpenInfo(status.uri, status.headers),
-                                               WebSocketCloseInfo()));
+        _onMessageCallback(std::make_shared<WebSocketMessage>(
+            WebSocketMessageType::Open,
+            "",
+            0,
+            WebSocketErrorInfo(),
+            WebSocketOpenInfo(status.uri, status.headers, status.protocol),
+            WebSocketCloseInfo()));
         return status;
     }
 
@@ -524,5 +537,17 @@ namespace ix
     size_t WebSocket::bufferedAmount() const
     {
         return _ws.bufferedAmount();
+    }
+
+    void WebSocket::addSubProtocol(const std::string& subProtocol)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _subProtocols.push_back(subProtocol);
+    }
+
+    const std::vector<std::string>& WebSocket::getSubProtocols()
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _subProtocols;
     }
 } // namespace ix

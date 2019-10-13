@@ -20,9 +20,9 @@ typedef unsigned long int nfds_t;
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netdb.h>
-#include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <netinet/tcp.h>
 #include <poll.h>
 #include <sys/select.h>
 #include <sys/socket.h>

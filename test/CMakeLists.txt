@@ -44,6 +44,7 @@ set (SOURCES
   IXCobraChatTest.cpp
   IXCobraMetricsPublisherTest.cpp
   IXDNSLookupTest.cpp
+  IXWebSocketSubProtocolTest.cpp
 )
 
 # Some unittest don't work on windows yet

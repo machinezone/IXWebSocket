@@ -57,6 +57,7 @@ namespace ix
         void enablePong();
         void disablePong();
         void disablePerMessageDeflate();
+        void addSubProtocol(const std::string& subProtocol);
 
         // Run asynchronously, by calling start and stop.
         void start();
@@ -101,6 +102,7 @@ namespace ix
         bool isAutomaticReconnectionEnabled() const;
         void setMaxWaitBetweenReconnectionRetries(uint32_t maxWaitBetweenReconnectionRetries);
         uint32_t getMaxWaitBetweenReconnectionRetries() const;
+        const std::vector<std::string>& getSubProtocols();
 
     private:
         WebSocketSendInfo sendMessage(const std::string& text,
@@ -150,6 +152,9 @@ namespace ix
         int _pingTimeoutSecs;
         static const int kDefaultPingIntervalSecs;
         static const int kDefaultPingTimeoutSecs;
+
+        // Subprotocols
+        std::vector<std::string> _subProtocols;
 
         friend class WebSocketServer;
     };

@@ -32,6 +32,7 @@ namespace ix
     {
         _pdu["action"] = "rtm/publish";
 
+        _webSocket->addSubProtocol("json");
         initWebSocketOnMessageCallback();
     }
 
