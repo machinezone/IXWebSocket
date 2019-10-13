@@ -187,6 +187,21 @@ headers["foo"] = "bar";
 webSocket.setExtraHeaders(headers);
 ```
 
+### Subprotocols
+
+You can specify subprotocols to be set during the WebSocket handshake. For more info you can refer to [this doc](https://hpbn.co/websocket/#subprotocol-negotiation).
+
+```
+webSocket.addSubprotocol("appProtocol-v1");
+webSocket.addSubprotocol("appProtocol-v2");
+```
+
+The protocol that the server did accept is available in the open info `protocol` field.
+
+```
+std::cout << "protocol: " << msg->openInfo.protocol << std::endl;
+```
+
 ### Automatic reconnection
 
 Automatic reconnection kicks in when the connection is disconnected without the user consent. This feature is on by default and can be turned off.

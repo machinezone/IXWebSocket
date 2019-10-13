@@ -71,6 +71,7 @@ int main(int argc, char** argv)
     std::string redisHosts("127.0.0.1");
     std::string redisPassword;
     std::string appsConfigPath("appsConfig.json");
+    std::string subprotocol;
     ix::SocketTLSOptions tlsOptions;
     std::string ciphers;
     std::string redirectUrl;
@@ -149,6 +150,7 @@ int main(int argc, char** argv)
     connectApp->add_option("--max_wait",
                            maxWaitBetweenReconnectionRetries,
                            "Max Wait Time between reconnection retries");
+    connectApp->add_option("--subprotocol", subprotocol, "Subprotocol");
     addTLSOptions(connectApp);
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
@@ -329,7 +331,8 @@ int main(int argc, char** argv)
                                   disablePerMessageDeflate,
                                   binaryMode,
                                   maxWaitBetweenReconnectionRetries,
-                                  tlsOptions);
+                                  tlsOptions,
+                                  subprotocol);
     }
     else if (app.got_subcommand("chat"))
     {

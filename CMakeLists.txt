@@ -78,6 +78,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketErrorInfo.h
     ixwebsocket/IXWebSocketHandshake.h
     ixwebsocket/IXWebSocketHttpHeaders.h
+    ixwebsocket/IXWebSocketInitResult.h
     ixwebsocket/IXWebSocketMessage.h
     ixwebsocket/IXWebSocketMessageQueue.h
     ixwebsocket/IXWebSocketMessageType.h

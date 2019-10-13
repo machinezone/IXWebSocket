@@ -23,7 +23,8 @@ namespace ix
                          bool disablePerMessageDeflate,
                          bool binaryMode,
                          uint32_t maxWaitBetweenReconnectionRetries,
-                         const ix::SocketTLSOptions& tlsOptions);
+                         const ix::SocketTLSOptions& tlsOptions,
+                         const std::string& subprotocol);
 
         void subscribe(const std::string& channel);
         void start();
@@ -48,7 +49,8 @@ namespace ix
                                        bool disablePerMessageDeflate,
                                        bool binaryMode,
                                        uint32_t maxWaitBetweenReconnectionRetries,
-                                       const ix::SocketTLSOptions& tlsOptions)
+                                       const ix::SocketTLSOptions& tlsOptions,
+                                       const std::string& subprotocol)
         : _url(url)
         , _disablePerMessageDeflate(disablePerMessageDeflate)
         , _binaryMode(binaryMode)
@@ -61,6 +63,11 @@ namespace ix
         _webSocket.setTLSOptions(tlsOptions);
 
         _headers = parseHeaders(headers);
+
+        if (!subprotocol.empty())
+        {
+            _webSocket.addSubProtocol(subprotocol);
+        }
     }
 
     void WebSocketConnect::log(const std::string& msg)
@@ -191,7 +198,8 @@ namespace ix
                         bool disablePerMessageDeflate,
                         bool binaryMode,
                         uint32_t maxWaitBetweenReconnectionRetries,
-                        const ix::SocketTLSOptions& tlsOptions)
+                        const ix::SocketTLSOptions& tlsOptions,
+                        const std::string& subprotocol)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketConnect webSocketChat(url,
@@ -200,7 +208,8 @@ namespace ix
                                        disablePerMessageDeflate,
                                        binaryMode,
                                        maxWaitBetweenReconnectionRetries,
-                                       tlsOptions);
+                                       tlsOptions,
+                                       subprotocol);
         webSocketChat.start();
 
         while (true)
