@@ -6,7 +6,6 @@
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <fstream>
 #include <iostream>
 #include <ixcobra/IXCobraMetricsPublisher.h>
@@ -44,9 +43,8 @@ namespace ix
         // Display incoming messages
         std::atomic<bool> authenticated(false);
         std::atomic<bool> messageAcked(false);
-        std::condition_variable condition;
 
-        conn.setEventCallback([&conn, &channel, &data, &authenticated, &messageAcked, &condition](
+        conn.setEventCallback([&conn, &channel, &data, &authenticated, &messageAcked](
                                   ix::CobraConnectionEventType eventType,
                                   const std::string& errMsg,
                                   const ix::WebSocketHttpHeaders& headers,
@@ -83,13 +81,11 @@ namespace ix
             else if (eventType == ix::CobraConnection_EventType_Error)
             {
                 spdlog::error("Publisher: error {}", errMsg);
-                condition.notify_one();
             }
             else if (eventType == ix::CobraConnection_EventType_Published)
             {
                 spdlog::info("Published message id {} acked", msgId);
                 messageAcked = true;
-                condition.notify_one();
             }
         });
 
