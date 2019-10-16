@@ -258,6 +258,16 @@ headers[&quot;foo&quot;] = &quot;bar&quot;;
 webSocket.setExtraHeaders(headers);
 </code></pre>
 
+<h3 id="subprotocols">Subprotocols</h3>
+<p>You can specify subprotocols to be set during the WebSocket handshake. For more info you can refer to <a href="https://hpbn.co/websocket/#subprotocol-negotiation">this doc</a>.</p>
+<pre><code>webSocket.addSubprotocol(&quot;appProtocol-v1&quot;);
+webSocket.addSubprotocol(&quot;appProtocol-v2&quot;);
+</code></pre>
+
+<p>The protocol that the server did accept is available in the open info <code>protocol</code> field.</p>
+<pre><code>std::cout &lt;&lt; &quot;protocol: &quot; &lt;&lt; msg-&gt;openInfo.protocol &lt;&lt; std::endl;
+</code></pre>
+
 <h3 id="automatic-reconnection">Automatic reconnection</h3>
 <p>Automatic reconnection kicks in when the connection is disconnected without the user consent. This feature is on by default and can be turned off.</p>
 <pre><code>webSocket.enableAutomaticReconnection();  // turn on
