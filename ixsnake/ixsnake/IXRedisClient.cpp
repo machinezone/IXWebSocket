@@ -33,6 +33,11 @@ namespace ix
         return _socket->connect(hostname, port, errMsg, nullptr);
     }
 
+    void RedisClient::stop()
+    {
+        _stop = true;
+    }
+
     bool RedisClient::auth(const std::string& password, std::string& response)
     {
         response.clear();
@@ -243,8 +248,102 @@ namespace ix
         return true;
     }
 
-    void RedisClient::stop()
+    std::string RedisClient::prepareXaddCommand(
+        const std::string& stream,
+        const std::string& message)
     {
-        _stop = true;
+        std::stringstream ss;
+        ss << "*5\r\n";
+        ss << writeString("XADD");
+        ss << writeString(stream);
+        ss << writeString("*");
+        ss << writeString("field");
+        ss << writeString(message);
+
+        return ss.str();
+    }
+
+    std::string RedisClient::xadd(const std::string& stream,
+                                  const std::string& message,
+                                  std::string& errMsg)
+    {
+        errMsg.clear();
+
+        if (!_socket)
+        {
+            errMsg = "socket is not initialized";
+            return std::string();
+        }
+
+        std::string command = prepareXaddCommand(stream, message);
+
+        bool sent = _socket->writeBytes(command, nullptr);
+        if (!sent)
+        {
+            errMsg = "Cannot write bytes to socket";
+            return std::string();
+        }
+
+        return readXaddReply(errMsg);
+    }
+
+    std::string RedisClient::readXaddReply(std::string& errMsg)
+    {
+        // Read result
+        auto pollResult = _socket->isReadyToRead(-1);
+        if (pollResult == PollResultType::Error)
+        {
+            errMsg = "Error while polling for result";
+            return std::string();
+        }
+
+        // First line is the string length
+        auto lineResult = _socket->readLine(nullptr);
+        auto lineValid = lineResult.first;
+        auto line = lineResult.second;
+
+        if (!lineValid)
+        {
+            errMsg = "Error while polling for result";
+            return std::string();
+        }
+
+        int stringSize;
+        {
+            std::stringstream ss;
+            ss << line.substr(1, line.size() - 1);
+            ss >> stringSize;
+        }
+
+        // Read the result, which is the stream id computed by the redis server
+        lineResult = _socket->readLine(nullptr);
+        lineValid = lineResult.first;
+        line = lineResult.second;
+
+        std::string streamId = line.substr(0, stringSize - 1);
+        return streamId;
+    }
+
+    bool RedisClient::sendCommand(const std::string& commands, int commandsCount, std::string& errMsg)
+    {
+        bool sent = _socket->writeBytes(commands, nullptr);
+        if (!sent)
+        {
+            errMsg = "Cannot write bytes to socket";
+            return false;
+        }
+
+        bool success = true;
+
+        for (int i = 0; i < commandsCount; ++i)
+        {
+            auto reply = readXaddReply(errMsg);
+            if (reply == std::string())
+            {
+                success = false;
+            }
+        }
+
+        return success;
     }
 } // namespace ix

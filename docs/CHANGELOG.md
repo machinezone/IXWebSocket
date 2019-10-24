@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.2.0] - 2019-10-24
+
+- Add cobra_metrics_to_redis sub-command to create streams for each cobra metric event being received.
+
 ## [7.1.0] - 2019-10-13
 
 - Add client support for websocket subprotocol. Look for the new addSubProtocol method for details.

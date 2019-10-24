@@ -54,6 +54,7 @@ add_executable(ws
   ws_cobra_publish.cpp
   ws_cobra_to_statsd.cpp
   ws_cobra_to_sentry.cpp
+  ws_cobra_metrics_to_redis.cpp
   ws_httpd.cpp
   ws_autobahn.cpp
   ws.cpp)
