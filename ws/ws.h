@@ -116,6 +116,16 @@ namespace ix
                                 bool strict,
                                 int jobs);
 
+    int ws_cobra_metrics_to_redis(const std::string& appkey,
+                                  const std::string& endpoint,
+                                  const std::string& rolename,
+                                  const std::string& rolesecret,
+                                  const std::string& channel,
+                                  const std::string& filter,
+                                  bool quiet,
+                                  const std::string& host,
+                                  int port);
+
     int ws_snake_main(int port,
                       const std::string& hostname,
                       const std::string& redisHosts,

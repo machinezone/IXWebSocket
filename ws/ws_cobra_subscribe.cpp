@@ -72,7 +72,7 @@ namespace ix
                         [&jsonWriter, &quiet, &msgPerSeconds, &msgCount](const Json::Value& msg) {
                             if (!quiet)
                             {
-                                std::cout << jsonWriter.write(msg) << std::endl;
+                                std::cerr << jsonWriter.write(msg) << std::endl;
                             }
 
                             msgPerSeconds++;

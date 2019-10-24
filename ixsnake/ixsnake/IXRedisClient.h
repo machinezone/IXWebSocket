@@ -30,11 +30,26 @@ namespace ix
 
         bool auth(const std::string& password, std::string& response);
 
+        // Publish / Subscribe
         bool publish(const std::string& channel, const std::string& message, std::string& errMsg);
 
         bool subscribe(const std::string& channel,
                        const OnRedisSubscribeResponseCallback& responseCallback,
                        const OnRedisSubscribeCallback& callback);
+
+        // XADD
+        std::string xadd(
+            const std::string& channel,
+            const std::string& message,
+            std::string& errMsg);
+
+        std::string prepareXaddCommand(
+            const std::string& stream,
+            const std::string& message);
+
+        std::string readXaddReply(std::string& errMsg);
+
+        bool sendCommand(const std::string& commands, int commandsCount, std::string& errMsg);
 
         void stop();
 

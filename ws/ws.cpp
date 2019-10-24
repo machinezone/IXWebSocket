@@ -205,20 +205,20 @@ int main(int argc, char** argv)
     redisSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
 
     CLI::App* cobraSubscribeApp = app.add_subcommand("cobra_subscribe", "Cobra subscriber");
-    cobraSubscribeApp->add_option("--appkey", appkey, "Appkey");
-    cobraSubscribeApp->add_option("--endpoint", endpoint, "Endpoint");
-    cobraSubscribeApp->add_option("--rolename", rolename, "Role name");
-    cobraSubscribeApp->add_option("--rolesecret", rolesecret, "Role secret");
+    cobraSubscribeApp->add_option("--appkey", appkey, "Appkey")->required();
+    cobraSubscribeApp->add_option("--endpoint", endpoint, "Endpoint")->required();
+    cobraSubscribeApp->add_option("--rolename", rolename, "Role name")->required();
+    cobraSubscribeApp->add_option("--rolesecret", rolesecret, "Role secret")->required();
     cobraSubscribeApp->add_option("channel", channel, "Channel")->required();
     cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
     cobraSubscribeApp->add_option("--filter", filter, "Stream SQL Filter");
     cobraSubscribeApp->add_flag("-q", quiet, "Quiet / only display stats");
 
     CLI::App* cobraPublish = app.add_subcommand("cobra_publish", "Cobra publisher");
-    cobraPublish->add_option("--appkey", appkey, "Appkey");
-    cobraPublish->add_option("--endpoint", endpoint, "Endpoint");
-    cobraPublish->add_option("--rolename", rolename, "Role name");
-    cobraPublish->add_option("--rolesecret", rolesecret, "Role secret");
+    cobraPublish->add_option("--appkey", appkey, "Appkey")->required();
+    cobraPublish->add_option("--endpoint", endpoint, "Endpoint")->required();
+    cobraPublish->add_option("--rolename", rolename, "Role name")->required();
+    cobraPublish->add_option("--rolesecret", rolesecret, "Role secret")->required();
     cobraPublish->add_option("channel", channel, "Channel")->required();
     cobraPublish->add_option("--pidfile", pidfile, "Pid file");
     cobraPublish->add_option("path", path, "Path to the file to send")
@@ -238,7 +238,7 @@ int main(int argc, char** argv)
         ->check(CLI::ExistingPath);
     cobraMetricsPublish->add_flag("--stress", stress, "Stress mode");
 
-    CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra to statsd");
+    CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra metrics to statsd");
     cobra2statsd->add_option("--appkey", appkey, "Appkey");
     cobra2statsd->add_option("--endpoint", endpoint, "Endpoint");
     cobra2statsd->add_option("--rolename", rolename, "Role name");
@@ -252,11 +252,11 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
     cobra2statsd->add_option("--filter", filter, "Stream SQL Filter");
 
-    CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra to sentry");
-    cobra2sentry->add_option("--appkey", appkey, "Appkey");
-    cobra2sentry->add_option("--endpoint", endpoint, "Endpoint");
-    cobra2sentry->add_option("--rolename", rolename, "Role name");
-    cobra2sentry->add_option("--rolesecret", rolesecret, "Role secret");
+    CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra metrics to sentry");
+    cobra2sentry->add_option("--appkey", appkey, "Appkey")->required();
+    cobra2sentry->add_option("--endpoint", endpoint, "Endpoint")->required();
+    cobra2sentry->add_option("--rolename", rolename, "Role name")->required();
+    cobra2sentry->add_option("--rolesecret", rolesecret, "Role secret")->required();
     cobra2sentry->add_option("--dsn", dsn, "Sentry DSN");
     cobra2sentry->add_option("--jobs", jobs, "Number of thread sending events to Sentry");
     cobra2sentry->add_option("channel", channel, "Channel")->required();
@@ -264,6 +264,19 @@ int main(int argc, char** argv)
     cobra2sentry->add_flag("-s", strict, "Strict mode. Error out when sending to sentry fails");
     cobra2sentry->add_option("--pidfile", pidfile, "Pid file");
     cobra2sentry->add_option("--filter", filter, "Stream SQL Filter");
+
+    CLI::App* cobra2redisApp =
+        app.add_subcommand("cobra_metrics_to_redis", "Cobra metrics to redis");
+    cobra2redisApp->add_option("--appkey", appkey, "Appkey")->required();
+    cobra2redisApp->add_option("--endpoint", endpoint, "Endpoint")->required();
+    cobra2redisApp->add_option("--rolename", rolename, "Role name")->required();
+    cobra2redisApp->add_option("--rolesecret", rolesecret, "Role secret")->required();
+    cobra2redisApp->add_option("channel", channel, "Channel")->required();
+    cobra2redisApp->add_option("--pidfile", pidfile, "Pid file");
+    cobra2redisApp->add_option("--filter", filter, "Stream SQL Filter");
+    cobra2redisApp->add_option("--hostname", hostname, "Redis hostname");
+    cobra2redisApp->add_option("--port", redisPort, "Redis port");
+    cobra2redisApp->add_flag("-q", quiet, "Quiet / only display stats");
 
     CLI::App* runApp = app.add_subcommand("snake", "Snake server");
     runApp->add_option("--port", port, "Connection url");
@@ -406,6 +419,11 @@ int main(int argc, char** argv)
     {
         ret = ix::ws_cobra_to_sentry_main(
             appkey, endpoint, rolename, rolesecret, channel, filter, dsn, verbose, strict, jobs);
+    }
+    else if (app.got_subcommand("cobra_metrics_to_redis"))
+    {
+        ret = ix::ws_cobra_metrics_to_redis(
+            appkey, endpoint, rolename, rolesecret, channel, filter, quiet, hostname, redisPort);
     }
     else if (app.got_subcommand("snake"))
     {
