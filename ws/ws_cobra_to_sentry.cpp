@@ -41,13 +41,23 @@ namespace ix
         std::atomic<bool> errorSending(false);
         std::atomic<bool> stop(false);
 
-        std::mutex conditionVariableMutex;
         std::condition_variable condition;
-        std::condition_variable progressCondition;
+        std::mutex conditionVariableMutex;
         std::queue<Json::Value> queue;
 
+        auto timer = [&sentCount, &receivedCount] {
+            while (true)
+            {
+                spdlog::info("messages received {} sent {}", receivedCount, sentCount);
+
+                auto duration = std::chrono::seconds(1);
+                std::this_thread::sleep_for(duration);
+            }
+        };
+
+        std::thread t1(timer);
+
         auto sentrySender = [&condition,
-                             &progressCondition,
                              &conditionVariableMutex,
                              &queue,
                              verbose,
@@ -83,8 +93,6 @@ namespace ix
                     ++sentCount;
                 }
 
-                progressCondition.notify_one();
-
                 if (stop) return;
             }
         };
@@ -106,7 +114,6 @@ namespace ix
                                &sentCount,
                                &condition,
                                &conditionVariableMutex,
-                               &progressCondition,
                                &queue](ix::CobraConnectionEventType eventType,
                                        const std::string& errMsg,
                                        const ix::WebSocketHttpHeaders& headers,
@@ -136,7 +143,6 @@ namespace ix
                                 &receivedCount,
                                 &condition,
                                 &conditionVariableMutex,
-                                &progressCondition,
                                 &queue](const Json::Value& msg) {
                                    if (verbose)
                                    {
@@ -152,7 +158,6 @@ namespace ix
                                        spdlog::warn("message dropped: sending is backlogged !");
 
                                        condition.notify_one();
-                                       progressCondition.notify_one();
                                        return;
                                    }
 
@@ -164,7 +169,6 @@ namespace ix
                                    }
 
                                    condition.notify_one();
-                                   progressCondition.notify_one();
                                });
             }
             else if (eventType == ix::CobraConnection_EventType_Subscribed)
@@ -185,13 +189,10 @@ namespace ix
             }
         });
 
-        std::mutex progressConditionVariableMutex;
         while (true)
         {
-            std::unique_lock<std::mutex> lock(progressConditionVariableMutex);
-            progressCondition.wait(lock);
-
-            spdlog::info("messages received {} sent {}", receivedCount, sentCount);
+            auto duration = std::chrono::seconds(1);
+            std::this_thread::sleep_for(duration);
 
             if (strict && errorSending) break;
         }
