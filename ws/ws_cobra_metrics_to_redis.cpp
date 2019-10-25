@@ -24,7 +24,6 @@ namespace ix
                                   const std::string& rolesecret,
                                   const std::string& channel,
                                   const std::string& filter,
-                                  bool quiet,
                                   const std::string& host,
                                   int port)
     {
@@ -109,7 +108,6 @@ namespace ix
                                &filter,
                                &msgCount,
                                &msgPerSeconds,
-                               &quiet,
                                &conditionVariableMutex,
                                &condition,
                                &queue](ix::CobraConnectionEventType eventType,
@@ -132,8 +130,7 @@ namespace ix
 
                 conn.subscribe(channel,
                                filter,
-                               [&quiet,
-                                &msgPerSeconds,
+                               [&msgPerSeconds,
                                 &msgCount,
                                 &conditionVariableMutex,
                                 &condition,

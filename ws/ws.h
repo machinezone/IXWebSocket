@@ -122,7 +122,6 @@ namespace ix
                                   const std::string& rolesecret,
                                   const std::string& channel,
                                   const std::string& filter,
-                                  bool quiet,
                                   const std::string& host,
                                   int port);
 

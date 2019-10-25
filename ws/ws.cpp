@@ -423,7 +423,7 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("cobra_metrics_to_redis"))
     {
         ret = ix::ws_cobra_metrics_to_redis(
-            appkey, endpoint, rolename, rolesecret, channel, filter, quiet, hostname, redisPort);
+            appkey, endpoint, rolename, rolesecret, channel, filter, hostname, redisPort);
     }
     else if (app.got_subcommand("snake"))
     {
