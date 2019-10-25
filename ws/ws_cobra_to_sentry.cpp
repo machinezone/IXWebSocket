@@ -4,7 +4,7 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include "IXSentryClient.h"
+#include <ixsentry/IXSentryClient.h>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>

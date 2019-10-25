@@ -34,8 +34,6 @@ add_executable(ws
   ../third_party/jsoncpp/jsoncpp.cpp
   ${STATSD_CLIENT_SOURCES}
 
-  IXSentryClient.cpp
-
   ws_http_client.cpp
   ws_ping_pong.cpp
   ws_broadcast_server.cpp
@@ -64,6 +62,7 @@ target_link_libraries(ws ixcobra)
 target_link_libraries(ws ixwebsocket)
 target_link_libraries(ws ixcrypto)
 target_link_libraries(ws ixcore)
+target_link_libraries(ws ixsentry)
 
 if(NOT APPLE AND NOT USE_MBED_TLS)
   find_package(OpenSSL REQUIRED)

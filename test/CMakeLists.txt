@@ -45,6 +45,7 @@ set (SOURCES
   IXCobraMetricsPublisherTest.cpp
   IXDNSLookupTest.cpp
   IXWebSocketSubProtocolTest.cpp
+  IXSentryClientTest.cpp
 )
 
 # Some unittest don't work on windows yet
@@ -83,5 +84,6 @@ target_link_libraries(ixwebsocket_unittest ixcobra)
 target_link_libraries(ixwebsocket_unittest ixwebsocket)
 target_link_libraries(ixwebsocket_unittest ixcrypto)
 target_link_libraries(ixwebsocket_unittest ixcore)
+target_link_libraries(ixwebsocket_unittest ixsentry)
 
 install(TARGETS ixwebsocket_unittest DESTINATION bin)
