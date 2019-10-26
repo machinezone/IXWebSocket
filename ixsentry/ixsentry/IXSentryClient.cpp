@@ -17,7 +17,7 @@ namespace ix
     SentryClient::SentryClient(const std::string& dsn)
         : _dsn(dsn)
         , _validDsn(false)
-        , _luaFrameRegex("\t([^/]+):([0-9]+): in function '([^/]+)'")
+        , _luaFrameRegex("\t([^/]+):([0-9]+): in function ['<]([^/]+)['>]")
     {
         const std::regex dsnRegex("(http[s]?)://([^:]+):([^@]+)@([^/]+)/([0-9]+)");
         std::smatch group;
