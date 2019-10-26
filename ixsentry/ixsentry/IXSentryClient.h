@@ -21,13 +21,13 @@ namespace ix
 
         std::pair<HttpResponsePtr, std::string> send(const Json::Value& msg, bool verbose);
 
+        Json::Value parseLuaStackTrace(const std::string& stack);
+
     private:
         int64_t getTimestamp();
         std::string computeAuthHeader();
         std::string getIso8601();
         std::string computePayload(const Json::Value& msg);
-
-        Json::Value parseLuaStackTrace(const std::string& stack);
 
         std::string _dsn;
         bool _validDsn;
