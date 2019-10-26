@@ -18,6 +18,7 @@ add_library(ixsentry STATIC
 
 set(IXSENTRY_INCLUDE_DIRS
     .
+    ..
     ../third_party
     ../third_party/spdlog/include)
 
