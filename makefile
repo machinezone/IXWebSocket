@@ -14,6 +14,9 @@ brew:
 ws:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j 4)
 
+ws_install:
+	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j 4 install)
+
 ws_openssl:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_OPEN_SSL=1 .. ; make -j 4)
 
@@ -47,6 +50,7 @@ docker_test:
 	docker build -f docker/Dockerfile.debian -t bsergean/ixwebsocket_test:build .
 
 docker:
+	git clean -dfx
 	docker build -t ${IMG} .
 	docker tag ${IMG} ${BUILD}
 
