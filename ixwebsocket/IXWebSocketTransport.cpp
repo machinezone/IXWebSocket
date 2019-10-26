@@ -542,6 +542,13 @@ namespace ix
                 ws.masking_key[3] = 0;
             }
 
+            // Prevent integer overflow in the next conditional
+            const uint64_t maxFrameSize(1 << 63);
+            if (ws.N > maxFrameSize)
+            {
+                return;
+            }
+
             if (_rxbuf.size() < ws.header_size + ws.N)
             {
                 return; /* Need: ws.header_size+ws.N - _rxbuf.size() */
