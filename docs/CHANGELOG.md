@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.2.2] - 2019-11-01
+
+- Tag a release + minor reformating.
+
 ## [7.2.1] - 2019-10-26
 
 - Add unittest to IXSentryClient to lua backtrace parsing code
