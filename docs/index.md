@@ -9,6 +9,7 @@
 * Linux
 * Android
 * Windows
+* FreeBSD
 
 ## Example code
 
