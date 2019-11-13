@@ -93,6 +93,7 @@
         <li class="main active"><a href="#introduction">Introduction</a></li>
         <li class="main "><a href="#example-code">Example code</a></li>
         <li class="main "><a href="#why-another-library">Why another library ?</a></li>
+        <li class="main "><a href="#contributing">Contributing</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
@@ -106,6 +107,7 @@
 <li>Linux</li>
 <li>Android</li>
 <li>Windows</li>
+<li>FreeBSD</li>
 </ul>
 <h2 id="example-code">Example code</h2>
 <pre><code># Required on Windows
@@ -136,7 +138,9 @@ webSocket.send(&quot;hello world&quot;);
 
 <h2 id="why-another-library">Why another library ?</h2>
 <p>There are 2 main reasons that explain why IXWebSocket got written. First, we needed a C++ cross-platform client library, which should have few dependencies. What looked like the most solid one, <a href="https://github.com/zaphoyd/websocketpp">websocketpp</a> did depend on boost and this was not an option for us. Secondly, there were other available libraries with fewer dependencies (C ones), but they required calling an explicit poll routine periodically to know if a client had received data from a server, which was not elegant.</p>
-<p>We started by solving those 2 problems, then we added server websocket code, then an HTTP client, and finally a very simple HTTP server.</p></div>
+<p>We started by solving those 2 problems, then we added server websocket code, then an HTTP client, and finally a very simple HTTP server.</p>
+<h2 id="contributing">Contributing</h2>
+<p>IXWebSocket is developed on <a href="https://machinezone.github.io/IXWebSocket/">github</a>. We'd love to hear about how you use cobra ; opening up an issue in github is ok for that. If things don't work as expected, please create an issue in github, or even better a pull request if you know how to fix your problem.</p></div>
         </div>
 
         <footer class="col-md-12">
@@ -219,5 +223,5 @@ webSocket.send(&quot;hello world&quot;);
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2019-11-01 18:22:38
+Build Date UTC : 2019-11-13 22:24:37
 -->
