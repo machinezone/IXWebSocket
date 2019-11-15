@@ -45,3 +45,7 @@ webSocket.send("hello world");
 There are 2 main reasons that explain why IXWebSocket got written. First, we needed a C++ cross-platform client library, which should have few dependencies. What looked like the most solid one, [websocketpp](https://github.com/zaphoyd/websocketpp) did depend on boost and this was not an option for us. Secondly, there were other available libraries with fewer dependencies (C ones), but they required calling an explicit poll routine periodically to know if a client had received data from a server, which was not elegant.
 
 We started by solving those 2 problems, then we added server websocket code, then an HTTP client, and finally a very simple HTTP server.
+
+## Contributing
+
+IXWebSocket is developed on [github](https://github.com/machinezone/IXWebSocket). We'd love to hear about how you use it ; opening up an issue in github is ok for that. If things don't work as expected, please create an issue in github, or even better a pull request if you know how to fix your problem.
