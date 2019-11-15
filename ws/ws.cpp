@@ -72,6 +72,7 @@ int main(int argc, char** argv)
     std::string redisPassword;
     std::string appsConfigPath("appsConfig.json");
     std::string subprotocol;
+    std::string remoteHost;
     ix::SocketTLSOptions tlsOptions;
     std::string ciphers;
     std::string redirectUrl;
@@ -99,6 +100,7 @@ int main(int argc, char** argv)
     int delayMs = -1;
     int count = 1;
     int jobs = 4;
+    int remotePort = 8008;
     uint32_t maxWaitBetweenReconnectionRetries;
 
     auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* app) {
@@ -304,6 +306,12 @@ int main(int argc, char** argv)
     redisServerApp->add_option("--port", port, "Port");
     redisServerApp->add_option("--host", hostname, "Hostname");
 
+    CLI::App* proxyServerApp = app.add_subcommand("proxy_server", "Proxy server");
+    proxyServerApp->add_option("--port", port, "Port");
+    proxyServerApp->add_option("--host", hostname, "Hostname");
+    proxyServerApp->add_option("--remote_port", remotePort, "Remote Port");
+    proxyServerApp->add_option("--remote_host", remoteHost, "Remote Hostname");
+
     CLI11_PARSE(app, argc, argv);
 
     // pid file handling
@@ -441,6 +449,10 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("redis_server"))
     {
         ret = ix::ws_redis_server_main(port, hostname);
+    }
+    else if (app.got_subcommand("proxy_server"))
+    {
+        ret = ix::ws_proxy_server_main(port, hostname, tlsOptions, remoteHost, remotePort);
     }
     else if (version)
     {

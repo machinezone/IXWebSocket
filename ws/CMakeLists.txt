@@ -55,6 +55,7 @@ add_executable(ws
   ws_cobra_metrics_to_redis.cpp
   ws_httpd.cpp
   ws_autobahn.cpp
+  ws_proxy_server.cpp
   ws.cpp)
 
 target_link_libraries(ws ixsnake)
