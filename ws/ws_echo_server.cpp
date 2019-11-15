@@ -1,5 +1,5 @@
 /*
- *  ws_broadcast_server.cpp
+ *  ws_echo_server.cpp
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
