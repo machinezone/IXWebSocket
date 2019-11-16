@@ -20,6 +20,7 @@ namespace snake
         {
             return _nonce;
         }
+
         void setNonce(const std::string& nonce)
         {
             _nonce = nonce;
