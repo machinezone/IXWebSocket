@@ -147,5 +147,5 @@ namespace ix
                              const std::string& hostname,
                              const ix::SocketTLSOptions& tlsOptions,
                              const std::string& remoteHost,
-                             int remotePort);
+                             bool verbose);
 } // namespace ix

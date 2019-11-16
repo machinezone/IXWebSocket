@@ -13,33 +13,20 @@ namespace ix
     class ProxyConnectionState : public ix::ConnectionState
     {
     public:
-        void setRemoteHost(const std::string& host)
-        {
-            _remoteHost = host;
-        }
-
-        void setRemotePort(int port)
-        {
-            _remotePort = port;
-        }
-
         ix::WebSocket& webSocket()
         {
             return _serverWebSocket;
         }
 
     private:
-        std::string _remoteHost;
-        int _remotePort;
-
         ix::WebSocket _serverWebSocket;
     };
 
     int ws_proxy_server_main(int port,
                              const std::string& hostname,
                              const ix::SocketTLSOptions& tlsOptions,
-                             const std::string& remoteHost,
-                             int remotePort)
+                             const std::string& remoteUrl,
+                             bool verbose)
     {
         std::cout << "Listening on " << hostname << ":" << port << std::endl;
 
@@ -52,15 +39,13 @@ namespace ix
         server.setConnectionStateFactory(factory);
 
         server.setOnConnectionCallback(
-            [remoteHost, remotePort](std::shared_ptr<ix::WebSocket> webSocket,
-                                     std::shared_ptr<ConnectionState> connectionState) {
+            [remoteUrl, verbose](std::shared_ptr<ix::WebSocket> webSocket,
+                                 std::shared_ptr<ConnectionState> connectionState) {
                 auto state = std::dynamic_pointer_cast<ProxyConnectionState>(connectionState);
-                state->setRemoteHost(remoteHost);
-                state->setRemotePort(remotePort);
 
                 // Server connection
                 state->webSocket().setOnMessageCallback(
-                    [webSocket, state](const WebSocketMessagePtr& msg) {
+                    [webSocket, state, verbose](const WebSocketMessagePtr& msg) {
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             std::cerr << "New connection" << std::endl;
@@ -91,13 +76,18 @@ namespace ix
                         else if (msg->type == ix::WebSocketMessageType::Message)
                         {
                             std::cerr << "Received " << msg->wireSize << " bytes from server" << std::endl;
+                            if (verbose)
+                            {
+                                std::cerr << "payload " << msg->str << std::endl;
+                            }
+
                             webSocket->send(msg->str, msg->binary);
                         }
                     });
 
                 // Client connection
                 webSocket->setOnMessageCallback(
-                    [state, remoteHost](const WebSocketMessagePtr& msg) {
+                    [state, remoteUrl, verbose](const WebSocketMessagePtr& msg) {
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             std::cerr << "New connection" << std::endl;
@@ -110,7 +100,7 @@ namespace ix
                             }
 
                             // Connect to the 'real' server
-                            std::string url(remoteHost);
+                            std::string url(remoteUrl);
                             url += msg->openInfo.uri;
                             state->webSocket().setUrl(url);
                             state->webSocket().start();
@@ -134,6 +124,10 @@ namespace ix
                         else if (msg->type == ix::WebSocketMessageType::Message)
                         {
                             std::cerr << "Received " << msg->wireSize << " bytes from client" << std::endl;
+                            if (verbose)
+                            {
+                                std::cerr << "payload " << msg->str << std::endl;
+                            }
                             state->webSocket().send(msg->str, msg->binary);
                         }
                     });

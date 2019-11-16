@@ -195,6 +195,15 @@ Server: Python/3.7 websockets/8.0.2
 Upgrade: websocket
 ```
 
+## Websocket proxy
+
+```
+ws proxy_server --remote_host ws://127.0.0.1:9000 -v
+Listening on 127.0.0.1:8008
+```
+
+If you connect to ws://127.0.0.1:8008, the proxy will connect to ws://127.0.0.1:9000 and pass all traffic to this server.
+
 ## File transfer
 
 ```
