@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.3.1] - 2019-11-16
+
+- ws proxy_server / remote server close not forwarded to the client
+
 ## [7.3.0] - 2019-11-15
 
 - New ws command: `ws proxy_server`.
