@@ -4,12 +4,12 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <ixsentry/IXSentryClient.h>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <iostream>
 #include <ixcobra/IXCobraConnection.h>
+#include <ixsentry/IXSentryClient.h>
 #include <mutex>
 #include <queue>
 #include <spdlog/spdlog.h>
