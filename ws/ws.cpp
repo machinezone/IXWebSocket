@@ -100,7 +100,6 @@ int main(int argc, char** argv)
     int delayMs = -1;
     int count = 1;
     int jobs = 4;
-    int remotePort = 8008;
     uint32_t maxWaitBetweenReconnectionRetries;
 
     auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* app) {
@@ -309,8 +308,8 @@ int main(int argc, char** argv)
     CLI::App* proxyServerApp = app.add_subcommand("proxy_server", "Proxy server");
     proxyServerApp->add_option("--port", port, "Port");
     proxyServerApp->add_option("--host", hostname, "Hostname");
-    proxyServerApp->add_option("--remote_port", remotePort, "Remote Port");
     proxyServerApp->add_option("--remote_host", remoteHost, "Remote Hostname");
+    proxyServerApp->add_flag("-v", verbose, "Verbose");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -452,7 +451,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("proxy_server"))
     {
-        ret = ix::ws_proxy_server_main(port, hostname, tlsOptions, remoteHost, remotePort);
+        ret = ix::ws_proxy_server_main(port, hostname, tlsOptions, remoteHost, verbose);
     }
     else if (version)
     {

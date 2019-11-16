@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.3.0] - 2019-11-15
+
+- New ws command: `ws proxy_server`.
+
 ## [7.2.2] - 2019-11-01
 
 - Tag a release + minor reformating.
