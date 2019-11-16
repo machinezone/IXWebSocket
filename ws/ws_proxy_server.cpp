@@ -79,6 +79,7 @@ namespace ix
                     std::cerr << "Closed connection"
                               << " code " << msg->closeInfo.code << " reason "
                               << msg->closeInfo.reason << std::endl;
+                    webSocket->close(msg->closeInfo.code, msg->closeInfo.reason);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
@@ -88,7 +89,6 @@ namespace ix
                     ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
                     ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
                     std::cerr << ss.str();
-                    webSocket->close(msg->closeInfo.code, msg->closeInfo.reason);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
