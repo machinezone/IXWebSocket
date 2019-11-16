@@ -128,23 +128,21 @@ namespace ix
             {
                 spdlog::info("Subscriber authenticated");
 
-                conn.subscribe(channel,
-                               filter,
-                               [&msgPerSeconds,
-                                &msgCount,
-                                &conditionVariableMutex,
-                                &condition,
-                                &queue](const Json::Value& msg) {
-                                   {
-                                       std::unique_lock<std::mutex> lock(conditionVariableMutex);
-                                       queue.push(msg);
-                                   }
+                conn.subscribe(
+                    channel,
+                    filter,
+                    [&msgPerSeconds, &msgCount, &conditionVariableMutex, &condition, &queue](
+                        const Json::Value& msg) {
+                        {
+                            std::unique_lock<std::mutex> lock(conditionVariableMutex);
+                            queue.push(msg);
+                        }
 
-                                   condition.notify_one();
+                        condition.notify_one();
 
-                                   msgPerSeconds++;
-                                   msgCount++;
-                               });
+                        msgPerSeconds++;
+                        msgCount++;
+                    });
             }
             else if (eventType == ix::CobraConnection_EventType_Subscribed)
             {

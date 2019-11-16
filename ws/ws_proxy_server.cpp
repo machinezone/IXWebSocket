@@ -13,13 +13,29 @@ namespace ix
     class ProxyConnectionState : public ix::ConnectionState
     {
     public:
+        ProxyConnectionState()
+            : _connected(false)
+        {
+        }
+
         ix::WebSocket& webSocket()
         {
             return _serverWebSocket;
         }
 
+        bool isConnected()
+        {
+            return _connected;
+        }
+
+        void setConnected()
+        {
+            _connected = true;
+        }
+
     private:
         ix::WebSocket _serverWebSocket;
+        bool _connected;
     };
 
     int ws_proxy_server_main(int port,
@@ -38,100 +54,108 @@ namespace ix
         };
         server.setConnectionStateFactory(factory);
 
-        server.setOnConnectionCallback(
-            [remoteUrl, verbose](std::shared_ptr<ix::WebSocket> webSocket,
-                                 std::shared_ptr<ConnectionState> connectionState) {
-                auto state = std::dynamic_pointer_cast<ProxyConnectionState>(connectionState);
+        server.setOnConnectionCallback([remoteUrl,
+                                        verbose](std::shared_ptr<ix::WebSocket> webSocket,
+                                                 std::shared_ptr<ConnectionState> connectionState) {
+            auto state = std::dynamic_pointer_cast<ProxyConnectionState>(connectionState);
 
-                // Server connection
-                state->webSocket().setOnMessageCallback(
-                    [webSocket, state, verbose](const WebSocketMessagePtr& msg) {
-                        if (msg->type == ix::WebSocketMessageType::Open)
-                        {
-                            std::cerr << "New connection" << std::endl;
-                            std::cerr << "id: " << state->getId() << std::endl;
-                            std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
-                            std::cerr << "Headers:" << std::endl;
-                            for (auto it : msg->openInfo.headers)
-                            {
-                                std::cerr << it.first << ": " << it.second << std::endl;
-                            }
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Close)
-                        {
-                            std::cerr << "Closed connection"
-                                      << " code " << msg->closeInfo.code << " reason "
-                                      << msg->closeInfo.reason << std::endl;
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Error)
-                        {
-                            std::stringstream ss;
-                            ss << "Connection error: " << msg->errorInfo.reason << std::endl;
-                            ss << "#retries: " << msg->errorInfo.retries << std::endl;
-                            ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
-                            ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                            std::cerr << ss.str();
-                            webSocket->close(msg->closeInfo.code, msg->closeInfo.reason);
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Message)
-                        {
-                            std::cerr << "Received " << msg->wireSize << " bytes from server" << std::endl;
-                            if (verbose)
-                            {
-                                std::cerr << "payload " << msg->str << std::endl;
-                            }
+            // Server connection
+            state->webSocket().setOnMessageCallback([webSocket, state, verbose](
+                                                        const WebSocketMessagePtr& msg) {
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    std::cerr << "New connection" << std::endl;
+                    std::cerr << "id: " << state->getId() << std::endl;
+                    std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
+                    std::cerr << "Headers:" << std::endl;
+                    for (auto it : msg->openInfo.headers)
+                    {
+                        std::cerr << it.first << ": " << it.second << std::endl;
+                    }
+                    state->setConnected();
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    std::cerr << "Closed connection"
+                              << " code " << msg->closeInfo.code << " reason "
+                              << msg->closeInfo.reason << std::endl;
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    std::stringstream ss;
+                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                    ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                    ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                    ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                    std::cerr << ss.str();
+                    webSocket->close(msg->closeInfo.code, msg->closeInfo.reason);
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    std::cerr << "Received " << msg->wireSize << " bytes from server" << std::endl;
+                    if (verbose)
+                    {
+                        std::cerr << "payload " << msg->str << std::endl;
+                    }
 
-                            webSocket->send(msg->str, msg->binary);
-                        }
-                    });
-
-                // Client connection
-                webSocket->setOnMessageCallback(
-                    [state, remoteUrl, verbose](const WebSocketMessagePtr& msg) {
-                        if (msg->type == ix::WebSocketMessageType::Open)
-                        {
-                            std::cerr << "New connection" << std::endl;
-                            std::cerr << "id: " << state->getId() << std::endl;
-                            std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
-                            std::cerr << "Headers:" << std::endl;
-                            for (auto it : msg->openInfo.headers)
-                            {
-                                std::cerr << it.first << ": " << it.second << std::endl;
-                            }
-
-                            // Connect to the 'real' server
-                            std::string url(remoteUrl);
-                            url += msg->openInfo.uri;
-                            state->webSocket().setUrl(url);
-                            state->webSocket().start();
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Close)
-                        {
-                            std::cerr << "Closed connection"
-                                      << " code " << msg->closeInfo.code << " reason "
-                                      << msg->closeInfo.reason << std::endl;
-                            state->webSocket().close(msg->closeInfo.code, msg->closeInfo.reason);
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Error)
-                        {
-                            std::stringstream ss;
-                            ss << "Connection error: " << msg->errorInfo.reason << std::endl;
-                            ss << "#retries: " << msg->errorInfo.retries << std::endl;
-                            ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
-                            ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                            std::cerr << ss.str();
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Message)
-                        {
-                            std::cerr << "Received " << msg->wireSize << " bytes from client" << std::endl;
-                            if (verbose)
-                            {
-                                std::cerr << "payload " << msg->str << std::endl;
-                            }
-                            state->webSocket().send(msg->str, msg->binary);
-                        }
-                    });
+                    webSocket->send(msg->str, msg->binary);
+                }
             });
+
+            // Client connection
+            webSocket->setOnMessageCallback([state, remoteUrl, verbose](
+                                                const WebSocketMessagePtr& msg) {
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    std::cerr << "New connection" << std::endl;
+                    std::cerr << "id: " << state->getId() << std::endl;
+                    std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
+                    std::cerr << "Headers:" << std::endl;
+                    for (auto it : msg->openInfo.headers)
+                    {
+                        std::cerr << it.first << ": " << it.second << std::endl;
+                    }
+
+                    // Connect to the 'real' server
+                    std::string url(remoteUrl);
+                    url += msg->openInfo.uri;
+                    state->webSocket().setUrl(url);
+                    state->webSocket().start();
+
+                    // we should sleep here for a bit until we've established the
+                    // connection with the remote server
+                    while (!state->isConnected())
+                    {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                    }
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    std::cerr << "Closed connection"
+                              << " code " << msg->closeInfo.code << " reason "
+                              << msg->closeInfo.reason << std::endl;
+                    state->webSocket().close(msg->closeInfo.code, msg->closeInfo.reason);
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    std::stringstream ss;
+                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                    ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                    ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                    ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                    std::cerr << ss.str();
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    std::cerr << "Received " << msg->wireSize << " bytes from client" << std::endl;
+                    if (verbose)
+                    {
+                        std::cerr << "payload " << msg->str << std::endl;
+                    }
+                    state->webSocket().send(msg->str, msg->binary);
+                }
+            });
+        });
 
         auto res = server.listen();
         if (!res.first)
