@@ -65,14 +65,13 @@ namespace ix
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     std::cerr << "New connection" << std::endl;
-                    std::cerr << "id: " << state->getId() << std::endl;
+                    std::cerr << "server id: " << state->getId() << std::endl;
                     std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
                     std::cerr << "Headers:" << std::endl;
                     for (auto it : msg->openInfo.headers)
                     {
                         std::cerr << it.first << ": " << it.second << std::endl;
                     }
-                    state->setConnected();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
@@ -80,6 +79,7 @@ namespace ix
                               << " code " << msg->closeInfo.code << " reason "
                               << msg->closeInfo.reason << std::endl;
                     webSocket->close(msg->closeInfo.code, msg->closeInfo.reason);
+                    state->setTerminated();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
@@ -108,7 +108,7 @@ namespace ix
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     std::cerr << "New connection" << std::endl;
-                    std::cerr << "id: " << state->getId() << std::endl;
+                    std::cerr << "client id: " << state->getId() << std::endl;
                     std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
                     std::cerr << "Headers:" << std::endl;
                     for (auto it : msg->openInfo.headers)
@@ -124,10 +124,12 @@ namespace ix
 
                     // we should sleep here for a bit until we've established the
                     // connection with the remote server
-                    while (!state->isConnected())
+                    while (state->webSocket().getReadyState() != ReadyState::Open)
                     {
+                        std::cerr << "waiting for server connection establishment" << std::endl;
                         std::this_thread::sleep_for(std::chrono::milliseconds(10));
                     }
+                    std::cerr << "server connection established" << std::endl;
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
