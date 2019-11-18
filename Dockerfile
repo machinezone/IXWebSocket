@@ -19,6 +19,7 @@ RUN [ "make", "ws_install" ]
 FROM alpine as runtime
 
 RUN apk add --no-cache libstdc++
+RUN apk add --no-cache strace
 
 RUN addgroup -S app && adduser -S -G app app 
 COPY --chown=app:app --from=build /usr/local/bin/ws /usr/local/bin/ws
