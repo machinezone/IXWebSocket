@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# WS server example
+# websocket proxy
 
 import argparse
 import asyncio
@@ -8,6 +8,7 @@ import websockets
 
 
 async def hello(websocket, path):
+    '''Called whenever a new connection is made to the server'''
 
     url = REMOTE_URL + path
     async with websockets.connect(url) as ws:
@@ -30,9 +31,12 @@ async def serverToClient(ws, websocket):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='websocket proxy.')
-    parser.add_argument('--host', help='Host to bind to.', default='localhost')
-    parser.add_argument('--port', help='Port to bind to.', default=8765)
-    parser.add_argument('--remote_url', help='Remote websocket url', default='ws://localhost:8767')
+    parser.add_argument('--host', help='Host to bind to.',
+                        default='localhost')
+    parser.add_argument('--port', help='Port to bind to.',
+                        default=8765)
+    parser.add_argument('--remote_url', help='Remote websocket url',
+                        default='ws://localhost:8767')
     args = parser.parse_args()
 
     REMOTE_URL = args.remote_url
