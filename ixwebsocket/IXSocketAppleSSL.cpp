@@ -168,10 +168,32 @@ namespace ix
             SSLSetProtocolVersionMin(_sslContext, kTLSProtocol12);
             SSLSetPeerDomainName(_sslContext, host.c_str(), host.size());
 
-            do
+            if (_tlsOptions.isPeerVerifyDisabled())
             {
-                status = SSLHandshake(_sslContext);
-            } while (errSSLWouldBlock == status || errSSLServerAuthCompleted == status);
+                Boolean option(1);
+                SSLSetSessionOption(_sslContext, kSSLSessionOptionBreakOnServerAuth, option);
+
+                do
+                {
+                    status = SSLHandshake(_sslContext);
+                } while (errSSLWouldBlock == status || errSSLServerAuthCompleted == status);
+
+                if (status == errSSLServerAuthCompleted)
+                {
+                    // proceed with the handshake
+                    do
+                    {
+                        status = SSLHandshake(_sslContext);
+                    } while (errSSLWouldBlock == status || errSSLServerAuthCompleted == status);
+                }
+            }
+            else
+            {
+                do
+                {
+                    status = SSLHandshake(_sslContext);
+                } while (errSSLWouldBlock == status || errSSLServerAuthCompleted == status);
+            }
         }
 
         if (noErr != status)

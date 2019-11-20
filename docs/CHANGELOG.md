@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.3.5] - 2019-11-20
+
+- On Darwin SSL, add ability to skip peer verification.
+
 ## [7.3.4] - 2019-11-20
 
 - 32-bits compile fix, courtesy of @fcojavmc
