@@ -543,7 +543,7 @@ namespace ix
             }
 
             // Prevent integer overflow in the next conditional
-            const uint64_t maxFrameSize(uint64_t(1) << 63);
+            const uint64_t maxFrameSize(1ULL << 63);
             if (ws.N > maxFrameSize)
             {
                 return;
