@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.3.4] - 2019-11-20
+
+- 32-bits compile fix, courtesy of @fcojavmc
+
 ## [7.3.1] - 2019-11-16
 
 - ws proxy_server / remote server close not forwarded to the client
