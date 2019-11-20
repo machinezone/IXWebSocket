@@ -29,7 +29,11 @@ namespace ix
     std::shared_ptr<Socket> createSocket(bool tls,
                                          int fd,
                                          std::string& errorMsg,
+#ifdef IXWEBSOCKET_USE_TLS
                                          const SocketTLSOptions& tlsOptions)
+#else
+                                         const SocketTLSOptions&)
+#endif
     {
         errorMsg.clear();
         std::shared_ptr<Socket> socket;
