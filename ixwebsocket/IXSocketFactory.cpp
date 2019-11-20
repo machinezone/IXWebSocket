@@ -31,6 +31,7 @@ namespace ix
                                          std::string& errorMsg,
                                          const SocketTLSOptions& tlsOptions)
     {
+        (void) tlsOptions;
         errorMsg.clear();
         std::shared_ptr<Socket> socket;
 
