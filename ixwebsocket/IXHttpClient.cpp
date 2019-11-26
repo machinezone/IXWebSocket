@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <cstring>
 #include <iomanip>
+#include <random>
 #include <sstream>
 #include <vector>
 #include <zlib.h>
@@ -198,8 +199,16 @@ namespace ix
             // Set default Content-Type if unspecified
             if (args->extraHeaders.find("Content-Type") == args->extraHeaders.end())
             {
-                ss << "Content-Type: application/x-www-form-urlencoded"
-                   << "\r\n";
+                if (args->multipartBoundary.empty())
+                {
+                    ss << "Content-Type: application/x-www-form-urlencoded"
+                       << "\r\n";
+                }
+                else
+                {
+                    ss << "Content-Type: multipart/form-data; boundary=" << args->multipartBoundary
+                       << "\r\n";
+                }
             }
             ss << "\r\n";
             ss << body;
@@ -597,6 +606,53 @@ namespace ix
         return ss.str();
     }
 
+    std::string HttpClient::serializeHttpFormDataParameters(
+        const std::string& multipartBoundary,
+        const HttpFormDataParameters& httpFormDataParameters,
+        const HttpParameters& httpParameters)
+    {
+        //
+        // --AaB03x
+        // Content-Disposition: form-data; name="submit-name"
+
+        // Larry
+        // --AaB03x
+        // Content-Disposition: form-data; name="foo.txt"; filename="file1.txt"
+        // Content-Type: text/plain
+
+        // ... contents of file1.txt ...
+        // --AaB03x--
+        //
+        std::stringstream ss;
+
+        for (auto&& it : httpFormDataParameters)
+        {
+            ss << "--" << multipartBoundary << "\r\n"
+               << "Content-Disposition:"
+               << " form-data; name=\"" << it.first << "\";"
+               << " filename=\"" << it.first << "\""
+               << "\r\n"
+               << "Content-Type: application/octet-stream"
+               << "\r\n"
+               << "\r\n"
+               << it.second << "\r\n";
+        }
+
+        for (auto&& it : httpParameters)
+        {
+            ss << "--" << multipartBoundary << "\r\n"
+               << "Content-Disposition:"
+               << " form-data; name=\"" << it.first << "\";"
+               << "\r\n"
+               << "\r\n"
+               << it.second << "\r\n";
+        }
+
+        ss << "--" << multipartBoundary << "\r\n";
+
+        return ss.str();
+    }
+
     bool HttpClient::gzipInflate(const std::string& in, std::string& out)
     {
         z_stream inflateState;
@@ -648,5 +704,17 @@ namespace ix
         {
             args->logger(msg);
         }
+    }
+
+    std::string HttpClient::generateMultipartBoundary()
+    {
+        std::string str("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+
+        static std::random_device rd;
+        static std::mt19937 generator(rd());
+
+        std::shuffle(str.begin(), str.end(), generator);
+
+        return str;
     }
 } // namespace ix

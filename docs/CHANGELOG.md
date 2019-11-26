@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.4.0] - 2019-11-25
+
+- (http client) Add support for multipart HTTP POST upload
+- (ixsentry) Add support for uploading a minidump to sentry
+
 ## [7.3.5] - 2019-11-20
 
 - On Darwin SSL, add ability to skip peer verification.

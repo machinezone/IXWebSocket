@@ -8,8 +8,9 @@
 
 #include <chrono>
 #include <iostream>
+#include <fstream>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
-#include <spdlog/spdlog.h>
+#include <ixcore/utils/IXCoreLogger.h>
 
 
 namespace ix
@@ -18,6 +19,7 @@ namespace ix
         : _dsn(dsn)
         , _validDsn(false)
         , _luaFrameRegex("\t([^/]+):([0-9]+): in function ['<]([^/]+)['>]")
+        , _httpClient(std::make_shared<HttpClient>(true))
     {
         const std::regex dsnRegex("(http[s]?)://([^:]+):([^@]+)@([^/]+)/([0-9]+)");
         std::smatch group;
@@ -169,39 +171,64 @@ namespace ix
 
     std::pair<HttpResponsePtr, std::string> SentryClient::send(const Json::Value& msg, bool verbose)
     {
-        auto args = _httpClient.createRequest();
+        auto args = _httpClient->createRequest();
         args->extraHeaders["X-Sentry-Auth"] = SentryClient::computeAuthHeader();
         args->connectTimeout = 60;
         args->transferTimeout = 5 * 60;
         args->followRedirects = true;
         args->verbose = verbose;
-        args->logger = [](const std::string& msg) { spdlog::info("request logger: {}", msg); };
+        args->logger = [](const std::string& msg) { ix::IXCoreLogger::Log(msg.c_str()); };
 
         std::string body = computePayload(msg);
-        HttpResponsePtr response = _httpClient.post(_url, body, args);
-
-        if (verbose)
-        {
-            for (auto it : response->headers)
-            {
-                spdlog::info("{}: {}", it.first, it.second);
-            }
-
-            spdlog::info("Upload size: {}", response->uploadSize);
-            spdlog::info("Download size: {}", response->downloadSize);
-
-            spdlog::info("Status: {}", response->statusCode);
-            if (response->errorCode != HttpErrorCode::Ok)
-            {
-                spdlog::info("error message: {}", response->errorMsg);
-            }
-
-            if (response->headers["Content-Type"] != "application/octet-stream")
-            {
-                spdlog::info("payload: {}", response->payload);
-            }
-        }
+        HttpResponsePtr response = _httpClient->post(_url, body, args);
 
         return std::make_pair(response, body);
+    }
+
+    // https://sentry.io/api/12345/minidump?sentry_key=abcdefgh");
+    std::string SentryClient::computeUrl(const std::string& project, const std::string& key)
+    {
+        std::stringstream ss;
+        ss << "https://sentry.io/api/"
+           << project
+           << "/minidump?sentry_key="
+           << key;
+
+        return ss.str();
+    }
+
+    //
+    // curl -v -X POST -F upload_file_minidump=@ws/crash.dmp 'https://sentry.io/api/123456/minidump?sentry_key=12344567890'
+    //
+    void SentryClient::uploadMinidump(
+        const std::string& sentryMetadata,
+        const std::string& minidumpBytes,
+        const std::string& project,
+        const std::string& key,
+        bool verbose,
+        const OnResponseCallback& onResponseCallback)
+    {
+        std::string multipartBoundary = _httpClient->generateMultipartBoundary();
+
+        auto args = _httpClient->createRequest();
+        args->verb = HttpClient::kPost;
+        args->connectTimeout = 60;
+        args->transferTimeout = 5 * 60;
+        args->followRedirects = true;
+        args->verbose = verbose;
+        args->multipartBoundary = multipartBoundary;
+        args->logger = [](const std::string& msg) { ix::IXCoreLogger::Log(msg.c_str()); };
+
+        HttpFormDataParameters httpFormDataParameters;
+        httpFormDataParameters["upload_file_minidump"] = minidumpBytes;
+
+        HttpParameters httpParameters;
+        httpParameters["sentry"] = sentryMetadata;
+
+        args->url = computeUrl(project, key);
+        args->body = _httpClient->serializeHttpFormDataParameters(multipartBoundary, httpFormDataParameters, httpParameters);
+
+
+        _httpClient->performRequest(args, onResponseCallback);
     }
 } // namespace ix

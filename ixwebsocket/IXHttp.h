@@ -66,6 +66,7 @@ namespace ix
 
     using HttpResponsePtr = std::shared_ptr<HttpResponse>;
     using HttpParameters = std::map<std::string, std::string>;
+    using HttpFormDataParameters = std::map<std::string, std::string>;
     using Logger = std::function<void(const std::string&)>;
     using OnResponseCallback = std::function<void(const HttpResponsePtr&)>;
 
@@ -75,6 +76,7 @@ namespace ix
         std::string verb;
         WebSocketHttpHeaders extraHeaders;
         std::string body;
+        std::string multipartBoundary;
         int connectTimeout;
         int transferTimeout;
         bool followRedirects;
