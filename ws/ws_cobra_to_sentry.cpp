@@ -81,6 +81,29 @@ namespace ix
 
                 auto ret = sentryClient.send(msg, verbose);
                 HttpResponsePtr response = ret.first;
+
+                if (verbose)
+                {
+                    for (auto it : response->headers)
+                    {
+                        spdlog::info("{}: {}", it.first, it.second);
+                    }
+
+                    spdlog::info("Upload size: {}", response->uploadSize);
+                    spdlog::info("Download size: {}", response->downloadSize);
+
+                    spdlog::info("Status: {}", response->statusCode);
+                    if (response->errorCode != HttpErrorCode::Ok)
+                    {
+                        spdlog::info("error message: {}", response->errorMsg);
+                    }
+
+                    if (response->headers["Content-Type"] != "application/octet-stream")
+                    {
+                        spdlog::info("payload: {}", response->payload);
+                    }
+                }
+
                 if (response->statusCode != 200)
                 {
                     spdlog::error("Error sending data to sentry: {}", response->statusCode);

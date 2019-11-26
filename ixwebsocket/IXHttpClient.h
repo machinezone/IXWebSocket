@@ -64,6 +64,13 @@ namespace ix
 
         std::string serializeHttpParameters(const HttpParameters& httpParameters);
 
+        std::string serializeHttpFormDataParameters(
+            const std::string& multipartBoundary,
+            const HttpFormDataParameters& httpFormDataParameters,
+            const HttpParameters& httpParameters = HttpParameters());
+
+        std::string generateMultipartBoundary();
+
         std::string urlEncode(const std::string& value);
 
         const static std::string kPost;

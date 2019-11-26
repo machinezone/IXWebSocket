@@ -56,6 +56,7 @@ add_executable(ws
   ws_httpd.cpp
   ws_autobahn.cpp
   ws_proxy_server.cpp
+  ws_sentry_minidump_upload.cpp
   ws.cpp)
 
 target_link_libraries(ws ixsnake)

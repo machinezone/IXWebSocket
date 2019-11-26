@@ -73,6 +73,10 @@ int main(int argc, char** argv)
     std::string appsConfigPath("appsConfig.json");
     std::string subprotocol;
     std::string remoteHost;
+    std::string minidump;
+    std::string metadata;
+    std::string project;
+    std::string key;
     ix::SocketTLSOptions tlsOptions;
     std::string ciphers;
     std::string redirectUrl;
@@ -311,6 +315,13 @@ int main(int argc, char** argv)
     proxyServerApp->add_option("--remote_host", remoteHost, "Remote Hostname");
     proxyServerApp->add_flag("-v", verbose, "Verbose");
 
+    CLI::App* minidumpApp = app.add_subcommand("upload_minidump", "Upload a minidump to sentry");
+    minidumpApp->add_option("--minidump", minidump, "Minidump path")->check(CLI::ExistingPath);
+    minidumpApp->add_option("--metadata", metadata, "Hostname")->check(CLI::ExistingPath);
+    minidumpApp->add_option("--project", project, "Sentry Project")->required();
+    minidumpApp->add_option("--key", key, "Sentry Key")->required();
+    minidumpApp->add_flag("-v", verbose, "Verbose");
+
     CLI11_PARSE(app, argc, argv);
 
     // pid file handling
@@ -452,6 +463,10 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("proxy_server"))
     {
         ret = ix::ws_proxy_server_main(port, hostname, tlsOptions, remoteHost, verbose);
+    }
+    else if (app.got_subcommand("upload_minidump"))
+    {
+        ret = ix::ws_sentry_minidump_upload(metadata, minidump, project, key, verbose);
     }
     else if (version)
     {

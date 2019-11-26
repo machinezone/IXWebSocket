@@ -10,6 +10,7 @@
 #include <ixwebsocket/IXHttpClient.h>
 #include <jsoncpp/json/json.h>
 #include <regex>
+#include <memory>
 
 namespace ix
 {
@@ -23,11 +24,23 @@ namespace ix
 
         Json::Value parseLuaStackTrace(const std::string& stack);
 
+        void uploadMinidump(
+            const std::string& sentryMetadata,
+            const std::string& minidumpBytes,
+            const std::string& project,
+            const std::string& key,
+            bool verbose,
+            const OnResponseCallback& onResponseCallback);
+
     private:
         int64_t getTimestamp();
         std::string computeAuthHeader();
         std::string getIso8601();
         std::string computePayload(const Json::Value& msg);
+
+        std::string computeUrl(const std::string& project, const std::string& key);
+
+        void displayReponse(HttpResponsePtr response);
 
         std::string _dsn;
         bool _validDsn;
@@ -41,7 +54,7 @@ namespace ix
 
         std::regex _luaFrameRegex;
 
-        HttpClient _httpClient;
+        std::shared_ptr<HttpClient> _httpClient;
     };
 
 } // namespace ix
