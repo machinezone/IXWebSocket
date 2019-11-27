@@ -55,5 +55,13 @@ services:
         #    networks:
         #      - ws-net
 
+#  compile:
+#    image: alpine
+#    entrypoint: sh
+#    stdin_open: true
+#    tty: true
+#    volumes:
+#      - /Users/bsergeant/src/foss:/home/bsergean/src/foss
+
 networks:
   ws-net:
