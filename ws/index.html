@@ -56,6 +56,9 @@
                                 <a href="../build/">Build</a>
                             </li>
                             <li >
+                                <a href="../cobra/">Cobra</a>
+                            </li>
+                            <li >
                                 <a href="../design/">Design</a>
                             </li>
                             <li >
@@ -93,6 +96,7 @@
         <li class="main active"><a href="#general">General</a></li>
         <li class="main "><a href="#curl">curl</a></li>
         <li class="main "><a href="#connect">connect</a></li>
+        <li class="main "><a href="#websocket-proxy">Websocket proxy</a></li>
         <li class="main "><a href="#file-transfer">File transfer</a></li>
         <li class="main "><a href="#http-client">HTTP Client</a></li>
         <li class="main "><a href="#cobra-client">Cobra Client</a></li>
@@ -282,6 +286,12 @@ Server: Python/3.7 websockets/8.0.2
 Upgrade: websocket
 </code></pre>
 
+<h2 id="websocket-proxy">Websocket proxy</h2>
+<pre><code>ws proxy_server --remote_host ws://127.0.0.1:9000 -v
+Listening on 127.0.0.1:8008
+</code></pre>
+
+<p>If you connect to ws://127.0.0.1:8008, the proxy will connect to ws://127.0.0.1:9000 and pass all traffic to this server.</p>
 <h2 id="file-transfer">File transfer</h2>
 <pre><code># Start transfer server, which is just a broadcast server at this point
 ws transfer # running on port 8080.
