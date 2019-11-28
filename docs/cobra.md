@@ -1,6 +1,6 @@
 ## General
 
-cobra is a real time messaging server. The `ws` utility can run a cobra server (named snake), and has client to publish and subscribe to a cobra server.
+[cobra](https://github.com/machinezone/cobra) is a real time messaging server. The `ws` utility can run a cobra server (named snake), and has client to publish and subscribe to a cobra server.
 
 Bring up 3 terminals and run a server, a publisher and a subscriber in each one. As you publish data you should see it being received by the subscriber. You can run `redis-cli MONITOR` too to see how redis is being used.
 

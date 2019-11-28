@@ -214,7 +214,7 @@ int main(int argc, char** argv)
     cobraSubscribeApp->add_option("--endpoint", endpoint, "Endpoint")->required();
     cobraSubscribeApp->add_option("--rolename", rolename, "Role name")->required();
     cobraSubscribeApp->add_option("--rolesecret", rolesecret, "Role secret")->required();
-    cobraSubscribeApp->add_option("channel", channel, "Channel")->required();
+    cobraSubscribeApp->add_option("--channel", channel, "Channel")->required();
     cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
     cobraSubscribeApp->add_option("--filter", filter, "Stream SQL Filter");
     cobraSubscribeApp->add_flag("-q", quiet, "Quiet / only display stats");
@@ -224,7 +224,7 @@ int main(int argc, char** argv)
     cobraPublish->add_option("--endpoint", endpoint, "Endpoint")->required();
     cobraPublish->add_option("--rolename", rolename, "Role name")->required();
     cobraPublish->add_option("--rolesecret", rolesecret, "Role secret")->required();
-    cobraPublish->add_option("channel", channel, "Channel")->required();
+    cobraPublish->add_option("--channel", channel, "Channel")->required();
     cobraPublish->add_option("--pidfile", pidfile, "Pid file");
     cobraPublish->add_option("path", path, "Path to the file to send")
         ->required()
@@ -236,7 +236,7 @@ int main(int argc, char** argv)
     cobraMetricsPublish->add_option("--endpoint", endpoint, "Endpoint");
     cobraMetricsPublish->add_option("--rolename", rolename, "Role name");
     cobraMetricsPublish->add_option("--rolesecret", rolesecret, "Role secret");
-    cobraMetricsPublish->add_option("channel", channel, "Channel")->required();
+    cobraMetricsPublish->add_option("--channel", channel, "Channel")->required();
     cobraMetricsPublish->add_option("--pidfile", pidfile, "Pid file");
     cobraMetricsPublish->add_option("path", path, "Path to the file to send")
         ->required()
