@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.4.1] - 2019-12-02
+
+- (client) fix an overflow in the exponential back off code
+
 ## [7.4.0] - 2019-11-25
 
 - (http client) Add support for multipart HTTP POST upload
