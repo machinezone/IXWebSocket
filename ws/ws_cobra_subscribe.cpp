@@ -99,7 +99,7 @@ namespace ix
 
         while (true)
         {
-            std::chrono::duration<double, std::milli> duration(10);
+            auto duration = std::chrono::seconds(1);
             std::this_thread::sleep_for(duration);
         }
 
