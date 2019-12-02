@@ -29,8 +29,13 @@ namespace ix
             return false;
         }
 
+        CancellationRequest cancellationRequest = []() -> bool
+        {
+            return false;
+        };
+
         std::string errMsg;
-        return _socket->connect(hostname, port, errMsg, nullptr);
+        return _socket->connect(hostname, port, errMsg, cancellationRequest);
     }
 
     void RedisClient::stop()
