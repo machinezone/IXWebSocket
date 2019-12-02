@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.4.2] - 2019-12-02
+
+- (client) internal IXDNSLookup class requires a valid cancellation request function callback to be passed in
+
 ## [7.4.1] - 2019-12-02
 
 - (client) fix an overflow in the exponential back off code

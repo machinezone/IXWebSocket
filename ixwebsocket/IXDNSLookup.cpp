@@ -61,7 +61,7 @@ namespace ix
         errMsg = "no error";
 
         // Maybe a cancellation request got in before the background thread terminated ?
-        if (isCancellationRequested && isCancellationRequested())
+        if (isCancellationRequested())
         {
             errMsg = "cancellation requested";
             return nullptr;
@@ -107,7 +107,7 @@ namespace ix
             std::this_thread::sleep_for(std::chrono::milliseconds(_wait));
 
             // Were we cancelled ?
-            if (isCancellationRequested && isCancellationRequested())
+            if (isCancellationRequested())
             {
                 errMsg = "cancellation requested";
                 return nullptr;
@@ -115,7 +115,7 @@ namespace ix
         }
 
         // Maybe a cancellation request got in before the bg terminated ?
-        if (isCancellationRequested && isCancellationRequested())
+        if (isCancellationRequested())
         {
             errMsg = "cancellation requested";
             return nullptr;
