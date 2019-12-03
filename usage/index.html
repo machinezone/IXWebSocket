@@ -107,7 +107,7 @@
 <p>The <a href="https://github.com/machinezone/IXWebSocket/tree/master/ws"><em>ws</em></a> folder countains many interactive programs for chat, <a href="https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_send.cpp">file transfers</a>, <a href="https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_http_client.cpp">curl like</a> http clients, demonstrating client and server usage.</p>
 <h2 id="windows-note">Windows note</h2>
 <p>To use the network system on Windows, you need to initialize it once with <em>WSAStartup()</em> and clean it up with <em>WSACleanup()</em>. We have helpers for that which you can use, see below. This init would typically take place in your main function.</p>
-<pre><code>#include &lt;ixwebsocket/IXNetSystem.h&gt;
+<pre><code class="cpp">#include &lt;ixwebsocket/IXNetSystem.h&gt;
 
 int main()
 {
@@ -121,11 +121,11 @@ int main()
 </code></pre>
 
 <h2 id="websocket-client-api">WebSocket client API</h2>
-<pre><code>#include &lt;ixwebsocket/IXWebSocket.h&gt;
+<pre><code class="cpp">#include &lt;ixwebsocket/IXWebSocket.h&gt;
 
 ...
 
-# Our websocket object
+// Our websocket object
 ix::WebSocket webSocket;
 
 std::string url(&quot;ws://localhost:8080/&quot;);
@@ -175,8 +175,8 @@ webSocket.stop()
 <li>ReadyState::Closed     - The connection is closed or could not be opened.</li>
 </ol>
 <h3 id="open-and-close-notifications">Open and Close notifications</h3>
-<p>The onMessage event will be fired when the connection is opened or closed. This is similar to the <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSocket">Javascript browser API</a>, which has <code>open</code> and <code>close</code> events notification that can be registered with the browser <code>addEventListener</code>.</p>
-<pre><code>webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
+<p>The onMessage event will be fired when the connection is opened or closed. This is similar to the <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSocket">JavaScript browser API</a>, which has <code>open</code> and <code>close</code> events notification that can be registered with the browser <code>addEventListener</code>.</p>
+<pre><code class="cpp">webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
     {
         if (msg-&gt;type == ix::WebSocketMessageType::Open)
         {
@@ -204,7 +204,7 @@ webSocket.stop()
 
 <h3 id="error-notification">Error notification</h3>
 <p>A message will be fired when there is an error with the connection. The message type will be <code>ix::WebSocketMessageType::Error</code>. Multiple fields will be available on the event to describe the error.</p>
-<pre><code>webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
+<pre><code class="cpp">webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
     {
         if (msg-&gt;type == ix::WebSocketMessageType::Error)
         {
@@ -226,13 +226,13 @@ webSocket.stop()
 </ol>
 <h3 id="configuring-the-remote-url">Configuring the remote url</h3>
 <p>The url can be set and queried after a websocket object has been created. You will have to call <code>stop</code> and <code>start</code> if you want to disconnect and connect to that new url.</p>
-<pre><code>std::string url(&quot;wss://example.com&quot;);
+<pre><code class="cpp">std::string url(&quot;wss://example.com&quot;);
 websocket.configure(url);
 </code></pre>
 
 <h3 id="pingpong-support">Ping/Pong support</h3>
 <p>Ping/pong messages are used to implement keep-alive. 2 message types exists to identify ping and pong messages. Note that when a ping message is received, a pong is instantly send back as requested by the WebSocket spec.</p>
-<pre><code>webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
+<pre><code class="cpp">webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
     {
         if (msg-&gt;type == ix::WebSocketMessageType::Ping ||
             msg-&gt;type == ix::WebSocketMessageType::Pong)
@@ -244,36 +244,36 @@ websocket.configure(url);
 </code></pre>
 
 <p>A ping message can be sent to the server, with an optional data string.</p>
-<pre><code>websocket.ping(&quot;ping data, optional (empty string is ok): limited to 125 bytes long&quot;);
+<pre><code class="cpp">websocket.ping(&quot;ping data, optional (empty string is ok): limited to 125 bytes long&quot;);
 </code></pre>
 
 <h3 id="heartbeat">Heartbeat.</h3>
 <p>You can configure an optional heart beat / keep-alive, sent every 45 seconds
 when there is no any traffic to make sure that load balancers do not kill an
 idle connection.</p>
-<pre><code>webSocket.setHeartBeatPeriod(45);
+<pre><code class="cpp">webSocket.setHeartBeatPeriod(45);
 </code></pre>
 
 <h3 id="supply-extra-http-headers">Supply extra HTTP headers.</h3>
 <p>You can set extra HTTP headers to be sent during the WebSocket handshake.</p>
-<pre><code>WebSocketHttpHeaders headers;
+<pre><code class="cpp">WebSocketHttpHeaders headers;
 headers[&quot;foo&quot;] = &quot;bar&quot;;
 webSocket.setExtraHeaders(headers);
 </code></pre>
 
 <h3 id="subprotocols">Subprotocols</h3>
 <p>You can specify subprotocols to be set during the WebSocket handshake. For more info you can refer to <a href="https://hpbn.co/websocket/#subprotocol-negotiation">this doc</a>.</p>
-<pre><code>webSocket.addSubprotocol(&quot;appProtocol-v1&quot;);
+<pre><code class="cpp">webSocket.addSubprotocol(&quot;appProtocol-v1&quot;);
 webSocket.addSubprotocol(&quot;appProtocol-v2&quot;);
 </code></pre>
 
 <p>The protocol that the server did accept is available in the open info <code>protocol</code> field.</p>
-<pre><code>std::cout &lt;&lt; &quot;protocol: &quot; &lt;&lt; msg-&gt;openInfo.protocol &lt;&lt; std::endl;
+<pre><code class="cpp">std::cout &lt;&lt; &quot;protocol: &quot; &lt;&lt; msg-&gt;openInfo.protocol &lt;&lt; std::endl;
 </code></pre>
 
 <h3 id="automatic-reconnection">Automatic reconnection</h3>
 <p>Automatic reconnection kicks in when the connection is disconnected without the user consent. This feature is on by default and can be turned off.</p>
-<pre><code>webSocket.enableAutomaticReconnection();  // turn on
+<pre><code class="cpp">webSocket.enableAutomaticReconnection();  // turn on
 webSocket.disableAutomaticReconnection(); // turn off
 bool enabled = webSocket.isAutomaticReconnectionEnabled(); // query state
 </code></pre>
@@ -302,7 +302,7 @@ Wait time(ms): 10000
 </code></pre>
 
 <p>The waiting time is capped by default at 10s between 2 attempts, but that value can be changed and queried.</p>
-<pre><code>webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
+<pre><code class="cpp">webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
 uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 </code></pre>
 
@@ -311,7 +311,7 @@ uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 <p>Then, secure sockets are automatically used when connecting to a <code>wss://*</code> url.</p>
 <p>Additional TLS options can be configured by passing a <code>ix::SocketTLSOptions</code> instance to the
 <code>setTLSOptions</code> on <code>ix::WebSocket</code> (or <code>ix::WebSocketServer</code> or <code>ix::HttpServer</code>)</p>
-<pre><code>webSocket.setTLSOptions({
+<pre><code class="cpp">webSocket.setTLSOptions({
     .certFile = &quot;path/to/cert/file.pem&quot;,
     .keyFile = &quot;path/to/key/file.pem&quot;,
     .caFile = &quot;path/to/trust/bundle/file.pem&quot;
@@ -329,7 +329,7 @@ uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 1. You require clients to present a certificate
 1. It must be signed by one of the trusted roots in the file</p>
 <h2 id="websocket-server-api">WebSocket server API</h2>
-<pre><code>#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
+<pre><code class="cpp">#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
 
 ...
 
@@ -392,7 +392,7 @@ server.wait();
 </code></pre>
 
 <h2 id="http-client-api">HTTP client API</h2>
-<pre><code>#include &lt;ixwebsocket/IXHttpClient.h&gt;
+<pre><code class="cpp">#include &lt;ixwebsocket/IXHttpClient.h&gt;
 
 ...
 
@@ -473,7 +473,7 @@ bool ok = httpClient.performRequest(args, [](const HttpResponsePtr&amp; response
 </code></pre>
 
 <h2 id="http-server-api">HTTP server API</h2>
-<pre><code>#include &lt;ixwebsocket/IXHttpServer.h&gt;
+<pre><code class="cpp">#include &lt;ixwebsocket/IXHttpServer.h&gt;
 
 ix::HttpServer server(port, hostname);
 
@@ -489,7 +489,7 @@ server.wait();
 </code></pre>
 
 <p>If you want to handle how requests are processed, implement the setOnConnectionCallback callback, which takes an HttpRequestPtr as input, and returns an HttpResponsePtr. You can look at HttpServer::setDefaultConnectionCallback for a slightly more advanced callback example.</p>
-<pre><code>setOnConnectionCallback(
+<pre><code class="cpp">setOnConnectionCallback(
     [this](HttpRequestPtr request,
            std::shared_ptr&lt;ConnectionState&gt; /*connectionState*/) -&gt; HttpResponsePtr
     {
