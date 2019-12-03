@@ -245,4 +245,4 @@ Options:
 
 ## Cobra Client
 
-[cobra](https://github.com/machinezone/cobra) is a real time messenging server. ws has sub-command to interacti with cobra.
+[cobra](https://github.com/machinezone/cobra) is a real time messenging server. ws has a sub-command to interact with cobra.
