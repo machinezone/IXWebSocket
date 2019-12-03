@@ -9,6 +9,9 @@
  *
  *  This is the right example to look at:
  *  https://www.codeproject.com/Articles/1000189/A-Working-TCP-Client-and-Server-With-SSL
+ *
+ *  Similar code is available from this git repo
+ *  https://github.com/david-maw/StreamSSL
  */
 #include "IXSocketSChannel.h"
 
