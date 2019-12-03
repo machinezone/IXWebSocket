@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.4.3] - 2019-12-03
+
+- (http client) use std::unordered_map instead of std::map for HttpParameters and HttpFormDataParameters class aliases
+
 ## [7.4.2] - 2019-12-02
 
 - (client) internal IXDNSLookup class requires a valid cancellation request function callback to be passed in

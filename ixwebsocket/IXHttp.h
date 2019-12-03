@@ -9,6 +9,7 @@
 #include "IXProgressCallback.h"
 #include "IXWebSocketHttpHeaders.h"
 #include <tuple>
+#include <unordered_map>
 
 namespace ix
 {
@@ -65,8 +66,8 @@ namespace ix
     };
 
     using HttpResponsePtr = std::shared_ptr<HttpResponse>;
-    using HttpParameters = std::map<std::string, std::string>;
-    using HttpFormDataParameters = std::map<std::string, std::string>;
+    using HttpParameters = std::unordered_map<std::string, std::string>;
+    using HttpFormDataParameters = std::unordered_map<std::string, std::string>;
     using Logger = std::function<void(const std::string&)>;
     using OnResponseCallback = std::function<void(const HttpResponsePtr&)>;
 
