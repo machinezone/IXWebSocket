@@ -7,10 +7,10 @@ IXWebSocket is a C++ library for WebSocket client and server development. It has
 It is been used on big mobile video game titles sending and receiving tons of messages since 2017 (iOS and Android). It was tested on macOS, iOS, Linux, Android, Windows and FreeBSD. Two important design goals are simplicity and correctness.
 
 ```cpp
-# Required on Windows
+// Required on Windows
 ix::initNetSystem();
 
-# Our websocket object
+// Our websocket object
 ix::WebSocket webSocket;
 
 std::string url("ws://localhost:8080/");
