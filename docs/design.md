@@ -24,7 +24,7 @@ Large frames are broken up into smaller chunks or messages to avoid filling up t
 
 The library has an interactive tool which is handy for testing compatibility ith other libraries. We have tested our client against Python, Erlang, Node.js, and C++ websocket server libraries.
 
-The unittest tries to be comprehensive, and has been running on multiple platoform, with different sanitizers such as thread sanitizer to catch data races or the undefined behavior sanitizer.
+The unittest tries to be comprehensive, and has been running on multiple platforms, with different sanitizers such as a thread sanitizer to catch data races or the undefined behavior sanitizer.
 
 The regression test is running after each commit on travis.
 

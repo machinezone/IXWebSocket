@@ -33,7 +33,7 @@ vcpkg install ixwebsocket
 
 ### Conan
 
-Support for building with conan was contributed by Olivia Zoe (thanks !). The package name to reference is `IXWebSocket/5.0.0@LunarWatcher/stable`. The package is in the process to be published to the official conan package repo, but in the meantime, it can be accessed by adding a new remote
+Support for building with conan was contributed by Olivia Zoe (thanks!). The package name to reference is `IXWebSocket/5.0.0@LunarWatcher/stable`, and a list of the uploaded versions is available on [Bintray](https://bintray.com/oliviazoe0/conan-packages/IXWebSocket%3ALunarWatcher). The package is in the process to be published to the official conan package repo, but in the meantime, it can be accessed by adding a new remote
 
 ```
 conan remote add remote_name_here https://api.bintray.com/conan/oliviazoe0/conan-packages

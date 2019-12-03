@@ -8,7 +8,7 @@ Bring up 3 terminals and run a server, a publisher and a subscriber in each one.
 
 You will need to have a redis server running locally. To run the server:
 
-```
+```bash
 $ cd <ixwebsocket-top-level-folder>/ixsnake/ixsnake
 $ ws snake
 {
@@ -33,7 +33,7 @@ redis port: 6379
 
 ### Publisher
 
-```
+```bash
 $ cd <ixwebsocket-top-level-folder>/ws
 $ ws cobra_publish --appkey FC2F10139A2BAc53BB72D9db967b024f --endpoint ws://127.0.0.1:8008 --rolename _pub --rolesecret 1c04DB8fFe76A4EeFE3E318C72d771db test_channel cobraMetricsSample.json
 [2019-11-27 09:06:12.980] [info] Publisher connected
@@ -49,7 +49,7 @@ $ ws cobra_publish --appkey FC2F10139A2BAc53BB72D9db967b024f --endpoint ws://127
 
 ### Subscriber
 
-```
+```bash
 $ ws cobra_subscribe --appkey FC2F10139A2BAc53BB72D9db967b024f --endpoint ws://127.0.0.1:8008 --rolename _pub --rolesecret 1c04DB8fFe76A4EeFE3E318C72d771db test_channel
 #messages 0 msg/s 0
 [2019-11-27 09:07:39.341] [info] Subscriber connected
