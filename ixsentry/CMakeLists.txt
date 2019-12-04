@@ -16,9 +16,15 @@ add_library(ixsentry STATIC
   ${IXSENTRY_HEADERS}
 )
 
+find_package(JsonCpp)
+if (NOT JSONCPP_FOUND)
+  set(JSONCPP_INCLUDE_DIRS ../third_party/jsoncpp)
+endif()
+
 set(IXSENTRY_INCLUDE_DIRS
     .
     ..
-    ../ixcore)
+    ../ixcore
+    ${JSONCPP_INCLUDE_DIRS})
 
 target_include_directories( ixsentry PUBLIC ${IXSENTRY_INCLUDE_DIRS} )
