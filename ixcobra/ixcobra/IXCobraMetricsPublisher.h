@@ -9,7 +9,7 @@
 #include "IXCobraMetricsThreadedPublisher.h"
 #include <atomic>
 #include <chrono>
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #include <string>
 #include <unordered_map>
 

@@ -9,6 +9,7 @@
 #include <chrono>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixcore/utils/IXCoreLogger.h>
 

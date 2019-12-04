@@ -23,13 +23,20 @@ include_directories(
   ../ws
 )
 
+find_package(JsonCpp)
+if (NOT JSONCPP_FOUND)
+  include_directories(../third_party/jsoncpp)
+  set(JSONCPP_SOURCES ../third_party/jsoncpp/jsoncpp.cpp)
+endif()
+
 # Shared sources
 set (SOURCES
+  ${JSONCPP_SOURCES}
+
   test_runner.cpp
   IXTest.cpp
   IXGetFreePort.cpp
   ../third_party/msgpack11/msgpack11.cpp
-  ../third_party/jsoncpp/jsoncpp.cpp
 
   IXSocketTest.cpp
   IXSocketConnectTest.cpp
@@ -77,6 +84,11 @@ endif()
 
 if (APPLE AND USE_TLS)
   target_link_libraries(ixwebsocket_unittest "-framework foundation" "-framework security")
+endif()
+
+if (JSONCPP_FOUND)
+  target_include_directories(ixwebsocket_unittest PUBLIC ${JSONCPP_INCLUDE_DIRS})
+  target_link_libraries(ixwebsocket_unittest ${JSONCPP_LIBRARIES})
 endif()
 
 target_link_libraries(ixwebsocket_unittest ixsnake)
