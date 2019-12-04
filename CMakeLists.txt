@@ -182,6 +182,7 @@ if (USE_TLS AND USE_OPEN_SSL)
 endif()
 
 if (USE_TLS AND USE_MBED_TLS)
+  # FIXME I'm not too sure that this USE_VENDORED_THIRD_PARTY thing works
   if (USE_VENDORED_THIRD_PARTY)
     set (ENABLE_PROGRAMS OFF)
     add_subdirectory(third_party/mbedtls)

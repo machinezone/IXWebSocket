@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.4.4] - 2019-12-03
+
+- (ws) #125 / cmake detects an already installed jsoncpp and will try to use this one if present
+
 ## [7.4.3] - 2019-12-03
 
 - (http client) use std::unordered_map instead of std::map for HttpParameters and HttpFormDataParameters class aliases

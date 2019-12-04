@@ -8,7 +8,7 @@
 
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #include <memory>
 #include <mutex>
 #include <queue>

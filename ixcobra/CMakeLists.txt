@@ -24,7 +24,6 @@ set(IXCOBRA_INCLUDE_DIRS
     .
     ..
     ../ixcore
-    ../ixcrypto
-    ../third_party)
+    ../ixcrypto)
 
 target_include_directories( ixcobra PUBLIC ${IXCOBRA_INCLUDE_DIRS} )

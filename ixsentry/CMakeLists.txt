@@ -19,7 +19,6 @@ add_library(ixsentry STATIC
 set(IXSENTRY_INCLUDE_DIRS
     .
     ..
-    ../ixcore
-    ../third_party)
+    ../ixcore)
 
 target_include_directories( ixsentry PUBLIC ${IXSENTRY_INCLUDE_DIRS} )

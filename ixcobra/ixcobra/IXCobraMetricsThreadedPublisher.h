@@ -9,7 +9,7 @@
 #include "IXCobraConnection.h"
 #include <atomic>
 #include <condition_variable>
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #include <map>
 #include <mutex>
 #include <queue>

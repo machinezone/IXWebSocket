@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
+#include <sstream>
 
 
 namespace ix

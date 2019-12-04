@@ -14,6 +14,7 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
+#include <sstream>
 
 
 namespace ix
