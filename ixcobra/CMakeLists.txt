@@ -20,10 +20,16 @@ add_library(ixcobra STATIC
     ${IXCOBRA_HEADERS}
 )
 
+find_package(JsonCpp)
+if (NOT JSONCPP_FOUND)
+  set(JSONCPP_INCLUDE_DIRS ../third_party/jsoncpp)
+endif()
+
 set(IXCOBRA_INCLUDE_DIRS
     .
     ..
     ../ixcore
-    ../ixcrypto)
+    ../ixcrypto
+    ${JSONCPP_INCLUDE_DIRS})
 
 target_include_directories( ixcobra PUBLIC ${IXCOBRA_INCLUDE_DIRS} )
