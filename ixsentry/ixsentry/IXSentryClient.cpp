@@ -229,7 +229,6 @@ namespace ix
         args->url = computeUrl(project, key);
         args->body = _httpClient->serializeHttpFormDataParameters(multipartBoundary, httpFormDataParameters, httpParameters);
 
-
         _httpClient->performRequest(args, onResponseCallback);
     }
 } // namespace ix

@@ -1,6 +1,33 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.5.0] - 2019-12-05
+
+- (ws) cobra to sentry. Handle Error 429 Too Many Requests and politely wait before sending more data to sentry.
+
+In the example below sentry we are sending data too fast, sentry asks us to slow down which we do. Notice how the sent count stop increasing, while we are waiting for 41 seconds.
+
+```
+[2019-12-05 15:50:33.759] [info] messages received 2449 sent 3
+[2019-12-05 15:50:34.759] [info] messages received 5533 sent 7
+[2019-12-05 15:50:35.759] [info] messages received 8612 sent 11
+[2019-12-05 15:50:36.759] [info] messages received 11562 sent 15
+[2019-12-05 15:50:37.759] [info] messages received 14410 sent 19
+[2019-12-05 15:50:38.759] [info] messages received 17236 sent 23
+[2019-12-05 15:50:39.282] [error] Error sending data to sentry: 429
+[2019-12-05 15:50:39.282] [error] Body: {"exception":[{"stacktrace":{"frames":[{"filename":"WorldScene.lua","function":"WorldScene.lua:1935","lineno":1958},{"filename":"WorldScene.lua","function":"onUpdate_WorldCam","lineno":1921},{"filename":"WorldMapTile.lua","function":"__index","lineno":239}]},"value":"noisytypes: Attempt to call nil(nil,2224139838)!"}],"platform":"python","sdk":{"name":"ws","version":"1.0.0"},"tags":[["game","niso"],["userid","107638363"],["environment","live"]],"timestamp":"2019-12-05T23:50:39Z"}
+
+[2019-12-05 15:50:39.282] [error] Response: {"error_name":"rate_limit","error":"Creation of this event was denied due to rate limiting"}
+[2019-12-05 15:50:39.282] [warning] Error 429 - Too Many Requests. ws will sleep and retry after 41 seconds
+[2019-12-05 15:50:39.760] [info] messages received 18839 sent 25
+[2019-12-05 15:50:40.760] [info] messages received 18839 sent 25
+[2019-12-05 15:50:41.760] [info] messages received 18839 sent 25
+[2019-12-05 15:50:42.761] [info] messages received 18839 sent 25
+[2019-12-05 15:50:43.762] [info] messages received 18839 sent 25
+[2019-12-05 15:50:44.763] [info] messages received 18839 sent 25
+[2019-12-05 15:50:45.768] [info] messages received 18839 sent 25
+```
+
 ## [7.4.5] - 2019-12-03
 
 - (ws) #125 / fix build problem when jsoncpp is not installed locally
