@@ -94,6 +94,8 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#changelog">Changelog</a></li>
+            <li><a href="#750-2019-12-05">[7.5.0] - 2019-12-05</a></li>
+            <li><a href="#745-2019-12-03">[7.4.5] - 2019-12-03</a></li>
             <li><a href="#744-2019-12-03">[7.4.4] - 2019-12-03</a></li>
             <li><a href="#743-2019-12-03">[7.4.3] - 2019-12-03</a></li>
             <li><a href="#742-2019-12-02">[7.4.2] - 2019-12-02</a></li>
@@ -155,6 +157,35 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All notable changes to this project will be documented in this file.</p>
+<h2 id="750-2019-12-05">[7.5.0] - 2019-12-05</h2>
+<ul>
+<li>(ws) cobra to sentry. Handle Error 429 Too Many Requests and politely wait before sending more data to sentry.</li>
+</ul>
+<p>In the example below sentry we are sending data too fast, sentry asks us to slow down which we do. Notice how the sent count stop increasing, while we are waiting for 41 seconds.</p>
+<pre><code>[2019-12-05 15:50:33.759] [info] messages received 2449 sent 3
+[2019-12-05 15:50:34.759] [info] messages received 5533 sent 7
+[2019-12-05 15:50:35.759] [info] messages received 8612 sent 11
+[2019-12-05 15:50:36.759] [info] messages received 11562 sent 15
+[2019-12-05 15:50:37.759] [info] messages received 14410 sent 19
+[2019-12-05 15:50:38.759] [info] messages received 17236 sent 23
+[2019-12-05 15:50:39.282] [error] Error sending data to sentry: 429
+[2019-12-05 15:50:39.282] [error] Body: {&quot;exception&quot;:[{&quot;stacktrace&quot;:{&quot;frames&quot;:[{&quot;filename&quot;:&quot;WorldScene.lua&quot;,&quot;function&quot;:&quot;WorldScene.lua:1935&quot;,&quot;lineno&quot;:1958},{&quot;filename&quot;:&quot;WorldScene.lua&quot;,&quot;function&quot;:&quot;onUpdate_WorldCam&quot;,&quot;lineno&quot;:1921},{&quot;filename&quot;:&quot;WorldMapTile.lua&quot;,&quot;function&quot;:&quot;__index&quot;,&quot;lineno&quot;:239}]},&quot;value&quot;:&quot;noisytypes: Attempt to call nil(nil,2224139838)!&quot;}],&quot;platform&quot;:&quot;python&quot;,&quot;sdk&quot;:{&quot;name&quot;:&quot;ws&quot;,&quot;version&quot;:&quot;1.0.0&quot;},&quot;tags&quot;:[[&quot;game&quot;,&quot;niso&quot;],[&quot;userid&quot;,&quot;107638363&quot;],[&quot;environment&quot;,&quot;live&quot;]],&quot;timestamp&quot;:&quot;2019-12-05T23:50:39Z&quot;}
+
+[2019-12-05 15:50:39.282] [error] Response: {&quot;error_name&quot;:&quot;rate_limit&quot;,&quot;error&quot;:&quot;Creation of this event was denied due to rate limiting&quot;}
+[2019-12-05 15:50:39.282] [warning] Error 429 - Too Many Requests. ws will sleep and retry after 41 seconds
+[2019-12-05 15:50:39.760] [info] messages received 18839 sent 25
+[2019-12-05 15:50:40.760] [info] messages received 18839 sent 25
+[2019-12-05 15:50:41.760] [info] messages received 18839 sent 25
+[2019-12-05 15:50:42.761] [info] messages received 18839 sent 25
+[2019-12-05 15:50:43.762] [info] messages received 18839 sent 25
+[2019-12-05 15:50:44.763] [info] messages received 18839 sent 25
+[2019-12-05 15:50:45.768] [info] messages received 18839 sent 25
+</code></pre>
+
+<h2 id="745-2019-12-03">[7.4.5] - 2019-12-03</h2>
+<ul>
+<li>(ws) #125 / fix build problem when jsoncpp is not installed locally</li>
+</ul>
 <h2 id="744-2019-12-03">[7.4.4] - 2019-12-03</h2>
 <ul>
 <li>(ws) #125 / cmake detects an already installed jsoncpp and will try to use this one if present</li>
