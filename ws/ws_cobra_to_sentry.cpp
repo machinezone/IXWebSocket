@@ -40,6 +40,7 @@ namespace ix
         std::atomic<uint64_t> receivedCount(0);
         std::atomic<bool> errorSending(false);
         std::atomic<bool> stop(false);
+        std::atomic<bool> throttled(false);
 
         std::condition_variable condition;
         std::mutex conditionVariableMutex;
@@ -64,6 +65,7 @@ namespace ix
                              &errorSending,
                              &sentCount,
                              &stop,
+                             &throttled,
                              &dsn] {
             SentryClient sentryClient(dsn);
 
@@ -110,6 +112,31 @@ namespace ix
                     spdlog::error("Body: {}", ret.second);
                     spdlog::error("Response: {}", response->payload);
                     errorSending = true;
+
+                    // Error 429 Too Many Requests
+                    if (response->statusCode == 429)
+                    {
+                        auto retryAfter = response->headers["Retry-After"];
+                        std::stringstream ss;
+                        ss << retryAfter;
+                        int seconds;
+                        ss >> seconds;
+
+                        if (!ss.eof() || ss.fail())
+                        {
+                            seconds = 30;
+                            spdlog::warn("Error parsing Retry-After header. "
+                                         "Using {} for the sleep duration", seconds);
+                        }
+
+                        spdlog::warn("Error 429 - Too Many Requests. ws will sleep "
+                                     "and retry after {} seconds", retryAfter);
+
+                        throttled = true;
+                        auto duration = std::chrono::seconds(seconds);
+                        std::this_thread::sleep_for(duration);
+                        throttled = false;
+                    }
                 }
                 else
                 {
@@ -133,8 +160,8 @@ namespace ix
                                &filter,
                                &jsonWriter,
                                verbose,
+                               &throttled,
                                &receivedCount,
-                               &sentCount,
                                &condition,
                                &conditionVariableMutex,
                                &queue](ix::CobraConnectionEventType eventType,
@@ -162,7 +189,7 @@ namespace ix
                                filter,
                                [&jsonWriter,
                                 verbose,
-                                &sentCount,
+                                &throttled,
                                 &receivedCount,
                                 &condition,
                                 &conditionVariableMutex,
@@ -173,13 +200,8 @@ namespace ix
                                    }
 
                                    // If we cannot send to sentry fast enough, drop the message
-                                   const uint64_t scaleFactor = 2;
-
-                                   if (sentCount != 0 && receivedCount != 0 &&
-                                       (sentCount * scaleFactor < receivedCount))
+                                   if (throttled)
                                    {
-                                       spdlog::warn("message dropped: sending is backlogged !");
-
                                        condition.notify_one();
                                        return;
                                    }
