@@ -18,50 +18,50 @@ services:
   #   networks:
   #     - ws-net
 
-  pyproxy:
-    image: bsergean/ws_proxy:build
-    entrypoint: /usr/bin/ws_proxy.py --remote_url 'wss://cobra.addsrv.com' --host 0.0.0.0 --port 8765
-    ports:
-      - "8765:8765"
-    networks:
-      - ws-net
+  #pyproxy:
+  #  image: bsergean/ws_proxy:build
+  #  entrypoint: /usr/bin/ws_proxy.py --remote_url 'wss://cobra.addsrv.com' --host 0.0.0.0 --port 8765
+  #  ports:
+  #    - "8765:8765"
+  #  networks:
+  #    - ws-net
 
-        #  ws:
-        #    security_opt:
-        #    - seccomp:unconfined
-        #    cap_add:
-        #    - SYS_PTRACE
-        #    stdin_open: true
-        #    tty: true
-        #    image: bsergean/ws:build
-        #    entrypoint: sh
-        #    networks:
-        #      - ws-net
-        #    depends_on:
-        #      - redis1
-        #
-        #  redis1:
-        #    image: redis:alpine
-        #    networks:
-        #      - ws-net
-        #
-        #  statsd:
-        #    image: jaconel/statsd
-        #    ports:
-        #      - "8125:8125"
-        #    environment:
-        #      - STATSD_DUMP_MSG=true
-        #      - GRAPHITE_HOST=127.0.0.1
-        #    networks:
-        #      - ws-net
+  #      #  ws:
+  #      #    security_opt:
+  #      #    - seccomp:unconfined
+  #      #    cap_add:
+  #      #    - SYS_PTRACE
+  #      #    stdin_open: true
+  #      #    tty: true
+  #      #    image: bsergean/ws:build
+  #      #    entrypoint: sh
+  #      #    networks:
+  #      #      - ws-net
+  #      #    depends_on:
+  #      #      - redis1
+  #      #
+  #      #  redis1:
+  #      #    image: redis:alpine
+  #      #    networks:
+  #      #      - ws-net
+  #      #
+  #      #  statsd:
+  #      #    image: jaconel/statsd
+  #      #    ports:
+  #      #      - "8125:8125"
+  #      #    environment:
+  #      #      - STATSD_DUMP_MSG=true
+  #      #      - GRAPHITE_HOST=127.0.0.1
+  #      #    networks:
+  #      #      - ws-net
 
-#  compile:
-#    image: alpine
-#    entrypoint: sh
-#    stdin_open: true
-#    tty: true
-#    volumes:
-#      - /Users/bsergeant/src/foss:/home/bsergean/src/foss
+  compile:
+    image: alpine
+    entrypoint: sh
+    stdin_open: true
+    tty: true
+    volumes:
+      - /Users/bsergeant/src/foss:/home/bsergean/src/foss
 
 networks:
   ws-net:
