@@ -94,10 +94,19 @@ namespace ix
                 done = true;
             });
 
+        int i = 0;
+
         while (!done)
         {
             std::chrono::duration<double, std::milli> duration(10);
             std::this_thread::sleep_for(duration);
+
+            if (i++ > 5000) break; // wait 5 seconds max
+        }
+
+        if (!done)
+        {
+            spdlog::error("Error: timing out trying to sent a crash to sentry");
         }
 
         return 0;
