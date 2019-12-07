@@ -118,7 +118,7 @@ namespace
                 char localBuffer[128];
                 Boolean success;
                 success =
-                    CFStringGetCString(message, localBuffer, 128, CFStringGetSystemEncoding());
+                    CFStringGetCString(message, localBuffer, 128, kCFStringEncodingUTF8);
                 if (success)
                 {
                     errMsg = localBuffer;

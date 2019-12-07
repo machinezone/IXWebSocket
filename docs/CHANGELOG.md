@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.5.1] - 2019-12-06
+
+(mac) convert SSL errors to utf8
+
 ## [7.5.0] - 2019-12-05
 
 - (ws) cobra to sentry. Handle Error 429 Too Many Requests and politely wait before sending more data to sentry.
