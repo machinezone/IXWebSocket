@@ -8,7 +8,7 @@
 // If user requests a non existing logger, nullptr will be returned
 // This class is thread safe
 
-#include "spdlog/common.h"
+#include <spdlog/common.h>
 
 #include <chrono>
 #include <functional>
@@ -77,7 +77,7 @@ public:
 
     std::recursive_mutex &tp_mutex();
 
-    void set_automatic_registration(bool automatic_regsistration);
+    void set_automatic_registration(bool automatic_registration);
 
     static registry &instance();
 
