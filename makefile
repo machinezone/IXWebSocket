@@ -30,7 +30,7 @@ uninstall:
 	xargs rm -fv < build/install_manifest.txt
 
 tag:
-	git tag v"`cat DOCKER_VERSION`"
+	git tag v"`sh tools/extract_version.sh`"
 
 xcode:
 	cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 -GXcode && open ixwebsocket.xcodeproj
@@ -41,10 +41,13 @@ xcode_openssl:
 .PHONY: docker
 
 NAME   := bsergean/ws
-TAG    := $(shell cat DOCKER_VERSION)
+TAG    := $(shell sh tools/extract_version.sh)
 IMG    := ${NAME}:${TAG}
 LATEST := ${NAME}:latest
 BUILD  := ${NAME}:build
+
+print_version:
+	@echo 'IXWebSocket version =>' ${TAG}
 
 docker_test:
 	docker build -f docker/Dockerfile.debian -t bsergean/ixwebsocket_test:build .
