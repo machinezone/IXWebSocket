@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.5.3] - 2019-12-12
+
+(server) attempt at fixing #131 by using blocking writes in server mode
+
 ## [7.5.2] - 2019-12-11
 
 (ws) cobra to sentry - created events with sentry tags based on tags present in the cobra messages
