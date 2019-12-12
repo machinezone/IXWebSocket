@@ -40,7 +40,7 @@ xcode_openssl:
 
 .PHONY: docker
 
-NAME   := bsergean/ws
+NAME   := ${DOCKER_REPO}/ws
 TAG    := $(shell sh tools/extract_version.sh)
 IMG    := ${NAME}:${TAG}
 LATEST := ${NAME}:latest

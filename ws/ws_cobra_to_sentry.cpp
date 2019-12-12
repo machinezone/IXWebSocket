@@ -84,6 +84,12 @@ namespace ix
                 auto ret = sentryClient.send(msg, verbose);
                 HttpResponsePtr response = ret.first;
 
+                if (!response)
+                {
+                    spdlog::warn("Null HTTP Response");
+                    continue;
+                }
+
                 if (verbose)
                 {
                     for (auto it : response->headers)
