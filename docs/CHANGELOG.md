@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.5.2] - 2019-12-11
+
+(ws) cobra to sentry - created events with sentry tags based on tags present in the cobra messages
+
 ## [7.5.1] - 2019-12-06
 
 (mac) convert SSL errors to utf8
