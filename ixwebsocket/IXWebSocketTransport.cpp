@@ -77,6 +77,7 @@ namespace ix
 
     WebSocketTransport::WebSocketTransport()
         : _useMask(true)
+        , _blockingSend(false)
         , _compressedMessage(false)
         , _readyState(ReadyState::CLOSED)
         , _closeCode(WebSocketCloseConstants::kInternalErrorCode)
@@ -178,6 +179,7 @@ namespace ix
 
         // Server should not mask the data it sends to the client
         _useMask = false;
+        _blockingSend = true;
 
         _socket = socket;
 
@@ -339,22 +341,9 @@ namespace ix
         // there can be a lot of it for large messages.
         if (pollResult == PollResultType::SendRequest)
         {
-            while (!isSendBufferEmpty() && !_requestInitCancellation)
+            if (!flushSendBuffer())
             {
-                // Wait with a 10ms timeout until the socket is ready to write.
-                // This way we are not busy looping
-                PollResultType result = _socket->isReadyToWrite(10);
-
-                if (result == PollResultType::Error)
-                {
-                    closeSocket();
-                    setReadyState(ReadyState::CLOSED);
-                    break;
-                }
-                else if (result == PollResultType::ReadyForWrite)
-                {
-                    sendOnSocket();
-                }
+                return PollResult::CannotFlushSendBuffer;
             }
         }
         else if (pollResult == PollResultType::ReadyForRead)
@@ -924,13 +913,21 @@ namespace ix
             }
         }
 
+        bool success = true;
+
         // Request to flush the send buffer on the background thread if it isn't empty
         if (!isSendBufferEmpty())
         {
             _socket->wakeUpFromPoll(Socket::kSendRequest);
+
+            // FIXME: we should have a timeout when sending large messages: see #131
+            if (_blockingSend && !flushSendBuffer())
+            {
+                success = false;
+            }
         }
 
-        return WebSocketSendInfo(true, compressionError, payloadSize, wireSize);
+        return WebSocketSendInfo(success, compressionError, payloadSize, wireSize);
     }
 
     void WebSocketTransport::sendFragment(wsheader_type::opcode_type type,
@@ -1166,6 +1163,29 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);
         return _txbuf.size();
+    }
+
+    bool WebSocketTransport::flushSendBuffer()
+    {
+        while (!isSendBufferEmpty() && !_requestInitCancellation)
+        {
+            // Wait with a 10ms timeout until the socket is ready to write.
+            // This way we are not busy looping
+            PollResultType result = _socket->isReadyToWrite(10);
+
+            if (result == PollResultType::Error)
+            {
+                closeSocket();
+                setReadyState(ReadyState::CLOSED);
+                return false;
+            }
+            else if (result == PollResultType::ReadyForWrite)
+            {
+                sendOnSocket();
+            }
+        }
+
+        return true;
     }
 
 } // namespace ix
