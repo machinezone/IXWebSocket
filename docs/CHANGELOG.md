@@ -1,6 +1,22 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.5.4] - 2019-12-16
+
+(websocket client) improve the error message when connecting to a non websocket server
+
+Before:
+
+```
+Connection error: Got bad status connecting to example.com:443, status: 200, HTTP Status line: HTTP/1.1 200 OK
+```
+
+After:
+
+```
+Connection error: Expecting status 101 (Switching Protocol), got 200 status connecting to example.com:443, HTTP Status line: HTTP/1.1 200 OK
+```
+
 ## [7.5.3] - 2019-12-12
 
 (server) attempt at fixing #131 by using blocking writes in server mode

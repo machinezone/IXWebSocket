@@ -178,8 +178,8 @@ namespace ix
         if (status != 101)
         {
             std::stringstream ss;
-            ss << "Got bad status connecting to " << host << ":" << port << ", status: " << status
-               << ", HTTP Status line: " << line;
+            ss << "Expecting status 101 (Switching Protocol), got " << status
+               << " status connecting to " << host << ":" << port << ", HTTP Status line: " << line;
             return WebSocketInitResult(false, status, ss.str());
         }
 
