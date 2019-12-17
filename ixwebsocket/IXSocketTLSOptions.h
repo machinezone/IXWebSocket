@@ -45,6 +45,6 @@ namespace ix
 
     private:
         mutable std::string _errMsg;
-        mutable bool _validated;
+        mutable bool _validated = false;
     };
 } // namespace ix

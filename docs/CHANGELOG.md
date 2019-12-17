@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.5.5] - 2019-12-17
+
+(tls options client) TLSOptions struct _validated member should be initialized to false
+
 ## [7.5.4] - 2019-12-16
 
 (websocket client) improve the error message when connecting to a non websocket server
