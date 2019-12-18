@@ -26,6 +26,8 @@ namespace ix
         SocketMbedTLS(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketMbedTLS();
 
+        virtual bool accept(std::string& errMsg) final;
+
         virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg,

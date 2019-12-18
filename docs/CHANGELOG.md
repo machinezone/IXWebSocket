@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.5.6] - 2019-12-18
+
+(tls servers) Make it clear that apple ssl and mbedtls backends do not support SSL in server mode
+
 ## [7.5.5] - 2019-12-17
 
 (tls options client) TLSOptions struct _validated member should be initialized to false
