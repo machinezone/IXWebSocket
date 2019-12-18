@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.5.8] - 2019-12-18
+
+(cobra-to-sentry) capture application version from device field
+
 ## [7.5.7] - 2019-12-18
 
 (tls) Experimental TLS server support with mbedtls (windows) + process cert tlsoption (client + server)
