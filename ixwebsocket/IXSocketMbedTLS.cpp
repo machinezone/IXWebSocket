@@ -105,6 +105,12 @@ namespace ix
         return true;
     }
 
+    bool SocketMbedTLS::accept(std::string& errMsg)
+    {
+        errMsg = "TLS not supported yet in server mode with mbedtls backend";
+        return false;
+    }
+
     bool SocketMbedTLS::connect(const std::string& host,
                                 int port,
                                 std::string& errMsg,

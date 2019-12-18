@@ -21,6 +21,8 @@ namespace ix
         SocketAppleSSL(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketAppleSSL();
 
+        virtual bool accept(std::string& errMsg) final;
+
         virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg,

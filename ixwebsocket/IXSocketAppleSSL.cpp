@@ -148,6 +148,12 @@ namespace ix
         SocketAppleSSL::close();
     }
 
+    bool SocketAppleSSL::accept(std::string& errMsg)
+    {
+        errMsg = "TLS not supported yet in server mode with apple ssl backend";
+        return false;
+    }
+
     // No wait support
     bool SocketAppleSSL::connect(const std::string& host,
                                  int port,
