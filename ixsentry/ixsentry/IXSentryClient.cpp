@@ -199,6 +199,11 @@ namespace ix
         environmentTag.append(msg["device"]["environment"]);
         tags.append(environmentTag);
 
+        Json::Value clientVersionTag;
+        clientVersionTag.append("client_version");
+        clientVersionTag.append(msg["device"]["app_version"]);
+        tags.append(clientVersionTag);
+
         payload["tags"] = tags;
 
         return _jsonWriter.write(payload);
