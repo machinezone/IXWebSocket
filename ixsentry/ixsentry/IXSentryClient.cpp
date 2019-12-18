@@ -182,7 +182,6 @@ namespace ix
 
         Json::Value extra;
         extra["cobra_event"] = msg;
-        extra["cobra_event"] = msg;
 
         // Builtin tags
         Json::Value gameTag;
