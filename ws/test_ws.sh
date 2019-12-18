@@ -53,7 +53,7 @@ done
 # Start a receiver
 mkdir -p /tmp/ws_test/receive
 cd /tmp/ws_test/receive
-ws receive "${protocol}127.0.0.1:8090" ${delay} --pidfile /tmp/ws_test/pidfile.receive ${server_tls} &
+ws receive "${protocol}127.0.0.1:8090" ${delay} --pidfile /tmp/ws_test/pidfile.receive ${client_tls} &
 
 mkdir -p /tmp/ws_test/send
 cd /tmp/ws_test/send

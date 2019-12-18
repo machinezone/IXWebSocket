@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.5.7] - 2019-12-18
+
+(tls) Experimental TLS server support with mbedtls (windows) + process cert tlsoption (client + server)
+
 ## [7.5.6] - 2019-12-18
 
 (tls servers) Make it clear that apple ssl and mbedtls backends do not support SSL in server mode

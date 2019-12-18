@@ -44,11 +44,12 @@ namespace ix
         mbedtls_entropy_context _entropy;
         mbedtls_ctr_drbg_context _ctr_drbg;
         mbedtls_x509_crt _cacert;
+        mbedtls_x509_crt _cert;
 
         std::mutex _mutex;
         SocketTLSOptions _tlsOptions;
 
-        bool init(const std::string& host, std::string& errMsg);
+        bool init(const std::string& host, bool isClient, std::string& errMsg);
         void initMBedTLS();
     };
 
