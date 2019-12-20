@@ -61,7 +61,7 @@ namespace ix
 
             // Server connection
             state->webSocket().setOnMessageCallback([webSocket, state, verbose](
-                                                        const WebSocketMessagePtr& msg) {
+                                                     const WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     std::cerr << "New connection" << std::endl;
@@ -120,6 +120,7 @@ namespace ix
                     std::string url(remoteUrl);
                     url += msg->openInfo.uri;
                     state->webSocket().setUrl(url);
+                    state->webSocket().disableAutomaticReconnection();
                     state->webSocket().start();
 
                     // we should sleep here for a bit until we've established the
