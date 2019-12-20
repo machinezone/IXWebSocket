@@ -132,11 +132,13 @@ namespace ix
                         {
                             seconds = 30;
                             spdlog::warn("Error parsing Retry-After header. "
-                                         "Using {} for the sleep duration", seconds);
+                                         "Using {} for the sleep duration",
+                                         seconds);
                         }
 
                         spdlog::warn("Error 429 - Too Many Requests. ws will sleep "
-                                     "and retry after {} seconds", retryAfter);
+                                     "and retry after {} seconds",
+                                     retryAfter);
 
                         throttled = true;
                         auto duration = std::chrono::seconds(seconds);
