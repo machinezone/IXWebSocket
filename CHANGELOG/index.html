@@ -94,6 +94,15 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#changelog">Changelog</a></li>
+            <li><a href="#760-2019-12-19">[7.6.0] - 2019-12-19</a></li>
+            <li><a href="#758-2019-12-18">[7.5.8] - 2019-12-18</a></li>
+            <li><a href="#757-2019-12-18">[7.5.7] - 2019-12-18</a></li>
+            <li><a href="#756-2019-12-18">[7.5.6] - 2019-12-18</a></li>
+            <li><a href="#755-2019-12-17">[7.5.5] - 2019-12-17</a></li>
+            <li><a href="#754-2019-12-16">[7.5.4] - 2019-12-16</a></li>
+            <li><a href="#753-2019-12-12">[7.5.3] - 2019-12-12</a></li>
+            <li><a href="#752-2019-12-11">[7.5.2] - 2019-12-11</a></li>
+            <li><a href="#751-2019-12-06">[7.5.1] - 2019-12-06</a></li>
             <li><a href="#750-2019-12-05">[7.5.0] - 2019-12-05</a></li>
             <li><a href="#745-2019-12-03">[7.4.5] - 2019-12-03</a></li>
             <li><a href="#744-2019-12-03">[7.4.4] - 2019-12-03</a></li>
@@ -157,6 +166,32 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All notable changes to this project will be documented in this file.</p>
+<h2 id="760-2019-12-19">[7.6.0] - 2019-12-19</h2>
+<p>(cobra) Add TLS options to all cobra commands and classes. Add example to the doc.</p>
+<h2 id="758-2019-12-18">[7.5.8] - 2019-12-18</h2>
+<p>(cobra-to-sentry) capture application version from device field</p>
+<h2 id="757-2019-12-18">[7.5.7] - 2019-12-18</h2>
+<p>(tls) Experimental TLS server support with mbedtls (windows) + process cert tlsoption (client + server)</p>
+<h2 id="756-2019-12-18">[7.5.6] - 2019-12-18</h2>
+<p>(tls servers) Make it clear that apple ssl and mbedtls backends do not support SSL in server mode</p>
+<h2 id="755-2019-12-17">[7.5.5] - 2019-12-17</h2>
+<p>(tls options client) TLSOptions struct _validated member should be initialized to false</p>
+<h2 id="754-2019-12-16">[7.5.4] - 2019-12-16</h2>
+<p>(websocket client) improve the error message when connecting to a non websocket server</p>
+<p>Before:</p>
+<pre><code>Connection error: Got bad status connecting to example.com:443, status: 200, HTTP Status line: HTTP/1.1 200 OK
+</code></pre>
+
+<p>After:</p>
+<pre><code>Connection error: Expecting status 101 (Switching Protocol), got 200 status connecting to example.com:443, HTTP Status line: HTTP/1.1 200 OK
+</code></pre>
+
+<h2 id="753-2019-12-12">[7.5.3] - 2019-12-12</h2>
+<p>(server) attempt at fixing #131 by using blocking writes in server mode</p>
+<h2 id="752-2019-12-11">[7.5.2] - 2019-12-11</h2>
+<p>(ws) cobra to sentry - created events with sentry tags based on tags present in the cobra messages</p>
+<h2 id="751-2019-12-06">[7.5.1] - 2019-12-06</h2>
+<p>(mac) convert SSL errors to utf8</p>
 <h2 id="750-2019-12-05">[7.5.0] - 2019-12-05</h2>
 <ul>
 <li>(ws) cobra to sentry. Handle Error 429 Too Many Requests and politely wait before sending more data to sentry.</li>
