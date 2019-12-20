@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.6.0] - 2019-12-19
+
+(cobra) Add TLS options to all cobra commands and classes. Add example to the doc.
+
 ## [7.5.8] - 2019-12-18
 
 (cobra-to-sentry) capture application version from device field

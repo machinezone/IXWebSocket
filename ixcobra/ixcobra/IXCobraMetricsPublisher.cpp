@@ -5,6 +5,7 @@
  */
 
 #include "IXCobraMetricsPublisher.h"
+#include <ixwebsocket/IXSocketTLSOptions.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -31,14 +32,15 @@ namespace ix
                                           const std::string& channel,
                                           const std::string& rolename,
                                           const std::string& rolesecret,
-                                          bool enablePerMessageDeflate)
+                                          bool enablePerMessageDeflate,
+                                          const SocketTLSOptions& socketTLSOptions)
     {
         // Configure the satori connection and start its publish background thread
         _cobra_metrics_theaded_publisher.start();
 
         _cobra_metrics_theaded_publisher.configure(appkey, endpoint, channel,
                                                    rolename, rolesecret,
-                                                   enablePerMessageDeflate);
+                                                   enablePerMessageDeflate, socketTLSOptions);
     }
 
     Json::Value& CobraMetricsPublisher::getGenericAttributes()

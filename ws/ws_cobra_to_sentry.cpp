@@ -28,11 +28,16 @@ namespace ix
                                 const std::string& dsn,
                                 bool verbose,
                                 bool strict,
-                                int jobs)
+                                int jobs,
+                                const ix::SocketTLSOptions& tlsOptions)
     {
         ix::CobraConnection conn;
-        conn.configure(
-            appkey, endpoint, rolename, rolesecret, ix::WebSocketPerMessageDeflateOptions(true));
+        conn.configure(appkey,
+                       endpoint,
+                       rolename,
+                       rolesecret,
+                       ix::WebSocketPerMessageDeflateOptions(true),
+                       tlsOptions);
         conn.connect();
 
         Json::FastWriter jsonWriter;

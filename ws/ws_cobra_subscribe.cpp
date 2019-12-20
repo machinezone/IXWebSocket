@@ -20,11 +20,16 @@ namespace ix
                                 const std::string& rolesecret,
                                 const std::string& channel,
                                 const std::string& filter,
-                                bool quiet)
+                                bool quiet,
+                                const ix::SocketTLSOptions& tlsOptions)
     {
         ix::CobraConnection conn;
-        conn.configure(
-            appkey, endpoint, rolename, rolesecret, ix::WebSocketPerMessageDeflateOptions(true));
+        conn.configure(appkey,
+                       endpoint,
+                       rolename,
+                       rolesecret,
+                       ix::WebSocketPerMessageDeflateOptions(true),
+                       tlsOptions);
         conn.connect();
 
         Json::FastWriter jsonWriter;

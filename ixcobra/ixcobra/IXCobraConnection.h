@@ -20,6 +20,7 @@
 namespace ix
 {
     class WebSocket;
+    struct SocketTLSOptions;
 
     enum CobraConnectionEventType
     {
@@ -62,7 +63,8 @@ namespace ix
                        const std::string& endpoint,
                        const std::string& rolename,
                        const std::string& rolesecret,
-                       const WebSocketPerMessageDeflateOptions& webSocketPerMessageDeflateOptions);
+                       const WebSocketPerMessageDeflateOptions& webSocketPerMessageDeflateOptions,
+                       const SocketTLSOptions& socketTLSOptions);
 
         /// Set the traffic tracker callback
         static void setTrafficTrackerCallback(const TrafficTrackerCallback& callback);
