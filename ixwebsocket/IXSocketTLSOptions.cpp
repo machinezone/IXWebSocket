@@ -8,6 +8,7 @@
 
 #include <assert.h>
 #include <fstream>
+#include <sstream>
 
 namespace ix
 {
@@ -70,5 +71,16 @@ namespace ix
     const std::string& SocketTLSOptions::getErrorMsg() const
     {
         return _errMsg;
+    }
+
+    std::string SocketTLSOptions::getDescription() const
+    {
+        std::stringstream ss;
+        ss << "TLS Options:" << std::endl;
+        ss << "  certFile = " << certFile << std::endl;
+        ss << "  keyFile  = " << keyFile << std::endl;
+        ss << "  caFile   = " << caFile << std::endl;
+        ss << "  ciphers  = " << ciphers << std::endl;
+        return ss.str();
     }
 } // namespace ix
