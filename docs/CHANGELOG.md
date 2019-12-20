@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.6.2] - 2019-12-20
+
+(mbedtls) correct support for using own certificate and private key
+
 ## [7.6.1] - 2019-12-20
 
 (ws commands) in websocket proxy, disable automatic reconnections + in Dockerfile, use alpine 3.11

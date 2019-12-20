@@ -45,6 +45,7 @@ namespace ix
         mbedtls_ctr_drbg_context _ctr_drbg;
         mbedtls_x509_crt _cacert;
         mbedtls_x509_crt _cert;
+        mbedtls_pk_context _pkey;
 
         std::mutex _mutex;
         SocketTLSOptions _tlsOptions;
