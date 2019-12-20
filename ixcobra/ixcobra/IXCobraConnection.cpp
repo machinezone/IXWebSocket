@@ -7,6 +7,7 @@
 #include "IXCobraConnection.h"
 #include <ixcrypto/IXHMac.h>
 #include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -244,7 +245,8 @@ namespace ix
                                     const std::string& endpoint,
                                     const std::string& rolename,
                                     const std::string& rolesecret,
-                                    const WebSocketPerMessageDeflateOptions& webSocketPerMessageDeflateOptions)
+                                    const WebSocketPerMessageDeflateOptions& webSocketPerMessageDeflateOptions,
+                                    const SocketTLSOptions& socketTLSOptions)
     {
         _roleName = rolename;
         _roleSecret = rolesecret;
@@ -257,6 +259,7 @@ namespace ix
         std::string url = ss.str();
         _webSocket->setUrl(url);
         _webSocket->setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
+        _webSocket->setTLSOptions(socketTLSOptions);
     }
 
     //

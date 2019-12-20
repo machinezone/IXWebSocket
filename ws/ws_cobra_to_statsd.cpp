@@ -66,11 +66,16 @@ namespace ix
                                 int port,
                                 const std::string& prefix,
                                 const std::string& fields,
-                                bool verbose)
+                                bool verbose,
+                                const ix::SocketTLSOptions& tlsOptions)
     {
         ix::CobraConnection conn;
-        conn.configure(
-            appkey, endpoint, rolename, rolesecret, ix::WebSocketPerMessageDeflateOptions(true));
+        conn.configure(appkey,
+                       endpoint,
+                       rolename,
+                       rolesecret,
+                       ix::WebSocketPerMessageDeflateOptions(true),
+                       tlsOptions);
         conn.connect();
 
         auto tokens = parseFields(fields);

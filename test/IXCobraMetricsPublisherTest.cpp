@@ -62,11 +62,14 @@ namespace
         gMessageCount = 0;
 
         ix::CobraConnection conn;
+        SocketTLSOptions socketTLSOptions;
+
         conn.configure(APPKEY,
                        endpoint,
                        SUBSCRIBER_ROLE,
                        SUBSCRIBER_SECRET,
-                       ix::WebSocketPerMessageDeflateOptions(true));
+                       ix::WebSocketPerMessageDeflateOptions(true),
+                       socketTLSOptions);
         conn.connect();
 
         conn.setEventCallback([&conn](ix::CobraConnectionEventType eventType,
@@ -202,9 +205,15 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
 
     ix::CobraMetricsPublisher cobraMetricsPublisher;
 
+    SocketTLSOptions socketTLSOptions;
     bool perMessageDeflate = true;
-    cobraMetricsPublisher.configure(
-        APPKEY, endpoint, CHANNEL, PUBLISHER_ROLE, PUBLISHER_SECRET, perMessageDeflate);
+    cobraMetricsPublisher.configure(APPKEY,
+                                    endpoint,
+                                    CHANNEL,
+                                    PUBLISHER_ROLE,
+                                    PUBLISHER_SECRET,
+                                    perMessageDeflate,
+                                    socketTLSOptions);
     cobraMetricsPublisher.setSession(uuid4());
     cobraMetricsPublisher.enable(true); // disabled by default, needs to be enabled to be active
 

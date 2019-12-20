@@ -20,7 +20,7 @@ namespace snake
         : _appConfig(appConfig)
         , _server(appConfig.port, appConfig.hostname)
     {
-        ;
+        _server.setTLSOptions(appConfig.socketTLSOptions);
     }
 
     //

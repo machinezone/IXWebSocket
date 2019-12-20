@@ -34,10 +34,10 @@ namespace
         });
     }
 
-    class SatoriChat
+    class CobraChat
     {
     public:
-        SatoriChat(const std::string& user,
+        CobraChat(const std::string& user,
                    const std::string& session,
                    const std::string& endpoint);
 
@@ -72,9 +72,9 @@ namespace
         std::mutex _logMutex;
     };
 
-    SatoriChat::SatoriChat(const std::string& user,
-                           const std::string& session,
-                           const std::string& endpoint)
+    CobraChat::CobraChat(const std::string& user,
+                         const std::string& session,
+                         const std::string& endpoint)
         : _user(user)
         , _session(session)
         , _endpoint(endpoint)
@@ -83,34 +83,34 @@ namespace
     {
     }
 
-    void SatoriChat::start()
+    void CobraChat::start()
     {
-        _thread = std::thread(&SatoriChat::run, this);
+        _thread = std::thread(&CobraChat::run, this);
     }
 
-    void SatoriChat::stop()
+    void CobraChat::stop()
     {
         _stop = true;
         _thread.join();
     }
 
-    bool SatoriChat::isReady() const
+    bool CobraChat::isReady() const
     {
         return _connectedAndSubscribed;
     }
 
-    size_t SatoriChat::getReceivedMessagesCount() const
+    size_t CobraChat::getReceivedMessagesCount() const
     {
         return _receivedQueue.size();
     }
 
-    bool SatoriChat::hasPendingMessages() const
+    bool CobraChat::hasPendingMessages() const
     {
         std::unique_lock<std::mutex> lock(_queue_mutex);
         return !_publish_queue.empty();
     }
 
-    Json::Value SatoriChat::popMessage()
+    Json::Value CobraChat::popMessage()
     {
         std::unique_lock<std::mutex> lock(_queue_mutex);
         auto msg = _publish_queue.front();
@@ -121,7 +121,7 @@ namespace
     //
     // Callback to handle received messages, that are printed on the console
     //
-    void SatoriChat::subscribe(const std::string& channel)
+    void CobraChat::subscribe(const std::string& channel)
     {
         std::string filter;
         _conn.subscribe(channel, filter, [this](const Json::Value& msg) {
@@ -151,7 +151,7 @@ namespace
         });
     }
 
-    void SatoriChat::sendMessage(const std::string& text)
+    void CobraChat::sendMessage(const std::string& text)
     {
         Json::Value msg;
         msg["user"] = _user;
@@ -166,16 +166,21 @@ namespace
     // Do satori communication on a background thread, where we can have
     // something like an event loop that publish, poll and receive data
     //
-    void SatoriChat::run()
+    void CobraChat::run()
     {
         // "chat" conf
         std::string appkey("FC2F10139A2BAc53BB72D9db967b024f");
         std::string channel = _session;
         std::string role = "_sub";
         std::string secret = "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba";
+        SocketTLSOptions socketTLSOptions;
 
-        _conn.configure(
-            appkey, _endpoint, role, secret, ix::WebSocketPerMessageDeflateOptions(true));
+        _conn.configure(appkey,
+                        _endpoint,
+                        role,
+                        secret,
+                        ix::WebSocketPerMessageDeflateOptions(true),
+                        socketTLSOptions);
         _conn.connect();
 
         _conn.setEventCallback([this, channel](ix::CobraConnectionEventType eventType,
@@ -280,8 +285,8 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
         ss << "ws://localhost:" << port;
         std::string endpoint = ss.str();
 
-        SatoriChat chatA("jean", session, endpoint);
-        SatoriChat chatB("paul", session, endpoint);
+        CobraChat chatA("jean", session, endpoint);
+        CobraChat chatB("paul", session, endpoint);
 
         chatA.start();
         chatB.start();

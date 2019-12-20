@@ -6,6 +6,7 @@
 
 #include "IXCobraMetricsThreadedPublisher.h"
 #include <ixwebsocket/IXSetThreadName.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixcore/utils/IXCoreLogger.h>
 
 #include <algorithm>
@@ -92,14 +93,15 @@ namespace ix
                                                   const std::string& channel,
                                                   const std::string& rolename,
                                                   const std::string& rolesecret,
-                                                  bool enablePerMessageDeflate)
+                                                  bool enablePerMessageDeflate,
+                                                  const SocketTLSOptions& socketTLSOptions)
     {
         _channel = channel;
 
         ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(enablePerMessageDeflate);
         _cobra_connection.configure(appkey, endpoint,
                                     rolename, rolesecret,
-                                    webSocketPerMessageDeflateOptions);
+                                    webSocketPerMessageDeflateOptions, socketTLSOptions);
     }
 
     void CobraMetricsThreadedPublisher::pushMessage(MessageKind messageKind)

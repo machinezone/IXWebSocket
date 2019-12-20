@@ -76,14 +76,16 @@ namespace ix
                                 const std::string& rolesecret,
                                 const std::string& channel,
                                 const std::string& filter,
-                                bool quiet);
+                                bool quiet,
+                                const ix::SocketTLSOptions& tlsOptions);
 
     int ws_cobra_publish_main(const std::string& appkey,
                               const std::string& endpoint,
                               const std::string& rolename,
                               const std::string& rolesecret,
                               const std::string& channel,
-                              const std::string& path);
+                              const std::string& path,
+                              const ix::SocketTLSOptions& tlsOptions);
 
     int ws_cobra_metrics_publish_main(const std::string& appkey,
                                       const std::string& endpoint,
@@ -91,7 +93,8 @@ namespace ix
                                       const std::string& rolesecret,
                                       const std::string& channel,
                                       const std::string& path,
-                                      bool stress);
+                                      bool stress,
+                                      const ix::SocketTLSOptions& tlsOptions);
 
     int ws_cobra_to_statsd_main(const std::string& appkey,
                                 const std::string& endpoint,
@@ -103,7 +106,8 @@ namespace ix
                                 int port,
                                 const std::string& prefix,
                                 const std::string& fields,
-                                bool verbose);
+                                bool verbose,
+                                const ix::SocketTLSOptions& tlsOptions);
 
     int ws_cobra_to_sentry_main(const std::string& appkey,
                                 const std::string& endpoint,
@@ -114,7 +118,8 @@ namespace ix
                                 const std::string& dsn,
                                 bool verbose,
                                 bool strict,
-                                int jobs);
+                                int jobs,
+                                const ix::SocketTLSOptions& tlsOptions);
 
     int ws_cobra_metrics_to_redis(const std::string& appkey,
                                   const std::string& endpoint,
@@ -123,7 +128,8 @@ namespace ix
                                   const std::string& channel,
                                   const std::string& filter,
                                   const std::string& host,
-                                  int port);
+                                  int port,
+                                  const ix::SocketTLSOptions& tlsOptions);
 
     int ws_snake_main(int port,
                       const std::string& hostname,
@@ -131,7 +137,8 @@ namespace ix
                       int redisPort,
                       const std::string& redisPassword,
                       bool verbose,
-                      const std::string& appsConfigPath);
+                      const std::string& appsConfigPath,
+                      const ix::SocketTLSOptions& tlsOptions);
 
     int ws_httpd_main(int port,
                       const std::string& hostname,

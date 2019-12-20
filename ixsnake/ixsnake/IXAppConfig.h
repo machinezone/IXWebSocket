@@ -9,6 +9,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 
 namespace snake
 {
@@ -25,6 +26,9 @@ namespace snake
 
         // AppKeys
         nlohmann::json apps;
+
+        // TLS options
+        ix::SocketTLSOptions socketTLSOptions;
 
         // Misc
         bool verbose;

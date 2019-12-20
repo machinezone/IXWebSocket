@@ -22,7 +22,8 @@ namespace ix
                               const std::string& rolename,
                               const std::string& rolesecret,
                               const std::string& channel,
-                              const std::string& path)
+                              const std::string& path,
+                              const ix::SocketTLSOptions& tlsOptions)
     {
         std::ifstream f(path);
         std::string str((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
@@ -36,8 +37,12 @@ namespace ix
         }
 
         ix::CobraConnection conn;
-        conn.configure(
-            appkey, endpoint, rolename, rolesecret, ix::WebSocketPerMessageDeflateOptions(true));
+        conn.configure(appkey,
+                       endpoint,
+                       rolename,
+                       rolesecret,
+                       ix::WebSocketPerMessageDeflateOptions(true),
+                       tlsOptions);
         conn.connect();
 
         // Display incoming messages

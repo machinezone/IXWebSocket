@@ -243,6 +243,127 @@ Options:
   --transfer-timeout INT      Transfer timeout
 ```
 
-## Cobra Client
+## Cobra client and server
 
-[cobra](https://github.com/machinezone/cobra) is a real time messenging server. ws has a sub-command to interact with cobra.
+[cobra](https://github.com/machinezone/cobra) is a real time messenging server. ws has several sub-command to interact with cobra. There is also a minimal cobra compatible server named snake available.
+
+Below are examples on running a snake server and clients with TLS enabled (the server only works with the OpenSSL backend for now).
+
+First, generate certificates.
+
+```
+$ cd /path/to/IXWebSocket
+$ cd ixsnake/ixsnake
+$ bash ../../ws/generate_certs.sh
+Generating RSA private key, 2048 bit long modulus
+.....+++
+.................+++
+e is 65537 (0x10001)
+generated ./.certs/trusted-ca-key.pem
+generated ./.certs/trusted-ca-crt.pem
+Generating RSA private key, 2048 bit long modulus
+..+++
+.......................................+++
+e is 65537 (0x10001)
+generated ./.certs/trusted-server-key.pem
+Signature ok
+subject=/O=machinezone/O=IXWebSocket/CN=trusted-server
+Getting CA Private Key
+generated ./.certs/trusted-server-crt.pem
+Generating RSA private key, 2048 bit long modulus
+...................................+++
+..................................................+++
+e is 65537 (0x10001)
+generated ./.certs/trusted-client-key.pem
+Signature ok
+subject=/O=machinezone/O=IXWebSocket/CN=trusted-client
+Getting CA Private Key
+generated ./.certs/trusted-client-crt.pem
+Generating RSA private key, 2048 bit long modulus
+..............+++
+.......................................+++
+e is 65537 (0x10001)
+generated ./.certs/untrusted-ca-key.pem
+generated ./.certs/untrusted-ca-crt.pem
+Generating RSA private key, 2048 bit long modulus
+..........+++
+................................................+++
+e is 65537 (0x10001)
+generated ./.certs/untrusted-client-key.pem
+Signature ok
+subject=/O=machinezone/O=IXWebSocket/CN=untrusted-client
+Getting CA Private Key
+generated ./.certs/untrusted-client-crt.pem
+Generating RSA private key, 2048 bit long modulus
+.....................................................................................+++
+...........+++
+e is 65537 (0x10001)
+generated ./.certs/selfsigned-client-key.pem
+Signature ok
+subject=/O=machinezone/O=IXWebSocket/CN=selfsigned-client
+Getting Private key
+generated ./.certs/selfsigned-client-crt.pem
+```
+
+Now run the snake server.
+
+```
+$ export certs=.certs
+$ ws snake --tls --port 8765 --cert-file ${certs}/trusted-server-crt.pem --key-file ${certs}/trusted-server-key.pem --ca-file ${certs}/trusted-ca-crt.pem
+{
+  "apps": {
+    "FC2F10139A2BAc53BB72D9db967b024f": {
+      "roles": {
+        "_sub": {
+          "secret": "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba"
+        },
+        "_pub": {
+          "secret": "1c04DB8fFe76A4EeFE3E318C72d771db"
+        }
+      }
+    }
+  }
+}
+
+redis host: 127.0.0.1
+redis password:
+redis port: 6379
+```
+
+As a new connection comes in, such output should be printed
+
+```
+[2019-12-19 20:27:19.724] [info] New connection
+id: 0
+Uri: /v2?appkey=_health
+Headers:
+Connection: Upgrade
+Host: 127.0.0.1:8765
+Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_max_window_bits=15
+Sec-WebSocket-Key: d747B0fE61Db73f7Eh47c0==
+Sec-WebSocket-Protocol: json
+Sec-WebSocket-Version: 13
+Upgrade: websocket
+User-Agent: ixwebsocket/7.5.8 macos ssl/OpenSSL OpenSSL 1.0.2q  20 Nov 2018 zlib 1.2.11
+```
+
+To connect and publish a message, do:
+
+```
+$ export certs=.certs
+$ cd /path/to/ws/folder
+$ ls cobraMetricsSample.json
+cobraMetricsSample.json
+$ ws cobra_publish --endpoint wss://127.0.0.1:8765 --appkey FC2F10139A2BAc53BB72D9db967b024f --rolename _pub --rolesecret 1c04DB8fFe76A4EeFE3E318C72d771db --channel foo --cert-file ${certs}/trusted-client-crt.pem --key-file ${certs}/trusted-client-key.pem --ca-file ${certs}/trusted-ca-crt.pem cobraMetricsSample.json
+[2019-12-19 20:46:42.656] [info] Publisher connected
+[2019-12-19 20:46:42.657] [info] Connection: Upgrade
+[2019-12-19 20:46:42.657] [info] Sec-WebSocket-Accept: rs99IFThoBrhSg+k8G4ixH9yaq4=
+[2019-12-19 20:46:42.657] [info] Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_max_window_bits=15
+[2019-12-19 20:46:42.657] [info] Server: ixwebsocket/7.5.8 macos ssl/OpenSSL OpenSSL 1.0.2q  20 Nov 2018 zlib 1.2.11
+[2019-12-19 20:46:42.657] [info] Upgrade: websocket
+[2019-12-19 20:46:42.658] [info] Publisher authenticated
+[2019-12-19 20:46:42.658] [info] Published msg 3
+[2019-12-19 20:46:42.659] [info] Published message id 3 acked
+```
+
+To use OpenSSL on macOS, compile with `make ws_openssl`. First you will have to install OpenSSL libraries, which can be done with Homebrew.

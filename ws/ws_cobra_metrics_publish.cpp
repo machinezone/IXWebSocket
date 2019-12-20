@@ -22,7 +22,8 @@ namespace ix
                                       const std::string& rolesecret,
                                       const std::string& channel,
                                       const std::string& path,
-                                      bool stress)
+                                      bool stress,
+                                      const ix::SocketTLSOptions& tlsOptions)
     {
         std::atomic<int> sentMessages(0);
         std::atomic<int> ackedMessages(0);
@@ -37,7 +38,7 @@ namespace ix
 
         bool enablePerMessageDeflate = true;
         cobraMetricsPublisher.configure(
-            appkey, endpoint, channel, rolename, rolesecret, enablePerMessageDeflate);
+            appkey, endpoint, channel, rolename, rolesecret, enablePerMessageDeflate, tlsOptions);
 
         while (!cobraMetricsPublisher.isAuthenticated())
             ;
