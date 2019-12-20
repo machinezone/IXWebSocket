@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [7.6.1] - 2019-12-20
+
+(ws commands) in websocket proxy, disable automatic reconnections + in Dockerfile, use alpine 3.11
+
 ## [7.6.0] - 2019-12-19
 
 (cobra) Add TLS options to all cobra commands and classes. Add example to the doc.

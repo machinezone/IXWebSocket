@@ -1,4 +1,4 @@
-FROM alpine:edge as build
+FROM alpine:3.11 as build
 
 RUN apk add --no-cache gcc g++ musl-dev linux-headers cmake openssl-dev 
 RUN apk add --no-cache make
@@ -16,7 +16,7 @@ WORKDIR /opt
 USER app
 RUN [ "make", "ws_install" ]
 
-FROM alpine:edge as runtime
+FROM alpine:3.11 as runtime
 
 RUN apk add --no-cache libstdc++
 RUN apk add --no-cache strace
