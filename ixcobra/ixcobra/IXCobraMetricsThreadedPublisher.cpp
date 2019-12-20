@@ -98,6 +98,8 @@ namespace ix
     {
         _channel = channel;
 
+        ix::IXCoreLogger::Log(socketTLSOptions.getDescription().c_str());
+
         ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(enablePerMessageDeflate);
         _cobra_connection.configure(appkey, endpoint,
                                     rolename, rolesecret,
