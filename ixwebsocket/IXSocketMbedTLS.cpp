@@ -59,8 +59,7 @@ namespace ix
         }
 
         if (mbedtls_ssl_config_defaults(&_conf,
-                                        (isClient) ? MBEDTLS_SSL_IS_CLIENT
-                                                   : MBEDTLS_SSL_IS_SERVER,
+                                        (isClient) ? MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER,
                                         MBEDTLS_SSL_TRANSPORT_STREAM,
                                         MBEDTLS_SSL_PRESET_DEFAULT) != 0)
         {
