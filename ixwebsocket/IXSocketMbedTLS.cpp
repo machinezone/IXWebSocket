@@ -71,9 +71,14 @@ namespace ix
 
         if (_tlsOptions.hasCertAndKey())
         {
-            if (mbedtls_x509_crt_parse_file(&_cacert, _tlsOptions.certFile.c_str()) < 0)
+            if (mbedtls_x509_crt_parse_file(&_cert, _tlsOptions.certFile.c_str()) < 0)
             {
                 errMsg = "Cannot parse cert file '" + _tlsOptions.certFile + "'";
+                return false;
+            }
+            if (mbedtls_pk_parse_keyfile(&_pkey, _tlsOptions.keyFile.c_str(), "") < 0)
+            {
+                errMsg = "Cannot parse key file '" + _tlsOptions.keyFile + "'";
                 return false;
             }
         }
@@ -84,7 +89,7 @@ namespace ix
         }
         else
         {
-            mbedtls_ssl_conf_ca_chain(&_conf, &_cacert, NULL);
+            mbedtls_ssl_conf_authmode(&_conf, MBEDTLS_SSL_VERIFY_REQUIRED);
 
             // FIXME: should we call mbedtls_ssl_conf_verify ?
 
@@ -97,7 +102,13 @@ namespace ix
                 errMsg = "Cannot parse CA file '" + _tlsOptions.caFile + "'";
                 return false;
             }
-            mbedtls_ssl_conf_authmode(&_conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+
+            mbedtls_ssl_conf_ca_chain(&_conf, &_cacert, NULL);
+
+            if (_tlsOptions.hasCertAndKey())
+            {
+                mbedtls_ssl_conf_own_cert(&_conf, &_cert, &_pkey);
+            }
         }
 
         if (mbedtls_ssl_setup(&_ssl, &_conf) != 0)
