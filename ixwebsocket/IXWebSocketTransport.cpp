@@ -144,7 +144,9 @@ namespace ix
 
         if (!UrlParser::parse(url, protocol, host, path, query, port))
         {
-            return WebSocketInitResult(false, 0, std::string("Could not parse URL ") + url);
+            std::stringstream ss;
+            ss << "Could not parse url: '" << url << "'";
+            return WebSocketInitResult(false, 0, ss.str());
         }
 
         std::string errorMsg;
