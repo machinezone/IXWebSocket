@@ -43,7 +43,6 @@ namespace ix
                        rolesecret,
                        ix::WebSocketPerMessageDeflateOptions(true),
                        tlsOptions);
-        conn.connect();
 
         // Display incoming messages
         std::atomic<bool> authenticated(false);
@@ -93,6 +92,8 @@ namespace ix
                 messageAcked = true;
             }
         });
+
+        conn.connect();
 
         while (!authenticated)
             ;
