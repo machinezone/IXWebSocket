@@ -247,7 +247,7 @@ Options:
 
 [cobra](https://github.com/machinezone/cobra) is a real time messenging server. ws has several sub-command to interact with cobra. There is also a minimal cobra compatible server named snake available.
 
-Below are examples on running a snake server and clients with TLS enabled (the server only works with the OpenSSL backend for now).
+Below are examples on running a snake server and clients with TLS enabled (the server only works with the OpenSSL and the Mbed TLS backend for now).
 
 First, generate certificates.
 
@@ -366,4 +366,4 @@ $ ws cobra_publish --endpoint wss://127.0.0.1:8765 --appkey FC2F10139A2BAc53BB72
 [2019-12-19 20:46:42.659] [info] Published message id 3 acked
 ```
 
-To use OpenSSL on macOS, compile with `make ws_openssl`. First you will have to install OpenSSL libraries, which can be done with Homebrew.
+To use OpenSSL on macOS, compile with `make ws_openssl`. First you will have to install OpenSSL libraries, which can be done with Homebrew. Use `make ws_mbedtls` accordingly to use MbedTLS.
