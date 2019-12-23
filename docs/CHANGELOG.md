@@ -3,7 +3,7 @@ All changes to this project will be documented in this file.
 
 ## [7.6.4] - 2019-12-22
 
-(client) error handling, quote url in error case when failing to parse on
+(client) error handling, quote url in error case when failing to parse one
 (ws) ws_cobra_publish: register callbacks before connecting
 (doc) mention mbedtls in supported ssl server backend
 
