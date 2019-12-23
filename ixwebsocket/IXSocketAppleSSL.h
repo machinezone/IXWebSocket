@@ -34,6 +34,8 @@ namespace ix
         virtual ssize_t recv(void* buffer, size_t length) final;
 
     private:
+        bool handleTLSOptions(std::string& errMsg);
+
         SSLContextRef _sslContext;
         mutable std::mutex _mutex; // AppleSSL routines are not thread-safe
 

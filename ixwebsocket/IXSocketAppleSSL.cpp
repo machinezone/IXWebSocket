@@ -130,6 +130,104 @@ namespace
         return errMsg;
     }
 
+#undef CURL_BUILD_IOS
+    OSStatus CopyIdentityFromPKCS12File(
+        const char *cPath,
+        const char *cPassword,
+        SecIdentityRef *out_cert_and_key)
+    {
+        OSStatus status = errSecItemNotFound;
+        CFURLRef pkcs_url = CFURLCreateFromFileSystemRepresentation(
+            NULL, (const UInt8 *)cPath, strlen(cPath), false);
+        CFStringRef password = cPassword ? CFStringCreateWithCString(NULL,
+            cPassword, kCFStringEncodingUTF8) : NULL;
+        CFDataRef pkcs_data = NULL;
+
+        /* We can import P12 files on iOS or OS X 10.7 or later: */
+        /* These constants are documented as having first appeared in 10.6 but they
+           raise linker errors when used on that cat for some reason. */
+        if (CFURLCreateDataAndPropertiesFromResource(
+            NULL, pkcs_url, &pkcs_data, NULL, NULL, &status)) {
+            CFArrayRef items = NULL;
+
+            /* On iOS SecPKCS12Import will never add the client certificate to the
+             * Keychain.
+             *
+             * It gives us back a SecIdentityRef that we can use directly. */
+#if CURL_BUILD_IOS
+            const void *cKeys[] = {kSecImportExportPassphrase};
+            const void *cValues[] = {password};
+            CFDictionaryRef options = CFDictionaryCreate(NULL, cKeys, cValues,
+                    password ? 1L : 0L, NULL, NULL);
+
+            if (options != NULL) {
+                status = SecPKCS12Import(pkcs_data, options, &items);
+                CFRelease(options);
+            }
+
+            /* On macOS SecPKCS12Import will always add the client certificate to
+             * the Keychain.
+             *
+             * As this doesn't match iOS, and apps may not want to see their client
+             * certificate saved in the the user's keychain, we use SecItemImport
+             * with a NULL keychain to avoid importing it.
+             *
+             * This returns a SecCertificateRef from which we can construct a
+             * SecIdentityRef.
+             */
+#else
+            SecItemImportExportKeyParameters keyParams;
+            SecExternalFormat inputFormat = kSecFormatPKCS12;
+            SecExternalItemType inputType = kSecItemTypeCertificate;
+
+            memset(&keyParams, 0x00, sizeof(keyParams));
+            keyParams.version    = SEC_KEY_IMPORT_EXPORT_PARAMS_VERSION;
+            keyParams.passphrase = password;
+
+            status = SecItemImport(pkcs_data, NULL, &inputFormat, &inputType,
+                                   0, &keyParams, NULL, &items);
+#endif
+
+            /* Extract the SecIdentityRef */
+            if (status == errSecSuccess && items && CFArrayGetCount(items))
+            {
+                CFIndex i, count;
+                count = CFArrayGetCount(items);
+
+                for (i = 0; i < count; i++)
+                {
+                    CFTypeRef item = (CFTypeRef) CFArrayGetValueAtIndex(items, i);
+                    CFTypeID  itemID = CFGetTypeID(item);
+
+                    if (itemID == CFDictionaryGetTypeID())
+                    {
+                        CFTypeRef identity = (CFTypeRef) CFDictionaryGetValue(
+                                (CFDictionaryRef) item,
+                                kSecImportItemIdentity);
+                        CFRetain(identity);
+                        *out_cert_and_key = (SecIdentityRef) identity;
+                        break;
+                    }
+                    else if (itemID == SecCertificateGetTypeID())
+                    {
+                        status = SecIdentityCreateWithCertificate(NULL,
+                                (SecCertificateRef) item,
+                                out_cert_and_key);
+                        break;
+                    }
+                }
+            }
+
+            if (items) CFRelease(items);
+            CFRelease(pkcs_data);
+        }
+
+        if (password) CFRelease(password);
+        CFRelease(pkcs_url);
+        return status;
+    }
+
+
 } // anonymous namespace
 
 namespace ix
@@ -153,6 +251,63 @@ namespace ix
         return false;
     }
 
+    bool SocketAppleSSL::handleTLSOptions(std::string& errMsg)
+    {
+        SecIdentityRef cert_and_key = NULL;
+
+        const char* ssl_cert = _tlsOptions.certFile.c_str();
+
+        OSStatus err = CopyIdentityFromPKCS12File(ssl_cert, "foobar", &cert_and_key);
+
+        if (err == noErr && cert_and_key)
+        {
+            SecCertificateRef cert = NULL;
+            CFTypeRef certs_c[1];
+            CFArrayRef certs;
+
+            err = SecIdentityCopyCertificate(cert_and_key, &cert);
+
+            certs_c[0] = cert_and_key;
+            certs = CFArrayCreate(NULL, (const void **)certs_c, 1L,
+                    &kCFTypeArrayCallBacks);
+            err = SSLSetCertificate(_sslContext, certs);
+            if (err != noErr)
+            {
+                errMsg = "SSLSetCertificate failed";
+                return false;
+            }
+        }
+        else
+        {
+            switch(err) {
+                case errSecAuthFailed: case -25264: /* errSecPkcs12VerifyFailure */
+                    errMsg = "SSL: Incorrect password for the certificate \"%s\" "
+                            "and its private key."; // , ssl_cert);
+                    break;
+                case -26275: /* errSecDecode */ case -25257: /* errSecUnknownFormat */
+                    errMsg = "SSL: Couldn't make sense of the data in the "
+                            "certificate \"%s\" and its private key.";
+                            ; // ssl_cert);
+                    break;
+                case -25260: /* errSecPassphraseRequired */
+                    errMsg = "SSL The certificate \"%s\" requires a password.";
+                            // ssl_cert);
+                    break;
+                case errSecItemNotFound:
+                    errMsg = "SSL: Can't find the certificate \"%s\" and its private "
+                            "key in the Keychain."; // , ssl_cert);
+                    break;
+                default:
+                    errMsg = "SSL: Can't load the certificate \"%s\" and its private "
+                            "key: OSStatus %d" ; // , ssl_cert, err);
+                    break;
+            }
+            return false;
+        }
+
+        return true;
+    }
+
     // No wait support
     bool SocketAppleSSL::connect(const std::string& host,
                                  int port,
@@ -172,6 +327,8 @@ namespace ix
             SSLSetConnection(_sslContext, (SSLConnectionRef)(long) _sockfd);
             SSLSetProtocolVersionMin(_sslContext, kTLSProtocol12);
             SSLSetPeerDomainName(_sslContext, host.c_str(), host.size());
+
+            if (!handleTLSOptions(errMsg)) return false; // FIXME not calling close()
 
             if (_tlsOptions.isPeerVerifyDisabled())
             {
