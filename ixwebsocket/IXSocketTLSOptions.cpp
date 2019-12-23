@@ -81,6 +81,7 @@ namespace ix
         ss << "  keyFile  = " << keyFile << std::endl;
         ss << "  caFile   = " << caFile << std::endl;
         ss << "  ciphers  = " << ciphers << std::endl;
+        ss << "  ciphers  = " << ciphers << std::endl;
         return ss.str();
     }
 } // namespace ix
