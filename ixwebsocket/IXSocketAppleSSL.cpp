@@ -24,9 +24,47 @@
 
 #include <Security/SecureTransport.h>
 
-namespace
+namespace ix
 {
-    OSStatus read_from_socket(SSLConnectionRef connection, void* data, size_t* len)
+    SocketAppleSSL::SocketAppleSSL(const SocketTLSOptions& tlsOptions, int fd)
+        : Socket(fd)
+        , _sslContext(nullptr)
+        , _tlsOptions(tlsOptions)
+    {
+        ;
+    }
+
+    SocketAppleSSL::~SocketAppleSSL()
+    {
+        SocketAppleSSL::close();
+    }
+
+    std::string SocketAppleSSL::getSSLErrorDescription(OSStatus status)
+    {
+        std::string errMsg("Unknown SSL error.");
+
+        CFErrorRef error = CFErrorCreate(kCFAllocatorDefault, kCFErrorDomainOSStatus, status, NULL);
+        if (error)
+        {
+            CFStringRef message = CFErrorCopyDescription(error);
+            if (message)
+            {
+                char localBuffer[128];
+                Boolean success;
+                success = CFStringGetCString(message, localBuffer, 128, kCFStringEncodingUTF8);
+                if (success)
+                {
+                    errMsg = localBuffer;
+                }
+                CFRelease(message);
+            }
+            CFRelease(error);
+        }
+
+        return errMsg;
+    }
+
+    OSStatus SocketAppleSSL::readFromSocket(SSLConnectionRef connection, void* data, size_t* len)
     {
         int fd = (int) (long) connection;
         if (fd < 0) return errSSLInternal;
@@ -67,7 +105,7 @@ namespace
         }
     }
 
-    OSStatus write_to_socket(SSLConnectionRef connection, const void* data, size_t* len)
+    OSStatus SocketAppleSSL::writeToSocket(SSLConnectionRef connection, const void* data, size_t* len)
     {
         int fd = (int) (long) connection;
         if (fd < 0) return errSSLInternal;
@@ -105,47 +143,6 @@ namespace
         }
     }
 
-    std::string getSSLErrorDescription(OSStatus status)
-    {
-        std::string errMsg("Unknown SSL error.");
-
-        CFErrorRef error = CFErrorCreate(kCFAllocatorDefault, kCFErrorDomainOSStatus, status, NULL);
-        if (error)
-        {
-            CFStringRef message = CFErrorCopyDescription(error);
-            if (message)
-            {
-                char localBuffer[128];
-                Boolean success;
-                success = CFStringGetCString(message, localBuffer, 128, kCFStringEncodingUTF8);
-                if (success)
-                {
-                    errMsg = localBuffer;
-                }
-                CFRelease(message);
-            }
-            CFRelease(error);
-        }
-
-        return errMsg;
-    }
-
-} // anonymous namespace
-
-namespace ix
-{
-    SocketAppleSSL::SocketAppleSSL(const SocketTLSOptions& tlsOptions, int fd)
-        : Socket(fd)
-        , _sslContext(nullptr)
-        , _tlsOptions(tlsOptions)
-    {
-        ;
-    }
-
-    SocketAppleSSL::~SocketAppleSSL()
-    {
-        SocketAppleSSL::close();
-    }
 
     bool SocketAppleSSL::accept(std::string& errMsg)
     {
@@ -168,7 +165,7 @@ namespace ix
 
             _sslContext = SSLCreateContext(kCFAllocatorDefault, kSSLClientSide, kSSLStreamType);
 
-            SSLSetIOFuncs(_sslContext, read_from_socket, write_to_socket);
+            SSLSetIOFuncs(_sslContext, SocketAppleSSL::readFromSocket, SocketAppleSSL::writeToSocket);
             SSLSetConnection(_sslContext, (SSLConnectionRef)(long) _sockfd);
             SSLSetProtocolVersionMin(_sslContext, kTLSProtocol12);
             SSLSetPeerDomainName(_sslContext, host.c_str(), host.size());
