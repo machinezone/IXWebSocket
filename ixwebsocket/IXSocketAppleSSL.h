@@ -34,6 +34,10 @@ namespace ix
         virtual ssize_t recv(void* buffer, size_t length) final;
 
     private:
+        static std::string getSSLErrorDescription(OSStatus status);
+        static OSStatus writeToSocket(SSLConnectionRef connection, const void* data, size_t* len);
+        static OSStatus readFromSocket(SSLConnectionRef connection, void* data, size_t* len);
+
         SSLContextRef _sslContext;
         mutable std::mutex _mutex; // AppleSSL routines are not thread-safe
 
