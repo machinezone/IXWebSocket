@@ -146,8 +146,52 @@ namespace ix
 
     bool SocketAppleSSL::accept(std::string& errMsg)
     {
-        errMsg = "TLS not supported yet in server mode with apple ssl backend";
-        return false;
+        OSStatus status;
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+
+            _sslContext = SSLCreateContext(kCFAllocatorDefault, kSSLServerSide, kSSLStreamType);
+
+            SSLSetIOFuncs(_sslContext, SocketAppleSSL::readFromSocket, SocketAppleSSL::writeToSocket);
+            SSLSetConnection(_sslContext, (SSLConnectionRef)(long) _sockfd);
+            SSLSetProtocolVersionMin(_sslContext, kTLSProtocol12);
+
+            if (_tlsOptions.isPeerVerifyDisabled())
+            {
+                Boolean option(1);
+                SSLSetSessionOption(_sslContext, kSSLSessionOptionBreakOnServerAuth, option);
+
+                do
+                {
+                    status = SSLHandshake(_sslContext);
+                } while (errSSLWouldBlock == status || errSSLServerAuthCompleted == status);
+
+                if (status == errSSLServerAuthCompleted)
+                {
+                    // proceed with the handshake
+                    do
+                    {
+                        status = SSLHandshake(_sslContext);
+                    } while (errSSLWouldBlock == status || errSSLServerAuthCompleted == status);
+                }
+            }
+            else
+            {
+                do
+                {
+                    status = SSLHandshake(_sslContext);
+                } while (errSSLWouldBlock == status || errSSLServerAuthCompleted == status);
+            }
+        }
+
+        if (noErr != status)
+        {
+            errMsg = getSSLErrorDescription(status);
+            close();
+            return false;
+        }
+
+        return true;
     }
 
     // No wait support
