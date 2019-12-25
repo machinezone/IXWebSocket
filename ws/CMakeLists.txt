@@ -25,6 +25,8 @@ include_directories(ws ../third_party/statsd-client-cpp/src)
 include_directories(ws ../third_party/spdlog/include)
 include_directories(ws ../third_party/cpp-linenoise)
 
+add_definitions(-DSPDLOG_COMPILED_LIB=1)
+
 if (UNIX)
   set( STATSD_CLIENT_SOURCES ../third_party/statsd-client-cpp/src/statsd_client.cpp)
 endif()
@@ -71,6 +73,8 @@ target_link_libraries(ws ixwebsocket)
 target_link_libraries(ws ixcrypto)
 target_link_libraries(ws ixcore)
 target_link_libraries(ws ixsentry)
+
+target_link_libraries(ws spdlog)
 
 if(NOT APPLE AND NOT USE_MBED_TLS)
   find_package(OpenSSL REQUIRED)

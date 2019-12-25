@@ -23,6 +23,8 @@ include_directories(
   ../ws
 )
 
+add_definitions(-DSPDLOG_COMPILED_LIB=1)
+
 find_package(JsonCpp)
 if (NOT JSONCPP_FOUND)
   include_directories(../third_party/jsoncpp)
@@ -97,5 +99,7 @@ target_link_libraries(ixwebsocket_unittest ixwebsocket)
 target_link_libraries(ixwebsocket_unittest ixcrypto)
 target_link_libraries(ixwebsocket_unittest ixcore)
 target_link_libraries(ixwebsocket_unittest ixsentry)
+
+target_link_libraries(ixwebsocket_unittest spdlog)
 
 install(TARGETS ixwebsocket_unittest DESTINATION bin)
