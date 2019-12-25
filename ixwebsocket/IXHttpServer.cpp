@@ -10,7 +10,6 @@
 #include "IXSocketConnect.h"
 #include "IXUserAgent.h"
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <vector>
 

@@ -4,9 +4,10 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
 #include <ixwebsocket/IXWebSocketServer.h>
 #include <sstream>
+#include <spdlog/spdlog.h>
+
 
 namespace ix
 {
@@ -14,7 +15,7 @@ namespace ix
                                  const std::string& hostname,
                                  const ix::SocketTLSOptions& tlsOptions)
     {
-        std::cout << "Listening on " << hostname << ":" << port << std::endl;
+        spdlog::info("Listening on {}:{}", hostname, port);
 
         ix::WebSocketServer server(port, hostname);
         server.setTLSOptions(tlsOptions);
@@ -25,20 +26,19 @@ namespace ix
                                                 const WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    std::cerr << "New connection" << std::endl;
-                    std::cerr << "id: " << connectionState->getId() << std::endl;
-                    std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
-                    std::cerr << "Headers:" << std::endl;
+                    spdlog::info("New connection");
+                    spdlog::info("id: {}", connectionState->getId());
+                    spdlog::info("Uri: {}", msg->openInfo.uri);
+                    spdlog::info("Headers:");
                     for (auto it : msg->openInfo.headers)
                     {
-                        std::cerr << it.first << ": " << it.second << std::endl;
+                        spdlog::info("{}: {}", it.first, it.second);
                     }
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    std::cerr << "Closed connection"
-                              << " code " << msg->closeInfo.code << " reason "
-                              << msg->closeInfo.reason << std::endl;
+                    spdlog::info("Closed connection: code {} reason {}",
+                                 msg->closeInfo.code, msg->closeInfo.reason);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
@@ -47,30 +47,29 @@ namespace ix
                     ss << "#retries: " << msg->errorInfo.retries << std::endl;
                     ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
                     ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                    std::cerr << ss.str();
+                    spdlog::info(ss.str());
                 }
                 else if (msg->type == ix::WebSocketMessageType::Fragment)
                 {
-                    std::cerr << "Received message fragment" << std::endl;
+                    spdlog::info("Received message fragment");
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
+                    spdlog::info("Received {} bytes", msg->wireSize);
 
                     for (auto&& client : server.getClients())
                     {
                         if (client != webSocket)
                         {
                             client->send(msg->str, msg->binary, [](int current, int total) -> bool {
-                                std::cerr << "Step " << current << " out of " << total << std::endl;
+                                spdlog::info("Step {} out of {}", current, total);
                                 return true;
                             });
 
                             do
                             {
                                 size_t bufferedAmount = client->bufferedAmount();
-                                std::cerr << bufferedAmount << " bytes left to be sent"
-                                          << std::endl;
+                                spdlog::info("{} bytes left to be sent", bufferedAmount);
 
                                 std::chrono::duration<double, std::milli> duration(10);
                                 std::this_thread::sleep_for(duration);
@@ -84,7 +83,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            std::cerr << res.second << std::endl;
+            spdlog::info(res.second);
             return 1;
         }
 

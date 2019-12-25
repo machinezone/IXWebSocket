@@ -4,7 +4,6 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
 #include <ixsnake/IXRedisServer.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -20,7 +19,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            std::cerr << res.second << std::endl;
+            spdlog::info(res.second);
             return 1;
         }
 

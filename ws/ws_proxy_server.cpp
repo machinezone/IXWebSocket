@@ -4,8 +4,8 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
 #include <ixwebsocket/IXWebSocketServer.h>
+#include <spdlog/spdlog.h>
 #include <sstream>
 
 namespace ix
@@ -44,7 +44,7 @@ namespace ix
                              const std::string& remoteUrl,
                              bool verbose)
     {
-        std::cout << "Listening on " << hostname << ":" << port << std::endl;
+        spdlog::info("Listening on {}:{}", hostname, port);
 
         ix::WebSocketServer server(port, hostname);
         server.setTLSOptions(tlsOptions);
@@ -64,38 +64,36 @@ namespace ix
                                                      const WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    std::cerr << "New connection" << std::endl;
-                    std::cerr << "server id: " << state->getId() << std::endl;
-                    std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
-                    std::cerr << "Headers:" << std::endl;
+                    spdlog::info("New connection to remote server");
+                    spdlog::info("id: {}", state->getId());
+                    spdlog::info("Uri: {}", msg->openInfo.uri);
+                    spdlog::info("Headers:");
                     for (auto it : msg->openInfo.headers)
                     {
-                        std::cerr << it.first << ": " << it.second << std::endl;
+                        spdlog::info("{}: {}", it.first, it.second);
                     }
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    std::cerr << "Closed connection"
-                              << " code " << msg->closeInfo.code << " reason "
-                              << msg->closeInfo.reason << std::endl;
-                    webSocket->close(msg->closeInfo.code, msg->closeInfo.reason);
+                    spdlog::info("Closed remote server connection: client id {} code {} reason {}",
+                                 state->getId(),
+                                 msg->closeInfo.code,
+                                 msg->closeInfo.reason);
                     state->setTerminated();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
-                    std::stringstream ss;
-                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
-                    ss << "#retries: " << msg->errorInfo.retries << std::endl;
-                    ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
-                    ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                    std::cerr << ss.str();
+                    spdlog::error("Connection error: {}", msg->errorInfo.reason);
+                    spdlog::error("#retries: {}", msg->errorInfo.retries);
+                    spdlog::error("Wait time(ms): {}", msg->errorInfo.wait_time);
+                    spdlog::error("HTTP Status: {}", msg->errorInfo.http_status);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    std::cerr << "Received " << msg->wireSize << " bytes from server" << std::endl;
+                    spdlog::info("Received {} bytes from server", msg->wireSize);
                     if (verbose)
                     {
-                        std::cerr << "payload " << msg->str << std::endl;
+                        spdlog::info("payload {}", msg->str);
                     }
 
                     webSocket->send(msg->str, msg->binary);
@@ -107,13 +105,13 @@ namespace ix
                                                 const WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    std::cerr << "New connection" << std::endl;
-                    std::cerr << "client id: " << state->getId() << std::endl;
-                    std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
-                    std::cerr << "Headers:" << std::endl;
+                    spdlog::info("New connection from client");
+                    spdlog::info("id: {}", state->getId());
+                    spdlog::info("Uri: {}", msg->openInfo.uri);
+                    spdlog::info("Headers:");
                     for (auto it : msg->openInfo.headers)
                     {
-                        std::cerr << it.first << ": " << it.second << std::endl;
+                        spdlog::info("{}: {}", it.first, it.second);
                     }
 
                     // Connect to the 'real' server
@@ -127,34 +125,34 @@ namespace ix
                     // connection with the remote server
                     while (state->webSocket().getReadyState() != ReadyState::Open)
                     {
-                        std::cerr << "waiting for server connection establishment" << std::endl;
+                        spdlog::info("waiting for server connection establishment");
                         std::this_thread::sleep_for(std::chrono::milliseconds(10));
                     }
-                    std::cerr << "server connection established" << std::endl;
+                    spdlog::info("server connection established");
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    std::cerr << "Closed connection"
-                              << " code " << msg->closeInfo.code << " reason "
-                              << msg->closeInfo.reason << std::endl;
+                    spdlog::info("Closed client connection: client id {} code {} reason {}",
+                                 state->getId(),
+                                 msg->closeInfo.code,
+                                 msg->closeInfo.reason);
                     state->webSocket().close(msg->closeInfo.code, msg->closeInfo.reason);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
-                    std::stringstream ss;
-                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
-                    ss << "#retries: " << msg->errorInfo.retries << std::endl;
-                    ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
-                    ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                    std::cerr << ss.str();
+                    spdlog::error("Connection error: {}", msg->errorInfo.reason);
+                    spdlog::error("#retries: {}", msg->errorInfo.retries);
+                    spdlog::error("Wait time(ms): {}", msg->errorInfo.wait_time);
+                    spdlog::error("HTTP Status: {}", msg->errorInfo.http_status);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    std::cerr << "Received " << msg->wireSize << " bytes from client" << std::endl;
+                    spdlog::info("Received {} bytes from client", msg->wireSize);
                     if (verbose)
                     {
-                        std::cerr << "payload " << msg->str << std::endl;
+                        spdlog::info("payload {}", msg->str);
                     }
+
                     state->webSocket().send(msg->str, msg->binary);
                 }
             });
@@ -163,7 +161,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            std::cerr << res.second << std::endl;
+            spdlog::info(res.second);
             return 1;
         }
 

@@ -32,7 +32,6 @@
 
 #include <atomic>
 #include <condition_variable>
-#include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <mutex>
@@ -91,7 +90,7 @@ namespace ix
     {
         if (!_quiet)
         {
-            std::cerr << msg;
+            spdlog::info(msg);
         }
     }
 
@@ -183,7 +182,7 @@ namespace ix
         webSocket.setOnMessageCallback([&condition, &success](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Close)
             {
-                std::cerr << "Report generated" << std::endl;
+                spdlog::info("Report generated");
                 condition.notify_one();
             }
             else if (msg->type == ix::WebSocketMessageType::Error)
@@ -193,7 +192,7 @@ namespace ix
                 ss << "#retries: " << msg->errorInfo.retries << std::endl;
                 ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
                 ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                std::cerr << ss.str() << std::endl;
+                spdlog::info(ss.str());
 
                 success = false;
             }
@@ -236,7 +235,7 @@ namespace ix
                 ss << "#retries: " << msg->errorInfo.retries << std::endl;
                 ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
                 ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                std::cerr << ss.str() << std::endl;
+                spdlog::info(ss.str());
 
                 condition.notify_one();
             }
@@ -269,7 +268,7 @@ namespace ix
     int ws_autobahn_main(const std::string& url, bool quiet)
     {
         int testCasesCount = getTestCaseCount(url);
-        std::cerr << "Test cases count: " << testCasesCount << std::endl;
+        spdlog::info("Test cases count: {}", testCasesCount);
 
         if (testCasesCount == -1)
         {

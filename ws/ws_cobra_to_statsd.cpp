@@ -6,7 +6,6 @@
 
 #include <atomic>
 #include <chrono>
-#include <iostream>
 #include <ixcobra/IXCobraConnection.h>
 #include <spdlog/spdlog.h>
 #include <sstream>

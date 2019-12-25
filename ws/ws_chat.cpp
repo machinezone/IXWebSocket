@@ -9,12 +9,13 @@
 // Broadcast server can be ran with `ws broadcast_server`
 //
 
+#include "linenoise.hpp"
 #include "nlohmann/json.hpp"
-#include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <queue>
 #include <sstream>
+#include <spdlog/spdlog.h>
 
 // for convenience
 using json = nlohmann::json;
@@ -55,7 +56,7 @@ namespace ix
 
     void WebSocketChat::log(const std::string& msg)
     {
-        std::cout << msg << std::endl;
+        spdlog::info(msg);
     }
 
     size_t WebSocketChat::getReceivedMessagesCount() const
@@ -85,20 +86,21 @@ namespace ix
             if (msg->type == ix::WebSocketMessageType::Open)
             {
                 log("ws chat: connected");
-                std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-                std::cout << "Handshake Headers:" << std::endl;
+                spdlog::info("Uri: {}", msg->openInfo.uri);
+                spdlog::info("Headers:");
                 for (auto it : msg->openInfo.headers)
                 {
-                    std::cout << it.first << ": " << it.second << std::endl;
+                    spdlog::info("{}: {}", it.first, it.second);
                 }
 
-                ss << "ws chat: user " << _user << " Connected !";
+                spdlog::info("ws chat: user {} connected !", _user);
                 log(ss.str());
             }
             else if (msg->type == ix::WebSocketMessageType::Close)
             {
-                ss << "ws chat: user " << _user << " disconnected !"
-                   << " code " << msg->closeInfo.code << " reason " << msg->closeInfo.reason;
+                ss << "ws chat user disconnected: " << _user;
+                ss << " code " << msg->closeInfo.code;
+                ss << " reason " << msg->closeInfo.reason << std::endl;
                 log(ss.str());
             }
             else if (msg->type == ix::WebSocketMessageType::Message)
@@ -162,25 +164,25 @@ namespace ix
 
     int ws_chat_main(const std::string& url, const std::string& user)
     {
-        std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
+        spdlog::info("Type Ctrl-D to exit prompt...");
         WebSocketChat webSocketChat(url, user);
         webSocketChat.start();
 
         while (true)
         {
-            std::string text;
-            std::cout << user << " > " << std::flush;
-            std::getline(std::cin, text);
+            // Read line
+            std::string line;
+            auto quit = linenoise::Readline("> ", line);
 
-            if (!std::cin)
+            if (quit)
             {
                 break;
             }
 
-            webSocketChat.sendMessage(text);
+            webSocketChat.sendMessage(line);
         }
 
-        std::cout << std::endl;
+        spdlog::info("");
         webSocketChat.stop();
 
         return 0;

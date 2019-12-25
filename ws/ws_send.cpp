@@ -7,7 +7,6 @@
 #include <chrono>
 #include <condition_variable>
 #include <fstream>
-#include <iostream>
 #include <ixcrypto/IXBase64.h>
 #include <ixcrypto/IXHash.h>
 #include <ixcrypto/IXUuid.h>
@@ -15,6 +14,7 @@
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <msgpack11/msgpack11.hpp>
+#include <spdlog/spdlog.h>
 #include <mutex>
 #include <sstream>
 #include <vector>
@@ -68,12 +68,12 @@ namespace ix
 
     void WebSocketSender::log(const std::string& msg)
     {
-        std::cout << msg << std::endl;
+        spdlog::info(msg);
     }
 
     void WebSocketSender::waitForConnection()
     {
-        std::cout << "ws_send: Connecting..." << std::endl;
+        spdlog::info("{}: Connecting...", "ws_send");
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
         _condition.wait(lock);
@@ -81,7 +81,7 @@ namespace ix
 
     void WebSocketSender::waitForAck()
     {
-        std::cout << "ws_send: Waiting for ack..." << std::endl;
+        spdlog::info("{}: Waiting for ack...", "ws_send");
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
         _condition.wait(lock);
@@ -122,11 +122,11 @@ namespace ix
                 _condition.notify_one();
 
                 log("ws_send: connected");
-                std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-                std::cout << "Handshake Headers:" << std::endl;
+                spdlog::info("Uri: {}", msg->openInfo.uri);
+                spdlog::info("Headers:");
                 for (auto it : msg->openInfo.headers)
                 {
-                    std::cout << it.first << ": " << it.second << std::endl;
+                    spdlog::info("{}: {}", it.first, it.second);
                 }
             }
             else if (msg->type == ix::WebSocketMessageType::Close)
@@ -147,14 +147,14 @@ namespace ix
                 MsgPack data = MsgPack::parse(msg->str, errMsg);
                 if (!errMsg.empty())
                 {
-                    std::cerr << "Invalid MsgPack response" << std::endl;
+                    spdlog::info("Invalid MsgPack response");
                     return;
                 }
 
                 std::string id = data["id"].string_value();
                 if (_id != id)
                 {
-                    std::cerr << "Invalid id" << std::endl;
+                    spdlog::info("Invalid id");
                 }
             }
             else if (msg->type == ix::WebSocketMessageType::Error)
@@ -201,7 +201,7 @@ namespace ix
             auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _start);
 
             _ms = milliseconds.count();
-            std::cout << _description << " completed in " << _ms << "ms" << std::endl;
+            spdlog::info("{} completed in {}", _description, _ms);
 
             _reported = true;
         }
@@ -240,7 +240,7 @@ namespace ix
 
         Bench bench("Sending file through websocket");
         _webSocket.sendBinary(msg.dump(), [throttle](int current, int total) -> bool {
-            std::cout << "ws_send: Step " << current << " out of " << total << std::endl;
+            spdlog::info("ws_send: Step {} out of {}", current, total);
 
             if (throttle)
             {
@@ -254,7 +254,7 @@ namespace ix
         do
         {
             size_t bufferedAmount = _webSocket.bufferedAmount();
-            std::cout << "ws_send: " << bufferedAmount << " bytes left to be sent" << std::endl;
+            spdlog::info("ws_send: {} bytes left to be sent", bufferedAmount);
 
             std::chrono::duration<double, std::milli> duration(10);
             std::this_thread::sleep_for(duration);
@@ -264,7 +264,7 @@ namespace ix
         auto duration = bench.getDuration();
         auto transferRate = 1000 * content.size() / duration;
         transferRate /= (1024 * 1024);
-        std::cout << "ws_send: Send transfer rate: " << transferRate << "MB/s" << std::endl;
+        spdlog::info("ws_send: Send transfer rate: {} MB/s", transferRate);
     }
 
     void wsSend(const std::string& url,
@@ -278,12 +278,12 @@ namespace ix
 
         webSocketSender.waitForConnection();
 
-        std::cout << "ws_send: Sending..." << std::endl;
+        spdlog::info("ws_send: Sending...");
         webSocketSender.sendMessage(path, throttle);
 
         webSocketSender.waitForAck();
 
-        std::cout << "ws_send: Done !" << std::endl;
+        spdlog::info("ws_send: Done !");
         webSocketSender.stop();
     }
 

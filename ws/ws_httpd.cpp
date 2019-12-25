@@ -5,7 +5,6 @@
  */
 
 #include <fstream>
-#include <iostream>
 #include <ixwebsocket/IXHttpServer.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -32,7 +31,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            std::cerr << res.second << std::endl;
+            spdlog::error(res.second);
             return 1;
         }
 

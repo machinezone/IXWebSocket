@@ -6,8 +6,8 @@
 
 #include <atomic>
 #include <chrono>
-#include <iostream>
 #include <ixsnake/IXRedisClient.h>
+#include <spdlog/spdlog.h>
 #include <sstream>
 #include <thread>
 
@@ -22,7 +22,7 @@ namespace ix
         RedisClient redisClient;
         if (!redisClient.connect(hostname, port))
         {
-            std::cerr << "Cannot connect to redis host" << std::endl;
+            spdlog::info("Cannot connect to redis host");
             return 1;
         }
 
@@ -32,10 +32,10 @@ namespace ix
             if (!redisClient.auth(password, authResponse))
             {
                 std::stringstream ss;
-                std::cerr << "Cannot authenticated to redis" << std::endl;
+                spdlog::info("Cannot authenticated to redis");
                 return 1;
             }
-            std::cout << "Auth response: " << authResponse << ":" << port << std::endl;
+            spdlog::info("Auth response: {}", authResponse);
         }
 
         std::atomic<int> msgPerSeconds(0);
@@ -44,7 +44,7 @@ namespace ix
         auto callback = [&msgPerSeconds, &msgCount, verbose](const std::string& message) {
             if (verbose)
             {
-                std::cout << "received: " << message << std::endl;
+                spdlog::info("recived: {}", message);
             }
 
             msgPerSeconds++;
@@ -52,14 +52,13 @@ namespace ix
         };
 
         auto responseCallback = [](const std::string& redisResponse) {
-            std::cout << "Redis subscribe response: " << redisResponse << std::endl;
+            spdlog::info("Redis subscribe response: {}", redisResponse);
         };
 
         auto timer = [&msgPerSeconds, &msgCount] {
             while (true)
             {
-                std::cout << "#messages " << msgCount << " "
-                          << "msg/s " << msgPerSeconds << std::endl;
+                spdlog::info("#messages {} msg/s {}", msgCount, msgPerSeconds);
 
                 msgPerSeconds = 0;
                 auto duration = std::chrono::seconds(1);
@@ -69,10 +68,10 @@ namespace ix
 
         std::thread t(timer);
 
-        std::cerr << "Subscribing to " << channel << "..." << std::endl;
+        spdlog::info("Subscribing to {} ...", channel);
         if (!redisClient.subscribe(channel, responseCallback, callback))
         {
-            std::cerr << "Error subscribing to channel " << channel << std::endl;
+            spdlog::info("Error subscribing to channel {}", channel);
             return 1;
         }
 

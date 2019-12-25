@@ -5,8 +5,8 @@
  */
 
 #include <fstream>
-#include <iostream>
 #include <ixsnake/IXSnakeServer.h>
+#include <spdlog/spdlog.h>
 #include <sstream>
 
 namespace
@@ -58,11 +58,11 @@ namespace ix
         auto str = readAsString(appsConfigPath);
         if (str.empty())
         {
-            std::cout << "Cannot read content of " << appsConfigPath << std::endl;
+            spdlog::error("Cannot read content of {}", appsConfigPath);
             return 1;
         }
 
-        std::cout << str << std::endl;
+        spdlog::error(str);
         auto apps = nlohmann::json::parse(str);
         appConfig.apps = apps["apps"];
 

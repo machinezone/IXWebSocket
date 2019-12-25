@@ -5,10 +5,10 @@
  */
 
 #include "linenoise.hpp"
-#include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
+#include <spdlog/spdlog.h>
 #include <sstream>
 
 
@@ -93,7 +93,7 @@ namespace ix
             auto key = token.substr(0, pos);
             auto val = token.substr(pos + 1);
 
-            std::cerr << key << ": " << val << std::endl;
+            spdlog::info("{}: {}", key, val);
             headers[key] = val;
         }
 
@@ -129,11 +129,11 @@ namespace ix
             if (msg->type == ix::WebSocketMessageType::Open)
             {
                 log("ws_connect: connected");
-                std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-                std::cout << "Handshake Headers:" << std::endl;
+                spdlog::info("Uri: {}", msg->openInfo.uri);
+                spdlog::info("Headers:");
                 for (auto it : msg->openInfo.headers)
                 {
-                    std::cout << it.first << ": " << it.second << std::endl;
+                    spdlog::info("{}: {}", it.first, it.second);
                 }
             }
             else if (msg->type == ix::WebSocketMessageType::Close)
@@ -145,7 +145,7 @@ namespace ix
             }
             else if (msg->type == ix::WebSocketMessageType::Message)
             {
-                std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
+                spdlog::info("Received {} bytes", msg->wireSize);
 
                 ss << "ws_connect: received message: " << msg->str;
                 log(ss.str());
@@ -160,15 +160,15 @@ namespace ix
             }
             else if (msg->type == ix::WebSocketMessageType::Fragment)
             {
-                std::cerr << "Received message fragment" << std::endl;
+                spdlog::info("Received message fragment");
             }
             else if (msg->type == ix::WebSocketMessageType::Ping)
             {
-                std::cerr << "Received ping" << std::endl;
+                spdlog::info("Received ping");
             }
             else if (msg->type == ix::WebSocketMessageType::Pong)
             {
-                std::cerr << "Received pong" << std::endl;
+                spdlog::info("Received pong");
             }
             else
             {
@@ -225,14 +225,14 @@ namespace ix
 
             if (line == "/stop")
             {
-                std::cout << "Stopping connection..." << std::endl;
+                spdlog::info("Stopping connection...");
                 webSocketChat.stop();
                 continue;
             }
 
             if (line == "/start")
             {
-                std::cout << "Starting connection..." << std::endl;
+                spdlog::info("Starting connection...");
                 webSocketChat.start();
                 continue;
             }
@@ -243,7 +243,7 @@ namespace ix
             linenoise::AddHistory(line.c_str());
         }
 
-        std::cout << std::endl;
+        spdlog::info("");
         webSocketChat.stop();
 
         return 0;

@@ -11,7 +11,6 @@
 
 #include <cli11/CLI11.hpp>
 #include <fstream>
-#include <iostream>
 #include <ixcore/utils/IXCoreLogger.h>
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocket.h>
@@ -39,12 +38,13 @@ int main(int argc, char** argv)
     // Display command.
     if (getenv("DEBUG"))
     {
-        std::cout << "Command: ";
+        std::stringstream ss;
+        ss << "Command: ";
         for (int i = 0; i < argc; ++i)
         {
-            std::cout << argv[i] << " ";
+            ss << argv[i] << " ";
         }
-        std::cout << std::endl;
+        spdlog::info(ss.str());
     }
 
     CLI::App app {"ws is a websocket tool"};
@@ -496,11 +496,11 @@ int main(int argc, char** argv)
     }
     else if (version)
     {
-        std::cout << "ws " << ix::userAgent() << std::endl;
+        spdlog::info("ws {}", ix::userAgent());
     }
     else
     {
-        std::cerr << "A subcommand or --version is required" << std::endl;
+        spdlog::error("A subcommand or --version is required");
     }
 
     ix::uninitNetSystem();

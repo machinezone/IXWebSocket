@@ -7,7 +7,6 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
-#include <iostream>
 #include <ixcobra/IXCobraConnection.h>
 #include <ixsentry/IXSentryClient.h>
 #include <mutex>
@@ -161,7 +160,7 @@ namespace ix
         };
 
         // Create a thread pool
-        std::cerr << "Starting " << jobs << " sentry sender jobs" << std::endl;
+        spdlog::info("Starting {} sentry sender jobs", jobs);
         std::vector<std::thread> pool;
         for (int i = 0; i < jobs; i++)
         {
@@ -197,7 +196,7 @@ namespace ix
             }
             else if (eventType == ix::CobraConnection_EventType_Authenticated)
             {
-                std::cerr << "Subscriber authenticated" << std::endl;
+                spdlog::info("Subscriber authenticated");
                 conn.subscribe(channel,
                                filter,
                                [&jsonWriter,
