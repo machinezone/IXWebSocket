@@ -65,6 +65,10 @@ namespace ix
                 {
                     ss << "Published message " << msgId << " acked";
                 }
+                else if (eventType == ix::CobraConnection_EventType_Pong)
+                {
+                    ss << "Received websocket pong";
+                }
 
                 ix::IXCoreLogger::Log(ss.str().c_str());
         });
