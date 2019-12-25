@@ -1,7 +1,11 @@
 # Changelog
 All changes to this project will be documented in this file.
 
-## [7.7.0] - 2019-12-24
+## [7.8.1] - 2019-12-25
+
+(ws client) use correct compilation defines so that spdlog is not used as a header only library (reduce binary size and increase compilation speed)
+
+## [7.8.0] - 2019-12-24
 
 (ws client) all commands use spdlog instead of std::cerr or std::cout for logging
 
