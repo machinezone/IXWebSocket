@@ -4,11 +4,12 @@
  *  Copyright (c) 2018-2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
+#include <spdlog/spdlog.h>
 #include <sstream>
+#include <iostream>
 
 namespace ix
 {
@@ -40,7 +41,7 @@ namespace ix
 
     void WebSocketPingPong::log(const std::string& msg)
     {
-        std::cout << msg << std::endl;
+        spdlog::info(msg);
     }
 
     void WebSocketPingPong::stop()
@@ -56,18 +57,18 @@ namespace ix
         log(std::string("Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
-            std::cerr << "Received " << msg->wireSize << " bytes" << std::endl;
+            spdlog::info("Received {} bytes", msg->wireSize);
 
             std::stringstream ss;
             if (msg->type == ix::WebSocketMessageType::Open)
             {
                 log("ping_pong: connected");
 
-                std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-                std::cout << "Handshake Headers:" << std::endl;
+                spdlog::info("Uri: {}", msg->openInfo.uri);
+                spdlog::info("Headers:");
                 for (auto it : msg->openInfo.headers)
                 {
-                    std::cout << it.first << ": " << it.second << std::endl;
+                    spdlog::info("{}: {}", it.first, it.second);
                 }
             }
             else if (msg->type == ix::WebSocketMessageType::Close)
@@ -127,7 +128,7 @@ namespace ix
 
     int ws_ping_pong_main(const std::string& url, const ix::SocketTLSOptions& tlsOptions)
     {
-        std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
+        spdlog::info("Type Ctrl-D to exit prompt...");
         WebSocketPingPong webSocketPingPong(url, tlsOptions);
         webSocketPingPong.start();
 

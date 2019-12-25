@@ -11,7 +11,7 @@
 #include "IXSocketConnect.h"
 #include "IXSocketFactory.h"
 #include <assert.h>
-#include <iostream>
+#include <stdio.h>
 #include <sstream>
 #include <string.h>
 
@@ -45,13 +45,13 @@ namespace ix
     void SocketServer::logError(const std::string& str)
     {
         std::lock_guard<std::mutex> lock(_logMutex);
-        std::cerr << str << std::endl;
+        fprintf(stderr, "%s\n", str.c_str());
     }
 
     void SocketServer::logInfo(const std::string& str)
     {
         std::lock_guard<std::mutex> lock(_logMutex);
-        std::cout << str << std::endl;
+        fprintf(stdout, "%s\n", str.c_str());
     }
 
     std::pair<bool, std::string> SocketServer::listen()

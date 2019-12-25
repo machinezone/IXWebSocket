@@ -7,7 +7,6 @@
 #include <chrono>
 #include <condition_variable>
 #include <fstream>
-#include <iostream>
 #include <ixcrypto/IXBase64.h>
 #include <ixcrypto/IXHash.h>
 #include <ixcrypto/IXUuid.h>
@@ -15,6 +14,7 @@
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <msgpack11/msgpack11.hpp>
+#include <spdlog/spdlog.h>
 #include <mutex>
 #include <sstream>
 #include <vector>
@@ -75,12 +75,12 @@ namespace ix
 
     void WebSocketReceiver::log(const std::string& msg)
     {
-        std::cout << msg << std::endl;
+        spdlog::info(msg);
     }
 
     void WebSocketReceiver::waitForConnection()
     {
-        std::cout << "ws_receive: Connecting..." << std::endl;
+        spdlog::info("{}: Connecting...", "ws_receive");
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
         _condition.wait(lock);
@@ -88,7 +88,7 @@ namespace ix
 
     void WebSocketReceiver::waitForMessage()
     {
-        std::cout << "ws_receive: Waiting for message..." << std::endl;
+        spdlog::info("{}: Waiting for message...", "ws_receive");
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
         _condition.wait(lock);
@@ -124,7 +124,7 @@ namespace ix
 
     void WebSocketReceiver::handleMessage(const std::string& str)
     {
-        std::cerr << "ws_receive: Received message: " << str.size() << std::endl;
+        spdlog::info("ws_receive: Received message: {}", str.size());
 
         std::string errMsg;
         MsgPack data = MsgPack::parse(str, errMsg);
@@ -134,17 +134,17 @@ namespace ix
             return;
         }
 
-        std::cout << "id: " << data["id"].string_value() << std::endl;
+        spdlog::info("id: {}", data["id"].string_value());
 
         std::vector<uint8_t> content = data["content"].binary_items();
-        std::cout << "ws_receive: Content size: " << content.size() << std::endl;
+        spdlog::info("ws_receive: Content size: {}", content.size());
 
         // Validate checksum
         uint64_t cksum = ix::djb2Hash(content);
         auto cksumRef = data["djb2_hash"].string_value();
 
-        std::cout << "ws_receive: Computed hash: " << cksum << std::endl;
-        std::cout << "ws_receive: Reference hash: " << cksumRef << std::endl;
+        spdlog::info("ws_receive: Computed hash: {}", cksum);
+        spdlog::info("ws_receive: Reference hash: {}", cksumRef);
 
         if (std::to_string(cksum) != cksumRef)
         {
@@ -157,12 +157,12 @@ namespace ix
 
         std::string filenameTmp = filename + ".tmp";
 
-        std::cout << "ws_receive: Writing to disk: " << filenameTmp << std::endl;
+        spdlog::info("ws_receive: Writing to disk: {}", filenameTmp);
         std::ofstream out(filenameTmp);
         out.write((char*) &content.front(), content.size());
         out.close();
 
-        std::cout << "ws_receive: Renaming " << filenameTmp << " to " << filename << std::endl;
+        spdlog::info("ws_receive: Renaming {} to {}", filenameTmp, filename);
         rename(filenameTmp.c_str(), filename.c_str());
 
         std::map<MsgPack, MsgPack> pdu;
@@ -170,7 +170,7 @@ namespace ix
         pdu["id"] = data["id"];
         pdu["filename"] = data["filename"];
 
-        std::cout << "Sending ack to sender" << std::endl;
+        spdlog::info("Sending ack to sender");
         MsgPack msg(pdu);
         _webSocket.sendBinary(msg.dump());
     }
@@ -192,11 +192,11 @@ namespace ix
                 _condition.notify_one();
 
                 log("ws_receive: connected");
-                std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-                std::cout << "Handshake Headers:" << std::endl;
+                spdlog::info("Uri: {}", msg->openInfo.uri);
+                spdlog::info("Headers:");
                 for (auto it : msg->openInfo.headers)
                 {
-                    std::cout << it.first << ": " << it.second << std::endl;
+                    spdlog::info("{}: {}", it.first, it.second);
                 }
             }
             else if (msg->type == ix::WebSocketMessageType::Close)
@@ -259,7 +259,7 @@ namespace ix
         std::chrono::duration<double, std::milli> duration(1000);
         std::this_thread::sleep_for(duration);
 
-        std::cout << "ws_receive: Done !" << std::endl;
+        spdlog::info("ws_receive: Done !");
         webSocketReceiver.stop();
     }
 

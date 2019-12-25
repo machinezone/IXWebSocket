@@ -5,10 +5,10 @@
  */
 
 #include <fstream>
-#include <iostream>
 #include <ixwebsocket/IXHttpClient.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
+#include <spdlog/spdlog.h>
 #include <sstream>
 
 namespace ix
@@ -47,7 +47,7 @@ namespace ix
             auto key = token.substr(0, pos);
             auto val = token.substr(pos + 1);
 
-            std::cerr << key << ": " << val << std::endl;
+            spdlog::info("{}: {}", key, val);
             headers[key] = val;
         }
 
@@ -76,7 +76,7 @@ namespace ix
             auto key = token.substr(0, pos);
             auto val = token.substr(pos + 1);
 
-            std::cerr << key << ": " << val << std::endl;
+            spdlog::info("{}: {}", key, val);
             httpParameters[key] = val;
         }
 
@@ -108,10 +108,9 @@ namespace ix
         args->maxRedirects = maxRedirects;
         args->verbose = verbose;
         args->compress = compress;
-        args->logger = [](const std::string& msg) { std::cout << msg; };
+        args->logger = [](const std::string& msg) { spdlog::info(msg); };
         args->onProgressCallback = [](int current, int total) -> bool {
-            std::cerr << "\r"
-                      << "Downloaded " << current << " bytes out of " << total;
+            spdlog::info("Downloaded {} bytes out of {}", current, total);
             return true;
         };
 
@@ -131,20 +130,20 @@ namespace ix
             response = httpClient.post(url, httpParameters, args);
         }
 
-        std::cerr << std::endl;
+        spdlog::info("");
 
         for (auto it : response->headers)
         {
-            std::cerr << it.first << ": " << it.second << std::endl;
+            spdlog::info("{}: {}", it.first, it.second);
         }
 
-        std::cerr << "Upload size: " << response->uploadSize << std::endl;
-        std::cerr << "Download size: " << response->downloadSize << std::endl;
+        spdlog::info("Upload size: {}", response->uploadSize);
+        spdlog::info("Download size: {}", response->downloadSize);
 
-        std::cerr << "Status: " << response->statusCode << std::endl;
+        spdlog::info("Status: {}", response->statusCode);
         if (response->errorCode != HttpErrorCode::Ok)
         {
-            std::cerr << "error message: " << response->errorMsg << std::endl;
+            spdlog::info("error message: ", response->errorMsg);
         }
 
         if (!headersOnly && response->errorCode == HttpErrorCode::Ok)
@@ -158,7 +157,7 @@ namespace ix
                     filename = output;
                 }
 
-                std::cout << "Writing to disk: " << filename << std::endl;
+                spdlog::info("Writing to disk: {}", filename);
                 std::ofstream out(filename);
                 out.write((char*) &response->payload.front(), response->payload.size());
                 out.close();
@@ -167,14 +166,13 @@ namespace ix
             {
                 if (response->headers["Content-Type"] != "application/octet-stream")
                 {
-                    std::cout << "payload: " << response->payload << std::endl;
+                    spdlog::info("payload: {}", response->payload);
                 }
                 else
                 {
-                    std::cerr << "Binary output can mess up your terminal." << std::endl;
-                    std::cerr << "Use the -O flag to save the file to disk." << std::endl;
-                    std::cerr << "You can also use the --output option to specify a filename."
-                              << std::endl;
+                    spdlog::info("Binary output can mess up your terminal.");
+                    spdlog::info("Use the -O flag to save the file to disk.");
+                    spdlog::info("You can also use the --output option to specify a filename.");
                 }
             }
         }

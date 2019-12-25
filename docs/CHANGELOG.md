@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.7.0] - 2019-12-24
+
+(ws client) all commands use spdlog instead of std::cerr or std::cout for logging
+
 ## [7.6.5] - 2019-12-24
 
 (cobra client) send a websocket ping every 30s to keep the connection opened

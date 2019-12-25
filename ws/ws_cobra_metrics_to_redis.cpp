@@ -7,7 +7,6 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
-#include <iostream>
 #include <ixcobra/IXCobraConnection.h>
 #include <ixsnake/IXRedisClient.h>
 #include <mutex>
@@ -44,8 +43,7 @@ namespace ix
         auto timer = [&msgPerSeconds, &msgCount] {
             while (true)
             {
-                std::cout << "#messages " << msgCount << " "
-                          << "msg/s " << msgPerSeconds << std::endl;
+                spdlog::info("#messages {} msg/s {}", msgCount, msgPerSeconds);
 
                 msgPerSeconds = 0;
                 auto duration = std::chrono::seconds(1);

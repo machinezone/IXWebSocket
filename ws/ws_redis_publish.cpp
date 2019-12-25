@@ -4,8 +4,8 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <iostream>
 #include <ixsnake/IXRedisClient.h>
+#include <spdlog/spdlog.h>
 #include <sstream>
 
 namespace ix
@@ -20,7 +20,7 @@ namespace ix
         RedisClient redisClient;
         if (!redisClient.connect(hostname, port))
         {
-            std::cerr << "Cannot connect to redis host" << std::endl;
+            spdlog::info("Cannot connect to redis host");
             return 1;
         }
 
@@ -30,10 +30,10 @@ namespace ix
             if (!redisClient.auth(password, authResponse))
             {
                 std::stringstream ss;
-                std::cerr << "Cannot authenticated to redis" << std::endl;
+                spdlog::info("Cannot authenticated to redis");
                 return 1;
             }
-            std::cout << "Auth response: " << authResponse << ":" << port << std::endl;
+            spdlog::info("Auth response: {}", authResponse);
         }
 
         std::string errMsg;
@@ -41,8 +41,7 @@ namespace ix
         {
             if (!redisClient.publish(channel, message, errMsg))
             {
-                std::cerr << "Error publishing to channel " << channel << "error: " << errMsg
-                          << std::endl;
+                spdlog::error("Error publishing to channel {} error {}", channel, errMsg);
                 return 1;
             }
         }

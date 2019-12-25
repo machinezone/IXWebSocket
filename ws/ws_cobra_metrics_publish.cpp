@@ -7,7 +7,6 @@
 #include <atomic>
 #include <chrono>
 #include <fstream>
-#include <iostream>
 #include <ixcobra/IXCobraMetricsPublisher.h>
 #include <jsoncpp/json/json.h>
 #include <spdlog/spdlog.h>

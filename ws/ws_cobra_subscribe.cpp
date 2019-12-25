@@ -6,7 +6,6 @@
 
 #include <atomic>
 #include <chrono>
-#include <iostream>
 #include <ixcobra/IXCobraConnection.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -41,8 +40,7 @@ namespace ix
         auto timer = [&msgPerSeconds, &msgCount] {
             while (true)
             {
-                std::cout << "#messages " << msgCount << " "
-                          << "msg/s " << msgPerSeconds << std::endl;
+                spdlog::info("#messages {} msg/s {}", msgCount, msgPerSeconds);
 
                 msgPerSeconds = 0;
                 auto duration = std::chrono::seconds(1);
@@ -77,7 +75,7 @@ namespace ix
                         [&jsonWriter, &quiet, &msgPerSeconds, &msgCount](const Json::Value& msg) {
                             if (!quiet)
                             {
-                                std::cerr << jsonWriter.write(msg) << std::endl;
+                                spdlog::info(jsonWriter.write(msg));
                             }
 
                             msgPerSeconds++;
