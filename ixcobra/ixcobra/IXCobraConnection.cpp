@@ -24,6 +24,7 @@ namespace ix
     PublishTrackerCallback CobraConnection::_publishTrackerCallback = nullptr;
     constexpr size_t CobraConnection::kQueueMaxSize;
     constexpr CobraConnection::MsgId CobraConnection::kInvalidMsgId;
+    constexpr int CobraConnection::kPingIntervalSecs;
 
     CobraConnection::CobraConnection() :
         _webSocket(new WebSocket()),
@@ -228,6 +229,10 @@ namespace ix
                     ss << "HTTP Status: "      << msg->errorInfo.http_status << std::endl;
                     invokeErrorCallback(ss.str(), std::string());
                 }
+                else if (msg->type == ix::WebSocketMessageType::Pong)
+                {
+                    invokeEventCallback(ix::CobraConnection_EventType_Pong);
+                }
         });
     }
 
@@ -260,6 +265,7 @@ namespace ix
         _webSocket->setUrl(url);
         _webSocket->setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
         _webSocket->setTLSOptions(socketTLSOptions);
+        _webSocket->setPingInterval(kPingIntervalSecs);
     }
 
     //

@@ -91,6 +91,10 @@ namespace ix
                 spdlog::info("Published message id {} acked", msgId);
                 messageAcked = true;
             }
+            else if (eventType == ix::CobraConnection_EventType_Pong)
+            {
+                spdlog::info("Received websocket pong");
+            }
         });
 
         conn.connect();

@@ -1,12 +1,15 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.6.5] - 2019-12-24
+
+(cobra client) send a websocket ping every 30s to keep the connection opened
+
 ## [7.6.4] - 2019-12-22
 
 (client) error handling, quote url in error case when failing to parse one
 (ws) ws_cobra_publish: register callbacks before connecting
 (doc) mention mbedtls in supported ssl server backend
-
 
 ## [7.6.3] - 2019-12-20
 

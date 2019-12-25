@@ -245,6 +245,10 @@ namespace ix
             {
                 spdlog::error("Published message hacked: {}", msgId);
             }
+            else if (eventType == ix::CobraConnection_EventType_Pong)
+            {
+                spdlog::info("Received websocket pong");
+            }
         });
 
         while (true)

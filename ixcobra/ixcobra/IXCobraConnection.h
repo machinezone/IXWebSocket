@@ -30,7 +30,8 @@ namespace ix
         CobraConnection_EventType_Closed = 3,
         CobraConnection_EventType_Subscribed = 4,
         CobraConnection_EventType_UnSubscribed = 5,
-        CobraConnection_EventType_Published = 6
+        CobraConnection_EventType_Published = 6,
+        CobraConnection_EventType_Pong = 7
     };
 
     enum CobraConnectionPublishMode
@@ -215,6 +216,9 @@ namespace ix
 
         // Each pdu sent should have an incremental unique id
         std::atomic<uint64_t> _id;
+
+        // Frequency at which we send a websocket ping to the backing cobra connection
+        static constexpr int kPingIntervalSecs = 30;
     };
 
 } // namespace ix
