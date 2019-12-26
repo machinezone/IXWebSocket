@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.8.2] - 2019-12-25
+
+(ws cobra to sentry) bound the queue size used to hold up cobra messages before they are sent to sentry. Default queue size is a 100 messages. Without such limit the program runs out of memory when a subscriber receive a lot of messages that cannot make it to sentry
+
 ## [7.8.1] - 2019-12-25
 
 (ws client) use correct compilation defines so that spdlog is not used as a header only library (reduce binary size and increase compilation speed)

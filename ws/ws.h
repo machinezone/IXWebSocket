@@ -119,6 +119,7 @@ namespace ix
                                 bool verbose,
                                 bool strict,
                                 int jobs,
+                                size_t maxQueueSize,
                                 const ix::SocketTLSOptions& tlsOptions);
 
     int ws_cobra_metrics_to_redis(const std::string& appkey,

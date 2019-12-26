@@ -28,6 +28,7 @@ namespace ix
                                 bool verbose,
                                 bool strict,
                                 int jobs,
+                                size_t maxQueueSize,
                                 const ix::SocketTLSOptions& tlsOptions)
     {
         ix::CobraConnection conn;
@@ -176,6 +177,7 @@ namespace ix
                                &receivedCount,
                                &condition,
                                &conditionVariableMutex,
+                               &maxQueueSize,
                                &queue](ix::CobraConnectionEventType eventType,
                                        const std::string& errMsg,
                                        const ix::WebSocketHttpHeaders& headers,
@@ -205,6 +207,7 @@ namespace ix
                                 &receivedCount,
                                 &condition,
                                 &conditionVariableMutex,
+                                &maxQueueSize,
                                 &queue](const Json::Value& msg) {
                                    if (verbose)
                                    {
@@ -222,7 +225,12 @@ namespace ix
 
                                    {
                                        std::unique_lock<std::mutex> lock(conditionVariableMutex);
-                                       queue.push(msg);
+                                       // if the sending is not fast enough there is no point
+                                       // in queuing too many events.
+                                       if (queue.size() < maxQueueSize)
+                                       {
+                                           queue.push(msg);
+                                       }
                                    }
 
                                    condition.notify_one();

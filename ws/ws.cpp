@@ -105,6 +105,7 @@ int main(int argc, char** argv)
     int count = 1;
     int jobs = 4;
     uint32_t maxWaitBetweenReconnectionRetries;
+    size_t maxQueueSize = 100;
 
     auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* app) {
         app->add_option(
@@ -268,6 +269,7 @@ int main(int argc, char** argv)
     cobra2sentry->add_option("--rolesecret", rolesecret, "Role secret")->required();
     cobra2sentry->add_option("--dsn", dsn, "Sentry DSN");
     cobra2sentry->add_option("--jobs", jobs, "Number of thread sending events to Sentry");
+    cobra2sentry->add_option("--queue_size", maxQueueSize, "Size of the queue to hold messages before they are sent to Sentry");
     cobra2sentry->add_option("channel", channel, "Channel")->required();
     cobra2sentry->add_flag("-v", verbose, "Verbose");
     cobra2sentry->add_flag("-s", strict, "Strict mode. Error out when sending to sentry fails");
@@ -455,6 +457,7 @@ int main(int argc, char** argv)
                                           verbose,
                                           strict,
                                           jobs,
+                                          maxQueueSize,
                                           tlsOptions);
     }
     else if (app.got_subcommand("cobra_metrics_to_redis"))
