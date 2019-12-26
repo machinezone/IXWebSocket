@@ -94,6 +94,11 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#changelog">Changelog</a></li>
+            <li><a href="#782-2019-12-25">[7.8.2] - 2019-12-25</a></li>
+            <li><a href="#781-2019-12-25">[7.8.1] - 2019-12-25</a></li>
+            <li><a href="#780-2019-12-24">[7.8.0] - 2019-12-24</a></li>
+            <li><a href="#765-2019-12-24">[7.6.5] - 2019-12-24</a></li>
+            <li><a href="#764-2019-12-22">[7.6.4] - 2019-12-22</a></li>
             <li><a href="#763-2019-12-20">[7.6.3] - 2019-12-20</a></li>
             <li><a href="#762-2019-12-20">[7.6.2] - 2019-12-20</a></li>
             <li><a href="#761-2019-12-20">[7.6.1] - 2019-12-20</a></li>
@@ -168,7 +173,19 @@
                 <div class="col-md-9" role="main">
 
 <h1 id="changelog">Changelog</h1>
-<p>All notable changes to this project will be documented in this file.</p>
+<p>All changes to this project will be documented in this file.</p>
+<h2 id="782-2019-12-25">[7.8.2] - 2019-12-25</h2>
+<p>(ws cobra to sentry) bound the queue size used to hold up cobra messages before they are sent to sentry. Default queue size is a 100 messages. Without such limit the program runs out of memory when a subscriber receive a lot of messages that cannot make it to sentry</p>
+<h2 id="781-2019-12-25">[7.8.1] - 2019-12-25</h2>
+<p>(ws client) use correct compilation defines so that spdlog is not used as a header only library (reduce binary size and increase compilation speed)</p>
+<h2 id="780-2019-12-24">[7.8.0] - 2019-12-24</h2>
+<p>(ws client) all commands use spdlog instead of std::cerr or std::cout for logging</p>
+<h2 id="765-2019-12-24">[7.6.5] - 2019-12-24</h2>
+<p>(cobra client) send a websocket ping every 30s to keep the connection opened</p>
+<h2 id="764-2019-12-22">[7.6.4] - 2019-12-22</h2>
+<p>(client) error handling, quote url in error case when failing to parse one
+(ws) ws_cobra_publish: register callbacks before connecting
+(doc) mention mbedtls in supported ssl server backend</p>
 <h2 id="763-2019-12-20">[7.6.3] - 2019-12-20</h2>
 <p>(tls) add a simple description of the TLS configuration routine for debugging</p>
 <h2 id="762-2019-12-20">[7.6.2] - 2019-12-20</h2>

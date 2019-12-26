@@ -329,7 +329,7 @@ Options:
 
 <h2 id="cobra-client-and-server">Cobra client and server</h2>
 <p><a href="https://github.com/machinezone/cobra">cobra</a> is a real time messenging server. ws has several sub-command to interact with cobra. There is also a minimal cobra compatible server named snake available.</p>
-<p>Below are examples on running a snake server and clients with TLS enabled (the server only works with the OpenSSL backend for now).</p>
+<p>Below are examples on running a snake server and clients with TLS enabled (the server only works with the OpenSSL and the Mbed TLS backend for now).</p>
 <p>First, generate certificates.</p>
 <pre><code>$ cd /path/to/IXWebSocket
 $ cd ixsnake/ixsnake
@@ -439,7 +439,7 @@ $ ws cobra_publish --endpoint wss://127.0.0.1:8765 --appkey FC2F10139A2BAc53BB72
 [2019-12-19 20:46:42.659] [info] Published message id 3 acked
 </code></pre>
 
-<p>To use OpenSSL on macOS, compile with <code>make ws_openssl</code>. First you will have to install OpenSSL libraries, which can be done with Homebrew.</p></div>
+<p>To use OpenSSL on macOS, compile with <code>make ws_openssl</code>. First you will have to install OpenSSL libraries, which can be done with Homebrew. Use <code>make ws_mbedtls</code> accordingly to use MbedTLS.</p></div>
         </div>
 
         <footer class="col-md-12">
