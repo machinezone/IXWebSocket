@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.8.5] - 2019-12-28
+
+(ws cobra to sentry) handle null events for empty queues
+
 ## [7.8.4] - 2019-12-27
 
 (ws cobra to sentry) game is picked in a fair manner, so that all games get the same share of sent events

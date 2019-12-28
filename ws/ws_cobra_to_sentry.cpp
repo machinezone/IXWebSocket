@@ -146,6 +146,11 @@ namespace ix
             {
                 Json::Value msg = queueManager.pop();
 
+                while (msg.isNull())
+                {
+                    msg = queueManager.pop();
+                    if (stop) return;
+                }
                 if (stop) return;
 
                 auto ret = sentryClient.send(msg, verbose);
