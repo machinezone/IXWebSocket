@@ -18,6 +18,46 @@
 
 namespace ix
 {
+    class QueueManager
+    {
+    public:
+        QueueManager(size_t maxQueueSize, std::atomic<bool> &stop) : _maxQueueSize(maxQueueSize), _stop(stop) {}
+
+        Json::Value pop();
+        void add(Json::Value msg);
+
+    private:
+        std::queue<Json::Value> _queue;
+        std::mutex _mutex;
+        std::condition_variable _condition;
+        size_t _maxQueueSize;
+        std::atomic<bool>& _stop;
+    };
+
+    Json::Value QueueManager::pop()
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+
+        _condition.wait(lock, [this] { return !_queue.empty() && !_stop; });
+
+        auto msg = _queue.front();
+        _queue.pop();
+        return msg;
+    }
+
+    void QueueManager::add(Json::Value msg)
+    {
+       std::unique_lock<std::mutex> lock(_mutex);
+
+       // if the sending is not fast enough there is no point
+       // in queuing too many events.
+       if (_queue.size() < _maxQueueSize)
+       {
+           _queue.push(msg);
+           _condition.notify_one();
+       }
+    }
+
     int ws_cobra_to_sentry_main(const std::string& appkey,
                                 const std::string& endpoint,
                                 const std::string& rolename,
@@ -47,9 +87,7 @@ namespace ix
         std::atomic<bool> stop(false);
         std::atomic<bool> throttled(false);
 
-        std::condition_variable condition;
-        std::mutex conditionVariableMutex;
-        std::queue<Json::Value> queue;
+        QueueManager queueManager(maxQueueSize, stop);
 
         auto timer = [&sentCount, &receivedCount] {
             while (true)
@@ -63,9 +101,7 @@ namespace ix
 
         std::thread t1(timer);
 
-        auto sentrySender = [&condition,
-                             &conditionVariableMutex,
-                             &queue,
+        auto sentrySender = [&queueManager,
                              verbose,
                              &errorSending,
                              &sentCount,
@@ -76,15 +112,7 @@ namespace ix
 
             while (true)
             {
-                Json::Value msg;
-
-                {
-                    std::unique_lock<std::mutex> lock(conditionVariableMutex);
-                    condition.wait(lock, [&queue, &stop] { return !queue.empty() && !stop; });
-
-                    msg = queue.front();
-                    queue.pop();
-                }
+                Json::Value msg = queueManager.pop();
 
                 auto ret = sentryClient.send(msg, verbose);
                 HttpResponsePtr response = ret.first;
@@ -175,14 +203,12 @@ namespace ix
                                verbose,
                                &throttled,
                                &receivedCount,
-                               &condition,
-                               &conditionVariableMutex,
-                               &maxQueueSize,
-                               &queue](ix::CobraConnectionEventType eventType,
-                                       const std::string& errMsg,
-                                       const ix::WebSocketHttpHeaders& headers,
-                                       const std::string& subscriptionId,
-                                       CobraConnection::MsgId msgId) {
+                               &queueManager](
+                                        ix::CobraConnectionEventType eventType,
+                                        const std::string& errMsg,
+                                        const ix::WebSocketHttpHeaders& headers,
+                                        const std::string& subscriptionId,
+                                        CobraConnection::MsgId msgId) {
             if (eventType == ix::CobraConnection_EventType_Open)
             {
                 spdlog::info("Subscriber connected");
@@ -205,10 +231,7 @@ namespace ix
                                 verbose,
                                 &throttled,
                                 &receivedCount,
-                                &condition,
-                                &conditionVariableMutex,
-                                &maxQueueSize,
-                                &queue](const Json::Value& msg) {
+                                &queueManager](const Json::Value& msg) {
                                    if (verbose)
                                    {
                                        spdlog::info(jsonWriter.write(msg));
@@ -217,23 +240,11 @@ namespace ix
                                    // If we cannot send to sentry fast enough, drop the message
                                    if (throttled)
                                    {
-                                       condition.notify_one();
                                        return;
                                    }
 
                                    ++receivedCount;
-
-                                   {
-                                       std::unique_lock<std::mutex> lock(conditionVariableMutex);
-                                       // if the sending is not fast enough there is no point
-                                       // in queuing too many events.
-                                       if (queue.size() < maxQueueSize)
-                                       {
-                                           queue.push(msg);
-                                       }
-                                   }
-
-                                   condition.notify_one();
+                                   queueManager.add(msg);
                                });
             }
             else if (eventType == ix::CobraConnection_EventType_Subscribed)
