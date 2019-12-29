@@ -22,7 +22,10 @@ namespace ix
     class QueueManager
     {
     public:
-        QueueManager(size_t maxQueueSize, std::atomic<bool> &stop) : _maxQueueSize(maxQueueSize), _stop(stop) {}
+        QueueManager(size_t maxQueueSize,
+                     std::atomic<bool> &stop) : 
+            _maxQueueSize(maxQueueSize),
+            _stop(stop) {}
 
         Json::Value pop();
         void add(Json::Value msg);
@@ -146,11 +149,7 @@ namespace ix
             {
                 Json::Value msg = queueManager.pop();
 
-                while (msg.isNull())
-                {
-                    msg = queueManager.pop();
-                    if (stop) return;
-                }
+                if (msg.isNull()) continue;
                 if (stop) return;
 
                 auto ret = sentryClient.send(msg, verbose);
