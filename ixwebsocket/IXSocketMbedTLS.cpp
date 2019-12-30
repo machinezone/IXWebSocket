@@ -40,9 +40,6 @@ namespace ix
         mbedtls_x509_crt_init(&_cacert);
         mbedtls_x509_crt_init(&_cert);
         mbedtls_pk_init(&_pkey);
-        // FIXME: This will only work for RSA Private keys, what about other types? (ECDSA for
-        // example)
-        mbedtls_pk_setup(&_pkey, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
     }
 
     bool SocketMbedTLS::init(const std::string& host, bool isClient, std::string& errMsg)
