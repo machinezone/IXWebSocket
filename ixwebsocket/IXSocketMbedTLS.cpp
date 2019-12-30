@@ -48,6 +48,12 @@ namespace ix
 
         const char* pers = "IXSocketMbedTLS";
 
+        mbedtls_entropy_init(&_entropy);
+        mbedtls_pk_init(&_pkey);
+        // FIXME: This will only work for RSA Private keys, what about other types? (ECDSA for
+        // example)
+        mbedtls_pk_setup(&_pkey, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
+
         if (mbedtls_ctr_drbg_seed(&_ctr_drbg,
                                   mbedtls_entropy_func,
                                   &_entropy,
