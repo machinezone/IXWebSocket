@@ -43,7 +43,6 @@ namespace ix
         // FIXME: This will only work for RSA Private keys, what about other types? (ECDSA for
         // example)
         mbedtls_pk_setup(&_pkey, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
-
     }
 
     bool SocketMbedTLS::init(const std::string& host, bool isClient, std::string& errMsg)
