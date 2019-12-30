@@ -269,7 +269,9 @@ int main(int argc, char** argv)
     cobra2sentry->add_option("--rolesecret", rolesecret, "Role secret")->required();
     cobra2sentry->add_option("--dsn", dsn, "Sentry DSN");
     cobra2sentry->add_option("--jobs", jobs, "Number of thread sending events to Sentry");
-    cobra2sentry->add_option("--queue_size", maxQueueSize, "Size of the queue to hold messages before they are sent to Sentry");
+    cobra2sentry->add_option("--queue_size",
+                             maxQueueSize,
+                             "Size of the queue to hold messages before they are sent to Sentry");
     cobra2sentry->add_option("channel", channel, "Channel")->required();
     cobra2sentry->add_flag("-v", verbose, "Verbose");
     cobra2sentry->add_flag("-s", strict, "Strict mode. Error out when sending to sentry fails");
@@ -474,8 +476,14 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("snake"))
     {
-        ret = ix::ws_snake_main(
-            port, hostname, redisHosts, redisPort, redisPassword, verbose, appsConfigPath, tlsOptions);
+        ret = ix::ws_snake_main(port,
+                                hostname,
+                                redisHosts,
+                                redisPort,
+                                redisPassword,
+                                verbose,
+                                appsConfigPath,
+                                tlsOptions);
     }
     else if (app.got_subcommand("httpd"))
     {

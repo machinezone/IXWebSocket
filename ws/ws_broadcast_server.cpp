@@ -5,8 +5,8 @@
  */
 
 #include <ixwebsocket/IXWebSocketServer.h>
-#include <sstream>
 #include <spdlog/spdlog.h>
+#include <sstream>
 
 
 namespace ix
@@ -38,7 +38,8 @@ namespace ix
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
                     spdlog::info("Closed connection: code {} reason {}",
-                                 msg->closeInfo.code, msg->closeInfo.reason);
+                                 msg->closeInfo.code,
+                                 msg->closeInfo.reason);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {

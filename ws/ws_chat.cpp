@@ -14,8 +14,8 @@
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <queue>
-#include <sstream>
 #include <spdlog/spdlog.h>
+#include <sstream>
 
 // for convenience
 using json = nlohmann::json;

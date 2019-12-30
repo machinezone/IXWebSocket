@@ -70,19 +70,23 @@ namespace ix
                             if (readyState == ReadyState::Open)
                             {
                                 ++receivers;
-                                client->send(msg->str,
-                                             msg->binary,
-                                             [&id](int current, int total) -> bool {
-                                                 spdlog::info("{}: [client {}]: Step {} out of {}",
-                                                              "ws_transfer", id, current, total);
-                                                 return true;
-                                             });
+                                client->send(
+                                    msg->str, msg->binary, [&id](int current, int total) -> bool {
+                                        spdlog::info("{}: [client {}]: Step {} out of {}",
+                                                     "ws_transfer",
+                                                     id,
+                                                     current,
+                                                     total);
+                                        return true;
+                                    });
                                 do
                                 {
                                     size_t bufferedAmount = client->bufferedAmount();
 
                                     spdlog::info("{}: [client {}]: {} bytes left to send",
-                                                 "ws_transfer", id, bufferedAmount);
+                                                 "ws_transfer",
+                                                 id,
+                                                 bufferedAmount);
 
                                     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
@@ -97,8 +101,12 @@ namespace ix
                                         : readyState == ReadyState::Closing ? "Closing" : "Closed";
                                 size_t bufferedAmount = client->bufferedAmount();
 
-                                spdlog::info("{}: [client {}]: has readystate {} bytes left to be sent",
-                                             "ws_transfer", id, readyStateString, bufferedAmount);
+                                spdlog::info(
+                                    "{}: [client {}]: has readystate {} bytes left to be sent",
+                                    "ws_transfer",
+                                    id,
+                                    readyStateString,
+                                    bufferedAmount);
                             }
                         }
                     }

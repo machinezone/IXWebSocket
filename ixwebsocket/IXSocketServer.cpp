@@ -11,8 +11,8 @@
 #include "IXSocketConnect.h"
 #include "IXSocketFactory.h"
 #include <assert.h>
-#include <stdio.h>
 #include <sstream>
+#include <stdio.h>
 #include <string.h>
 
 namespace ix
