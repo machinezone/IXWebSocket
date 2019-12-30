@@ -37,9 +37,7 @@ namespace
     class CobraChat
     {
     public:
-        CobraChat(const std::string& user,
-                   const std::string& session,
-                   const std::string& endpoint);
+        CobraChat(const std::string& user, const std::string& session, const std::string& endpoint);
 
         void subscribe(const std::string& channel);
         void start();

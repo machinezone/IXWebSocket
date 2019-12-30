@@ -105,7 +105,9 @@ namespace ix
         }
     }
 
-    OSStatus SocketAppleSSL::writeToSocket(SSLConnectionRef connection, const void* data, size_t* len)
+    OSStatus SocketAppleSSL::writeToSocket(SSLConnectionRef connection,
+                                           const void* data,
+                                           size_t* len)
     {
         int fd = (int) (long) connection;
         if (fd < 0) return errSSLInternal;
@@ -165,7 +167,8 @@ namespace ix
 
             _sslContext = SSLCreateContext(kCFAllocatorDefault, kSSLClientSide, kSSLStreamType);
 
-            SSLSetIOFuncs(_sslContext, SocketAppleSSL::readFromSocket, SocketAppleSSL::writeToSocket);
+            SSLSetIOFuncs(
+                _sslContext, SocketAppleSSL::readFromSocket, SocketAppleSSL::writeToSocket);
             SSLSetConnection(_sslContext, (SSLConnectionRef)(long) _sockfd);
             SSLSetProtocolVersionMin(_sslContext, kTLSProtocol12);
             SSLSetPeerDomainName(_sslContext, host.c_str(), host.size());

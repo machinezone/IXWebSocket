@@ -14,8 +14,8 @@
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <msgpack11/msgpack11.hpp>
-#include <spdlog/spdlog.h>
 #include <mutex>
+#include <spdlog/spdlog.h>
 #include <sstream>
 #include <vector>
 

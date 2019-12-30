@@ -4,12 +4,12 @@
  *  Copyright (c) 2018-2019 Machine Zone, Inc. All rights reserved.
  */
 
+#include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
-#include <iostream>
 
 namespace ix
 {

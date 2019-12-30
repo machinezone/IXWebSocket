@@ -22,10 +22,11 @@ namespace
     class QueueManager
     {
     public:
-        QueueManager(size_t maxQueueSize,
-                     std::atomic<bool> &stop) : 
-            _maxQueueSize(maxQueueSize),
-            _stop(stop) {}
+        QueueManager(size_t maxQueueSize, std::atomic<bool>& stop)
+            : _maxQueueSize(maxQueueSize)
+            , _stop(stop)
+        {
+        }
 
         Json::Value pop();
         void add(Json::Value msg);
@@ -67,7 +68,7 @@ namespace
             _condition.notify_one();
         }
     }
-}
+} // namespace
 
 namespace ix
 {
@@ -152,17 +153,11 @@ namespace ix
 
         std::thread t1(timer);
 
-        auto statsdSender = [&queueManager,
-                             &host,
-                             &port,
-                             &sentCount,
-                             &tokens,
-                             &prefix,
-                             &stop] {
+        auto statsdSender = [&queueManager, &host, &port, &sentCount, &tokens, &prefix, &stop] {
             // statsd client
             // test with netcat as a server: `nc -ul 8125`
             bool statsdBatch = true;
-#ifndef     _WIN32
+#ifndef _WIN32
             statsd::StatsdClient statsdClient(host, port, prefix, statsdBatch);
 #else
             int statsdClient;
@@ -191,69 +186,65 @@ namespace ix
 
         std::thread t2(statsdSender);
 
-        conn.setEventCallback([&conn,
-                               &channel,
-                               &filter,
-                               &jsonWriter,
-                               verbose,
-                               &queueManager,
-                               &receivedCount](ix::CobraConnectionEventType eventType,
-                                          const std::string& errMsg,
-                                          const ix::WebSocketHttpHeaders& headers,
-                                          const std::string& subscriptionId,
-                                          CobraConnection::MsgId msgId) {
-            if (eventType == ix::CobraConnection_EventType_Open)
-            {
-                spdlog::info("Subscriber connected");
-
-                for (auto it : headers)
+        conn.setEventCallback(
+            [&conn, &channel, &filter, &jsonWriter, verbose, &queueManager, &receivedCount](
+                ix::CobraConnectionEventType eventType,
+                const std::string& errMsg,
+                const ix::WebSocketHttpHeaders& headers,
+                const std::string& subscriptionId,
+                CobraConnection::MsgId msgId) {
+                if (eventType == ix::CobraConnection_EventType_Open)
                 {
-                    spdlog::info("{}: {}", it.first, it.second);
+                    spdlog::info("Subscriber connected");
+
+                    for (auto it : headers)
+                    {
+                        spdlog::info("{}: {}", it.first, it.second);
+                    }
                 }
-            }
-            if (eventType == ix::CobraConnection_EventType_Closed)
-            {
-                spdlog::info("Subscriber closed");
-            }
-            else if (eventType == ix::CobraConnection_EventType_Authenticated)
-            {
-                spdlog::info("Subscriber authenticated");
-                conn.subscribe(channel,
-                               filter,
-                               [&jsonWriter, &queueManager, verbose, &receivedCount](
-                                   const Json::Value& msg) {
-                                   if (verbose)
-                                   {
-                                       spdlog::info(jsonWriter.write(msg));
-                                   }
+                if (eventType == ix::CobraConnection_EventType_Closed)
+                {
+                    spdlog::info("Subscriber closed");
+                }
+                else if (eventType == ix::CobraConnection_EventType_Authenticated)
+                {
+                    spdlog::info("Subscriber authenticated");
+                    conn.subscribe(channel,
+                                   filter,
+                                   [&jsonWriter, &queueManager, verbose, &receivedCount](
+                                       const Json::Value& msg) {
+                                       if (verbose)
+                                       {
+                                           spdlog::info(jsonWriter.write(msg));
+                                       }
 
-                                   receivedCount++;
+                                       receivedCount++;
 
-                                   ++receivedCount;
-                                   queueManager.add(msg);
-                               });
-            }
-            else if (eventType == ix::CobraConnection_EventType_Subscribed)
-            {
-                spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
-            }
-            else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
-            {
-                spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
-            }
-            else if (eventType == ix::CobraConnection_EventType_Error)
-            {
-                spdlog::error("Subscriber: error {}", errMsg);
-            }
-            else if (eventType == ix::CobraConnection_EventType_Published)
-            {
-                spdlog::error("Published message hacked: {}", msgId);
-            }
-            else if (eventType == ix::CobraConnection_EventType_Pong)
-            {
-                spdlog::info("Received websocket pong");
-            }
-        });
+                                       ++receivedCount;
+                                       queueManager.add(msg);
+                                   });
+                }
+                else if (eventType == ix::CobraConnection_EventType_Subscribed)
+                {
+                    spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
+                }
+                else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+                {
+                    spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
+                }
+                else if (eventType == ix::CobraConnection_EventType_Error)
+                {
+                    spdlog::error("Subscriber: error {}", errMsg);
+                }
+                else if (eventType == ix::CobraConnection_EventType_Published)
+                {
+                    spdlog::error("Published message hacked: {}", msgId);
+                }
+                else if (eventType == ix::CobraConnection_EventType_Pong)
+                {
+                    spdlog::info("Received websocket pong");
+                }
+            });
 
         while (true)
         {
