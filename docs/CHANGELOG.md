@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.8.7] - 2019-12-28
+
+(mbedtls) fix related to private key file parsing and initialization
+
 ## [7.8.6] - 2019-12-28
 
 (ws cobra to sentry/statsd) fix for handling null events properly for empty queues + use queue to send data to statsd
