@@ -1,7 +1,7 @@
 # Changelog
 All changes to this project will be documented in this file.
 
-## [7.8.7] - 2019-12-28
+## [7.8.8] - 2019-12-28
 
 (mbedtls) fix related to private key file parsing and initialization
 
