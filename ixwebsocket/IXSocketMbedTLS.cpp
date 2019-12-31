@@ -82,6 +82,11 @@ namespace ix
                 errMsg = "Cannot parse key file '" + _tlsOptions.keyFile + "'";
                 return false;
             }
+            if (mbedtls_ssl_conf_own_cert(&_conf, &_cert, &_pkey) < 0)
+            {
+                errMsg = "Problem configuring cert '" + _tlsOptions.certFile + "'";
+                return false;
+            }
         }
 
         if (_tlsOptions.isPeerVerifyDisabled())
@@ -105,11 +110,6 @@ namespace ix
             }
 
             mbedtls_ssl_conf_ca_chain(&_conf, &_cacert, NULL);
-
-            if (_tlsOptions.hasCertAndKey())
-            {
-                mbedtls_ssl_conf_own_cert(&_conf, &_cert, &_pkey);
-            }
         }
 
         if (mbedtls_ssl_setup(&_ssl, &_conf) != 0)
