@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.9.0] - 2020-01-04
+
+(ws send) add option (-x) to disable per message deflate compression
+
 ## [7.8.9] - 2020-01-04
 
 (ws send + receive) handle all message types (ping + pong + fragment) / investigate #140

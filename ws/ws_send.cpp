@@ -301,10 +301,11 @@ namespace ix
 
     int ws_send_main(const std::string& url,
                      const std::string& path,
+                     bool disablePerMessageDeflate,
                      const ix::SocketTLSOptions& tlsOptions)
     {
         bool throttle = false;
-        bool enablePerMessageDeflate = false;
+        bool enablePerMessageDeflate = !disablePerMessageDeflate;
 
         wsSend(url, path, enablePerMessageDeflate, throttle, tlsOptions);
         return 0;
