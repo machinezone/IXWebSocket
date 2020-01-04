@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.8.9] - 2020-01-04
+
+(ws send + receive) handle all message types (ping + pong + fragment) / investigate #140
+
 ## [7.8.8] - 2019-12-28
 
 (mbedtls) fix related to private key file parsing and initialization

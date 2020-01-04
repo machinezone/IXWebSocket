@@ -234,6 +234,14 @@ namespace ix
                 ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
                 log(ss.str());
             }
+            else if (msg->type == ix::WebSocketMessageType::Ping)
+            {
+                log("ws_receive: received ping");
+            }
+            else if (msg->type == ix::WebSocketMessageType::Pong)
+            {
+                log("ws_receive: received pong");
+            }
             else
             {
                 ss << "ws_receive: Invalid ix::WebSocketMessageType";
