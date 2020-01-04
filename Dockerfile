@@ -15,6 +15,7 @@ WORKDIR /opt
 
 USER app
 RUN [ "make", "ws_install" ]
+RUN [ "rm", "-rf", "build" ]
 
 FROM alpine:3.11 as runtime
 
@@ -25,6 +26,9 @@ RUN addgroup -S app && adduser -S -G app app
 COPY --chown=app:app --from=build /usr/local/bin/ws /usr/local/bin/ws
 RUN chmod +x /usr/local/bin/ws
 RUN ldd /usr/local/bin/ws
+
+# Copy source code for gcc
+COPY --chown=app:app --from=build /opt /opt
 
 # Now run in usermode
 USER app
