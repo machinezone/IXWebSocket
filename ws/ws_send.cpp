@@ -166,6 +166,18 @@ namespace ix
                 ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
                 log(ss.str());
             }
+            else if (msg->type == ix::WebSocketMessageType::Ping)
+            {
+                spdlog::info("ws_send: received ping");
+            }
+            else if (msg->type == ix::WebSocketMessageType::Pong)
+            {
+                spdlog::info("ws_send: received pong");
+            }
+            else if (msg->type == ix::WebSocketMessageType::Fragment)
+            {
+                spdlog::info("ws_send: received fragment");
+            }
             else
             {
                 ss << "ws_send: Invalid ix::WebSocketMessageType";
