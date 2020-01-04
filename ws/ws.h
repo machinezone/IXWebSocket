@@ -55,6 +55,7 @@ namespace ix
 
     int ws_send_main(const std::string& url,
                      const std::string& path,
+                     bool disablePerMessageDeflate,
                      const ix::SocketTLSOptions& tlsOptions);
 
     int ws_redis_publish_main(const std::string& hostname,

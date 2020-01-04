@@ -130,6 +130,7 @@ int main(int argc, char** argv)
         ->required()
         ->check(CLI::ExistingPath);
     sendApp->add_option("--pidfile", pidfile, "Pid file");
+    sendApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
     addTLSOptions(sendApp);
 
     CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
@@ -359,7 +360,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("send"))
     {
-        ret = ix::ws_send_main(url, path, tlsOptions);
+        ret = ix::ws_send_main(url, path, disablePerMessageDeflate, tlsOptions);
     }
     else if (app.got_subcommand("receive"))
     {
