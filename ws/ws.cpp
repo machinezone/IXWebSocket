@@ -122,7 +122,7 @@ int main(int argc, char** argv)
         app->add_flag("--verify_none", verifyNone, "Disable peer cert verification");
     };
 
-    app.add_flag("--version", version, "Connection url");
+    app.add_flag("--version", version, "Print ws version");
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
     sendApp->add_option("url", url, "Connection url")->required();
