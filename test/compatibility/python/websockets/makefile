@@ -1,3 +1,6 @@
+all:
+	honcho start # install honcho (pip install honcho) or procman (the original ruby script)
+
 .PHONY: docker
 
 NAME   := bsergean/ws_proxy
