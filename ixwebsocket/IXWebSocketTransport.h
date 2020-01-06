@@ -244,13 +244,13 @@ namespace ix
                                                bool remote);
 
         bool flushSendBuffer();
-        void sendOnSocket();
+        bool sendOnSocket();
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
                                    const std::string& message,
                                    bool compress,
                                    const OnProgressCallback& onProgressCallback = nullptr);
 
-        void sendFragment(wsheader_type::opcode_type type,
+        bool sendFragment(wsheader_type::opcode_type type,
                           bool fin,
                           std::string::const_iterator begin,
                           std::string::const_iterator end,

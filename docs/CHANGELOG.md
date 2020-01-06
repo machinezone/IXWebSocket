@@ -1,6 +1,11 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.9.1] - 2020-01-06
+
+(websocket client) better error propagation when errors are detected while sending data
+(ws send) detect failures to send big files, terminate in those cases and report error
+
 ## [7.9.0] - 2020-01-04
 
 (ws send) add option (-x) to disable per message deflate compression
