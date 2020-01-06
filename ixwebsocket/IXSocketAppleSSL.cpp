@@ -100,7 +100,8 @@ namespace ix
             {
                 case ENOENT: return errSSLClosedGraceful;
 
-                case EAGAIN: return errSSLWouldBlock;
+                case EAGAIN: return errSSLWouldBlock; // EWOULDBLOCK is a define for EAGAIN on osx
+                case EINPROGRESS: return errSSLWouldBlock;
 
                 case ECONNRESET: return errSSLClosedAbort;
 
@@ -142,13 +143,16 @@ namespace ix
         else
         {
             *len = 0;
-            if (errno == EAGAIN)
+            switch (errno)
             {
-                return errSSLWouldBlock;
-            }
-            else
-            {
-                return errSecIO;
+                case ENOENT: return errSSLClosedGraceful;
+
+                case EAGAIN: return errSSLWouldBlock; // EWOULDBLOCK is a define for EAGAIN on osx
+                case EINPROGRESS: return errSSLWouldBlock;
+
+                case ECONNRESET: return errSSLClosedAbort;
+
+                default: return errSecIO;
             }
         }
     }
@@ -234,20 +238,31 @@ namespace ix
 
     ssize_t SocketAppleSSL::send(char* buf, size_t nbyte)
     {
-        ssize_t ret = 0;
-        OSStatus status;
-        do
+        OSStatus status = errSSLWouldBlock;
+        while (status == errSSLWouldBlock)
         {
             size_t processed = 0;
             std::lock_guard<std::mutex> lock(_mutex);
             status = SSLWrite(_sslContext, buf, nbyte, &processed);
-            ret += processed;
-            buf += processed;
-            nbyte -= processed;
-        } while (nbyte > 0 && status == errSSLWouldBlock);
 
-        if (ret == 0 && errSSLClosedAbort != status) ret = -1;
-        return ret;
+            if (processed > 0) return (ssize_t) processed;
+
+            // The connection was reset, inform the caller that this
+            // Socket should close
+            if (status == errSSLClosedGraceful || status == errSSLClosedNoNotify ||
+                status == errSSLClosedAbort)
+            {
+                errno = ECONNRESET;
+                return -1;
+            }
+
+            if (status == errSSLWouldBlock)
+            {
+                errno = EWOULDBLOCK;
+                return -1;
+            }
+        }
+        return -1;
     }
 
     ssize_t SocketAppleSSL::send(const std::string& buffer)

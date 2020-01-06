@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.9.2] - 2020-01-06
+
+(apple ssl) unify read and write ssl utility code
+
 ## [7.9.1] - 2020-01-06
 
 (websocket client) better error propagation when errors are detected while sending data
