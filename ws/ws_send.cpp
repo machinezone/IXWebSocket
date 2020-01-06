@@ -37,7 +37,7 @@ namespace ix
         void waitForConnection();
         void waitForAck();
 
-        void sendMessage(const std::string& filename, bool throttle);
+        bool sendMessage(const std::string& filename, bool throttle);
 
     private:
         std::string _url;
@@ -213,7 +213,7 @@ namespace ix
             auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _start);
 
             _ms = milliseconds.count();
-            spdlog::info("{} completed in {}", _description, _ms);
+            spdlog::info("{} completed in {} ms", _description, _ms);
 
             _reported = true;
         }
@@ -230,7 +230,7 @@ namespace ix
         bool _reported;
     };
 
-    void WebSocketSender::sendMessage(const std::string& filename, bool throttle)
+    bool WebSocketSender::sendMessage(const std::string& filename, bool throttle)
     {
         std::vector<uint8_t> content;
         {
@@ -251,7 +251,7 @@ namespace ix
         MsgPack msg(pdu);
 
         Bench bench("Sending file through websocket");
-        _webSocket.sendBinary(msg.dump(), [throttle](int current, int total) -> bool {
+        auto result = _webSocket.sendBinary(msg.dump(), [throttle](int current, int total) -> bool {
             spdlog::info("ws_send: Step {} out of {}", current, total);
 
             if (throttle)
@@ -262,6 +262,12 @@ namespace ix
 
             return true;
         });
+
+        if (!result.success)
+        {
+            spdlog::error("ws_send: Error sending file.");
+            return false;
+        }
 
         do
         {
@@ -277,6 +283,8 @@ namespace ix
         auto transferRate = 1000 * content.size() / duration;
         transferRate /= (1024 * 1024);
         spdlog::info("ws_send: Send transfer rate: {} MB/s", transferRate);
+
+        return true;
     }
 
     void wsSend(const std::string& url,
@@ -291,11 +299,12 @@ namespace ix
         webSocketSender.waitForConnection();
 
         spdlog::info("ws_send: Sending...");
-        webSocketSender.sendMessage(path, throttle);
+        if (webSocketSender.sendMessage(path, throttle))
+        {
+            webSocketSender.waitForAck();
+            spdlog::info("ws_send: Done !");
+        }
 
-        webSocketSender.waitForAck();
-
-        spdlog::info("ws_send: Done !");
         webSocketSender.stop();
     }
 

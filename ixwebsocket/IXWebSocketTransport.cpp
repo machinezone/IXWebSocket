@@ -865,10 +865,12 @@ namespace ix
             _txbuf.reserve(wireSize);
         }
 
+        bool success = true;
+
         // Common case for most message. No fragmentation required.
         if (wireSize < kChunkSize)
         {
-            sendFragment(type, true, message_begin, message_end, compress);
+            success = sendFragment(type, true, message_begin, message_end, compress);
         }
         else
         {
@@ -904,7 +906,10 @@ namespace ix
                 }
 
                 // Send message
-                sendFragment(opcodeType, fin, begin, end, compress);
+                if (!sendFragment(opcodeType, fin, begin, end, compress))
+                {
+                    return WebSocketSendInfo(false);
+                }
 
                 if (onProgressCallback && !onProgressCallback((int) i, (int) steps))
                 {
@@ -914,8 +919,6 @@ namespace ix
                 begin += kChunkSize;
             }
         }
-
-        bool success = true;
 
         // Request to flush the send buffer on the background thread if it isn't empty
         if (!isSendBufferEmpty())
@@ -932,7 +935,7 @@ namespace ix
         return WebSocketSendInfo(success, compressionError, payloadSize, wireSize);
     }
 
-    void WebSocketTransport::sendFragment(wsheader_type::opcode_type type,
+    bool WebSocketTransport::sendFragment(wsheader_type::opcode_type type,
                                           bool fin,
                                           std::string::const_iterator message_begin,
                                           std::string::const_iterator message_end,
@@ -1017,7 +1020,7 @@ namespace ix
         appendToSendBuffer(header, message_begin, message_end, message_size, masking_key);
 
         // Now actually send this data
-        sendOnSocket();
+        return sendOnSocket();
     }
 
     WebSocketSendInfo WebSocketTransport::sendPing(const std::string& message)
@@ -1056,7 +1059,7 @@ namespace ix
         return _socket->send((char*) &_txbuf[0], _txbuf.size());
     }
 
-    void WebSocketTransport::sendOnSocket()
+    bool WebSocketTransport::sendOnSocket()
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);
 
@@ -1072,13 +1075,15 @@ namespace ix
             {
                 closeSocket();
                 setReadyState(ReadyState::CLOSED);
-                break;
+                return false;
             }
             else
             {
                 _txbuf.erase(_txbuf.begin(), _txbuf.begin() + ret);
             }
         }
+
+        return true;
     }
 
     void WebSocketTransport::sendCloseFrame(uint16_t code, const std::string& reason)
@@ -1183,7 +1188,10 @@ namespace ix
             }
             else if (result == PollResultType::ReadyForWrite)
             {
-                sendOnSocket();
+                if (!sendOnSocket())
+                {
+                    return false;
+                }
             }
         }
 
