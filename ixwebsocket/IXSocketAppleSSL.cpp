@@ -80,11 +80,15 @@ namespace ix
         {
             *len = (size_t) status;
             if (requested_sz > *len)
+            {
                 return errSSLWouldBlock;
+            }
             else
+            {
                 return noErr;
+            }
         }
-        else if (0 == status)
+        else if (status == 0)
         {
             *len = 0;
             return errSSLClosedGraceful;
@@ -122,11 +126,15 @@ namespace ix
         {
             *len = (size_t) status;
             if (to_write_sz > *len)
+            {
                 return errSSLWouldBlock;
+            }
             else
+            {
                 return noErr;
+            }
         }
-        else if (0 == status)
+        else if (status == 0)
         {
             *len = 0;
             return errSSLClosedGraceful;
@@ -134,7 +142,7 @@ namespace ix
         else
         {
             *len = 0;
-            if (EAGAIN == errno)
+            if (errno == EAGAIN)
             {
                 return errSSLWouldBlock;
             }
@@ -181,7 +189,7 @@ namespace ix
                 do
                 {
                     status = SSLHandshake(_sslContext);
-                } while (errSSLWouldBlock == status || errSSLServerAuthCompleted == status);
+                } while (status == errSSLWouldBlock || status == errSSLServerAuthCompleted);
 
                 if (status == errSSLServerAuthCompleted)
                 {
@@ -189,7 +197,7 @@ namespace ix
                     do
                     {
                         status = SSLHandshake(_sslContext);
-                    } while (errSSLWouldBlock == status || errSSLServerAuthCompleted == status);
+                    } while (status == errSSLWouldBlock || status == errSSLServerAuthCompleted);
                 }
             }
             else
@@ -197,11 +205,11 @@ namespace ix
                 do
                 {
                     status = SSLHandshake(_sslContext);
-                } while (errSSLWouldBlock == status || errSSLServerAuthCompleted == status);
+                } while (status == errSSLWouldBlock || status == errSSLServerAuthCompleted);
             }
         }
 
-        if (noErr != status)
+        if (status != noErr)
         {
             errMsg = getSSLErrorDescription(status);
             close();
@@ -236,7 +244,7 @@ namespace ix
             ret += processed;
             buf += processed;
             nbyte -= processed;
-        } while (nbyte > 0 && errSSLWouldBlock == status);
+        } while (nbyte > 0 && status == errSSLWouldBlock);
 
         if (ret == 0 && errSSLClosedAbort != status) ret = -1;
         return ret;
@@ -251,7 +259,7 @@ namespace ix
     ssize_t SocketAppleSSL::recv(void* buf, size_t nbyte)
     {
         OSStatus status = errSSLWouldBlock;
-        while (errSSLWouldBlock == status)
+        while (status == errSSLWouldBlock)
         {
             size_t processed = 0;
             std::lock_guard<std::mutex> lock(_mutex);
