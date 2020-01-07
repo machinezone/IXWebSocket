@@ -7,9 +7,9 @@
 #include "IXSelectInterruptFactory.h"
 
 #if defined(__linux__) || defined(__APPLE__)
-#include <ixwebsocket/IXSelectInterruptPipe.h>
+#include "IXSelectInterruptPipe.h"
 #else
-#include <ixwebsocket/IXSelectInterrupt.h>
+#include "IXSelectInterrupt.h"
 #endif
 
 namespace ix
