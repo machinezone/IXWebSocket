@@ -1,10 +1,8 @@
-FROM alpine:3.11 as build
+FROM centos:8 as build
 
-RUN apk add --no-cache gcc g++ musl-dev linux-headers cmake openssl-dev 
-RUN apk add --no-cache make
-RUN apk add --no-cache zlib-dev
+RUN yum install -y gcc-c++ make cmake zlib-devel openssl-devel redhat-rpm-config 
 
-RUN addgroup -S app && adduser -S -G app app 
+RUN groupadd app && useradd -g app app
 RUN chown -R app:app /opt
 RUN chown -R app:app /usr/local
 
@@ -17,12 +15,11 @@ USER app
 RUN [ "make", "ws_install" ]
 RUN [ "rm", "-rf", "build" ]
 
-FROM alpine:3.11 as runtime
+FROM centos:8 as runtime
 
-RUN apk add --no-cache libstdc++
-RUN apk add --no-cache strace
+RUN yum install -y gdb strace
 
-RUN addgroup -S app && adduser -S -G app app 
+RUN groupadd app && useradd -g app app
 COPY --chown=app:app --from=build /usr/local/bin/ws /usr/local/bin/ws
 RUN chmod +x /usr/local/bin/ws
 RUN ldd /usr/local/bin/ws
@@ -36,4 +33,3 @@ WORKDIR /home/app
 
 ENTRYPOINT ["ws"]
 EXPOSE 8008
-C
