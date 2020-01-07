@@ -113,8 +113,11 @@ else()
     list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSelectInterruptEventFd.h)
 endif()
 
+option(USE_TLS "Enable TLS support" FALSE)
 if (WIN32)
-  set(USE_MBED_TLS TRUE)
+  option(USE_MBED_TLS "Use Mbed TLS" TRUE)
+else()
+  option(USE_MBED_TLS "Use Mbed TLS" FALSE)
 endif()
 
 if (USE_TLS)
