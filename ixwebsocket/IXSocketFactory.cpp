@@ -9,18 +9,18 @@
 #ifdef IXWEBSOCKET_USE_TLS
 
 #ifdef IXWEBSOCKET_USE_MBED_TLS
-#include <ixwebsocket/IXSocketMbedTLS.h>
+#include "IXSocketMbedTLS.h"
 #elif defined(_WIN32)
-#include <ixwebsocket/IXSocketSChannel.h>
+#include "IXSocketSChannel.h"
 #elif defined(IXWEBSOCKET_USE_OPEN_SSL)
-#include <ixwebsocket/IXSocketOpenSSL.h>
+#include "IXSocketOpenSSL.h"
 #elif __APPLE__
-#include <ixwebsocket/IXSocketAppleSSL.h>
+#include "IXSocketAppleSSL.h"
 #endif
 
 #else
 
-#include <ixwebsocket/IXSocket.h>
+#include "IXSocket.h"
 
 #endif
 
