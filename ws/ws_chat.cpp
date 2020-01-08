@@ -9,13 +9,13 @@
 // Broadcast server can be ran with `ws broadcast_server`
 //
 
-#include "linenoise.hpp"
 #include "nlohmann/json.hpp"
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <queue>
 #include <spdlog/spdlog.h>
 #include <sstream>
+#include <iostream>
 
 // for convenience
 using json = nlohmann::json;
@@ -172,9 +172,10 @@ namespace ix
         {
             // Read line
             std::string line;
-            auto quit = linenoise::Readline("> ", line);
+            std::cout << user << " > " << std::flush;
+            std::getline(std::cin, line);
 
-            if (quit)
+            if (!std::cin)
             {
                 break;
             }
