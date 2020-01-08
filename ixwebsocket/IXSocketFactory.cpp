@@ -10,12 +10,12 @@
 
 #ifdef IXWEBSOCKET_USE_MBED_TLS
 #include "IXSocketMbedTLS.h"
-#elif defined(_WIN32)
-#include "IXSocketSChannel.h"
 #elif defined(IXWEBSOCKET_USE_OPEN_SSL)
 #include "IXSocketOpenSSL.h"
 #elif __APPLE__
 #include "IXSocketAppleSSL.h"
+#elif defined(_WIN32)
+#include "IXSocketSChannel.h"
 #endif
 
 #else
