@@ -158,7 +158,7 @@ if (APPLE AND USE_TLS AND NOT USE_MBED_TLS AND NOT USE_OPEN_SSL)
 endif()
 
 if (WIN32)
-  target_link_libraries(ixwebsocket wsock32 ws2_32)
+  target_link_libraries(ixwebsocket wsock32 ws2_32 shlwapi)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
@@ -181,7 +181,7 @@ if (USE_TLS AND USE_OPEN_SSL)
   add_definitions(${OPENSSL_DEFINITIONS})
   message(STATUS "OpenSSL: " ${OPENSSL_VERSION})
   include_directories(${OPENSSL_INCLUDE_DIR})
-  target_link_libraries(ixwebsocket ${OPENSSL_LIBRARIES} $<$<PLATFORM_ID:Windows>:Shlwapi.lib>)
+  target_link_libraries(ixwebsocket ${OPENSSL_LIBRARIES})
 endif()
 
 if (USE_TLS AND USE_MBED_TLS)
