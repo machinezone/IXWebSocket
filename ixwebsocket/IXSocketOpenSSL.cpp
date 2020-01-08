@@ -11,8 +11,14 @@
 #include "IXSocketConnect.h"
 #include <cassert>
 #include <errno.h>
+#ifdef _WIN32
+#include <Shlwapi.h>
+#else
 #include <fnmatch.h>
+#endif
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 #include <openssl/x509v3.h>
+#endif
 #define socketerrno errno
 
 namespace ix
@@ -136,7 +142,11 @@ namespace ix
      */
     bool SocketOpenSSL::checkHost(const std::string& host, const char* pattern)
     {
+#ifdef _WIN32
+        return PathMatchSpecA(host.c_str(), pattern);
+#else
         return fnmatch(pattern, host.c_str(), 0) != FNM_NOMATCH;
+#endif
     }
 
     bool SocketOpenSSL::openSSLCheckServerCert(SSL* ssl,
