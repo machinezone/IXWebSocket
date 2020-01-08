@@ -21,6 +21,9 @@
 
 #ifndef _WIN32
 #include <signal.h>
+#else
+#include <process.h>
+#define getpid _getpid
 #endif
 
 
