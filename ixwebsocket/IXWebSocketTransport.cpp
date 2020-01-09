@@ -720,7 +720,7 @@ namespace ix
 
         // if an abnormal closure was raised in poll, and nothing else triggered a CLOSED state in
         // the received and processed data then close the connection
-        if (pollResult == PollResult::AbnormalClose)
+        if (pollResult != PollResult::Succeeded)
         {
             _rxbuf.clear();
 
