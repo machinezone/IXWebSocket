@@ -59,10 +59,12 @@ namespace ix
         //
         nfds_t nfds = 1;
         struct pollfd fds[2];
-        memset(fds, 0 , sizeof(fds));
+        memset(fds, 0, sizeof(fds));
 
         fds[0].fd = sockfd;
         fds[0].events = (readyToRead) ? POLLIN : POLLOUT;
+
+         // this is ignored by poll, but our select based poll wrapper on Windows needs it
         fds[0].events |= POLLERR;
 
         // File descriptor used to interrupt select when needed
@@ -133,7 +135,8 @@ namespace ix
             }
 #endif
         }
-        else if (sockfd != -1 && (fds[0].revents & POLLERR || fds[0].revents & POLLHUP))
+        else if (sockfd != -1 && (fds[0].revents & POLLERR || fds[0].revents & POLLHUP ||
+                                  fds[0].revents & POLLNVAL))
         {
             pollResult = PollResultType::Error;
         }
