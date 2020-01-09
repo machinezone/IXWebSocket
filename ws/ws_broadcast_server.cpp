@@ -72,7 +72,7 @@ namespace ix
                                 size_t bufferedAmount = client->bufferedAmount();
                                 spdlog::info("{} bytes left to be sent", bufferedAmount);
 
-                                std::chrono::duration<double, std::milli> duration(10);
+                                std::chrono::duration<double, std::milli> duration(500);
                                 std::this_thread::sleep_for(duration);
                             } while (client->bufferedAmount() != 0);
                         }

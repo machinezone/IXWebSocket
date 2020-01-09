@@ -258,7 +258,7 @@ namespace ix
         MsgPack msg(pdu);
 
         Bench bench("Sending file through websocket");
-        auto result = _webSocket.sendBinary(msg.dump(), [throttle](int current, int total) -> bool {
+        auto result = _webSocket.sendBinary(msg.dump(), [this, throttle](int current, int total) -> bool {
             spdlog::info("ws_send: Step {} out of {}", current + 1, total);
 
             if (throttle)
@@ -267,7 +267,7 @@ namespace ix
                 std::this_thread::sleep_for(duration);
             }
 
-            return true;
+            return _connected;
         });
 
         if (!result.success)
@@ -276,12 +276,18 @@ namespace ix
             return false;
         }
 
+        if (!_connected)
+        {
+            spdlog::error("ws_send: Got disconnected from the server");
+            return false;
+        }
+
         do
         {
             size_t bufferedAmount = _webSocket.bufferedAmount();
             spdlog::info("ws_send: {} bytes left to be sent", bufferedAmount);
 
-            std::chrono::duration<double, std::milli> duration(10);
+            std::chrono::duration<double, std::milli> duration(500);
             std::this_thread::sleep_for(duration);
         } while (_webSocket.bufferedAmount() != 0 && _connected);
 
