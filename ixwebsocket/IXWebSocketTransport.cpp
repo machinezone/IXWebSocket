@@ -350,28 +350,9 @@ namespace ix
         }
         else if (pollResult == PollResultType::ReadyForRead)
         {
-            while (true)
+            if (!receiveFromSocket())
             {
-                ssize_t ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
-
-                if (ret < 0 && Socket::isWaitNeeded())
-                {
-                    break;
-                }
-                else if (ret <= 0)
-                {
-                    // if there are received data pending to be processed, then delay the abnormal
-                    // closure to after dispatch (other close code/reason could be read from the
-                    // buffer)
-
-                    closeSocket();
-
-                    return PollResult::AbnormalClose;
-                }
-                else
-                {
-                    _rxbuf.insert(_rxbuf.end(), _readbuf.begin(), _readbuf.begin() + ret);
-                }
+                return PollResult::AbnormalClose;
             }
         }
         else if (pollResult == PollResultType::Error)
@@ -1053,19 +1034,17 @@ namespace ix
             wsheader_type::TEXT_FRAME, message, _enablePerMessageDeflate, onProgressCallback);
     }
 
-    ssize_t WebSocketTransport::send()
-    {
-        std::lock_guard<std::mutex> lock(_socketMutex);
-        return _socket->send((char*) &_txbuf[0], _txbuf.size());
-    }
-
     bool WebSocketTransport::sendOnSocket()
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);
 
         while (_txbuf.size())
         {
-            ssize_t ret = send();
+            ssize_t ret = 0;
+            {
+                std::lock_guard<std::mutex> lock(_socketMutex);
+                ret = _socket->send((char*) &_txbuf[0], _txbuf.size());
+            }
 
             if (ret < 0 && Socket::isWaitNeeded())
             {
@@ -1080,6 +1059,34 @@ namespace ix
             else
             {
                 _txbuf.erase(_txbuf.begin(), _txbuf.begin() + ret);
+            }
+        }
+
+        return true;
+    }
+
+    bool WebSocketTransport::receiveFromSocket()
+    {
+        while (true)
+        {
+            ssize_t ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
+
+            if (ret < 0 && Socket::isWaitNeeded())
+            {
+                break;
+            }
+            else if (ret <= 0)
+            {
+                // if there are received data pending to be processed, then delay the abnormal
+                // closure to after dispatch (other close code/reason could be read from the
+                // buffer)
+
+                closeSocket();
+                return false;
+            }
+            else
+            {
+                _rxbuf.insert(_rxbuf.end(), _readbuf.begin(), _readbuf.begin() + ret);
             }
         }
 

@@ -99,7 +99,6 @@ namespace ix
                    bool remote = false);
 
         void closeSocket();
-        ssize_t send();
 
         ReadyState getReadyState() const;
         void setReadyState(ReadyState readyState);
@@ -245,6 +244,8 @@ namespace ix
 
         bool flushSendBuffer();
         bool sendOnSocket();
+        bool receiveFromSocket();
+
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
                                    const std::string& message,
                                    bool compress,
