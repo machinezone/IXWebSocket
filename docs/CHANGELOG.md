@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.9.3] - 2020-01-08
+
+(Windows) OpenSSL can be used for SSL communication
+
 ## [7.9.2] - 2020-01-06
 
 (apple ssl) unify read and write ssl utility code
