@@ -10,12 +10,12 @@
 //
 
 #include "nlohmann/json.hpp"
+#include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <queue>
 #include <spdlog/spdlog.h>
 #include <sstream>
-#include <iostream>
 
 // for convenience
 using json = nlohmann::json;

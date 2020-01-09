@@ -258,17 +258,18 @@ namespace ix
         MsgPack msg(pdu);
 
         Bench bench("Sending file through websocket");
-        auto result = _webSocket.sendBinary(msg.dump(), [this, throttle](int current, int total) -> bool {
-            spdlog::info("ws_send: Step {} out of {}", current + 1, total);
+        auto result =
+            _webSocket.sendBinary(msg.dump(), [this, throttle](int current, int total) -> bool {
+                spdlog::info("ws_send: Step {} out of {}", current + 1, total);
 
-            if (throttle)
-            {
-                std::chrono::duration<double, std::milli> duration(10);
-                std::this_thread::sleep_for(duration);
-            }
+                if (throttle)
+                {
+                    std::chrono::duration<double, std::milli> duration(10);
+                    std::this_thread::sleep_for(duration);
+                }
 
-            return _connected;
-        });
+                return _connected;
+            });
 
         if (!result.success)
         {
