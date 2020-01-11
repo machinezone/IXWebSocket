@@ -3,7 +3,7 @@ all:
 
 .PHONY: docker
 
-NAME   := bsergean/ws_proxy
+NAME   := bsergean/echo_server
 TAG    := $(shell cat DOCKER_VERSION)
 IMG    := ${NAME}:${TAG}
 LATEST := ${NAME}:latest
@@ -21,3 +21,6 @@ docker_push:
 	docker tag ${IMG} ${LATEST}
 	docker push ${LATEST}
 	docker push ${IMG}
+
+ssl_server:
+	docker run -p 8766:8766 -e BIND_HOST=0.0.0.0 -e MODE=ssl -it --rm bsergean/echo_server:build

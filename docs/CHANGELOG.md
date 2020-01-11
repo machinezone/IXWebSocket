@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.9.3] - 2020-01-10
+
+(apple ssl) model write method after the OpenSSL one for consistency
+
 ## [7.9.2] - 2020-01-06
 
 (apple ssl) unify read and write ssl utility code

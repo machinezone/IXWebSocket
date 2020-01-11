@@ -238,31 +238,31 @@ namespace ix
 
     ssize_t SocketAppleSSL::send(char* buf, size_t nbyte)
     {
-        OSStatus status = errSSLWouldBlock;
-        while (status == errSSLWouldBlock)
+        ssize_t sent = 0;
+
+        while (nbyte > 0)
         {
-            size_t processed = 0;
             std::lock_guard<std::mutex> lock(_mutex);
-            status = SSLWrite(_sslContext, buf, nbyte, &processed);
 
-            if (processed > 0) return (ssize_t) processed;
+            size_t processed = 0;
+            OSStatus status = SSLWrite(_sslContext, buf + sent, nbyte, &processed);
 
-            // The connection was reset, inform the caller that this
-            // Socket should close
-            if (status == errSSLClosedGraceful || status == errSSLClosedNoNotify ||
-                status == errSSLClosedAbort)
+            if (status == noErr)
             {
-                errno = ECONNRESET;
-                return -1;
+                nbyte -= processed;
+                sent += processed;
             }
-
-            if (status == errSSLWouldBlock)
+            else if (status == errSSLWouldBlock)
             {
                 errno = EWOULDBLOCK;
                 return -1;
             }
+            else
+            {
+                return -1;
+            }
         }
-        return -1;
+        return sent;
     }
 
     ssize_t SocketAppleSSL::send(const std::string& buffer)
