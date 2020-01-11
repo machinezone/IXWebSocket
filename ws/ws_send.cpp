@@ -241,7 +241,7 @@ namespace ix
     {
         std::vector<uint8_t> content;
         {
-            Bench bench("load file from disk");
+            Bench bench("ws_send: load file from disk");
             content = load(filename);
         }
 
@@ -257,9 +257,12 @@ namespace ix
 
         MsgPack msg(pdu);
 
-        Bench bench("Sending file through websocket");
+        auto serializedMsg = msg.dump();
+        spdlog::info("ws_send: sending {} bytes", serializedMsg.size());
+
+        Bench bench("ws_send: Sending file through websocket");
         auto result =
-            _webSocket.sendBinary(msg.dump(), [this, throttle](int current, int total) -> bool {
+            _webSocket.sendBinary(serializedMsg, [this, throttle](int current, int total) -> bool {
                 spdlog::info("ws_send: Step {} out of {}", current + 1, total);
 
                 if (throttle)
@@ -282,6 +285,8 @@ namespace ix
             spdlog::error("ws_send: Got disconnected from the server");
             return false;
         }
+
+        spdlog::info("ws_send: sent {} bytes", serializedMsg.size());
 
         do
         {
