@@ -830,3 +830,17 @@ $ honcho start
 15:29:59 system             | nginx.1 stopped (rc=0)
 15:29:59 system             | websocket_server.1 stopped (rc=-15)
 ```
+
+## Sending large files over SSL
+
+Running inside docker
+
+```
+$ make docker && make server_ssl
+```
+
+On the client
+
+```
+$ make ws_mbedtls && cp build/ws/ws /usr/local/bin/ws && ws send --verify_none wss://localhost:8766 /tmp/big_file
+```
