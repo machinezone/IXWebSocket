@@ -18,8 +18,9 @@ ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 ssl_context.load_cert_chain('trusted-server-crt.pem',
                             'trusted-server-key.pem')
 
-print('Serving on localhost:8766')
 host = os.getenv('BIND_HOST', 'localhost')
+print(f'Serving on {host}:8766')
+
 start_server = websockets.serve(echo, host, 8766, max_size=2 ** 30, ssl=ssl_context)
 
 asyncio.get_event_loop().run_until_complete(start_server)
