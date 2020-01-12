@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.9.4] - 2020-01-12
+
+(openssl + mbedssl) fix #140, can send large files with ws send over ssl / still broken with apple ssl
+
 ## [7.9.3] - 2020-01-10
 
 (apple ssl) model write method after the OpenSSL one for consistency

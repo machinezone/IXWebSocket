@@ -603,37 +603,30 @@ namespace ix
 
     ssize_t SocketOpenSSL::send(char* buf, size_t nbyte)
     {
-        ssize_t sent = 0;
+        std::lock_guard<std::mutex> lock(_mutex);
 
-        while (nbyte > 0)
+        if (_ssl_connection == nullptr || _ssl_context == nullptr)
         {
-            std::lock_guard<std::mutex> lock(_mutex);
-
-            if (_ssl_connection == nullptr || _ssl_context == nullptr)
-            {
-                return 0;
-            }
-
-            ERR_clear_error();
-            ssize_t write_result = SSL_write(_ssl_connection, buf + sent, (int) nbyte);
-            int reason = SSL_get_error(_ssl_connection, (int) write_result);
-
-            if (reason == SSL_ERROR_NONE)
-            {
-                nbyte -= write_result;
-                sent += write_result;
-            }
-            else if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
-            {
-                errno = EWOULDBLOCK;
-                return -1;
-            }
-            else
-            {
-                return -1;
-            }
+            return 0;
         }
-        return sent;
+
+        ERR_clear_error();
+        ssize_t write_result = SSL_write(_ssl_connection, buf, (int) nbyte);
+        int reason = SSL_get_error(_ssl_connection, (int) write_result);
+
+        if (reason == SSL_ERROR_NONE)
+        {
+            return write_result;
+        }
+        else if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
+        {
+            errno = EWOULDBLOCK;
+            return -1;
+        }
+        else
+        {
+            return -1;
+        }
     }
 
     ssize_t SocketOpenSSL::send(const std::string& buffer)

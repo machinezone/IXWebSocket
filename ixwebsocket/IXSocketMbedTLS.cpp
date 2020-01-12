@@ -230,30 +230,23 @@ namespace ix
 
     ssize_t SocketMbedTLS::send(char* buf, size_t nbyte)
     {
-        ssize_t sent = 0;
+        std::lock_guard<std::mutex> lock(_mutex);
 
-        while (nbyte > 0)
+        ssize_t res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
+
+        if (res > 0)
         {
-            std::lock_guard<std::mutex> lock(_mutex);
-
-            ssize_t res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
-
-            if (res > 0)
-            {
-                nbyte -= res;
-                sent += res;
-            }
-            else if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
-            {
-                errno = EWOULDBLOCK;
-                return -1;
-            }
-            else
-            {
-                return -1;
-            }
+            return res;
         }
-        return sent;
+        else if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
+        {
+            errno = EWOULDBLOCK;
+            return -1;
+        }
+        else
+        {
+            return -1;
+        }
     }
 
     ssize_t SocketMbedTLS::send(const std::string& buffer)
