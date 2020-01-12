@@ -3,6 +3,7 @@
 # WS server example
 
 import asyncio
+import os
 import websockets
 
 
@@ -11,9 +12,10 @@ async def echo(websocket, path):
     print(f'Received {len(msg)} bytes')
     await websocket.send(msg)
 
+host = os.getenv('BIND_HOST', 'localhost')
+print(f'Serving on {host}:8766')
 
-print('Serving on localhost:8766')
-start_server = websockets.serve(echo, 'localhost', 8766, max_size=2 ** 25)
+start_server = websockets.serve(echo, host, 8766, max_size=2 ** 30)
 
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
