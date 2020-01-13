@@ -94,6 +94,17 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#changelog">Changelog</a></li>
+            <li><a href="#794-2020-01-12">[7.9.4] - 2020-01-12</a></li>
+            <li><a href="#793-2020-01-10">[7.9.3] - 2020-01-10</a></li>
+            <li><a href="#792-2020-01-06">[7.9.2] - 2020-01-06</a></li>
+            <li><a href="#791-2020-01-06">[7.9.1] - 2020-01-06</a></li>
+            <li><a href="#790-2020-01-04">[7.9.0] - 2020-01-04</a></li>
+            <li><a href="#789-2020-01-04">[7.8.9] - 2020-01-04</a></li>
+            <li><a href="#788-2019-12-28">[7.8.8] - 2019-12-28</a></li>
+            <li><a href="#786-2019-12-28">[7.8.6] - 2019-12-28</a></li>
+            <li><a href="#785-2019-12-28">[7.8.5] - 2019-12-28</a></li>
+            <li><a href="#784-2019-12-27">[7.8.4] - 2019-12-27</a></li>
+            <li><a href="#783-2019-12-27">[7.8.3] - 2019-12-27</a></li>
             <li><a href="#782-2019-12-25">[7.8.2] - 2019-12-25</a></li>
             <li><a href="#781-2019-12-25">[7.8.1] - 2019-12-25</a></li>
             <li><a href="#780-2019-12-24">[7.8.0] - 2019-12-24</a></li>
@@ -174,6 +185,29 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="794-2020-01-12">[7.9.4] - 2020-01-12</h2>
+<p>(openssl + mbedssl) fix #140, can send large files with ws send over ssl / still broken with apple ssl</p>
+<h2 id="793-2020-01-10">[7.9.3] - 2020-01-10</h2>
+<p>(apple ssl) model write method after the OpenSSL one for consistency</p>
+<h2 id="792-2020-01-06">[7.9.2] - 2020-01-06</h2>
+<p>(apple ssl) unify read and write ssl utility code</p>
+<h2 id="791-2020-01-06">[7.9.1] - 2020-01-06</h2>
+<p>(websocket client) better error propagation when errors are detected while sending data
+(ws send) detect failures to send big files, terminate in those cases and report error</p>
+<h2 id="790-2020-01-04">[7.9.0] - 2020-01-04</h2>
+<p>(ws send) add option (-x) to disable per message deflate compression</p>
+<h2 id="789-2020-01-04">[7.8.9] - 2020-01-04</h2>
+<p>(ws send + receive) handle all message types (ping + pong + fragment) / investigate #140</p>
+<h2 id="788-2019-12-28">[7.8.8] - 2019-12-28</h2>
+<p>(mbedtls) fix related to private key file parsing and initialization</p>
+<h2 id="786-2019-12-28">[7.8.6] - 2019-12-28</h2>
+<p>(ws cobra to sentry/statsd) fix for handling null events properly for empty queues + use queue to send data to statsd</p>
+<h2 id="785-2019-12-28">[7.8.5] - 2019-12-28</h2>
+<p>(ws cobra to sentry) handle null events for empty queues</p>
+<h2 id="784-2019-12-27">[7.8.4] - 2019-12-27</h2>
+<p>(ws cobra to sentry) game is picked in a fair manner, so that all games get the same share of sent events</p>
+<h2 id="783-2019-12-27">[7.8.3] - 2019-12-27</h2>
+<p>(ws cobra to sentry) refactor queue related code into a class</p>
 <h2 id="782-2019-12-25">[7.8.2] - 2019-12-25</h2>
 <p>(ws cobra to sentry) bound the queue size used to hold up cobra messages before they are sent to sentry. Default queue size is a 100 messages. Without such limit the program runs out of memory when a subscriber receive a lot of messages that cannot make it to sentry</p>
 <h2 id="781-2019-12-25">[7.8.1] - 2019-12-25</h2>
