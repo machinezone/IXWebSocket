@@ -102,7 +102,7 @@ namespace ix
                                 size_t bufferedAmount = client->bufferedAmount();
 
                                 spdlog::info(
-                                    "{}: [client {}]: has readystate {} bytes left to be sent",
+                                    "{}: [client {}]: has readystate {} bytes left to be sent {}",
                                     "ws_transfer",
                                     id,
                                     readyStateString,
