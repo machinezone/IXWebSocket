@@ -249,11 +249,6 @@ namespace ix
         }
     }
 
-    ssize_t SocketMbedTLS::send(const std::string& buffer)
-    {
-        return send((char*) &buffer[0], buffer.size());
-    }
-
     ssize_t SocketMbedTLS::recv(void* buf, size_t nbyte)
     {
         while (true)

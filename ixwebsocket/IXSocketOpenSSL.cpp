@@ -629,11 +629,6 @@ namespace ix
         }
     }
 
-    ssize_t SocketOpenSSL::send(const std::string& buffer)
-    {
-        return send((char*) &buffer[0], buffer.size());
-    }
-
     ssize_t SocketOpenSSL::recv(void* buf, size_t nbyte)
     {
         while (true)

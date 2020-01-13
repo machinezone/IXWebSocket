@@ -73,7 +73,7 @@ namespace ix
         virtual void close();
 
         virtual ssize_t send(char* buffer, size_t length);
-        virtual ssize_t send(const std::string& buffer);
+        ssize_t send(const std::string& buffer);
         virtual ssize_t recv(void* buffer, size_t length);
 
         // Blocking and cancellable versions, working with socket that can be set
