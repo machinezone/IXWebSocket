@@ -112,10 +112,45 @@ namespace ix
 
     OSStatus SocketAppleSSL::writeToSocket(SSLConnectionRef connection,
                                            const void* data,
-                                           size_t* len)
+                                           size_t* dataLength)
     {
-        int fd = (int) (long) connection;
-        if (fd < 0) return errSSLInternal;
+#if 1
+        int sock = (int) (long) connection;
+        if (sock < 0) return errSSLInternal;
+
+        size_t bytesSent = 0;
+
+        ssize_t length;
+        size_t dataLen = *dataLength;
+        const UInt8 *dataPtr = (UInt8 *)data;
+        OSStatus ortn;
+        int theErr;
+
+        *dataLength = 0;
+
+        do {
+            length = write(sock,
+                    (char *)dataPtr + bytesSent,
+                    dataLen - bytesSent);
+        } while((length > 0) &&
+                ( (bytesSent += length) < dataLen) );
+
+        if(length <= 0) {
+            theErr = errno;
+            if(theErr == EAGAIN) {
+                ortn = errSSLWouldBlock;
+            }
+            else {
+                ortn = errSecIO;
+            }
+        }
+        else {
+            ortn = noErr;
+        }
+        *dataLength = bytesSent;
+        return ortn;
+        
+#else
 
         assert(data != nullptr);
         assert(len != nullptr);
@@ -155,6 +190,7 @@ namespace ix
                 default: return errSecIO;
             }
         }
+#endif
     }
 
 
@@ -238,31 +274,24 @@ namespace ix
 
     ssize_t SocketAppleSSL::send(char* buf, size_t nbyte)
     {
-        ssize_t sent = 0;
+        std::lock_guard<std::mutex> lock(_mutex);
 
-        while (nbyte > 0)
+        size_t processed = 0;
+        OSStatus status = SSLWrite(_sslContext, buf, nbyte, &processed);
+
+        if (status == noErr)
         {
-            std::lock_guard<std::mutex> lock(_mutex);
-
-            size_t processed = 0;
-            OSStatus status = SSLWrite(_sslContext, buf + sent, nbyte, &processed);
-
-            if (status == noErr)
-            {
-                nbyte -= processed;
-                sent += processed;
-            }
-            else if (status == errSSLWouldBlock)
-            {
-                errno = EWOULDBLOCK;
-                return -1;
-            }
-            else
-            {
-                return -1;
-            }
+            return processed;
         }
-        return sent;
+        else if (status == errSSLWouldBlock)
+        {
+            errno = EWOULDBLOCK;
+            return -1;
+        }
+        else
+        {
+            return -1;
+        }
     }
 
     ssize_t SocketAppleSSL::send(const std::string& buffer)
