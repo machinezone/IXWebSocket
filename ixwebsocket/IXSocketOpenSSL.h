@@ -33,7 +33,6 @@ namespace ix
         virtual void close() final;
 
         virtual ssize_t send(char* buffer, size_t length) final;
-        virtual ssize_t send(const std::string& buffer) final;
         virtual ssize_t recv(void* buffer, size_t length) final;
 
     private:
