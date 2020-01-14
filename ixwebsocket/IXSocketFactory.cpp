@@ -14,8 +14,6 @@
 #include "IXSocketOpenSSL.h"
 #elif __APPLE__
 #include "IXSocketAppleSSL.h"
-#elif defined(_WIN32)
-#include "IXSocketSChannel.h"
 #endif
 
 #else
@@ -46,8 +44,6 @@ namespace ix
             socket = std::make_shared<SocketMbedTLS>(tlsOptions, fd);
 #elif defined(IXWEBSOCKET_USE_OPEN_SSL)
             socket = std::make_shared<SocketOpenSSL>(tlsOptions, fd);
-#elif defined(_WIN32)
-            socket = std::make_shared<SocketSChannel>(tlsOptions, fd);
 #elif defined(__APPLE__)
             socket = std::make_shared<SocketAppleSSL>(tlsOptions, fd);
 #endif

@@ -21,6 +21,7 @@ FROM alpine:3.11 as runtime
 
 RUN apk add --no-cache libstdc++
 RUN apk add --no-cache strace
+RUN apk add --no-cache gdb
 
 RUN addgroup -S app && adduser -S -G app app 
 COPY --chown=app:app --from=build /usr/local/bin/ws /usr/local/bin/ws
@@ -36,4 +37,3 @@ WORKDIR /home/app
 
 ENTRYPOINT ["ws"]
 EXPOSE 8008
-C
