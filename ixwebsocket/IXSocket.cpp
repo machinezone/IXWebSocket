@@ -64,7 +64,7 @@ namespace ix
         fds[0].fd = sockfd;
         fds[0].events = (readyToRead) ? POLLIN : POLLOUT;
 
-         // this is ignored by poll, but our select based poll wrapper on Windows needs it
+        // this is ignored by poll, but our select based poll wrapper on Windows needs it
         fds[0].events |= POLLERR;
 
         // File descriptor used to interrupt select when needed

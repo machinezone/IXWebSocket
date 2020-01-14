@@ -55,12 +55,12 @@ set (SOURCES
   IXDNSLookupTest.cpp
   IXWebSocketSubProtocolTest.cpp
   IXSentryClientTest.cpp
+  IXWebSocketChatTest.cpp
 )
 
 # Some unittest don't work on windows yet
 if (UNIX)
   list(APPEND SOURCES
-    IXWebSocketChatTest.cpp
     IXWebSocketCloseTest.cpp
   )
 endif()
