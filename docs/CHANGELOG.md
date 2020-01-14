@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.9.5] - 2020-01-14
+
+(windows) fix #144, get rid of stubbed/un-implemented windows schannel ssl backend
+
 ## [7.9.4] - 2020-01-12
 
 (openssl + mbedssl) fix #140, can send large files with ws send over ssl / still broken with apple ssl
