@@ -42,7 +42,7 @@ Package reference
 * Conan 1.21.0 and up: `ixwebsocket/7.9.2`
 * Earlier versions: `ixwebsocket/7.9.2@_/_`
 
-Note that the version listed here might not be the latest one. See Bintray or the recipe itself for the latest version. 
+Note that the version listed here might not be the latest one. See Bintray or the recipe itself for the latest version. If you're migrating from the previous, custom Bintray remote, note that the package reference _has_ to be lower-case.  
 
 ### Docker
 
