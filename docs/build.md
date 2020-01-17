@@ -33,11 +33,16 @@ vcpkg install ixwebsocket
 
 ### Conan
 
-Support for building with conan was contributed by Olivia Zoe (thanks!). The package name to reference is `IXWebSocket/5.0.0@LunarWatcher/stable`, and a list of the uploaded versions is available on [Bintray](https://bintray.com/oliviazoe0/conan-packages/IXWebSocket%3ALunarWatcher). The package is in the process to be published to the official conan package repo, but in the meantime, it can be accessed by adding a new remote
+[ ![Download](https://api.bintray.com/packages/conan/conan-center/ixwebsocket%3A_/images/download.svg) ](https://bintray.com/conan/conan-center/ixwebsocket%3A_/_latestVersion)
 
-```
-conan remote add remote_name_here https://api.bintray.com/conan/oliviazoe0/conan-packages
-```
+Conan is currently supported through a recipe in [Conan Center](https://github.com/conan-io/conan-center-index/tree/master/recipes/ixwebsocket) ([Bintray entry](https://bintray.com/conan/conan-center/ixwebsocket%3A_)).
+
+Package reference 
+
+* Conan 1.21.0 and up: `ixwebsocket/7.9.2`
+* Earlier versions: `ixwebsocket/7.9.2@_/_`
+
+Note that the version listed here might not be the latest one. See Bintray or the recipe itself for the latest version. If you're migrating from the previous, custom Bintray remote, note that the package reference _has_ to be lower-case.  
 
 ### Docker
 
