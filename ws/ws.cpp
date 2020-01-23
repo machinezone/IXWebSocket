@@ -338,6 +338,9 @@ int main(int argc, char** argv)
     minidumpApp->add_option("--key", key, "Sentry Key")->required();
     minidumpApp->add_flag("-v", verbose, "Verbose");
 
+    CLI::App* dnsLookupApp = app.add_subcommand("dnslookup", "DNS lookup");
+    dnsLookupApp->add_option("host", hostname, "Hostname")->required();
+
     CLI11_PARSE(app, argc, argv);
 
     // pid file handling
@@ -508,6 +511,10 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("upload_minidump"))
     {
         ret = ix::ws_sentry_minidump_upload(metadata, minidump, project, key, verbose);
+    }
+    else if (app.got_subcommand("dnslookup"))
+    {
+        ret = ix::ws_dns_lookup(hostname);
     }
     else if (version)
     {
