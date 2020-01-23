@@ -163,4 +163,6 @@ namespace ix
                                   const std::string& project,
                                   const std::string& key,
                                   bool verbose);
+
+    int ws_dns_lookup(const std::string& hostname);
 } // namespace ix
