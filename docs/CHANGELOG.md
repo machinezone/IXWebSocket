@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [7.9.6] - 2020-01-22
+
+(ws) add a dnslookup sub-command, to get the ip address of a remote host
+
 ## [7.9.5] - 2020-01-14
 
 (windows) fix #144, get rid of stubbed/un-implemented windows schannel ssl backend
