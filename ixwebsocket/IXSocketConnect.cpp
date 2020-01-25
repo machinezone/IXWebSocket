@@ -19,10 +19,12 @@
 #include <linux/tcp.h>
 #endif
 
+#include <iostream>
+
 namespace ix
 {
     //
-    // This function can be cancelled every 50 ms
+    // This function can be cancelled every 10 ms
     // This is important so that we don't block the main UI thread when shutting down a
     // connection which is already trying to reconnect, and can be blocked waiting for
     // ::connect to respond.
@@ -44,7 +46,14 @@ namespace ix
         // block us for too long
         SocketConnect::configure(fd);
 
+        auto start = std::chrono::system_clock::now();
+
         int res = ::connect(fd, address->ai_addr, address->ai_addrlen);
+
+        auto now = std::chrono::system_clock::now();
+        auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
+        auto ms = milliseconds.count();
+        std::cout << "tcp connection completed in " << ms << "ms" << std::endl;
 
         if (res == -1 && !Socket::isWaitNeeded())
         {
@@ -98,11 +107,19 @@ namespace ix
                                std::string& errMsg,
                                const CancellationRequest& isCancellationRequested)
     {
+        auto start = std::chrono::system_clock::now();
+
         //
         // First do DNS resolution
         //
         auto dnsLookup = std::make_shared<DNSLookup>(hostname, port);
         struct addrinfo* res = dnsLookup->resolve(errMsg, isCancellationRequested);
+
+        auto now = std::chrono::system_clock::now();
+        auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
+        auto ms = milliseconds.count();
+        std::cout << "dns resolution completed in " << ms << "ms" << std::endl;
+
         if (res == nullptr)
         {
             return -1;

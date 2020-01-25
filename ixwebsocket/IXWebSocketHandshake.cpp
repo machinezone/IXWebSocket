@@ -15,6 +15,9 @@
 #include <random>
 #include <sstream>
 
+#include <iostream>
+#include <chrono>
+
 
 namespace ix
 {
@@ -97,8 +100,16 @@ namespace ix
         auto isCancellationRequested =
             makeCancellationRequestWithTimeout(timeoutSecs, _requestInitCancellation);
 
+        auto start = std::chrono::system_clock::now();
+
         std::string errMsg;
         bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
+
+        auto now = std::chrono::system_clock::now();
+        auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
+        auto ms = milliseconds.count();
+        std::cout << "connection completed in " << ms << "ms" << std::endl;
+
         if (!success)
         {
             std::stringstream ss;

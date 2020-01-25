@@ -41,6 +41,8 @@ namespace ix
         mutable std::mutex _mutex; // AppleSSL routines are not thread-safe
 
         SocketTLSOptions _tlsOptions;
+
+        std::string _peerId;
     };
 
 } // namespace ix

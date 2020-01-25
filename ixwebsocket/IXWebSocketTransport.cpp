@@ -151,7 +151,18 @@ namespace ix
 
         std::string errorMsg;
         bool tls = protocol == "wss";
-        _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions);
+
+        if (_host == host)
+        {
+            _socket->close();
+        }
+        else
+        {
+            _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions);
+        }
+
+        // Record the host for later
+        _host = host;
 
         if (!_socket)
         {

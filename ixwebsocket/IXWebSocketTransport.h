@@ -107,7 +107,7 @@ namespace ix
         size_t bufferedAmount() const;
 
     private:
-        std::string _url;
+        std::string _host;
 
         struct wsheader_type
         {

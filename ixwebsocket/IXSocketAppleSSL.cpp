@@ -20,6 +20,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sstream>
 #define socketerrno errno
 
 #include <Security/SecureTransport.h>
@@ -31,12 +32,17 @@ namespace ix
         , _sslContext(nullptr)
         , _tlsOptions(tlsOptions)
     {
-        ;
+        _sslContext = SSLCreateContext(kCFAllocatorDefault, kSSLClientSide, kSSLStreamType);
+        SSLSetIOFuncs(
+            _sslContext, SocketAppleSSL::readFromSocket, SocketAppleSSL::writeToSocket);
     }
 
     SocketAppleSSL::~SocketAppleSSL()
     {
-        SocketAppleSSL::close();
+        CFRelease(_sslContext);
+        _sslContext = nullptr;
+
+        Socket::close();
     }
 
     std::string SocketAppleSSL::getSSLErrorDescription(OSStatus status)
@@ -177,13 +183,15 @@ namespace ix
             _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
             if (_sockfd == -1) return false;
 
-            _sslContext = SSLCreateContext(kCFAllocatorDefault, kSSLClientSide, kSSLStreamType);
-
-            SSLSetIOFuncs(
-                _sslContext, SocketAppleSSL::readFromSocket, SocketAppleSSL::writeToSocket);
             SSLSetConnection(_sslContext, (SSLConnectionRef)(long) _sockfd);
             SSLSetProtocolVersionMin(_sslContext, kTLSProtocol12);
             SSLSetPeerDomainName(_sslContext, host.c_str(), host.size());
+
+            // Record a peer id, which speed up SSL connection when reconnecting to the same host
+            std::stringstream ss;
+            ss << host << ":" << port;
+            _peerId = ss.str();
+            SSLSetPeerID(_sslContext, (void*) _peerId.c_str(), _peerId.size());
 
             if (_tlsOptions.isPeerVerifyDisabled())
             {
@@ -227,12 +235,7 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        if (_sslContext == nullptr) return;
-
         SSLClose(_sslContext);
-        CFRelease(_sslContext);
-        _sslContext = nullptr;
-
         Socket::close();
     }
 
