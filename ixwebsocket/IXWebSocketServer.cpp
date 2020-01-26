@@ -106,7 +106,6 @@ namespace ix
             }
         }
 
-        logInfo("WebSocketServer::handleConnection() done");
         connectionState->setTerminated();
     }
 
