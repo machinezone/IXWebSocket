@@ -29,7 +29,9 @@ namespace ix
     int ws_echo_server_main(int port,
                             bool greetings,
                             const std::string& hostname,
-                            const ix::SocketTLSOptions& tlsOptions);
+                            const ix::SocketTLSOptions& tlsOptions,
+                            bool ipv6);
+
     int ws_broadcast_server_main(int port,
                                  const std::string& hostname,
                                  const ix::SocketTLSOptions& tlsOptions);

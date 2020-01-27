@@ -86,7 +86,7 @@ namespace ix
         server.sin_family = _addressFamily;
         server.sin_port = htons(_port);
 
-        if (inet_pton(_addressFamily, _host.c_str(), &server.sin_addr.s_addr) < 0)
+        if (inet_pton(_addressFamily, _host.c_str(), &server.sin_addr.s_addr) <= 0)
         {
             std::stringstream ss;
             ss << "SocketServer::listen() error calling inet_pton "
@@ -96,7 +96,7 @@ namespace ix
             return std::make_pair(false, ss.str());
         }
 
-        if (bind(_serverFd, (struct sockaddr*) &server, sizeof(server)) < 0)
+        if (bind(_serverFd, (struct sockaddr*) &server, sizeof(server)) <= 0)
         {
             std::stringstream ss;
             ss << "SocketServer::listen() error calling bind "

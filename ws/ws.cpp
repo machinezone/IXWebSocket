@@ -94,6 +94,7 @@ int main(int argc, char** argv)
     bool disableAutomaticReconnection = false;
     bool disablePerMessageDeflate = false;
     bool greetings = false;
+    bool ipv6 = false;
     bool binaryMode = false;
     bool redirect = false;
     bool version = false;
@@ -171,6 +172,7 @@ int main(int argc, char** argv)
     echoServerApp->add_option("--port", port, "Port");
     echoServerApp->add_option("--host", hostname, "Hostname");
     echoServerApp->add_flag("-g", greetings, "Verbose");
+    echoServerApp->add_flag("-6", ipv6, "IpV6");
     addTLSOptions(echoServerApp);
 
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
@@ -390,7 +392,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("echo_server"))
     {
-        ret = ix::ws_echo_server_main(port, greetings, hostname, tlsOptions);
+        ret = ix::ws_echo_server_main(port, greetings, hostname, tlsOptions, ipv6);
     }
     else if (app.got_subcommand("broadcast_server"))
     {

@@ -42,6 +42,8 @@ namespace ix
         // Get all the connected clients
         std::set<std::shared_ptr<WebSocket>> getClients();
 
+        const static int kDefaultHandShakeTimeoutSecs;
+
     private:
         // Member variables
         int _handshakeTimeoutSecs;
@@ -52,7 +54,6 @@ namespace ix
         std::mutex _clientsMutex;
         std::set<std::shared_ptr<WebSocket>> _clients;
 
-        const static int kDefaultHandShakeTimeoutSecs;
         const static bool kDefaultEnablePong;
 
         // Methods
