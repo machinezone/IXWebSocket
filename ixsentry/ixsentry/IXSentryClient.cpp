@@ -166,6 +166,17 @@ namespace ix
                         tags.append(tag);
                     }
                 }
+
+                if (msg["data"]["info"].isMember("level_str"))
+                {
+                    // https://docs.sentry.io/enriching-error-data/context/?platform=python#setting-the-level
+                    std::string level = msg["data"]["info"]["level_str"].asString();
+                    if (level == "critical")
+                    {
+                        level = "fatal";
+                    }
+                    payload["level"] = level;
+                }
             }
             else
             {
