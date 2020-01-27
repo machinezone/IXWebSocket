@@ -23,8 +23,9 @@ namespace ix
                                      const std::string& host,
                                      int backlog,
                                      size_t maxConnections,
-                                     int handshakeTimeoutSecs)
-        : SocketServer(port, host, backlog, maxConnections)
+                                     int handshakeTimeoutSecs,
+                                     int addressFamily)
+        : SocketServer(port, host, backlog, maxConnections, addressFamily)
         , _handshakeTimeoutSecs(handshakeTimeoutSecs)
         , _enablePong(kDefaultEnablePong)
     {

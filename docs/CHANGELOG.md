@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.0.0] - 2020-01-26
+
+(SocketServer) add ability to bind on an ipv6 address
+
 ## [7.9.6] - 2020-01-22
 
 (ws) add a dnslookup sub-command, to get the ip address of a remote host

@@ -17,8 +17,8 @@
 
 namespace ix
 {
-    RedisServer::RedisServer(int port, const std::string& host, int backlog, size_t maxConnections)
-        : SocketServer(port, host, backlog, maxConnections)
+    RedisServer::RedisServer(int port, const std::string& host, int backlog, size_t maxConnections, int addressFamily)
+        : SocketServer(port, host, backlog, maxConnections, addressFamily)
         , _connectedClientsCount(0)
         , _stopHandlingConnections(false)
     {

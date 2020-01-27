@@ -28,7 +28,8 @@ namespace ix
         HttpServer(int port = SocketServer::kDefaultPort,
                    const std::string& host = SocketServer::kDefaultHost,
                    int backlog = SocketServer::kDefaultTcpBacklog,
-                   size_t maxConnections = SocketServer::kDefaultMaxConnections);
+                   size_t maxConnections = SocketServer::kDefaultMaxConnections,
+                   int addressFamily = SocketServer::kDefaultAddressFamily);
         virtual ~HttpServer();
         virtual void stop() final;
 

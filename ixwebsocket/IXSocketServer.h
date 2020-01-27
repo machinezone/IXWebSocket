@@ -36,7 +36,8 @@ namespace ix
         SocketServer(int port = SocketServer::kDefaultPort,
                      const std::string& host = SocketServer::kDefaultHost,
                      int backlog = SocketServer::kDefaultTcpBacklog,
-                     size_t maxConnections = SocketServer::kDefaultMaxConnections);
+                     size_t maxConnections = SocketServer::kDefaultMaxConnections,
+                     int addressFamily = SocketServer::kDefaultAddressFamily);
         virtual ~SocketServer();
         virtual void stop();
 
@@ -49,6 +50,7 @@ namespace ix
         const static std::string kDefaultHost;
         const static int kDefaultTcpBacklog;
         const static size_t kDefaultMaxConnections;
+        const static int kDefaultAddressFamily;
 
         void start();
         std::pair<bool, std::string> listen();
@@ -69,6 +71,7 @@ namespace ix
         std::string _host;
         int _backlog;
         size_t _maxConnections;
+        int _addressFamily;
 
         // socket for accepting connections
         int _serverFd;
