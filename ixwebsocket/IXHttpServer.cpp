@@ -42,8 +42,8 @@ namespace
 
 namespace ix
 {
-    HttpServer::HttpServer(int port, const std::string& host, int backlog, size_t maxConnections)
-        : SocketServer(port, host, backlog, maxConnections)
+    HttpServer::HttpServer(int port, const std::string& host, int backlog, size_t maxConnections, int addressFamily)
+        : SocketServer(port, host, backlog, maxConnections, addressFamily)
         , _connectedClientsCount(0)
     {
         setDefaultConnectionCallback();

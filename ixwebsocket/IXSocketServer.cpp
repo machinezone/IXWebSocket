@@ -21,15 +21,18 @@ namespace ix
     const std::string SocketServer::kDefaultHost("127.0.0.1");
     const int SocketServer::kDefaultTcpBacklog(5);
     const size_t SocketServer::kDefaultMaxConnections(32);
+    const int SocketServer::kDefaultAddressFamily(AF_INET);
 
     SocketServer::SocketServer(int port,
                                const std::string& host,
                                int backlog,
-                               size_t maxConnections)
+                               size_t maxConnections,
+                               int addressFamily)
         : _port(port)
         , _host(host)
         , _backlog(backlog)
         , _maxConnections(maxConnections)
+        , _addressFamily(addressFamily)
         , _serverFd(-1)
         , _stop(false)
         , _stopGc(false)
@@ -59,7 +62,7 @@ namespace ix
         struct sockaddr_in server; // server address information
 
         // Get a socket for accepting connections.
-        if ((_serverFd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+        if ((_serverFd = socket(_addressFamily, SOCK_STREAM, 0)) < 0)
         {
             std::stringstream ss;
             ss << "SocketServer::listen() error creating socket): " << strerror(Socket::getErrno());
@@ -80,17 +83,18 @@ namespace ix
         }
 
         // Bind the socket to the server address.
-        server.sin_family = AF_INET;
+        server.sin_family = _addressFamily;
         server.sin_port = htons(_port);
 
-        // Using INADDR_ANY trigger a pop-up box as binding to any address is detected
-        // by the osx firewall. We need to codesign the binary with a self-signed cert
-        // to allow that, but this is a bit of a pain. (this is what node or python would do).
-        //
-        // Using INADDR_LOOPBACK also does not work ... while it should.
-        // We default to 127.0.0.1 (localhost)
-        //
-        server.sin_addr.s_addr = inet_addr(_host.c_str());
+        if (inet_pton(_addressFamily, _host.c_str(), &server.sin_addr.s_addr) < 0)
+        {
+            std::stringstream ss;
+            ss << "SocketServer::listen() error calling inet_pton "
+               << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+
+            Socket::closeSocket(_serverFd);
+            return std::make_pair(false, ss.str());
+        }
 
         if (bind(_serverFd, (struct sockaddr*) &server, sizeof(server)) < 0)
         {

@@ -25,7 +25,8 @@ namespace ix
         RedisServer(int port = SocketServer::kDefaultPort,
                     const std::string& host = SocketServer::kDefaultHost,
                     int backlog = SocketServer::kDefaultTcpBacklog,
-                    size_t maxConnections = SocketServer::kDefaultMaxConnections);
+                    size_t maxConnections = SocketServer::kDefaultMaxConnections,
+                    int addressFamily = SocketServer::kDefaultAddressFamily);
         virtual ~RedisServer();
         virtual void stop() final;
 
