@@ -5,6 +5,7 @@
  */
 
 #include <ixwebsocket/IXWebSocketServer.h>
+#include <ixwebsocket/IXNetSystem.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 
@@ -13,11 +14,18 @@ namespace ix
     int ws_echo_server_main(int port,
                             bool greetings,
                             const std::string& hostname,
-                            const ix::SocketTLSOptions& tlsOptions)
+                            const ix::SocketTLSOptions& tlsOptions,
+                            bool ipv6)
     {
         spdlog::info("Listening on {}:{}", hostname, port);
 
-        ix::WebSocketServer server(port, hostname);
+        ix::WebSocketServer server(port,
+                                   hostname,
+                                   SocketServer::kDefaultTcpBacklog,
+                                   SocketServer::kDefaultMaxConnections,
+                                   WebSocketServer::kDefaultHandShakeTimeoutSecs,
+                                   (ipv6) ? AF_INET6 : AF_INET);
+
         server.setTLSOptions(tlsOptions);
 
         server.setOnConnectionCallback(
