@@ -169,6 +169,7 @@ namespace ix
             // wait until working thread will exit
             // it will exit after close operation is finished
             _stop = true;
+            _sleepCondition.notify_one();
             _thread.join();
             _stop = false;
         }
@@ -282,8 +283,8 @@ namespace ix
             // Only sleep if we are retrying
             if (duration.count() > 0)
             {
-                // to do: make sleeping conditional
-                std::this_thread::sleep_for(duration);
+                std::unique_lock<std::mutex> lock(_sleepMutex);
+                _sleepCondition.wait_for(lock, duration);
             }
 
             // Try to connect synchronously

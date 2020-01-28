@@ -22,6 +22,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <condition_variable>
 
 namespace ix
 {
@@ -139,6 +140,10 @@ namespace ix
         std::atomic<bool> _automaticReconnection;
         static const uint32_t kDefaultMaxWaitBetweenReconnectionRetries;
         uint32_t _maxWaitBetweenReconnectionRetries;
+
+        // Make the sleeping in the automatic reconnection cancellable
+        std::mutex _sleepMutex;
+        std::condition_variable _sleepCondition;
 
         std::atomic<int> _handshakeTimeoutSecs;
         static const int kDefaultHandShakeTimeoutSecs;
