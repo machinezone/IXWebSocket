@@ -127,10 +127,14 @@ There is a unittest which can be executed by typing <code>make test</code>.</p>
 </code></pre>
 
 <h3 id="conan">Conan</h3>
-<p>Support for building with conan was contributed by Olivia Zoe (thanks!). The package name to reference is <code>IXWebSocket/5.0.0@LunarWatcher/stable</code>, and a list of the uploaded versions is available on <a href="https://bintray.com/oliviazoe0/conan-packages/IXWebSocket%3ALunarWatcher">Bintray</a>. The package is in the process to be published to the official conan package repo, but in the meantime, it can be accessed by adding a new remote</p>
-<pre><code>conan remote add remote_name_here https://api.bintray.com/conan/oliviazoe0/conan-packages
-</code></pre>
-
+<p><a href="https://bintray.com/conan/conan-center/ixwebsocket%3A_/_latestVersion"> <img alt="Download" src="https://api.bintray.com/packages/conan/conan-center/ixwebsocket%3A_/images/download.svg" /> </a></p>
+<p>Conan is currently supported through a recipe in <a href="https://github.com/conan-io/conan-center-index/tree/master/recipes/ixwebsocket">Conan Center</a> (<a href="https://bintray.com/conan/conan-center/ixwebsocket%3A_">Bintray entry</a>).</p>
+<p>Package reference </p>
+<ul>
+<li>Conan 1.21.0 and up: <code>ixwebsocket/7.9.2</code></li>
+<li>Earlier versions: <code>ixwebsocket/7.9.2@_/_</code></li>
+</ul>
+<p>Note that the version listed here might not be the latest one. See Bintray or the recipe itself for the latest version. If you're migrating from the previous, custom Bintray remote, note that the package reference <em>has</em> to be lower-case.  </p>
 <h3 id="docker">Docker</h3>
 <p>There is a Dockerfile for running the unittest on Linux, and to run the <code>ws</code> tool. It is also available on the docker registry.</p>
 <pre><code>docker run bsergean/ws
