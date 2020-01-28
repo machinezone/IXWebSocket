@@ -49,6 +49,9 @@ BUILD  := ${NAME}:build
 print_version:
 	@echo 'IXWebSocket version =>' ${TAG}
 
+set_version:
+	sh tools/update_version.sh ${VERSION}
+
 docker_test:
 	docker build -f docker/Dockerfile.debian -t bsergean/ixwebsocket_test:build .
 
