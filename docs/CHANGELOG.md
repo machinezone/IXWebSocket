@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.0.1] - 2020-01-28
+
+Fix bug #151 - If a socket connection is interrupted, calling stop() on the IXWebSocket object blocks until the next retry
+
 ## [8.0.0] - 2020-01-26
 
 (SocketServer) add ability to bind on an ipv6 address
