@@ -96,7 +96,7 @@ namespace ix
             return std::make_pair(false, ss.str());
         }
 
-        if (bind(_serverFd, (struct sockaddr*) &server, sizeof(server)) <= 0)
+        if (bind(_serverFd, (struct sockaddr*) &server, sizeof(server)) < 0)
         {
             std::stringstream ss;
             ss << "SocketServer::listen() error calling bind "
