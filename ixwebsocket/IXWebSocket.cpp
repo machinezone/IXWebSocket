@@ -287,6 +287,11 @@ namespace ix
                 _sleepCondition.wait_for(lock, duration);
             }
 
+            if (_stop)
+            {
+                break;
+            }
+
             // Try to connect synchronously
             ix::WebSocketInitResult status = connect(_handshakeTimeoutSecs);
 
