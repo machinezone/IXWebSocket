@@ -59,7 +59,12 @@ namespace ix
 
     std::pair<bool, std::string> SocketServer::listen()
     {
-        struct sockaddr_in server; // server address information
+        if (_addressFamily != AF_INET && _addressFamily != AF_INET6)
+        {
+            std::string errMsg("SocketServer::listen() AF_INET and AF_INET6 are currently "
+                               "the only supported address families");
+            return std::make_pair(false, errMsg);
+        }
 
         // Get a socket for accepting connections.
         if ((_serverFd = socket(_addressFamily, SOCK_STREAM, 0)) < 0)
@@ -82,28 +87,59 @@ namespace ix
             return std::make_pair(false, ss.str());
         }
 
-        // Bind the socket to the server address.
-        server.sin_family = _addressFamily;
-        server.sin_port = htons(_port);
-
-        if (inet_pton(_addressFamily, _host.c_str(), &server.sin_addr.s_addr) <= 0)
+        if (_addressFamily == AF_INET)
         {
-            std::stringstream ss;
-            ss << "SocketServer::listen() error calling inet_pton "
-               << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+            struct sockaddr_in server;
+            server.sin_family = _addressFamily;
+            server.sin_port = htons(_port);
 
-            Socket::closeSocket(_serverFd);
-            return std::make_pair(false, ss.str());
+            if (inet_pton(_addressFamily, _host.c_str(), &server.sin_addr.s_addr) <= 0)
+            {
+                std::stringstream ss;
+                ss << "SocketServer::listen() error calling inet_pton "
+                   << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+
+                Socket::closeSocket(_serverFd);
+                return std::make_pair(false, ss.str());
+            }
+
+            // Bind the socket to the server address.
+            if (bind(_serverFd, (struct sockaddr*) &server, sizeof(server)) < 0)
+            {
+                std::stringstream ss;
+                ss << "SocketServer::listen() error calling bind "
+                   << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+
+                Socket::closeSocket(_serverFd);
+                return std::make_pair(false, ss.str());
+            }
         }
-
-        if (bind(_serverFd, (struct sockaddr*) &server, sizeof(server)) < 0)
+        else // AF_INET6
         {
-            std::stringstream ss;
-            ss << "SocketServer::listen() error calling bind "
-               << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+            struct sockaddr_in6 server;
+            server.sin6_family = _addressFamily;
+            server.sin6_port = htons(_port);
 
-            Socket::closeSocket(_serverFd);
-            return std::make_pair(false, ss.str());
+            if (inet_pton(_addressFamily, _host.c_str(), &server.sin6_addr) <= 0)
+            {
+                std::stringstream ss;
+                ss << "SocketServer::listen() error calling inet_pton "
+                   << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+
+                Socket::closeSocket(_serverFd);
+                return std::make_pair(false, ss.str());
+            }
+
+            // Bind the socket to the server address.
+            if (bind(_serverFd, (struct sockaddr*) &server, sizeof(server)) < 0)
+            {
+                std::stringstream ss;
+                ss << "SocketServer::listen() error calling bind "
+                   << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+
+                Socket::closeSocket(_serverFd);
+                return std::make_pair(false, ss.str());
+            }
         }
 
         //
