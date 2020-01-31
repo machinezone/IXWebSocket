@@ -506,7 +506,7 @@ namespace ix
         if (_messageQueue.empty()) return true;
 
         auto&& msg = _messageQueue.back();
-        if (!publishMessage(msg))
+        if (!_authenticated || !publishMessage(msg))
         {
             return false;
         }
