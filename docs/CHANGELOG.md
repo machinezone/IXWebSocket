@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.0.5] - 2020-01-31
+
+(IXCobraConnection) set a ping timeout of 90 seconds. If no pong messages are received as responses to ping for a while, give up and close the connection
+
 ## [8.0.4] - 2020-01-31
 
 (cobra to sentry) remove noisy logging

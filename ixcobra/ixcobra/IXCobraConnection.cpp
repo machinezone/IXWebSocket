@@ -265,7 +265,15 @@ namespace ix
         _webSocket->setUrl(url);
         _webSocket->setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
         _webSocket->setTLSOptions(socketTLSOptions);
+
+        // Send a websocket ping every N seconds (N = 30) now
+        // This should keep the connection open and prevent some load balancers such as
+        // the Amazon one from shutting it down
         _webSocket->setPingInterval(kPingIntervalSecs);
+
+        // If we don't receive a pong back, declare loss after 3 * N seconds
+        // (will be 90s now), and close and restart the connection
+        _webSocket->setPingTimeout(3 * kPingIntervalSecs);
     }
 
     //
