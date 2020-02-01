@@ -58,8 +58,6 @@ namespace ix
         std::random_shuffle(games.begin(), games.end());
         std::string game = games[0];
 
-        spdlog::info("Sending event for game '{}'", game);
-
         _condition.wait(lock, [this] { return !_stop; });
 
         if (_queues[game].empty())

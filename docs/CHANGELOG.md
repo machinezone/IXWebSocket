@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.0.4] - 2020-01-31
+
+(cobra to sentry) remove noisy logging
+
 ## [8.0.3] - 2020-01-30
 
 (ixcobra) check if we are authenticated in publishNext before trying to publish a message
