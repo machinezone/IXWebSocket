@@ -99,6 +99,7 @@ int main(int argc, char** argv)
     bool redirect = false;
     bool version = false;
     bool verifyNone = false;
+    bool disablePong = false;
     int port = 8008;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -309,6 +310,7 @@ int main(int argc, char** argv)
     snakeApp->add_option("--apps_config_path", appsConfigPath, "Path to auth data")
         ->check(CLI::ExistingPath);
     snakeApp->add_flag("-v", verbose, "Verbose");
+    snakeApp->add_flag("-d", disablePong, "Disable Pongs");
     addTLSOptions(snakeApp);
 
     CLI::App* httpServerApp = app.add_subcommand("httpd", "HTTP server");
@@ -492,7 +494,8 @@ int main(int argc, char** argv)
                                 redisPassword,
                                 verbose,
                                 appsConfigPath,
-                                tlsOptions);
+                                tlsOptions,
+                                disablePong);
     }
     else if (app.got_subcommand("httpd"))
     {

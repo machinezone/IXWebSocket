@@ -32,6 +32,7 @@ namespace snake
 
         // Misc
         bool verbose;
+        bool disablePong;
     };
 
     bool isAppKeyValid(const AppConfig& appConfig, std::string appkey);

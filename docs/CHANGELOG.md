@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.0.6] - 2020-01-31
+
+(snake) add an option to disable answering pongs as response to pings, to test cobra client behavior with hanged connections 
+
 ## [8.0.5] - 2020-01-31
 
 (IXCobraConnection) set a ping timeout of 90 seconds. If no pong messages are received as responses to ping for a while, give up and close the connection

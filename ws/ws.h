@@ -142,7 +142,8 @@ namespace ix
                       const std::string& redisPassword,
                       bool verbose,
                       const std::string& appsConfigPath,
-                      const ix::SocketTLSOptions& tlsOptions);
+                      const ix::SocketTLSOptions& tlsOptions,
+                      bool disablePong);
 
     int ws_httpd_main(int port,
                       const std::string& hostname,
