@@ -2,6 +2,7 @@ name: C/C++ CI
 
 on: [push]
 
+# fake comment to trigger an action 1
 jobs:
   linux:
     runs-on: ubuntu-latest
