@@ -17,15 +17,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-
-    - name: install redis
-      run: brew install redis
-
-    - name: start redis server
-      run: brew services start redis
-
     - name: make test
       run: make test
+
+      #     We don't need to have redis running anymore, as we have our fake limited one
+      #     - name: install redis
+      #       run: brew install redis
+      # 
+      #     - name: start redis server
+      #       run: brew services start redis
 
       #  # Windows does not work yet, I'm stuck at getting CMake to run + finding vcpkg
       #  win:
