@@ -23,6 +23,16 @@ Options for building:
 
 If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file that has instructions for building dependencies.
 
+It is also possible to externally include the project, so that everything is fetched over the wire when you build like so:
+
+```
+    ExternalProject_Add(
+        IXWebSocket
+        GIT_REPOSITORY https://github.com/machinezone/IXWebSocket.git
+        ...
+    )
+```
+
 ### vcpkg
 
 It is possible to get IXWebSocket through Microsoft [vcpkg](https://github.com/microsoft/vcpkg).

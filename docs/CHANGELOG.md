@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.0.7] - 2020-02-12
+
+(build) remove the unused subtree which was causing some way of installing to break
+
 ## [8.0.6] - 2020-01-31
 
 (snake) add an option to disable answering pongs as response to pings, to test cobra client behavior with hanged connections 
