@@ -121,6 +121,14 @@ There is a unittest which can be executed by typing <code>make test</code>.</p>
 <li><code>-DUSE_WS=1</code> will build the ws interactive command line tool</li>
 </ul>
 <p>If you are on Windows, look at the <a href="https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml">appveyor</a> file that has instructions for building dependencies.</p>
+<p>It is also possible to externally include the project, so that everything is fetched over the wire when you build like so:</p>
+<pre><code>    ExternalProject_Add(
+        IXWebSocket
+        GIT_REPOSITORY https://github.com/machinezone/IXWebSocket.git
+        ...
+    )
+</code></pre>
+
 <h3 id="vcpkg">vcpkg</h3>
 <p>It is possible to get IXWebSocket through Microsoft <a href="https://github.com/microsoft/vcpkg">vcpkg</a>.</p>
 <pre><code>vcpkg install ixwebsocket

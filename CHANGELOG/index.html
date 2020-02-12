@@ -94,6 +94,12 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#changelog">Changelog</a></li>
+            <li><a href="#807-2020-02-12">[8.0.7] - 2020-02-12</a></li>
+            <li><a href="#806-2020-01-31">[8.0.6] - 2020-01-31</a></li>
+            <li><a href="#805-2020-01-31">[8.0.5] - 2020-01-31</a></li>
+            <li><a href="#804-2020-01-31">[8.0.4] - 2020-01-31</a></li>
+            <li><a href="#803-2020-01-30">[8.0.3] - 2020-01-30</a></li>
+            <li><a href="#802-2020-01-28">[8.0.2] - 2020-01-28</a></li>
             <li><a href="#801-2020-01-28">[8.0.1] - 2020-01-28</a></li>
             <li><a href="#800-2020-01-26">[8.0.0] - 2020-01-26</a></li>
             <li><a href="#796-2020-01-22">[7.9.6] - 2020-01-22</a></li>
@@ -189,6 +195,18 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="807-2020-02-12">[8.0.7] - 2020-02-12</h2>
+<p>(build) remove the unused subtree which was causing some way of installing to break</p>
+<h2 id="806-2020-01-31">[8.0.6] - 2020-01-31</h2>
+<p>(snake) add an option to disable answering pongs as response to pings, to test cobra client behavior with hanged connections </p>
+<h2 id="805-2020-01-31">[8.0.5] - 2020-01-31</h2>
+<p>(IXCobraConnection) set a ping timeout of 90 seconds. If no pong messages are received as responses to ping for a while, give up and close the connection</p>
+<h2 id="804-2020-01-31">[8.0.4] - 2020-01-31</h2>
+<p>(cobra to sentry) remove noisy logging</p>
+<h2 id="803-2020-01-30">[8.0.3] - 2020-01-30</h2>
+<p>(ixcobra) check if we are authenticated in publishNext before trying to publish a message</p>
+<h2 id="802-2020-01-28">[8.0.2] - 2020-01-28</h2>
+<p>Extract severity level when emitting messages to sentry</p>
 <h2 id="801-2020-01-28">[8.0.1] - 2020-01-28</h2>
 <p>Fix bug #151 - If a socket connection is interrupted, calling stop() on the IXWebSocket object blocks until the next retry</p>
 <h2 id="800-2020-01-26">[8.0.0] - 2020-01-26</h2>
