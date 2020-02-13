@@ -336,8 +336,8 @@ int main(int argc, char** argv)
     addTLSOptions(proxyServerApp);
 
     CLI::App* minidumpApp = app.add_subcommand("upload_minidump", "Upload a minidump to sentry");
-    minidumpApp->add_option("--minidump", minidump, "Minidump path")->check(CLI::ExistingPath);
-    minidumpApp->add_option("--metadata", metadata, "Hostname")->check(CLI::ExistingPath);
+    minidumpApp->add_option("--minidump", minidump, "Minidump path")->required()->check(CLI::ExistingPath);
+    minidumpApp->add_option("--metadata", metadata, "Metadata path")->required()->check(CLI::ExistingPath);
     minidumpApp->add_option("--project", project, "Sentry Project")->required();
     minidumpApp->add_option("--key", key, "Sentry Key")->required();
     minidumpApp->add_flag("-v", verbose, "Verbose");

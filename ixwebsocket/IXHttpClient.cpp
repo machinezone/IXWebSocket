@@ -648,7 +648,7 @@ namespace ix
                << it.second << "\r\n";
         }
 
-        ss << "--" << multipartBoundary << "\r\n";
+        ss << "--" << multipartBoundary << "--\r\n";
 
         return ss.str();
     }

@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.1.0] - 2020-02-13
+
+(http client + sentry minidump upload) Multipart stream closing boundary is invalid + mark some options as mandatory in the command line tools
+
 ## [8.0.7] - 2020-02-12
 
 (build) remove the unused subtree which was causing some way of installing to break

@@ -48,7 +48,6 @@ namespace ix
         // Read json data
         std::string sentryMetadata = readBytes(metadataPath);
 
-
         std::atomic<bool> done(false);
 
         sentryClient.uploadMinidump(
