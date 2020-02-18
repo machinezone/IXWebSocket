@@ -135,6 +135,31 @@ namespace ix
 
         std::thread t1(timer);
 
+        auto heartbeat = [&sentCount, &receivedCount] {
+            std::string state("na");
+
+            while (true)
+            {
+                std::stringstream ss;
+                ss << "messages received " << receivedCount;
+                ss << "messages sent " << sentCount;
+
+                std::string currentState = ss.str();
+
+                if (currentState == state)
+                {
+                    spdlog::error("no messages received or sent for 1 minute, exiting");
+                    exit(1);
+                }
+                state = currentState;
+
+                auto duration = std::chrono::minutes(1);
+                std::this_thread::sleep_for(duration);
+            }
+        };
+
+        std::thread t2(heartbeat);
+
         auto sentrySender =
             [&queueManager, verbose, &errorSending, &sentCount, &stop, &throttled, &dsn] {
                 SentryClient sentryClient(dsn);
