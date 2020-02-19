@@ -28,6 +28,7 @@ namespace ix
         : SocketServer(port, host, backlog, maxConnections, addressFamily)
         , _handshakeTimeoutSecs(handshakeTimeoutSecs)
         , _enablePong(kDefaultEnablePong)
+        , _enablePerMessageDeflate(true)
     {
     }
 
@@ -59,6 +60,11 @@ namespace ix
         _enablePong = false;
     }
 
+    void WebSocketServer::disablePerMessageDeflate()
+    {
+        _enablePerMessageDeflate = false;
+    }
+
     void WebSocketServer::setOnConnectionCallback(const OnConnectionCallback& callback)
     {
         _onConnectionCallback = callback;
@@ -73,9 +79,18 @@ namespace ix
         webSocket->disableAutomaticReconnection();
 
         if (_enablePong)
+        {
             webSocket->enablePong();
+        }
         else
+        {
             webSocket->disablePong();
+        }
+
+        if (!_enablePerMessageDeflate)
+        {
+            webSocket->disablePerMessageDeflate();
+        }
 
         // Add this client to our client set
         {

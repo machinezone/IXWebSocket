@@ -5,10 +5,10 @@
  */
 
 #include <atomic>
+#include <ixwebsocket/IXDNSLookup.h>
+#include <ixwebsocket/IXNetSystem.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
-#include <ixwebsocket/IXNetSystem.h>
-#include <ixwebsocket/IXDNSLookup.h>
 
 
 namespace ix

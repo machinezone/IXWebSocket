@@ -23,11 +23,8 @@ namespace ix
     const size_t SocketServer::kDefaultMaxConnections(32);
     const int SocketServer::kDefaultAddressFamily(AF_INET);
 
-    SocketServer::SocketServer(int port,
-                               const std::string& host,
-                               int backlog,
-                               size_t maxConnections,
-                               int addressFamily)
+    SocketServer::SocketServer(
+        int port, const std::string& host, int backlog, size_t maxConnections, int addressFamily)
         : _port(port)
         , _host(host)
         , _backlog(backlog)
@@ -97,7 +94,8 @@ namespace ix
             {
                 std::stringstream ss;
                 ss << "SocketServer::listen() error calling inet_pton "
-                   << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+                   << "at address " << _host << ":" << _port << " : "
+                   << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
                 return std::make_pair(false, ss.str());
@@ -108,7 +106,8 @@ namespace ix
             {
                 std::stringstream ss;
                 ss << "SocketServer::listen() error calling bind "
-                   << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+                   << "at address " << _host << ":" << _port << " : "
+                   << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
                 return std::make_pair(false, ss.str());
@@ -124,7 +123,8 @@ namespace ix
             {
                 std::stringstream ss;
                 ss << "SocketServer::listen() error calling inet_pton "
-                   << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+                   << "at address " << _host << ":" << _port << " : "
+                   << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
                 return std::make_pair(false, ss.str());
@@ -135,7 +135,8 @@ namespace ix
             {
                 std::stringstream ss;
                 ss << "SocketServer::listen() error calling bind "
-                   << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
+                   << "at address " << _host << ":" << _port << " : "
+                   << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
                 return std::make_pair(false, ss.str());

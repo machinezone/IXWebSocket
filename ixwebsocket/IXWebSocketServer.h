@@ -36,6 +36,7 @@ namespace ix
 
         void enablePong();
         void disablePong();
+        void disablePerMessageDeflate();
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
 
@@ -48,6 +49,7 @@ namespace ix
         // Member variables
         int _handshakeTimeoutSecs;
         bool _enablePong;
+        bool _enablePerMessageDeflate;
 
         OnConnectionCallback _onConnectionCallback;
 

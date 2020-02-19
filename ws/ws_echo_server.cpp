@@ -4,8 +4,8 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include <ixwebsocket/IXWebSocketServer.h>
 #include <ixwebsocket/IXNetSystem.h>
+#include <ixwebsocket/IXWebSocketServer.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 
@@ -15,7 +15,8 @@ namespace ix
                             bool greetings,
                             const std::string& hostname,
                             const ix::SocketTLSOptions& tlsOptions,
-                            bool ipv6)
+                            bool ipv6,
+                            bool disablePerMessageDeflate)
     {
         spdlog::info("Listening on {}:{}", hostname, port);
 
@@ -27,6 +28,12 @@ namespace ix
                                    (ipv6) ? AF_INET6 : AF_INET);
 
         server.setTLSOptions(tlsOptions);
+
+        if (disablePerMessageDeflate)
+        {
+            spdlog::info("Disable per message deflate");
+            server.disablePerMessageDeflate();
+        }
 
         server.setOnConnectionCallback(
             [greetings](std::shared_ptr<ix::WebSocket> webSocket,

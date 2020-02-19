@@ -12,6 +12,7 @@
 #include "IXUserAgent.h"
 #include "libwshandshake.hpp"
 #include <algorithm>
+#include <iostream>
 #include <random>
 #include <sstream>
 
@@ -335,8 +336,9 @@ namespace ix
         std::string header = headers["sec-websocket-extensions"];
         WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(header);
 
-        // If the client has requested that extension, enable it.
-        if (webSocketPerMessageDeflateOptions.enabled())
+        // If the client has requested that extension,
+        // and the server does not prevent it, enable it.
+        if (_enablePerMessageDeflate && webSocketPerMessageDeflateOptions.enabled())
         {
             _enablePerMessageDeflate = true;
 

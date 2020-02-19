@@ -174,6 +174,7 @@ int main(int argc, char** argv)
     echoServerApp->add_option("--host", hostname, "Hostname");
     echoServerApp->add_flag("-g", greetings, "Verbose");
     echoServerApp->add_flag("-6", ipv6, "IpV6");
+    echoServerApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
     addTLSOptions(echoServerApp);
 
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
@@ -336,8 +337,12 @@ int main(int argc, char** argv)
     addTLSOptions(proxyServerApp);
 
     CLI::App* minidumpApp = app.add_subcommand("upload_minidump", "Upload a minidump to sentry");
-    minidumpApp->add_option("--minidump", minidump, "Minidump path")->required()->check(CLI::ExistingPath);
-    minidumpApp->add_option("--metadata", metadata, "Metadata path")->required()->check(CLI::ExistingPath);
+    minidumpApp->add_option("--minidump", minidump, "Minidump path")
+        ->required()
+        ->check(CLI::ExistingPath);
+    minidumpApp->add_option("--metadata", metadata, "Metadata path")
+        ->required()
+        ->check(CLI::ExistingPath);
     minidumpApp->add_option("--project", project, "Sentry Project")->required();
     minidumpApp->add_option("--key", key, "Sentry Key")->required();
     minidumpApp->add_flag("-v", verbose, "Verbose");
@@ -394,7 +399,8 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("echo_server"))
     {
-        ret = ix::ws_echo_server_main(port, greetings, hostname, tlsOptions, ipv6);
+        ret = ix::ws_echo_server_main(
+            port, greetings, hostname, tlsOptions, ipv6, disablePerMessageDeflate);
     }
     else if (app.got_subcommand("broadcast_server"))
     {
