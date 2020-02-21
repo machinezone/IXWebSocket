@@ -191,9 +191,19 @@ namespace ix
         auto subProtocols = getSubProtocols();
         if (!subProtocols.empty())
         {
+            //
+            // Sub Protocol strings are comma separated.
+            // Python code to do that is:
+            // >>> ','.join(['json', 'msgpack'])
+            // 'json,msgpack'
+            //
+            int i = 0;
             for (auto subProtocol : subProtocols)
             {
-                subProtocolsHeader += ",";
+                if (i++ != 0)
+                {
+                    subProtocolsHeader += ",";
+                }
                 subProtocolsHeader += subProtocol;
             }
             headers["Sec-WebSocket-Protocol"] = subProtocolsHeader;
