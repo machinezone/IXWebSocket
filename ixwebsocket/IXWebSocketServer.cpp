@@ -87,7 +87,11 @@ namespace ix
             webSocket->disablePong();
         }
 
-        if (!_enablePerMessageDeflate)
+        if (_enablePerMessageDeflate)
+        {
+            webSocket->enablePerMessageDeflate();
+        }
+        else
         {
             webSocket->disablePerMessageDeflate();
         }

@@ -57,6 +57,7 @@ namespace ix
         void setPingTimeout(int pingTimeoutSecs);
         void enablePong();
         void disablePong();
+        void enablePerMessageDeflate();
         void disablePerMessageDeflate();
         void addSubProtocol(const std::string& subProtocol);
 

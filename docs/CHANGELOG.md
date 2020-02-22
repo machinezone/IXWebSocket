@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.1.4] - 2020-02-22
+
+(websocket server) fix regression from 8.1.2, where per-deflate message compression was always disabled
+
 ## [8.1.3] - 2020-02-21
 
 (client + server) Fix #155 / http header parser should treat the space(s) after the : delimiter as optional. Fixing this bug made us discover that websocket sub-protocols are not properly serialiazed, but start with a ,

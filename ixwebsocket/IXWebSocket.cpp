@@ -134,6 +134,13 @@ namespace ix
         _enablePong = false;
     }
 
+    void WebSocket::enablePerMessageDeflate()
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        WebSocketPerMessageDeflateOptions perMessageDeflateOptions(true);
+        _perMessageDeflateOptions = perMessageDeflateOptions;
+    }
+
     void WebSocket::disablePerMessageDeflate()
     {
         std::lock_guard<std::mutex> lock(_configMutex);
