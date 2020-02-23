@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.1.5] - 2020-02-23
+
+(server) give thread name to some usual worker threads / unittest is broken !!
+
 ## [8.1.4] - 2020-02-22
 
 (websocket server) fix regression from 8.1.2, where per-deflate message compression was always disabled

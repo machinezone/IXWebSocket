@@ -7,6 +7,7 @@
 #include "IXWebSocketServer.h"
 
 #include "IXNetSystem.h"
+#include "IXSetThreadName.h"
 #include "IXSocketConnect.h"
 #include "IXWebSocket.h"
 #include "IXWebSocketTransport.h"
@@ -73,6 +74,8 @@ namespace ix
     void WebSocketServer::handleConnection(std::shared_ptr<Socket> socket,
                                            std::shared_ptr<ConnectionState> connectionState)
     {
+        setThreadName("WebSocketServer::" + connectionState->getId());
+
         auto webSocket = std::make_shared<WebSocket>();
         _onConnectionCallback(webSocket, connectionState);
 

@@ -7,6 +7,7 @@
 #include "IXSocketServer.h"
 
 #include "IXNetSystem.h"
+#include "IXSetThreadName.h"
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
 #include "IXSocketFactory.h"
@@ -247,6 +248,8 @@ namespace ix
         // Set the socket to non blocking mode, so that accept calls are not blocking
         SocketConnect::configure(_serverFd);
 
+        setThreadName("SocketServer::listen");
+
         for (;;)
         {
             if (_stop) return;
@@ -347,6 +350,8 @@ namespace ix
 
     void SocketServer::runGC()
     {
+        setThreadName("SocketServer::GC");
+
         for (;;)
         {
             // Garbage collection to shutdown/join threads for closed connections.
