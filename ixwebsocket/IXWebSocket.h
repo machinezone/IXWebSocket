@@ -72,7 +72,7 @@ namespace ix
         WebSocketInitResult connect(int timeoutSecs);
         void run();
 
-        // send is in binary mode by default
+        // send is in text mode by default
         WebSocketSendInfo send(const std::string& data,
                                bool binary = false,
                                const OnProgressCallback& onProgressCallback = nullptr);
