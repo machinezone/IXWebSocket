@@ -412,7 +412,7 @@ namespace ix
                                                                           WebSocketCloseInfo(),
                                                                           binary));
 
-                    WebSocket::invokeTrafficTrackerCallback(msg.size(), true);
+                    WebSocket::invokeTrafficTrackerCallback(wireSize, true);
                 });
         }
     }

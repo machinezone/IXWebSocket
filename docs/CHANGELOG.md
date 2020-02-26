@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.1.7] - 2020-02-26
+
+(websocket) traffic tracker received bytes is message size while it should be wire size
+
 ## [8.1.6] - 2020-02-26
 
 (ws_connect) display sent/received bytes statistics on exit
