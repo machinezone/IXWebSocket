@@ -30,6 +30,9 @@ namespace ix
         void start();
         void stop();
 
+        int getSentBytes() { return _sentBytes; }
+        int getReceivedBytes() { return _receivedBytes; }
+
         void sendMessage(const std::string& text);
 
     private:
@@ -38,6 +41,8 @@ namespace ix
         ix::WebSocket _webSocket;
         bool _disablePerMessageDeflate;
         bool _binaryMode;
+        std::atomic<int> _receivedBytes;
+        std::atomic<int> _sentBytes;
 
         void log(const std::string& msg);
         WebSocketHttpHeaders parseHeaders(const std::string& data);
@@ -54,6 +59,8 @@ namespace ix
         : _url(url)
         , _disablePerMessageDeflate(disablePerMessageDeflate)
         , _binaryMode(binaryMode)
+        , _receivedBytes(0)
+        , _sentBytes(0)
     {
         if (disableAutomaticReconnection)
         {
@@ -68,6 +75,20 @@ namespace ix
         {
             _webSocket.addSubProtocol(subprotocol);
         }
+
+        WebSocket::setTrafficTrackerCallback(
+            [this](int size, bool incoming)
+            {
+                if (incoming)
+                {
+                    _receivedBytes += size;
+                }
+                else
+                {
+                    _sentBytes += size;
+                }
+            }
+        );
     }
 
     void WebSocketConnect::log(const std::string& msg)
@@ -245,6 +266,9 @@ namespace ix
 
         spdlog::info("");
         webSocketChat.stop();
+
+        spdlog::info("Received {} bytes", webSocketChat.getReceivedBytes());
+        spdlog::info("Sent {} bytes", webSocketChat.getSentBytes());
 
         return 0;
     }

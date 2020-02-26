@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.1.6] - 2020-02-26
+
+(ws_connect) display sent/received bytes statistics on exit
+
 ## [8.1.5] - 2020-02-23
 
 (server) give thread name to some usual worker threads / unittest is broken !!
