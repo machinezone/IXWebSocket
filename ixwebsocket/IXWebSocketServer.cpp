@@ -90,15 +90,6 @@ namespace ix
             webSocket->disablePong();
         }
 
-        if (_enablePerMessageDeflate)
-        {
-            webSocket->enablePerMessageDeflate();
-        }
-        else
-        {
-            webSocket->disablePerMessageDeflate();
-        }
-
         // Add this client to our client set
         {
             std::lock_guard<std::mutex> lock(_clientsMutex);

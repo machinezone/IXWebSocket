@@ -337,8 +337,7 @@ namespace ix
         WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(header);
 
         // If the client has requested that extension,
-        // and the server does not prevent it, enable it.
-        if (_enablePerMessageDeflate && webSocketPerMessageDeflateOptions.enabled())
+        if (webSocketPerMessageDeflateOptions.enabled())
         {
             _enablePerMessageDeflate = true;
 

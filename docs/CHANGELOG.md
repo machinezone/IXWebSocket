@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.1.8] - 2020-03-02
+
+(websocket server) fix regression with disabling zlib extension on the server side. If a client does not support this extension the server will handle it fine. We still need to figure out how to disable the option.
+
 ## [8.1.7] - 2020-02-26
 
 (websocket) traffic tracker received bytes is message size while it should be wire size
