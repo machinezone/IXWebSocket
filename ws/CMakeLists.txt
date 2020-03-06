@@ -24,6 +24,7 @@ include_directories(ws ../third_party)
 include_directories(ws ../third_party/statsd-client-cpp/src)
 include_directories(ws ../third_party/spdlog/include)
 include_directories(ws ../third_party/cpp-linenoise)
+include_directories(ws ../third_party/sentry-native/include)
 
 add_definitions(-DSPDLOG_COMPILED_LIB=1)
 
@@ -76,6 +77,7 @@ target_link_libraries(ws ixcore)
 target_link_libraries(ws ixsentry)
 
 target_link_libraries(ws spdlog)
+target_link_libraries(ws sentry)
 
 if(NOT APPLE AND NOT USE_MBED_TLS)
   find_package(OpenSSL REQUIRED)

@@ -232,6 +232,7 @@ if (USE_WS OR USE_TEST)
   add_subdirectory(ixsentry)
 
   add_subdirectory(third_party/spdlog spdlog)
+  add_subdirectory(third_party/sentry-native sentry-native)
 
   if (USE_WS)
       add_subdirectory(ws)

@@ -9,6 +9,7 @@
 //
 #include "ws.h"
 
+#include <sentry.h>
 #include <cli11/CLI11.hpp>
 #include <fstream>
 #include <ixcore/utils/IXCoreLogger.h>
@@ -26,9 +27,21 @@
 #define getpid _getpid
 #endif
 
+void initSentry()
+{
+    sentry_options_t *options = sentry_options_new();
+
+    sentry_options_set_environment(options, "Production");
+    sentry_options_set_release(options, "5fd7a6cd");
+    // sentry_options_set_debug(options, 1);
+
+    sentry_init(options);
+}
+
 
 int main(int argc, char** argv)
 {
+    initSentry();
     ix::initNetSystem();
 
     ix::IXCoreLogger::LogFunc logFunc = [](const char* msg) { spdlog::info(msg); };
@@ -367,6 +380,8 @@ int main(int argc, char** argv)
     {
         tlsOptions.caFile = "NONE";
     }
+
+    // memset((char *)0x0, 1, 100);
 
     int ret = 1;
     if (app.got_subcommand("transfer"))

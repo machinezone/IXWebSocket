@@ -1,0 +1,1944 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		30F309673F6444428F5B9E28 /* install */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 29758B037167490E8EB4E444 /* Build configuration list for PBXAggregateTarget "install" */;
+			buildPhases = (
+				688C66C3F9CC45A2B8380407 /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+				18A25F935DB64BDFB5F51511 /* PBXTargetDependency */,
+			);
+			name = install;
+			productName = install;
+		};
+		3E37AD7160B843E6A6D2BDBB /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = ADDA9D40E33646EFA63EBC13 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				09949CD7B4C44BFEAD911FC9 /* CMake Rules */,
+			);
+			dependencies = (
+				90C21C94B8D541E3A3C454AE /* PBXTargetDependency */,
+				5B9D43077AF840148D963045 /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+		9CDA3970D6A84004967B49BF /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 8C2FDFAC364748359CBBADC8 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				1644EA00401043E8860CA1CB /* CMake Rules */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		02737B4B1B824E7789A32690 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_modulefinder.h */ = {isa = PBXBuildFile; fileRef = 276558650F2B46059562E495 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_modulefinder.h */; };
+		044CDD575CAB41849816ECEB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/vendor/mpack.c */ = {isa = PBXBuildFile; fileRef = BA67090385364004983FFBFD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/vendor/mpack.c */; };
+		048E5526401F4734B96138C7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_envelopes.c */ = {isa = PBXBuildFile; fileRef = 8D635564EB3643D7B0733990 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_envelopes.c */; };
+		0707F3ECF3BA48B5879373E3 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.h */ = {isa = PBXBuildFile; fileRef = 05FF23159EA042AB88375AB9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.h */; };
+		092169528B294241B67FC3A7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.c */ = {isa = PBXBuildFile; fileRef = D576CEC9647941ADBDC30EA6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.c */; };
+		0A7886EA238B4A8D8A034808 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.c */ = {isa = PBXBuildFile; fileRef = 4D8E04E0D461464BAEA5AC26 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.c */; };
+		0ADAF9CAEAFA46C48C3216C0 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.h */ = {isa = PBXBuildFile; fileRef = 7D902FD94BDB419EA3868907 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.h */; };
+		10A14D392057475BB5E72C31 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.h */ = {isa = PBXBuildFile; fileRef = 50BABD949FF74BBAB02AAA7E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.h */; };
+		142BDCF388524F82BC2BC242 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.h */ = {isa = PBXBuildFile; fileRef = 96804271DDA3402CA90B738A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.h */; };
+		143DEE114B19441D889FB259 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.c */ = {isa = PBXBuildFile; fileRef = 9A82B2A170774227B204AFFD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.c */; };
+		14554C2C2FDC41B1ACA53DA9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.h */ = {isa = PBXBuildFile; fileRef = 01929CD721A748A9B3BE324A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.h */; };
+		160273EF42144942A53CE3D6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_sync.c */ = {isa = PBXBuildFile; fileRef = BC3BE0DD9335493E8BC97C0C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_sync.c */; };
+		17E7FC662CBC4A0CB1BE8504 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.h */ = {isa = PBXBuildFile; fileRef = F3C360F815A2430EA4619F88 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.h */; };
+		1A95F186FE87496E9ABE6C69 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.h */ = {isa = PBXBuildFile; fileRef = 4139951F7AAC4F5F961E64BE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.h */; };
+		1E189168988C4669AF22039F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.c */ = {isa = PBXBuildFile; fileRef = F995B06E0815456399C244AA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.c */; };
+		1E56579B19A24ADF81483DCC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/test_integration.c */ = {isa = PBXBuildFile; fileRef = 3947E0E5FD844490882C9A60 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/test_integration.c */; };
+		1E62F73A0721436C987047B8 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder.c */ = {isa = PBXBuildFile; fileRef = F0D31E38058B4BFCB313EE4B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder.c */; };
+		224D23459D7F4C5CB216ADEC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.c */ = {isa = PBXBuildFile; fileRef = BC7F666CA2664E08A6236A72 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.c */; };
+		22DF903ACECE4D4DB9530FBC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_spinlock.h */ = {isa = PBXBuildFile; fileRef = 76C7EB2607684BC288DCCA17 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_spinlock.h */; };
+		243752B86F89489AA2D6EF19 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path.c */ = {isa = PBXBuildFile; fileRef = E05B45500C974E88925373B6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path.c */; };
+		2AB807E9DA6F45B4A05AD192 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.h */ = {isa = PBXBuildFile; fileRef = A32DC44A15E24CC8BDF24085 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.h */; };
+		2C1272BA2753422CB30483F5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.c */ = {isa = PBXBuildFile; fileRef = 557EA2644B334C3F8C110464 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.c */; };
+		2D9B2E0500A74629B64C4D0A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path_unix.c */ = {isa = PBXBuildFile; fileRef = 7971572C35CC4C2A9B0002DC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path_unix.c */; };
+		2F41AF52FD6B4FA6837CE23E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.c */ = {isa = PBXBuildFile; fileRef = E492CC06E6DC48669CFE5D35 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.c */; };
+		3314AE8E0D1244CFA1985402 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_utils.c */ = {isa = PBXBuildFile; fileRef = C78C981899DA43ED9FAEB064 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_utils.c */; };
+		371A0723384941EBABB77BB7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.c */ = {isa = PBXBuildFile; fileRef = 65C8A3AC066B46E59E51610B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.c */; };
+		388A3E7F274945748148FF38 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.c */ = {isa = PBXBuildFile; fileRef = 2473F9AB29D74B6BAD38EC96 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.c */; };
+		391E47F1704147AD99EC15D3 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/examples/example.c */ = {isa = PBXBuildFile; fileRef = 64A1E1E47EF84A1798F5085B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/examples/example.c */; };
+		3E6AA69D472C48ACB8004B08 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.h */ = {isa = PBXBuildFile; fileRef = 0407876616C4452B84462F80 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.h */; };
+		3F2834928B934163986C6035 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.h */ = {isa = PBXBuildFile; fileRef = E61698714F4141B99A21602F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.h */; };
+		3FC2DFA29CF54CF3912330A8 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.c */ = {isa = PBXBuildFile; fileRef = 6083390C5F7B4738BA31C735 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.c */; };
+		4006CB63BBBD4500AD006D3D /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.h */ = {isa = PBXBuildFile; fileRef = 7403F9CFEABC4539A6271508 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.h */; };
+		414D64A9280A40F58CC7E7E1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/symbolizer/sentry_symbolizer_unix.c */ = {isa = PBXBuildFile; fileRef = B53D2E3FE2EF4CFA9A92C811 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/symbolizer/sentry_symbolizer_unix.c */; };
+		44E27458FA8141E28020864C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.c */ = {isa = PBXBuildFile; fileRef = 294A8088B9B14B11AD90D3EE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.c */; };
+		46B87E47CADD48C985BF4782 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 1C9D8C30A9A14AEA911B25AF /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */; };
+		46CDF8C971E5445CADC04FE6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.c */ = {isa = PBXBuildFile; fileRef = 4F54318E67F042D1AB5A2375 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.c */; };
+		47372E8A6DEE4A489C0C808C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.h */ = {isa = PBXBuildFile; fileRef = 4064FD41799344E8B772A05A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.h */; };
+		4813F8481EAC4596829E944F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.h */ = {isa = PBXBuildFile; fileRef = CA0BDCD9607F4DA997292427 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.h */; };
+		4BEBC6D705484A608E8A8008 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.h */ = {isa = PBXBuildFile; fileRef = 9A3988BDDFFC4FA4A0A754E1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.h */; };
+		4D4052D6629C4F9997EAF5F5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_modulefinder.c */ = {isa = PBXBuildFile; fileRef = 38338F511092473F976B0E51 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_modulefinder.c */; };
+		4F7FC8445EF940FB96ADAE43 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.c */ = {isa = PBXBuildFile; fileRef = F06BD5FEBC924FC080FA5B25 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.c */; };
+		51E9E9E78FAB4A99ABB3279D /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_path.h */ = {isa = PBXBuildFile; fileRef = 67BEFE1DBC464D179C55B1E5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_path.h */; };
+		52142B9C304F4DB98C758A16 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.h */ = {isa = PBXBuildFile; fileRef = AADEFD6E34124950B095669F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.h */; };
+		53BB713D53494B9984A3D2C5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 1D711A58C9434E0683B5AC85 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */; };
+		55BC2EEFE4D14386BD52FEF8 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.c */ = {isa = PBXBuildFile; fileRef = E96E3854FE56485C891AC0B4 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.c */; };
+		579907647F034366BC476B5C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_uuid.c */ = {isa = PBXBuildFile; fileRef = 48756EE534D0475DAC6058C5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_uuid.c */; };
+		57994F13A0694A49A961DECC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.h */ = {isa = PBXBuildFile; fileRef = 49E2E3724BE746B28D8B6512 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.h */; };
+		5A08D68AC2B340FB9D600786 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.h */ = {isa = PBXBuildFile; fileRef = A7FF61D1E2344DAA8B9919A1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.h */; };
+		5E79B7530C09451BB1F21069 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.h */ = {isa = PBXBuildFile; fileRef = 5D57C092037541468EA82ED1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.h */; };
+		602A552BCEAB4EFBBC60DD20 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder.c */ = {isa = PBXBuildFile; fileRef = 1DF48DE603FD42D18279A163 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder.c */; };
+		60ED1F172EDD411C90A543A0 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.c */ = {isa = PBXBuildFile; fileRef = FB4C5831B2CC4D9BA10BD756 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.c */; };
+		6155F9DD89744D7095F1C8C3 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.c */ = {isa = PBXBuildFile; fileRef = EF944441B34D4104AEEE6FF6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.c */; };
+		651FD3D97E1B4EDB917896D0 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.h */ = {isa = PBXBuildFile; fileRef = 6E4650AB9D694724839E0E20 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.h */; };
+		65B0A13FB3694F0ABB37AC13 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.c */ = {isa = PBXBuildFile; fileRef = 7EADCC3E7D5C4F37841D8EB9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.c */; };
+		66B69555E56240DCA608EF64 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.h */ = {isa = PBXBuildFile; fileRef = ACD0A71451A94E41A3D18EFA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.h */; };
+		67B3CD6EAB864DAD9C87ED76 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.h */ = {isa = PBXBuildFile; fileRef = 06F88123939C42299B88E087 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.h */; };
+		6A91269C01E14FE59FE9BB95 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.c */ = {isa = PBXBuildFile; fileRef = 63731D110A7A4EFE95378ACD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.c */; };
+		6E568A990E394729AE5227B5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.c */ = {isa = PBXBuildFile; fileRef = F45E1776C8294C6480A946D6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.c */; };
+		70675F93BE9B4AAABF9D68F6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.h */ = {isa = PBXBuildFile; fileRef = 92EA17DBB16449508C997EEE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.h */; };
+		7489C150AD9A4DF98EB9DAF1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.c */ = {isa = PBXBuildFile; fileRef = 0AA7D3C891174D159FCA597F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.c */; };
+		74BF1C738D6C4BC5B1E40D71 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.h */ = {isa = PBXBuildFile; fileRef = 1A207C6837974F069DA0B864 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.h */; };
+		76937B3485004F3A895EF15B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder_libbacktrace.c */ = {isa = PBXBuildFile; fileRef = 0CEBB5F2A32D43D98A35B5BB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder_libbacktrace.c */; };
+		7796106335814E57A1C59B82 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.h */ = {isa = PBXBuildFile; fileRef = DB76465760A24DD9BB337134 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.h */; };
+		79832B2FA29A449CA7F51A0E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path_unix.c */ = {isa = PBXBuildFile; fileRef = 05499A0375B043139ACAA76E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path_unix.c */; };
+		7A508E02ED08431F9FACF0BF /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.h */ = {isa = PBXBuildFile; fileRef = 694C3BE80F1A4E91B6FF663E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.h */; };
+		7B70775366074C9780D18810 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.c */ = {isa = PBXBuildFile; fileRef = 774B222FD2AC4F9889FC3A09 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.c */; };
+		7F94921584DC48F39645A6D5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 4F62DEFE97E14753AFE37061 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */; };
+		85297ACC086D473DBEE54A6C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.c */ = {isa = PBXBuildFile; fileRef = 88CDE42A0E3E47BDBC403AE4 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.c */; };
+		8544E84E04AF47C1AD7B0C8B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.c */ = {isa = PBXBuildFile; fileRef = 1AB52F8F81D84DE18A655D8E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.c */; };
+		8593D7D860E04562B503886A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.c */ = {isa = PBXBuildFile; fileRef = 59001C3300CF446E9B803162 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.c */; };
+		8A0DDE788E8E49228086EEC8 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.h */ = {isa = PBXBuildFile; fileRef = 977AEE2BF3DF4600B8E64EE7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.h */; };
+		8B43ECC0C26D47DE90465A9E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.c */ = {isa = PBXBuildFile; fileRef = 4B4203ECCCBF4BA193CC4397 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.c */; };
+		8D9F7E20646149E993016488 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.h */ = {isa = PBXBuildFile; fileRef = E033C35D4ACC4D77B76F7494 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.h */; };
+		93358C13008244BC8D2D612B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.c */ = {isa = PBXBuildFile; fileRef = 63AE859D288F4CA8908398ED /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.c */; };
+		966A095F611C4CCA90205597 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_modulefinder.h */ = {isa = PBXBuildFile; fileRef = 6BE75A6E05824A13834D71BA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_modulefinder.h */; };
+		9D5EC4000CF0472B80D5F9DF /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.c */ = {isa = PBXBuildFile; fileRef = 38CC6BBCF6A44F19B027F5BE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.c */; };
+		9FB408D202374762A36F516E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_boot.h */ = {isa = PBXBuildFile; fileRef = B82F563145C048E480CBE205 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_boot.h */; };
+		9FCCFD909F344B078AF8661A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_symbolizer.h */ = {isa = PBXBuildFile; fileRef = 88F978995FAC4931B0376E9B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_symbolizer.h */; };
+		A02EA3AD26C54EA8BAAE8CC6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_boot.h */ = {isa = PBXBuildFile; fileRef = 65F6E146B90E43F9BE4E4C3B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_boot.h */; };
+		A031172EFCF64979ABB7E0E5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_value.c */ = {isa = PBXBuildFile; fileRef = 0C2AC618CBC6447F81BC537C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_value.c */; };
+		A6E01DEE4B344FB1A49A7BDB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.c */ = {isa = PBXBuildFile; fileRef = 0D07ECFDDD5B49FCA236395D /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.c */; };
+		AAC1298E73A642ADB439DF25 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.h */ = {isa = PBXBuildFile; fileRef = AE84E5088FAB4E168ADBFBDE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.h */; };
+		AC35B1C37BE1482DADBAF418 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/vendor/mpack.c */ = {isa = PBXBuildFile; fileRef = 449613AB0073468F8406E51A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/vendor/mpack.c */; };
+		AFB16190FE984567A76E23C8 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/main.c */ = {isa = PBXBuildFile; fileRef = C688B5FBF6424365ABA4230E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/main.c */; };
+		B024AF0359F146D2BDE67CE7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_consent.c */ = {isa = PBXBuildFile; fileRef = 888B63618D264B588DFD9102 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_consent.c */; };
+		B277A227E2B84C0C9E298A8E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.h */ = {isa = PBXBuildFile; fileRef = 7B708C442B6E42EA87FC38AA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.h */; };
+		B3B311F45EE04C0BAB9AD348 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.c */ = {isa = PBXBuildFile; fileRef = B235439997AF43669A68A3FB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.c */; };
+		B7324E0BBB5C444897AF7E23 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.h */ = {isa = PBXBuildFile; fileRef = 18FDD34569414CA1A9B8E0CE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.h */; };
+		B8DBDAB0DD8B416EA1125703 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.h */ = {isa = PBXBuildFile; fileRef = 5668166B007147B582215664 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.h */; };
+		B9710A5EDCE44F0B8DAB9C4A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.h */ = {isa = PBXBuildFile; fileRef = 656F01206E214965A0916EA2 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.h */; };
+		BB518C6DFD55457988192D16 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_spinlock.h */ = {isa = PBXBuildFile; fileRef = F3C906C9796D4C97AC8B7CF7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_spinlock.h */; };
+		BBAA7D9BE484456582B0ADE9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.h */ = {isa = PBXBuildFile; fileRef = 756EDBD6D0DF43C5BC544CAA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.h */; };
+		BC3B6F584C0C42929334FF38 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 769178A731624E7D8821533F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */; };
+		BD28F42ACE6D4D50B2D79039 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.c */ = {isa = PBXBuildFile; fileRef = 58A9CA16C99D4AEF995599A1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.c */; };
+		BD51B689EBCA4242A5AD7F77 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.h */ = {isa = PBXBuildFile; fileRef = 68FD481C6748439F9801A7C3 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.h */; };
+		C06B45A8A3E9451AA0FCBA72 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.c */ = {isa = PBXBuildFile; fileRef = A20E142485164A35970AF4DD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.c */; };
+		C173BFC5A8EE4438ACC7F463 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.c */ = {isa = PBXBuildFile; fileRef = 83A2046C675D409FB50D37F1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.c */; };
+		C516D1FE0DAC4654AEC4EE6B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_attachments.c */ = {isa = PBXBuildFile; fileRef = 54277C1BC832407DB195D09C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_attachments.c */; };
+		C63CB9317D454F27A156D849 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_basic.c */ = {isa = PBXBuildFile; fileRef = FF0DC10BE0064D0996BD64D5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_basic.c */; };
+		C6945D74389A4712A59D2ECF /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_symbolizer.h */ = {isa = PBXBuildFile; fileRef = B2439D4D24634BE1AD41565F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_symbolizer.h */; };
+		C76974AA18A94B89957B8846 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.h */ = {isa = PBXBuildFile; fileRef = 3DD763D345FD476383BEDF82 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.h */; };
+		C7FC9F7B41F04E76B05D3A0A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/modulefinder/sentry_modulefinder_apple.c */ = {isa = PBXBuildFile; fileRef = 5573E3388F484B778FE16ED9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/modulefinder/sentry_modulefinder_apple.c */; };
+		CC256FBF7B2642B58A9BF5F4 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_database.c */ = {isa = PBXBuildFile; fileRef = 0E51B38DD1DC44CEAF021606 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_database.c */; };
+		CDDA55293C9949FB83371B25 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/examples/example_crashpad.c */ = {isa = PBXBuildFile; fileRef = 7165F5BCDB6649D081FEB622 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/examples/example_crashpad.c */; };
+		CE6A124DAF6F4848A412549A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.c */ = {isa = PBXBuildFile; fileRef = A44DFCEDA43646E084267EDC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.c */; };
+		CFE9975270D640898AEC9B09 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 1E82AF878016414387A9AF4F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */; };
+		D1E580ED683444FB8458071E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_symbolizer.c */ = {isa = PBXBuildFile; fileRef = 52C7F84296534AD9B2C29EFC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_symbolizer.c */; };
+		D2695E78267147569B126586 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.c */ = {isa = PBXBuildFile; fileRef = 6FAA6264EE0F4089B504D50E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.c */; };
+		D57F8D596B0249F6BF2D4010 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.c */ = {isa = PBXBuildFile; fileRef = 9E33AAB7C2064C81B2A9246E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.c */; };
+		D6254C6001734D3E97FBF67F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.h */ = {isa = PBXBuildFile; fileRef = 48A83C2D19C5424B9370A60D /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.h */; };
+		D79B1EBC2E1A4829984DA759 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_path.c */ = {isa = PBXBuildFile; fileRef = 18E42B6472424B5794E75DDB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_path.c */; };
+		DD61BFB980D44FF6ACB7298B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.c */ = {isa = PBXBuildFile; fileRef = EC2D2DCDA0F24B6C80A99A94 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.c */; };
+		DDD24D06EFCC4466AECFFDBB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_path.h */ = {isa = PBXBuildFile; fileRef = E969C23F017445D2A25182DE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_path.h */; };
+		E518891662BB41979541C95C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/symbolizer/sentry_symbolizer_unix.c */ = {isa = PBXBuildFile; fileRef = CFB0A277C0064E52B9C5D4EA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/symbolizer/sentry_symbolizer_unix.c */; };
+		E6CF6134CE774F1196C58C39 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder_libbacktrace.c */ = {isa = PBXBuildFile; fileRef = 5760101733504062A0EAB2AB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder_libbacktrace.c */; };
+		EA3FBB85C2044639B8FB388C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/modulefinder/sentry_modulefinder_apple.c */ = {isa = PBXBuildFile; fileRef = BD1D5F51310B436CA8CFC37A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/modulefinder/sentry_modulefinder_apple.c */; };
+		EC4F393758F64566BC0C6802 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_unwinder.c */ = {isa = PBXBuildFile; fileRef = E2DCD810C4D741CC99505B04 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_unwinder.c */; };
+		EF2734EB27654EC88A13BD8F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.h */ = {isa = PBXBuildFile; fileRef = 8CE29D906DD746DAAA5D5401 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.h */; };
+		F7201D23CC0C4F12B267EEBE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.c */ = {isa = PBXBuildFile; fileRef = B516D97557F941E79BB740FB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.c */; };
+		F9690A1C74774498A2072DC5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path.c */ = {isa = PBXBuildFile; fileRef = CB031F4057CC4295BCF75F25 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path.c */; };
+		FBACEC6CA3A64995A8F034C1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.c */ = {isa = PBXBuildFile; fileRef = B1D491E27BF84A0499579C47 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.c */; };
+		FE0769CF10FC409CA3983DE7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.h */ = {isa = PBXBuildFile; fileRef = 50D067E96FAD4C82A98F93BF /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		2D8387765A59423E959E93C6 /* RelWithDebInfo */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = RelWithDebInfo;
+		};
+		856C3282E2134F8D950A8410 /* MinSizeRel */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = MinSizeRel;
+		};
+		B59C66C8EB7E41A9B28DD7CD /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+		F7641B38166C4862BB549B54 /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		02C24E3B88194E91ACB67FA8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27431BFA49384F18B6FACCF2;
+			remoteInfo = sentry;
+		};
+		2F5C9426824F4FEB99DD6E38 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27431BFA49384F18B6FACCF2;
+			remoteInfo = sentry;
+		};
+		532E0224C5BF47998303E5DF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3E37AD7160B843E6A6D2BDBB;
+			remoteInfo = ALL_BUILD;
+		};
+		61337966819540E4A3DC2FF8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9CDA3970D6A84004967B49BF;
+			remoteInfo = ZERO_CHECK;
+		};
+		71389235B0E148719BD19C20 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27431BFA49384F18B6FACCF2;
+			remoteInfo = sentry;
+		};
+		86082379EC7F4FC3966BA401 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27431BFA49384F18B6FACCF2;
+			remoteInfo = sentry;
+		};
+		B12CAB0DC3914AC095DD2E69 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9CDA3970D6A84004967B49BF;
+			remoteInfo = ZERO_CHECK;
+		};
+		BC4884CBA5664F38B821037C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9CDA3970D6A84004967B49BF;
+			remoteInfo = ZERO_CHECK;
+		};
+		D13BC4B61369471EBC3CC86C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9CDA3970D6A84004967B49BF;
+			remoteInfo = ZERO_CHECK;
+		};
+		ED446184EFC14EDA8CEA7FA6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9CDA3970D6A84004967B49BF;
+			remoteInfo = ZERO_CHECK;
+		};
+		F36C6027FC19463E84395FE6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9CDA3970D6A84004967B49BF;
+			remoteInfo = ZERO_CHECK;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		01929CD721A748A9B3BE324A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_function_transport.h; path = src/transports/sentry_function_transport.h; sourceTree = SOURCE_ROOT; };
+		0407876616C4452B84462F80 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_string.h; path = src/sentry_string.h; sourceTree = SOURCE_ROOT; };
+		05499A0375B043139ACAA76E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path_unix.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_path_unix.c; path = src/path/sentry_path_unix.c; sourceTree = SOURCE_ROOT; };
+		05FF23159EA042AB88375AB9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_envelope.h; path = src/sentry_envelope.h; sourceTree = SOURCE_ROOT; };
+		06F88123939C42299B88E087 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_scope.h; path = src/sentry_scope.h; sourceTree = SOURCE_ROOT; };
+		0AA7D3C891174D159FCA597F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_scope.c; path = src/sentry_scope.c; sourceTree = SOURCE_ROOT; };
+		0C2AC618CBC6447F81BC537C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_value.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_value.c; path = tests/unit/test_value.c; sourceTree = SOURCE_ROOT; };
+		0CEBB5F2A32D43D98A35B5BB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder_libbacktrace.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_unwinder_libbacktrace.c; path = src/unwinder/sentry_unwinder_libbacktrace.c; sourceTree = SOURCE_ROOT; };
+		0D07ECFDDD5B49FCA236395D /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_string.c; path = src/sentry_string.c; sourceTree = SOURCE_ROOT; };
+		0E51B38DD1DC44CEAF021606 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_database.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_database.c; path = tests/unit/test_database.c; sourceTree = SOURCE_ROOT; };
+		18E42B6472424B5794E75DDB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_path.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_path.c; path = tests/unit/test_path.c; sourceTree = SOURCE_ROOT; };
+		18FDD34569414CA1A9B8E0CE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_inproc_backend.h; path = src/backends/sentry_inproc_backend.h; sourceTree = SOURCE_ROOT; };
+		1A207C6837974F069DA0B864 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_utils.h; path = src/sentry_utils.h; sourceTree = SOURCE_ROOT; };
+		1AB52F8F81D84DE18A655D8E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_database.c; path = src/sentry_database.c; sourceTree = SOURCE_ROOT; };
+		1C9D8C30A9A14AEA911B25AF /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		1D711A58C9434E0683B5AC85 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		1DF48DE603FD42D18279A163 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_unwinder.c; path = src/unwinder/sentry_unwinder.c; sourceTree = SOURCE_ROOT; };
+		1E82AF878016414387A9AF4F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		2473F9AB29D74B6BAD38EC96 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_string.c; path = src/sentry_string.c; sourceTree = SOURCE_ROOT; };
+		276558650F2B46059562E495 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_modulefinder.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_modulefinder.h; path = src/sentry_modulefinder.h; sourceTree = SOURCE_ROOT; };
+		294A8088B9B14B11AD90D3EE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_sync.c; path = src/sentry_sync.c; sourceTree = SOURCE_ROOT; };
+		38338F511092473F976B0E51 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_modulefinder.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_modulefinder.c; path = tests/unit/test_modulefinder.c; sourceTree = SOURCE_ROOT; };
+		38CC6BBCF6A44F19B027F5BE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_json.c; path = src/sentry_json.c; sourceTree = SOURCE_ROOT; };
+		3947E0E5FD844490882C9A60 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/test_integration.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_integration.c; path = tests/test_integration.c; sourceTree = SOURCE_ROOT; };
+		3DD763D345FD476383BEDF82 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_database.h; path = src/sentry_database.h; sourceTree = SOURCE_ROOT; };
+		4064FD41799344E8B772A05A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_alloc.h; path = src/sentry_alloc.h; sourceTree = SOURCE_ROOT; };
+		4139951F7AAC4F5F961E64BE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_sync.h; path = src/sentry_sync.h; sourceTree = SOURCE_ROOT; };
+		449613AB0073468F8406E51A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/vendor/mpack.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = mpack.c; path = vendor/mpack.c; sourceTree = SOURCE_ROOT; };
+		48756EE534D0475DAC6058C5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_uuid.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_uuid.c; path = tests/unit/test_uuid.c; sourceTree = SOURCE_ROOT; };
+		48A83C2D19C5424B9370A60D /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_alloc.h; path = src/sentry_alloc.h; sourceTree = SOURCE_ROOT; };
+		49E2E3724BE746B28D8B6512 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_envelope.h; path = src/sentry_envelope.h; sourceTree = SOURCE_ROOT; };
+		4B4203ECCCBF4BA193CC4397 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_transport.c; path = src/sentry_transport.c; sourceTree = SOURCE_ROOT; };
+		4D8E04E0D461464BAEA5AC26 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_backend.c; path = src/sentry_backend.c; sourceTree = SOURCE_ROOT; };
+		4F54318E67F042D1AB5A2375 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_random.c; path = src/sentry_random.c; sourceTree = SOURCE_ROOT; };
+		4F62DEFE97E14753AFE37061 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		4F6EE1D082794A0184742E23 /* sentry_test_unit */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = sentry_test_unit; sourceTree = BUILT_PRODUCTS_DIR; };
+		50BABD949FF74BBAB02AAA7E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_random.h; path = src/sentry_random.h; sourceTree = SOURCE_ROOT; };
+		50D067E96FAD4C82A98F93BF /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_database.h; path = src/sentry_database.h; sourceTree = SOURCE_ROOT; };
+		52C7F84296534AD9B2C29EFC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_symbolizer.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_symbolizer.c; path = tests/unit/test_symbolizer.c; sourceTree = SOURCE_ROOT; };
+		54277C1BC832407DB195D09C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_attachments.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_attachments.c; path = tests/unit/test_attachments.c; sourceTree = SOURCE_ROOT; };
+		5573E3388F484B778FE16ED9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/modulefinder/sentry_modulefinder_apple.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_modulefinder_apple.c; path = src/modulefinder/sentry_modulefinder_apple.c; sourceTree = SOURCE_ROOT; };
+		557EA2644B334C3F8C110464 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_alloc.c; path = src/sentry_alloc.c; sourceTree = SOURCE_ROOT; };
+		5668166B007147B582215664 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_sync.h; path = src/sentry_sync.h; sourceTree = SOURCE_ROOT; };
+		5760101733504062A0EAB2AB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder_libbacktrace.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_unwinder_libbacktrace.c; path = src/unwinder/sentry_unwinder_libbacktrace.c; sourceTree = SOURCE_ROOT; };
+		58A9CA16C99D4AEF995599A1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_value.c; path = src/sentry_value.c; sourceTree = SOURCE_ROOT; };
+		59001C3300CF446E9B803162 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_envelope.c; path = src/sentry_envelope.c; sourceTree = SOURCE_ROOT; };
+		5D57C092037541468EA82ED1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_disk_transport.h; path = src/transports/sentry_disk_transport.h; sourceTree = SOURCE_ROOT; };
+		6083390C5F7B4738BA31C735 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_unix_pageallocator.c; path = src/sentry_unix_pageallocator.c; sourceTree = SOURCE_ROOT; };
+		63731D110A7A4EFE95378ACD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_function_transport.c; path = src/transports/sentry_function_transport.c; sourceTree = SOURCE_ROOT; };
+		63AE859D288F4CA8908398ED /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_transport.c; path = src/sentry_transport.c; sourceTree = SOURCE_ROOT; };
+		64A1E1E47EF84A1798F5085B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/examples/example.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = example.c; path = examples/example.c; sourceTree = SOURCE_ROOT; };
+		656F01206E214965A0916EA2 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_slice.h; path = src/sentry_slice.h; sourceTree = SOURCE_ROOT; };
+		65C8A3AC066B46E59E51610B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_random.c; path = src/sentry_random.c; sourceTree = SOURCE_ROOT; };
+		65F6E146B90E43F9BE4E4C3B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_boot.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_boot.h; path = src/sentry_boot.h; sourceTree = SOURCE_ROOT; };
+		67BEFE1DBC464D179C55B1E5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_path.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_path.h; path = src/sentry_path.h; sourceTree = SOURCE_ROOT; };
+		68FD481C6748439F9801A7C3 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_string.h; path = src/sentry_string.h; sourceTree = SOURCE_ROOT; };
+		694C3BE80F1A4E91B6FF663E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_backend.h; path = src/sentry_backend.h; sourceTree = SOURCE_ROOT; };
+		6BE75A6E05824A13834D71BA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_modulefinder.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_modulefinder.h; path = src/sentry_modulefinder.h; sourceTree = SOURCE_ROOT; };
+		6E4650AB9D694724839E0E20 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_core.h; path = src/sentry_core.h; sourceTree = SOURCE_ROOT; };
+		6FAA6264EE0F4089B504D50E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_alloc.c; path = src/sentry_alloc.c; sourceTree = SOURCE_ROOT; };
+		6FF2F9BB1A4D44A3ADC17C85 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		7165F5BCDB6649D081FEB622 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/examples/example_crashpad.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = example_crashpad.c; path = examples/example_crashpad.c; sourceTree = SOURCE_ROOT; };
+		7403F9CFEABC4539A6271508 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_core.h; path = src/sentry_core.h; sourceTree = SOURCE_ROOT; };
+		756EDBD6D0DF43C5BC544CAA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_backend.h; path = src/sentry_backend.h; sourceTree = SOURCE_ROOT; };
+		769178A731624E7D8821533F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		76C7EB2607684BC288DCCA17 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_spinlock.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_unix_spinlock.h; path = src/sentry_unix_spinlock.h; sourceTree = SOURCE_ROOT; };
+		774B222FD2AC4F9889FC3A09 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_scope.c; path = src/sentry_scope.c; sourceTree = SOURCE_ROOT; };
+		7971572C35CC4C2A9B0002DC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path_unix.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_path_unix.c; path = src/path/sentry_path_unix.c; sourceTree = SOURCE_ROOT; };
+		7B708C442B6E42EA87FC38AA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_uuid.h; path = src/sentry_uuid.h; sourceTree = SOURCE_ROOT; };
+		7D902FD94BDB419EA3868907 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_value.h; path = src/sentry_value.h; sourceTree = SOURCE_ROOT; };
+		7EADCC3E7D5C4F37841D8EB9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_core.c; path = src/sentry_core.c; sourceTree = SOURCE_ROOT; };
+		83A2046C675D409FB50D37F1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_inproc_backend.c; path = src/backends/sentry_inproc_backend.c; sourceTree = SOURCE_ROOT; };
+		888B63618D264B588DFD9102 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_consent.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_consent.c; path = tests/unit/test_consent.c; sourceTree = SOURCE_ROOT; };
+		88CDE42A0E3E47BDBC403AE4 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_sync.c; path = src/sentry_sync.c; sourceTree = SOURCE_ROOT; };
+		88F978995FAC4931B0376E9B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_symbolizer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_symbolizer.h; path = src/sentry_symbolizer.h; sourceTree = SOURCE_ROOT; };
+		8CE29D906DD746DAAA5D5401 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_unix_pageallocator.h; path = src/sentry_unix_pageallocator.h; sourceTree = SOURCE_ROOT; };
+		8D635564EB3643D7B0733990 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_envelopes.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_envelopes.c; path = tests/unit/test_envelopes.c; sourceTree = SOURCE_ROOT; };
+		92EA17DBB16449508C997EEE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_function_transport.h; path = src/transports/sentry_function_transport.h; sourceTree = SOURCE_ROOT; };
+		96804271DDA3402CA90B738A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_scope.h; path = src/sentry_scope.h; sourceTree = SOURCE_ROOT; };
+		977AEE2BF3DF4600B8E64EE7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_random.h; path = src/sentry_random.h; sourceTree = SOURCE_ROOT; };
+		97C1449244C5400587FA4EBE /* example_crashpad */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = example_crashpad; sourceTree = BUILT_PRODUCTS_DIR; };
+		9A3988BDDFFC4FA4A0A754E1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_slice.h; path = src/sentry_slice.h; sourceTree = SOURCE_ROOT; };
+		9A82B2A170774227B204AFFD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_utils.c; path = src/sentry_utils.c; sourceTree = SOURCE_ROOT; };
+		9D605422AA0840DCB960441B /* sentry */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libsentry.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9E33AAB7C2064C81B2A9246E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_slice.c; path = src/sentry_slice.c; sourceTree = SOURCE_ROOT; };
+		A20E142485164A35970AF4DD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_json.c; path = src/sentry_json.c; sourceTree = SOURCE_ROOT; };
+		A32DC44A15E24CC8BDF24085 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_transport.h; path = src/sentry_transport.h; sourceTree = SOURCE_ROOT; };
+		A44DFCEDA43646E084267EDC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_envelope.c; path = src/sentry_envelope.c; sourceTree = SOURCE_ROOT; };
+		A7FF61D1E2344DAA8B9919A1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_inproc_backend.h; path = src/backends/sentry_inproc_backend.h; sourceTree = SOURCE_ROOT; };
+		AADEFD6E34124950B095669F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_uuid.h; path = src/sentry_uuid.h; sourceTree = SOURCE_ROOT; };
+		ACD0A71451A94E41A3D18EFA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_value.h; path = src/sentry_value.h; sourceTree = SOURCE_ROOT; };
+		AE84E5088FAB4E168ADBFBDE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_json.h; path = src/sentry_json.h; sourceTree = SOURCE_ROOT; };
+		B1D491E27BF84A0499579C47 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_uuid.c; path = src/sentry_uuid.c; sourceTree = SOURCE_ROOT; };
+		B235439997AF43669A68A3FB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_unix_pageallocator.c; path = src/sentry_unix_pageallocator.c; sourceTree = SOURCE_ROOT; };
+		B2439D4D24634BE1AD41565F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_symbolizer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_symbolizer.h; path = src/sentry_symbolizer.h; sourceTree = SOURCE_ROOT; };
+		B516D97557F941E79BB740FB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_inproc_backend.c; path = src/backends/sentry_inproc_backend.c; sourceTree = SOURCE_ROOT; };
+		B53D2E3FE2EF4CFA9A92C811 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/symbolizer/sentry_symbolizer_unix.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_symbolizer_unix.c; path = src/symbolizer/sentry_symbolizer_unix.c; sourceTree = SOURCE_ROOT; };
+		B82F563145C048E480CBE205 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_boot.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_boot.h; path = src/sentry_boot.h; sourceTree = SOURCE_ROOT; };
+		BA67090385364004983FFBFD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/vendor/mpack.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = mpack.c; path = vendor/mpack.c; sourceTree = SOURCE_ROOT; };
+		BC3BE0DD9335493E8BC97C0C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_sync.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_sync.c; path = tests/unit/test_sync.c; sourceTree = SOURCE_ROOT; };
+		BC7F666CA2664E08A6236A72 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_uuid.c; path = src/sentry_uuid.c; sourceTree = SOURCE_ROOT; };
+		BD1D5F51310B436CA8CFC37A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/modulefinder/sentry_modulefinder_apple.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_modulefinder_apple.c; path = src/modulefinder/sentry_modulefinder_apple.c; sourceTree = SOURCE_ROOT; };
+		C59C17BD6A9D4F819D93C23A /* example */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = example; sourceTree = BUILT_PRODUCTS_DIR; };
+		C688B5FBF6424365ABA4230E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/main.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = main.c; path = tests/unit/main.c; sourceTree = SOURCE_ROOT; };
+		C78C981899DA43ED9FAEB064 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_utils.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_utils.c; path = tests/unit/test_utils.c; sourceTree = SOURCE_ROOT; };
+		CA0BDCD9607F4DA997292427 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_transport.h; path = src/sentry_transport.h; sourceTree = SOURCE_ROOT; };
+		CB031F4057CC4295BCF75F25 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_path.c; path = src/path/sentry_path.c; sourceTree = SOURCE_ROOT; };
+		CFB0A277C0064E52B9C5D4EA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/symbolizer/sentry_symbolizer_unix.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_symbolizer_unix.c; path = src/symbolizer/sentry_symbolizer_unix.c; sourceTree = SOURCE_ROOT; };
+		D576CEC9647941ADBDC30EA6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_core.c; path = src/sentry_core.c; sourceTree = SOURCE_ROOT; };
+		DB76465760A24DD9BB337134 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_disk_transport.h; path = src/transports/sentry_disk_transport.h; sourceTree = SOURCE_ROOT; };
+		E033C35D4ACC4D77B76F7494 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_utils.h; path = src/sentry_utils.h; sourceTree = SOURCE_ROOT; };
+		E05B45500C974E88925373B6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_path.c; path = src/path/sentry_path.c; sourceTree = SOURCE_ROOT; };
+		E2DCD810C4D741CC99505B04 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_unwinder.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_unwinder.c; path = tests/unit/test_unwinder.c; sourceTree = SOURCE_ROOT; };
+		E492CC06E6DC48669CFE5D35 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_disk_transport.c; path = src/transports/sentry_disk_transport.c; sourceTree = SOURCE_ROOT; };
+		E4FD3BE6484149DBB0FD4CC6 /* sentry_test_integration */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = sentry_test_integration; sourceTree = BUILT_PRODUCTS_DIR; };
+		E61698714F4141B99A21602F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_unix_pageallocator.h; path = src/sentry_unix_pageallocator.h; sourceTree = SOURCE_ROOT; };
+		E969C23F017445D2A25182DE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_path.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_path.h; path = src/sentry_path.h; sourceTree = SOURCE_ROOT; };
+		E96E3854FE56485C891AC0B4 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_utils.c; path = src/sentry_utils.c; sourceTree = SOURCE_ROOT; };
+		EC2D2DCDA0F24B6C80A99A94 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_database.c; path = src/sentry_database.c; sourceTree = SOURCE_ROOT; };
+		EF944441B34D4104AEEE6FF6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_disk_transport.c; path = src/transports/sentry_disk_transport.c; sourceTree = SOURCE_ROOT; };
+		F06BD5FEBC924FC080FA5B25 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_value.c; path = src/sentry_value.c; sourceTree = SOURCE_ROOT; };
+		F0D31E38058B4BFCB313EE4B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_unwinder.c; path = src/unwinder/sentry_unwinder.c; sourceTree = SOURCE_ROOT; };
+		F3C360F815A2430EA4619F88 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_json.h; path = src/sentry_json.h; sourceTree = SOURCE_ROOT; };
+		F3C906C9796D4C97AC8B7CF7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_spinlock.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sentry_unix_spinlock.h; path = src/sentry_unix_spinlock.h; sourceTree = SOURCE_ROOT; };
+		F45E1776C8294C6480A946D6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_slice.c; path = src/sentry_slice.c; sourceTree = SOURCE_ROOT; };
+		F995B06E0815456399C244AA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_function_transport.c; path = src/transports/sentry_function_transport.c; sourceTree = SOURCE_ROOT; };
+		FB4C5831B2CC4D9BA10BD756 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = sentry_backend.c; path = src/sentry_backend.c; sourceTree = SOURCE_ROOT; };
+		FF0DC10BE0064D0996BD64D5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_basic.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = test_basic.c; path = tests/unit/test_basic.c; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		16ACBF56F143409790708360 = {
+			isa = PBXGroup;
+			children = (
+				27C3EC3AA440463285FD682B /* example_crashpad */,
+				E8F1BCEC39BE4B229FBFF8D6 /* example */,
+				B98A5C568D1E4D15B17C436F /* sentry_test_integration */,
+				75164EAC09F34494BE61F6FA /* sentry_test_unit */,
+				B6BDED8B99A04E00872D2C62 /* sentry */,
+				5C47E1AFC0564CDF962D49F7 /* ALL_BUILD */,
+				E4672D7EFAF24423B8C216AC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		27C3EC3AA440463285FD682B /* example_crashpad */ = {
+			isa = PBXGroup;
+			children = (
+				B96DCA45D13D409083830F3A /* Source Files */,
+				1D711A58C9434E0683B5AC85 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */,
+			);
+			name = example_crashpad;
+			sourceTree = "<group>";
+		};
+		334C66367CAD47DCB96DBBA1 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				3947E0E5FD844490882C9A60 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/test_integration.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		5C47E1AFC0564CDF962D49F7 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				FA4B14FF8CAA4B2FB4E6F00A /* CMake Rules */,
+				6FF2F9BB1A4D44A3ADC17C85 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+		75164EAC09F34494BE61F6FA /* sentry_test_unit */ = {
+			isa = PBXGroup;
+			children = (
+				90F10E27111D42A1ACF1B816 /* Source Files */,
+				B1A4B20C4A53465C80168C42 /* Header Files */,
+				4F62DEFE97E14753AFE37061 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */,
+			);
+			name = sentry_test_unit;
+			sourceTree = "<group>";
+		};
+		90F10E27111D42A1ACF1B816 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				83A2046C675D409FB50D37F1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.c */,
+				BD1D5F51310B436CA8CFC37A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/modulefinder/sentry_modulefinder_apple.c */,
+				CB031F4057CC4295BCF75F25 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path.c */,
+				05499A0375B043139ACAA76E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path_unix.c */,
+				557EA2644B334C3F8C110464 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.c */,
+				FB4C5831B2CC4D9BA10BD756 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.c */,
+				7EADCC3E7D5C4F37841D8EB9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.c */,
+				EC2D2DCDA0F24B6C80A99A94 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.c */,
+				59001C3300CF446E9B803162 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.c */,
+				38CC6BBCF6A44F19B027F5BE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.c */,
+				65C8A3AC066B46E59E51610B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.c */,
+				774B222FD2AC4F9889FC3A09 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.c */,
+				9E33AAB7C2064C81B2A9246E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.c */,
+				2473F9AB29D74B6BAD38EC96 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.c */,
+				88CDE42A0E3E47BDBC403AE4 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.c */,
+				63AE859D288F4CA8908398ED /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.c */,
+				B235439997AF43669A68A3FB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.c */,
+				E96E3854FE56485C891AC0B4 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.c */,
+				B1D491E27BF84A0499579C47 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.c */,
+				F06BD5FEBC924FC080FA5B25 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.c */,
+				B53D2E3FE2EF4CFA9A92C811 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/symbolizer/sentry_symbolizer_unix.c */,
+				E492CC06E6DC48669CFE5D35 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.c */,
+				63731D110A7A4EFE95378ACD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.c */,
+				1DF48DE603FD42D18279A163 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder.c */,
+				0CEBB5F2A32D43D98A35B5BB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder_libbacktrace.c */,
+				C688B5FBF6424365ABA4230E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/main.c */,
+				54277C1BC832407DB195D09C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_attachments.c */,
+				FF0DC10BE0064D0996BD64D5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_basic.c */,
+				888B63618D264B588DFD9102 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_consent.c */,
+				0E51B38DD1DC44CEAF021606 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_database.c */,
+				8D635564EB3643D7B0733990 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_envelopes.c */,
+				38338F511092473F976B0E51 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_modulefinder.c */,
+				18E42B6472424B5794E75DDB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_path.c */,
+				52C7F84296534AD9B2C29EFC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_symbolizer.c */,
+				BC3BE0DD9335493E8BC97C0C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_sync.c */,
+				E2DCD810C4D741CC99505B04 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_unwinder.c */,
+				C78C981899DA43ED9FAEB064 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_utils.c */,
+				48756EE534D0475DAC6058C5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_uuid.c */,
+				0C2AC618CBC6447F81BC537C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_value.c */,
+				BA67090385364004983FFBFD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/vendor/mpack.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		B1A4B20C4A53465C80168C42 /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+				A7FF61D1E2344DAA8B9919A1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.h */,
+				4064FD41799344E8B772A05A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.h */,
+				694C3BE80F1A4E91B6FF663E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.h */,
+				65F6E146B90E43F9BE4E4C3B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_boot.h */,
+				7403F9CFEABC4539A6271508 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.h */,
+				3DD763D345FD476383BEDF82 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.h */,
+				05FF23159EA042AB88375AB9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.h */,
+				AE84E5088FAB4E168ADBFBDE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.h */,
+				6BE75A6E05824A13834D71BA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_modulefinder.h */,
+				E969C23F017445D2A25182DE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_path.h */,
+				50BABD949FF74BBAB02AAA7E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.h */,
+				96804271DDA3402CA90B738A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.h */,
+				656F01206E214965A0916EA2 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.h */,
+				68FD481C6748439F9801A7C3 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.h */,
+				88F978995FAC4931B0376E9B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_symbolizer.h */,
+				4139951F7AAC4F5F961E64BE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.h */,
+				CA0BDCD9607F4DA997292427 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.h */,
+				E61698714F4141B99A21602F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.h */,
+				F3C906C9796D4C97AC8B7CF7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_spinlock.h */,
+				E033C35D4ACC4D77B76F7494 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.h */,
+				AADEFD6E34124950B095669F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.h */,
+				7D902FD94BDB419EA3868907 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.h */,
+				5D57C092037541468EA82ED1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.h */,
+				92EA17DBB16449508C997EEE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.h */,
+			);
+			name = "Header Files";
+			sourceTree = "<group>";
+		};
+		B5B1DA09C6B64DD1B2FD0A89 /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+				18FDD34569414CA1A9B8E0CE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.h */,
+				48A83C2D19C5424B9370A60D /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.h */,
+				756EDBD6D0DF43C5BC544CAA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.h */,
+				B82F563145C048E480CBE205 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_boot.h */,
+				6E4650AB9D694724839E0E20 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.h */,
+				50D067E96FAD4C82A98F93BF /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.h */,
+				49E2E3724BE746B28D8B6512 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.h */,
+				F3C360F815A2430EA4619F88 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.h */,
+				276558650F2B46059562E495 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_modulefinder.h */,
+				67BEFE1DBC464D179C55B1E5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_path.h */,
+				977AEE2BF3DF4600B8E64EE7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.h */,
+				06F88123939C42299B88E087 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.h */,
+				9A3988BDDFFC4FA4A0A754E1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.h */,
+				0407876616C4452B84462F80 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.h */,
+				B2439D4D24634BE1AD41565F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_symbolizer.h */,
+				5668166B007147B582215664 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.h */,
+				A32DC44A15E24CC8BDF24085 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.h */,
+				8CE29D906DD746DAAA5D5401 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.h */,
+				76C7EB2607684BC288DCCA17 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_spinlock.h */,
+				1A207C6837974F069DA0B864 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.h */,
+				7B708C442B6E42EA87FC38AA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.h */,
+				ACD0A71451A94E41A3D18EFA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.h */,
+				DB76465760A24DD9BB337134 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.h */,
+				01929CD721A748A9B3BE324A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.h */,
+			);
+			name = "Header Files";
+			sourceTree = "<group>";
+		};
+		B6BDED8B99A04E00872D2C62 /* sentry */ = {
+			isa = PBXGroup;
+			children = (
+				D827D19E83E4406AA025C68A /* Source Files */,
+				B5B1DA09C6B64DD1B2FD0A89 /* Header Files */,
+				1E82AF878016414387A9AF4F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */,
+			);
+			name = sentry;
+			sourceTree = "<group>";
+		};
+		B96DCA45D13D409083830F3A /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				7165F5BCDB6649D081FEB622 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/examples/example_crashpad.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		B98A5C568D1E4D15B17C436F /* sentry_test_integration */ = {
+			isa = PBXGroup;
+			children = (
+				334C66367CAD47DCB96DBBA1 /* Source Files */,
+				769178A731624E7D8821533F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */,
+			);
+			name = sentry_test_integration;
+			sourceTree = "<group>";
+		};
+		D827D19E83E4406AA025C68A /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				B516D97557F941E79BB740FB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.c */,
+				5573E3388F484B778FE16ED9 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/modulefinder/sentry_modulefinder_apple.c */,
+				E05B45500C974E88925373B6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path.c */,
+				7971572C35CC4C2A9B0002DC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path_unix.c */,
+				6FAA6264EE0F4089B504D50E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.c */,
+				4D8E04E0D461464BAEA5AC26 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.c */,
+				D576CEC9647941ADBDC30EA6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.c */,
+				1AB52F8F81D84DE18A655D8E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.c */,
+				A44DFCEDA43646E084267EDC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.c */,
+				A20E142485164A35970AF4DD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.c */,
+				4F54318E67F042D1AB5A2375 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.c */,
+				0AA7D3C891174D159FCA597F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.c */,
+				F45E1776C8294C6480A946D6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.c */,
+				0D07ECFDDD5B49FCA236395D /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.c */,
+				294A8088B9B14B11AD90D3EE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.c */,
+				4B4203ECCCBF4BA193CC4397 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.c */,
+				6083390C5F7B4738BA31C735 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.c */,
+				9A82B2A170774227B204AFFD /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.c */,
+				BC7F666CA2664E08A6236A72 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.c */,
+				58A9CA16C99D4AEF995599A1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.c */,
+				CFB0A277C0064E52B9C5D4EA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/symbolizer/sentry_symbolizer_unix.c */,
+				EF944441B34D4104AEEE6FF6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.c */,
+				F995B06E0815456399C244AA /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.c */,
+				F0D31E38058B4BFCB313EE4B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder.c */,
+				5760101733504062A0EAB2AB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder_libbacktrace.c */,
+				449613AB0073468F8406E51A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/vendor/mpack.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		DD29B761E597465F831B69E7 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				64A1E1E47EF84A1798F5085B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/examples/example.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		E4672D7EFAF24423B8C216AC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C59C17BD6A9D4F819D93C23A /* example */,
+				97C1449244C5400587FA4EBE /* example_crashpad */,
+				9D605422AA0840DCB960441B /* sentry */,
+				E4FD3BE6484149DBB0FD4CC6 /* sentry_test_integration */,
+				4F6EE1D082794A0184742E23 /* sentry_test_unit */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E8F1BCEC39BE4B229FBFF8D6 /* example */ = {
+			isa = PBXGroup;
+			children = (
+				DD29B761E597465F831B69E7 /* Source Files */,
+				1C9D8C30A9A14AEA911B25AF /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/CMakeLists.txt */,
+			);
+			name = example;
+			sourceTree = "<group>";
+		};
+		FA4B14FF8CAA4B2FB4E6F00A /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		17C47A1316FF4FE48BD8C490 /* sentry_test_integration */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F9A18A82D0CF476EB025DC64 /* Build configuration list for PBXNativeTarget "sentry_test_integration" */;
+			buildPhases = (
+				0408F22889714524A4D73B18 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4B3FEA5C58B847F68D61420D /* PBXTargetDependency */,
+				9CBDDD6C0EB1453792EB3578 /* PBXTargetDependency */,
+			);
+			name = sentry_test_integration;
+			productName = sentry_test_integration;
+			productReference = E4FD3BE6484149DBB0FD4CC6 /* sentry_test_integration */;
+			productType = "com.apple.product-type.tool";
+		};
+		27431BFA49384F18B6FACCF2 /* sentry */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3AAF5FF4BFFB40F0B7D16F36 /* Build configuration list for PBXNativeTarget "sentry" */;
+			buildPhases = (
+				5A8B91C0E49248FBAF258B1A /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				780DC4F3A7CA4B1B905FA5ED /* PBXTargetDependency */,
+			);
+			name = sentry;
+			productName = sentry;
+			productReference = 9D605422AA0840DCB960441B /* sentry */;
+			productType = "com.apple.product-type.library.static";
+		};
+		34FDDFBBDA5C41BEB5CB2992 /* example */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 40465F5F1CF04715B641F9C3 /* Build configuration list for PBXNativeTarget "example" */;
+			buildPhases = (
+				7459707D531D4796AB22437D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				73CB79186D644BDBB41A15BC /* PBXTargetDependency */,
+				62E3EA0D64074713B1CC241E /* PBXTargetDependency */,
+			);
+			name = example;
+			productName = example;
+			productReference = C59C17BD6A9D4F819D93C23A /* example */;
+			productType = "com.apple.product-type.tool";
+		};
+		70B0859108C3408FB2B10D49 /* sentry_test_unit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D5700F0F681040F9A17C7579 /* Build configuration list for PBXNativeTarget "sentry_test_unit" */;
+			buildPhases = (
+				524390F5B3414591BB0633DE /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				24A949A9A2564DDD9999D24C /* PBXTargetDependency */,
+			);
+			name = sentry_test_unit;
+			productName = sentry_test_unit;
+			productReference = 4F6EE1D082794A0184742E23 /* sentry_test_unit */;
+			productType = "com.apple.product-type.tool";
+		};
+		7E19EF1CB81E40C4BDF36BB0 /* example_crashpad */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 978D0CA96809408ABC2009E5 /* Build configuration list for PBXNativeTarget "example_crashpad" */;
+			buildPhases = (
+				057009CEDB7D4336945033CE /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C280184F9E694C0D82829160 /* PBXTargetDependency */,
+				73B34C389F0A4C419A69FA42 /* PBXTargetDependency */,
+			);
+			name = example_crashpad;
+			productName = example_crashpad;
+			productReference = 97C1449244C5400587FA4EBE /* example_crashpad */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8E75E711ED2C4CCEA1A5D42D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1130;
+			};
+			buildConfigurationList = AE96780F3BFB4700853F1627 /* Build configuration list for PBXProject "Sentry-Native" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				F7641B38166C4862BB549B54 /* Debug */,
+				B59C66C8EB7E41A9B28DD7CD /* Release */,
+				856C3282E2134F8D950A8410 /* MinSizeRel */,
+				2D8387765A59423E959E93C6 /* RelWithDebInfo */,
+			);
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 0;
+			mainGroup = 16ACBF56F143409790708360;
+			projectDirPath = "../third_party/sentry-native";
+			projectRoot = "";
+			targets = (
+				3E37AD7160B843E6A6D2BDBB /* ALL_BUILD */,
+				9CDA3970D6A84004967B49BF /* ZERO_CHECK */,
+				34FDDFBBDA5C41BEB5CB2992 /* example */,
+				7E19EF1CB81E40C4BDF36BB0 /* example_crashpad */,
+				30F309673F6444428F5B9E28 /* install */,
+				27431BFA49384F18B6FACCF2 /* sentry */,
+				17C47A1316FF4FE48BD8C490 /* sentry_test_integration */,
+				70B0859108C3408FB2B10D49 /* sentry_test_unit */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		09949CD7B4C44BFEAD911FC9 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/bsergeant/src/foss/IXWebSocket/sentry-native -f /Users/bsergeant/src/foss/IXWebSocket/sentry-native/CMakeScripts/ALL_BUILD_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		1644EA00401043E8860CA1CB /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/bsergeant/src/foss/IXWebSocket/sentry-native -f /Users/bsergeant/src/foss/IXWebSocket/sentry-native/CMakeScripts/ZERO_CHECK_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		34156D8439C94013B0E91B79 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		5928EB3F35DF4AC5A5FD7680 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		5BC2B9A7FFC648978F8C77E4 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		688C66C3F9CC45A2B8380407 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/bsergeant/src/foss/IXWebSocket/sentry-native -f /Users/bsergeant/src/foss/IXWebSocket/sentry-native/CMakeScripts/install_postBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0408F22889714524A4D73B18 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1E56579B19A24ADF81483DCC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/test_integration.c */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		057009CEDB7D4336945033CE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CDDA55293C9949FB83371B25 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/examples/example_crashpad.c */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		524390F5B3414591BB0633DE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C173BFC5A8EE4438ACC7F463 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.c */,
+				EA3FBB85C2044639B8FB388C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/modulefinder/sentry_modulefinder_apple.c */,
+				F9690A1C74774498A2072DC5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path.c */,
+				79832B2FA29A449CA7F51A0E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path_unix.c */,
+				2C1272BA2753422CB30483F5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.c */,
+				60ED1F172EDD411C90A543A0 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.c */,
+				65B0A13FB3694F0ABB37AC13 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.c */,
+				DD61BFB980D44FF6ACB7298B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.c */,
+				8593D7D860E04562B503886A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.c */,
+				9D5EC4000CF0472B80D5F9DF /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.c */,
+				371A0723384941EBABB77BB7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.c */,
+				7B70775366074C9780D18810 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.c */,
+				D57F8D596B0249F6BF2D4010 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.c */,
+				388A3E7F274945748148FF38 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.c */,
+				85297ACC086D473DBEE54A6C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.c */,
+				93358C13008244BC8D2D612B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.c */,
+				B3B311F45EE04C0BAB9AD348 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.c */,
+				55BC2EEFE4D14386BD52FEF8 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.c */,
+				FBACEC6CA3A64995A8F034C1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.c */,
+				4F7FC8445EF940FB96ADAE43 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.c */,
+				414D64A9280A40F58CC7E7E1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/symbolizer/sentry_symbolizer_unix.c */,
+				2F41AF52FD6B4FA6837CE23E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.c */,
+				6A91269C01E14FE59FE9BB95 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.c */,
+				602A552BCEAB4EFBBC60DD20 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder.c */,
+				76937B3485004F3A895EF15B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder_libbacktrace.c */,
+				AFB16190FE984567A76E23C8 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/main.c */,
+				C516D1FE0DAC4654AEC4EE6B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_attachments.c */,
+				C63CB9317D454F27A156D849 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_basic.c */,
+				B024AF0359F146D2BDE67CE7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_consent.c */,
+				CC256FBF7B2642B58A9BF5F4 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_database.c */,
+				048E5526401F4734B96138C7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_envelopes.c */,
+				4D4052D6629C4F9997EAF5F5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_modulefinder.c */,
+				D79B1EBC2E1A4829984DA759 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_path.c */,
+				D1E580ED683444FB8458071E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_symbolizer.c */,
+				160273EF42144942A53CE3D6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_sync.c */,
+				EC4F393758F64566BC0C6802 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_unwinder.c */,
+				3314AE8E0D1244CFA1985402 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_utils.c */,
+				579907647F034366BC476B5C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_uuid.c */,
+				A031172EFCF64979ABB7E0E5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/tests/unit/test_value.c */,
+				044CDD575CAB41849816ECEB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/vendor/mpack.c */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5A8B91C0E49248FBAF258B1A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F7201D23CC0C4F12B267EEBE /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/backends/sentry_inproc_backend.c */,
+				C7FC9F7B41F04E76B05D3A0A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/modulefinder/sentry_modulefinder_apple.c */,
+				243752B86F89489AA2D6EF19 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path.c */,
+				2D9B2E0500A74629B64C4D0A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/path/sentry_path_unix.c */,
+				D2695E78267147569B126586 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_alloc.c */,
+				0A7886EA238B4A8D8A034808 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_backend.c */,
+				092169528B294241B67FC3A7 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_core.c */,
+				8544E84E04AF47C1AD7B0C8B /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_database.c */,
+				CE6A124DAF6F4848A412549A /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_envelope.c */,
+				C06B45A8A3E9451AA0FCBA72 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_json.c */,
+				46CDF8C971E5445CADC04FE6 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_random.c */,
+				7489C150AD9A4DF98EB9DAF1 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_scope.c */,
+				6E568A990E394729AE5227B5 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_slice.c */,
+				A6E01DEE4B344FB1A49A7BDB /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_string.c */,
+				44E27458FA8141E28020864C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_sync.c */,
+				8B43ECC0C26D47DE90465A9E /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_transport.c */,
+				3FC2DFA29CF54CF3912330A8 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_unix_pageallocator.c */,
+				143DEE114B19441D889FB259 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_utils.c */,
+				224D23459D7F4C5CB216ADEC /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_uuid.c */,
+				BD28F42ACE6D4D50B2D79039 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/sentry_value.c */,
+				E518891662BB41979541C95C /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/symbolizer/sentry_symbolizer_unix.c */,
+				6155F9DD89744D7095F1C8C3 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_disk_transport.c */,
+				1E189168988C4669AF22039F /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/transports/sentry_function_transport.c */,
+				1E62F73A0721436C987047B8 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder.c */,
+				E6CF6134CE774F1196C58C39 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src/unwinder/sentry_unwinder_libbacktrace.c */,
+				AC35B1C37BE1482DADBAF418 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/vendor/mpack.c */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7459707D531D4796AB22437D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				391E47F1704147AD99EC15D3 /* /Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/examples/example.c */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		18A25F935DB64BDFB5F51511 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3E37AD7160B843E6A6D2BDBB /* ALL_BUILD */;
+			targetProxy = 532E0224C5BF47998303E5DF /* PBXContainerItemProxy */;
+		};
+		24A949A9A2564DDD9999D24C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9CDA3970D6A84004967B49BF /* ZERO_CHECK */;
+			targetProxy = D13BC4B61369471EBC3CC86C /* PBXContainerItemProxy */;
+		};
+		4B3FEA5C58B847F68D61420D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 27431BFA49384F18B6FACCF2 /* sentry */;
+			targetProxy = 02C24E3B88194E91ACB67FA8 /* PBXContainerItemProxy */;
+		};
+		5B9D43077AF840148D963045 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9CDA3970D6A84004967B49BF /* ZERO_CHECK */;
+			targetProxy = 61337966819540E4A3DC2FF8 /* PBXContainerItemProxy */;
+		};
+		62E3EA0D64074713B1CC241E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9CDA3970D6A84004967B49BF /* ZERO_CHECK */;
+			targetProxy = BC4884CBA5664F38B821037C /* PBXContainerItemProxy */;
+		};
+		73B34C389F0A4C419A69FA42 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9CDA3970D6A84004967B49BF /* ZERO_CHECK */;
+			targetProxy = F36C6027FC19463E84395FE6 /* PBXContainerItemProxy */;
+		};
+		73CB79186D644BDBB41A15BC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 27431BFA49384F18B6FACCF2 /* sentry */;
+			targetProxy = 86082379EC7F4FC3966BA401 /* PBXContainerItemProxy */;
+		};
+		780DC4F3A7CA4B1B905FA5ED /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9CDA3970D6A84004967B49BF /* ZERO_CHECK */;
+			targetProxy = B12CAB0DC3914AC095DD2E69 /* PBXContainerItemProxy */;
+		};
+		90C21C94B8D541E3A3C454AE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 27431BFA49384F18B6FACCF2 /* sentry */;
+			targetProxy = 2F5C9426824F4FEB99DD6E38 /* PBXContainerItemProxy */;
+		};
+		9CBDDD6C0EB1453792EB3578 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9CDA3970D6A84004967B49BF /* ZERO_CHECK */;
+			targetProxy = ED446184EFC14EDA8CEA7FA6 /* PBXContainerItemProxy */;
+		};
+		C280184F9E694C0D82829160 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 27431BFA49384F18B6FACCF2 /* sentry */;
+			targetProxy = 71389235B0E148719BD19C20 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		008ED44C25034A3BA824BE7C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_UNITTEST,SENTRY_WITH_UNWINDER_LIBBACKTRACE,SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry_test_unit;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		0496AE53EAA14BC8B73AA5D3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_UNITTEST,SENTRY_WITH_UNWINDER_LIBBACKTRACE,SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry_test_unit;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		0C32657D722846D88ADA4E5A /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/RelWithDebInfo";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_WITH_UNWINDER_LIBBACKTRACE,SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden        -DNDEBUG  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		0C4D5ACDD55F4014AA550F49 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = example_crashpad;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		1E80A14F691F4912942E8DA1 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		21A74AB70BFD441EBE4A7329 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		24CD10EDA56E403DB7D6DB4F /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/RelWithDebInfo";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_UNITTEST,SENTRY_WITH_UNWINDER_LIBBACKTRACE,SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden        -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry_test_unit;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		3752DDDAC1874AAA87BCC106 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		3A72D27BF1A140CD8908BFEF /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/MinSizeRel";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_WITH_UNWINDER_LIBBACKTRACE,SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     -DNDEBUG  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		41C652B491524AA887286B19 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = example;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		4E6AB6304C874AE0BE4E178A /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/RelWithDebInfo";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden        -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/RelWithDebInfo/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = example;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		6508F518453644CDA27A6AA4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		671E5E7C7D9E4E0C8DA06331 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk;
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/build";
+			};
+			name = Release;
+		};
+		6EE8FBD7B1384F9B9F85D19E /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/RelWithDebInfo";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden        -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/RelWithDebInfo/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = example_crashpad;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		7224ECE43D724D89B232504B /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk;
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/build";
+			};
+			name = RelWithDebInfo;
+		};
+		753EE5928E65402299A0BFCB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_WITH_UNWINDER_LIBBACKTRACE,SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     -DNDEBUG  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		7B4BD60014024CFBBE0A7543 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		7C6AFB15053142B6BB86023B /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/RelWithDebInfo";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden        -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/RelWithDebInfo/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry_test_integration;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		8A10278D64A842D180CA59B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_WITH_UNWINDER_LIBBACKTRACE,SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		9A82DCF0BE97419593857B34 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		9BDF40B032A14EF1A41C85DA /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk;
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/build";
+			};
+			name = MinSizeRel;
+		};
+		A288DB07E3084031BBEBCD40 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		A50FDBBFF13A4668A1F8007A /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/MinSizeRel";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/MinSizeRel/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry_test_integration;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		BF1D6245945D47DAB5632636 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		C6BE74C109A64B80AD7CAFEB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		C8D9C60B466247A9BB2690AE /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/MinSizeRel";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/MinSizeRel/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = example_crashpad;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		D5A59C30FF65401D805F2B79 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/MinSizeRel";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/MinSizeRel/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = example;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		D61A078156DF43D2B3F0AD9D /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/MinSizeRel";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_UNITTEST,SENTRY_WITH_UNWINDER_LIBBACKTRACE,SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry_test_unit;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		DF4757C94396486AA82BB040 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = example;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		E21B04BD1D934B16B1D0B070 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry_test_integration;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		E4ACEC9A28A34195BC72A524 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = sentry_test_integration;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		E5246420E80349258EF2BBFD /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		EA1564EBB8E247BEA2603F39 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		EDF935CD2DF54B12954CCCF1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk;
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native/build";
+			};
+			name = Debug;
+		};
+		EFCD5B2516BC476C996C7A73 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",SENTRY_BUILD_SHARED,SENTRY_WITH_INPROC_BACKEND,SENTRY_WITH_UNWINDER_LIBBACKTRACE);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/include","/Users/bsergeant/src/foss/IXWebSocket/third_party/sentry-native/src");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = " -Wall -fvisibility=hidden     -DNDEBUG  ";
+				OTHER_LDFLAGS = " -Wl,-search_paths_first -Wl,-headerpad_max_install_names  /Users/bsergeant/src/foss/IXWebSocket/sentry-native/libsentry.a";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = example_crashpad;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		F6331574596C499693E37049 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/bsergeant/src/foss/IXWebSocket/sentry-native";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		29758B037167490E8EB4E444 /* Build configuration list for PBXAggregateTarget "install" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F6331574596C499693E37049 /* Debug */,
+				6508F518453644CDA27A6AA4 /* Release */,
+				EA1564EBB8E247BEA2603F39 /* MinSizeRel */,
+				7B4BD60014024CFBBE0A7543 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		3AAF5FF4BFFB40F0B7D16F36 /* Build configuration list for PBXNativeTarget "sentry" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8A10278D64A842D180CA59B6 /* Debug */,
+				753EE5928E65402299A0BFCB /* Release */,
+				3A72D27BF1A140CD8908BFEF /* MinSizeRel */,
+				0C32657D722846D88ADA4E5A /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		40465F5F1CF04715B641F9C3 /* Build configuration list for PBXNativeTarget "example" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF4757C94396486AA82BB040 /* Debug */,
+				41C652B491524AA887286B19 /* Release */,
+				D5A59C30FF65401D805F2B79 /* MinSizeRel */,
+				4E6AB6304C874AE0BE4E178A /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8C2FDFAC364748359CBBADC8 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A288DB07E3084031BBEBCD40 /* Debug */,
+				3752DDDAC1874AAA87BCC106 /* Release */,
+				1E80A14F691F4912942E8DA1 /* MinSizeRel */,
+				E5246420E80349258EF2BBFD /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		978D0CA96809408ABC2009E5 /* Build configuration list for PBXNativeTarget "example_crashpad" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0C4D5ACDD55F4014AA550F49 /* Debug */,
+				EFCD5B2516BC476C996C7A73 /* Release */,
+				C8D9C60B466247A9BB2690AE /* MinSizeRel */,
+				6EE8FBD7B1384F9B9F85D19E /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		ADDA9D40E33646EFA63EBC13 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9A82DCF0BE97419593857B34 /* Debug */,
+				C6BE74C109A64B80AD7CAFEB /* Release */,
+				BF1D6245945D47DAB5632636 /* MinSizeRel */,
+				21A74AB70BFD441EBE4A7329 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AE96780F3BFB4700853F1627 /* Build configuration list for PBXProject "Sentry-Native" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EDF935CD2DF54B12954CCCF1 /* Debug */,
+				671E5E7C7D9E4E0C8DA06331 /* Release */,
+				9BDF40B032A14EF1A41C85DA /* MinSizeRel */,
+				7224ECE43D724D89B232504B /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D5700F0F681040F9A17C7579 /* Build configuration list for PBXNativeTarget "sentry_test_unit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				008ED44C25034A3BA824BE7C /* Debug */,
+				0496AE53EAA14BC8B73AA5D3 /* Release */,
+				D61A078156DF43D2B3F0AD9D /* MinSizeRel */,
+				24CD10EDA56E403DB7D6DB4F /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F9A18A82D0CF476EB025DC64 /* Build configuration list for PBXNativeTarget "sentry_test_integration" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E4ACEC9A28A34195BC72A524 /* Debug */,
+				E21B04BD1D934B16B1D0B070 /* Release */,
+				A50FDBBFF13A4668A1F8007A /* MinSizeRel */,
+				7C6AFB15053142B6BB86023B /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 8E75E711ED2C4CCEA1A5D42D /* Project object */;
+}
