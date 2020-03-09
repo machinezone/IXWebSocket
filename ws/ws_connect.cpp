@@ -30,8 +30,14 @@ namespace ix
         void start();
         void stop();
 
-        int getSentBytes() { return _sentBytes; }
-        int getReceivedBytes() { return _receivedBytes; }
+        int getSentBytes()
+        {
+            return _sentBytes;
+        }
+        int getReceivedBytes()
+        {
+            return _receivedBytes;
+        }
 
         void sendMessage(const std::string& text);
 
@@ -76,19 +82,16 @@ namespace ix
             _webSocket.addSubProtocol(subprotocol);
         }
 
-        WebSocket::setTrafficTrackerCallback(
-            [this](int size, bool incoming)
+        WebSocket::setTrafficTrackerCallback([this](int size, bool incoming) {
+            if (incoming)
             {
-                if (incoming)
-                {
-                    _receivedBytes += size;
-                }
-                else
-                {
-                    _sentBytes += size;
-                }
+                _receivedBytes += size;
             }
-        );
+            else
+            {
+                _sentBytes += size;
+            }
+        });
     }
 
     void WebSocketConnect::log(const std::string& msg)

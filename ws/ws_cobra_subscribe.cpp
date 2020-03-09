@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <iostream>
 #include <ixcobra/IXCobraConnection.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -13,6 +14,23 @@
 
 namespace ix
 {
+    void writeToStdout(bool fluentd, Json::FastWriter& jsonWriter, const Json::Value& msg)
+    {
+        Json::Value enveloppe;
+        if (fluentd)
+        {
+            enveloppe["producer"] = "cobra";
+            enveloppe["consumer"] = "fluentd";
+            enveloppe["message"] = msg;
+        }
+        else
+        {
+            enveloppe = msg;
+        }
+
+        std::cout << jsonWriter.write(enveloppe);
+    }
+
     int ws_cobra_subscribe_main(const std::string& appkey,
                                 const std::string& endpoint,
                                 const std::string& rolename,
@@ -20,6 +38,7 @@ namespace ix
                                 const std::string& channel,
                                 const std::string& filter,
                                 bool quiet,
+                                bool fluentd,
                                 const ix::SocketTLSOptions& tlsOptions)
     {
         ix::CobraConnection conn;
@@ -51,7 +70,7 @@ namespace ix
         std::thread t(timer);
 
         conn.setEventCallback(
-            [&conn, &channel, &jsonWriter, &filter, &msgCount, &msgPerSeconds, &quiet](
+            [&conn, &channel, &jsonWriter, &filter, &msgCount, &msgPerSeconds, &quiet, &fluentd](
                 ix::CobraConnectionEventType eventType,
                 const std::string& errMsg,
                 const ix::WebSocketHttpHeaders& headers,
@@ -69,18 +88,18 @@ namespace ix
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
                     spdlog::info("Subscriber authenticated");
-                    conn.subscribe(
-                        channel,
-                        filter,
-                        [&jsonWriter, &quiet, &msgPerSeconds, &msgCount](const Json::Value& msg) {
-                            if (!quiet)
-                            {
-                                spdlog::info(jsonWriter.write(msg));
-                            }
+                    conn.subscribe(channel,
+                                   filter,
+                                   [&jsonWriter, &quiet, &msgPerSeconds, &msgCount, &fluentd](
+                                       const Json::Value& msg) {
+                                       if (!quiet)
+                                       {
+                                           writeToStdout(fluentd, jsonWriter, msg);
+                                       }
 
-                            msgPerSeconds++;
-                            msgCount++;
-                        });
+                                       msgPerSeconds++;
+                                       msgCount++;
+                                   });
                 }
                 else if (eventType == ix::CobraConnection_EventType_Subscribed)
                 {

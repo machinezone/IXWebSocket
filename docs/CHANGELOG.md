@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.1.9] - 2020-03-09
+
+(ws cobra_subscribe) add a --fluentd option to wrap a message in an enveloppe so that fluentd can recognize it
+
 ## [8.1.8] - 2020-03-02
 
 (websocket server) fix regression with disabling zlib extension on the server side. If a client does not support this extension the server will handle it fine. We still need to figure out how to disable the option.

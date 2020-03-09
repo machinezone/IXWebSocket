@@ -88,6 +88,7 @@ int main(int argc, char** argv)
     bool verbose = false;
     bool save = false;
     bool quiet = false;
+    bool fluentd = false;
     bool compress = false;
     bool strict = false;
     bool stress = false;
@@ -227,6 +228,7 @@ int main(int argc, char** argv)
     cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
     cobraSubscribeApp->add_option("--filter", filter, "Stream SQL Filter");
     cobraSubscribeApp->add_flag("-q", quiet, "Quiet / only display stats");
+    cobraSubscribeApp->add_flag("--fluentd", fluentd, "Write fluentd prefix");
     addTLSOptions(cobraSubscribeApp);
 
     CLI::App* cobraPublish = app.add_subcommand("cobra_publish", "Cobra publisher");
@@ -437,7 +439,7 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("cobra_subscribe"))
     {
         ret = ix::ws_cobra_subscribe_main(
-            appkey, endpoint, rolename, rolesecret, channel, filter, quiet, tlsOptions);
+            appkey, endpoint, rolename, rolesecret, channel, filter, quiet, fluentd, tlsOptions);
     }
     else if (app.got_subcommand("cobra_publish"))
     {

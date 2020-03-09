@@ -81,6 +81,7 @@ namespace ix
                                 const std::string& channel,
                                 const std::string& filter,
                                 bool quiet,
+                                bool fluentd,
                                 const ix::SocketTLSOptions& tlsOptions);
 
     int ws_cobra_publish_main(const std::string& appkey,
