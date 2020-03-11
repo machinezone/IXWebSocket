@@ -74,6 +74,7 @@ target_link_libraries(ws ixwebsocket)
 target_link_libraries(ws ixcrypto)
 target_link_libraries(ws ixcore)
 target_link_libraries(ws ixsentry)
+target_link_libraries(ws ixbots)
 
 target_link_libraries(ws spdlog)
 

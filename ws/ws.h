@@ -5,8 +5,8 @@
  */
 #pragma once
 
-#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixcobra/IXCobraConfig.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <string>
 
 namespace ix

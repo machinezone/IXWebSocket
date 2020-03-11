@@ -428,48 +428,29 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_subscribe"))
     {
-        ret = ix::ws_cobra_subscribe_main(
-            cobraConfig, channel, filter, quiet, fluentd);
+        ret = ix::ws_cobra_subscribe_main(cobraConfig, channel, filter, quiet, fluentd);
     }
     else if (app.got_subcommand("cobra_publish"))
     {
-        ret = ix::ws_cobra_publish_main(
-            cobraConfig, channel, path);
+        ret = ix::ws_cobra_publish_main(cobraConfig, channel, path);
     }
     else if (app.got_subcommand("cobra_metrics_publish"))
     {
-        ret = ix::ws_cobra_metrics_publish_main(
-            cobraConfig, channel, path, stress);
+        ret = ix::ws_cobra_metrics_publish_main(cobraConfig, channel, path, stress);
     }
     else if (app.got_subcommand("cobra_to_statsd"))
     {
-        ret = ix::ws_cobra_to_statsd_main(cobraConfig,
-                                          channel,
-                                          filter,
-                                          hostname,
-                                          statsdPort,
-                                          prefix,
-                                          fields,
-                                          verbose);
+        ret = ix::ws_cobra_to_statsd_main(
+            cobraConfig, channel, filter, hostname, statsdPort, prefix, fields, verbose);
     }
     else if (app.got_subcommand("cobra_to_sentry"))
     {
-        ret = ix::ws_cobra_to_sentry_main(cobraConfig,
-                                          channel,
-                                          filter,
-                                          dsn,
-                                          verbose,
-                                          strict,
-                                          jobs,
-                                          maxQueueSize);
+        ret = ix::ws_cobra_to_sentry_main(
+            cobraConfig, channel, filter, dsn, verbose, strict, jobs, maxQueueSize);
     }
     else if (app.got_subcommand("cobra_metrics_to_redis"))
     {
-        ret = ix::ws_cobra_metrics_to_redis(cobraConfig,
-                                            channel,
-                                            filter,
-                                            hostname,
-                                            redisPort);
+        ret = ix::ws_cobra_metrics_to_redis(cobraConfig, channel, filter, hostname, redisPort);
     }
     else if (app.got_subcommand("snake"))
     {
