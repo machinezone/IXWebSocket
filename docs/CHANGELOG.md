@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.2.0] - 2020-03-11
+
+(cobra) add IXCobraConfig struct to pass cobra config around
+
 ## [8.1.9] - 2020-03-09
 
 (ws cobra_subscribe) add a --fluentd option to wrap a message in an enveloppe so that fluentd can recognize it

@@ -17,6 +17,8 @@
 #include <unordered_map>
 #include <limits>
 
+#include "IXCobraConfig.h"
+
 namespace ix
 {
     class WebSocket;

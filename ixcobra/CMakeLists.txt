@@ -13,6 +13,7 @@ set (IXCOBRA_HEADERS
     ixcobra/IXCobraConnection.h
     ixcobra/IXCobraMetricsThreadedPublisher.h
     ixcobra/IXCobraMetricsPublisher.h
+    ixcobra/IXCobraConfig.h
 )
 
 add_library(ixcobra STATIC

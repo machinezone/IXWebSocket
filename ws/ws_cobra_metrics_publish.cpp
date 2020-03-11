@@ -15,10 +15,7 @@
 
 namespace ix
 {
-    int ws_cobra_metrics_publish_main(const std::string& appkey,
-                                      const std::string& endpoint,
-                                      const std::string& rolename,
-                                      const std::string& rolesecret,
+    int ws_cobra_metrics_publish_main(const ix::CobraConfig& config,
                                       const std::string& channel,
                                       const std::string& path,
                                       bool stress,
@@ -37,7 +34,7 @@ namespace ix
 
         bool enablePerMessageDeflate = true;
         cobraMetricsPublisher.configure(
-            appkey, endpoint, channel, rolename, rolesecret, enablePerMessageDeflate, tlsOptions);
+            config.appkey, config.endpoint, channel, config.rolename, config.rolesecret, enablePerMessageDeflate, tlsOptions);
 
         while (!cobraMetricsPublisher.isAuthenticated())
             ;

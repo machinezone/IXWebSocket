@@ -16,10 +16,7 @@
 
 namespace ix
 {
-    int ws_cobra_publish_main(const std::string& appkey,
-                              const std::string& endpoint,
-                              const std::string& rolename,
-                              const std::string& rolesecret,
+    int ws_cobra_publish_main(const ix::CobraConfig& config,
                               const std::string& channel,
                               const std::string& path,
                               const ix::SocketTLSOptions& tlsOptions)
@@ -36,10 +33,10 @@ namespace ix
         }
 
         ix::CobraConnection conn;
-        conn.configure(appkey,
-                       endpoint,
-                       rolename,
-                       rolesecret,
+        conn.configure(config.appkey,
+                       config.endpoint,
+                       config.rolename,
+                       config.rolesecret,
                        ix::WebSocketPerMessageDeflateOptions(true),
                        tlsOptions);
 

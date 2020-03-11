@@ -31,10 +31,7 @@ namespace ix
         std::cout << jsonWriter.write(enveloppe);
     }
 
-    int ws_cobra_subscribe_main(const std::string& appkey,
-                                const std::string& endpoint,
-                                const std::string& rolename,
-                                const std::string& rolesecret,
+    int ws_cobra_subscribe_main(const ix::CobraConfig& config,
                                 const std::string& channel,
                                 const std::string& filter,
                                 bool quiet,
@@ -42,10 +39,10 @@ namespace ix
                                 const ix::SocketTLSOptions& tlsOptions)
     {
         ix::CobraConnection conn;
-        conn.configure(appkey,
-                       endpoint,
-                       rolename,
-                       rolesecret,
+        conn.configure(config.appkey,
+                       config.endpoint,
+                       config.rolename,
+                       config.rolesecret,
                        ix::WebSocketPerMessageDeflateOptions(true),
                        tlsOptions);
         conn.connect();

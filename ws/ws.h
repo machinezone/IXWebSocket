@@ -6,6 +6,7 @@
 #pragma once
 
 #include <ixwebsocket/IXSocketTLSOptions.h>
+#include <ixcobra/IXCobraConfig.h>
 #include <string>
 
 namespace ix
@@ -74,37 +75,25 @@ namespace ix
                                 const std::string& channel,
                                 bool verbose);
 
-    int ws_cobra_subscribe_main(const std::string& appkey,
-                                const std::string& endpoint,
-                                const std::string& rolename,
-                                const std::string& rolesecret,
+    int ws_cobra_subscribe_main(const ix::CobraConfig& config,
                                 const std::string& channel,
                                 const std::string& filter,
                                 bool quiet,
                                 bool fluentd,
                                 const ix::SocketTLSOptions& tlsOptions);
 
-    int ws_cobra_publish_main(const std::string& appkey,
-                              const std::string& endpoint,
-                              const std::string& rolename,
-                              const std::string& rolesecret,
+    int ws_cobra_publish_main(const ix::CobraConfig& appkey,
                               const std::string& channel,
                               const std::string& path,
                               const ix::SocketTLSOptions& tlsOptions);
 
-    int ws_cobra_metrics_publish_main(const std::string& appkey,
-                                      const std::string& endpoint,
-                                      const std::string& rolename,
-                                      const std::string& rolesecret,
+    int ws_cobra_metrics_publish_main(const ix::CobraConfig& config,
                                       const std::string& channel,
                                       const std::string& path,
                                       bool stress,
                                       const ix::SocketTLSOptions& tlsOptions);
 
-    int ws_cobra_to_statsd_main(const std::string& appkey,
-                                const std::string& endpoint,
-                                const std::string& rolename,
-                                const std::string& rolesecret,
+    int ws_cobra_to_statsd_main(const ix::CobraConfig& config,
                                 const std::string& channel,
                                 const std::string& filter,
                                 const std::string& host,
@@ -114,10 +103,7 @@ namespace ix
                                 bool verbose,
                                 const ix::SocketTLSOptions& tlsOptions);
 
-    int ws_cobra_to_sentry_main(const std::string& appkey,
-                                const std::string& endpoint,
-                                const std::string& rolename,
-                                const std::string& rolesecret,
+    int ws_cobra_to_sentry_main(const ix::CobraConfig& config,
                                 const std::string& channel,
                                 const std::string& filter,
                                 const std::string& dsn,
@@ -127,10 +113,7 @@ namespace ix
                                 size_t maxQueueSize,
                                 const ix::SocketTLSOptions& tlsOptions);
 
-    int ws_cobra_metrics_to_redis(const std::string& appkey,
-                                  const std::string& endpoint,
-                                  const std::string& rolename,
-                                  const std::string& rolesecret,
+    int ws_cobra_metrics_to_redis(const ix::CobraConfig& config,
                                   const std::string& channel,
                                   const std::string& filter,
                                   const std::string& host,
