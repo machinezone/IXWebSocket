@@ -6,7 +6,7 @@ The per message deflate compression option is supported. It can lead to very nic
 
 ### TLS/SSL
 
-Connections can be optionally secured and encrypted with TLS/SSL when using a wss:// endpoint, or using normal un-encrypted socket with ws:// endpoints. AppleSSL is used on iOS and macOS, OpenSSL is used on Android and Linux, mbedTLS is used on Windows.
+Connections can be optionally secured and encrypted with TLS/SSL when using a wss:// endpoint, or using normal un-encrypted socket with ws:// endpoints. AppleSSL is used on iOS and macOS, OpenSSL and mbedTLS can be used on Android, Linux and Windows.
 
 ### Polling and background thread work
 
