@@ -6,6 +6,7 @@
 
 #include "IXQueueManager.h"
 #include <vector>
+#include <algorithm>
 
 namespace ix
 {
