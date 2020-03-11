@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
+
 namespace ix
 {
     struct CobraConfig
@@ -14,6 +17,8 @@ namespace ix
         std::string endpoint;
         std::string rolename;
         std::string rolesecret;
+        WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions;
+        SocketTLSOptions socketTLSOptions;
 
         CobraConfig(const std::string& a = std::string(),
                     const std::string& e = std::string(),
@@ -28,4 +33,3 @@ namespace ix
         }
     };
 } // namespace ix
-

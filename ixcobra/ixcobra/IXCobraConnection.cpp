@@ -276,6 +276,16 @@ namespace ix
         _webSocket->setPingTimeout(3 * kPingIntervalSecs);
     }
 
+    void CobraConnection::configure(const ix::CobraConfig& config)
+    {
+        configure(config.appkey,
+                  config.endpoint,
+                  config.rolename,
+                  config.rolesecret,
+                  config.webSocketPerMessageDeflateOptions,
+                  config.socketTLSOptions);
+    }
+
     //
     // Handshake message schema.
     //

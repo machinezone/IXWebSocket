@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.2.1] - 2020-03-11
+
+(cobra) IXCobraConfig struct has tlsOptions and per message deflate options
+
 ## [8.2.0] - 2020-03-11
 
 (cobra) add IXCobraConfig struct to pass cobra config around

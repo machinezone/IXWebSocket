@@ -356,6 +356,10 @@ int main(int argc, char** argv)
         tlsOptions.caFile = "NONE";
     }
 
+    // Cobra config
+    cobraConfig.webSocketPerMessageDeflateOptions = ix::WebSocketPerMessageDeflateOptions(true);
+    cobraConfig.socketTLSOptions = tlsOptions;
+
     int ret = 1;
     if (app.got_subcommand("transfer"))
     {
@@ -425,17 +429,17 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("cobra_subscribe"))
     {
         ret = ix::ws_cobra_subscribe_main(
-            cobraConfig, channel, filter, quiet, fluentd, tlsOptions);
+            cobraConfig, channel, filter, quiet, fluentd);
     }
     else if (app.got_subcommand("cobra_publish"))
     {
         ret = ix::ws_cobra_publish_main(
-            cobraConfig, channel, path, tlsOptions);
+            cobraConfig, channel, path);
     }
     else if (app.got_subcommand("cobra_metrics_publish"))
     {
         ret = ix::ws_cobra_metrics_publish_main(
-            cobraConfig, channel, path, stress, tlsOptions);
+            cobraConfig, channel, path, stress);
     }
     else if (app.got_subcommand("cobra_to_statsd"))
     {
@@ -446,8 +450,7 @@ int main(int argc, char** argv)
                                           statsdPort,
                                           prefix,
                                           fields,
-                                          verbose,
-                                          tlsOptions);
+                                          verbose);
     }
     else if (app.got_subcommand("cobra_to_sentry"))
     {
@@ -458,8 +461,7 @@ int main(int argc, char** argv)
                                           verbose,
                                           strict,
                                           jobs,
-                                          maxQueueSize,
-                                          tlsOptions);
+                                          maxQueueSize);
     }
     else if (app.got_subcommand("cobra_metrics_to_redis"))
     {
@@ -467,8 +469,7 @@ int main(int argc, char** argv)
                                             channel,
                                             filter,
                                             hostname,
-                                            redisPort,
-                                            tlsOptions);
+                                            redisPort);
     }
     else if (app.got_subcommand("snake"))
     {

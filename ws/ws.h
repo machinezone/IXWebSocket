@@ -79,19 +79,16 @@ namespace ix
                                 const std::string& channel,
                                 const std::string& filter,
                                 bool quiet,
-                                bool fluentd,
-                                const ix::SocketTLSOptions& tlsOptions);
+                                bool fluentd);
 
     int ws_cobra_publish_main(const ix::CobraConfig& appkey,
                               const std::string& channel,
-                              const std::string& path,
-                              const ix::SocketTLSOptions& tlsOptions);
+                              const std::string& path);
 
     int ws_cobra_metrics_publish_main(const ix::CobraConfig& config,
                                       const std::string& channel,
                                       const std::string& path,
-                                      bool stress,
-                                      const ix::SocketTLSOptions& tlsOptions);
+                                      bool stress);
 
     int ws_cobra_to_statsd_main(const ix::CobraConfig& config,
                                 const std::string& channel,
@@ -100,8 +97,7 @@ namespace ix
                                 int port,
                                 const std::string& prefix,
                                 const std::string& fields,
-                                bool verbose,
-                                const ix::SocketTLSOptions& tlsOptions);
+                                bool verbose);
 
     int ws_cobra_to_sentry_main(const ix::CobraConfig& config,
                                 const std::string& channel,
@@ -110,15 +106,13 @@ namespace ix
                                 bool verbose,
                                 bool strict,
                                 int jobs,
-                                size_t maxQueueSize,
-                                const ix::SocketTLSOptions& tlsOptions);
+                                size_t maxQueueSize);
 
     int ws_cobra_metrics_to_redis(const ix::CobraConfig& config,
                                   const std::string& channel,
                                   const std::string& filter,
                                   const std::string& host,
-                                  int port,
-                                  const ix::SocketTLSOptions& tlsOptions);
+                                  int port);
 
     int ws_snake_main(int port,
                       const std::string& hostname,

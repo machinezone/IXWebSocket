@@ -99,16 +99,10 @@ namespace ix
                                 bool verbose,
                                 bool strict,
                                 int jobs,
-                                size_t maxQueueSize,
-                                const ix::SocketTLSOptions& tlsOptions)
+                                size_t maxQueueSize)
     {
         ix::CobraConnection conn;
-        conn.configure(config.appkey,
-                       config.endpoint,
-                       config.rolename,
-                       config.rolesecret,
-                       ix::WebSocketPerMessageDeflateOptions(true),
-                       tlsOptions);
+        conn.configure(config);
         conn.connect();
 
         Json::FastWriter jsonWriter;

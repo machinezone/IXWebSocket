@@ -21,16 +21,10 @@ namespace ix
                                   const std::string& channel,
                                   const std::string& filter,
                                   const std::string& host,
-                                  int port,
-                                  const ix::SocketTLSOptions& tlsOptions)
+                                  int port)
     {
         ix::CobraConnection conn;
-        conn.configure(config.appkey,
-                       config.endpoint,
-                       config.rolename,
-                       config.rolesecret,
-                       ix::WebSocketPerMessageDeflateOptions(true),
-                       tlsOptions);
+        conn.configure(config);
         conn.connect();
 
         // Display incoming messages

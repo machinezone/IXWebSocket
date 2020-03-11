@@ -69,6 +69,8 @@ namespace ix
                        const WebSocketPerMessageDeflateOptions& webSocketPerMessageDeflateOptions,
                        const SocketTLSOptions& socketTLSOptions);
 
+        void configure(const ix::CobraConfig& config);
+
         /// Set the traffic tracker callback
         static void setTrafficTrackerCallback(const TrafficTrackerCallback& callback);
 

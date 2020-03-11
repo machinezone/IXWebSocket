@@ -18,8 +18,7 @@ namespace ix
     int ws_cobra_metrics_publish_main(const ix::CobraConfig& config,
                                       const std::string& channel,
                                       const std::string& path,
-                                      bool stress,
-                                      const ix::SocketTLSOptions& tlsOptions)
+                                      bool stress)
     {
         std::atomic<int> sentMessages(0);
         std::atomic<int> ackedMessages(0);
@@ -34,7 +33,7 @@ namespace ix
 
         bool enablePerMessageDeflate = true;
         cobraMetricsPublisher.configure(
-            config.appkey, config.endpoint, channel, config.rolename, config.rolesecret, enablePerMessageDeflate, tlsOptions);
+            config.appkey, config.endpoint, channel, config.rolename, config.rolesecret, enablePerMessageDeflate, config.socketTLSOptions);
 
         while (!cobraMetricsPublisher.isAuthenticated())
             ;

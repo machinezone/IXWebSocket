@@ -18,8 +18,7 @@ namespace ix
 {
     int ws_cobra_publish_main(const ix::CobraConfig& config,
                               const std::string& channel,
-                              const std::string& path,
-                              const ix::SocketTLSOptions& tlsOptions)
+                              const std::string& path)
     {
         std::ifstream f(path);
         std::string str((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
@@ -33,12 +32,7 @@ namespace ix
         }
 
         ix::CobraConnection conn;
-        conn.configure(config.appkey,
-                       config.endpoint,
-                       config.rolename,
-                       config.rolesecret,
-                       ix::WebSocketPerMessageDeflateOptions(true),
-                       tlsOptions);
+        conn.configure(config);
 
         // Display incoming messages
         std::atomic<bool> authenticated(false);
