@@ -147,7 +147,6 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         std::string filter;
         bool verbose = true;
         bool strict = true;
-        int jobs = 1;
         size_t maxQueueSize = 10;
         bool enableHeartbeat = false;
 
@@ -167,7 +166,6 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
                                             dsn,
                                             verbose,
                                             strict,
-                                            jobs,
                                             maxQueueSize,
                                             enableHeartbeat,
                                             runtime);

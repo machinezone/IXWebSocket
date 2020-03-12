@@ -16,7 +16,6 @@ namespace ix
                             const std::string& dsn,
                             bool verbose,
                             bool strict,
-                            int jobs,
                             size_t maxQueueSize,
                             bool enableHeartbeat,
                             int runtime);

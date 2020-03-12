@@ -23,7 +23,6 @@ namespace ix
                             const std::string& dsn,
                             bool verbose,
                             bool strict,
-                            int jobs,
                             size_t maxQueueSize,
                             bool enableHeartbeat,
                             int runtime)
@@ -92,7 +91,7 @@ namespace ix
                 {
                     Json::Value msg = queueManager.pop();
 
-                    if (stop) return;
+                    if (stop) break;
                     if (msg.isNull()) continue;
 
                     auto ret = sentryClient.send(msg, verbose);
@@ -165,17 +164,13 @@ namespace ix
                         ++sentCount;
                     }
 
-                    if (stop) return;
+                    if (stop) break;
                 }
+
+                spdlog::info("sentrySender thread done");
             };
 
-        // Create a thread pool
-        spdlog::info("Starting {} sentry sender jobs", jobs);
-        std::vector<std::thread> pool;
-        for (int i = 0; i < jobs; i++)
-        {
-            pool.push_back(std::thread(sentrySender));
-        }
+        std::thread t3(sentrySender);
 
         conn.setEventCallback([&conn,
                                &channel,
@@ -280,11 +275,7 @@ namespace ix
         if (t2.joinable()) t2.join();
         spdlog::info("heartbeat thread done");
 
-        for (int i = 0; i < jobs; i++)
-        {
-            spdlog::info("joining thread {}", i);
-            pool[i].join();
-        }
+        t3.join();
 
         return (strict && errorSending) ? -1 : (int) sentCount;
     }

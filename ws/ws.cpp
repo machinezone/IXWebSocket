@@ -108,7 +108,6 @@ int main(int argc, char** argv)
     int maxRedirects = 5;
     int delayMs = -1;
     int count = 1;
-    int jobs = 4;
     uint32_t maxWaitBetweenReconnectionRetries;
     size_t maxQueueSize = 100;
 
@@ -268,7 +267,6 @@ int main(int argc, char** argv)
 
     CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra metrics to sentry");
     cobra2sentry->add_option("--dsn", dsn, "Sentry DSN");
-    cobra2sentry->add_option("--jobs", jobs, "Number of thread sending events to Sentry");
     cobra2sentry->add_option("--queue_size",
                              maxQueueSize,
                              "Size of the queue to hold messages before they are sent to Sentry");
@@ -455,7 +453,6 @@ int main(int argc, char** argv)
                                       dsn,
                                       verbose,
                                       strict,
-                                      jobs,
                                       maxQueueSize,
                                       enableHeartbeat,
                                       runtime);
