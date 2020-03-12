@@ -218,7 +218,7 @@ namespace
             }
             else if (eventType == ix::CobraConnection_EventType_Published)
             {
-                Logger() << "Subscriber: published message acked: " << msgId;
+                TLogger() << "Subscriber: published message acked: " << msgId;
             }
         });
 

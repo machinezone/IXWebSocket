@@ -29,17 +29,17 @@ namespace ix
             makeCancellationRequestWithTimeout(timeoutSecs, requestInitCancellation);
 
         bool success = socket->connect(host, port, errMsg, isCancellationRequested);
-        Logger() << "errMsg: " << errMsg;
+        TLogger() << "errMsg: " << errMsg;
         REQUIRE(success);
 
-        Logger() << "Sending request: " << request << "to " << host << ":" << port;
+        TLogger() << "Sending request: " << request << "to " << host << ":" << port;
         REQUIRE(socket->writeBytes(request, isCancellationRequested));
 
         auto lineResult = socket->readLine(isCancellationRequested);
         auto lineValid = lineResult.first;
         auto line = lineResult.second;
 
-        Logger() << "read error: " << strerror(Socket::getErrno());
+        TLogger() << "read error: " << strerror(Socket::getErrno());
 
         REQUIRE(lineValid);
 

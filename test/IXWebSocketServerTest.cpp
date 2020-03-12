@@ -40,21 +40,21 @@ namespace ix
                                                 const ix::WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    Logger() << "New connection";
+                    TLogger() << "New connection";
                     connectionState->computeId();
-                    Logger() << "id: " << connectionState->getId();
-                    Logger() << "Uri: " << msg->openInfo.uri;
-                    Logger() << "Headers:";
+                    TLogger() << "id: " << connectionState->getId();
+                    TLogger() << "Uri: " << msg->openInfo.uri;
+                    TLogger() << "Headers:";
                     for (auto it : msg->openInfo.headers)
                     {
-                        Logger() << it.first << ": " << it.second;
+                        TLogger() << it.first << ": " << it.second;
                     }
 
                     connectionId = connectionState->getId();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    Logger() << "Closed connection";
+                    TLogger() << "Closed connection";
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
@@ -72,7 +72,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            Logger() << res.second;
+            TLogger() << res.second;
             return false;
         }
 
@@ -133,7 +133,7 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         bool success = socket->connect(host, port, errMsg, isCancellationRequested);
         REQUIRE(success);
 
-        Logger() << "writeBytes";
+        TLogger() << "writeBytes";
         socket->writeBytes("GET /\r\n", isCancellationRequested);
 
         auto lineResult = socket->readLine(isCancellationRequested);

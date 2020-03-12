@@ -169,13 +169,13 @@ namespace
                         const ix::WebSocketCloseInfo& closeInfo) {
                         if (messageType == ix::WebSocketMessageType::Open)
                         {
-                            Logger() << "New server connection";
-                            Logger() << "id: " << connectionState->getId();
-                            Logger() << "Uri: " << openInfo.uri;
-                            Logger() << "Headers:";
+                            TLogger() << "New server connection";
+                            TLogger() << "id: " << connectionState->getId();
+                            TLogger() << "Uri: " << openInfo.uri;
+                            TLogger() << "Headers:";
                             for (auto it : openInfo.headers)
                             {
-                                Logger() << it.first << ": " << it.second;
+                                TLogger() << it.first << ": " << it.second;
                             }
                         }
                         else if (messageType == ix::WebSocketMessageType::Close)

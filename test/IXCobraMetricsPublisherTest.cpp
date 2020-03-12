@@ -79,7 +79,7 @@ namespace
                                       CobraConnection::MsgId msgId) {
             if (eventType == ix::CobraConnection_EventType_Open)
             {
-                Logger() << "Subscriber connected:";
+                TLogger() << "Subscriber connected:";
                 for (auto&& it : headers)
                 {
                     log("Headers " + it.first + " " + it.second);
@@ -87,7 +87,7 @@ namespace
             }
             if (eventType == ix::CobraConnection_EventType_Error)
             {
-                Logger() << "Subscriber error:" << errMsg;
+                TLogger() << "Subscriber error:" << errMsg;
             }
             else if (eventType == ix::CobraConnection_EventType_Authenticated)
             {
@@ -107,27 +107,27 @@ namespace
             }
             else if (eventType == ix::CobraConnection_EventType_Subscribed)
             {
-                Logger() << "Subscriber: subscribed to channel " << subscriptionId;
+                TLogger() << "Subscriber: subscribed to channel " << subscriptionId;
                 if (subscriptionId == CHANNEL)
                 {
                     gSubscriberConnectedAndSubscribed = true;
                 }
                 else
                 {
-                    Logger() << "Subscriber: unexpected channel " << subscriptionId;
+                    TLogger() << "Subscriber: unexpected channel " << subscriptionId;
                 }
             }
             else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
             {
-                Logger() << "Subscriber: ununexpected from channel " << subscriptionId;
+                TLogger() << "Subscriber: ununexpected from channel " << subscriptionId;
                 if (subscriptionId != CHANNEL)
                 {
-                    Logger() << "Subscriber: unexpected channel " << subscriptionId;
+                    TLogger() << "Subscriber: unexpected channel " << subscriptionId;
                 }
             }
             else if (eventType == ix::CobraConnection_EventType_Published)
             {
-                Logger() << "Subscriber: published message acked: " << msgId;
+                TLogger() << "Subscriber: published message acked: " << msgId;
             }
         });
 

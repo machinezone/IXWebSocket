@@ -23,13 +23,13 @@ bool startServer(ix::WebSocketServer& server, std::string& subProtocols)
                                                 const ix::WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    Logger() << "New connection";
-                    Logger() << "id: " << connectionState->getId();
-                    Logger() << "Uri: " << msg->openInfo.uri;
-                    Logger() << "Headers:";
+                    TLogger() << "New connection";
+                    TLogger() << "id: " << connectionState->getId();
+                    TLogger() << "Uri: " << msg->openInfo.uri;
+                    TLogger() << "Headers:";
                     for (auto it : msg->openInfo.headers)
                     {
-                        Logger() << it.first << ": " << it.second;
+                        TLogger() << it.first << ": " << it.second;
                     }
 
                     subProtocols = msg->openInfo.headers["Sec-WebSocket-Protocol"];
