@@ -11,12 +11,12 @@
 
 #include <cli11/CLI11.hpp>
 #include <fstream>
+#include <ixbots/IXCobraToSentryBot.h>
+#include <ixbots/IXCobraToStatsdBot.h>
 #include <ixcore/utils/IXCoreLogger.h>
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
-#include <ixbots/IXCobraToSentryBot.h>
-#include <ixbots/IXCobraToStatsdBot.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
@@ -449,8 +449,16 @@ int main(int argc, char** argv)
     {
         bool enableHeartbeat = true;
         int runtime = -1;
-        ret = ix::cobra_to_sentry_bot(
-            cobraConfig, channel, filter, dsn, verbose, strict, jobs, maxQueueSize, enableHeartbeat, runtime);
+        ret = ix::cobra_to_sentry_bot(cobraConfig,
+                                      channel,
+                                      filter,
+                                      dsn,
+                                      verbose,
+                                      strict,
+                                      jobs,
+                                      maxQueueSize,
+                                      enableHeartbeat,
+                                      runtime);
     }
     else if (app.got_subcommand("cobra_metrics_to_redis"))
     {

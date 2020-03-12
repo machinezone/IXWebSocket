@@ -8,12 +8,12 @@
 #include "catch.hpp"
 #include <chrono>
 #include <iostream>
+#include <ixbots/IXCobraToSentryBot.h>
 #include <ixcobra/IXCobraConnection.h>
 #include <ixcobra/IXCobraMetricsPublisher.h>
 #include <ixcrypto/IXUuid.h>
 #include <ixsnake/IXRedisServer.h>
 #include <ixsnake/IXSnakeServer.h>
-#include <ixbots/IXCobraToSentryBot.h>
 #include <ixwebsocket/IXHttpServer.h>
 #include <ixwebsocket/IXUserAgent.h>
 
@@ -75,7 +75,7 @@ namespace
         cobraMetricsPublisher.push("sms_metric_F_id", msg); // (msg #5)
         ix::msleep(500);
     }
-}
+} // namespace
 
 TEST_CASE("Cobra_to_sentry_bot", "[foo]")
 {
@@ -99,7 +99,7 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         ix::HttpServer sentryServer(sentryPort, "127.0.0.1");
         sentryServer.setOnConnectionCallback(
             [](HttpRequestPtr request,
-                          std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
+               std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
                 WebSocketHttpHeaders headers;
                 headers["Server"] = userAgent();
 
@@ -131,7 +131,7 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         std::string appkey("FC2F10139A2BAc53BB72D9db967b024f");
         std::string role = "_sub";
         std::string secret = "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba";
-        
+
         std::stringstream ss;
         ss << "ws://localhost:" << port;
         std::string endpoint = ss.str();
@@ -161,9 +161,16 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         // Only run the bot for 3 seconds
         int runtime = 3;
 
-        int sentCount = cobra_to_sentry_bot(config, channel, filter, dsn,
-                                            verbose, strict, jobs,
-                                            maxQueueSize, enableHeartbeat, runtime);
+        int sentCount = cobra_to_sentry_bot(config,
+                                            channel,
+                                            filter,
+                                            dsn,
+                                            verbose,
+                                            strict,
+                                            jobs,
+                                            maxQueueSize,
+                                            enableHeartbeat,
+                                            runtime);
         //
         // We want at least 2 messages to be sent
         //
