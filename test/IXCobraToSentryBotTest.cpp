@@ -96,8 +96,15 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         snakeServer.run();
 
         // Start a fake sentry http server
+        SocketTLSOptions tlsOptionsServer;
+        tlsOptionsServer.certFile = ".certs/trusted-server-crt.pem";
+        tlsOptionsServer.keyFile = ".certs/trusted-server-key.pem";
+        tlsOptionsServer.caFile = ".certs/trusted-ca-crt.pem";
+
         int sentryPort = getFreePort();
         ix::HttpServer sentryServer(sentryPort, "127.0.0.1");
+        sentryServer.setTLSOptions(tlsOptionsServer);
+
         sentryServer.setOnConnectionCallback(
             [](HttpRequestPtr request,
                std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
@@ -151,6 +158,9 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         size_t maxQueueSize = 10;
         bool enableHeartbeat = false;
 
+        // FIXME: try to get this working with https instead of http
+        //        to regress the TLS 1.3 OpenSSL bug 
+        //        -> https://github.com/openssl/openssl/issues/7967
         // https://xxxxx:yyyyyy@sentry.io/1234567
         std::stringstream oss;
         std::string scheme("http://");
@@ -158,7 +168,13 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         oss << scheme << "xxxxxxx:yyyyyyy@localhost:" << sentryPort << "/1234567";
         std::string dsn = oss.str();
 
+        SocketTLSOptions tlsOptionsClient;
+        tlsOptionsClient.certFile = ".certs/trusted-client-crt.pem";
+        tlsOptionsClient.keyFile = ".certs/trusted-client-key.pem";
+        tlsOptionsClient.caFile = ".certs/trusted-ca-crt.pem";
+
         SentryClient sentryClient(dsn);
+        sentryClient.setTLSOptions(tlsOptionsClient);
 
         // Only run the bot for 3 seconds
         int runtime = 3;

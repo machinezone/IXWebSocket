@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <ixwebsocket/IXHttpClient.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <json/json.h>
 #include <regex>
 #include <memory>
@@ -23,6 +24,9 @@ namespace ix
         std::pair<HttpResponsePtr, std::string> send(const Json::Value& msg, bool verbose);
 
         Json::Value parseLuaStackTrace(const std::string& stack);
+
+        // Mostly for testing
+        void setTLSOptions(const SocketTLSOptions& tlsOptions);
 
         void uploadMinidump(
             const std::string& sentryMetadata,

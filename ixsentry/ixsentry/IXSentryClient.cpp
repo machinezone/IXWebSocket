@@ -40,6 +40,11 @@ namespace ix
         }
     }
 
+    void SentryClient::setTLSOptions(const SocketTLSOptions& tlsOptions)
+    {
+        _httpClient->setTLSOptions(tlsOptions);
+    }
+
     int64_t SentryClient::getTimestamp()
     {
         const auto tp = std::chrono::system_clock::now();
