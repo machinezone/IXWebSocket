@@ -9,7 +9,6 @@
 
 #include <chrono>
 #include <ixcobra/IXCobraConnection.h>
-#include <ixsentry/IXSentryClient.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <thread>
@@ -20,7 +19,7 @@ namespace ix
     int cobra_to_sentry_bot(const CobraConfig& config,
                             const std::string& channel,
                             const std::string& filter,
-                            const std::string& dsn,
+                            SentryClient& sentryClient,
                             bool verbose,
                             bool strict,
                             size_t maxQueueSize,
@@ -84,8 +83,7 @@ namespace ix
         std::thread t2(heartbeat);
 
         auto sentrySender =
-            [&queueManager, verbose, &errorSending, &sentCount, &stop, &throttled, &dsn] {
-                SentryClient sentryClient(dsn);
+            [&queueManager, verbose, &errorSending, &sentCount, &stop, &throttled, &sentryClient] {
 
                 while (true)
                 {

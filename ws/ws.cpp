@@ -17,6 +17,7 @@
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
+#include <ixsentry/IXSentryClient.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
@@ -447,10 +448,12 @@ int main(int argc, char** argv)
     {
         bool enableHeartbeat = true;
         int runtime = -1;
+        ix::SentryClient sentryClient(dsn);
+
         ret = ix::cobra_to_sentry_bot(cobraConfig,
                                       channel,
                                       filter,
-                                      dsn,
+                                      sentryClient,
                                       verbose,
                                       strict,
                                       maxQueueSize,

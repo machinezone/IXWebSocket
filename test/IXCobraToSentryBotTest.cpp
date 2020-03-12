@@ -16,6 +16,7 @@
 #include <ixsnake/IXSnakeServer.h>
 #include <ixwebsocket/IXHttpServer.h>
 #include <ixwebsocket/IXUserAgent.h>
+#include <ixsentry/IXSentryClient.h>
 
 using namespace ix;
 
@@ -157,13 +158,15 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         oss << scheme << "xxxxxxx:yyyyyyy@localhost:" << sentryPort << "/1234567";
         std::string dsn = oss.str();
 
+        SentryClient sentryClient(dsn);
+
         // Only run the bot for 3 seconds
         int runtime = 3;
 
         int sentCount = cobra_to_sentry_bot(config,
                                             channel,
                                             filter,
-                                            dsn,
+                                            sentryClient,
                                             verbose,
                                             strict,
                                             maxQueueSize,
