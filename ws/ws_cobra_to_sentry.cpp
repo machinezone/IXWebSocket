@@ -17,7 +17,9 @@ namespace ix
                                 int jobs,
                                 size_t maxQueueSize)
     {
+        bool enableHeartbeat = true;
+        int runtime = -1;
         return cobra_to_sentry_bot(
-            config, channel, filter, dsn, verbose, strict, jobs, maxQueueSize);
+            config, channel, filter, dsn, verbose, strict, jobs, maxQueueSize, enableHeartbeat, runtime);
     }
 } // namespace ix

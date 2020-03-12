@@ -28,11 +28,11 @@ namespace ix
     void setupWebSocketTrafficTrackerCallback();
     void reportWebSocketTraffic();
 
-    struct Logger
+    struct TLogger
     {
     public:
         template<typename T>
-        Logger& operator<<(T const& obj)
+        TLogger& operator<<(T const& obj)
         {
             std::lock_guard<std::mutex> lock(_mutex);
 

@@ -29,7 +29,8 @@ namespace ix
         std::random_shuffle(games.begin(), games.end());
         std::string game = games[0];
 
-        _condition.wait(lock, [this] { return !_stop; });
+        auto duration = std::chrono::seconds(1);
+        _condition.wait_for(lock, duration);
 
         if (_queues[game].empty())
         {

@@ -24,7 +24,7 @@ namespace ix
 {
     std::atomic<size_t> incomingBytes(0);
     std::atomic<size_t> outgoingBytes(0);
-    std::mutex Logger::_mutex;
+    std::mutex TLogger::_mutex;
     std::stack<int> freePorts;
 
     void setupWebSocketTrafficTrackerCallback()
@@ -43,9 +43,9 @@ namespace ix
 
     void reportWebSocketTraffic()
     {
-        Logger() << incomingBytes;
-        Logger() << "Incoming bytes: " << incomingBytes;
-        Logger() << "Outgoing bytes: " << outgoingBytes;
+        TLogger() << incomingBytes;
+        TLogger() << "Incoming bytes: " << incomingBytes;
+        TLogger() << "Outgoing bytes: " << outgoingBytes;
     }
 
     void msleep(int ms)
@@ -65,7 +65,7 @@ namespace ix
 
     void log(const std::string& msg)
     {
-        Logger() << msg;
+        TLogger() << msg;
     }
 
     void hexDump(const std::string& prefix, const std::string& s)
@@ -90,17 +90,17 @@ namespace ix
                 [webSocket, connectionState, &server](const ix::WebSocketMessagePtr& msg) {
                     if (msg->type == ix::WebSocketMessageType::Open)
                     {
-                        Logger() << "New connection";
-                        Logger() << "Uri: " << msg->openInfo.uri;
-                        Logger() << "Headers:";
+                        TLogger() << "New connection";
+                        TLogger() << "Uri: " << msg->openInfo.uri;
+                        TLogger() << "Headers:";
                         for (auto it : msg->openInfo.headers)
                         {
-                            Logger() << it.first << ": " << it.second;
+                            TLogger() << it.first << ": " << it.second;
                         }
                     }
                     else if (msg->type == ix::WebSocketMessageType::Close)
                     {
-                        Logger() << "Closed connection";
+                        TLogger() << "Closed connection";
                     }
                     else if (msg->type == ix::WebSocketMessageType::Message)
                     {
@@ -118,7 +118,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            Logger() << res.second;
+            TLogger() << res.second;
             return false;
         }
 

@@ -56,6 +56,7 @@ set (SOURCES
   IXWebSocketSubProtocolTest.cpp
   IXSentryClientTest.cpp
   IXWebSocketChatTest.cpp
+  IXCobraToSentryBotTest.cpp
 )
 
 # Some unittest don't work on windows yet
@@ -99,6 +100,7 @@ target_link_libraries(ixwebsocket_unittest ixwebsocket)
 target_link_libraries(ixwebsocket_unittest ixcrypto)
 target_link_libraries(ixwebsocket_unittest ixcore)
 target_link_libraries(ixwebsocket_unittest ixsentry)
+target_link_libraries(ixwebsocket_unittest ixbots)
 
 target_link_libraries(ixwebsocket_unittest spdlog)
 

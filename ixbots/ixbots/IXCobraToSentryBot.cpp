@@ -24,7 +24,9 @@ namespace ix
                             bool verbose,
                             bool strict,
                             int jobs,
-                            size_t maxQueueSize)
+                            size_t maxQueueSize,
+                            bool enableHeartbeat,
+                            int runtime)
     {
         ix::CobraConnection conn;
         conn.configure(config);
@@ -39,22 +41,26 @@ namespace ix
 
         QueueManager queueManager(maxQueueSize, stop);
 
-        auto timer = [&sentCount, &receivedCount] {
-            while (true)
+        auto timer = [&sentCount, &receivedCount, &stop] {
+            while (!stop)
             {
                 spdlog::info("messages received {} sent {}", receivedCount, sentCount);
 
                 auto duration = std::chrono::seconds(1);
                 std::this_thread::sleep_for(duration);
             }
+
+            spdlog::info("timer thread done");
         };
 
         std::thread t1(timer);
 
-        auto heartbeat = [&sentCount, &receivedCount] {
+        auto heartbeat = [&sentCount, &receivedCount, &stop, &enableHeartbeat] {
             std::string state("na");
 
-            while (true)
+            if (!enableHeartbeat) return;
+
+            while (!stop)
             {
                 std::stringstream ss;
                 ss << "messages received " << receivedCount;
@@ -72,6 +78,8 @@ namespace ix
                 auto duration = std::chrono::minutes(1);
                 std::this_thread::sleep_for(duration);
             }
+
+            spdlog::info("heartbeat thread done");
         };
 
         std::thread t2(heartbeat);
@@ -84,8 +92,8 @@ namespace ix
                 {
                     Json::Value msg = queueManager.pop();
 
-                    if (msg.isNull()) continue;
                     if (stop) return;
+                    if (msg.isNull()) continue;
 
                     auto ret = sentryClient.send(msg, verbose);
                     HttpResponsePtr response = ret.first;
@@ -203,7 +211,7 @@ namespace ix
                                    const Json::Value& msg) {
                                    if (verbose)
                                    {
-                                       spdlog::info(jsonWriter.write(msg));
+                                       spdlog::info("Subscriber received message -> {}", jsonWriter.write(msg));
                                    }
 
                                    // If we cannot send to sentry fast enough, drop the message
@@ -238,24 +246,46 @@ namespace ix
             }
         });
 
-        while (true)
+        // Run forever
+        if (runtime == -1)
         {
-            auto duration = std::chrono::seconds(1);
-            std::this_thread::sleep_for(duration);
+            while (true)
+            {
+                auto duration = std::chrono::seconds(1);
+                std::this_thread::sleep_for(duration);
 
-            if (strict && errorSending) break;
+                if (strict && errorSending) break;
+            }
+        }
+        // Run for a duration, used by unittesting now
+        else
+        {
+            for (int i = 0 ; i < runtime; ++i)
+            {
+                auto duration = std::chrono::seconds(1);
+                std::this_thread::sleep_for(duration);
+
+                if (strict && errorSending) break;
+            }
         }
 
-        conn.disconnect();
-
+        //
+        // Cleanup.
         // join all the bg threads and stop them.
+        //
+        conn.disconnect();
         stop = true;
+
+        t1.join();
+        if (t2.joinable()) t2.join();
+        spdlog::info("heartbeat thread done");
+
         for (int i = 0; i < jobs; i++)
         {
-            spdlog::error("joining thread {}", i);
+            spdlog::info("joining thread {}", i);
             pool[i].join();
         }
 
-        return (strict && errorSending) ? 1 : 0;
+        return (strict && errorSending) ? -1 : (int) sentCount;
     }
 } // namespace ix

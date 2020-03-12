@@ -17,5 +17,7 @@ namespace ix
                             bool verbose,
                             bool strict,
                             int jobs,
-                            size_t maxQueueSize);
+                            size_t maxQueueSize,
+                            bool enableHeartbeat,
+                            int runtime);
 } // namespace ix
