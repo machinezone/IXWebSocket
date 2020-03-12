@@ -90,24 +90,6 @@ namespace ix
                                       const std::string& path,
                                       bool stress);
 
-    int ws_cobra_to_statsd_main(const ix::CobraConfig& config,
-                                const std::string& channel,
-                                const std::string& filter,
-                                const std::string& host,
-                                int port,
-                                const std::string& prefix,
-                                const std::string& fields,
-                                bool verbose);
-
-    int ws_cobra_to_sentry_main(const ix::CobraConfig& config,
-                                const std::string& channel,
-                                const std::string& filter,
-                                const std::string& dsn,
-                                bool verbose,
-                                bool strict,
-                                int jobs,
-                                size_t maxQueueSize);
-
     int ws_cobra_metrics_to_redis(const ix::CobraConfig& config,
                                   const std::string& channel,
                                   const std::string& filter,

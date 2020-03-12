@@ -17,7 +17,7 @@
 
 namespace ix
 {
-    int cobra_to_sentry_bot(const ix::CobraConfig& config,
+    int cobra_to_sentry_bot(const CobraConfig& config,
                             const std::string& channel,
                             const std::string& filter,
                             const std::string& dsn,

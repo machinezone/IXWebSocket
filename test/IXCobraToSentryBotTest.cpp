@@ -153,7 +153,9 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
 
         // https://xxxxx:yyyyyy@sentry.io/1234567
         std::stringstream oss;
-        oss << "http://xxxxxxx:yyyyyyy@localhost:" << sentryPort << "/1234567";
+        std::string scheme("http://");
+
+        oss << scheme << "xxxxxxx:yyyyyyy@localhost:" << sentryPort << "/1234567";
         std::string dsn = oss.str();
 
         // Only run the bot for 3 seconds

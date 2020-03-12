@@ -14,9 +14,9 @@ namespace ix
     int cobra_to_statsd_bot(const ix::CobraConfig& config,
                             const std::string& channel,
                             const std::string& filter,
-                            const std::string& dsn,
-                            bool verbose,
-                            bool strict,
-                            int jobs,
-                            size_t maxQueueSize);
+                            const std::string& host,
+                            int port,
+                            const std::string& prefix,
+                            const std::string& fields,
+                            bool verbose);
 } // namespace ix
