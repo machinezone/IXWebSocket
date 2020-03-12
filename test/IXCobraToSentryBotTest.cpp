@@ -12,11 +12,11 @@
 #include <ixcobra/IXCobraConnection.h>
 #include <ixcobra/IXCobraMetricsPublisher.h>
 #include <ixcrypto/IXUuid.h>
+#include <ixsentry/IXSentryClient.h>
 #include <ixsnake/IXRedisServer.h>
 #include <ixsnake/IXSnakeServer.h>
 #include <ixwebsocket/IXHttpServer.h>
 #include <ixwebsocket/IXUserAgent.h>
-#include <ixsentry/IXSentryClient.h>
 
 using namespace ix;
 
@@ -159,7 +159,7 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         bool enableHeartbeat = false;
 
         // FIXME: try to get this working with https instead of http
-        //        to regress the TLS 1.3 OpenSSL bug 
+        //        to regress the TLS 1.3 OpenSSL bug
         //        -> https://github.com/openssl/openssl/issues/7967
         // https://xxxxx:yyyyyy@sentry.io/1234567
         std::stringstream oss;

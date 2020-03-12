@@ -14,10 +14,10 @@
 #include <ixbots/IXCobraToSentryBot.h>
 #include <ixbots/IXCobraToStatsdBot.h>
 #include <ixcore/utils/IXCoreLogger.h>
+#include <ixsentry/IXSentryClient.h>
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
-#include <ixsentry/IXSentryClient.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>

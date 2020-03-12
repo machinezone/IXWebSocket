@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.2.2] - 2020-03-12
+
+(openssl tls backend) Fix a hand in OpenSSL when using TLS v1.3 ... by disabling TLS v1.3
+
 ## [8.2.1] - 2020-03-11
 
 (cobra) IXCobraConfig struct has tlsOptions and per message deflate options

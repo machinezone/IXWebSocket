@@ -131,8 +131,14 @@ namespace ix
             SSL_CTX_set_mode(ctx,
                              SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
-            SSL_CTX_set_options(
-                ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE);
+            int options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE;
+
+#ifdef SSL_OP_NO_TLSv1_3
+            // (partially?) work around hang in openssl 1.1.1b, by disabling TLS V1.3
+            // https://github.com/openssl/openssl/issues/7967
+            options |= SSL_OP_NO_TLSv1_3;
+#endif
+            SSL_CTX_set_options(ctx, options);
         }
         return ctx;
     }
