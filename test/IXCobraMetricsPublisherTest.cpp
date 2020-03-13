@@ -93,17 +93,18 @@ namespace
             {
                 log("Subscriber authenticated");
                 std::string filter;
-                conn.subscribe(CHANNEL, filter, [](const Json::Value& msg) {
-                    log(msg.toStyledString());
+                conn.subscribe(
+                    CHANNEL, filter, [](const Json::Value& msg, const std::string& /*position*/) {
+                        log(msg.toStyledString());
 
-                    std::string id = msg["id"].asString();
-                    {
-                        std::lock_guard<std::mutex> guard(gProtectIds);
-                        gIds.insert(id);
-                    }
+                        std::string id = msg["id"].asString();
+                        {
+                            std::lock_guard<std::mutex> guard(gProtectIds);
+                            gIds.insert(id);
+                        }
 
-                    gMessageCount++;
-                });
+                        gMessageCount++;
+                    });
             }
             else if (eventType == ix::CobraConnection_EventType_Subscribed)
             {

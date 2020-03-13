@@ -201,10 +201,10 @@ namespace ix
                 conn.subscribe(channel,
                                filter,
                                [&jsonWriter, verbose, &throttled, &receivedCount, &queueManager](
-                                   const Json::Value& msg) {
+                                   const Json::Value& msg, const std::string& position) {
                                    if (verbose)
                                    {
-                                       spdlog::info("Subscriber received message -> {}", jsonWriter.write(msg));
+                                       spdlog::info("Subscriber received message {} -> {}", position, jsonWriter.write(msg));
                                    }
 
                                    // If we cannot send to sentry fast enough, drop the message

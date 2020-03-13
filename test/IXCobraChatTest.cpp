@@ -122,31 +122,32 @@ namespace
     void CobraChat::subscribe(const std::string& channel)
     {
         std::string filter;
-        _conn.subscribe(channel, filter, [this](const Json::Value& msg) {
-            spdlog::info("receive {}", msg.toStyledString());
+        _conn.subscribe(
+            channel, filter, [this](const Json::Value& msg, const std::string& /*position*/) {
+                spdlog::info("receive {}", msg.toStyledString());
 
-            if (!msg.isObject()) return;
-            if (!msg.isMember("user")) return;
-            if (!msg.isMember("text")) return;
-            if (!msg.isMember("session")) return;
+                if (!msg.isObject()) return;
+                if (!msg.isMember("user")) return;
+                if (!msg.isMember("text")) return;
+                if (!msg.isMember("session")) return;
 
-            std::string msg_user = msg["user"].asString();
-            std::string msg_text = msg["text"].asString();
-            std::string msg_session = msg["session"].asString();
+                std::string msg_user = msg["user"].asString();
+                std::string msg_text = msg["text"].asString();
+                std::string msg_session = msg["session"].asString();
 
-            // We are not interested in messages
-            // from a different session.
-            if (msg_session != _session) return;
+                // We are not interested in messages
+                // from a different session.
+                if (msg_session != _session) return;
 
-            // We are not interested in our own messages
-            if (msg_user == _user) return;
+                // We are not interested in our own messages
+                if (msg_user == _user) return;
 
-            _receivedQueue.push(msg);
+                _receivedQueue.push(msg);
 
-            std::stringstream ss;
-            ss << std::endl << msg_user << " > " << msg_text << std::endl << _user << " > ";
-            log(ss.str());
-        });
+                std::stringstream ss;
+                ss << std::endl << msg_user << " > " << msg_text << std::endl << _user << " > ";
+                log(ss.str());
+            });
     }
 
     void CobraChat::sendMessage(const std::string& text)

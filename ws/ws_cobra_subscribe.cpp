@@ -14,21 +14,28 @@
 
 namespace ix
 {
-    void writeToStdout(bool fluentd, Json::FastWriter& jsonWriter, const Json::Value& msg)
+    void writeToStdout(bool fluentd,
+                       Json::FastWriter& jsonWriter,
+                       const Json::Value& msg,
+                       const std::string& position)
     {
         Json::Value enveloppe;
         if (fluentd)
         {
             enveloppe["producer"] = "cobra";
             enveloppe["consumer"] = "fluentd";
-            enveloppe["message"] = msg;
+
+            Json::Value msgWithPosition(msg);
+            msgWithPosition["position"] = position;
+            enveloppe["message"] = msgWithPosition;
+
+            std::cout << jsonWriter.write(enveloppe);
         }
         else
         {
             enveloppe = msg;
+            std::cout << position << " " << jsonWriter.write(enveloppe);
         }
-
-        std::cout << jsonWriter.write(enveloppe);
     }
 
     int ws_cobra_subscribe_main(const ix::CobraConfig& config,
@@ -82,10 +89,10 @@ namespace ix
                     conn.subscribe(channel,
                                    filter,
                                    [&jsonWriter, &quiet, &msgPerSeconds, &msgCount, &fluentd](
-                                       const Json::Value& msg) {
+                                       const Json::Value& msg, const std::string& position) {
                                        if (!quiet)
                                        {
-                                           writeToStdout(fluentd, jsonWriter, msg);
+                                           writeToStdout(fluentd, jsonWriter, msg, position);
                                        }
 
                                        msgPerSeconds++;

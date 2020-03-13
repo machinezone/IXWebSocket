@@ -441,9 +441,12 @@ namespace ix
         if (!body.isMember("messages")) return false;
         Json::Value messages = body["messages"];
 
+        if (!body.isMember("position")) return false;
+        std::string position = body["position"].asString();
+
         for (auto&& msg : messages)
         {
-            cb->second(msg);
+            cb->second(msg, position);
         }
 
         return true;

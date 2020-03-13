@@ -126,7 +126,7 @@ namespace ix
                     channel,
                     filter,
                     [&msgPerSeconds, &msgCount, &conditionVariableMutex, &condition, &queue](
-                        const Json::Value& msg) {
+                        const Json::Value& msg, const std::string& /*position*/) {
                         {
                             std::unique_lock<std::mutex> lock(conditionVariableMutex);
                             queue.push(msg);

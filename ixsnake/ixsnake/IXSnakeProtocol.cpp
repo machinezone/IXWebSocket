@@ -189,7 +189,7 @@ namespace snake
             nlohmann::json response = {
                 {"action", "rtm/subscription/data"},
                 {"id", id++},
-                {"body", {{"subscription_id", subscriptionId}, {"messages", {msg}}}}};
+                {"body", {{"subscription_id", subscriptionId}, {"position", "0-0"}, {"messages", {msg}}}}};
 
             ws->sendText(response.dump());
         };

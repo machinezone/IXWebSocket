@@ -178,10 +178,10 @@ namespace ix
                     conn.subscribe(channel,
                                    filter,
                                    [&jsonWriter, &queueManager, verbose, &receivedCount](
-                                       const Json::Value& msg) {
+                                       const Json::Value& msg, const std::string& position) {
                                        if (verbose)
                                        {
-                                           spdlog::info(jsonWriter.write(msg));
+                                           spdlog::info("Subscriber received message {} -> {}", position, jsonWriter.write(msg));
                                        }
 
                                        receivedCount++;

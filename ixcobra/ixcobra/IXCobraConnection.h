@@ -42,7 +42,7 @@ namespace ix
         CobraConnection_PublishMode_Batch = 1
     };
 
-    using SubscriptionCallback = std::function<void(const Json::Value&)>;
+    using SubscriptionCallback = std::function<void(const Json::Value&, const std::string&)>;
     using EventCallback = std::function<void(CobraConnectionEventType,
                                              const std::string&,
                                              const WebSocketHttpHeaders&,
