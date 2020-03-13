@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.2.4] - 2020-03-13
+
+(cobra client) can subscribe with a position
+
 ## [8.2.3] - 2020-03-13
 
 (cobra client) pass the message position to the subscription data callback

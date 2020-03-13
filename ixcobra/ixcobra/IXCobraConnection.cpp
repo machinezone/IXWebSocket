@@ -565,6 +565,7 @@ namespace ix
 
     void CobraConnection::subscribe(const std::string& channel,
                                     const std::string& filter,
+                                    const std::string& position,
                                     SubscriptionCallback cb)
     {
         // Create and send a subscribe pdu
@@ -574,6 +575,11 @@ namespace ix
         if (!filter.empty())
         {
             body["filter"] = filter;
+        }
+
+        if (!position.empty())
+        {
+            body["position"] = position;
         }
 
         Json::Value pdu;

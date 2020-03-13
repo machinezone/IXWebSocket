@@ -153,6 +153,7 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         std::thread publisherThread(runPublisher, config, channel);
 
         std::string filter;
+        std::string position("$");
         bool verbose = true;
         bool strict = true;
         size_t maxQueueSize = 10;
@@ -182,6 +183,7 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         int sentCount = cobra_to_sentry_bot(config,
                                             channel,
                                             filter,
+                                            position,
                                             sentryClient,
                                             verbose,
                                             strict,

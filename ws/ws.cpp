@@ -65,6 +65,7 @@ int main(int argc, char** argv)
     std::string pidfile;
     std::string channel;
     std::string filter;
+    std::string position;
     std::string message;
     std::string password;
     std::string prefix("ws.test.v0");
@@ -229,6 +230,7 @@ int main(int argc, char** argv)
     cobraSubscribeApp->add_option("--channel", channel, "Channel")->required();
     cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
     cobraSubscribeApp->add_option("--filter", filter, "Stream SQL Filter");
+    cobraSubscribeApp->add_option("--position", position, "Stream position");
     cobraSubscribeApp->add_flag("-q", quiet, "Quiet / only display stats");
     cobraSubscribeApp->add_flag("--fluentd", fluentd, "Write fluentd prefix");
     addTLSOptions(cobraSubscribeApp);
@@ -263,6 +265,7 @@ int main(int argc, char** argv)
     cobra2statsd->add_flag("-v", verbose, "Verbose");
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
     cobra2statsd->add_option("--filter", filter, "Stream SQL Filter");
+    cobra2statsd->add_option("--position", position, "Stream position");
     addTLSOptions(cobra2statsd);
     addCobraConfig(cobra2statsd);
 
@@ -276,6 +279,7 @@ int main(int argc, char** argv)
     cobra2sentry->add_flag("-s", strict, "Strict mode. Error out when sending to sentry fails");
     cobra2sentry->add_option("--pidfile", pidfile, "Pid file");
     cobra2sentry->add_option("--filter", filter, "Stream SQL Filter");
+    cobra2sentry->add_option("--position", position, "Stream position");
     addTLSOptions(cobra2sentry);
     addCobraConfig(cobra2sentry);
 
@@ -284,6 +288,7 @@ int main(int argc, char** argv)
     cobra2redisApp->add_option("channel", channel, "Channel")->required();
     cobra2redisApp->add_option("--pidfile", pidfile, "Pid file");
     cobra2redisApp->add_option("--filter", filter, "Stream SQL Filter");
+    cobra2redisApp->add_option("--position", position, "Stream position");
     cobra2redisApp->add_option("--hostname", hostname, "Redis hostname");
     cobra2redisApp->add_option("--port", redisPort, "Redis port");
     cobra2redisApp->add_flag("-q", quiet, "Quiet / only display stats");
@@ -429,7 +434,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_subscribe"))
     {
-        ret = ix::ws_cobra_subscribe_main(cobraConfig, channel, filter, quiet, fluentd);
+        ret = ix::ws_cobra_subscribe_main(cobraConfig, channel, filter, position, quiet, fluentd);
     }
     else if (app.got_subcommand("cobra_publish"))
     {
@@ -442,7 +447,7 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("cobra_to_statsd"))
     {
         ret = ix::cobra_to_statsd_bot(
-            cobraConfig, channel, filter, hostname, statsdPort, prefix, fields, verbose);
+            cobraConfig, channel, filter, position, hostname, statsdPort, prefix, fields, verbose);
     }
     else if (app.got_subcommand("cobra_to_sentry"))
     {
@@ -453,6 +458,7 @@ int main(int argc, char** argv)
         ret = ix::cobra_to_sentry_bot(cobraConfig,
                                       channel,
                                       filter,
+                                      position,
                                       sentryClient,
                                       verbose,
                                       strict,
@@ -462,7 +468,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_metrics_to_redis"))
     {
-        ret = ix::ws_cobra_metrics_to_redis(cobraConfig, channel, filter, hostname, redisPort);
+        ret = ix::ws_cobra_metrics_to_redis(cobraConfig, channel, filter, position, hostname, redisPort);
     }
     else if (app.got_subcommand("snake"))
     {

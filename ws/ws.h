@@ -78,6 +78,7 @@ namespace ix
     int ws_cobra_subscribe_main(const ix::CobraConfig& config,
                                 const std::string& channel,
                                 const std::string& filter,
+                                const std::string& position,
                                 bool quiet,
                                 bool fluentd);
 
@@ -93,6 +94,7 @@ namespace ix
     int ws_cobra_metrics_to_redis(const ix::CobraConfig& config,
                                   const std::string& channel,
                                   const std::string& filter,
+                                  const std::string& position,
                                   const std::string& host,
                                   int port);
 

@@ -14,6 +14,7 @@ namespace ix
     int cobra_to_sentry_bot(const CobraConfig& config,
                             const std::string& channel,
                             const std::string& filter,
+                            const std::string& position,
                             SentryClient& sentryClient,
                             bool verbose,
                             bool strict,

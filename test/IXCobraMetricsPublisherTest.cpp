@@ -93,8 +93,10 @@ namespace
             {
                 log("Subscriber authenticated");
                 std::string filter;
+                std::string position("$");
+
                 conn.subscribe(
-                    CHANNEL, filter, [](const Json::Value& msg, const std::string& /*position*/) {
+                    CHANNEL, filter, position, [](const Json::Value& msg, const std::string& /*position*/) {
                         log(msg.toStyledString());
 
                         std::string id = msg["id"].asString();

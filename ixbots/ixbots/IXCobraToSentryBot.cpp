@@ -19,6 +19,7 @@ namespace ix
     int cobra_to_sentry_bot(const CobraConfig& config,
                             const std::string& channel,
                             const std::string& filter,
+                            const std::string& position,
                             SentryClient& sentryClient,
                             bool verbose,
                             bool strict,
@@ -37,7 +38,7 @@ namespace ix
         std::atomic<bool> stop(false);
         std::atomic<bool> throttled(false);
 
-        QueueManager queueManager(maxQueueSize, stop);
+        QueueManager queueManager(maxQueueSize);
 
         auto timer = [&sentCount, &receivedCount, &stop] {
             while (!stop)
@@ -173,6 +174,7 @@ namespace ix
         conn.setEventCallback([&conn,
                                &channel,
                                &filter,
+                               &position,
                                &jsonWriter,
                                verbose,
                                &throttled,
@@ -200,6 +202,7 @@ namespace ix
                 spdlog::info("Subscriber authenticated");
                 conn.subscribe(channel,
                                filter,
+                               position,
                                [&jsonWriter, verbose, &throttled, &receivedCount, &queueManager](
                                    const Json::Value& msg, const std::string& position) {
                                    if (verbose)

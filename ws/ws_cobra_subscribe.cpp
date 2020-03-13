@@ -41,6 +41,7 @@ namespace ix
     int ws_cobra_subscribe_main(const ix::CobraConfig& config,
                                 const std::string& channel,
                                 const std::string& filter,
+                                const std::string& position,
                                 bool quiet,
                                 bool fluentd)
     {
@@ -68,7 +69,7 @@ namespace ix
         std::thread t(timer);
 
         conn.setEventCallback(
-            [&conn, &channel, &jsonWriter, &filter, &msgCount, &msgPerSeconds, &quiet, &fluentd](
+            [&conn, &channel, &jsonWriter, &filter, &position, &msgCount, &msgPerSeconds, &quiet, &fluentd](
                 ix::CobraConnectionEventType eventType,
                 const std::string& errMsg,
                 const ix::WebSocketHttpHeaders& headers,
@@ -88,6 +89,7 @@ namespace ix
                     spdlog::info("Subscriber authenticated");
                     conn.subscribe(channel,
                                    filter,
+                                   position,
                                    [&jsonWriter, &quiet, &msgPerSeconds, &msgCount, &fluentd](
                                        const Json::Value& msg, const std::string& position) {
                                        if (!quiet)

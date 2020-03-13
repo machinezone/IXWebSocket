@@ -20,6 +20,7 @@ namespace ix
     int ws_cobra_metrics_to_redis(const ix::CobraConfig& config,
                                   const std::string& channel,
                                   const std::string& filter,
+                                  const std::string& position,
                                   const std::string& host,
                                   int port)
     {
@@ -100,6 +101,7 @@ namespace ix
         conn.setEventCallback([&conn,
                                &channel,
                                &filter,
+                               &position,
                                &msgCount,
                                &msgPerSeconds,
                                &conditionVariableMutex,
@@ -125,6 +127,7 @@ namespace ix
                 conn.subscribe(
                     channel,
                     filter,
+                    position,
                     [&msgPerSeconds, &msgCount, &conditionVariableMutex, &condition, &queue](
                         const Json::Value& msg, const std::string& /*position*/) {
                         {

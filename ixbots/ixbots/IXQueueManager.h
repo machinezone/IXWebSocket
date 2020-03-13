@@ -7,7 +7,6 @@
 #pragma once
 
 #include <stddef.h>
-#include <atomic>
 #include <json/json.h>
 #include <mutex>
 #include <condition_variable>
@@ -19,9 +18,8 @@ namespace ix
     class QueueManager
     {
     public:
-        QueueManager(size_t maxQueueSize, std::atomic<bool>& stop)
+        QueueManager(size_t maxQueueSize)
             : _maxQueueSize(maxQueueSize)
-            , _stop(stop)
         {
         }
 
@@ -33,6 +31,5 @@ namespace ix
         std::mutex _mutex;
         std::condition_variable _condition;
         size_t _maxQueueSize;
-        std::atomic<bool>& _stop;
     };
 }

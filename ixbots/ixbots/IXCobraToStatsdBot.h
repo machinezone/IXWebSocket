@@ -14,6 +14,7 @@ namespace ix
     int cobra_to_statsd_bot(const ix::CobraConfig& config,
                             const std::string& channel,
                             const std::string& filter,
+                            const std::string& position,
                             const std::string& host,
                             int port,
                             const std::string& prefix,

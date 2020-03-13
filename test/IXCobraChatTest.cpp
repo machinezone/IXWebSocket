@@ -122,8 +122,10 @@ namespace
     void CobraChat::subscribe(const std::string& channel)
     {
         std::string filter;
+        std::string position("$");
+
         _conn.subscribe(
-            channel, filter, [this](const Json::Value& msg, const std::string& /*position*/) {
+            channel, filter, position, [this](const Json::Value& msg, const std::string& /*position*/) {
                 spdlog::info("receive {}", msg.toStyledString());
 
                 if (!msg.isObject()) return;

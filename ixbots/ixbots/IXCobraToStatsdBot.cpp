@@ -62,6 +62,7 @@ namespace ix
     int cobra_to_statsd_bot(const ix::CobraConfig& config,
                             const std::string& channel,
                             const std::string& filter,
+                            const std::string& position,
                             const std::string& host,
                             int port,
                             const std::string& prefix,
@@ -80,7 +81,7 @@ namespace ix
         std::atomic<bool> stop(false);
 
         size_t maxQueueSize = 1000;
-        QueueManager queueManager(maxQueueSize, stop);
+        QueueManager queueManager(maxQueueSize);
 
         auto timer = [&sentCount, &receivedCount] {
             while (true)
@@ -153,7 +154,7 @@ namespace ix
         std::thread t3(statsdSender);
 
         conn.setEventCallback(
-            [&conn, &channel, &filter, &jsonWriter, verbose, &queueManager, &receivedCount](
+            [&conn, &channel, &filter, &position, &jsonWriter, verbose, &queueManager, &receivedCount](
                 ix::CobraConnectionEventType eventType,
                 const std::string& errMsg,
                 const ix::WebSocketHttpHeaders& headers,
@@ -177,6 +178,7 @@ namespace ix
                     spdlog::info("Subscriber authenticated");
                     conn.subscribe(channel,
                                    filter,
+                                   position,
                                    [&jsonWriter, &queueManager, verbose, &receivedCount](
                                        const Json::Value& msg, const std::string& position) {
                                        if (verbose)
