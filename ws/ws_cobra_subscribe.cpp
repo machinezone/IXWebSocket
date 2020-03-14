@@ -68,8 +68,10 @@ namespace ix
 
         std::thread t(timer);
 
+        std::string subscriptionPosition(position);
+
         conn.setEventCallback(
-            [&conn, &channel, &jsonWriter, &filter, &position, &msgCount, &msgPerSeconds, &quiet, &fluentd](
+            [&conn, &channel, &jsonWriter, &filter, &subscriptionPosition, &msgCount, &msgPerSeconds, &quiet, &fluentd](
                 ix::CobraConnectionEventType eventType,
                 const std::string& errMsg,
                 const ix::WebSocketHttpHeaders& headers,
@@ -87,10 +89,11 @@ namespace ix
                 else if (eventType == ix::CobraConnection_EventType_Authenticated)
                 {
                     spdlog::info("Subscriber authenticated");
+                    spdlog::info("Subscribing to {} at position {}", channel, subscriptionPosition);
                     conn.subscribe(channel,
                                    filter,
-                                   position,
-                                   [&jsonWriter, &quiet, &msgPerSeconds, &msgCount, &fluentd](
+                                   subscriptionPosition,
+                                   [&jsonWriter, &quiet, &msgPerSeconds, &msgCount, &fluentd, &subscriptionPosition](
                                        const Json::Value& msg, const std::string& position) {
                                        if (!quiet)
                                        {
@@ -99,6 +102,8 @@ namespace ix
 
                                        msgPerSeconds++;
                                        msgCount++;
+
+                                       subscriptionPosition = position;
                                    });
                 }
                 else if (eventType == ix::CobraConnection_EventType_Subscribed)

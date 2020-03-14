@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.2.5] - 2020-03-13
+
+(cobra client) ws cobra subscribe resubscribe at latest position after being disconnected
+
 ## [8.2.4] - 2020-03-13
 
 (cobra client) can subscribe with a position
