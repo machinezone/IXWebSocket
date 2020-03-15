@@ -9,8 +9,12 @@ jobs:
     - uses: actions/checkout@v1
     - uses: seanmiddleditch/gha-setup-vsdevenv@master
   
-    - name: build
+    - name: cmake
       run: |
         mkdir build
         cd build
-        cmake -DUSE_WS=1 -DUSE_TEST=1 --build --parallel ..
+        cmake -DUSE_WS=1 -DUSE_TEST=1 ..
+
+    - name: build
+      run: |
+        cmake --build --parallel build
