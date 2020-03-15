@@ -50,19 +50,21 @@ set (SOURCES
   IXHttpServerTest.cpp
   IXUnityBuildsTest.cpp
   IXHttpTest.cpp
-  IXCobraChatTest.cpp
-  IXCobraMetricsPublisherTest.cpp
   IXDNSLookupTest.cpp
   IXWebSocketSubProtocolTest.cpp
   IXSentryClientTest.cpp
   IXWebSocketChatTest.cpp
-  IXCobraToSentryBotTest.cpp
 )
 
 # Some unittest don't work on windows yet
 if (UNIX)
   list(APPEND SOURCES
     IXWebSocketCloseTest.cpp
+
+    # Windows without TLS does not have hmac yet
+    IXCobraChatTest.cpp
+    IXCobraMetricsPublisherTest.cpp
+    IXCobraToSentryBotTest.cpp
   )
 endif()
 

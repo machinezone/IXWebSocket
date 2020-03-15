@@ -14,3 +14,6 @@ jobs:
         cd build
         cmake -DCMAKE_CXX_COMPILER=cl.exe -DUSE_WS=1 -DUSE_TEST=1 ..
     - run: cmake --build build
+    - name: |
+        cd test
+        ..\build\test\ixwebsocket_unittest.exe
