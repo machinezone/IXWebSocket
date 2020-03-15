@@ -17,4 +17,4 @@ jobs:
 
     - name: build
       run: |
-        cmake --build --parallel build
+        cmake --parallel --build build
