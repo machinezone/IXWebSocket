@@ -76,14 +76,6 @@ target_link_libraries(ws ixbots)
 
 target_link_libraries(ws spdlog)
 
-if(NOT APPLE AND NOT USE_MBED_TLS)
-  find_package(OpenSSL REQUIRED)
-  add_definitions(${OPENSSL_DEFINITIONS})
-  message(STATUS "OpenSSL: " ${OPENSSL_VERSION})
-  include_directories(${OPENSSL_INCLUDE_DIR})
-  target_link_libraries(ws ${OPENSSL_LIBRARIES})
-endif()
-
 if (JSONCPP_FOUND)
   target_include_directories(ws PUBLIC ${JSONCPP_INCLUDE_DIRS})
   target_link_libraries(ws ${JSONCPP_LIBRARIES})
