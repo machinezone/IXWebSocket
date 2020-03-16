@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.2.6] - 2020-03-16
+
+(cobra to sentry bot + docker) default docker file uses mbedtls + ws cobra_to_sentry pass tls options to sentryClient.
+
 ## [8.2.5] - 2020-03-13
 
 (cobra client) ws cobra subscribe resubscribe at latest position after being disconnected

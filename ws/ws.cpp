@@ -454,6 +454,7 @@ int main(int argc, char** argv)
         bool enableHeartbeat = true;
         int runtime = -1;
         ix::SentryClient sentryClient(dsn);
+        sentryClient.setTLSOptions(tlsOptions);
 
         ret = ix::cobra_to_sentry_bot(cobraConfig,
                                       channel,
