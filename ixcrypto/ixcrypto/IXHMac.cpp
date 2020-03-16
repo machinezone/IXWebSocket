@@ -14,8 +14,7 @@
 #elif defined(IXCRYPTO_USE_OPEN_SSL)
 # include <openssl/hmac.h>
 #else
-#include <assert.h>
-#endif
+# include <assert.h>
 #endif
 
 namespace ix
