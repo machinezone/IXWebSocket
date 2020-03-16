@@ -16,4 +16,4 @@ jobs:
     - run: cmake --build build
     - run: |
         cd test
-        ..\build\test\ixwebsocket_unittest.exe
+        ../build/test/ixwebsocket_unittest.exe
