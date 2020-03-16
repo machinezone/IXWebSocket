@@ -31,10 +31,6 @@ target_include_directories( ixcrypto PUBLIC ${IXCRYPTO_INCLUDE_DIRS} )
 
 # hmac computation needs a crypto library
 
-if (WIN32)
-  set(USE_MBED_TLS TRUE)
-endif()
-
 target_compile_definitions(ixcrypto PUBLIC IXCRYPTO_USE_TLS)
 if (USE_MBED_TLS)
     find_package(MbedTLS REQUIRED)

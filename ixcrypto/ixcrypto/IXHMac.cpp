@@ -14,7 +14,7 @@
 #elif defined(IXCRYPTO_USE_OPEN_SSL)
 # include <openssl/hmac.h>
 #else
-# error "Unsupported configuration"
+# include <assert.h>
 #endif
 
 namespace ix
@@ -40,7 +40,7 @@ namespace ix
              (unsigned char *) data.c_str(), (int) data.size(),
              (unsigned char *) hash, nullptr);
 #else
-#       error "Unsupported configuration"
+        assert(false && "hmac not implemented on this platform");
 #endif
 
         std::string hashString(reinterpret_cast<char*>(hash), hashSize);
