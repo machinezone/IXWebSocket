@@ -13,6 +13,9 @@
 # include <CommonCrypto/CommonHMAC.h>
 #elif defined(IXCRYPTO_USE_OPEN_SSL)
 # include <openssl/hmac.h>
+#else
+#include <assert.h>
+#endif
 #endif
 
 namespace ix
@@ -37,6 +40,8 @@ namespace ix
              key.c_str(), (int) key.size(),
              (unsigned char *) data.c_str(), (int) data.size(),
              (unsigned char *) hash, nullptr);
+#else
+        assert(false && "hmac not implemented on this platform");
 #endif
 
         std::string hashString(reinterpret_cast<char*>(hash), hashSize);
