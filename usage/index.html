@@ -112,6 +112,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-level="2"><a href="#tls-support-and-configuration" class="nav-link">TLS support and configuration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
         </ul>
@@ -322,29 +326,6 @@ Wait time(ms): 10000
 uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 </code></pre>
 
-<h3 id="tls-support-and-configuration">TLS support and configuration</h3>
-<p>To leverage TLS features, the library must be compiled with the option <code>USE_TLS=1</code>.</p>
-<p>Then, secure sockets are automatically used when connecting to a <code>wss://*</code> url.</p>
-<p>Additional TLS options can be configured by passing a <code>ix::SocketTLSOptions</code> instance to the
-<code>setTLSOptions</code> on <code>ix::WebSocket</code> (or <code>ix::WebSocketServer</code> or <code>ix::HttpServer</code>)</p>
-<pre><code class="cpp">webSocket.setTLSOptions({
-    .certFile = &quot;path/to/cert/file.pem&quot;,
-    .keyFile = &quot;path/to/key/file.pem&quot;,
-    .caFile = &quot;path/to/trust/bundle/file.pem&quot;,
-    .tls = true // required in server mode
-});
-</code></pre>
-
-<p>Specifying <code>certFile</code> and <code>keyFile</code> configures the certificate that will be used to communicate with TLS peers.</p>
-<p>On a client, this is only necessary for connecting to servers that require a client certificate.</p>
-<p>On a server, this is necessary for TLS support.</p>
-<p>Specifying <code>caFile</code> configures the trusted roots bundle file (in PEM format) that will be used to verify peer certificates.
- - The special value of <code>SYSTEM</code> (the default) indicates that the system-configured trust bundle should be used; this is generally what you want when connecting to any publicly exposed API/server.
- - The special value of <code>NONE</code> can be used to disable peer verification; this is only recommended to rule out certificate verification when testing connectivity.</p>
-<p>For a client, specifying <code>caFile</code> can be used if connecting to a server that uses a self-signed cert, or when using a custom CA in an internal environment.</p>
-<p>For a server, specifying <code>caFile</code> implies that:
-1. You require clients to present a certificate
-1. It must be signed by one of the trusted roots in the file</p>
 <h2 id="websocket-server-api">WebSocket server API</h2>
 <pre><code class="cpp">#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
 
@@ -523,7 +504,31 @@ server.wait();
                                               WebSocketHttpHeaders(),
                                               content);
 }
-</code></pre></div>
+</code></pre>
+
+<h2 id="tls-support-and-configuration">TLS support and configuration</h2>
+<p>To leverage TLS features, the library must be compiled with the option <code>USE_TLS=1</code>.</p>
+<p>Then, secure sockets are automatically used when connecting to a <code>wss://*</code> url.</p>
+<p>Additional TLS options can be configured by passing a <code>ix::SocketTLSOptions</code> instance to the
+<code>setTLSOptions</code> on <code>ix::WebSocket</code> (or <code>ix::WebSocketServer</code> or <code>ix::HttpServer</code>)</p>
+<pre><code class="cpp">webSocket.setTLSOptions({
+    .certFile = &quot;path/to/cert/file.pem&quot;,
+    .keyFile = &quot;path/to/key/file.pem&quot;,
+    .caFile = &quot;path/to/trust/bundle/file.pem&quot;,
+    .tls = true // required in server mode
+});
+</code></pre>
+
+<p>Specifying <code>certFile</code> and <code>keyFile</code> configures the certificate that will be used to communicate with TLS peers.</p>
+<p>On a client, this is only necessary for connecting to servers that require a client certificate.</p>
+<p>On a server, this is necessary for TLS support.</p>
+<p>Specifying <code>caFile</code> configures the trusted roots bundle file (in PEM format) that will be used to verify peer certificates.
+ - The special value of <code>SYSTEM</code> (the default) indicates that the system-configured trust bundle should be used; this is generally what you want when connecting to any publicly exposed API/server.
+ - The special value of <code>NONE</code> can be used to disable peer verification; this is only recommended to rule out certificate verification when testing connectivity.</p>
+<p>For a client, specifying <code>caFile</code> can be used if connecting to a server that uses a self-signed cert, or when using a custom CA in an internal environment.</p>
+<p>For a server, specifying <code>caFile</code> implies that:
+1. You require clients to present a certificate
+1. It must be signed by one of the trusted roots in the file</p></div>
             </div>
         </div>
 
