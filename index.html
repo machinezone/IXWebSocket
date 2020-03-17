@@ -105,6 +105,11 @@
               </ul>
             </li>
             
+            <li class="nav-item" data-level="2"><a href="#alternative-libraries" class="nav-link">Alternative libraries</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
             <li class="nav-item" data-level="2"><a href="#contributing" class="nav-link">Contributing</a>
               <ul class="nav flex-column">
               </ul>
@@ -154,7 +159,22 @@ webSocket.send(&quot;hello world&quot;);
 
 <h2 id="why-another-library">Why another library?</h2>
 <p>There are 2 main reasons that explain why IXWebSocket got written. First, we needed a C++ cross-platform client library, which should have few dependencies. What looked like the most solid one, <a href="https://github.com/zaphoyd/websocketpp">websocketpp</a> did depend on boost and this was not an option for us. Secondly, there were other available libraries with fewer dependencies (C ones), but they required calling an explicit poll routine periodically to know if a client had received data from a server, which was not elegant.</p>
-<p>We started by solving those 2 problems, then we added server websocket code, then an HTTP client, and finally a very simple HTTP server.</p>
+<p>We started by solving those 2 problems, then we added server websocket code, then an HTTP client, and finally a very simple HTTP server. IXWebSocket comes with a command line utility named ws which is quite handy, and is now packaged with alpine linux. You can install it with <code>apk add ws</code>.</p>
+<ul>
+<li>Few dependencies (only zlib)</li>
+<li>Simple to use ; uses std::string and std::function callbacks.</li>
+<li>Complete support of the websocket protocol, and basic http support.</li>
+<li>Client and Server</li>
+<li>TLS support</li>
+</ul>
+<h2 id="alternative-libraries">Alternative libraries</h2>
+<p>There are plenty of great websocket libraries out there, which might work for you. Here are a couple of serious ones.</p>
+<ul>
+<li><a href="https://github.com/zaphoyd/websocketpp">websocketpp</a> - C++</li>
+<li><a href="https://github.com/boostorg/beast">beast</a> - C++</li>
+<li><a href="https://libwebsockets.org/">libwebsockets</a> - C</li>
+<li><a href="https://github.com/uNetworking/uWebSockets">µWebSockets</a> - C</li>
+</ul>
 <h2 id="contributing">Contributing</h2>
 <p>IXWebSocket is developed on <a href="https://github.com/machinezone/IXWebSocket">GitHub</a>. We'd love to hear about how you use it; opening up an issue on GitHub is ok for that. If things don't work as expected, please create an issue on GitHub, or even better a pull request if you know how to fix your problem.</p></div>
             </div>
@@ -240,5 +260,5 @@ webSocket.send(&quot;hello world&quot;);
 
 <!--
 MkDocs version : 1.1
-Build Date UTC : 2020-03-17 17:09:52
+Build Date UTC : 2020-03-17 17:44:18
 -->
