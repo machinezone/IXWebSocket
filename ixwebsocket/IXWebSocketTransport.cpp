@@ -235,7 +235,7 @@ namespace ix
     {
         {
             std::lock_guard<std::mutex> lock(_lastSendPingTimePointMutex);
-            _lastSendPingTimePoint = std::chrono::steady_clock::now();
+            _lastSendPingTimePoint = std::chrono::steady_clock::now() - std::chrono::seconds(_pingIntervalSecs);
         }
         {
             std::lock_guard<std::mutex> lock(_lastReceivePongTimePointMutex);
