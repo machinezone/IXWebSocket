@@ -257,7 +257,8 @@ Additional TLS options can be configured by passing a `ix::SocketTLSOptions` ins
 webSocket.setTLSOptions({
     .certFile = "path/to/cert/file.pem",
     .keyFile = "path/to/key/file.pem",
-    .caFile = "path/to/trust/bundle/file.pem"
+    .caFile = "path/to/trust/bundle/file.pem",
+    .tls = true // required in server mode
 });
 ```
 
