@@ -1,4 +1,4 @@
-![Alt text](https://travis-ci.org/machinezone/IXWebSocket.svg?branch=master)
+![Build status](https://github.com/machinezone/IXWebSocket/workflows/unittest/badge.svg)
 
 ## Introduction
 
