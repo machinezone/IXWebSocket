@@ -92,6 +92,50 @@
             
             <li class="nav-item" data-level="1"><a href="#changelog" class="nav-link">Changelog</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#826-2020-03-16" class="nav-link">[8.2.6] - 2020-03-16</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#825-2020-03-13" class="nav-link">[8.2.5] - 2020-03-13</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#824-2020-03-13" class="nav-link">[8.2.4] - 2020-03-13</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#823-2020-03-13" class="nav-link">[8.2.3] - 2020-03-13</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#822-2020-03-12" class="nav-link">[8.2.2] - 2020-03-12</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#821-2020-03-11" class="nav-link">[8.2.1] - 2020-03-11</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#820-2020-03-11" class="nav-link">[8.2.0] - 2020-03-11</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#819-2020-03-09" class="nav-link">[8.1.9] - 2020-03-09</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#818-2020-03-02" class="nav-link">[8.1.8] - 2020-03-02</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#817-2020-02-26" class="nav-link">[8.1.7] - 2020-02-26</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#816-2020-02-26" class="nav-link">[8.1.6] - 2020-02-26</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#815-2020-02-23" class="nav-link">[8.1.5] - 2020-02-23</a>
               <ul class="nav flex-column">
               </ul>
@@ -505,6 +549,28 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="826-2020-03-16">[8.2.6] - 2020-03-16</h2>
+<p>(cobra to sentry bot + docker) default docker file uses mbedtls + ws cobra_to_sentry pass tls options to sentryClient.</p>
+<h2 id="825-2020-03-13">[8.2.5] - 2020-03-13</h2>
+<p>(cobra client) ws cobra subscribe resubscribe at latest position after being disconnected</p>
+<h2 id="824-2020-03-13">[8.2.4] - 2020-03-13</h2>
+<p>(cobra client) can subscribe with a position</p>
+<h2 id="823-2020-03-13">[8.2.3] - 2020-03-13</h2>
+<p>(cobra client) pass the message position to the subscription data callback</p>
+<h2 id="822-2020-03-12">[8.2.2] - 2020-03-12</h2>
+<p>(openssl tls backend) Fix a hand in OpenSSL when using TLS v1.3 ... by disabling TLS v1.3</p>
+<h2 id="821-2020-03-11">[8.2.1] - 2020-03-11</h2>
+<p>(cobra) IXCobraConfig struct has tlsOptions and per message deflate options</p>
+<h2 id="820-2020-03-11">[8.2.0] - 2020-03-11</h2>
+<p>(cobra) add IXCobraConfig struct to pass cobra config around</p>
+<h2 id="819-2020-03-09">[8.1.9] - 2020-03-09</h2>
+<p>(ws cobra_subscribe) add a --fluentd option to wrap a message in an enveloppe so that fluentd can recognize it</p>
+<h2 id="818-2020-03-02">[8.1.8] - 2020-03-02</h2>
+<p>(websocket server) fix regression with disabling zlib extension on the server side. If a client does not support this extension the server will handle it fine. We still need to figure out how to disable the option.</p>
+<h2 id="817-2020-02-26">[8.1.7] - 2020-02-26</h2>
+<p>(websocket) traffic tracker received bytes is message size while it should be wire size</p>
+<h2 id="816-2020-02-26">[8.1.6] - 2020-02-26</h2>
+<p>(ws_connect) display sent/received bytes statistics on exit</p>
 <h2 id="815-2020-02-23">[8.1.5] - 2020-02-23</h2>
 <p>(server) give thread name to some usual worker threads / unittest is broken !!</p>
 <h2 id="814-2020-02-22">[8.1.4] - 2020-02-22</h2>

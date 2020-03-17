@@ -330,7 +330,8 @@ uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 <pre><code class="cpp">webSocket.setTLSOptions({
     .certFile = &quot;path/to/cert/file.pem&quot;,
     .keyFile = &quot;path/to/key/file.pem&quot;,
-    .caFile = &quot;path/to/trust/bundle/file.pem&quot;
+    .caFile = &quot;path/to/trust/bundle/file.pem&quot;,
+    .tls = true // required in server mode
 });
 </code></pre>
 
