@@ -51,26 +51,10 @@
 #include <vector>
 
 
-namespace
-{
-    int greatestCommonDivisor(int a, int b)
-    {
-        while (b != 0)
-        {
-            int t = b;
-            b = a % b;
-            a = t;
-        }
-
-        return a;
-    }
-} // namespace
-
 namespace ix
 {
     const std::string WebSocketTransport::kPingMessage("ixwebsocket::heartbeat");
     const int WebSocketTransport::kDefaultPingIntervalSecs(-1);
-    const int WebSocketTransport::kDefaultPingTimeoutSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
     const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(300);
     constexpr size_t WebSocketTransport::kChunkSize;
@@ -89,11 +73,8 @@ namespace ix
         , _closingTimePoint(std::chrono::steady_clock::now())
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
-        , _pingTimeoutSecs(kDefaultPingTimeoutSecs)
-        , _pingIntervalOrTimeoutGCDSecs(-1)
-        , _nextGCDTimePoint(std::chrono::steady_clock::now())
+        , _pongReceived(false)
         , _lastSendPingTimePoint(std::chrono::steady_clock::now())
-        , _lastReceivePongTimePoint(std::chrono::steady_clock::now())
     {
         _readbuf.resize(kChunkSize);
     }
@@ -107,29 +88,13 @@ namespace ix
         const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
         const SocketTLSOptions& socketTLSOptions,
         bool enablePong,
-        int pingIntervalSecs,
-        int pingTimeoutSecs)
+        int pingIntervalSecs)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
         _socketTLSOptions = socketTLSOptions;
         _enablePong = enablePong;
         _pingIntervalSecs = pingIntervalSecs;
-        _pingTimeoutSecs = pingTimeoutSecs;
-
-        if (pingIntervalSecs > 0 && pingTimeoutSecs > 0)
-        {
-            _pingIntervalOrTimeoutGCDSecs =
-                greatestCommonDivisor(pingIntervalSecs, pingTimeoutSecs);
-        }
-        else if (_pingTimeoutSecs > 0)
-        {
-            _pingIntervalOrTimeoutGCDSecs = pingTimeoutSecs;
-        }
-        else
-        {
-            _pingIntervalOrTimeoutGCDSecs = pingIntervalSecs;
-        }
     }
 
     // Client
@@ -220,7 +185,8 @@ namespace ix
         }
         else if (readyState == ReadyState::OPEN)
         {
-            initTimePointsAndGCDAfterConnect();
+            initTimePointsAfterConnect();
+            _pongReceived = false;
         }
 
         _readyState = readyState;
@@ -231,21 +197,11 @@ namespace ix
         _onCloseCallback = onCloseCallback;
     }
 
-    void WebSocketTransport::initTimePointsAndGCDAfterConnect()
+    void WebSocketTransport::initTimePointsAfterConnect()
     {
         {
             std::lock_guard<std::mutex> lock(_lastSendPingTimePointMutex);
             _lastSendPingTimePoint = std::chrono::steady_clock::now();
-        }
-        {
-            std::lock_guard<std::mutex> lock(_lastReceivePongTimePointMutex);
-            _lastReceivePongTimePoint = std::chrono::steady_clock::now();
-        }
-
-        if (_pingIntervalOrTimeoutGCDSecs > 0)
-        {
-            _nextGCDTimePoint = std::chrono::steady_clock::now() +
-                                std::chrono::seconds(_pingIntervalOrTimeoutGCDSecs);
         }
     }
 
@@ -259,13 +215,14 @@ namespace ix
         return now - _lastSendPingTimePoint > std::chrono::seconds(_pingIntervalSecs);
     }
 
-    bool WebSocketTransport::pingTimeoutExceeded()
+    void WebSocketTransport::sendHeartBeat()
     {
-        if (_pingTimeoutSecs <= 0) return false;
+        if (_pingIntervalSecs <= 0) return;
 
-        std::lock_guard<std::mutex> lock(_lastReceivePongTimePointMutex);
-        auto now = std::chrono::steady_clock::now();
-        return now - _lastReceivePongTimePoint > std::chrono::seconds(_pingTimeoutSecs);
+        _pongReceived = false;
+        std::stringstream ss;
+        ss << kPingMessage << "::" << _pingIntervalSecs << "s";
+        sendPing(ss.str());
     }
 
     bool WebSocketTransport::closingDelayExceeded()
@@ -279,46 +236,33 @@ namespace ix
     {
         if (_readyState == ReadyState::OPEN)
         {
-            // if (1) ping timeout is enabled and (2) duration since last received
-            // ping response (PONG) exceeds the maximum delay, then close the connection
-            if (pingTimeoutExceeded())
+            if (pingIntervalExceeded())
             {
-                close(WebSocketCloseConstants::kInternalErrorCode,
-                      WebSocketCloseConstants::kPingTimeoutMessage);
-            }
-            // If ping is enabled and no ping has been sent for a duration
-            // exceeding our ping interval, send a ping to the server.
-            else if (pingIntervalExceeded())
-            {
-                std::stringstream ss;
-                ss << kPingMessage << "::" << _pingIntervalSecs << "s";
-                sendPing(ss.str());
+                if (!_pongReceived)
+                {
+                    // ping response (PONG) exceeds the maximum delay, close the connection
+                    close(WebSocketCloseConstants::kInternalErrorCode,
+                          WebSocketCloseConstants::kPingTimeoutMessage);
+                }
+                else
+                {
+                    sendHeartBeat();
+                }
             }
         }
 
         // No timeout if state is not OPEN, otherwise computed
         // pingIntervalOrTimeoutGCD (equals to -1 if no ping and no ping timeout are set)
         int lastingTimeoutDelayInMs =
-            (_readyState != ReadyState::OPEN) ? 0 : _pingIntervalOrTimeoutGCDSecs;
+            (_readyState != ReadyState::OPEN) ? 0 : _pingIntervalSecs;
 
-        if (_pingIntervalOrTimeoutGCDSecs > 0)
+        if (_pingIntervalSecs > 0)
         {
             // compute lasting delay to wait for next ping / timeout, if at least one set
             auto now = std::chrono::steady_clock::now();
-
-            if (now >= _nextGCDTimePoint)
-            {
-                _nextGCDTimePoint = now + std::chrono::seconds(_pingIntervalOrTimeoutGCDSecs);
-
-                lastingTimeoutDelayInMs = _pingIntervalOrTimeoutGCDSecs * 1000;
-            }
-            else
-            {
-                lastingTimeoutDelayInMs =
-                    (int) std::chrono::duration_cast<std::chrono::milliseconds>(_nextGCDTimePoint -
-                                                                                now)
-                        .count();
-            }
+            lastingTimeoutDelayInMs =
+                (int) std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastSendPingTimePoint)
+                    .count();
         }
 
 #ifdef _WIN32
@@ -626,9 +570,7 @@ namespace ix
             }
             else if (ws.opcode == wsheader_type::PONG)
             {
-                std::lock_guard<std::mutex> lck(_lastReceivePongTimePointMutex);
-                _lastReceivePongTimePoint = std::chrono::steady_clock::now();
-
+                _pongReceived = true;
                 emitMessage(MessageKind::PONG, frameData, false, onMessageCallback);
             }
             else if (ws.opcode == wsheader_type::CLOSE)

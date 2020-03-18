@@ -52,9 +52,7 @@ namespace ix
         void setPerMessageDeflateOptions(
             const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
-        void setHeartBeatPeriod(int heartBeatPeriodSecs);
-        void setPingInterval(int pingIntervalSecs); // alias of setHeartBeatPeriod
-        void setPingTimeout(int pingTimeoutSecs);
+        void setPingInterval(int pingIntervalSecs);
         void enablePong();
         void disablePong();
         void enablePerMessageDeflate();
@@ -94,9 +92,7 @@ namespace ix
 
         const std::string& getUrl() const;
         const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
-        int getHeartBeatPeriod() const;
         int getPingInterval() const;
-        int getPingTimeout() const;
         size_t bufferedAmount() const;
 
         void enableAutomaticReconnection();

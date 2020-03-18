@@ -75,8 +75,7 @@ namespace ix
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
                        const SocketTLSOptions& socketTLSOptions,
                        bool enablePong,
-                       int pingIntervalSecs,
-                       int pingTimeoutSecs);
+                       int pingIntervalSecs);
 
         // Client
         WebSocketInitResult connectToUrl(const std::string& url,
@@ -105,6 +104,8 @@ namespace ix
         void setOnCloseCallback(const OnCloseCallback& onCloseCallback);
         void dispatch(PollResult pollResult, const OnMessageCallback& onMessageCallback);
         size_t bufferedAmount() const;
+
+        void sendHeartBeat();
 
     private:
         std::string _url;
@@ -202,38 +203,23 @@ namespace ix
         static const bool kDefaultEnablePong;
 
         // Optional ping and pong timeout
-        // if both ping interval and timeout are set (> 0),
-        // then use GCD of these value to wait for the lowest time
         int _pingIntervalSecs;
-        int _pingTimeoutSecs;
-        int _pingIntervalOrTimeoutGCDSecs;
+        std::atomic<bool> _pongReceived;
 
         static const int kDefaultPingIntervalSecs;
-        static const int kDefaultPingTimeoutSecs;
         static const std::string kPingMessage;
 
-        // Record time step for ping/ ping timeout to ensure we wait for the right left duration
-        std::chrono::time_point<std::chrono::steady_clock> _nextGCDTimePoint;
-
         // We record when ping are being sent so that we can know when to send the next one
-        // We also record when pong are being sent as a reply to pings, to close the connections
-        // if no pong were received sufficiently fast.
         mutable std::mutex _lastSendPingTimePointMutex;
-        mutable std::mutex _lastReceivePongTimePointMutex;
         std::chrono::time_point<std::chrono::steady_clock> _lastSendPingTimePoint;
-        std::chrono::time_point<std::chrono::steady_clock> _lastReceivePongTimePoint;
 
         // If this function returns true, it is time to send a new ping
         bool pingIntervalExceeded();
-
-        // No PONG data was received through the socket for longer than ping timeout delay
-        bool pingTimeoutExceeded();
+        void initTimePointsAfterConnect();
 
         // after calling close(), if no CLOSE frame answer is received back from the remote, we
         // should close the connexion
         bool closingDelayExceeded();
-
-        void initTimePointsAndGCDAfterConnect();
 
         void sendCloseFrame(uint16_t code, const std::string& reason);
 

@@ -19,7 +19,6 @@ namespace ix
     OnTrafficTrackerCallback WebSocket::_onTrafficTrackerCallback = nullptr;
     const int WebSocket::kDefaultHandShakeTimeoutSecs(60);
     const int WebSocket::kDefaultPingIntervalSecs(-1);
-    const int WebSocket::kDefaultPingTimeoutSecs(-1);
     const bool WebSocket::kDefaultEnablePong(true);
     const uint32_t WebSocket::kDefaultMaxWaitBetweenReconnectionRetries(10 * 1000); // 10s
 
@@ -31,7 +30,6 @@ namespace ix
         , _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs)
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
-        , _pingTimeoutSecs(kDefaultPingTimeoutSecs)
     {
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote) {
@@ -86,18 +84,6 @@ namespace ix
         return _perMessageDeflateOptions;
     }
 
-    void WebSocket::setHeartBeatPeriod(int heartBeatPeriodSecs)
-    {
-        std::lock_guard<std::mutex> lock(_configMutex);
-        _pingIntervalSecs = heartBeatPeriodSecs;
-    }
-
-    int WebSocket::getHeartBeatPeriod() const
-    {
-        std::lock_guard<std::mutex> lock(_configMutex);
-        return _pingIntervalSecs;
-    }
-
     void WebSocket::setPingInterval(int pingIntervalSecs)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
@@ -108,18 +94,6 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         return _pingIntervalSecs;
-    }
-
-    void WebSocket::setPingTimeout(int pingTimeoutSecs)
-    {
-        std::lock_guard<std::mutex> lock(_configMutex);
-        _pingTimeoutSecs = pingTimeoutSecs;
-    }
-
-    int WebSocket::getPingTimeout() const
-    {
-        std::lock_guard<std::mutex> lock(_configMutex);
-        return _pingTimeoutSecs;
     }
 
     void WebSocket::enablePong()
@@ -189,8 +163,7 @@ namespace ix
             _ws.configure(_perMessageDeflateOptions,
                           _socketTLSOptions,
                           _enablePong,
-                          _pingIntervalSecs,
-                          _pingTimeoutSecs);
+                          _pingIntervalSecs);
         }
 
         WebSocketHttpHeaders headers(_extraHeaders);
@@ -229,6 +202,9 @@ namespace ix
             WebSocketErrorInfo(),
             WebSocketOpenInfo(status.uri, status.headers, status.protocol),
             WebSocketCloseInfo()));
+
+        _ws.sendHeartBeat();
+
         return status;
     }
 
@@ -239,8 +215,7 @@ namespace ix
             _ws.configure(_perMessageDeflateOptions,
                           _socketTLSOptions,
                           _enablePong,
-                          _pingIntervalSecs,
-                          _pingTimeoutSecs);
+                          _pingIntervalSecs);
         }
 
         WebSocketInitResult status = _ws.connectToSocket(socket, timeoutSecs);
@@ -256,6 +231,9 @@ namespace ix
                                                WebSocketErrorInfo(),
                                                WebSocketOpenInfo(status.uri, status.headers),
                                                WebSocketCloseInfo()));
+
+        _ws.sendHeartBeat();
+
         return status;
     }
 
