@@ -215,14 +215,12 @@ namespace ix
         return now - _lastSendPingTimePoint > std::chrono::seconds(_pingIntervalSecs);
     }
 
-    void WebSocketTransport::sendHeartBeat()
+    WebSocketSendInfo WebSocketTransport::sendHeartBeat()
     {
-        if (_pingIntervalSecs <= 0) return;
-
         _pongReceived = false;
         std::stringstream ss;
         ss << kPingMessage << "::" << _pingIntervalSecs << "s";
-        sendPing(ss.str());
+        return sendPing(ss.str());
     }
 
     bool WebSocketTransport::closingDelayExceeded()

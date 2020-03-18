@@ -105,7 +105,8 @@ namespace ix
         void dispatch(PollResult pollResult, const OnMessageCallback& onMessageCallback);
         size_t bufferedAmount() const;
 
-        void sendHeartBeat();
+        // internal
+        WebSocketSendInfo sendHeartBeat();
 
     private:
         std::string _url;

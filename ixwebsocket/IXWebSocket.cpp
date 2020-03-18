@@ -203,7 +203,11 @@ namespace ix
             WebSocketOpenInfo(status.uri, status.headers, status.protocol),
             WebSocketCloseInfo()));
 
-        _ws.sendHeartBeat();
+        if (_pingIntervalSecs > 0)
+        {
+            // Send a heart beat right away
+            _ws.sendHeartBeat();
+        }
 
         return status;
     }
@@ -232,7 +236,11 @@ namespace ix
                                                WebSocketOpenInfo(status.uri, status.headers),
                                                WebSocketCloseInfo()));
 
-        _ws.sendHeartBeat();
+        if (_pingIntervalSecs > 0)
+        {
+            // Send a heart beat right away
+            _ws.sendHeartBeat();
+        }
 
         return status;
     }
