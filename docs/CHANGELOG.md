@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 ## [8.2.7] - 2020-03-17
 
 (ws) ws connect gains a new option to set the interval at which to send pings
+(ws) ws echo_server gains a new option (-p) to disable responding to pings with pongs
 
 ```
 IXWebSocket$ ws connect --ping_interval 2 wss://echo.websocket.org

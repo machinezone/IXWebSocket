@@ -187,6 +187,7 @@ int main(int argc, char** argv)
     echoServerApp->add_flag("-g", greetings, "Verbose");
     echoServerApp->add_flag("-6", ipv6, "IpV6");
     echoServerApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
+    echoServerApp->add_flag("-p", disablePong, "Disable sending PONG in response to PING");
     addTLSOptions(echoServerApp);
 
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
@@ -403,7 +404,7 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("echo_server"))
     {
         ret = ix::ws_echo_server_main(
-            port, greetings, hostname, tlsOptions, ipv6, disablePerMessageDeflate);
+            port, greetings, hostname, tlsOptions, ipv6, disablePerMessageDeflate, disablePong);
     }
     else if (app.got_subcommand("broadcast_server"))
     {

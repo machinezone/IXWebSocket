@@ -16,7 +16,8 @@ namespace ix
                             const std::string& hostname,
                             const ix::SocketTLSOptions& tlsOptions,
                             bool ipv6,
-                            bool disablePerMessageDeflate)
+                            bool disablePerMessageDeflate,
+                            bool disablePong)
     {
         spdlog::info("Listening on {}:{}", hostname, port);
 
@@ -33,6 +34,12 @@ namespace ix
         {
             spdlog::info("Disable per message deflate");
             server.disablePerMessageDeflate();
+        }
+
+        if (disablePong)
+        {
+            spdlog::info("Disable responding to PING messages with PONG");
+            server.disablePong();
         }
 
         server.setOnConnectionCallback(

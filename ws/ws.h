@@ -32,7 +32,8 @@ namespace ix
                             const std::string& hostname,
                             const ix::SocketTLSOptions& tlsOptions,
                             bool ipv6,
-                            bool disablePerMessageDeflate);
+                            bool disablePerMessageDeflate,
+                            bool disablePong);
 
     int ws_broadcast_server_main(int port,
                                  const std::string& hostname,
