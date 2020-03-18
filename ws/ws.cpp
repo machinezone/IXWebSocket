@@ -112,6 +112,7 @@ int main(int argc, char** argv)
     int count = 1;
     uint32_t maxWaitBetweenReconnectionRetries;
     size_t maxQueueSize = 100;
+    int pingIntervalSecs = 30;
 
     auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* app) {
         app->add_option(
@@ -170,6 +171,9 @@ int main(int argc, char** argv)
     connectApp->add_option("--max_wait",
                            maxWaitBetweenReconnectionRetries,
                            "Max Wait Time between reconnection retries");
+    connectApp->add_option("--ping_interval",
+                           pingIntervalSecs,
+                           "Interval between sending pings");
     connectApp->add_option("--subprotocol", subprotocol, "Subprotocol");
     addTLSOptions(connectApp);
 
@@ -389,7 +393,8 @@ int main(int argc, char** argv)
                                   binaryMode,
                                   maxWaitBetweenReconnectionRetries,
                                   tlsOptions,
-                                  subprotocol);
+                                  subprotocol,
+                                  pingIntervalSecs);
     }
     else if (app.got_subcommand("chat"))
     {

@@ -1,6 +1,39 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.2.7] - 2020-03-17
+
+(ws) ws connect gains a new option to set the interval at which to send pings
+
+```
+IXWebSocket$ ws connect --ping_interval 2 wss://echo.websocket.org
+Type Ctrl-D to exit prompt...
+Connecting to url: wss://echo.websocket.org
+> ws_connect: connected
+[2020-03-17 23:53:02.726] [info] Uri: /
+[2020-03-17 23:53:02.726] [info] Headers:
+[2020-03-17 23:53:02.727] [info] Connection: Upgrade
+[2020-03-17 23:53:02.727] [info] Date: Wed, 18 Mar 2020 06:45:05 GMT
+[2020-03-17 23:53:02.727] [info] Sec-WebSocket-Accept: 0gtqbxW0aVL/QI/ICpLFnRaiKgA=
+[2020-03-17 23:53:02.727] [info] sec-websocket-extensions:
+[2020-03-17 23:53:02.727] [info] Server: Kaazing Gateway
+[2020-03-17 23:53:02.727] [info] Upgrade: websocket
+[2020-03-17 23:53:04.894] [info] Received pong
+[2020-03-17 23:53:06.859] [info] Received pong
+[2020-03-17 23:53:08.881] [info] Received pong
+[2020-03-17 23:53:10.848] [info] Received pong
+[2020-03-17 23:53:12.898] [info] Received pong
+[2020-03-17 23:53:14.865] [info] Received pong
+[2020-03-17 23:53:16.890] [info] Received pong
+[2020-03-17 23:53:18.853] [info] Received pong
+
+[2020-03-17 23:53:19.388] [info]
+ws_connect: connection closed: code 1000 reason Normal closure
+
+[2020-03-17 23:53:19.502] [info] Received 208 bytes
+[2020-03-17 23:53:19.502] [info] Sent 0 bytes
+```
+
 ## [8.2.6] - 2020-03-16
 
 (cobra to sentry bot + docker) default docker file uses mbedtls + ws cobra_to_sentry pass tls options to sentryClient.

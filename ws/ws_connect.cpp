@@ -24,7 +24,8 @@ namespace ix
                          bool binaryMode,
                          uint32_t maxWaitBetweenReconnectionRetries,
                          const ix::SocketTLSOptions& tlsOptions,
-                         const std::string& subprotocol);
+                         const std::string& subprotocol,
+                         int pingIntervalSecs);
 
         void subscribe(const std::string& channel);
         void start();
@@ -61,7 +62,8 @@ namespace ix
                                        bool binaryMode,
                                        uint32_t maxWaitBetweenReconnectionRetries,
                                        const ix::SocketTLSOptions& tlsOptions,
-                                       const std::string& subprotocol)
+                                       const std::string& subprotocol,
+                                       int pingIntervalSecs)
         : _url(url)
         , _disablePerMessageDeflate(disablePerMessageDeflate)
         , _binaryMode(binaryMode)
@@ -74,6 +76,7 @@ namespace ix
         }
         _webSocket.setMaxWaitBetweenReconnectionRetries(maxWaitBetweenReconnectionRetries);
         _webSocket.setTLSOptions(tlsOptions);
+        _webSocket.setPingInterval(pingIntervalSecs);
 
         _headers = parseHeaders(headers);
 
@@ -223,7 +226,8 @@ namespace ix
                         bool binaryMode,
                         uint32_t maxWaitBetweenReconnectionRetries,
                         const ix::SocketTLSOptions& tlsOptions,
-                        const std::string& subprotocol)
+                        const std::string& subprotocol,
+                        int pingIntervalSecs)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketConnect webSocketChat(url,
@@ -233,7 +237,8 @@ namespace ix
                                        binaryMode,
                                        maxWaitBetweenReconnectionRetries,
                                        tlsOptions,
-                                       subprotocol);
+                                       subprotocol,
+                                       pingIntervalSecs);
         webSocketChat.start();
 
         while (true)
