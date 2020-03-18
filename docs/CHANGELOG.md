@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.3.0] - 2020-03-18
+
+(websocket) Simplify ping/pong based heartbeat implementation
+
 ## [8.2.7] - 2020-03-17
 
 (ws) ws connect gains a new option to set the interval at which to send pings
