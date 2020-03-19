@@ -19,6 +19,13 @@ jobs:
     - name: make test
       run: make test
 
+  tsan:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: make test_tsan
+      run: make test_tsan
+
   win:
     runs-on: windows-latest
     steps:

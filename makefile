@@ -90,6 +90,21 @@ test:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; make -j 4)
 	(cd test ; python2.7 run.py -r)
 
+test_tsan:
+	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)
+	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
+	(cd test ; python2.7 run.py -r)
+
+test_ubsan:
+	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableUndefinedBehaviorSanitizer YES)
+	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
+	(cd test ; python2.7 run.py -r)
+
+test_asan:
+	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableAddressSanitizer YES)
+	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
+	(cd test ; python2.7 run.py -r)
+
 test_openssl:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPEN_SSL=1 -DUSE_TEST=1 .. ; make -j 4)
 	(cd test ; python2.7 run.py -r)
