@@ -78,7 +78,7 @@ namespace
     }
 } // namespace
 
-TEST_CASE("Cobra_to_sentry_bot", "[foo]")
+TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
 {
     SECTION("Exchange and count sent/received messages.")
     {
@@ -100,6 +100,12 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         tlsOptionsServer.certFile = ".certs/trusted-server-crt.pem";
         tlsOptionsServer.keyFile = ".certs/trusted-server-key.pem";
         tlsOptionsServer.caFile = ".certs/trusted-ca-crt.pem";
+
+#if defined(IXWEBSOCKET_USE_MBED_TLS) || defined(IXWEBSOCKET_USE_OPEN_SSL)
+        tlsOptionsServer.tls = true;
+#else
+        tlsOptionsServer.tls = false;
+#endif
 
         int sentryPort = getFreePort();
         ix::HttpServer sentryServer(sentryPort, "127.0.0.1");
@@ -163,9 +169,12 @@ TEST_CASE("Cobra_to_sentry_bot", "[foo]")
         //        to regress the TLS 1.3 OpenSSL bug
         //        -> https://github.com/openssl/openssl/issues/7967
         // https://xxxxx:yyyyyy@sentry.io/1234567
-        std::stringstream oss;
+#if defined(IXWEBSOCKET_USE_MBED_TLS) || defined(IXWEBSOCKET_USE_OPEN_SSL)
+        std::string scheme("https://");
+#else
         std::string scheme("http://");
-
+#endif
+        std::stringstream oss;
         oss << scheme << "xxxxxxx:yyyyyyy@localhost:" << sentryPort << "/1234567";
         std::string dsn = oss.str();
 
