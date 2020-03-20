@@ -10,6 +10,7 @@
 #include <iostream>
 #include <ixsnake/IXAppConfig.h>
 #include <ixwebsocket/IXWebSocketServer.h>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -50,5 +51,12 @@ namespace ix
 
     bool startWebSocketEchoServer(ix::WebSocketServer& server);
 
-    snake::AppConfig makeSnakeServerConfig(int port);
+    snake::AppConfig makeSnakeServerConfig(int port, bool preferTLS);
+
+    SocketTLSOptions makeClientTLSOptions();
+    SocketTLSOptions makeServerTLSOptions(bool preferTLS);
+    std::string getHttpScheme();
+    std::string getWsScheme(bool preferTLS);
+
+    std::string makeCobraEndpoint(int port, bool preferTLS);
 } // namespace ix

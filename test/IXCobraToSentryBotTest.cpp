@@ -42,18 +42,9 @@ namespace
     void runPublisher(const ix::CobraConfig& config, const std::string& channel)
     {
         ix::CobraMetricsPublisher cobraMetricsPublisher;
-
-        SocketTLSOptions socketTLSOptions;
-        bool perMessageDeflate = true;
-        cobraMetricsPublisher.configure(config.appkey,
-                                        config.endpoint,
-                                        channel,
-                                        config.rolename,
-                                        config.rolesecret,
-                                        perMessageDeflate,
-                                        socketTLSOptions);
+        cobraMetricsPublisher.configure(config, channel);
         cobraMetricsPublisher.setSession(uuid4());
-        cobraMetricsPublisher.enable(true); // disabled by default, needs to be enabled to be active
+        cobraMetricsPublisher.enable(true);
 
         Json::Value msg;
         msg["fps"] = 60;
@@ -83,7 +74,7 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
     SECTION("Exchange and count sent/received messages.")
     {
         int port = getFreePort();
-        snake::AppConfig appConfig = makeSnakeServerConfig(port);
+        snake::AppConfig appConfig = makeSnakeServerConfig(port, true);
 
         // Start a redis server
         ix::RedisServer redisServer(appConfig.redisPort);
@@ -96,16 +87,7 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         snakeServer.run();
 
         // Start a fake sentry http server
-        SocketTLSOptions tlsOptionsServer;
-        tlsOptionsServer.certFile = ".certs/trusted-server-crt.pem";
-        tlsOptionsServer.keyFile = ".certs/trusted-server-key.pem";
-        tlsOptionsServer.caFile = ".certs/trusted-ca-crt.pem";
-
-#if defined(IXWEBSOCKET_USE_MBED_TLS) || defined(IXWEBSOCKET_USE_OPEN_SSL)
-        tlsOptionsServer.tls = true;
-#else
-        tlsOptionsServer.tls = false;
-#endif
+        SocketTLSOptions tlsOptionsServer = makeServerTLSOptions(true);
 
         int sentryPort = getFreePort();
         ix::HttpServer sentryServer(sentryPort, "127.0.0.1");
@@ -145,16 +127,14 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         std::string appkey("FC2F10139A2BAc53BB72D9db967b024f");
         std::string role = "_sub";
         std::string secret = "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba";
-
-        std::stringstream ss;
-        ss << "ws://localhost:" << port;
-        std::string endpoint = ss.str();
+        std::string endpoint = makeCobraEndpoint(port, true);
 
         ix::CobraConfig config;
         config.endpoint = endpoint;
         config.appkey = appkey;
         config.rolename = role;
         config.rolesecret = secret;
+        config.socketTLSOptions = makeClientTLSOptions();
 
         std::thread publisherThread(runPublisher, config, channel);
 
@@ -169,19 +149,14 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         //        to regress the TLS 1.3 OpenSSL bug
         //        -> https://github.com/openssl/openssl/issues/7967
         // https://xxxxx:yyyyyy@sentry.io/1234567
-#if defined(IXWEBSOCKET_USE_MBED_TLS) || defined(IXWEBSOCKET_USE_OPEN_SSL)
-        std::string scheme("https://");
-#else
-        std::string scheme("http://");
-#endif
         std::stringstream oss;
-        oss << scheme << "xxxxxxx:yyyyyyy@localhost:" << sentryPort << "/1234567";
+        oss << getHttpScheme()
+            << "xxxxxxx:yyyyyyy@localhost:" 
+            << sentryPort
+            << "/1234567";
         std::string dsn = oss.str();
 
-        SocketTLSOptions tlsOptionsClient;
-        tlsOptionsClient.certFile = ".certs/trusted-client-crt.pem";
-        tlsOptionsClient.keyFile = ".certs/trusted-client-key.pem";
-        tlsOptionsClient.caFile = ".certs/trusted-ca-crt.pem";
+        SocketTLSOptions tlsOptionsClient = makeClientTLSOptions();
 
         SentryClient sentryClient(dsn);
         sentryClient.setTLSOptions(tlsOptionsClient);

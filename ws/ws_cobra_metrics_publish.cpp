@@ -30,15 +30,8 @@ namespace ix
 
         CobraMetricsPublisher cobraMetricsPublisher;
         cobraMetricsPublisher.enable(true);
-
-        bool enablePerMessageDeflate = true;
-        cobraMetricsPublisher.configure(config.appkey,
-                                        config.endpoint,
-                                        channel,
-                                        config.rolename,
-                                        config.rolesecret,
-                                        enablePerMessageDeflate,
-                                        config.socketTLSOptions);
+        cobraMetricsPublisher.configure(config,
+                                        channel);
 
         while (!cobraMetricsPublisher.isAuthenticated())
             ;

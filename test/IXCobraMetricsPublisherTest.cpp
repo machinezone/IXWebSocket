@@ -33,17 +33,6 @@ namespace
         });
     }
 
-    //
-    // This project / appkey is configure on cobra to not do any batching.
-    // This way we can start a subscriber and receive all messages as they come in.
-    //
-    std::string APPKEY("FC2F10139A2BAc53BB72D9db967b024f");
-    std::string CHANNEL("unittest_channel");
-    std::string PUBLISHER_ROLE("_pub");
-    std::string PUBLISHER_SECRET("1c04DB8fFe76A4EeFE3E318C72d771db");
-    std::string SUBSCRIBER_ROLE("_sub");
-    std::string SUBSCRIBER_SECRET("66B1dA3ED5fA074EB5AE84Dd8CE3b5ba");
-
     std::atomic<bool> gStop;
     std::atomic<bool> gSubscriberConnectedAndSubscribed;
     std::atomic<size_t> gUniqueMessageIdsCount;
@@ -55,28 +44,21 @@ namespace
     //
     // Background thread subscribe to the channel and validates what was sent
     //
-    void startSubscriber(const std::string& endpoint)
+    void startSubscriber(const ix::CobraConfig& config, const std::string& channel)
     {
         gSubscriberConnectedAndSubscribed = false;
         gUniqueMessageIdsCount = 0;
         gMessageCount = 0;
 
         ix::CobraConnection conn;
-        SocketTLSOptions socketTLSOptions;
-
-        conn.configure(APPKEY,
-                       endpoint,
-                       SUBSCRIBER_ROLE,
-                       SUBSCRIBER_SECRET,
-                       ix::WebSocketPerMessageDeflateOptions(true),
-                       socketTLSOptions);
+        conn.configure(config);
         conn.connect();
 
-        conn.setEventCallback([&conn](ix::CobraConnectionEventType eventType,
-                                      const std::string& errMsg,
-                                      const ix::WebSocketHttpHeaders& headers,
-                                      const std::string& subscriptionId,
-                                      CobraConnection::MsgId msgId) {
+        conn.setEventCallback([&conn, &channel](ix::CobraConnectionEventType eventType,
+                                                const std::string& errMsg,
+                                                const ix::WebSocketHttpHeaders& headers,
+                                                const std::string& subscriptionId,
+                                                CobraConnection::MsgId msgId) {
             if (eventType == ix::CobraConnection_EventType_Open)
             {
                 TLogger() << "Subscriber connected:";
@@ -96,7 +78,7 @@ namespace
                 std::string position("$");
 
                 conn.subscribe(
-                    CHANNEL, filter, position, [](const Json::Value& msg, const std::string& /*position*/) {
+                    channel, filter, position, [](const Json::Value& msg, const std::string& /*position*/) {
                         log(msg.toStyledString());
 
                         std::string id = msg["id"].asString();
@@ -111,7 +93,7 @@ namespace
             else if (eventType == ix::CobraConnection_EventType_Subscribed)
             {
                 TLogger() << "Subscriber: subscribed to channel " << subscriptionId;
-                if (subscriptionId == CHANNEL)
+                if (subscriptionId == channel)
                 {
                     gSubscriberConnectedAndSubscribed = true;
                 }
@@ -123,7 +105,7 @@ namespace
             else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
             {
                 TLogger() << "Subscriber: ununexpected from channel " << subscriptionId;
-                if (subscriptionId != CHANNEL)
+                if (subscriptionId != channel)
                 {
                     TLogger() << "Subscriber: unexpected channel " << subscriptionId;
                 }
@@ -140,7 +122,7 @@ namespace
             std::this_thread::sleep_for(duration);
         }
 
-        conn.unsubscribe(CHANNEL);
+        conn.unsubscribe(channel);
         conn.disconnect();
 
         gUniqueMessageIdsCount = gIds.size();
@@ -165,7 +147,8 @@ namespace
 TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
 {
     int port = getFreePort();
-    snake::AppConfig appConfig = makeSnakeServerConfig(port);
+    bool preferTLS = false;
+    snake::AppConfig appConfig = makeSnakeServerConfig(port, preferTLS);
 
     // Start a redis server
     ix::RedisServer redisServer(appConfig.redisPort);
@@ -179,15 +162,21 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
 
     setupTrafficTrackerCallback();
 
-    std::stringstream ss;
-    ss << "ws://localhost:" << port;
-    std::string endpoint = ss.str();
+    std::string channel = ix::generateSessionId();
+    std::string endpoint = makeCobraEndpoint(port, preferTLS);
+    std::string appkey("FC2F10139A2BAc53BB72D9db967b024f");
+    std::string role = "_sub";
+    std::string secret = "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba";
 
-    // Make channel name unique
-    CHANNEL += uuid4();
+    ix::CobraConfig config;
+    config.endpoint = endpoint;
+    config.appkey = appkey;
+    config.rolename = role;
+    config.rolesecret = secret;
+    config.socketTLSOptions = makeClientTLSOptions();
 
     gStop = false;
-    std::thread bgThread(&startSubscriber, endpoint);
+    std::thread subscriberThread(&startSubscriber, config, channel);
 
     int timeout = 10 * 1000; // 10s
 
@@ -207,18 +196,9 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
     }
 
     ix::CobraMetricsPublisher cobraMetricsPublisher;
-
-    SocketTLSOptions socketTLSOptions;
-    bool perMessageDeflate = true;
-    cobraMetricsPublisher.configure(APPKEY,
-                                    endpoint,
-                                    CHANNEL,
-                                    PUBLISHER_ROLE,
-                                    PUBLISHER_SECRET,
-                                    perMessageDeflate,
-                                    socketTLSOptions);
+    cobraMetricsPublisher.configure(config, channel);
     cobraMetricsPublisher.setSession(uuid4());
-    cobraMetricsPublisher.enable(true); // disabled by default, needs to be enabled to be active
+    cobraMetricsPublisher.enable(true);
 
     Json::Value data;
     data["foo"] = "bar";
@@ -294,7 +274,7 @@ TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
 
     // Now stop the thread
     gStop = true;
-    bgThread.join();
+    subscriberThread.join();
 
     //
     // Validate that we received all message kinds, and the correct number of messages

@@ -27,20 +27,12 @@ namespace ix
         ;
     }
 
-    void CobraMetricsPublisher::configure(const std::string& appkey,
-                                          const std::string& endpoint,
-                                          const std::string& channel,
-                                          const std::string& rolename,
-                                          const std::string& rolesecret,
-                                          bool enablePerMessageDeflate,
-                                          const SocketTLSOptions& socketTLSOptions)
+    void CobraMetricsPublisher::configure(const CobraConfig& config,
+                                          const std::string& channel)
     {
         // Configure the satori connection and start its publish background thread
+        _cobra_metrics_theaded_publisher.configure(config, channel);
         _cobra_metrics_theaded_publisher.start();
-
-        _cobra_metrics_theaded_publisher.configure(appkey, endpoint, channel,
-                                                   rolename, rolesecret,
-                                                   enablePerMessageDeflate, socketTLSOptions);
     }
 
     Json::Value& CobraMetricsPublisher::getGenericAttributes()

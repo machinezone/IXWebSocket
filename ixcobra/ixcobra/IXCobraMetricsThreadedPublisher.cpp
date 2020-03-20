@@ -92,22 +92,14 @@ namespace ix
         _thread = std::thread(&CobraMetricsThreadedPublisher::run, this);
     }
 
-    void CobraMetricsThreadedPublisher::configure(const std::string& appkey,
-                                                  const std::string& endpoint,
-                                                  const std::string& channel,
-                                                  const std::string& rolename,
-                                                  const std::string& rolesecret,
-                                                  bool enablePerMessageDeflate,
-                                                  const SocketTLSOptions& socketTLSOptions)
+    void CobraMetricsThreadedPublisher::configure(const CobraConfig& config,
+                                                  const std::string& channel)
     {
+        ix::IXCoreLogger::Log(config.socketTLSOptions.getDescription().c_str());
+
         _channel = channel;
+        _cobra_connection.configure(config);
 
-        ix::IXCoreLogger::Log(socketTLSOptions.getDescription().c_str());
-
-        ix::WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(enablePerMessageDeflate);
-        _cobra_connection.configure(appkey, endpoint,
-                                    rolename, rolesecret,
-                                    webSocketPerMessageDeflateOptions, socketTLSOptions);
     }
 
     void CobraMetricsThreadedPublisher::pushMessage(MessageKind messageKind)

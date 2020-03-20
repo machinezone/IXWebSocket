@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.3.1] - 2020-03-20
+
+(cobra) CobraMetricsPublisher can be configure with an ix::CobraConfig + more unittest use SSL in server + client
+
 ## [8.3.0] - 2020-03-18
 
 (websocket) Simplify ping/pong based heartbeat implementation

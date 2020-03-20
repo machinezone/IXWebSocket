@@ -27,13 +27,8 @@ namespace ix
         ~CobraMetricsThreadedPublisher();
 
         /// Configuration / set keys, etc...
-        void configure(const std::string& appkey,
-                       const std::string& endpoint,
-                       const std::string& channel,
-                       const std::string& rolename,
-                       const std::string& rolesecret,
-                       bool enablePerMessageDeflate,
-                       const SocketTLSOptions& socketTLSOptions);
+        void configure(const CobraConfig& config,
+                       const std::string& channel);
 
         /// Start the worker thread, used for background publishing
         void start();

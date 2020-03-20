@@ -37,7 +37,9 @@ namespace
     class CobraChat
     {
     public:
-        CobraChat(const std::string& user, const std::string& session, const std::string& endpoint);
+        CobraChat(const std::string& user,
+                  const std::string& session,
+                  const ix::CobraConfig& config);
 
         void subscribe(const std::string& channel);
         void start();
@@ -54,7 +56,7 @@ namespace
     private:
         std::string _user;
         std::string _session;
-        std::string _endpoint;
+        ix::CobraConfig _cobraConfig;
 
         std::queue<Json::Value> _publish_queue;
         mutable std::mutex _queue_mutex;
@@ -72,10 +74,10 @@ namespace
 
     CobraChat::CobraChat(const std::string& user,
                          const std::string& session,
-                         const std::string& endpoint)
+                         const ix::CobraConfig& config)
         : _user(user)
         , _session(session)
-        , _endpoint(endpoint)
+        , _cobraConfig(config)
         , _stop(false)
         , _connectedAndSubscribed(false)
     {
@@ -169,19 +171,9 @@ namespace
     //
     void CobraChat::run()
     {
-        // "chat" conf
-        std::string appkey("FC2F10139A2BAc53BB72D9db967b024f");
         std::string channel = _session;
-        std::string role = "_sub";
-        std::string secret = "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba";
-        SocketTLSOptions socketTLSOptions;
 
-        _conn.configure(appkey,
-                        _endpoint,
-                        role,
-                        secret,
-                        ix::WebSocketPerMessageDeflateOptions(true),
-                        socketTLSOptions);
+        _conn.configure(_cobraConfig);
         _conn.connect();
 
         _conn.setEventCallback([this, channel](ix::CobraConnectionEventType eventType,
@@ -265,7 +257,7 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
     SECTION("Exchange and count sent/received messages.")
     {
         int port = getFreePort();
-        snake::AppConfig appConfig = makeSnakeServerConfig(port);
+        snake::AppConfig appConfig = makeSnakeServerConfig(port, true);
 
         // Start a redis server
         ix::RedisServer redisServer(appConfig.redisPort);
@@ -281,13 +273,20 @@ TEST_CASE("Cobra_chat", "[cobra_chat]")
         setupTrafficTrackerCallback();
 
         std::string session = ix::generateSessionId();
+        std::string appkey("FC2F10139A2BAc53BB72D9db967b024f");
+        std::string role = "_sub";
+        std::string secret = "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba";
+        std::string endpoint = makeCobraEndpoint(port, true);
 
-        std::stringstream ss;
-        ss << "ws://localhost:" << port;
-        std::string endpoint = ss.str();
+        ix::CobraConfig config;
+        config.endpoint = endpoint;
+        config.appkey = appkey;
+        config.rolename = role;
+        config.rolesecret = secret;
+        config.socketTLSOptions = makeClientTLSOptions();
 
-        CobraChat chatA("jean", session, endpoint);
-        CobraChat chatB("paul", session, endpoint);
+        CobraChat chatA("jean", session, config);
+        CobraChat chatB("paul", session, config);
 
         chatA.start();
         chatB.start();

@@ -148,8 +148,62 @@ namespace ix
         auto vec = load(path);
         return std::string(vec.begin(), vec.end());
     }
+    
+    SocketTLSOptions makeClientTLSOptions()
+    {
+        SocketTLSOptions tlsOptionsClient;
+        tlsOptionsClient.certFile = ".certs/trusted-client-crt.pem";
+        tlsOptionsClient.keyFile = ".certs/trusted-client-key.pem";
+        tlsOptionsClient.caFile = ".certs/trusted-ca-crt.pem";
 
-    snake::AppConfig makeSnakeServerConfig(int port)
+        return tlsOptionsClient;
+    }
+
+    SocketTLSOptions makeServerTLSOptions(bool preferTLS)
+    {
+        // Start a fake sentry http server
+        SocketTLSOptions tlsOptionsServer;
+        tlsOptionsServer.certFile = ".certs/trusted-server-crt.pem";
+        tlsOptionsServer.keyFile = ".certs/trusted-server-key.pem";
+        tlsOptionsServer.caFile = ".certs/trusted-ca-crt.pem";
+
+#if defined(IXWEBSOCKET_USE_MBED_TLS) || defined(IXWEBSOCKET_USE_OPEN_SSL)
+        tlsOptionsServer.tls = preferTLS;
+#else
+        tlsOptionsServer.tls = false;
+#endif
+        return tlsOptionsServer;
+    }
+
+    std::string getHttpScheme()
+    {
+#if defined(IXWEBSOCKET_USE_MBED_TLS) || defined(IXWEBSOCKET_USE_OPEN_SSL)
+        std::string scheme("https://");
+#else
+        std::string scheme("http://");
+#endif
+        return scheme;
+    }
+
+    std::string getWsScheme(bool preferTLS)
+    {
+        std::string scheme;
+#if defined(IXWEBSOCKET_USE_MBED_TLS) || defined(IXWEBSOCKET_USE_OPEN_SSL)
+        if (preferTLS)
+        {
+            scheme = "wss://";
+        }
+        else
+        {
+            scheme = "ws://";
+        }
+#else
+        scheme = "ws://";
+#endif
+        return scheme;
+    }
+
+    snake::AppConfig makeSnakeServerConfig(int port, bool preferTLS)
     {
         snake::AppConfig appConfig;
         appConfig.port = port;
@@ -158,6 +212,7 @@ namespace ix
         appConfig.redisPort = getFreePort();
         appConfig.redisPassword = "";
         appConfig.redisHosts.push_back("localhost"); // only one host supported now
+        appConfig.socketTLSOptions = makeServerTLSOptions(preferTLS);
 
         std::string appsConfigPath("appsConfig.json");
 
@@ -177,5 +232,16 @@ namespace ix
         dumpConfig(appConfig);
 
         return appConfig;
+    }
+
+    std::string makeCobraEndpoint(int port, bool preferTLS)
+    {
+        std::stringstream ss;
+        ss << getWsScheme(preferTLS)
+           << "localhost:"
+           << port;
+        std::string endpoint = ss.str();
+
+        return endpoint;
     }
 } // namespace ix
