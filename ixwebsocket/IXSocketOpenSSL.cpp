@@ -224,12 +224,21 @@ namespace ix
         return true;
     }
 
-    bool SocketOpenSSL::openSSLClientHandshake(const std::string& host, std::string& errMsg)
+    bool SocketOpenSSL::openSSLClientHandshake(
+        const std::string& host,
+        std::string& errMsg,
+        const CancellationRequest& isCancellationRequested)
     {
         while (true)
         {
             if (_ssl_connection == nullptr || _ssl_context == nullptr)
             {
+                return false;
+            }
+
+            if (isCancellationRequested())
+            {
+                errMsg = "Cancellation requested";
                 return false;
             }
 
@@ -577,7 +586,7 @@ namespace ix
             X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
             X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0);
 #endif
-            handshakeSuccessful = openSSLClientHandshake(host, errMsg);
+            handshakeSuccessful = openSSLClientHandshake(host, errMsg, isCancellationRequested);
         }
 
         if (!handshakeSuccessful)

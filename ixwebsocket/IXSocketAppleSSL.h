@@ -37,6 +37,10 @@ namespace ix
         static OSStatus writeToSocket(SSLConnectionRef connection, const void* data, size_t* len);
         static OSStatus readFromSocket(SSLConnectionRef connection, void* data, size_t* len);
 
+        OSStatus tlsHandShake(
+            std::string& errMsg,
+            const CancellationRequest& isCancellationRequested);
+
         SSLContextRef _sslContext;
         mutable std::mutex _mutex; // AppleSSL routines are not thread-safe
 

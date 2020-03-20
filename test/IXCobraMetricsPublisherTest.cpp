@@ -147,7 +147,7 @@ namespace
 TEST_CASE("Cobra_Metrics_Publisher", "[cobra]")
 {
     int port = getFreePort();
-    bool preferTLS = false;
+    bool preferTLS = true;
     snake::AppConfig appConfig = makeSnakeServerConfig(port, preferTLS);
 
     // Start a redis server

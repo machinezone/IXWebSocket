@@ -164,6 +164,26 @@ namespace ix
         return false;
     }
 
+    OSStatus SocketAppleSSL::tlsHandShake(std::string& errMsg,
+                                          const CancellationRequest& isCancellationRequested)
+    {
+        OSStatus status;
+
+        do
+        {
+            status = SSLHandshake(_sslContext);
+
+            // Interrupt the handshake
+            if (isCancellationRequested())
+            {
+                errMsg = "Cancellation requested";
+                return errSSLInternal;
+            }
+        } while (status == errSSLWouldBlock || status == errSSLServerAuthCompleted);
+
+        return status;
+    }
+
     // No wait support
     bool SocketAppleSSL::connect(const std::string& host,
                                  int port,
@@ -190,26 +210,17 @@ namespace ix
                 Boolean option(1);
                 SSLSetSessionOption(_sslContext, kSSLSessionOptionBreakOnServerAuth, option);
 
-                do
-                {
-                    status = SSLHandshake(_sslContext);
-                } while (status == errSSLWouldBlock || status == errSSLServerAuthCompleted);
+                status = tlsHandShake(errMsg, isCancellationRequested);
 
                 if (status == errSSLServerAuthCompleted)
                 {
                     // proceed with the handshake
-                    do
-                    {
-                        status = SSLHandshake(_sslContext);
-                    } while (status == errSSLWouldBlock || status == errSSLServerAuthCompleted);
+                    status = tlsHandShake(errMsg, isCancellationRequested);
                 }
             }
             else
             {
-                do
-                {
-                    status = SSLHandshake(_sslContext);
-                } while (status == errSSLWouldBlock || status == errSSLServerAuthCompleted);
+                status = tlsHandShake(errMsg, isCancellationRequested);
             }
         }
 

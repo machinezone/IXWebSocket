@@ -195,8 +195,17 @@ namespace ix
         int res;
         do
         {
-            std::lock_guard<std::mutex> lock(_mutex);
-            res = mbedtls_ssl_handshake(&_ssl);
+            {
+                std::lock_guard<std::mutex> lock(_mutex);
+                res = mbedtls_ssl_handshake(&_ssl);
+            }
+
+            if (isCancellationRequested())
+            {
+                errMsg = "Cancellation requested";
+                close();
+                return false;
+            }
         } while (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE);
 
         if (res != 0)
