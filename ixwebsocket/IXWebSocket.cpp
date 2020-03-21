@@ -160,10 +160,8 @@ namespace ix
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
-            _ws.configure(_perMessageDeflateOptions,
-                          _socketTLSOptions,
-                          _enablePong,
-                          _pingIntervalSecs);
+            _ws.configure(
+                _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs);
         }
 
         WebSocketHttpHeaders headers(_extraHeaders);
@@ -216,10 +214,8 @@ namespace ix
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
-            _ws.configure(_perMessageDeflateOptions,
-                          _socketTLSOptions,
-                          _enablePong,
-                          _pingIntervalSecs);
+            _ws.configure(
+                _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs);
         }
 
         WebSocketInitResult status = _ws.connectToSocket(socket, timeoutSecs);

@@ -148,7 +148,7 @@ namespace ix
         auto vec = load(path);
         return std::string(vec.begin(), vec.end());
     }
-    
+
     SocketTLSOptions makeClientTLSOptions()
     {
         SocketTLSOptions tlsOptionsClient;
@@ -237,9 +237,7 @@ namespace ix
     std::string makeCobraEndpoint(int port, bool preferTLS)
     {
         std::stringstream ss;
-        ss << getWsScheme(preferTLS)
-           << "localhost:"
-           << port;
+        ss << getWsScheme(preferTLS) << "localhost:" << port;
         std::string endpoint = ss.str();
 
         return endpoint;

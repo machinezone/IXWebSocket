@@ -171,9 +171,7 @@ int main(int argc, char** argv)
     connectApp->add_option("--max_wait",
                            maxWaitBetweenReconnectionRetries,
                            "Max Wait Time between reconnection retries");
-    connectApp->add_option("--ping_interval",
-                           pingIntervalSecs,
-                           "Interval between sending pings");
+    connectApp->add_option("--ping_interval", pingIntervalSecs, "Interval between sending pings");
     connectApp->add_option("--subprotocol", subprotocol, "Subprotocol");
     addTLSOptions(connectApp);
 
@@ -475,7 +473,8 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_metrics_to_redis"))
     {
-        ret = ix::ws_cobra_metrics_to_redis(cobraConfig, channel, filter, position, hostname, redisPort);
+        ret = ix::ws_cobra_metrics_to_redis(
+            cobraConfig, channel, filter, position, hostname, redisPort);
     }
     else if (app.got_subcommand("snake"))
     {

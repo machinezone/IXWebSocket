@@ -251,16 +251,15 @@ namespace ix
 
         // No timeout if state is not OPEN, otherwise computed
         // pingIntervalOrTimeoutGCD (equals to -1 if no ping and no ping timeout are set)
-        int lastingTimeoutDelayInMs =
-            (_readyState != ReadyState::OPEN) ? 0 : _pingIntervalSecs;
+        int lastingTimeoutDelayInMs = (_readyState != ReadyState::OPEN) ? 0 : _pingIntervalSecs;
 
         if (_pingIntervalSecs > 0)
         {
             // compute lasting delay to wait for next ping / timeout, if at least one set
             auto now = std::chrono::steady_clock::now();
-            lastingTimeoutDelayInMs =
-                (int) std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastSendPingTimePoint)
-                    .count();
+            lastingTimeoutDelayInMs = (int) std::chrono::duration_cast<std::chrono::milliseconds>(
+                                          now - _lastSendPingTimePoint)
+                                          .count();
         }
 
 #ifdef _WIN32

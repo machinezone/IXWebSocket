@@ -70,63 +70,74 @@ namespace ix
 
         std::string subscriptionPosition(position);
 
-        conn.setEventCallback(
-            [&conn, &channel, &jsonWriter, &filter, &subscriptionPosition, &msgCount, &msgPerSeconds, &quiet, &fluentd](
-                ix::CobraConnectionEventType eventType,
-                const std::string& errMsg,
-                const ix::WebSocketHttpHeaders& headers,
-                const std::string& subscriptionId,
-                CobraConnection::MsgId msgId) {
-                if (eventType == ix::CobraConnection_EventType_Open)
-                {
-                    spdlog::info("Subscriber connected");
+        conn.setEventCallback([&conn,
+                               &channel,
+                               &jsonWriter,
+                               &filter,
+                               &subscriptionPosition,
+                               &msgCount,
+                               &msgPerSeconds,
+                               &quiet,
+                               &fluentd](ix::CobraConnectionEventType eventType,
+                                         const std::string& errMsg,
+                                         const ix::WebSocketHttpHeaders& headers,
+                                         const std::string& subscriptionId,
+                                         CobraConnection::MsgId msgId) {
+            if (eventType == ix::CobraConnection_EventType_Open)
+            {
+                spdlog::info("Subscriber connected");
 
-                    for (auto it : headers)
-                    {
-                        spdlog::info("{}: {}", it.first, it.second);
-                    }
-                }
-                else if (eventType == ix::CobraConnection_EventType_Authenticated)
+                for (auto it : headers)
                 {
-                    spdlog::info("Subscriber authenticated");
-                    spdlog::info("Subscribing to {} at position {}", channel, subscriptionPosition);
-                    conn.subscribe(channel,
-                                   filter,
-                                   subscriptionPosition,
-                                   [&jsonWriter, &quiet, &msgPerSeconds, &msgCount, &fluentd, &subscriptionPosition](
-                                       const Json::Value& msg, const std::string& position) {
-                                       if (!quiet)
-                                       {
-                                           writeToStdout(fluentd, jsonWriter, msg, position);
-                                       }
+                    spdlog::info("{}: {}", it.first, it.second);
+                }
+            }
+            else if (eventType == ix::CobraConnection_EventType_Authenticated)
+            {
+                spdlog::info("Subscriber authenticated");
+                spdlog::info("Subscribing to {} at position {}", channel, subscriptionPosition);
+                conn.subscribe(
+                    channel,
+                    filter,
+                    subscriptionPosition,
+                    [&jsonWriter,
+                     &quiet,
+                     &msgPerSeconds,
+                     &msgCount,
+                     &fluentd,
+                     &subscriptionPosition](const Json::Value& msg, const std::string& position) {
+                        if (!quiet)
+                        {
+                            writeToStdout(fluentd, jsonWriter, msg, position);
+                        }
 
-                                       msgPerSeconds++;
-                                       msgCount++;
+                        msgPerSeconds++;
+                        msgCount++;
 
-                                       subscriptionPosition = position;
-                                   });
-                }
-                else if (eventType == ix::CobraConnection_EventType_Subscribed)
-                {
-                    spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
-                {
-                    spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Error)
-                {
-                    spdlog::error("Subscriber: error {}", errMsg);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Published)
-                {
-                    spdlog::error("Published message hacked: {}", msgId);
-                }
-                else if (eventType == ix::CobraConnection_EventType_Pong)
-                {
-                    spdlog::info("Received websocket pong");
-                }
-            });
+                        subscriptionPosition = position;
+                    });
+            }
+            else if (eventType == ix::CobraConnection_EventType_Subscribed)
+            {
+                spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+            {
+                spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Error)
+            {
+                spdlog::error("Subscriber: error {}", errMsg);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Published)
+            {
+                spdlog::error("Published message hacked: {}", msgId);
+            }
+            else if (eventType == ix::CobraConnection_EventType_Pong)
+            {
+                spdlog::info("Received websocket pong");
+            }
+        });
 
         while (true)
         {

@@ -9,8 +9,8 @@
 #include "IXGetFreePort.h"
 #include <iostream>
 #include <ixsnake/IXAppConfig.h>
-#include <ixwebsocket/IXWebSocketServer.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
+#include <ixwebsocket/IXWebSocketServer.h>
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include <sstream>

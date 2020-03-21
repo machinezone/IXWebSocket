@@ -224,10 +224,9 @@ namespace ix
         return true;
     }
 
-    bool SocketOpenSSL::openSSLClientHandshake(
-        const std::string& host,
-        std::string& errMsg,
-        const CancellationRequest& isCancellationRequested)
+    bool SocketOpenSSL::openSSLClientHandshake(const std::string& host,
+                                               std::string& errMsg,
+                                               const CancellationRequest& isCancellationRequested)
     {
         while (true)
         {

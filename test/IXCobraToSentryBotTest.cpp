@@ -150,10 +150,7 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         //        -> https://github.com/openssl/openssl/issues/7967
         // https://xxxxx:yyyyyy@sentry.io/1234567
         std::stringstream oss;
-        oss << getHttpScheme()
-            << "xxxxxxx:yyyyyyy@localhost:" 
-            << sentryPort
-            << "/1234567";
+        oss << getHttpScheme() << "xxxxxxx:yyyyyyy@localhost:" << sentryPort << "/1234567";
         std::string dsn = oss.str();
 
         SocketTLSOptions tlsOptionsClient = makeClientTLSOptions();

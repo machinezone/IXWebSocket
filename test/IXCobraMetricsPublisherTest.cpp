@@ -77,18 +77,20 @@ namespace
                 std::string filter;
                 std::string position("$");
 
-                conn.subscribe(
-                    channel, filter, position, [](const Json::Value& msg, const std::string& /*position*/) {
-                        log(msg.toStyledString());
+                conn.subscribe(channel,
+                               filter,
+                               position,
+                               [](const Json::Value& msg, const std::string& /*position*/) {
+                                   log(msg.toStyledString());
 
-                        std::string id = msg["id"].asString();
-                        {
-                            std::lock_guard<std::mutex> guard(gProtectIds);
-                            gIds.insert(id);
-                        }
+                                   std::string id = msg["id"].asString();
+                                   {
+                                       std::lock_guard<std::mutex> guard(gProtectIds);
+                                       gIds.insert(id);
+                                   }
 
-                        gMessageCount++;
-                    });
+                                   gMessageCount++;
+                               });
             }
             else if (eventType == ix::CobraConnection_EventType_Subscribed)
             {

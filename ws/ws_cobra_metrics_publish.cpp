@@ -30,8 +30,7 @@ namespace ix
 
         CobraMetricsPublisher cobraMetricsPublisher;
         cobraMetricsPublisher.enable(true);
-        cobraMetricsPublisher.configure(config,
-                                        channel);
+        cobraMetricsPublisher.configure(config, channel);
 
         while (!cobraMetricsPublisher.isAuthenticated())
             ;
