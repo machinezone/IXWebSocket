@@ -11,7 +11,6 @@
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXCancellationRequest.h>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <vector>
 
@@ -187,12 +186,6 @@ namespace ix
 
             tokens.push_back(readResult.second);
         }
-
-        for (auto&& token : tokens)
-        {
-            std::cerr << token << " ";
-        }
-        std::cerr << std::endl;
 
         return true;
     }
