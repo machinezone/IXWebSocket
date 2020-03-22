@@ -28,7 +28,7 @@ TEST_EXE_PATH = None
 
 class Command(object):
     """Run system commands with timeout
-    
+
     From http://www.bo-yang.net/2016/12/01/python-run-command-with-timeout
     Python3 might have a builtin way to do that.
     """
@@ -42,7 +42,7 @@ class Command(object):
 
     def run(self, timeout=None):
         '''5 minutes default timeout'''
-        
+
         if timeout is None:
             timeout = 5 * 60
 
@@ -175,9 +175,9 @@ def log(msg, color):
 
 
 def isSuccessFullRun(output):
-    '''When being run from lldb, we cannot capture the exit code 
-    so we have to parse the output which is produced in a 
-    consistent way. Whenever we'll be on a recent enough version of lldb we 
+    '''When being run from lldb, we cannot capture the exit code
+    so we have to parse the output which is produced in a
+    consistent way. Whenever we'll be on a recent enough version of lldb we
     won't have to do this.
     '''
     pid = None
@@ -212,9 +212,9 @@ def testLLDBOutput():
     ]
 
     failedOutputWithFailedUnittest = [
-        '===============================================================================', 
-        'test cases:  1 |  0 passed | 1 failed', 'assertions: 15 | 14 passed | 1 failed', 
-        '', 
+        '===============================================================================',
+        'test cases:  1 |  0 passed | 1 failed', 'assertions: 15 | 14 passed | 1 failed',
+        '',
         'Process 279 exited with status = 1 (0x00000001) ',
         '',
         "Process 279 launched: '/Users/bsergeant/src/foss/ixwebsocket/test/build/Darwin/ixwebsocket_unittest' (x86_64)"
@@ -306,9 +306,9 @@ def prettyPrintXML(root):
 
 def generateXmlOutput(results, xmlOutput, testRunName, runTime):
     '''Generate a junit compatible XML file
-    
+
     We prefer doing this ourself instead of letting Catch2 do it.
-    When the test is crashing (as has happened on Jenkins), an invalid file 
+    When the test is crashing (as has happened on Jenkins), an invalid file
     with no trailer can be created which trigger an XML reading error in validateTestSuite.
 
     Something like that:
@@ -513,7 +513,7 @@ def main():
         print('LLDB is only supported on Apple at this point')
         args.lldb = False
 
-    return run(args.test, buildDir, sanitizer, xmlOutput, 
+    return run(args.test, buildDir, sanitizer, xmlOutput,
                testRunName, args.build_only, args.lldb, args.cpu_count, args.run_only)
 
 

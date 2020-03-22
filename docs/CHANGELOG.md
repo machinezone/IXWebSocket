@@ -121,7 +121,7 @@ ws_connect: connection closed: code 1000 reason Normal closure
 
 ## [8.0.6] - 2020-01-31
 
-(snake) add an option to disable answering pongs as response to pings, to test cobra client behavior with hanged connections 
+(snake) add an option to disable answering pongs as response to pings, to test cobra client behavior with hanged connections
 
 ## [8.0.5] - 2020-01-31
 

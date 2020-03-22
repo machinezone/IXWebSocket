@@ -823,7 +823,7 @@ $ honcho start
 15:29:57 send.1             | [2020-01-05 15:29:57.399] [info] ws_send: received message (25183026 bytes)
 15:29:57 send.1             | [2020-01-05 15:29:57.399] [info] ws_send: Done !
 15:29:59 send.1             | [2020-01-05 15:29:59.233] [info] ws_send: connection closed: code 1000 reason Normal closure
-15:29:59 send.1             | 
+15:29:59 send.1             |
 15:29:59 system             | send.1 stopped (rc=0)
 15:29:59 system             | sending SIGTERM to nginx.1 (pid 75372)
 15:29:59 system             | sending SIGTERM to websocket_server.1 (pid 75374)

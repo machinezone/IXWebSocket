@@ -39,7 +39,7 @@ fi
 cd /tmp/ws_test
 ws transfer --port 8090 ${server_tls} --pidfile /tmp/ws_test/pidfile.transfer &
 
-# Wait until the transfer server is up 
+# Wait until the transfer server is up
 while true
 do
     nc -zv 127.0.0.1 8090 && {
@@ -60,7 +60,7 @@ cd /tmp/ws_test/send
 dd if=/dev/urandom of=/tmp/ws_test/send/20M_file count=20000 bs=1024
 
 # Start the sender job
-ws send ${client_tls} --pidfile /tmp/ws_test/pidfile.send "${protocol}127.0.0.1:8090" /tmp/ws_test/send/20M_file 
+ws send ${client_tls} --pidfile /tmp/ws_test/pidfile.send "${protocol}127.0.0.1:8090" /tmp/ws_test/send/20M_file
 
 # Wait until the file has been written to disk
 while true

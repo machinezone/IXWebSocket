@@ -7,7 +7,7 @@ generate_key() {
     local path=${1}
     local base=${2}
     local type=${3:-'rsa'} # "ec" or "rsa"
-    
+
     mkdir -p ${path}
     if [[ "${type}" == "rsa" ]]; then
         openssl genrsa -out "${path}/${base}-key.pem"
@@ -24,7 +24,7 @@ generate_ca() {
     local base="${2:-'root-ca'}"
     local type="${3:-'rsa'}" # "ec" or "rsa"
     local org="${4:-'/O=machinezone/O=IXWebSocket'}"
-    
+
     mkdir -p ${path}
 
     generate_key "${path}" "${base}" "${type}"
@@ -54,14 +54,14 @@ generate_cert() {
         -key "${path}/${base}-key.pem" \
         -subj "${org}/CN=${base}" \
         -out "${path}/${base}.csr"
-    
+
 
     if [ "${base}" == "${cabase}" ]; then
         # self-signed
         openssl x509 -req -in "${path}/${base}.csr" \
             -signkey "${path}/${base}-key.pem" -days 365 -sha256 \
             -extfile <(printf "subjectAltName=${san}") \
-            -outform PEM -out "${path}/${base}-crt.pem" 
+            -outform PEM -out "${path}/${base}-crt.pem"
     else
         openssl x509 -req -in ${path}/${base}.csr \
             -CA "${path}/${cabase}-crt.pem" \
@@ -82,7 +82,7 @@ type=${2:-'rsa'}
 org=${3:-'/O=machinezone/O=IXWebSocket'}
 
 if ! which openssl &>/dev/null; then
-    
+
     if ! grep -qa -E 'docker|lxc' /proc/1/cgroup; then
         # launch a container with openssl and run this script there
         docker run --rm -i -v $(pwd):/work alpine sh -c "apk add bash openssl && /work/generate_certs.sh /work/${outdir} && chown -R $(id -u):$(id -u) /work/${outdir}"
@@ -90,9 +90,9 @@ if ! which openssl &>/dev/null; then
         echo "Please install openssl in this container to generate test certs, or launch outside of docker" >&2 && exit 1
     fi
 else
-    
+
     generate_ca   "${outdir}" "trusted-ca" "${type}" "${org}"
-    
+
     generate_cert "${outdir}" "trusted-server" "trusted-ca" "${type}" "${org}"
     generate_cert "${outdir}" "trusted-client" "trusted-ca" "${type}" "${org}"
 

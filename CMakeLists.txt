@@ -122,7 +122,7 @@ if (USE_TLS)
         option(USE_MBED_TLS "Use Mbed TLS" OFF)
     endif()
     option(USE_OPEN_SSL "Use OpenSSL" OFF)
-    
+
     if (USE_MBED_TLS)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketMbedTLS.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketMbedTLS.cpp)

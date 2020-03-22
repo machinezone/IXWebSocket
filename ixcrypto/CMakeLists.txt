@@ -23,7 +23,7 @@ add_library(ixcrypto STATIC
     ${IXCRYPTO_HEADERS}
 )
 
-set(IXCRYPTO_INCLUDE_DIRS 
+set(IXCRYPTO_INCLUDE_DIRS
     .
     ../ixcore)
 
@@ -47,4 +47,3 @@ else()
     target_link_libraries(ixcrypto ${OPENSSL_LIBRARIES})
     target_compile_definitions(ixcrypto PUBLIC IXCRYPTO_USE_OPEN_SSL)
 endif()
-

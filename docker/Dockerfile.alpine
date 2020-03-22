@@ -1,10 +1,10 @@
 FROM alpine:3.11 as build
 
-RUN apk add --no-cache gcc g++ musl-dev linux-headers cmake openssl-dev 
+RUN apk add --no-cache gcc g++ musl-dev linux-headers cmake openssl-dev
 RUN apk add --no-cache make
 RUN apk add --no-cache zlib-dev
 
-RUN addgroup -S app && adduser -S -G app app 
+RUN addgroup -S app && adduser -S -G app app
 RUN chown -R app:app /opt
 RUN chown -R app:app /usr/local
 
@@ -23,7 +23,7 @@ RUN apk add --no-cache libstdc++
 RUN apk add --no-cache strace
 RUN apk add --no-cache gdb
 
-RUN addgroup -S app && adduser -S -G app app 
+RUN addgroup -S app && adduser -S -G app app
 COPY --chown=app:app --from=build /usr/local/bin/ws /usr/local/bin/ws
 RUN chmod +x /usr/local/bin/ws
 RUN ldd /usr/local/bin/ws

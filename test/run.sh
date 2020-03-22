@@ -1,6 +1,6 @@
 #!/bin/sh
 
-mkdir build 
+mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug .. || exit 1
 make || exit 1

@@ -47,12 +47,12 @@ vcpkg install ixwebsocket
 
 Conan is currently supported through a recipe in [Conan Center](https://github.com/conan-io/conan-center-index/tree/master/recipes/ixwebsocket) ([Bintray entry](https://bintray.com/conan/conan-center/ixwebsocket%3A_)).
 
-Package reference 
+Package reference
 
 * Conan 1.21.0 and up: `ixwebsocket/7.9.2`
 * Earlier versions: `ixwebsocket/7.9.2@_/_`
 
-Note that the version listed here might not be the latest one. See Bintray or the recipe itself for the latest version. If you're migrating from the previous, custom Bintray remote, note that the package reference _has_ to be lower-case.  
+Note that the version listed here might not be the latest one. See Bintray or the recipe itself for the latest version. If you're migrating from the previous, custom Bintray remote, note that the package reference _has_ to be lower-case.
 
 ### Docker
 

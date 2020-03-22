@@ -39,5 +39,3 @@ start_server = websockets.serve(echo, host, 8766, max_size=2 ** 30, ssl=ssl_cont
 
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
-
-

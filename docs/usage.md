@@ -465,4 +465,3 @@ For a client, specifying `caFile` can be used if connecting to a server that use
 For a server, specifying `caFile` implies that:
 1. You require clients to present a certificate
 1. It must be signed by one of the trusted roots in the file
-

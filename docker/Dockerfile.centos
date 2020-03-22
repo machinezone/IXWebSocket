@@ -1,6 +1,6 @@
 FROM centos:8 as build
 
-RUN yum install -y gcc-c++ make cmake zlib-devel openssl-devel redhat-rpm-config 
+RUN yum install -y gcc-c++ make cmake zlib-devel openssl-devel redhat-rpm-config
 
 RUN yum install -y epel-release
 RUN yum install -y mbedtls-devel

@@ -73,5 +73,3 @@ Here is a simplistic diagram which explains how the code is structured in term o
 |                       |
 +-----------------------+
 ```
-
-

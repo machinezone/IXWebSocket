@@ -37,7 +37,7 @@ if (NOT JSONCPP_FOUND)
   set(JSONCPP_SOURCES ../third_party/jsoncpp/jsoncpp.cpp)
 endif()
 
-add_executable(ws 
+add_executable(ws
   ../third_party/msgpack11/msgpack11.cpp
   ${STATSD_CLIENT_SOURCES}
   ${JSONCPP_SOURCES}
