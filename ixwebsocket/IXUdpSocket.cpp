@@ -7,28 +7,13 @@
 #include "IXUdpSocket.h"
 
 #include "IXNetSystem.h"
-#include "IXSelectInterrupt.h"
-#include "IXSelectInterruptFactory.h"
-#include "IXSocketConnect.h"
-#include <algorithm>
-#include <assert.h>
-#include <fcntl.h>
 #include <sstream>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-
-#ifdef min
-#undef min
-#endif
+#include <strings.h>
 
 namespace ix
 {
     UdpSocket::UdpSocket(int fd)
         : _sockfd(fd)
-        , _selectInterrupt(createSelectInterrupt())
     {
         ;
     }
@@ -40,8 +25,6 @@ namespace ix
 
     void UdpSocket::close()
     {
-        std::lock_guard<std::mutex> lock(_socketMutex);
-
         if (_sockfd == -1) return;
 
         closeSocket(_sockfd);
@@ -59,18 +42,6 @@ namespace ix
 #endif
 
         return err;
-    }
-
-    bool UdpSocket::isWaitNeeded()
-    {
-        int err = getErrno();
-
-        if (err == EWOULDBLOCK || err == EAGAIN || err == EINPROGRESS)
-        {
-            return true;
-        }
-
-        return false;
     }
 
     void UdpSocket::closeSocket(int fd)

@@ -39,12 +39,15 @@
 
 #include "IXStatsdClient.h"
 
+#include <ixwebsocket/IXNetSystem.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 namespace ix
 {
+    const uint64_t StatsdClient::_maxQueueSize = 32768;
+
     StatsdClient::StatsdClient(const std::string& host,
                                int port,
                                const std::string& prefix)
@@ -56,18 +59,18 @@ namespace ix
         _thread = std::thread([this] {
             while (!_stop)
             {
-                std::deque<std::string> staged_message_queue;
+                std::deque<std::string> stagedQueue;
 
                 {
                     std::lock_guard<std::mutex> lock(_mutex);
-                    batching_message_queue_.swap(staged_message_queue);
+                    _queue.swap(stagedQueue);
                 }
 
-                while (!staged_message_queue.empty())
+                while (!stagedQueue.empty())
                 {
-                    auto message = staged_message_queue.front();
+                    auto message = stagedQueue.front();
                     _socket.sendto(message);
-                    staged_message_queue.pop_front();
+                    stagedQueue.pop_front();
                 }
 
                 std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -139,14 +142,14 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        if (batching_message_queue_.empty() ||
-            batching_message_queue_.back().length() > max_batching_size)
+        if (_queue.empty() ||
+            _queue.back().length() > _maxQueueSize)
         {
-            batching_message_queue_.push_back(message);
+            _queue.push_back(message);
         }
         else
         {
-            (*batching_message_queue_.rbegin()).append("\n").append(message);
+            (*_queue.rbegin()).append("\n").append(message);
         }
 
         return 0;

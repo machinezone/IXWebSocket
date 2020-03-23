@@ -36,6 +36,7 @@ set(IXBOTS_INCLUDE_DIRS
     .
     ..
     ../ixcore
+    ../ixwebsocket
     ../ixcobra
     ../ixsentry
     ${JSONCPP_INCLUDE_DIRS}

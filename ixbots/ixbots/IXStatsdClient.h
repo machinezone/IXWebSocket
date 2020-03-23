@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXUdpSocket.h>
 
 #include <string>
@@ -15,9 +14,10 @@
 #include <mutex>
 #include <atomic>
 
-namespace ix {
-
-    class StatsdClient {
+namespace ix
+{
+    class StatsdClient
+    {
     public:
         StatsdClient(const std::string& host="127.0.0.1",
                      int port=8125,
@@ -55,8 +55,8 @@ namespace ix {
         std::thread _thread;
         std::mutex _mutex; // for the queue
 
-        std::deque<std::string> batching_message_queue_;
-        const uint64_t max_batching_size = 32768;
+        std::deque<std::string> _queue;
+        static const uint64_t _maxQueueSize;
     };
 
 } // end namespace ix
