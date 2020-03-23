@@ -89,8 +89,12 @@ namespace ix
 
         if (in.empty())
         {
-            uint8_t buf[6] = {0x02, 0x00, 0x00, 0x00, 0xff, 0xff};
-            out.append((char*) (buf), 6);
+            // See issue #167
+            // The normal buffer size should be 6 but
+            // we remove the 4 octets from the tail (#4)
+            uint8_t buf[2] = {0x02, 0x00};
+            out.append((char*) (buf), 2);
+
             return true;
         }
 

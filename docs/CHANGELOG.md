@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.3.4] - 2020-03-23
+
+(websocket) fix #167, a long standing issue with sending empty messages with per-message deflate extension (and hopefully other zlib bug)
+
 ## [8.3.3] - 2020-03-22
 
 (cobra to statsd) port to windows and add a unittest

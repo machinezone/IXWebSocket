@@ -7,8 +7,8 @@
 #include "IXUdpSocket.h"
 
 #include "IXNetSystem.h"
-#include <sstream>
 #include <cstring>
+#include <sstream>
 
 namespace ix
 {
