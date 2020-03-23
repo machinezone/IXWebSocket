@@ -60,13 +60,14 @@ add_executable(ws
   ws_dns_lookup.cpp
   ws.cpp)
 
+# library with the most dependencies come first
+target_link_libraries(ws ixbots)
 target_link_libraries(ws ixsnake)
 target_link_libraries(ws ixcobra)
+target_link_libraries(ws ixsentry)
 target_link_libraries(ws ixwebsocket)
 target_link_libraries(ws ixcrypto)
 target_link_libraries(ws ixcore)
-target_link_libraries(ws ixsentry)
-target_link_libraries(ws ixbots)
 
 target_link_libraries(ws spdlog)
 

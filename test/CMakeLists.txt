@@ -96,13 +96,14 @@ if (JSONCPP_FOUND)
   target_link_libraries(ixwebsocket_unittest ${JSONCPP_LIBRARIES})
 endif()
 
+# library with the most dependencies come first
+target_link_libraries(ixwebsocket_unittest ixbots)
 target_link_libraries(ixwebsocket_unittest ixsnake)
 target_link_libraries(ixwebsocket_unittest ixcobra)
+target_link_libraries(ixwebsocket_unittest ixsentry)
 target_link_libraries(ixwebsocket_unittest ixwebsocket)
 target_link_libraries(ixwebsocket_unittest ixcrypto)
 target_link_libraries(ixwebsocket_unittest ixcore)
-target_link_libraries(ixwebsocket_unittest ixsentry)
-target_link_libraries(ixwebsocket_unittest ixbots)
 
 target_link_libraries(ixwebsocket_unittest spdlog)
 
