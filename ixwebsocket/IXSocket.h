@@ -66,7 +66,7 @@ namespace ix
         // Virtual methods
         virtual bool accept(std::string& errMsg);
 
-        virtual bool connect(const std::string& url,
+        virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg,
                              const CancellationRequest& isCancellationRequested);

@@ -21,15 +21,10 @@ option(USE_TLS "Add TLS support" ON)
 include_directories(ws .)
 include_directories(ws ..)
 include_directories(ws ../third_party)
-include_directories(ws ../third_party/statsd-client-cpp/src)
 include_directories(ws ../third_party/spdlog/include)
 include_directories(ws ../third_party/cpp-linenoise)
 
 add_definitions(-DSPDLOG_COMPILED_LIB=1)
-
-if (UNIX)
-  set( STATSD_CLIENT_SOURCES ../third_party/statsd-client-cpp/src/statsd_client.cpp)
-endif()
 
 find_package(JsonCpp)
 if (NOT JSONCPP_FOUND)
@@ -39,7 +34,6 @@ endif()
 
 add_executable(ws
   ../third_party/msgpack11/msgpack11.cpp
-  ${STATSD_CLIENT_SOURCES}
   ${JSONCPP_SOURCES}
 
   ws_http_client.cpp

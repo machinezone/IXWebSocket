@@ -6,6 +6,7 @@
 
 #include "IXCobraToStatsdBot.h"
 #include "IXQueueManager.h"
+#include "IXStatsdClient.h"
 
 #include <atomic>
 #include <chrono>
@@ -15,10 +16,6 @@
 #include <sstream>
 #include <thread>
 #include <vector>
-
-#ifndef _WIN32
-#include <statsd_client.h>
-#endif
 
 namespace ix
 {
@@ -63,11 +60,12 @@ namespace ix
                             const std::string& channel,
                             const std::string& filter,
                             const std::string& position,
-                            const std::string& host,
-                            int port,
-                            const std::string& prefix,
+                            StatsdClient& statsdClient,
                             const std::string& fields,
-                            bool verbose)
+                            bool verbose,
+                            size_t maxQueueSize,
+                            bool enableHeartbeat,
+                            int runtime)
     {
         ix::CobraConnection conn;
         conn.configure(config);
@@ -80,11 +78,10 @@ namespace ix
         std::atomic<uint64_t> receivedCount(0);
         std::atomic<bool> stop(false);
 
-        size_t maxQueueSize = 1000;
         QueueManager queueManager(maxQueueSize);
 
-        auto timer = [&sentCount, &receivedCount] {
-            while (true)
+        auto timer = [&sentCount, &receivedCount, &stop] {
+            while (!stop)
             {
                 spdlog::info("messages received {} sent {}", receivedCount, sentCount);
 
@@ -95,8 +92,10 @@ namespace ix
 
         std::thread t1(timer);
 
-        auto heartbeat = [&sentCount, &receivedCount] {
+        auto heartbeat = [&sentCount, &receivedCount, &enableHeartbeat] {
             std::string state("na");
+
+            if (!enableHeartbeat) return;
 
             while (true)
             {
@@ -120,21 +119,13 @@ namespace ix
 
         std::thread t2(heartbeat);
 
-        auto statsdSender = [&queueManager, &host, &port, &sentCount, &tokens, &prefix, &stop] {
-            // statsd client
-            // test with netcat as a server: `nc -ul 8125`
-            bool statsdBatch = true;
-#ifndef _WIN32
-            statsd::StatsdClient statsdClient(host, port, prefix, statsdBatch);
-#else
-            int statsdClient;
-#endif
+        auto statsdSender = [&statsdClient, &queueManager, &sentCount, &tokens, &stop] {
             while (true)
             {
                 Json::Value msg = queueManager.pop();
 
-                if (msg.isNull()) continue;
                 if (stop) return;
+                if (msg.isNull()) continue;
 
                 std::string id;
                 for (auto&& attr : tokens)
@@ -143,11 +134,8 @@ namespace ix
                     id += extractAttr(attr, msg);
                 }
 
-                sentCount += 1;
-
-#ifndef _WIN32
                 statsdClient.count(id, 1);
-#endif
+                sentCount += 1;
             }
         };
 
@@ -214,12 +202,38 @@ namespace ix
                 }
             });
 
-        while (true)
+        // Run forever
+        if (runtime == -1)
         {
-            std::chrono::duration<double, std::milli> duration(1000);
-            std::this_thread::sleep_for(duration);
+            while (true)
+            {
+                auto duration = std::chrono::seconds(1);
+                std::this_thread::sleep_for(duration);
+            }
+        }
+        // Run for a duration, used by unittesting now
+        else
+        {
+            for (int i = 0 ; i < runtime; ++i)
+            {
+                auto duration = std::chrono::seconds(1);
+                std::this_thread::sleep_for(duration);
+            }
         }
 
-        return 0;
+        //
+        // Cleanup.
+        // join all the bg threads and stop them.
+        //
+        conn.disconnect();
+        stop = true;
+
+        t1.join();
+        if (t2.joinable()) t2.join();
+        spdlog::info("heartbeat thread done");
+
+        t3.join();
+
+        return (int) sentCount;
     }
 } // namespace ix

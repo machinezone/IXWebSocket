@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [8.3.3] - 2020-03-22
+
+(cobra to statsd) port to windows and add a unittest
+
 ## [8.3.2] - 2020-03-20
 
 (websocket+tls) fix hang in tls handshake which could lead to ANR, discovered through unittesting.

@@ -40,31 +40,31 @@ set (SOURCES
   IXGetFreePort.cpp
   ../third_party/msgpack11/msgpack11.cpp
 
-  IXSocketTest.cpp
-  IXSocketConnectTest.cpp
-  IXWebSocketServerTest.cpp
-  IXWebSocketTestConnectionDisconnection.cpp
-  IXUrlParserTest.cpp
-  IXWebSocketServerTest.cpp
-  IXHttpClientTest.cpp
-  IXHttpServerTest.cpp
-  IXUnityBuildsTest.cpp
-  IXHttpTest.cpp
-  IXDNSLookupTest.cpp
-  IXWebSocketSubProtocolTest.cpp
-  IXSentryClientTest.cpp
-  IXWebSocketChatTest.cpp
+  #IXSocketTest.cpp
+  #IXSocketConnectTest.cpp
+  #IXWebSocketServerTest.cpp
+  #IXWebSocketTestConnectionDisconnection.cpp
+  #IXUrlParserTest.cpp
+  #IXWebSocketServerTest.cpp
+  #IXHttpClientTest.cpp
+  #IXHttpServerTest.cpp
+  #IXUnityBuildsTest.cpp
+  #IXHttpTest.cpp
+  #IXDNSLookupTest.cpp
+  #IXWebSocketSubProtocolTest.cpp
+  #IXSentryClientTest.cpp
+  #IXWebSocketChatTest.cpp
 )
 
 # Some unittest don't work on windows yet
+# Windows without TLS does not have hmac yet
 if (UNIX)
   list(APPEND SOURCES
-    IXWebSocketCloseTest.cpp
-
-    # Windows without TLS does not have hmac yet
-    IXCobraChatTest.cpp
-    IXCobraMetricsPublisherTest.cpp
-    IXCobraToSentryBotTest.cpp
+    # IXWebSocketCloseTest.cpp
+    # IXCobraChatTest.cpp
+    # IXCobraMetricsPublisherTest.cpp
+    # IXCobraToSentryBotTest.cpp
+    IXCobraToStatsdBotTest.cpp
   )
 endif()
 

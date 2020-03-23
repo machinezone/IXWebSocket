@@ -269,6 +269,9 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
     cobra2statsd->add_option("--filter", filter, "Stream SQL Filter");
     cobra2statsd->add_option("--position", position, "Stream position");
+    cobra2statsd->add_option("--queue_size",
+                             maxQueueSize,
+                             "Size of the queue to hold messages before they are sent to Sentry");
     addTLSOptions(cobra2statsd);
     addCobraConfig(cobra2statsd);
 
@@ -450,8 +453,20 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_to_statsd"))
     {
-        ret = ix::cobra_to_statsd_bot(
-            cobraConfig, channel, filter, position, hostname, statsdPort, prefix, fields, verbose);
+        bool enableHeartbeat = true;
+        int runtime = -1;
+        ix::StatsdClient statsdClient(hostname, statsdPort, prefix);
+
+        ret = ix::cobra_to_statsd_bot(cobraConfig,
+                                      channel,
+                                      filter,
+                                      position,
+                                      statsdClient,
+                                      fields,
+                                      verbose,
+                                      maxQueueSize,
+                                      enableHeartbeat,
+                                      runtime);
     }
     else if (app.got_subcommand("cobra_to_sentry"))
     {

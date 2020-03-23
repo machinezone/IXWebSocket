@@ -1,11 +1,12 @@
 /*
  *  IXCobraToStatsdBot.h
  *  Author: Benjamin Sergeant
- *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2019-2020 Machine Zone, Inc. All rights reserved.
  */
 #pragma once
 
 #include <ixcobra/IXCobraConfig.h>
+#include <ixbots/IXStatsdClient.h>
 #include <string>
 #include <stddef.h>
 
@@ -15,9 +16,10 @@ namespace ix
                             const std::string& channel,
                             const std::string& filter,
                             const std::string& position,
-                            const std::string& host,
-                            int port,
-                            const std::string& prefix,
+                            StatsdClient& statsdClient,
                             const std::string& fields,
-                            bool verbose);
+                            bool verbose,
+                            size_t maxQueueSize,
+                            bool enableHeartbeat,
+                            int runtime);
 } // namespace ix

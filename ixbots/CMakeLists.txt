@@ -7,12 +7,14 @@ set (IXBOTS_SOURCES
     ixbots/IXCobraToSentryBot.cpp
     ixbots/IXCobraToStatsdBot.cpp
     ixbots/IXQueueManager.cpp
+    ixbots/IXStatsdClient.cpp
 )
 
 set (IXBOTS_HEADERS
     ixbots/IXCobraToSentryBot.h
     ixbots/IXCobraToStatsdBot.h
     ixbots/IXQueueManager.h
+    ixbots/IXStatsdClient.h
 )
 
 add_library(ixbots STATIC
@@ -30,8 +32,6 @@ if (NOT SPDLOG_FOUND)
   set(SPDLOG_INCLUDE_DIRS ../third_party/spdlog/include)
 endif()
 
-set(STATSD_CLIENT_INCLUDE_DIRS ../third_party/statsd-client-cpp/src)
-
 set(IXBOTS_INCLUDE_DIRS
     .
     ..
@@ -39,7 +39,6 @@ set(IXBOTS_INCLUDE_DIRS
     ../ixcobra
     ../ixsentry
     ${JSONCPP_INCLUDE_DIRS}
-    ${SPDLOG_INCLUDE_DIRS}
-    ${STATSD_CLIENT_INCLUDE_DIRS})
+    ${SPDLOG_INCLUDE_DIRS})
 
 target_include_directories( ixbots PUBLIC ${IXBOTS_INCLUDE_DIRS} )

@@ -36,6 +36,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSocketFactory.cpp
     ixwebsocket/IXSocketServer.cpp
     ixwebsocket/IXSocketTLSOptions.cpp
+    ixwebsocket/IXUdpSocket.cpp
     ixwebsocket/IXUrlParser.cpp
     ixwebsocket/IXUserAgent.cpp
     ixwebsocket/IXWebSocket.cpp
@@ -69,6 +70,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSocketFactory.h
     ixwebsocket/IXSocketServer.h
     ixwebsocket/IXSocketTLSOptions.h
+    ixwebsocket/IXUdpSocket.h
     ixwebsocket/IXUrlParser.h
     ixwebsocket/IXUtf8Validator.h
     ixwebsocket/IXUserAgent.h

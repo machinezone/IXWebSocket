@@ -19,6 +19,10 @@
 
 #include "IXCobraConfig.h"
 
+#ifdef max
+#undef max
+#endif
+
 namespace ix
 {
     class WebSocket;
