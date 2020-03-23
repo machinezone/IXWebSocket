@@ -45,9 +45,9 @@
 
 namespace ix
 {
-    StatsdClient::StatsdClient(const string& host,
+    StatsdClient::StatsdClient(const std::string& host,
                                int port,
-                               const string& prefix)
+                               const std::string& prefix)
     : _host(host)
       , _port(port)
       , _prefix(prefix)
@@ -89,42 +89,42 @@ namespace ix
     }
 
     /* will change the original string */
-    void StatsdClient::cleanup(string& key)
+    void StatsdClient::cleanup(std::string& key)
     {
         size_t pos = key.find_first_of(":|@");
-        while (pos != string::npos)
+        while (pos != std::string::npos)
         {
             key[pos] = '_';
             pos = key.find_first_of(":|@");
         }
     }
 
-    int StatsdClient::dec(const string& key)
+    int StatsdClient::dec(const std::string& key)
     {
         return count(key, -1);
     }
 
-    int StatsdClient::inc(const string& key)
+    int StatsdClient::inc(const std::string& key)
     {
         return count(key, 1);
     }
 
-    int StatsdClient::count(const string& key, size_t value)
+    int StatsdClient::count(const std::string& key, size_t value)
     {
         return send(key, value, "c");
     }
 
-    int StatsdClient::gauge(const string& key, size_t value)
+    int StatsdClient::gauge(const std::string& key, size_t value)
     {
         return send(key, value, "g");
     }
 
-    int StatsdClient::timing(const string& key, size_t ms)
+    int StatsdClient::timing(const std::string& key, size_t ms)
     {
         return send(key, ms, "ms");
     }
 
-    int StatsdClient::send(string key, size_t value, const string &type)
+    int StatsdClient::send(std::string key, size_t value, const std::string &type)
     {
         cleanup(key);
 
@@ -135,7 +135,7 @@ namespace ix
         return send(buf);
     }
 
-    int StatsdClient::send(const string &message)
+    int StatsdClient::send(const std::string &message)
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
