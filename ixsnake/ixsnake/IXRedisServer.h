@@ -37,13 +37,13 @@ namespace ix
         // Subscribers
         // We could store connection states in there, to add better debugging
         // since a connection state has a readable ID
-        std::map<std::string, std::set<std::shared_ptr<Socket>>> _subscribers;
+        std::map<std::string, std::set<Socket*>> _subscribers;
         std::mutex _mutex;
 
         std::atomic<bool> _stopHandlingConnections;
 
         // Methods
-        virtual void handleConnection(std::shared_ptr<Socket>,
+        virtual void handleConnection(std::unique_ptr<Socket>,
                                       std::shared_ptr<ConnectionState> connectionState) final;
         virtual size_t getConnectedClientsCount() final;
 
@@ -51,18 +51,18 @@ namespace ix
         std::string writeString(const std::string& str);
 
         bool parseRequest(
-            std::shared_ptr<Socket> socket,
+            std::unique_ptr<Socket>& socket,
             std::vector<std::string>& tokens);
 
-        bool handlePublish(std::shared_ptr<Socket> socket,
+        bool handlePublish(std::unique_ptr<Socket>& socket,
                            const std::vector<std::string>& tokens);
 
-        bool handleSubscribe(std::shared_ptr<Socket> socket,
+        bool handleSubscribe(std::unique_ptr<Socket>& socket,
                              const std::vector<std::string>& tokens);
 
-        bool handleCommand(std::shared_ptr<Socket> socket,
+        bool handleCommand(std::unique_ptr<Socket>& socket,
                            const std::vector<std::string>& tokens);
 
-        void cleanupSubscribers(std::shared_ptr<Socket> socket);
+        void cleanupSubscribers(std::unique_ptr<Socket>& socket);
     };
 } // namespace ix

@@ -92,7 +92,7 @@ namespace ix
         return std::make_tuple(method, requestUri, httpVersion);
     }
 
-    std::tuple<bool, std::string, HttpRequestPtr> Http::parseRequest(std::shared_ptr<Socket> socket)
+    std::tuple<bool, std::string, HttpRequestPtr> Http::parseRequest(std::unique_ptr<Socket>& socket)
     {
         HttpRequestPtr httpRequest;
 
@@ -133,7 +133,7 @@ namespace ix
         return std::make_tuple(true, "", httpRequest);
     }
 
-    bool Http::sendResponse(HttpResponsePtr response, std::shared_ptr<Socket> socket)
+    bool Http::sendResponse(HttpResponsePtr response, std::unique_ptr<Socket>& socket)
     {
         // Write the response to the socket
         std::stringstream ss;

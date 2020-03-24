@@ -11,10 +11,10 @@
 #include <memory>
 #include <string>
 
+#include <ixwebsocket/IXSocket.h>
+
 namespace ix
 {
-    class Socket;
-
     class RedisClient
     {
     public:
@@ -57,7 +57,7 @@ namespace ix
     private:
         std::string writeString(const std::string& str);
 
-        std::shared_ptr<Socket> _socket;
+        std::unique_ptr<Socket> _socket;
         std::atomic<bool> _stop;
     };
 } // namespace ix

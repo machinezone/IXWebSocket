@@ -43,7 +43,7 @@ namespace ix
         SocketServer::stop();
     }
 
-    void RedisServer::handleConnection(std::shared_ptr<Socket> socket,
+    void RedisServer::handleConnection(std::unique_ptr<Socket> socket,
                                        std::shared_ptr<ConnectionState> connectionState)
     {
         _connectedClientsCount++;
@@ -102,13 +102,13 @@ namespace ix
         _connectedClientsCount--;
     }
 
-    void RedisServer::cleanupSubscribers(std::shared_ptr<Socket> socket)
+    void RedisServer::cleanupSubscribers(std::unique_ptr<Socket>& socket)
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
         for (auto&& it : _subscribers)
         {
-            it.second.erase(socket);
+            it.second.erase(socket.get());
         }
 
         for (auto it : _subscribers)
@@ -145,7 +145,7 @@ namespace ix
     }
 
     bool RedisServer::parseRequest(
-        std::shared_ptr<Socket> socket,
+        std::unique_ptr<Socket>& socket,
         std::vector<std::string>& tokens)
     {
         // Parse first line
@@ -191,7 +191,7 @@ namespace ix
     }
 
     bool RedisServer::handleCommand(
-        std::shared_ptr<Socket> socket,
+        std::unique_ptr<Socket>& socket,
         const std::vector<std::string>& tokens)
     {
         if (tokens.size() != 1) return false;
@@ -230,7 +230,7 @@ namespace ix
     }
 
     bool RedisServer::handleSubscribe(
-        std::shared_ptr<Socket> socket,
+        std::unique_ptr<Socket>& socket,
         const std::vector<std::string>& tokens)
     {
         if (tokens.size() != 2) return false;
@@ -245,13 +245,13 @@ namespace ix
         socket->writeBytes(":1\r\n", cb);
 
         std::lock_guard<std::mutex> lock(_mutex);
-        _subscribers[channel].insert(socket);
+        _subscribers[channel].insert(socket.get());
 
         return true;
     }
 
     bool RedisServer::handlePublish(
-        std::shared_ptr<Socket> socket,
+        std::unique_ptr<Socket>& socket,
         const std::vector<std::string>& tokens)
     {
         if (tokens.size() != 3) return false;

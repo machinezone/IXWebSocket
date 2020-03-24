@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.0.2] - 2020-03-24
+
+(socket) works with unique_ptr<Socket> instead of shared_ptr<Socket> in many places
+
 ## [9.0.1] - 2020-03-24
 
 (socket) selectInterrupt member is an unique_ptr instead of being a shared_ptr

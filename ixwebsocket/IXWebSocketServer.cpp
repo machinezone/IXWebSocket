@@ -71,7 +71,7 @@ namespace ix
         _onConnectionCallback = callback;
     }
 
-    void WebSocketServer::handleConnection(std::shared_ptr<Socket> socket,
+    void WebSocketServer::handleConnection(std::unique_ptr<Socket> socket,
                                            std::shared_ptr<ConnectionState> connectionState)
     {
         setThreadName("WebSocketServer::" + connectionState->getId());
@@ -96,7 +96,7 @@ namespace ix
             _clients.insert(webSocket);
         }
 
-        auto status = webSocket->connectToSocket(socket, _handshakeTimeoutSecs);
+        auto status = webSocket->connectToSocket(std::move(socket), _handshakeTimeoutSecs);
         if (status.success)
         {
             // Process incoming messages and execute callbacks

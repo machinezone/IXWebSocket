@@ -69,7 +69,7 @@ namespace ix
         _onConnectionCallback = callback;
     }
 
-    void HttpServer::handleConnection(std::shared_ptr<Socket> socket,
+    void HttpServer::handleConnection(std::unique_ptr<Socket> socket,
                                       std::shared_ptr<ConnectionState> connectionState)
     {
         _connectedClientsCount++;

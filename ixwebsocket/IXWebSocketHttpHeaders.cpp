@@ -32,7 +32,7 @@ namespace ix
     }
 
     std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(
-        std::shared_ptr<Socket> socket, const CancellationRequest& isCancellationRequested)
+        std::unique_ptr<Socket>& socket, const CancellationRequest& isCancellationRequested)
     {
         WebSocketHttpHeaders headers;
 

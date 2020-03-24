@@ -43,7 +43,7 @@ namespace ix
         std::atomic<int> _connectedClientsCount;
 
         // Methods
-        virtual void handleConnection(std::shared_ptr<Socket>,
+        virtual void handleConnection(std::unique_ptr<Socket>,
                                       std::shared_ptr<ConnectionState> connectionState) final;
         virtual size_t getConnectedClientsCount() final;
 

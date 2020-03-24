@@ -101,7 +101,7 @@ namespace ix
         // the factory to create ConnectionState objects
         ConnectionStateFactory _connectionStateFactory;
 
-        virtual void handleConnection(std::shared_ptr<Socket>,
+        virtual void handleConnection(std::unique_ptr<Socket>,
                                       std::shared_ptr<ConnectionState> connectionState) = 0;
         virtual size_t getConnectedClientsCount() = 0;
 

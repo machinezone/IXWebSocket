@@ -115,8 +115,8 @@ namespace ix
     {
     public:
         static std::tuple<bool, std::string, HttpRequestPtr> parseRequest(
-            std::shared_ptr<Socket> socket);
-        static bool sendResponse(HttpResponsePtr response, std::shared_ptr<Socket> socket);
+            std::unique_ptr<Socket>& socket);
+        static bool sendResponse(HttpResponsePtr response, std::unique_ptr<Socket>& socket);
 
         static std::pair<std::string, int> parseStatusLine(const std::string& line);
         static std::tuple<std::string, std::string, std::string> parseRequestLine(

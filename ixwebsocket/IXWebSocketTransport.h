@@ -83,7 +83,7 @@ namespace ix
                                          int timeoutSecs);
 
         // Server
-        WebSocketInitResult connectToSocket(std::shared_ptr<Socket> socket, int timeoutSecs);
+        WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket, int timeoutSecs);
 
         PollResult poll();
         WebSocketSendInfo sendBinary(const std::string& message,
@@ -171,7 +171,7 @@ namespace ix
         static constexpr size_t kChunkSize = 1 << 15;
 
         // Underlying TCP socket
-        std::shared_ptr<Socket> _socket;
+        std::unique_ptr<Socket> _socket;
         std::mutex _socketMutex;
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)

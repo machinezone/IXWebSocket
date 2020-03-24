@@ -14,7 +14,7 @@
 namespace ix
 {
     class Socket;
-    std::shared_ptr<Socket> createSocket(bool tls,
+    std::unique_ptr<Socket> createSocket(bool tls,
                                          int fd,
                                          std::string& errorMsg,
                                          const SocketTLSOptions& tlsOptions);

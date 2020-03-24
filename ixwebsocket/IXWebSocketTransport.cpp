@@ -140,7 +140,7 @@ namespace ix
     }
 
     // Server
-    WebSocketInitResult WebSocketTransport::connectToSocket(std::shared_ptr<Socket> socket,
+    WebSocketInitResult WebSocketTransport::connectToSocket(std::unique_ptr<Socket> socket,
                                                             int timeoutSecs)
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
@@ -149,7 +149,7 @@ namespace ix
         _useMask = false;
         _blockingSend = true;
 
-        _socket = socket;
+        _socket = std::move(socket);
         _perMessageDeflate = std::make_unique<WebSocketPerMessageDeflate>();
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,

@@ -340,7 +340,7 @@ namespace ix
             std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
             _connectionsThreads.push_back(std::make_pair(
                 connectionState,
-                std::thread(&SocketServer::handleConnection, this, socket, connectionState)));
+                std::thread(&SocketServer::handleConnection, this, std::move(socket), connectionState)));
         }
     }
 

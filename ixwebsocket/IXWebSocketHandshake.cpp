@@ -21,7 +21,7 @@ namespace ix
 {
     WebSocketHandshake::WebSocketHandshake(
         std::atomic<bool>& requestInitCancellation,
-        std::shared_ptr<Socket> socket,
+        std::unique_ptr<Socket>& socket,
         WebSocketPerMessageDeflatePtr& perMessageDeflate,
         WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
         std::atomic<bool>& enablePerMessageDeflate)

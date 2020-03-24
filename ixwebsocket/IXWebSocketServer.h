@@ -59,7 +59,7 @@ namespace ix
         const static bool kDefaultEnablePong;
 
         // Methods
-        virtual void handleConnection(std::shared_ptr<Socket> socket,
+        virtual void handleConnection(std::unique_ptr<Socket> socket,
                                       std::shared_ptr<ConnectionState> connectionState) final;
         virtual size_t getConnectedClientsCount() final;
     };
