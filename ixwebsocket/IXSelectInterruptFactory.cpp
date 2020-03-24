@@ -14,12 +14,12 @@
 
 namespace ix
 {
-    std::shared_ptr<SelectInterrupt> createSelectInterrupt()
+    SelectInterruptPtr createSelectInterrupt()
     {
 #if defined(__linux__) || defined(__APPLE__)
-        return std::make_shared<SelectInterruptPipe>();
+        return std::make_unique<SelectInterruptPipe>();
 #else
-        return std::make_shared<SelectInterrupt>();
+        return std::make_unique<SelectInterrupt>();
 #endif
     }
 } // namespace ix

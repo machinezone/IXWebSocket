@@ -11,5 +11,6 @@
 namespace ix
 {
     class SelectInterrupt;
-    std::shared_ptr<SelectInterrupt> createSelectInterrupt();
+    using SelectInterruptPtr = std::unique_ptr<SelectInterrupt>;
+    SelectInterruptPtr createSelectInterrupt();
 } // namespace ix

@@ -9,6 +9,7 @@
 #include "IXDNSLookup.h"
 #include "IXNetSystem.h"
 #include "IXSocket.h"
+#include "IXSelectInterrupt.h"
 #include <fcntl.h>
 #include <string.h>
 #include <sys/types.h>
@@ -64,7 +65,8 @@ namespace ix
 
             int timeoutMs = 10;
             bool readyToRead = false;
-            PollResultType pollResult = Socket::poll(readyToRead, timeoutMs, fd);
+            auto selectInterrupt = std::make_unique<SelectInterrupt>();
+            PollResultType pollResult = Socket::poll(readyToRead, timeoutMs, fd, selectInterrupt);
 
             if (pollResult == PollResultType::Timeout)
             {

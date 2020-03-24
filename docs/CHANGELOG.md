@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.0.1] - 2020-03-24
+
+(socket) selectInterrupt member is an unique_ptr instead of being a shared_ptr
+
 ## [9.0.0] - 2020-03-23
 
 (websocket) reset per-message deflate codec everytime we connect to a server/client

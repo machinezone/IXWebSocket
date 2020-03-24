@@ -38,6 +38,7 @@ typedef SSIZE_T ssize_t;
 namespace ix
 {
     class SelectInterrupt;
+    using SelectInterruptPtr = std::unique_ptr<SelectInterrupt>;
 
     enum class PollResultType
     {
@@ -93,7 +94,7 @@ namespace ix
         static PollResultType poll(bool readyToRead,
                                    int timeoutMs,
                                    int sockfd,
-                                   std::shared_ptr<SelectInterrupt> selectInterrupt = nullptr);
+                                   const SelectInterruptPtr& selectInterrupt);
 
 
         // Used as special codes for pipe communication
@@ -112,6 +113,6 @@ namespace ix
         std::vector<uint8_t> _readBuffer;
         static constexpr size_t kChunkSize = 1 << 15;
 
-        std::shared_ptr<SelectInterrupt> _selectInterrupt;
+        SelectInterruptPtr _selectInterrupt;
     };
 } // namespace ix

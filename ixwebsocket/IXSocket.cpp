@@ -46,7 +46,7 @@ namespace ix
     PollResultType Socket::poll(bool readyToRead,
                                 int timeoutMs,
                                 int sockfd,
-                                std::shared_ptr<SelectInterrupt> selectInterrupt)
+                                const SelectInterruptPtr& selectInterrupt)
     {
         //
         // We used to use ::select to poll but on Android 9 we get large fds out of
