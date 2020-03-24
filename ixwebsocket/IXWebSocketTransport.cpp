@@ -117,6 +117,7 @@ namespace ix
         std::string errorMsg;
         bool tls = protocol == "wss";
         _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions);
+        _perMessageDeflate = std::make_unique<WebSocketPerMessageDeflate>();
 
         if (!_socket)
         {
@@ -149,6 +150,7 @@ namespace ix
         _blockingSend = true;
 
         _socket = socket;
+        _perMessageDeflate = std::make_unique<WebSocketPerMessageDeflate>();
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,
                                               _socket,
@@ -711,7 +713,7 @@ namespace ix
         if (compressedMessage && messageKind != MessageKind::FRAGMENT)
         {
             std::string decompressedMessage;
-            bool success = _perMessageDeflate.decompress(message, decompressedMessage);
+            bool success = _perMessageDeflate->decompress(message, decompressedMessage);
 
             if (messageKind == MessageKind::MSG_TEXT && !validateUtf8(decompressedMessage))
             {
@@ -765,7 +767,7 @@ namespace ix
 
         if (compress)
         {
-            if (!_perMessageDeflate.compress(message, compressedMessage))
+            if (!_perMessageDeflate->compress(message, compressedMessage))
             {
                 bool success = false;
                 compressionError = true;

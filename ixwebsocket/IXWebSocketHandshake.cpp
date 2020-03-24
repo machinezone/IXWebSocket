@@ -22,7 +22,7 @@ namespace ix
     WebSocketHandshake::WebSocketHandshake(
         std::atomic<bool>& requestInitCancellation,
         std::shared_ptr<Socket> socket,
-        WebSocketPerMessageDeflate& perMessageDeflate,
+        WebSocketPerMessageDeflatePtr& perMessageDeflate,
         WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
         std::atomic<bool>& enablePerMessageDeflate)
         : _requestInitCancellation(requestInitCancellation)
@@ -230,7 +230,7 @@ namespace ix
                 _enablePerMessageDeflate = false;
             }
             // Otherwise try to initialize the deflate engine (zlib)
-            else if (!_perMessageDeflate.init(webSocketPerMessageDeflateOptions))
+            else if (!_perMessageDeflate->init(webSocketPerMessageDeflateOptions))
             {
                 return WebSocketInitResult(
                     false, 0, "Failed to initialize per message deflate engine");
@@ -341,7 +341,7 @@ namespace ix
         {
             _enablePerMessageDeflate = true;
 
-            if (!_perMessageDeflate.init(webSocketPerMessageDeflateOptions))
+            if (!_perMessageDeflate->init(webSocketPerMessageDeflateOptions))
             {
                 return WebSocketInitResult(
                     false, 0, "Failed to initialize per message deflate engine");

@@ -57,4 +57,6 @@ namespace ix
         std::unique_ptr<WebSocketPerMessageDeflateCompressor> _compressor;
         std::unique_ptr<WebSocketPerMessageDeflateDecompressor> _decompressor;
     };
+
+    using WebSocketPerMessageDeflatePtr = std::unique_ptr<WebSocketPerMessageDeflate>;
 } // namespace ix

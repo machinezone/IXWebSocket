@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.0.0] - 2020-03-23
+
+(websocket) reset per-message deflate codec everytime we connect to a server/client
+
 ## [8.3.4] - 2020-03-23
 
 (websocket) fix #167, a long standing issue with sending empty messages with per-message deflate extension (and hopefully other zlib bug)

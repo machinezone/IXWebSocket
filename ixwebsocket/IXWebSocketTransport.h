@@ -185,7 +185,7 @@ namespace ix
         mutable std::mutex _closeDataMutex;
 
         // Data used for Per Message Deflate compression (with zlib)
-        WebSocketPerMessageDeflate _perMessageDeflate;
+        WebSocketPerMessageDeflatePtr _perMessageDeflate;
         WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
         std::atomic<bool> _enablePerMessageDeflate;
 
