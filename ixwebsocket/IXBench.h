@@ -21,7 +21,7 @@ namespace ix
 
     private:
         std::string _description;
-        std::chrono::time_point<std::chrono::system_clock> _start;
+        std::chrono::time_point<std::chrono::high_resolution_clock> _start;
         uint64_t _ms;
         bool _reported;
     };

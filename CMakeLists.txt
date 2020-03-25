@@ -21,6 +21,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 endif()
 
 set( IXWEBSOCKET_SOURCES
+    ixwebsocket/IXBench.cpp
     ixwebsocket/IXCancellationRequest.cpp
     ixwebsocket/IXConnectionState.cpp
     ixwebsocket/IXDNSLookup.cpp
@@ -53,6 +54,7 @@ set( IXWEBSOCKET_SOURCES
 )
 
 set( IXWEBSOCKET_HEADERS
+    ixwebsocket/IXBench.h
     ixwebsocket/IXCancellationRequest.h
     ixwebsocket/IXConnectionState.h
     ixwebsocket/IXDNSLookup.h

@@ -6,13 +6,13 @@
 
 #include "IXBench.h"
 
-#include <spdlog/spdlog.h>
+#include <iostream>
 
 namespace ix
 {
     Bench::Bench(const std::string& description)
         : _description(description)
-        , _start(std::chrono::system_clock::now())
+        , _start(std::chrono::high_resolution_clock::now())
         , _reported(false)
     {
         ;
@@ -28,11 +28,11 @@ namespace ix
 
     void Bench::report()
     {
-        auto now = std::chrono::system_clock::now();
+        auto now = std::chrono::high_resolution_clock::now();
         auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _start);
 
         _ms = milliseconds.count();
-        spdlog::info("{} completed in {} ms", _description, _ms);
+        std::cerr << _description << " completed in " << _ms << "ms" << std::endl;
 
         _reported = true;
     }
