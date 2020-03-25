@@ -5,7 +5,9 @@
  */
 
 #include "IXBench.h"
-
+#include <chrono>
+#include <condition_variable>
+#include <fstream>
 #include <ixcrypto/IXBase64.h>
 #include <ixcrypto/IXHash.h>
 #include <ixcrypto/IXUuid.h>
@@ -13,10 +15,6 @@
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <msgpack11/msgpack11.hpp>
-
-#include <chrono>
-#include <condition_variable>
-#include <fstream>
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include <sstream>

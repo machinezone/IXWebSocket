@@ -5,11 +5,10 @@
  */
 
 #include "IXBench.h"
+#include "linenoise.hpp"
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
-
-#include "linenoise.hpp"
 #include <spdlog/spdlog.h>
 #include <sstream>
 

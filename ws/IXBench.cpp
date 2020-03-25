@@ -41,4 +41,4 @@ namespace ix
     {
         return _ms;
     }
-}
+} // namespace ix

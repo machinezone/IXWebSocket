@@ -8,8 +8,8 @@
 
 #include "IXDNSLookup.h"
 #include "IXNetSystem.h"
-#include "IXSocket.h"
 #include "IXSelectInterrupt.h"
+#include "IXSocket.h"
 #include <fcntl.h>
 #include <string.h>
 #include <sys/types.h>

@@ -7,11 +7,11 @@
 #include "IXSocketServer.h"
 
 #include "IXNetSystem.h"
+#include "IXSelectInterrupt.h"
 #include "IXSetThreadName.h"
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
 #include "IXSocketFactory.h"
-#include "IXSelectInterrupt.h"
 #include <assert.h>
 #include <sstream>
 #include <stdio.h>
@@ -259,7 +259,8 @@ namespace ix
             int timeoutMs = 10;
             bool readyToRead = true;
             auto selectInterrupt = std::make_unique<SelectInterrupt>();
-            PollResultType pollResult = Socket::poll(readyToRead, timeoutMs, _serverFd, selectInterrupt);
+            PollResultType pollResult =
+                Socket::poll(readyToRead, timeoutMs, _serverFd, selectInterrupt);
 
             if (pollResult == PollResultType::Error)
             {
@@ -340,7 +341,8 @@ namespace ix
             std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
             _connectionsThreads.push_back(std::make_pair(
                 connectionState,
-                std::thread(&SocketServer::handleConnection, this, std::move(socket), connectionState)));
+                std::thread(
+                    &SocketServer::handleConnection, this, std::move(socket), connectionState)));
         }
     }
 

@@ -92,7 +92,8 @@ namespace ix
         return std::make_tuple(method, requestUri, httpVersion);
     }
 
-    std::tuple<bool, std::string, HttpRequestPtr> Http::parseRequest(std::unique_ptr<Socket>& socket)
+    std::tuple<bool, std::string, HttpRequestPtr> Http::parseRequest(
+        std::unique_ptr<Socket>& socket)
     {
         HttpRequestPtr httpRequest;
 

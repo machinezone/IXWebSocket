@@ -4,9 +4,9 @@
  *  Copyright (c) 2017-2020 Machine Zone, Inc. All rights reserved.
  */
 
-#include <string>
 #include <chrono>
 #include <stdint.h>
+#include <string>
 
 namespace ix
 {
@@ -25,4 +25,4 @@ namespace ix
         uint64_t _ms;
         bool _reported;
     };
-}
+} // namespace ix
