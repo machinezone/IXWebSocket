@@ -35,6 +35,7 @@ endif()
 add_executable(ws
   ../third_party/msgpack11/msgpack11.cpp
   ${JSONCPP_SOURCES}
+  IXBench.cpp
 
   ws_http_client.cpp
   ws_ping_pong.cpp

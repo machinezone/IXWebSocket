@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.0.3] - 2020-03-24
+
+(ws connect) display statistics about how much time it takes to stop the connection
+
 ## [9.0.2] - 2020-03-24
 
 (socket) works with unique_ptr<Socket> instead of shared_ptr<Socket> in many places

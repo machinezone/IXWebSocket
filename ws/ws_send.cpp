@@ -4,9 +4,8 @@
  *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include <chrono>
-#include <condition_variable>
-#include <fstream>
+#include "IXBench.h"
+
 #include <ixcrypto/IXBase64.h>
 #include <ixcrypto/IXHash.h>
 #include <ixcrypto/IXUuid.h>
@@ -14,6 +13,10 @@
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <msgpack11/msgpack11.hpp>
+
+#include <chrono>
+#include <condition_variable>
+#include <fstream>
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -194,48 +197,6 @@ namespace ix
 
         _webSocket.start();
     }
-
-    class Bench
-    {
-    public:
-        Bench(const std::string& description)
-            : _description(description)
-            , _start(std::chrono::system_clock::now())
-            , _reported(false)
-        {
-            ;
-        }
-
-        ~Bench()
-        {
-            if (!_reported)
-            {
-                report();
-            }
-        }
-
-        void report()
-        {
-            auto now = std::chrono::system_clock::now();
-            auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _start);
-
-            _ms = milliseconds.count();
-            spdlog::info("{} completed in {} ms", _description, _ms);
-
-            _reported = true;
-        }
-
-        uint64_t getDuration() const
-        {
-            return _ms;
-        }
-
-    private:
-        std::string _description;
-        std::chrono::time_point<std::chrono::system_clock> _start;
-        uint64_t _ms;
-        bool _reported;
-    };
 
     bool WebSocketSender::sendMessage(const std::string& filename, bool throttle)
     {

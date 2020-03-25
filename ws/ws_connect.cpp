@@ -4,10 +4,12 @@
  *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
  */
 
-#include "linenoise.hpp"
+#include "IXBench.h"
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocket.h>
+
+#include "linenoise.hpp"
 #include <spdlog/spdlog.h>
 #include <sstream>
 
@@ -129,7 +131,10 @@ namespace ix
 
     void WebSocketConnect::stop()
     {
-        _webSocket.stop();
+        {
+            Bench bench("ws_connect: stop connection");
+            _webSocket.stop();
+        }
     }
 
     void WebSocketConnect::start()
