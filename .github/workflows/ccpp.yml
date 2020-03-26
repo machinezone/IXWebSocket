@@ -12,19 +12,21 @@ jobs:
     - name: make test
       run: make test
 
-  mac:
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: make test
-      run: make test
-
-  tsan:
+  mac_tsan:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v1
     - name: make test_tsan
       run: make test_tsan
+
+  mac_tsan_openssl:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: install openssl
+      run: brew install openssl
+    - name: make test
+      run: make test_tsan_openssl
 
   win:
     runs-on: windows-latest
