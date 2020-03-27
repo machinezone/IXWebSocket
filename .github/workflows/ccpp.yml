@@ -28,6 +28,15 @@ jobs:
     - name: make test
       run: make test_tsan_openssl
 
+  mac_tsan_mbedtls:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: install mbedtls
+      run: brew install mbedtls
+    - name: make test
+      run: make test_tsan_mbedtls
+
   win:
     runs-on: windows-latest
     steps:
