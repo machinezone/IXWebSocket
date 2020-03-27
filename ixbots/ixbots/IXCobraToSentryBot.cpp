@@ -37,6 +37,7 @@ namespace ix
         std::atomic<bool> errorSending(false);
         std::atomic<bool> stop(false);
         std::atomic<bool> throttled(false);
+        std::atomic<bool> fatalCobraError(false);
 
         QueueManager queueManager(maxQueueSize);
 
@@ -179,6 +180,7 @@ namespace ix
                                verbose,
                                &throttled,
                                &receivedCount,
+                               &fatalCobraError,
                                &queueManager](ix::CobraConnectionEventType eventType,
                                               const std::string& errMsg,
                                               const ix::WebSocketHttpHeaders& headers,
@@ -240,6 +242,21 @@ namespace ix
             {
                 spdlog::info("Received websocket pong");
             }
+            else if (eventType == ix::CobraConnection_EventType_Handshake_Error)
+            {
+                spdlog::error("Subscriber: Handshake error: {}", errMsg);
+                fatalCobraError = true;
+            }
+            else if (eventType == ix::CobraConnection_EventType_Authentication_Error)
+            {
+                spdlog::error("Subscriber: Authentication error: {}", errMsg);
+                fatalCobraError = true;
+            }
+            else if (eventType == ix::CobraConnection_EventType_Subscription_Error)
+            {
+                spdlog::error("Subscriber: Subscription error: {}", errMsg);
+                fatalCobraError = true;
+            }
         });
 
         // Run forever
@@ -251,6 +268,7 @@ namespace ix
                 std::this_thread::sleep_for(duration);
 
                 if (strict && errorSending) break;
+                if (fatalCobraError) break;
             }
         }
         // Run for a duration, used by unittesting now
@@ -262,6 +280,7 @@ namespace ix
                 std::this_thread::sleep_for(duration);
 
                 if (strict && errorSending) break;
+                if (fatalCobraError) break;
             }
         }
 
@@ -272,12 +291,15 @@ namespace ix
         conn.disconnect();
         stop = true;
 
+        // progress thread
         t1.join();
-        if (t2.joinable()) t2.join();
-        spdlog::info("heartbeat thread done");
 
+        // heartbeat thread
+        if (t2.joinable()) t2.join();
+
+        // sentry sender thread
         t3.join();
 
-        return (strict && errorSending) ? -1 : (int) sentCount;
+        return ((strict && errorSending) || fatalCobraError) ? -1 : (int) sentCount;
     }
 } // namespace ix

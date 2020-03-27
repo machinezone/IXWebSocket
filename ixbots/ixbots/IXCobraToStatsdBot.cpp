@@ -77,6 +77,7 @@ namespace ix
         std::atomic<uint64_t> sentCount(0);
         std::atomic<uint64_t> receivedCount(0);
         std::atomic<bool> stop(false);
+        std::atomic<bool> fatalCobraError(false);
 
         QueueManager queueManager(maxQueueSize);
 
@@ -88,16 +89,18 @@ namespace ix
                 auto duration = std::chrono::seconds(1);
                 std::this_thread::sleep_for(duration);
             }
+
+            spdlog::info("timer thread done");
         };
 
         std::thread t1(timer);
 
-        auto heartbeat = [&sentCount, &receivedCount, &enableHeartbeat] {
+        auto heartbeat = [&sentCount, &receivedCount, &stop, &enableHeartbeat] {
             std::string state("na");
 
             if (!enableHeartbeat) return;
 
-            while (true)
+            while (!stop)
             {
                 std::stringstream ss;
                 ss << "messages received " << receivedCount;
@@ -115,6 +118,8 @@ namespace ix
                 auto duration = std::chrono::minutes(1);
                 std::this_thread::sleep_for(duration);
             }
+
+            spdlog::info("heartbeat thread done");
         };
 
         std::thread t2(heartbeat);
@@ -142,7 +147,7 @@ namespace ix
         std::thread t3(statsdSender);
 
         conn.setEventCallback(
-            [&conn, &channel, &filter, &position, &jsonWriter, verbose, &queueManager, &receivedCount](
+            [&conn, &channel, &filter, &position, &jsonWriter, verbose, &queueManager, &receivedCount, &fatalCobraError](
                 ix::CobraConnectionEventType eventType,
                 const std::string& errMsg,
                 const ix::WebSocketHttpHeaders& headers,
@@ -200,6 +205,21 @@ namespace ix
                 {
                     spdlog::info("Received websocket pong");
                 }
+                else if (eventType == ix::CobraConnection_EventType_Handshake_Error)
+                {
+                    spdlog::error("Subscriber: Handshake error: {}", errMsg);
+                    fatalCobraError = true;
+                }
+                else if (eventType == ix::CobraConnection_EventType_Authentication_Error)
+                {
+                    spdlog::error("Subscriber: Authentication error: {}", errMsg);
+                    fatalCobraError = true;
+                }
+                else if (eventType == ix::CobraConnection_EventType_Subscription_Error)
+                {
+                    spdlog::error("Subscriber: Subscription error: {}", errMsg);
+                    fatalCobraError = true;
+                }
             });
 
         // Run forever
@@ -209,6 +229,8 @@ namespace ix
             {
                 auto duration = std::chrono::seconds(1);
                 std::this_thread::sleep_for(duration);
+
+                if (fatalCobraError) break;
             }
         }
         // Run for a duration, used by unittesting now
@@ -218,6 +240,8 @@ namespace ix
             {
                 auto duration = std::chrono::seconds(1);
                 std::this_thread::sleep_for(duration);
+
+                if (fatalCobraError) break;
             }
         }
 
@@ -228,12 +252,15 @@ namespace ix
         conn.disconnect();
         stop = true;
 
+        // progress thread
         t1.join();
-        if (t2.joinable()) t2.join();
-        spdlog::info("heartbeat thread done");
 
+        // heartbeat thread
+        if (t2.joinable()) t2.join();
+
+        // statsd sender thread
         t3.join();
 
-        return (int) sentCount;
+        return fatalCobraError ? -1 : (int) sentCount;
     }
 } // namespace ix

@@ -37,7 +37,10 @@ namespace ix
         CobraConnection_EventType_Subscribed = 4,
         CobraConnection_EventType_UnSubscribed = 5,
         CobraConnection_EventType_Published = 6,
-        CobraConnection_EventType_Pong = 7
+        CobraConnection_EventType_Pong = 7,
+        CobraConnection_EventType_Handshake_Error = 8,
+        CobraConnection_EventType_Authentication_Error = 9,
+        CobraConnection_EventType_Subscription_Error = 10
     };
 
     enum CobraConnectionPublishMode

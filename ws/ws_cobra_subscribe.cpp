@@ -55,8 +55,10 @@ namespace ix
         std::atomic<int> msgPerSeconds(0);
         std::atomic<int> msgCount(0);
 
-        auto timer = [&msgPerSeconds, &msgCount] {
-            while (true)
+        std::atomic<bool> fatalCobraError(false);
+
+        auto timer = [&msgPerSeconds, &msgCount, &fatalCobraError] {
+            while (!fatalCobraError)
             {
                 spdlog::info("#messages {} msg/s {}", msgCount, msgPerSeconds);
 
@@ -78,11 +80,12 @@ namespace ix
                                &msgCount,
                                &msgPerSeconds,
                                &quiet,
-                               &fluentd](ix::CobraConnectionEventType eventType,
-                                         const std::string& errMsg,
-                                         const ix::WebSocketHttpHeaders& headers,
-                                         const std::string& subscriptionId,
-                                         CobraConnection::MsgId msgId) {
+                               &fluentd,
+                               &fatalCobraError](ix::CobraConnectionEventType eventType,
+                                                 const std::string& errMsg,
+                                                 const ix::WebSocketHttpHeaders& headers,
+                                                 const std::string& subscriptionId,
+                                                 CobraConnection::MsgId msgId) {
             if (eventType == ix::CobraConnection_EventType_Open)
             {
                 spdlog::info("Subscriber connected");
@@ -137,14 +140,32 @@ namespace ix
             {
                 spdlog::info("Received websocket pong");
             }
+            else if (eventType == ix::CobraConnection_EventType_Handshake_Error)
+            {
+                spdlog::error("Subscriber: Handshake error: {}", errMsg);
+                fatalCobraError = true;
+            }
+            else if (eventType == ix::CobraConnection_EventType_Authentication_Error)
+            {
+                spdlog::error("Subscriber: Authentication error: {}", errMsg);
+                fatalCobraError = true;
+            }
+            else if (eventType == ix::CobraConnection_EventType_Subscription_Error)
+            {
+                spdlog::error("Subscriber: Subscription error: {}", errMsg);
+                fatalCobraError = true;
+            }
         });
 
-        while (true)
+        while (!fatalCobraError)
         {
             auto duration = std::chrono::seconds(1);
             std::this_thread::sleep_for(duration);
         }
 
-        return 0;
+        conn.disconnect();
+        t.join();
+
+        return fatalCobraError ? 1 : 0;
     }
 } // namespace ix

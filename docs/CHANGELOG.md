@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.1.0] - 2020-03-26
+
+(ixcobra) add explicit event types for handshake, authentication and subscription failure, and handle those by exiting in ws_cobra_subcribe and friends
+
 ## [9.0.3] - 2020-03-24
 
 (ws connect) display statistics about how much time it takes to stop the connection

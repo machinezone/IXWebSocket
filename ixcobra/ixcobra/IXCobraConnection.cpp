@@ -166,7 +166,8 @@ namespace ix
                     }
                     else if (action == "auth/handshake/error")
                     {
-                        invokeErrorCallback("Handshake error", msg->str);
+                        invokeEventCallback(ix::CobraConnection_EventType_Handshake_Error,
+                                            msg->str);
                     }
                     else if (action == "auth/authenticate/ok")
                     {
@@ -176,7 +177,8 @@ namespace ix
                     }
                     else if (action == "auth/authenticate/error")
                     {
-                        invokeErrorCallback("Authentication error", msg->str);
+                        invokeEventCallback(ix::CobraConnection_EventType_Authentication_Error,
+                                            msg->str);
                     }
                     else if (action == "rtm/subscription/data")
                     {
@@ -191,7 +193,8 @@ namespace ix
                     }
                     else if (action == "rtm/subscribe/error")
                     {
-                        invokeErrorCallback("Subscription error", msg->str);
+                        invokeEventCallback(ix::CobraConnection_EventType_Subscription_Error,
+                                            msg->str);
                     }
                     else if (action == "rtm/unsubscribe/ok")
                     {
