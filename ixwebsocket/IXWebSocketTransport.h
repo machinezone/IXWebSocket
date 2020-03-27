@@ -229,6 +229,8 @@ namespace ix
                                                size_t closeWireSize,
                                                bool remote);
 
+        bool wakeUpFromPoll(uint64_t wakeUpCode);
+
         bool flushSendBuffer();
         bool sendOnSocket();
         bool receiveFromSocket();
