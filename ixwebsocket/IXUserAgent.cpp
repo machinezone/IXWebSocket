@@ -71,7 +71,7 @@ namespace ix
 #elif defined(IXWEBSOCKET_USE_OPEN_SSL)
         ss << " ssl/OpenSSL " << OPENSSL_VERSION_TEXT;
 #elif __APPLE__
-        ss << " ssl/DarwinSSL";
+        ss << " ssl/SecureTransport";
 #endif
 #else
         ss << " nossl";

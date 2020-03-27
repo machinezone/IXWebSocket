@@ -12,7 +12,7 @@ jobs:
     - name: make test
       run: make test
 
-  mac_tsan:
+  mac_tsan_sectransport:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v1
