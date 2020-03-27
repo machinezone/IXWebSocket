@@ -92,6 +92,10 @@
             
             <li class="nav-item" data-level="1"><a href="#changelog" class="nav-link">Changelog</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#911-2020-03-26" class="nav-link">[9.1.1] - 2020-03-26</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#910-2020-03-26" class="nav-link">[9.1.0] - 2020-03-26</a>
               <ul class="nav flex-column">
               </ul>
@@ -593,6 +597,8 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="911-2020-03-26">[9.1.1] - 2020-03-26</h2>
+<p>(websocket) fix data race accessing _socket object without mutex protection when calling wakeUpFromPoll in WebSocketTransport.cpp</p>
 <h2 id="910-2020-03-26">[9.1.0] - 2020-03-26</h2>
 <p>(ixcobra) add explicit event types for handshake, authentication and subscription failure, and handle those by exiting in ws_cobra_subcribe and friends</p>
 <h2 id="903-2020-03-24">[9.0.3] - 2020-03-24</h2>
