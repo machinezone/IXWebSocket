@@ -1,6 +1,14 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.1.4] - 2020-03-28
+
+(jsoncpp) update bundled copy to version 1.9.3 (at sha 3beb37ea14aec1bdce1a6d542dc464d00f4a6cec)
+
+## [9.1.3] - 2020-03-27
+
+(docker) alpine docker build with release with debug info, and bundle ca-certificates
+
 ## [9.1.2] - 2020-03-26
 
 (mac ssl) rename DarwinSSL -> SecureTransport (see this too -> https://github.com/curl/curl/issues/3733)
