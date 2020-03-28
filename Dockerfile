@@ -1,1 +1,1 @@
-docker/Dockerfile.centos
+docker/Dockerfile.alpine
