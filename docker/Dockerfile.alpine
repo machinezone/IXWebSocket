@@ -1,12 +1,13 @@
 FROM alpine:3.11 as build
 
-RUN apk add --no-cache gcc g++ musl-dev linux-headers cmake mbedtls-dev
-RUN apk add --no-cache make
-RUN apk add --no-cache zlib-dev
+RUN apk add --no-cache \
+    gcc g++ musl-dev linux-headers \
+    cmake mbedtls-dev make zlib-dev
 
-RUN addgroup -S app && adduser -S -G app app
-RUN chown -R app:app /opt
-RUN chown -R app:app /usr/local
+RUN addgroup -S app && \
+    adduser -S -G app app && \
+    chown -R app:app /opt && \
+    chown -R app:app /usr/local
 
 # There is a bug in CMake where we cannot build from the root top folder
 # So we build from /opt
@@ -14,21 +15,21 @@ COPY --chown=app:app . /opt
 WORKDIR /opt
 
 USER app
-RUN [ "make", "ws_mbedtls_install" ]
-RUN [ "rm", "-rf", "build" ]
+RUN make ws_mbedtls_install && \
+    sh tools/trim_repo_for_docker.sh
 
 FROM alpine:3.11 as runtime
 
-RUN apk add --no-cache libstdc++ mbedtls
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache libstdc++ mbedtls ca-certificates && \
+    addgroup -S app && \
+    adduser -S -G app app
 
-RUN addgroup -S app && adduser -S -G app app
 COPY --chown=app:app --from=build /usr/local/bin/ws /usr/local/bin/ws
-RUN chmod +x /usr/local/bin/ws
-RUN ldd /usr/local/bin/ws
 
-# Copy source code for gcc
-COPY --chown=app:app --from=build /opt /opt
+# COPY --chown=app:app --from=build /opt /opt
+
+RUN chmod +x /usr/local/bin/ws && \
+    ldd /usr/local/bin/ws
 
 # Now run in usermode
 USER app

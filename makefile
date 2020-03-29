@@ -1,5 +1,13 @@
 #
-# This makefile is just used to easily work with docker (linux build)
+# This makefile is used for convenience, and wrap simple cmake commands
+# You don't need to use it as an end user, it is more for developer.
+#
+# * work with docker (linux build)
+# * execute the unittest
+#
+# The default target will install ws, the command line tool coming with
+# IXWebSocket into /usr/local/bin
+#
 #
 all: brew
 
@@ -8,23 +16,29 @@ install: brew
 # Use -DCMAKE_INSTALL_PREFIX= to install into another location
 # on osx it is good practice to make /usr/local user writable
 # sudo chown -R `whoami`/staff /usr/local
+#
+# Release, Debug, MinSizeRel, RelWithDebInfo are the build types
+#
 brew:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; make -j 4 install)
+
+# Docker default target. We've add problem with OpenSSL and TLS 1.3 (on the
+# server side ?) and I can't work-around it easily, so we're using mbedtls on
+# Linux for the SSL backend, which works great.
+ws_mbedtls_install:
+	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j 4 install)
 
 ws:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j 4)
 
 ws_install:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j 4 install)
+	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j 4 install)
 
 ws_openssl:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_OPEN_SSL=1 .. ; make -j 4)
 
 ws_mbedtls:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j 4)
-
-ws_mbedtls_install:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j 4 install)
 
 ws_no_ssl:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_WS=1 .. ; make -j 4)

@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.1.5] - 2020-03-29
+
+(docker) trim down docker image (300M -> 12M) / binary built without symbol and size optimization, and source code not copied over
+
 ## [9.1.4] - 2020-03-28
 
 (jsoncpp) update bundled copy to version 1.9.3 (at sha 3beb37ea14aec1bdce1a6d542dc464d00f4a6cec)
