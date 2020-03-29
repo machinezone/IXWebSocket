@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.1.6] - 2020-03-29
+
+(ws cobra subscriber) use a Json::StreamWriter to write to std::cout, and save one std::string allocation for each message printed
+
 ## [9.1.5] - 2020-03-29
 
 (docker) trim down docker image (300M -> 12M) / binary built without symbol and size optimization, and source code not copied over

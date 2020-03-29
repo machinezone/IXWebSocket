@@ -14,8 +14,19 @@
 
 namespace ix
 {
+    using StreamWriterPtr = std::unique_ptr<Json::StreamWriter>;
+
+    StreamWriterPtr makeStreamWriter()
+    {
+        Json::StreamWriterBuilder builder;
+        builder["commentStyle"] = "None";
+        builder["indentation"] = ""; // will make the JSON object compact
+        std::unique_ptr<Json::StreamWriter> jsonWriter(builder.newStreamWriter());
+        return jsonWriter;
+    }
+
     void writeToStdout(bool fluentd,
-                       Json::FastWriter& jsonWriter,
+                       const StreamWriterPtr& jsonWriter,
                        const Json::Value& msg,
                        const std::string& position)
     {
@@ -29,12 +40,15 @@ namespace ix
             msgWithPosition["position"] = position;
             enveloppe["message"] = msgWithPosition;
 
-            std::cout << jsonWriter.write(enveloppe);
+            jsonWriter->write(enveloppe, &std::cout);
+            std::cout << std::endl;  // add lf and flush
         }
         else
         {
             enveloppe = msg;
-            std::cout << position << " " << jsonWriter.write(enveloppe);
+            std::cout << position << " ";
+            jsonWriter->write(enveloppe, &std::cout);
+            std::cout << std::endl;
         }
     }
 
@@ -49,13 +63,10 @@ namespace ix
         conn.configure(config);
         conn.connect();
 
-        Json::FastWriter jsonWriter;
-
-        // Display incoming messages
         std::atomic<int> msgPerSeconds(0);
         std::atomic<int> msgCount(0);
-
         std::atomic<bool> fatalCobraError(false);
+        auto jsonWriter = makeStreamWriter();
 
         auto timer = [&msgPerSeconds, &msgCount, &fatalCobraError] {
             while (!fatalCobraError)
