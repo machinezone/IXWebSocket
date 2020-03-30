@@ -70,6 +70,7 @@ int main(int argc, char** argv)
     std::string password;
     std::string prefix("ws.test.v0");
     std::string fields;
+    std::string gauge;
     std::string dsn;
     std::string redisHosts("127.0.0.1");
     std::string redisPassword;
@@ -264,6 +265,7 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("--port", statsdPort, "Statsd port");
     cobra2statsd->add_option("--prefix", prefix, "Statsd prefix");
     cobra2statsd->add_option("--fields", fields, "Extract fields for naming the event")->join();
+    cobra2statsd->add_option("--gauge", gauge, "Value to extract, and use as a statsd gauge")->join();
     cobra2statsd->add_option("channel", channel, "Channel")->required();
     cobra2statsd->add_flag("-v", verbose, "Verbose");
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
@@ -463,6 +465,7 @@ int main(int argc, char** argv)
                                       position,
                                       statsdClient,
                                       fields,
+                                      gauge,
                                       verbose,
                                       maxQueueSize,
                                       enableHeartbeat,

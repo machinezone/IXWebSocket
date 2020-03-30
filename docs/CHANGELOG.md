@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.1.7] - 2020-03-29
+
+(cobra to statsd bot) add ability to extract a numerical value and send a gauge event to statsd
+
 ## [9.1.6] - 2020-03-29
 
 (ws cobra subscriber) use a Json::StreamWriter to write to std::cout, and save one std::string allocation for each message printed

@@ -111,6 +111,7 @@ TEST_CASE("Cobra_to_statsd_bot", "[cobra_bots]")
         REQUIRE(initialized);
 
         std::string fields("device.game\ndevice.os_name");
+        std::string gauge;
 
         int sentCount = ix::cobra_to_statsd_bot(config,
                                                 channel,
@@ -118,6 +119,7 @@ TEST_CASE("Cobra_to_statsd_bot", "[cobra_bots]")
                                                 position,
                                                 statsdClient,
                                                 fields,
+                                                gauge,
                                                 verbose,
                                                 maxQueueSize,
                                                 enableHeartbeat,

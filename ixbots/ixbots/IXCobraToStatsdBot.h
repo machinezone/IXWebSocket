@@ -18,6 +18,7 @@ namespace ix
                             const std::string& position,
                             StatsdClient& statsdClient,
                             const std::string& fields,
+                            const std::string& gauge,
                             bool verbose,
                             size_t maxQueueSize,
                             bool enableHeartbeat,

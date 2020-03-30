@@ -40,7 +40,7 @@ namespace ix
     // Extract an attribute from a Json Value.
     // extractAttr("foo.bar", {"foo": {"bar": "baz"}}) => baz
     //
-    std::string extractAttr(const std::string& attr, const Json::Value& jsonValue)
+    Json::Value extractAttr(const std::string& attr, const Json::Value& jsonValue)
     {
         // Split by .
         std::string token;
@@ -53,7 +53,7 @@ namespace ix
             val = val[token];
         }
 
-        return val.asString();
+        return val;
     }
 
     int cobra_to_statsd_bot(const ix::CobraConfig& config,
@@ -62,6 +62,7 @@ namespace ix
                             const std::string& position,
                             StatsdClient& statsdClient,
                             const std::string& fields,
+                            const std::string& gauge,
                             bool verbose,
                             size_t maxQueueSize,
                             bool enableHeartbeat,
@@ -124,7 +125,7 @@ namespace ix
 
         std::thread t2(heartbeat);
 
-        auto statsdSender = [&statsdClient, &queueManager, &sentCount, &tokens, &stop] {
+        auto statsdSender = [&statsdClient, &queueManager, &sentCount, &tokens, &stop, &gauge, &fatalCobraError] {
             while (true)
             {
                 Json::Value msg = queueManager.pop();
@@ -136,10 +137,51 @@ namespace ix
                 for (auto&& attr : tokens)
                 {
                     id += ".";
-                    id += extractAttr(attr, msg);
+                    auto val = extractAttr(attr, msg);
+                    id += val.asString();
                 }
 
-                statsdClient.count(id, 1);
+                if (gauge.empty())
+                {
+                    statsdClient.count(id, 1);
+                }
+                else
+                {
+                    // spdlog::info("{} - {} -> {}", id, gauge, x);
+                    auto val = extractAttr(gauge, msg);
+
+                    if (val.isInt())
+                    {
+                        auto x = val.asInt();
+                        statsdClient.gauge(id, (size_t) x);
+                    }
+                    else if (val.isInt64())
+                    {
+                        auto x = val.asInt64();
+                        statsdClient.gauge(id, (size_t) x);
+                    }
+                    else if (val.isUInt())
+                    {
+                        auto x = val.asUInt();
+                        statsdClient.gauge(id, (size_t) x);
+                    }
+                    else if (val.isUInt64())
+                    {
+                        auto x = val.asUInt64();
+                        statsdClient.gauge(id, (size_t) x);
+                    }
+                    else if (val.isDouble())
+                    {
+                        auto x = val.asUInt64();
+                        statsdClient.gauge(id, (size_t) x);
+                    }
+                    else
+                    {
+                        spdlog::error("Gauge {} is not a numberic type", gauge);
+                        fatalCobraError = true;
+                    }
+                }
+
                 sentCount += 1;
             }
         };
