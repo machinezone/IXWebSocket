@@ -32,11 +32,7 @@ namespace ix
         int timing(const std::string& key, size_t ms);
 
     private:
-        /**
-         * (Low Level Api) manually send a message
-         * which might be composed of several lines.
-         */
-        int send(const std::string& message);
+        void enqueue(const std::string& message);
 
         /* (Low Level Api) manually send a message
          * type = "c", "g" or "ms"
@@ -44,6 +40,7 @@ namespace ix
         int send(std::string key, size_t value, const std::string& type);
 
         void cleanup(std::string& key);
+        void flushQueue();
 
         UdpSocket _socket;
 
@@ -56,7 +53,6 @@ namespace ix
         std::mutex _mutex; // for the queue
 
         std::deque<std::string> _queue;
-        static const uint64_t _maxQueueSize;
     };
 
 } // end namespace ix

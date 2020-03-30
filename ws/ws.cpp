@@ -459,17 +459,27 @@ int main(int argc, char** argv)
         int runtime = -1;
         ix::StatsdClient statsdClient(hostname, statsdPort, prefix);
 
-        ret = ix::cobra_to_statsd_bot(cobraConfig,
-                                      channel,
-                                      filter,
-                                      position,
-                                      statsdClient,
-                                      fields,
-                                      gauge,
-                                      verbose,
-                                      maxQueueSize,
-                                      enableHeartbeat,
-                                      runtime);
+        std::string errMsg;
+        bool initialized = statsdClient.init(errMsg);
+        if (!initialized)
+        {
+            spdlog::error(errMsg);
+            ret = 0;
+        }
+        else
+        {
+            ret = ix::cobra_to_statsd_bot(cobraConfig,
+                                          channel,
+                                          filter,
+                                          position,
+                                          statsdClient,
+                                          fields,
+                                          gauge,
+                                          verbose,
+                                          maxQueueSize,
+                                          enableHeartbeat,
+                                          runtime);
+        }
     }
     else if (app.got_subcommand("cobra_to_sentry"))
     {

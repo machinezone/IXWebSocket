@@ -43,11 +43,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <iostream>
 
 namespace ix
 {
-    const uint64_t StatsdClient::_maxQueueSize = 32768;
-
     StatsdClient::StatsdClient(const std::string& host,
                                int port,
                                const std::string& prefix)
@@ -56,23 +55,11 @@ namespace ix
       , _prefix(prefix)
       , _stop(false)
     {
-        _thread = std::thread([this] {
+        _thread = std::thread([this]
+        {
             while (!_stop)
             {
-                std::deque<std::string> stagedQueue;
-
-                {
-                    std::lock_guard<std::mutex> lock(_mutex);
-                    _queue.swap(stagedQueue);
-                }
-
-                while (!stagedQueue.empty())
-                {
-                    auto message = stagedQueue.front();
-                    _socket.sendto(message);
-                    stagedQueue.pop_front();
-                }
-
+                flushQueue();
                 std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         });
@@ -127,31 +114,39 @@ namespace ix
         return send(key, ms, "ms");
     }
 
-    int StatsdClient::send(std::string key, size_t value, const std::string &type)
+    int StatsdClient::send(std::string key, size_t value, const std::string& type)
     {
         cleanup(key);
 
         char buf[256];
-        snprintf(buf, sizeof(buf), "%s%s:%zd|%s",
+        snprintf(buf, sizeof(buf), "%s%s:%zd|%s\n",
                  _prefix.c_str(), key.c_str(), value, type.c_str());
 
-        return send(buf);
+        enqueue(buf);
+        return 0;
     }
 
-    int StatsdClient::send(const std::string &message)
+    void StatsdClient::enqueue(const std::string& message)
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _queue.push_back(message);
+    }
+
+    void StatsdClient::flushQueue()
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        if (_queue.empty() ||
-            _queue.back().length() > _maxQueueSize)
+        while (!_queue.empty())
         {
-            _queue.push_back(message);
+            auto message = _queue.front();
+            auto ret = _socket.sendto(message);
+            if (ret != 0)
+            {
+                std::cerr << "error: "
+                          << strerror(UdpSocket::getErrno())
+                          << std::endl;
+            }
+            _queue.pop_front();
         }
-        else
-        {
-            (*_queue.rbegin()).append("\n").append(message);
-        }
-
-        return 0;
     }
 } // end namespace ix
