@@ -82,6 +82,9 @@ docker_push:
 	docker push ${LATEST}
 	docker push ${IMG}
 
+deploy:
+	docker docker_push
+
 run:
 	docker run --cap-add sys_ptrace --entrypoint=sh -it bsergean/ws:build
 
