@@ -71,6 +71,7 @@ int main(int argc, char** argv)
     std::string prefix("ws.test.v0");
     std::string fields;
     std::string gauge;
+    std::string timer;
     std::string dsn;
     std::string redisHosts("127.0.0.1");
     std::string redisPassword;
@@ -266,6 +267,7 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("--prefix", prefix, "Statsd prefix");
     cobra2statsd->add_option("--fields", fields, "Extract fields for naming the event")->join();
     cobra2statsd->add_option("--gauge", gauge, "Value to extract, and use as a statsd gauge")->join();
+    cobra2statsd->add_option("--timer", timer, "Value to extract, and use as a statsd timer")->join();
     cobra2statsd->add_option("channel", channel, "Channel")->required();
     cobra2statsd->add_flag("-v", verbose, "Verbose");
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
@@ -455,30 +457,40 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_to_statsd"))
     {
-        bool enableHeartbeat = true;
-        int runtime = -1;
-        ix::StatsdClient statsdClient(hostname, statsdPort, prefix);
-
-        std::string errMsg;
-        bool initialized = statsdClient.init(errMsg);
-        if (!initialized)
+        if (!timer.empty() && !gauge.empty())
         {
-            spdlog::error(errMsg);
-            ret = 0;
+            spdlog::error("--gauge and --timer options are exclusive. " \
+                          "you can only supply one");
+            ret = 1;
         }
         else
         {
-            ret = ix::cobra_to_statsd_bot(cobraConfig,
-                                          channel,
-                                          filter,
-                                          position,
-                                          statsdClient,
-                                          fields,
-                                          gauge,
-                                          verbose,
-                                          maxQueueSize,
-                                          enableHeartbeat,
-                                          runtime);
+            bool enableHeartbeat = true;
+            int runtime = -1; // run indefinitely
+            ix::StatsdClient statsdClient(hostname, statsdPort, prefix);
+
+            std::string errMsg;
+            bool initialized = statsdClient.init(errMsg);
+            if (!initialized)
+            {
+                spdlog::error(errMsg);
+                ret = 1;
+            }
+            else
+            {
+                ret = ix::cobra_to_statsd_bot(cobraConfig,
+                                              channel,
+                                              filter,
+                                              position,
+                                              statsdClient,
+                                              fields,
+                                              gauge,
+                                              timer,
+                                              verbose,
+                                              maxQueueSize,
+                                              enableHeartbeat,
+                                              runtime);
+            }
         }
     }
     else if (app.got_subcommand("cobra_to_sentry"))

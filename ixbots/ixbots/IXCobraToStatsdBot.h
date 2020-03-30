@@ -19,6 +19,7 @@ namespace ix
                             StatsdClient& statsdClient,
                             const std::string& fields,
                             const std::string& gauge,
+                            const std::string& timer,
                             bool verbose,
                             size_t maxQueueSize,
                             bool enableHeartbeat,

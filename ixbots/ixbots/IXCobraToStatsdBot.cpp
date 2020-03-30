@@ -63,6 +63,7 @@ namespace ix
                             StatsdClient& statsdClient,
                             const std::string& fields,
                             const std::string& gauge,
+                            const std::string& timer,
                             bool verbose,
                             size_t maxQueueSize,
                             bool enableHeartbeat,
@@ -82,7 +83,7 @@ namespace ix
 
         QueueManager queueManager(maxQueueSize);
 
-        auto timer = [&sentCount, &receivedCount, &stop] {
+        auto progress = [&sentCount, &receivedCount, &stop] {
             while (!stop)
             {
                 spdlog::info("messages received {} sent {}", receivedCount, sentCount);
@@ -94,7 +95,7 @@ namespace ix
             spdlog::info("timer thread done");
         };
 
-        std::thread t1(timer);
+        std::thread t1(progress);
 
         auto heartbeat = [&sentCount, &receivedCount, &stop, &enableHeartbeat] {
             std::string state("na");
@@ -125,7 +126,7 @@ namespace ix
 
         std::thread t2(heartbeat);
 
-        auto statsdSender = [&statsdClient, &queueManager, &sentCount, &tokens, &stop, &gauge, &fatalCobraError] {
+        auto statsdSender = [&statsdClient, &queueManager, &sentCount, &tokens, &stop, &gauge, &timer, &fatalCobraError, &verbose] {
             while (true)
             {
                 Json::Value msg = queueManager.pop();
@@ -141,44 +142,55 @@ namespace ix
                     id += val.asString();
                 }
 
-                if (gauge.empty())
+                if (gauge.empty() && timer.empty())
                 {
                     statsdClient.count(id, 1);
                 }
                 else
                 {
-                    // spdlog::info("{} - {} -> {}", id, gauge, x);
-                    auto val = extractAttr(gauge, msg);
+                    std::string attrName = (!gauge.empty()) ? gauge : timer;
+                    auto val = extractAttr(attrName, msg);
+                    size_t x;
 
                     if (val.isInt())
                     {
-                        auto x = val.asInt();
-                        statsdClient.gauge(id, (size_t) x);
+                        x = (size_t) val.asInt();
                     }
                     else if (val.isInt64())
                     {
-                        auto x = val.asInt64();
-                        statsdClient.gauge(id, (size_t) x);
+                        x = (size_t) val.asInt64();
                     }
                     else if (val.isUInt())
                     {
-                        auto x = val.asUInt();
-                        statsdClient.gauge(id, (size_t) x);
+                        x = (size_t) val.asUInt();
                     }
                     else if (val.isUInt64())
                     {
-                        auto x = val.asUInt64();
-                        statsdClient.gauge(id, (size_t) x);
+                        x = (size_t) val.asUInt64();
                     }
                     else if (val.isDouble())
                     {
-                        auto x = val.asUInt64();
-                        statsdClient.gauge(id, (size_t) x);
+                        x = (size_t) val.asUInt64();
                     }
                     else
                     {
                         spdlog::error("Gauge {} is not a numberic type", gauge);
                         fatalCobraError = true;
+                        break;
+                    }
+
+                    if (verbose)
+                    {
+                        spdlog::info("{} - {} -> {}", id, attrName, x);
+                    }
+
+                    if (!gauge.empty())
+                    {
+                        statsdClient.gauge(id, x);
+                    }
+                    else
+                    {
+                        statsdClient.timing(id, x);
                     }
                 }
 
