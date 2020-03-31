@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Cobra - IXWebSocket</title>
+        <title>Packages - IXWebSocket</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
@@ -42,14 +42,14 @@
                             <li class="navitem">
                                 <a href="../build/" class="nav-link">Build</a>
                             </li>
-                            <li class="navitem active">
-                                <a href="./" class="nav-link">Cobra</a>
+                            <li class="navitem">
+                                <a href="../cobra/" class="nav-link">Cobra</a>
                             </li>
                             <li class="navitem">
                                 <a href="../design/" class="nav-link">Design</a>
                             </li>
-                            <li class="navitem">
-                                <a href="../packages/" class="nav-link">Packages</a>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Packages</a>
                             </li>
                             <li class="navitem">
                                 <a href="../usage/" class="nav-link">Examples</a>
@@ -66,12 +66,12 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../build/" class="nav-link">
+                                <a rel="prev" href="../design/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../design/" class="nav-link">
+                                <a rel="next" href="../usage/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -93,7 +93,7 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="2"><a href="#general" class="nav-link">General</a>
+            <li class="nav-item" data-level="2"><a href="#vcpkg" class="nav-link">VCPKG</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -102,77 +102,89 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h2 id="general">General</h2>
-<p><a href="https://github.com/machinezone/cobra">cobra</a> is a real time messaging server. The <code>ws</code> utility can run a cobra server (named snake), and has client to publish and subscribe to a cobra server.</p>
-<p>Bring up 3 terminals and run a server, a publisher and a subscriber in each one. As you publish data you should see it being received by the subscriber. You can run <code>redis-cli MONITOR</code> too to see how redis is being used.</p>
-<h3 id="server">Server</h3>
-<p>You will need to have a redis server running locally. To run the server:</p>
-<pre><code class="bash">$ cd &lt;ixwebsocket-top-level-folder&gt;/ixsnake/ixsnake
-$ ws snake
-{
-  &quot;apps&quot;: {
-    &quot;FC2F10139A2BAc53BB72D9db967b024f&quot;: {
-      &quot;roles&quot;: {
-        &quot;_sub&quot;: {
-          &quot;secret&quot;: &quot;66B1dA3ED5fA074EB5AE84Dd8CE3b5ba&quot;
-        },
-        &quot;_pub&quot;: {
-          &quot;secret&quot;: &quot;1c04DB8fFe76A4EeFE3E318C72d771db&quot;
-        }
-      }
-    }
-  }
-}
-
-redis host: 127.0.0.1
-redis password:
-redis port: 6379
+<p>Notes on how we can update the different packages for ixwebsocket.</p>
+<h2 id="vcpkg">VCPKG</h2>
+<p>Visit the <a href="https://github.com/machinezone/IXWebSocket/releases">releases</a> page on Github. A tag must have been made first.</p>
+<p>Download the latest entry. </p>
+<pre><code>$ cd /tmp
+/tmp$ curl -s -O -L https://github.com/machinezone/IXWebSocket/archive/v9.1.9.tar.gz
+/tmp$
+/tmp$ openssl sha512 v9.1.9.tar.gz
+SHA512(v9.1.9.tar.gz)= f1fd731b5f6a9ce6d6d10bee22a5d9d9baaa8ea0564d6c4cd7eb91dcb88a45c49b2c7fdb75f8640a3589c1b30cee33ef5df8dcbb55920d013394d1e33ddd3c8e
 </code></pre>
 
-<h3 id="publisher">Publisher</h3>
-<pre><code class="bash">$ cd &lt;ixwebsocket-top-level-folder&gt;/ws
-$ ws cobra_publish --appkey FC2F10139A2BAc53BB72D9db967b024f --endpoint ws://127.0.0.1:8008 --rolename _pub --rolesecret 1c04DB8fFe76A4EeFE3E318C72d771db test_channel cobraMetricsSample.json
-[2019-11-27 09:06:12.980] [info] Publisher connected
-[2019-11-27 09:06:12.980] [info] Connection: Upgrade
-[2019-11-27 09:06:12.980] [info] Sec-WebSocket-Accept: zTtQKMKbvwjdivURplYXwCVUCWM=
-[2019-11-27 09:06:12.980] [info] Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_max_window_bits=15
-[2019-11-27 09:06:12.980] [info] Server: ixwebsocket/7.4.0 macos ssl/DarwinSSL zlib 1.2.11
-[2019-11-27 09:06:12.980] [info] Upgrade: websocket
-[2019-11-27 09:06:12.982] [info] Publisher authenticated
-[2019-11-27 09:06:12.982] [info] Published msg 3
-[2019-11-27 09:06:12.982] [info] Published message id 3 acked
+<p>Now go punch those values in the vcpkg ixwebsocket port config files. Here is what the diff look like.</p>
+<pre><code>vcpkg$ git diff
+diff --git a/ports/ixwebsocket/CONTROL b/ports/ixwebsocket/CONTROL
+index db9c2adc9..4acae5c3f 100644
+--- a/ports/ixwebsocket/CONTROL
++++ b/ports/ixwebsocket/CONTROL
+@@ -1,5 +1,5 @@
+ Source: ixwebsocket
+-Version: 8.0.5
++Version: 9.1.9
+ Build-Depends: zlib
+ Homepage: https://github.com/machinezone/IXWebSocket
+ Description: Lightweight WebSocket Client and Server + HTTP Client and Server
+diff --git a/ports/ixwebsocket/portfile.cmake b/ports/ixwebsocket/portfile.cmake
+index de082aece..68e523a05 100644
+--- a/ports/ixwebsocket/portfile.cmake
++++ b/ports/ixwebsocket/portfile.cmake
+@@ -1,8 +1,8 @@
+ vcpkg_from_github(
+     OUT_SOURCE_PATH SOURCE_PATH
+     REPO machinezone/IXWebSocket
+-    REF v8.0.5
+-    SHA512 9dcc20d9a0629b92c62a68a8bd7c8206f18dbd9e93289b0b687ec13c478ce9ad1f3563b38c399c8277b0d3812cc78ca725786ba1dedbc3445b9bdb9b689e8add
++    REF v9.1.9
++    SHA512 f1fd731b5f6a9ce6d6d10bee22a5d9d9baaa8ea0564d6c4cd7eb91dcb88a45c49b2c7fdb75f8640a3589c1b30cee33ef5df8dcbb55920d013394d1e33ddd3c8e
+ )
 </code></pre>
 
-<h3 id="subscriber">Subscriber</h3>
-<pre><code class="bash">$ ws cobra_subscribe --appkey FC2F10139A2BAc53BB72D9db967b024f --endpoint ws://127.0.0.1:8008 --rolename _pub --rolesecret 1c04DB8fFe76A4EeFE3E318C72d771db test_channel
-#messages 0 msg/s 0
-[2019-11-27 09:07:39.341] [info] Subscriber connected
-[2019-11-27 09:07:39.341] [info] Connection: Upgrade
-[2019-11-27 09:07:39.341] [info] Sec-WebSocket-Accept: 9vkQWofz49qMCUlTSptCCwHWm+Q=
-[2019-11-27 09:07:39.341] [info] Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_max_window_bits=15
-[2019-11-27 09:07:39.341] [info] Server: ixwebsocket/7.4.0 macos ssl/DarwinSSL zlib 1.2.11
-[2019-11-27 09:07:39.341] [info] Upgrade: websocket
-[2019-11-27 09:07:39.342] [info] Subscriber authenticated
-[2019-11-27 09:07:39.345] [info] Subscriber: subscribed to channel test_channel
-#messages 0 msg/s 0
-#messages 0 msg/s 0
-#messages 0 msg/s 0
-{&quot;baz&quot;:123,&quot;foo&quot;:&quot;bar&quot;}
+<p>You will need a fork of the vcpkg repo to make a pull request.</p>
+<pre><code>git fetch upstream
+git co master
+git reset --hard upstream/master
+git push origin master --force
+</code></pre>
 
-#messages 1 msg/s 1
-#messages 1 msg/s 0
-#messages 1 msg/s 0
-{&quot;baz&quot;:123,&quot;foo&quot;:&quot;bar&quot;}
+<p>Make the pull request (I use a new branch to do that).</p>
+<pre><code>vcpkg$ git co -b feature/ixwebsocket_9.1.9
+M   ports/ixwebsocket/CONTROL
+M   ports/ixwebsocket/portfile.cmake
+Switched to a new branch 'feature/ixwebsocket_9.1.9'
+vcpkg$
+vcpkg$
+vcpkg$ git commit -am 'ixwebsocket: update to 9.1.9'
+[feature/ixwebsocket_9.1.9 8587a4881] ixwebsocket: update to 9.1.9
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+vcpkg$
+vcpkg$ git push
+fatal: The current branch feature/ixwebsocket_9.1.9 has no upstream branch.
+To push the current branch and set the remote as upstream, use
 
-{&quot;baz&quot;:123,&quot;foo&quot;:&quot;bar&quot;}
+    git push --set-upstream origin feature/ixwebsocket_9.1.9
 
-#messages 3 msg/s 2
-#messages 3 msg/s 0
-{&quot;baz&quot;:123,&quot;foo&quot;:&quot;bar&quot;}
+vcpkg$ git push --set-upstream origin feature/ixwebsocket_9.1.9
 
-#messages 4 msg/s 1
-^C
-</code></pre></div>
+Enumerating objects: 11, done.
+Counting objects: 100% (11/11), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (6/6), 621 bytes | 621.00 KiB/s, done.
+Total 6 (delta 4), reused 0 (delta 0)
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
+remote:
+remote: Create a pull request for 'feature/ixwebsocket_9.1.9' on GitHub by visiting:
+remote:      https://github.com/bsergean/vcpkg/pull/new/feature/ixwebsocket_9.1.9
+remote:
+To https://github.com/bsergean/vcpkg.git
+ * [new branch]          feature/ixwebsocket_9.1.9 -&gt; feature/ixwebsocket_9.1.9
+Branch 'feature/ixwebsocket_9.1.9' set up to track remote branch 'feature/ixwebsocket_9.1.9' from 'origin' by rebasing.
+vcpkg$
+</code></pre>
+
+<p>Just visit this url, https://github.com/bsergean/vcpkg/pull/new/feature/ixwebsocket_9.1.9, printed on the console, to make the pull request.</p></div>
             </div>
         </div>
 
