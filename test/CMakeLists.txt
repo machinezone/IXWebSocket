@@ -54,6 +54,7 @@ set (SOURCES
   IXWebSocketSubProtocolTest.cpp
   IXSentryClientTest.cpp
   IXWebSocketChatTest.cpp
+  IXWebSocketBroadcastTest.cpp
 )
 
 # Some unittest don't work on windows yet
