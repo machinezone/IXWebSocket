@@ -1,3 +1,6 @@
 site_name: IXWebSocket
 theme:
   name: 'material'
+markdown_extensions:
+  - fenced_code
+  - tables
