@@ -13,7 +13,7 @@
 
 ## Example code
 
-```cpp
+```c++
 // Required on Windows
 ix::initNetSystem();
 
