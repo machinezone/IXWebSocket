@@ -35,7 +35,7 @@ webSocket.setUrl(url);
 
 // Optional heart beat, sent every 45 seconds when there is not any traffic
 // to make sure that load balancers do not kill an idle connection.
-webSocket.setHeartBeatPeriod(45);
+webSocket.setPingInterval(45);
 
 // Per message deflate connection is enabled by default. You can tweak its parameters or disable it
 webSocket.disablePerMessageDeflate();
@@ -174,7 +174,7 @@ when there is no any traffic to make sure that load balancers do not kill an
 idle connection.
 
 ```cpp
-webSocket.setHeartBeatPeriod(45);
+webSocket.setPingInterval(45);
 ```
 
 ### Supply extra HTTP headers.

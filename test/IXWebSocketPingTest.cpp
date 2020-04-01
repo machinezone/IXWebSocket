@@ -65,7 +65,7 @@ namespace
         // Set a 1 second heartbeat with the setter method to test
         if (_useHeartBeatMethod)
         {
-            _webSocket.setHeartBeatPeriod(1);
+            _webSocket.setPingInterval(1);
         }
         else
         {
@@ -378,9 +378,9 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval_full", "[setPingInterval]")
     }
 }
 
-// Using setHeartBeatPeriod
+// Using setPingInterval
 
-TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
+TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setPingInterval]")
 {
     SECTION("Make sure that ping messages are sent when no other data are sent.")
     {
@@ -424,7 +424,7 @@ TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod
     }
 }
 
-TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setHeartBeatPeriod]")
+TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setPingInterval]")
 {
     SECTION("Make sure that ping messages are sent, even if other messages are sent")
     {
