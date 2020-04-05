@@ -21,6 +21,56 @@
 #endif
 #define socketerrno errno
 
+#ifdef _WIN32
+namespace
+{
+    bool loadWindowsSystemCertificates(SSL_CTX* ssl, std::string& errorMsg)
+    {
+        DWORD flags = CERT_STORE_READONLY_FLAG | CERT_STORE_OPEN_EXISTING_FLAG |
+                      CERT_SYSTEM_STORE_CURRENT_USER;
+        HCERTSTORE systemStore = CertOpenStore(CERT_STORE_PROV_SYSTEM, 0, 0, flags, L"Root");
+
+        if (!systemStore)
+        {
+            errorMsg = "CertOpenStore failed with " errorMsg += std::to_string(GetLastError());
+            return false;
+        }
+
+        PCCERT_CONTEXT certificateIterator = NULL;
+        X509_STORE* opensslStore = SSL_CTX_get_cert_store(ssl);
+
+        int certificateCount = 0;
+        while (certificateIterator = CertEnumCertificatesInStore(systemStore, certificateIterator))
+        {
+            X509* x509 = d2i_X509(NULL,
+                                  (const unsigned char**) &certificateIterator->pbCertEncoded,
+                                  certificateIterator->cbCertEncoded);
+
+            if (x509)
+            {
+                if (X509_STORE_add_cert(opensslStore, x509) == 1)
+                {
+                    ++certificateCount;
+                }
+
+                X509_free(x509);
+            }
+        }
+
+        CertFreeCertificateContext(certificateIterator);
+        CertCloseStore(systemStore, 0);
+
+        if (certificateCount == 0)
+        {
+            errorMsg = "No certificates found";
+            return false;
+        }
+
+        return true;
+    }
+} // namespace
+#endif
+
 namespace ix
 {
     const std::string kDefaultCiphers =
@@ -336,6 +386,12 @@ namespace ix
         {
             if (_tlsOptions.isUsingSystemDefaults())
             {
+#ifdef _WIN32
+                if (!loadWindowsSystemCertificates(_ssl_context))
+                {
+                    return false;
+                }
+#else
                 if (SSL_CTX_set_default_verify_paths(_ssl_context) == 0)
                 {
                     auto sslErr = ERR_get_error();
@@ -343,6 +399,7 @@ namespace ix
                     errMsg += ERR_error_string(sslErr, nullptr);
                     return false;
                 }
+#endif
             }
             else if (SSL_CTX_load_verify_locations(
                          _ssl_context, _tlsOptions.caFile.c_str(), NULL) != 1)
