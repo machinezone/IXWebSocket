@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.2.1] - 2020-04-04
+
+(windows) when using OpenSSL, the system store is used to populate the cacert. No need to ship a cacert.pem file with your app.
+
 ## [9.2.0] - 2020-04-04
 
 (windows) ci: windows build with TLS (mbedtls) + verify that we can be build with OpenSSL
