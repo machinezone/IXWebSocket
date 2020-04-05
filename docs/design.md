@@ -8,6 +8,8 @@ The per message deflate compression option is supported. It can lead to very nic
 
 Connections can be optionally secured and encrypted with TLS/SSL when using a wss:// endpoint, or using normal un-encrypted socket with ws:// endpoints. AppleSSL is used on iOS and macOS, OpenSSL and mbedTLS can be used on Android, Linux and Windows.
 
+If you are using OpenSSL, try to be on a version higher than 1.1.x as there there are thread safety problems with 1.0.x.
+
 ### Polling and background thread work
 
 No manual polling to fetch data is required. Data is sent and received instantly by using a background thread for receiving data and the select [system](http://man7.org/linux/man-pages/man2/select.2.html) call to be notified by the OS of incoming data. No timeout is used for select so that the background thread is only woken up when data is available, to optimize battery life. This is also the recommended way of using select according to the select tutorial, section [select law](https://linux.die.net/man/2/select_tut). Read and Writes to the socket are non blocking. Data is sent right away and not enqueued by writing directly to the socket, which is [possible](https://stackoverflow.com/questions/1981372/are-parallel-calls-to-send-recv-on-the-same-socket-valid) since system socket implementations allow concurrent read/writes. However concurrent writes need to be protected with mutex.
@@ -26,7 +28,13 @@ The library has an interactive tool which is handy for testing compatibility ith
 
 The unittest tries to be comprehensive, and has been running on multiple platforms, with different sanitizers such as a thread sanitizer to catch data races or the undefined behavior sanitizer.
 
-The regression test is running after each commit on travis.
+The regression test is running after each commit on github actions for multiple configurations.
+
+* Linux
+* macOS with thread sanitizer
+* macOS, with OpenSSL, with thread sanitizer
+* macOS, with MbedTLS, with thread sanitizer
+* Windows, with MbedTLS (the unittest is not run yet)
 
 ## Limitations
 

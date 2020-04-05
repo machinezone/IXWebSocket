@@ -436,6 +436,8 @@ setOnConnectionCallback(
 
 To leverage TLS features, the library must be compiled with the option `USE_TLS=1`.
 
+If you are using OpenSSL, try to be on a version higher than 1.1.x as there there are thread safety problems with 1.0.x.
+
 Then, secure sockets are automatically used when connecting to a `wss://*` url.
 
 Additional TLS options can be configured by passing a `ix::SocketTLSOptions` instance to the
