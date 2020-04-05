@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.2.0] - 2020-04-04
+
+(windows) ci: windows build with TLS (mbedtls) + verify that we can be build with OpenSSL
+
 ## [9.1.9] - 2020-03-30
 
 (cobra to statsd bot) add ability to extract a numerical value and send a timer event to statsd, with the --timer option

@@ -120,12 +120,13 @@ endif()
 option(USE_TLS "Enable TLS support" FALSE)
 
 if (USE_TLS)
-    if (WIN32)
-        option(USE_MBED_TLS "Use Mbed TLS" ON)
-    else()
-        option(USE_MBED_TLS "Use Mbed TLS" OFF)
-    endif()
+    option(USE_MBED_TLS "Use Mbed TLS" OFF)
     option(USE_OPEN_SSL "Use OpenSSL" OFF)
+
+    # default to mbedtls on windows if nothing is configured
+    if (WIN32 AND NOT USE_OPEN_SSL AND NOT USE_MBED_TLS)
+      option(USE_MBED_TLS "Use Mbed TLS" ON)
+    endif()
 
     if (USE_MBED_TLS)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketMbedTLS.h)
