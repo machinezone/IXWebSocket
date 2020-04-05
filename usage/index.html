@@ -511,6 +511,7 @@ server.wait();
 
 <h2 id="tls-support-and-configuration">TLS support and configuration</h2>
 <p>To leverage TLS features, the library must be compiled with the option <code>USE_TLS=1</code>.</p>
+<p>If you are using OpenSSL, try to be on a version higher than 1.1.x as there there are thread safety problems with 1.0.x.</p>
 <p>Then, secure sockets are automatically used when connecting to a <code>wss://*</code> url.</p>
 <p>Additional TLS options can be configured by passing a <code>ix::SocketTLSOptions</code> instance to the
 <code>setTLSOptions</code> on <code>ix::WebSocket</code> (or <code>ix::WebSocketServer</code> or <code>ix::HttpServer</code>)</p>
