@@ -5,7 +5,7 @@ include(FindPackageHandleStandardArgs)
 find_path(JSONCPP_INCLUDE_DIRS json/json.h)
 find_library(JSONCPP_LIBRARY jsoncpp)
 
-find_package_handle_standard_args(JSONCPP
+find_package_handle_standard_args(JsonCpp
     FOUND_VAR
       JSONCPP_FOUND
     REQUIRED_VARS

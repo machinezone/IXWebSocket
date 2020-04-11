@@ -4,7 +4,7 @@
 #pragma once
 
 #ifndef SPDLOG_HEADER_ONLY
-#include <spdlog/details/pattern_formatter.h>
+#include <spdlog/pattern_formatter.h>
 #endif
 
 #include <spdlog/details/fmt_helper.h>
@@ -90,7 +90,7 @@ struct null_scoped_padder
 };
 
 template<typename ScopedPadder>
-class name_formatter : public flag_formatter
+class name_formatter final : public flag_formatter
 {
 public:
     explicit name_formatter(padding_info padinfo)
@@ -106,7 +106,7 @@ public:
 
 // log level appender
 template<typename ScopedPadder>
-class level_formatter : public flag_formatter
+class level_formatter final : public flag_formatter
 {
 public:
     explicit level_formatter(padding_info padinfo)
@@ -123,7 +123,7 @@ public:
 
 // short log level appender
 template<typename ScopedPadder>
-class short_level_formatter : public flag_formatter
+class short_level_formatter final : public flag_formatter
 {
 public:
     explicit short_level_formatter(padding_info padinfo)
@@ -156,7 +156,7 @@ static int to12h(const tm &t)
 static std::array<const char *, 7> days{{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}};
 
 template<typename ScopedPadder>
-class a_formatter : public flag_formatter
+class a_formatter final : public flag_formatter
 {
 public:
     explicit a_formatter(padding_info padinfo)
@@ -194,7 +194,7 @@ public:
 static const std::array<const char *, 12> months{{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}};
 
 template<typename ScopedPadder>
-class b_formatter : public flag_formatter
+class b_formatter final : public flag_formatter
 {
 public:
     explicit b_formatter(padding_info padinfo)
@@ -214,7 +214,7 @@ static const std::array<const char *, 12> full_months{
     {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}};
 
 template<typename ScopedPadder>
-class B_formatter : public flag_formatter
+class B_formatter final : public flag_formatter
 {
 public:
     explicit B_formatter(padding_info padinfo)
@@ -933,16 +933,15 @@ public:
         dest.push_back(']');
         dest.push_back(' ');
 
-#ifndef SPDLOG_NO_NAME
+        // append logger name if exists
         if (msg.logger_name.size() > 0)
         {
             dest.push_back('[');
-            // fmt_helper::append_str(*msg.logger_name, dest);
             fmt_helper::append_string_view(msg.logger_name, dest);
             dest.push_back(']');
             dest.push_back(' ');
         }
-#endif
+
         dest.push_back('[');
         // wrap the level name with color
         msg.color_range_start = dest.size();
@@ -974,11 +973,13 @@ private:
 
 } // namespace details
 
-SPDLOG_INLINE pattern_formatter::pattern_formatter(std::string pattern, pattern_time_type time_type, std::string eol)
+SPDLOG_INLINE pattern_formatter::pattern_formatter(
+    std::string pattern, pattern_time_type time_type, std::string eol, custom_flags custom_user_flags)
     : pattern_(std::move(pattern))
     , eol_(std::move(eol))
     , pattern_time_type_(time_type)
     , last_log_secs_(0)
+    , custom_handlers_(std::move(custom_user_flags))
 {
     std::memset(&cached_tm_, 0, sizeof(cached_tm_));
     compile_pattern_(pattern_);
@@ -997,7 +998,12 @@ SPDLOG_INLINE pattern_formatter::pattern_formatter(pattern_time_type time_type, 
 
 SPDLOG_INLINE std::unique_ptr<formatter> pattern_formatter::clone() const
 {
-    return details::make_unique<pattern_formatter>(pattern_, pattern_time_type_, eol_);
+    custom_flags cloned_custom_formatters;
+    for (auto &it : custom_handlers_)
+    {
+        cloned_custom_formatters[it.first] = it.second->clone();
+    }
+    return details::make_unique<pattern_formatter>(pattern_, pattern_time_type_, eol_, std::move(cloned_custom_formatters));
 }
 
 SPDLOG_INLINE void pattern_formatter::format(const details::log_msg &msg, memory_buf_t &dest)
@@ -1017,6 +1023,12 @@ SPDLOG_INLINE void pattern_formatter::format(const details::log_msg &msg, memory
     details::fmt_helper::append_string_view(eol_, dest);
 }
 
+SPDLOG_INLINE void pattern_formatter::set_pattern(std::string pattern)
+{
+    pattern_ = std::move(pattern);
+    compile_pattern_(pattern_);
+}
+
 SPDLOG_INLINE std::tm pattern_formatter::get_time_(const details::log_msg &msg)
 {
     if (pattern_time_type_ == pattern_time_type::local)
@@ -1029,9 +1041,19 @@ SPDLOG_INLINE std::tm pattern_formatter::get_time_(const details::log_msg &msg)
 template<typename Padder>
 SPDLOG_INLINE void pattern_formatter::handle_flag_(char flag, details::padding_info padding)
 {
+    // process custom flags
+    auto it = custom_handlers_.find(flag);
+    if (it != custom_handlers_.end())
+    {
+        auto custom_handler = it->second->clone();
+        custom_handler->set_padding_info(padding);
+        formatters_.push_back(std::move(custom_handler));
+        return;
+    }
+
+    // process built-in flags
     switch (flag)
     {
-
     case ('+'): // default formatter
         formatters_.push_back(details::make_unique<details::full_formatter>(padding));
         break;

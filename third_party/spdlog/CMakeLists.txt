@@ -3,14 +3,26 @@
 
 cmake_minimum_required(VERSION 3.2)
 
+if(${CMAKE_VERSION} VERSION_LESS 3.11)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+else()
+    cmake_policy(VERSION 3.11)
+endif()
+
+ENABLE_LANGUAGE(C)
+
 #---------------------------------------------------------------------------------------
 # Start spdlog project
 #---------------------------------------------------------------------------------------
-include(GNUInstallDirs)
 include(cmake/utils.cmake)
 include(cmake/ide.cmake)
 
 spdlog_extract_version()
+
+project(spdlog VERSION ${SPDLOG_VERSION} LANGUAGES CXX)
+message(STATUS "Build spdlog: ${SPDLOG_VERSION}")
+
+include(GNUInstallDirs)
 
 #---------------------------------------------------------------------------------------
 # Set default build to release
@@ -19,15 +31,21 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
 endif()
 
-project(spdlog VERSION ${SPDLOG_VERSION} LANGUAGES CXX)
-message(STATUS "Build spdlog: ${SPDLOG_VERSION}")
 
 #---------------------------------------------------------------------------------------
 # Compiler config
 #---------------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+if (NOT CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+
+set(CMAKE_CXX_EXTENSIONS  OFF)
+
+if(CMAKE_SYSTEM_NAME MATCHES "CYGWIN")
+	set(CMAKE_CXX_EXTENSIONS ON)
+endif()
+
 
 #---------------------------------------------------------------------------------------
 # Set SPDLOG_MASTER_PROJECT to ON if we are building spdlog
@@ -42,16 +60,17 @@ if (NOT DEFINED SPDLOG_MASTER_PROJECT)
 endif ()
 
 # build shared option
-if(NOT WIN32)
-    option(SPDLOG_BUILD_SHARED "Build shared library" OFF)
-endif()
+option(SPDLOG_BUILD_SHARED "Build shared library" OFF)
+
+# precompiled headers option
+option(SPDLOG_ENABLE_PCH "Build static or shared library using precompiled header to speed up compilation time" OFF)
 
 # example options
 option(SPDLOG_BUILD_EXAMPLE "Build example" ${SPDLOG_MASTER_PROJECT})
 option(SPDLOG_BUILD_EXAMPLE_HO "Build header only example" OFF)
 
 # testing options
-option(SPDLOG_BUILD_TESTS "Build tests" ${SPDLOG_MASTER_PROJECT})
+option(SPDLOG_BUILD_TESTS "Build tests" OFF)
 option(SPDLOG_BUILD_TESTS_HO "Build tests using the header only version" OFF)
 
 # bench options
@@ -59,6 +78,9 @@ option(SPDLOG_BUILD_BENCH "Build benchmarks (Requires https://github.com/google/
 
 # sanitizer options
 option(SPDLOG_SANITIZE_ADDRESS "Enable address sanitizer in tests" OFF)
+
+# warning options
+option(SPDLOG_BUILD_WARNINGS "Enable compiler warnings" OFF)
 
 # install options
 option(SPDLOG_INSTALL "Generate the install target" ${SPDLOG_MASTER_PROJECT})
@@ -84,6 +106,17 @@ option(SPDLOG_NO_THREAD_ID "prevent spdlog from querying the thread id on each l
 option(SPDLOG_NO_TLS "prevent spdlog from using thread local storage" OFF)
 option(SPDLOG_NO_ATOMIC_LEVELS "prevent spdlog from using of std::atomic log levels (use only if your code never modifies log levels concurrently" OFF)
 
+# clang-tidy
+if(${CMAKE_VERSION} VERSION_GREATER "3.5") 
+    option(SPDLOG_TIDY "run clang-tidy" OFF)
+endif()
+
+if(SPDLOG_TIDY)
+    set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    message(STATUS "Enabled clang-tidy")
+endif()
+
 find_package(Threads REQUIRED)
 message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 #---------------------------------------------------------------------------------------
@@ -92,20 +125,29 @@ message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 set(SPDLOG_SRCS
         src/spdlog.cpp
         src/stdout_sinks.cpp
-        src/color_sinks.cpp
+        src/color_sinks.cpp 
         src/file_sinks.cpp
-        src/async.cpp)
-
+        src/async.cpp
+        src/cfg.cpp)
 
 if(NOT SPDLOG_FMT_EXTERNAL AND NOT SPDLOG_FMT_EXTERNAL_HO)
     list(APPEND SPDLOG_SRCS src/fmt.cpp)
 endif()
 
+if(WIN32 AND SPDLOG_BUILD_SHARED)
+    list(APPEND SPDLOG_SRCS ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+endif()
+
 if (SPDLOG_BUILD_SHARED)
-    if(WIN32)
-        message(FATAL_ERROR "spdlog shared lib is not yet supported under windows")
-    endif()
     add_library(spdlog SHARED ${SPDLOG_SRCS} ${SPDLOG_ALL_HEADERS})
+    target_compile_definitions(spdlog PUBLIC SPDLOG_SHARED_LIB)
+    if(WIN32)
+        target_compile_options(spdlog PUBLIC /wd4251 /wd4275)
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.rc.in ${CMAKE_CURRENT_BINARY_DIR}/version.rc @ONLY)        
+    endif()
+    if(NOT SPDLOG_FMT_EXTERNAL AND NOT SPDLOG_FMT_EXTERNAL_HO)
+        target_compile_definitions(spdlog PRIVATE FMT_EXPORT PUBLIC FMT_SHARED)
+    endif()
 else()
     add_library(spdlog STATIC ${SPDLOG_SRCS} ${SPDLOG_ALL_HEADERS})
 endif()
@@ -121,6 +163,11 @@ spdlog_enable_warnings(spdlog)
 
 set_target_properties(spdlog PROPERTIES VERSION ${SPDLOG_VERSION} SOVERSION ${SPDLOG_VERSION_MAJOR})
 set_target_properties(spdlog PROPERTIES DEBUG_POSTFIX d)
+
+if(COMMAND target_precompile_headers AND SPDLOG_ENABLE_PCH)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/pch.h.in ${PROJECT_BINARY_DIR}/spdlog_pch.h @ONLY)
+    target_precompile_headers(spdlog PRIVATE ${PROJECT_BINARY_DIR}/spdlog_pch.h)
+endif()
 
 #---------------------------------------------------------------------------------------
 # Header only version
@@ -209,8 +256,12 @@ endif()
 # Build binaries
 #---------------------------------------------------------------------------------------
 if(SPDLOG_BUILD_EXAMPLE OR SPDLOG_BUILD_EXAMPLE_HO)
-    message(STATUS "Generating examples")
+    message(STATUS "Generating example(s)")
     add_subdirectory(example)
+    spdlog_enable_warnings(example)
+    if(SPDLOG_BUILD_EXAMPLE_HO)
+        spdlog_enable_warnings(example_header_only)
+    endif()
 endif()
 
 if(SPDLOG_BUILD_TESTS OR SPDLOG_BUILD_TESTS_HO)
@@ -241,7 +292,10 @@ if (SPDLOG_INSTALL)
     # Include files
     #---------------------------------------------------------------------------------------
     install(DIRECTORY include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}" PATTERN "fmt/bundled" EXCLUDE)
-    install(TARGETS spdlog spdlog_header_only EXPORT spdlog DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(TARGETS spdlog spdlog_header_only EXPORT spdlog
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
     if(NOT SPDLOG_FMT_EXTERNAL AND NOT SPDLOG_FMT_EXTERNAL_HO)
         install(DIRECTORY include/${PROJECT_NAME}/fmt/bundled/
@@ -277,6 +331,5 @@ if (SPDLOG_INSTALL)
     # Support creation of installable packages
     #---------------------------------------------------------------------------------------
     include(cmake/spdlogCPack.cmake)
-
 endif ()
 

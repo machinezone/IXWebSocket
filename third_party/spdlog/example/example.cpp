@@ -6,6 +6,7 @@
 
 #include <cstdio>
 
+void load_levels_example();
 void stdout_logger_example();
 void basic_example();
 void rotating_example();
@@ -17,12 +18,18 @@ void multi_sink_example();
 void user_defined_example();
 void err_handler_example();
 void syslog_example();
+void custom_flags_example();
 
 #include "spdlog/spdlog.h"
+#include "spdlog/cfg/env.h" // for loading levels from the environment variable
 
 int main(int, char *[])
 {
+    // Log levels can be loaded from argv/env using "SPDLOG_LEVEL"
+    load_levels_example();
+
     spdlog::info("Welcome to spdlog version {}.{}.{}  !", SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH);
+
     spdlog::warn("Easy padding in numbers like {:08d}", 12);
     spdlog::critical("Support for int: {0:d};  hex: {0:x};  oct: {0:o}; bin: {0:b}", 42);
     spdlog::info("Support for floats {:03.2f}", 1.23456);
@@ -64,6 +71,7 @@ int main(int, char *[])
         user_defined_example();
         err_handler_example();
         trace_example();
+        custom_flags_example();
 
         // Flush all *registered* loggers using a worker thread every 3 seconds.
         // note: registered loggers *must* be thread safe for this to work correctly!
@@ -116,6 +124,18 @@ void daily_example()
     auto daily_logger = spdlog::daily_logger_mt("daily_logger", "logs/daily.txt", 2, 30);
 }
 
+#include "spdlog/cfg/env.h"
+void load_levels_example()
+{
+    // Set the log level to "info" and mylogger to to "trace":
+    // SPDLOG_LEVEL=info,mylogger=trace && ./example
+    spdlog::cfg::load_env_levels();
+    // or from command line:
+    // ./example SPDLOG_LEVEL=info,mylogger=trace
+    // #include "spdlog/cfg/argv.h" // for loading levels from argv
+    // spdlog::cfg::load_argv_levels(args, argv);
+}
+
 #include "spdlog/async.h"
 void async_example()
 {
@@ -154,6 +174,8 @@ void binary_example()
     // logger->info("uppercase: {:X}", spdlog::to_hex(buf));
     // logger->info("uppercase, no delimiters: {:Xs}", spdlog::to_hex(buf));
     // logger->info("uppercase, no delimiters, no position info: {:Xsp}", spdlog::to_hex(buf));
+    // logger->info("hexdump style: {:a}", spdlog::to_hex(buf));
+    // logger->info("hexdump style, 20 chars per line {:a}", spdlog::to_hex(buf, 20));
 }
 
 // Compile time log levels.
@@ -230,5 +252,31 @@ void android_example()
     auto android_logger = spdlog::android_logger_mt("android", tag);
     android_logger->critical("Use \"adb shell logcat\" to view this message.");
 }
-
 #endif
+
+// Log patterns can contain custom flags.
+// this will add custom flag '%*' which will be bound to a <my_formatter_flag> instance
+#include "spdlog/pattern_formatter.h"
+class my_formatter_flag : public spdlog::custom_flag_formatter
+{
+public:
+    void format(const spdlog::details::log_msg &, const std::tm &, spdlog::memory_buf_t &dest) override
+    {
+        std::string some_txt = "custom-flag";
+        dest.append(some_txt.data(), some_txt.data() + some_txt.size());
+    }
+
+    std::unique_ptr<custom_flag_formatter> clone() const override
+    {
+        return spdlog::details::make_unique<my_formatter_flag>();
+    }
+};
+
+void custom_flags_example()
+{
+
+    using spdlog::details::make_unique; // for pre c++14
+    auto formatter = make_unique<spdlog::pattern_formatter>();
+    formatter->add_flag<my_formatter_flag>('*').set_pattern("[%n] [%*] [%^%l%$] %v");
+    spdlog::set_formatter(std::move(formatter));
+}

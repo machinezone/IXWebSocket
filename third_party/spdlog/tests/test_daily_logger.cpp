@@ -24,7 +24,7 @@ TEST_CASE("daily_logger with dateonly calculator", "[daily_logger]")
     logger->flush();
 
     auto filename = fmt::to_string(w);
-    REQUIRE(count_lines(filename) == 10);
+    require_message_count(filename, 10);
 }
 
 struct custom_daily_file_name_calculator
@@ -55,12 +55,10 @@ TEST_CASE("daily_logger with custom calculator", "[daily_logger]")
         logger->info("Test message {}", i);
     }
 
-    logger->
-
-        flush();
+    logger->flush();
 
     auto filename = fmt::to_string(w);
-    REQUIRE(count_lines(filename) == 10);
+    require_message_count(filename, 10);
 }
 
 /*
@@ -115,7 +113,6 @@ static void test_rotate(int days_to_run, uint16_t max_days, uint16_t expected_n_
     using spdlog::log_clock;
     using spdlog::details::log_msg;
     using spdlog::sinks::daily_file_sink_st;
-    using namespace spdlog::details;
 
     prepare_logdir();
 

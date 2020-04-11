@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.2.2] - 2020-04-04
+
+(third_party deps) fix #177, update bundled spdlog to 1.6.0
+
 ## [9.2.1] - 2020-04-04
 
 (windows) when using OpenSSL, the system store is used to populate the cacert. No need to ship a cacert.pem file with your app.
