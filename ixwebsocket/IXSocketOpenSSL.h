@@ -39,6 +39,7 @@ namespace ix
         void openSSLInitialize();
         std::string getSSLError(int ret);
         SSL_CTX* openSSLCreateContext(std::string& errMsg);
+        bool openSSLAddCARootsFromString(const std::string roots);
         bool openSSLClientHandshake(const std::string& hostname,
                                     std::string& errMsg,
                                     const CancellationRequest& isCancellationRequested);

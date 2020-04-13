@@ -29,6 +29,8 @@ namespace ix
 
         // list of ciphers (rsa, etc...)
         std::string ciphers = "DEFAULT";
+        
+        std::string caCerts = "";
 
         // whether tls is enabled, used for server code
         bool tls = false;
@@ -36,6 +38,8 @@ namespace ix
         bool hasCertAndKey() const;
 
         bool isUsingSystemDefaults() const;
+        
+        bool isUsingStringCAs() const;
 
         bool isPeerVerifyDisabled() const;
 

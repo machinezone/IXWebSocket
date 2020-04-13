@@ -13,6 +13,7 @@
 namespace ix
 {
     const char* kTLSCAFileUseSystemDefaults = "SYSTEM";
+    const char* kTLSCAFileUseString = "STRING";
     const char* kTLSCAFileDisableVerify = "NONE";
     const char* kTLSCiphersUseDefault = "DEFAULT";
 
@@ -56,6 +57,11 @@ namespace ix
     bool SocketTLSOptions::isUsingSystemDefaults() const
     {
         return caFile == kTLSCAFileUseSystemDefaults;
+    }
+
+    bool SocketTLSOptions::isUsingStringCAs() const
+    {
+        return caFile == kTLSCAFileUseString;
     }
 
     bool SocketTLSOptions::isPeerVerifyDisabled() const
