@@ -251,7 +251,22 @@ namespace snake
                              const AppConfig& appConfig,
                              const std::string& str)
     {
-        auto pdu = nlohmann::json::parse(str);
+        nlohmann::json pdu;
+        try
+        {
+            pdu = nlohmann::json::parse(str);
+        }
+        catch (const nlohmann::json::parse_error& e)
+        {
+            std::stringstream ss;
+            ss << "malformed json pdu: " << e.what() << " -> " << str << "";
+
+            nlohmann::json response = {{"body", {{"error", "invalid_json"},
+                                                 {"reason", ss.str()}}}};
+            ws->sendText(response.dump());
+            return;
+        }
+
         auto action = pdu["action"];
 
         if (action == "auth/handshake")
