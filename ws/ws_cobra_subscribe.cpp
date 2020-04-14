@@ -25,6 +25,17 @@ namespace ix
         return jsonWriter;
     }
 
+    std::string timeSinceEpoch()
+    {
+        std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
+        std::chrono::system_clock::duration dtn = tp.time_since_epoch();
+
+        std::stringstream ss;
+        ss << dtn.count() * std::chrono::system_clock::period::num /
+                  std::chrono::system_clock::period::den;
+        return ss.str();
+    }
+
     void writeToStdout(bool fluentd,
                        const StreamWriterPtr& jsonWriter,
                        const Json::Value& msg,
@@ -36,12 +47,13 @@ namespace ix
             enveloppe["producer"] = "cobra";
             enveloppe["consumer"] = "fluentd";
 
-            Json::Value msgWithPosition(msg);
-            msgWithPosition["position"] = position;
-            enveloppe["message"] = msgWithPosition;
+            Json::Value nestedMessage(msg);
+            nestedMessage["position"] = position;
+            nestedMessage["created_at"] = timeSinceEpoch();
+            enveloppe["message"] = nestedMessage;
 
             jsonWriter->write(enveloppe, &std::cout);
-            std::cout << std::endl;  // add lf and flush
+            std::cout << std::endl; // add lf and flush
         }
         else
         {
@@ -184,7 +196,7 @@ namespace ix
         // Run for a duration, used by unittesting now
         else
         {
-            for (int i = 0 ; i < runtime; ++i)
+            for (int i = 0; i < runtime; ++i)
             {
                 auto duration = std::chrono::seconds(1);
                 std::this_thread::sleep_for(duration);

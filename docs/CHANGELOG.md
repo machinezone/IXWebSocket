@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.2.6] - 2020-04-14
+
+(ixcobra) snake server / handle invalid incoming json messages + cobra subscriber in fluentd mode insert a created_at timestamp entry
+
 ## [9.2.5] - 2020-04-13
 
 (websocket) WebSocketMessagePtr is a unique_ptr instead of a shared_ptr
