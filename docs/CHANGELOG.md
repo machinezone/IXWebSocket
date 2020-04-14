@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.2.5] - 2020-04-13
+
+(websocket) WebSocketMessagePtr is a unique_ptr instead of a shared_ptr
+
 ## [9.2.4] - 2020-04-13
 
 (websocket) use persistent member variable as temp variables to encode/decode zlib messages in order to reduce transient allocations

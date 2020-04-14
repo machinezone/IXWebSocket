@@ -45,5 +45,5 @@ namespace ix
         }
     };
 
-    using WebSocketMessagePtr = std::shared_ptr<WebSocketMessage>;
+    using WebSocketMessagePtr = std::unique_ptr<WebSocketMessage>;
 } // namespace ix

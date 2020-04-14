@@ -34,7 +34,7 @@ namespace ix
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote) {
                 _onMessageCallback(
-                    std::make_shared<WebSocketMessage>(WebSocketMessageType::Close,
+                    std::make_unique<WebSocketMessage>(WebSocketMessageType::Close,
                                                        "",
                                                        wireSize,
                                                        WebSocketErrorInfo(),
@@ -193,7 +193,7 @@ namespace ix
             return status;
         }
 
-        _onMessageCallback(std::make_shared<WebSocketMessage>(
+        _onMessageCallback(std::make_unique<WebSocketMessage>(
             WebSocketMessageType::Open,
             "",
             0,
@@ -225,7 +225,7 @@ namespace ix
         }
 
         _onMessageCallback(
-            std::make_shared<WebSocketMessage>(WebSocketMessageType::Open,
+            std::make_unique<WebSocketMessage>(WebSocketMessageType::Open,
                                                "",
                                                0,
                                                WebSocketErrorInfo(),
@@ -310,7 +310,7 @@ namespace ix
                 connectErr.reason = status.errorStr;
                 connectErr.http_status = status.http_status;
 
-                _onMessageCallback(std::make_shared<WebSocketMessage>(WebSocketMessageType::Error,
+                _onMessageCallback(std::make_unique<WebSocketMessage>(WebSocketMessageType::Error,
                                                                       "",
                                                                       0,
                                                                       connectErr,
@@ -386,7 +386,7 @@ namespace ix
 
                     bool binary = messageKind == WebSocketTransport::MessageKind::MSG_BINARY;
 
-                    _onMessageCallback(std::make_shared<WebSocketMessage>(webSocketMessageType,
+                    _onMessageCallback(std::make_unique<WebSocketMessage>(webSocketMessageType,
                                                                           msg,
                                                                           wireSize,
                                                                           webSocketErrorInfo,
