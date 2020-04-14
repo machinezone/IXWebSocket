@@ -448,31 +448,33 @@ namespace ix
                     return false;
                 }
 #else
-//                if (SSL_CTX_set_default_verify_paths(_ssl_context) == 0)
-//                {
-//                    auto sslErr = ERR_get_error();
-//                    errMsg = "OpenSSL failed - SSL_CTX_default_verify_paths loading failed: ";
-//                    errMsg += ERR_error_string(sslErr, nullptr);
-//                    return false;
-//                }
+                if (SSL_CTX_set_default_verify_paths(_ssl_context) == 0)
+                {
+                    auto sslErr = ERR_get_error();
+                    errMsg = "OpenSSL failed - SSL_CTX_default_verify_paths loading failed: ";
+                    errMsg += ERR_error_string(sslErr, nullptr);
+                    return false;
+                }
 #endif
-            } else if (_tlsOptions.isUsingStringCAs()) {
-                openSSLAddCARootsFromString(_tlsOptions.caCerts);
-            }
-            else if (SSL_CTX_load_verify_locations(
-                         _ssl_context, _tlsOptions.caFile.c_str(), NULL) != 1)
-            {
-                auto sslErr = ERR_get_error();
-                errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" + _tlsOptions.caFile +
-                         "\") failed: ";
-                errMsg += ERR_error_string(sslErr, nullptr);
-                return false;
-            }
+            } else {
+                if (_tlsOptions.isUsingInMemoryCAs()) {
+                    // Load from memory
+                    openSSLAddCARootsFromString(_tlsOptions.caFile);
+                } else if (SSL_CTX_load_verify_locations(
+                             _ssl_context, _tlsOptions.caFile.c_str(), NULL) != 1)
+                {
+                    auto sslErr = ERR_get_error();
+                    errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" + _tlsOptions.caFile +
+                             "\") failed: ";
+                    errMsg += ERR_error_string(sslErr, nullptr);
+                    return false;
+                }
 
-            SSL_CTX_set_verify(_ssl_context,
-                               SSL_VERIFY_PEER,
-                               [](int preverify, X509_STORE_CTX*) -> int { return preverify; });
-            SSL_CTX_set_verify_depth(_ssl_context, 4);
+                SSL_CTX_set_verify(_ssl_context,
+                                   SSL_VERIFY_PEER,
+                                   [](int preverify, X509_STORE_CTX*) -> int { return preverify; });
+                SSL_CTX_set_verify_depth(_ssl_context, 4);
+            }
         }
         else
         {
@@ -582,25 +584,30 @@ namespace ix
                 }
                 else
                 {
-                    const char* root_ca_file = _tlsOptions.caFile.c_str();
-                    STACK_OF(X509_NAME) * rootCAs;
-                    rootCAs = SSL_load_client_CA_file(root_ca_file);
-                    if (rootCAs == NULL)
-                    {
-                        auto sslErr = ERR_get_error();
-                        errMsg = "OpenSSL failed - SSL_load_client_CA_file('" + _tlsOptions.caFile +
-                                 "') failed: ";
-                        errMsg += ERR_error_string(sslErr, nullptr);
-                    }
-                    else
-                    {
-                        SSL_CTX_set_client_CA_list(_ssl_context, rootCAs);
-                        if (SSL_CTX_load_verify_locations(_ssl_context, root_ca_file, nullptr) != 1)
+                    if (_tlsOptions.isUsingInMemoryCAs()) {
+                        // Load from memory
+                        openSSLAddCARootsFromString(_tlsOptions.caFile);
+                    } else {
+                        const char* root_ca_file = _tlsOptions.caFile.c_str();
+                        STACK_OF(X509_NAME) * rootCAs;
+                        rootCAs = SSL_load_client_CA_file(root_ca_file);
+                        if (rootCAs == NULL)
                         {
                             auto sslErr = ERR_get_error();
-                            errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +
-                                     _tlsOptions.caFile + "\") failed: ";
+                            errMsg = "OpenSSL failed - SSL_load_client_CA_file('" + _tlsOptions.caFile +
+                                     "') failed: ";
                             errMsg += ERR_error_string(sslErr, nullptr);
+                        }
+                        else
+                        {
+                            SSL_CTX_set_client_CA_list(_ssl_context, rootCAs);
+                            if (SSL_CTX_load_verify_locations(_ssl_context, root_ca_file, nullptr) != 1)
+                            {
+                                auto sslErr = ERR_get_error();
+                                errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +
+                                         _tlsOptions.caFile + "\") failed: ";
+                                errMsg += ERR_error_string(sslErr, nullptr);
+                            }
                         }
                     }
                 }
