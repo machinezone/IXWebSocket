@@ -165,7 +165,7 @@ namespace ix
         MessageKind _fragmentedMessageKind;
 
         // Ditto for whether a message is compressed
-        bool _compressedMessage;
+        bool _receivedMessageCompressed;
 
         // Fragments are 32K long
         static constexpr size_t kChunkSize = 1 << 15;
@@ -188,6 +188,9 @@ namespace ix
         WebSocketPerMessageDeflatePtr _perMessageDeflate;
         WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
         std::atomic<bool> _enablePerMessageDeflate;
+
+        std::string _decompressedMessage;
+        std::string _compressedMessage;
 
         // Used to control TLS connection behavior
         SocketTLSOptions _socketTLSOptions;

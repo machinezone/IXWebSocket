@@ -19,7 +19,7 @@ namespace ix
     struct WebSocketMessage
     {
         WebSocketMessageType type;
-        std::string str;
+        const std::string& str;
         size_t wireSize;
         WebSocketErrorInfo errorInfo;
         WebSocketOpenInfo openInfo;
@@ -34,7 +34,7 @@ namespace ix
                          WebSocketCloseInfo c,
                          bool b = false)
             : type(t)
-            , str(std::move(s))
+            , str(s)
             , wireSize(w)
             , errorInfo(e)
             , openInfo(o)

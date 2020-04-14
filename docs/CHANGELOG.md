@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.2.4] - 2020-04-13
+
+(websocket) use persistent member variable as temp variables to encode/decode zlib messages in order to reduce transient allocations
+
 ## [9.2.3] - 2020-04-13
 
 (ws) add a --runtime option to ws cobra_subscribe to optionally limit how much time it will run

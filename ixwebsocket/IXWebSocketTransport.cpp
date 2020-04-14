@@ -62,7 +62,7 @@ namespace ix
     WebSocketTransport::WebSocketTransport()
         : _useMask(true)
         , _blockingSend(false)
-        , _compressedMessage(false)
+        , _receivedMessageCompressed(false)
         , _readyState(ReadyState::CLOSED)
         , _closeCode(WebSocketCloseConstants::kInternalErrorCode)
         , _closeReason(WebSocketCloseConstants::kInternalErrorMessage)
@@ -493,7 +493,7 @@ namespace ix
                                                  ? MessageKind::MSG_TEXT
                                                  : MessageKind::MSG_BINARY;
 
-                    _compressedMessage = _enablePerMessageDeflate && ws.rsv1;
+                    _receivedMessageCompressed = _enablePerMessageDeflate && ws.rsv1;
 
                     // Continuation message needs to follow a non-fin TEXT or BINARY message
                     if (!_chunks.empty())
@@ -516,9 +516,9 @@ namespace ix
                 if (ws.fin && _chunks.empty())
                 {
                     emitMessage(
-                        _fragmentedMessageKind, frameData, _compressedMessage, onMessageCallback);
+                        _fragmentedMessageKind, frameData, _receivedMessageCompressed, onMessageCallback);
 
-                    _compressedMessage = false;
+                    _receivedMessageCompressed = false;
                 }
                 else
                 {
@@ -535,11 +535,11 @@ namespace ix
                     {
                         emitMessage(_fragmentedMessageKind,
                                     getMergedChunks(),
-                                    _compressedMessage,
+                                    _receivedMessageCompressed,
                                     onMessageCallback);
 
                         _chunks.clear();
-                        _compressedMessage = false;
+                        _receivedMessageCompressed = false;
                     }
                     else
                     {
@@ -712,17 +712,16 @@ namespace ix
         // When the RSV1 bit is 1 it means the message is compressed
         if (compressedMessage && messageKind != MessageKind::FRAGMENT)
         {
-            std::string decompressedMessage;
-            bool success = _perMessageDeflate->decompress(message, decompressedMessage);
+            bool success = _perMessageDeflate->decompress(message, _decompressedMessage);
 
-            if (messageKind == MessageKind::MSG_TEXT && !validateUtf8(decompressedMessage))
+            if (messageKind == MessageKind::MSG_TEXT && !validateUtf8(_decompressedMessage))
             {
                 close(WebSocketCloseConstants::kInvalidFramePayloadData,
                       WebSocketCloseConstants::kInvalidFramePayloadDataMessage);
             }
             else
             {
-                onMessageCallback(decompressedMessage, wireSize, !success, messageKind);
+                onMessageCallback(_decompressedMessage, wireSize, !success, messageKind);
             }
         }
         else
@@ -759,7 +758,6 @@ namespace ix
 
         size_t payloadSize = message.size();
         size_t wireSize = message.size();
-        std::string compressedMessage;
         bool compressionError = false;
 
         std::string::const_iterator message_begin = message.begin();
@@ -767,7 +765,7 @@ namespace ix
 
         if (compress)
         {
-            if (!_perMessageDeflate->compress(message, compressedMessage))
+            if (!_perMessageDeflate->compress(message, _compressedMessage))
             {
                 bool success = false;
                 compressionError = true;
@@ -776,10 +774,10 @@ namespace ix
                 return WebSocketSendInfo(success, compressionError, payloadSize, wireSize);
             }
             compressionError = false;
-            wireSize = compressedMessage.size();
+            wireSize = _compressedMessage.size();
 
-            message_begin = compressedMessage.begin();
-            message_end = compressedMessage.end();
+            message_begin = _compressedMessage.begin();
+            message_end = _compressedMessage.end();
         }
 
         {

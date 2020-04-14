@@ -87,6 +87,9 @@ namespace ix
         //
         size_t output;
 
+        // Clear output
+        out.clear();
+
         if (in.empty())
         {
             // See issue #167
@@ -173,6 +176,9 @@ namespace ix
 
         _inflateState.avail_in = (uInt) inFixed.size();
         _inflateState.next_in = (unsigned char*) (const_cast<char*>(inFixed.data()));
+
+        // Clear output
+        out.clear();
 
         do
         {
