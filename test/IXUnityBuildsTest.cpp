@@ -28,7 +28,6 @@
 #include <ixwebsocket/IXWebSocketHandshake.h>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketMessage.h>
-#include <ixwebsocket/IXWebSocketMessageQueue.h>
 #include <ixwebsocket/IXWebSocketMessageType.h>
 #include <ixwebsocket/IXWebSocketOpenInfo.h>
 #include <ixwebsocket/IXWebSocketPerMessageDeflate.h>
