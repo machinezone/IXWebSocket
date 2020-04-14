@@ -115,6 +115,7 @@ int main(int argc, char** argv)
     uint32_t maxWaitBetweenReconnectionRetries;
     size_t maxQueueSize = 100;
     int pingIntervalSecs = 30;
+    int runtime = -1; // run indefinitely
 
     auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* app) {
         app->add_option(
@@ -238,6 +239,7 @@ int main(int argc, char** argv)
     cobraSubscribeApp->add_option("--position", position, "Stream position");
     cobraSubscribeApp->add_flag("-q", quiet, "Quiet / only display stats");
     cobraSubscribeApp->add_flag("--fluentd", fluentd, "Write fluentd prefix");
+    cobraSubscribeApp->add_option("--runtime", runtime, "Runtime in seconds");
     addTLSOptions(cobraSubscribeApp);
     addCobraConfig(cobraSubscribeApp);
 
@@ -276,6 +278,7 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("--queue_size",
                              maxQueueSize,
                              "Size of the queue to hold messages before they are sent to Sentry");
+    cobra2statsd->add_option("--runtime", runtime, "Runtime in seconds");
     addTLSOptions(cobra2statsd);
     addCobraConfig(cobra2statsd);
 
@@ -290,6 +293,7 @@ int main(int argc, char** argv)
     cobra2sentry->add_option("--pidfile", pidfile, "Pid file");
     cobra2sentry->add_option("--filter", filter, "Stream SQL Filter");
     cobra2sentry->add_option("--position", position, "Stream position");
+    cobra2sentry->add_option("--runtime", runtime, "Runtime in seconds");
     addTLSOptions(cobra2sentry);
     addCobraConfig(cobra2sentry);
 
@@ -445,7 +449,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_subscribe"))
     {
-        ret = ix::ws_cobra_subscribe_main(cobraConfig, channel, filter, position, quiet, fluentd);
+        ret = ix::ws_cobra_subscribe_main(cobraConfig, channel, filter, position, quiet, fluentd, runtime);
     }
     else if (app.got_subcommand("cobra_publish"))
     {
@@ -466,7 +470,6 @@ int main(int argc, char** argv)
         else
         {
             bool enableHeartbeat = true;
-            int runtime = -1; // run indefinitely
             ix::StatsdClient statsdClient(hostname, statsdPort, prefix);
 
             std::string errMsg;
@@ -496,7 +499,6 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("cobra_to_sentry"))
     {
         bool enableHeartbeat = true;
-        int runtime = -1;
         ix::SentryClient sentryClient(dsn);
         sentryClient.setTLSOptions(tlsOptions);
 

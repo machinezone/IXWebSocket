@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.2.3] - 2020-04-13
+
+(ws) add a --runtime option to ws cobra_subscribe to optionally limit how much time it will run
+
 ## [9.2.2] - 2020-04-04
 
 (third_party deps) fix #177, update bundled spdlog to 1.6.0

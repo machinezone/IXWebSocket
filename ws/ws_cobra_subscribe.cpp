@@ -57,7 +57,8 @@ namespace ix
                                 const std::string& filter,
                                 const std::string& position,
                                 bool quiet,
-                                bool fluentd)
+                                bool fluentd,
+                                int runtime)
     {
         ix::CobraConnection conn;
         conn.configure(config);
@@ -65,11 +66,12 @@ namespace ix
 
         std::atomic<int> msgPerSeconds(0);
         std::atomic<int> msgCount(0);
+        std::atomic<bool> stop(false);
         std::atomic<bool> fatalCobraError(false);
         auto jsonWriter = makeStreamWriter();
 
-        auto timer = [&msgPerSeconds, &msgCount, &fatalCobraError] {
-            while (!fatalCobraError)
+        auto timer = [&msgPerSeconds, &msgCount, &stop] {
+            while (!stop)
             {
                 spdlog::info("#messages {} msg/s {}", msgCount, msgPerSeconds);
 
@@ -168,11 +170,30 @@ namespace ix
             }
         });
 
-        while (!fatalCobraError)
+        // Run forever
+        if (runtime == -1)
         {
-            auto duration = std::chrono::seconds(1);
-            std::this_thread::sleep_for(duration);
+            while (true)
+            {
+                auto duration = std::chrono::seconds(1);
+                std::this_thread::sleep_for(duration);
+
+                if (fatalCobraError) break;
+            }
         }
+        // Run for a duration, used by unittesting now
+        else
+        {
+            for (int i = 0 ; i < runtime; ++i)
+            {
+                auto duration = std::chrono::seconds(1);
+                std::this_thread::sleep_for(duration);
+
+                if (fatalCobraError) break;
+            }
+        }
+
+        stop = true;
 
         conn.disconnect();
         t.join();
