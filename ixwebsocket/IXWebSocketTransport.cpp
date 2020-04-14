@@ -515,8 +515,10 @@ namespace ix
                 //
                 if (ws.fin && _chunks.empty())
                 {
-                    emitMessage(
-                        _fragmentedMessageKind, frameData, _receivedMessageCompressed, onMessageCallback);
+                    emitMessage(_fragmentedMessageKind,
+                                frameData,
+                                _receivedMessageCompressed,
+                                onMessageCallback);
 
                     _receivedMessageCompressed = false;
                 }

@@ -268,8 +268,10 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("--port", statsdPort, "Statsd port");
     cobra2statsd->add_option("--prefix", prefix, "Statsd prefix");
     cobra2statsd->add_option("--fields", fields, "Extract fields for naming the event")->join();
-    cobra2statsd->add_option("--gauge", gauge, "Value to extract, and use as a statsd gauge")->join();
-    cobra2statsd->add_option("--timer", timer, "Value to extract, and use as a statsd timer")->join();
+    cobra2statsd->add_option("--gauge", gauge, "Value to extract, and use as a statsd gauge")
+        ->join();
+    cobra2statsd->add_option("--timer", timer, "Value to extract, and use as a statsd timer")
+        ->join();
     cobra2statsd->add_option("channel", channel, "Channel")->required();
     cobra2statsd->add_flag("-v", verbose, "Verbose");
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
@@ -449,7 +451,8 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_subscribe"))
     {
-        ret = ix::ws_cobra_subscribe_main(cobraConfig, channel, filter, position, quiet, fluentd, runtime);
+        ret = ix::ws_cobra_subscribe_main(
+            cobraConfig, channel, filter, position, quiet, fluentd, runtime);
     }
     else if (app.got_subcommand("cobra_publish"))
     {
@@ -463,7 +466,7 @@ int main(int argc, char** argv)
     {
         if (!timer.empty() && !gauge.empty())
         {
-            spdlog::error("--gauge and --timer options are exclusive. " \
+            spdlog::error("--gauge and --timer options are exclusive. "
                           "you can only supply one");
             ret = 1;
         }

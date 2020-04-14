@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 namespace ix
@@ -17,5 +18,10 @@ namespace ix
         int http_status = 0;
         std::string reason;
         bool decompressionError = false;
+
+        WebSocketErrorInfo()
+        {
+            ;
+        }
     };
 } // namespace ix

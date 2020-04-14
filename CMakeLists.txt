@@ -44,6 +44,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXWebSocketCloseConstants.cpp
     ixwebsocket/IXWebSocketHandshake.cpp
     ixwebsocket/IXWebSocketHttpHeaders.cpp
+    ixwebsocket/IXWebSocketMessage.cpp
     ixwebsocket/IXWebSocketPerMessageDeflate.cpp
     ixwebsocket/IXWebSocketPerMessageDeflateCodec.cpp
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.cpp

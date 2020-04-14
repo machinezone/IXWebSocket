@@ -19,22 +19,23 @@ namespace ix
     struct WebSocketMessage
     {
         WebSocketMessageType type;
-        const std::string& str;
+        std::string& str;
         size_t wireSize;
         WebSocketErrorInfo errorInfo;
         WebSocketOpenInfo openInfo;
         WebSocketCloseInfo closeInfo;
         bool binary;
 
+        static std::string kStr;
+
         WebSocketMessage(WebSocketMessageType t,
-                         const std::string& s,
-                         size_t w,
-                         WebSocketErrorInfo e,
-                         WebSocketOpenInfo o,
-                         WebSocketCloseInfo c,
+                         size_t w = 0,
+                         WebSocketErrorInfo e = WebSocketErrorInfo(),
+                         WebSocketOpenInfo o = WebSocketOpenInfo(),
+                         WebSocketCloseInfo c = WebSocketCloseInfo(),
                          bool b = false)
             : type(t)
-            , str(s)
+            , str(WebSocketMessage::kStr)
             , wireSize(w)
             , errorInfo(e)
             , openInfo(o)
@@ -43,6 +44,11 @@ namespace ix
         {
             ;
         }
+
+        // void setStr(const std::string& s)
+        // {
+        //     str = std::move(s);
+        // }
     };
 
     using WebSocketMessagePtr = std::unique_ptr<WebSocketMessage>;

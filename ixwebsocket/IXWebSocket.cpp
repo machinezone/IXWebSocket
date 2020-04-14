@@ -30,16 +30,16 @@ namespace ix
         , _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs)
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
+        , _webSocketMessage(std::make_unique<WebSocketMessage>(WebSocketMessageType::Message))
+        , _webSocketErrorMessage(std::make_unique<WebSocketMessage>(WebSocketMessageType::Error))
+        , _webSocketOpenMessage(std::make_unique<WebSocketMessage>(WebSocketMessageType::Open))
+        , _webSocketCloseMessage(std::make_unique<WebSocketMessage>(WebSocketMessageType::Close))
     {
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote) {
-                _onMessageCallback(
-                    std::make_unique<WebSocketMessage>(WebSocketMessageType::Close,
-                                                       "",
-                                                       wireSize,
-                                                       WebSocketErrorInfo(),
-                                                       WebSocketOpenInfo(),
-                                                       WebSocketCloseInfo(code, reason, remote)));
+                _webSocketCloseMessage->wireSize = wireSize;
+                _webSocketCloseMessage->closeInfo = WebSocketCloseInfo(code, reason, remote);
+                _onMessageCallback(_webSocketCloseMessage);
             });
     }
 
@@ -193,13 +193,8 @@ namespace ix
             return status;
         }
 
-        _onMessageCallback(std::make_unique<WebSocketMessage>(
-            WebSocketMessageType::Open,
-            "",
-            0,
-            WebSocketErrorInfo(),
-            WebSocketOpenInfo(status.uri, status.headers, status.protocol),
-            WebSocketCloseInfo()));
+        _webSocketOpenMessage->openInfo = WebSocketOpenInfo(status.uri, status.headers, status.protocol),
+        _onMessageCallback(_webSocketOpenMessage);
 
         if (_pingIntervalSecs > 0)
         {
@@ -224,13 +219,8 @@ namespace ix
             return status;
         }
 
-        _onMessageCallback(
-            std::make_unique<WebSocketMessage>(WebSocketMessageType::Open,
-                                               "",
-                                               0,
-                                               WebSocketErrorInfo(),
-                                               WebSocketOpenInfo(status.uri, status.headers),
-                                               WebSocketCloseInfo()));
+        _webSocketOpenMessage->openInfo = WebSocketOpenInfo(status.uri, status.headers);
+        _onMessageCallback(_webSocketOpenMessage);
 
         if (_pingIntervalSecs > 0)
         {
@@ -310,12 +300,8 @@ namespace ix
                 connectErr.reason = status.errorStr;
                 connectErr.http_status = status.http_status;
 
-                _onMessageCallback(std::make_unique<WebSocketMessage>(WebSocketMessageType::Error,
-                                                                      "",
-                                                                      0,
-                                                                      connectErr,
-                                                                      WebSocketOpenInfo(),
-                                                                      WebSocketCloseInfo()));
+                _webSocketErrorMessage->errorInfo = connectErr;
+                _onMessageCallback(_webSocketErrorMessage);
             }
         }
     }
@@ -381,18 +367,15 @@ namespace ix
                         break;
                     }
 
-                    WebSocketErrorInfo webSocketErrorInfo;
-                    webSocketErrorInfo.decompressionError = decompressionError;
-
                     bool binary = messageKind == WebSocketTransport::MessageKind::MSG_BINARY;
 
-                    _onMessageCallback(std::make_unique<WebSocketMessage>(webSocketMessageType,
-                                                                          msg,
-                                                                          wireSize,
-                                                                          webSocketErrorInfo,
-                                                                          WebSocketOpenInfo(),
-                                                                          WebSocketCloseInfo(),
-                                                                          binary));
+                    _webSocketMessage->type = webSocketMessageType;
+                    _webSocketMessage->str = msg;
+                    _webSocketMessage->wireSize = wireSize;
+                    _webSocketMessage->errorInfo.decompressionError = decompressionError;
+                    _webSocketMessage->binary = binary;
+
+                    _onMessageCallback(_webSocketMessage);
 
                     WebSocket::invokeTrafficTrackerCallback(wireSize, true);
                 });

@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <cstdint>
+#include <string>
+
 namespace ix
 {
     struct WebSocketCloseInfo

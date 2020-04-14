@@ -41,7 +41,7 @@ namespace ix
             enveloppe["message"] = msgWithPosition;
 
             jsonWriter->write(enveloppe, &std::cout);
-            std::cout << std::endl;  // add lf and flush
+            std::cout << std::endl; // add lf and flush
         }
         else
         {
@@ -184,7 +184,7 @@ namespace ix
         // Run for a duration, used by unittesting now
         else
         {
-            for (int i = 0 ; i < runtime; ++i)
+            for (int i = 0; i < runtime; ++i)
             {
                 auto duration = std::chrono::seconds(1);
                 std::this_thread::sleep_for(duration);

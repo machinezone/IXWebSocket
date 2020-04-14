@@ -6,8 +6,8 @@
 
 #include "IXTest.h"
 #include "catch.hpp"
-#include <iostream>
 #include "msgpack11.hpp"
+#include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXWebSocket.h>
@@ -130,7 +130,8 @@ namespace
             }
             else if (msg->type == ix::WebSocketMessageType::Error)
             {
-                ss << "websocket_broadcast_client: " << _user << " Error ! " << msg->errorInfo.reason;
+                ss << "websocket_broadcast_client: " << _user << " Error ! "
+                   << msg->errorInfo.reason;
                 log(ss.str());
             }
             else if (msg->type == ix::WebSocketMessageType::Ping)
@@ -234,7 +235,7 @@ namespace
         server.start();
         return true;
     }
-} // namespace ix
+} // namespace
 
 TEST_CASE("Websocket_broadcast_server", "[websocket_server]")
 {
@@ -247,7 +248,7 @@ TEST_CASE("Websocket_broadcast_server", "[websocket_server]")
 
         std::string session = ix::generateSessionId();
         std::vector<std::shared_ptr<WebSocketChat>> chatClients;
-        for (int i = 0 ; i < 10; ++i)
+        for (int i = 0; i < 10; ++i)
         {
             std::string user("user_" + std::to_string(i));
             chatClients.push_back(std::make_shared<WebSocketChat>(user, session, port));
@@ -259,7 +260,7 @@ TEST_CASE("Websocket_broadcast_server", "[websocket_server]")
         while (true)
         {
             bool allReady = true;
-            for (size_t i = 0 ; i < chatClients.size(); ++i)
+            for (size_t i = 0; i < chatClients.size(); ++i)
             {
                 allReady &= chatClients[i]->isReady();
             }
@@ -269,7 +270,7 @@ TEST_CASE("Websocket_broadcast_server", "[websocket_server]")
 
         for (int j = 0; j < 1000; j++)
         {
-            for (size_t i = 0 ; i < chatClients.size(); ++i)
+            for (size_t i = 0; i < chatClients.size(); ++i)
             {
                 chatClients[i]->sendMessage("hello world");
             }
@@ -291,7 +292,7 @@ TEST_CASE("Websocket_broadcast_server", "[websocket_server]")
 
         // Stop all clients
         size_t messageCount = chatClients.size() * 50;
-        for (size_t i = 0 ; i < chatClients.size(); ++i)
+        for (size_t i = 0; i < chatClients.size(); ++i)
         {
             REQUIRE(chatClients[i]->getReceivedMessagesCount() >= messageCount);
             chatClients[i]->stop();

@@ -155,6 +155,12 @@ namespace ix
         static const int kDefaultPingIntervalSecs;
         static const int kDefaultPingTimeoutSecs;
 
+        // One message ptr for each message kinds
+        WebSocketMessagePtr _webSocketMessage;
+        WebSocketMessagePtr _webSocketErrorMessage;
+        WebSocketMessagePtr _webSocketOpenMessage;
+        WebSocketMessagePtr _webSocketCloseMessage;
+
         // Subprotocols
         std::vector<std::string> _subProtocols;
 
