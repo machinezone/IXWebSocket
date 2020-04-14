@@ -69,13 +69,6 @@ if (UNIX)
   )
 endif()
 
-# Some unittest fail for dubious reason on Ubuntu Xenial with TSAN
-if (MAC OR WIN32)
-  list(APPEND SOURCES
-    IXWebSocketMessageQTest.cpp
-  )
-endif()
-
 # Ping test fails intermittently, disabling them for now
 # IXWebSocketPingTest.cpp
 # IXWebSocketPingTimeoutTest.cpp
