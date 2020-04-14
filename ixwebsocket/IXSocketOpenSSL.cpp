@@ -460,20 +460,22 @@ namespace ix
                 if (_tlsOptions.isUsingInMemoryCAs()) {
                     // Load from memory
                     openSSLAddCARootsFromString(_tlsOptions.caFile);
-                } else if (SSL_CTX_load_verify_locations(
+                } else {
+                    if (SSL_CTX_load_verify_locations(
                              _ssl_context, _tlsOptions.caFile.c_str(), NULL) != 1)
-                {
-                    auto sslErr = ERR_get_error();
-                    errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" + _tlsOptions.caFile +
-                             "\") failed: ";
-                    errMsg += ERR_error_string(sslErr, nullptr);
-                    return false;
+                    {
+                        auto sslErr = ERR_get_error();
+                        errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" + _tlsOptions.caFile +
+                                 "\") failed: ";
+                        errMsg += ERR_error_string(sslErr, nullptr);
+                        return false;
+                    }
+                    
+                    SSL_CTX_set_verify(_ssl_context,
+                                       SSL_VERIFY_PEER,
+                                       [](int preverify, X509_STORE_CTX*) -> int { return preverify; });
+                    SSL_CTX_set_verify_depth(_ssl_context, 4);
                 }
-
-                SSL_CTX_set_verify(_ssl_context,
-                                   SSL_VERIFY_PEER,
-                                   [](int preverify, X509_STORE_CTX*) -> int { return preverify; });
-                SSL_CTX_set_verify_depth(_ssl_context, 4);
             }
         }
         else
