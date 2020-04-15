@@ -116,10 +116,12 @@ test_ubsan:
 	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
 	(cd test ; python2.7 run.py -r)
 
-test_asan:
+test_asan: build_test_asan
+	(cd test ; python2.7 run.py -r)
+
+build_test_asan:
 	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableAddressSanitizer YES)
 	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
-	(cd test ; python2.7 run.py -r)
 
 test_tsan_openssl:
 	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)

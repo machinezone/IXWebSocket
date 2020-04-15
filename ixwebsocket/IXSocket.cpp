@@ -376,7 +376,8 @@ namespace ix
         {
             if (isCancellationRequested && isCancellationRequested())
             {
-                return std::make_pair(false, std::string());
+                const std::string errorMsg("Cancellation Requested");
+                return std::make_pair(false, errorMsg);
             }
 
             size_t size = std::min(kChunkSize, length - output.size());
@@ -388,7 +389,8 @@ namespace ix
             }
             else if (ret <= 0 && !Socket::isWaitNeeded())
             {
-                return std::make_pair(false, std::string());
+                const std::string errorMsg("Recv Error");
+                return std::make_pair(false, errorMsg);
             }
 
             if (onProgressCallback) onProgressCallback((int) output.size(), (int) length);
@@ -397,7 +399,8 @@ namespace ix
             // This way we are not busy looping
             if (isReadyToRead(1) == PollResultType::Error)
             {
-                return std::make_pair(false, std::string());
+                const std::string errorMsg("Poll Error");
+                return std::make_pair(false, errorMsg);
             }
         }
 
