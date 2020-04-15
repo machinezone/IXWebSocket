@@ -64,7 +64,8 @@ namespace ix
     std::string SentryClient::computeAuthHeader()
     {
         std::string securityHeader("Sentry sentry_version=5");
-        securityHeader += ",sentry_client=ws/1.0.0";
+        securityHeader += ",sentry_client=ws/";
+        securityHeader += std::string(IX_WEBSOCKET_VERSION);
         securityHeader += ",sentry_timestamp=" + std::to_string(SentryClient::getTimestamp());
         securityHeader += ",sentry_key=" + _publicKey;
         securityHeader += ",sentry_secret=" + _secretKey;
@@ -283,6 +284,28 @@ namespace ix
 
         args->url = computeUrl(project, key);
         args->body = _httpClient->serializeHttpFormDataParameters(multipartBoundary, httpFormDataParameters, httpParameters);
+
+        _httpClient->performRequest(args, onResponseCallback);
+    }
+
+    void SentryClient::uploadPayload(
+        const Json::Value& payload,
+        const std::string& project,
+        const std::string& key,
+        bool verbose,
+        const OnResponseCallback& onResponseCallback)
+    {
+        auto args = _httpClient->createRequest();
+        args->extraHeaders["X-Sentry-Auth"] = SentryClient::computeAuthHeader();
+        args->verb = HttpClient::kPost;
+        args->connectTimeout = 60;
+        args->transferTimeout = 5 * 60;
+        args->followRedirects = true;
+        args->verbose = verbose;
+        args->logger = [](const std::string& msg) { ix::IXCoreLogger::Log(msg.c_str()); };
+
+        args->url = _url;
+        args->body = _jsonWriter.write(payload);
 
         _httpClient->performRequest(args, onResponseCallback);
     }

@@ -36,6 +36,13 @@ namespace ix
             bool verbose,
             const OnResponseCallback& onResponseCallback);
 
+        void uploadPayload(
+            const Json::Value& payload,
+            const std::string& project,
+            const std::string& key,
+            bool verbose,
+            const OnResponseCallback& onResponseCallback);
+
     private:
         int64_t getTimestamp();
         std::string computeAuthHeader();

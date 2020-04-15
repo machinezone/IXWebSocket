@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.2.7] - 2020-04-14
+
+(ixsentry) add a library method to upload a payload directly to sentry
+
 ## [9.2.6] - 2020-04-14
 
 (ixcobra) snake server / handle invalid incoming json messages + cobra subscriber in fluentd mode insert a created_at timestamp entry
