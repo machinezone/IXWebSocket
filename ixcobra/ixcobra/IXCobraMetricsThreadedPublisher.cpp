@@ -24,7 +24,7 @@ namespace ix
     {
         _cobra_connection.setEventCallback(
             []
-            (ix::CobraConnectionEventType eventType,
+            (ix::CobraEventType eventType,
              const std::string& errMsg,
              const ix::WebSocketHttpHeaders& headers,
              const std::string& subscriptionId,
@@ -32,7 +32,7 @@ namespace ix
             {
                 std::stringstream ss;
 
-                if (eventType == ix::CobraConnection_EventType_Open)
+                if (eventType == ix::CobraEventType::Open)
                 {
                     ss << "Handshake headers" << std::endl;
 
@@ -41,31 +41,31 @@ namespace ix
                         ss << it.first << ": " << it.second << std::endl;
                     }
                 }
-                else if (eventType == ix::CobraConnection_EventType_Authenticated)
+                else if (eventType == ix::CobraEventType::Authenticated)
                 {
                     ss << "Authenticated";
                 }
-                else if (eventType == ix::CobraConnection_EventType_Error)
+                else if (eventType == ix::CobraEventType::Error)
                 {
                     ss << "Error: " << errMsg;
                 }
-                else if (eventType == ix::CobraConnection_EventType_Closed)
+                else if (eventType == ix::CobraEventType::Closed)
                 {
                     ss << "Connection closed: " << errMsg;
                 }
-                else if (eventType == ix::CobraConnection_EventType_Subscribed)
+                else if (eventType == ix::CobraEventType::Subscribed)
                 {
                     ss << "Subscribed through subscription id: " << subscriptionId;
                 }
-                else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+                else if (eventType == ix::CobraEventType::UnSubscribed)
                 {
                     ss << "Unsubscribed through subscription id: " << subscriptionId;
                 }
-                else if (eventType == ix::CobraConnection_EventType_Published)
+                else if (eventType == ix::CobraEventType::Published)
                 {
                     ss << "Published message " << msgId << " acked";
                 }
-                else if (eventType == ix::CobraConnection_EventType_Pong)
+                else if (eventType == ix::CobraEventType::Pong)
                 {
                     ss << "Received websocket pong";
                 }

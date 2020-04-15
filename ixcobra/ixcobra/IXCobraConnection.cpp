@@ -87,7 +87,7 @@ namespace ix
         _eventCallback = eventCallback;
     }
 
-    void CobraConnection::invokeEventCallback(ix::CobraConnectionEventType eventType,
+    void CobraConnection::invokeEventCallback(ix::CobraEventType eventType,
                                               const std::string& errorMsg,
                                               const WebSocketHttpHeaders& headers,
                                               const std::string& subscriptionId,
@@ -105,7 +105,7 @@ namespace ix
     {
         std::stringstream ss;
         ss << errorMsg << " : received pdu => " << serializedPdu;
-        invokeEventCallback(ix::CobraConnection_EventType_Error, ss.str());
+        invokeEventCallback(ix::CobraEventType::Error, ss.str());
     }
 
     void CobraConnection::disconnect()
@@ -124,7 +124,7 @@ namespace ix
                 std::stringstream ss;
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    invokeEventCallback(ix::CobraConnection_EventType_Open,
+                    invokeEventCallback(ix::CobraEventType::Open,
                                         std::string(),
                                         msg->openInfo.headers);
                     sendHandshakeMessage();
@@ -136,7 +136,7 @@ namespace ix
                     std::stringstream ss;
                     ss << "Close code " << msg->closeInfo.code;
                     ss << " reason " << msg->closeInfo.reason;
-                    invokeEventCallback(ix::CobraConnection_EventType_Closed,
+                    invokeEventCallback(ix::CobraEventType::Closed,
                                         ss.str());
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
@@ -166,18 +166,18 @@ namespace ix
                     }
                     else if (action == "auth/handshake/error")
                     {
-                        invokeEventCallback(ix::CobraConnection_EventType_Handshake_Error,
+                        invokeEventCallback(ix::CobraEventType::HandshakeError,
                                             msg->str);
                     }
                     else if (action == "auth/authenticate/ok")
                     {
                         _authenticated = true;
-                        invokeEventCallback(ix::CobraConnection_EventType_Authenticated);
+                        invokeEventCallback(ix::CobraEventType::Authenticated);
                         flushQueue();
                     }
                     else if (action == "auth/authenticate/error")
                     {
-                        invokeEventCallback(ix::CobraConnection_EventType_Authentication_Error,
+                        invokeEventCallback(ix::CobraEventType::AuthenticationError,
                                             msg->str);
                     }
                     else if (action == "rtm/subscription/data")
@@ -193,7 +193,7 @@ namespace ix
                     }
                     else if (action == "rtm/subscribe/error")
                     {
-                        invokeEventCallback(ix::CobraConnection_EventType_Subscription_Error,
+                        invokeEventCallback(ix::CobraEventType::SubscriptionError,
                                             msg->str);
                     }
                     else if (action == "rtm/unsubscribe/ok")
@@ -234,7 +234,7 @@ namespace ix
                 }
                 else if (msg->type == ix::WebSocketMessageType::Pong)
                 {
-                    invokeEventCallback(ix::CobraConnection_EventType_Pong);
+                    invokeEventCallback(ix::CobraEventType::Pong);
                 }
         });
     }
@@ -396,7 +396,7 @@ namespace ix
 
         if (!subscriptionId.isString()) return false;
 
-        invokeEventCallback(ix::CobraConnection_EventType_Subscribed,
+        invokeEventCallback(ix::CobraEventType::Subscribed,
                             std::string(), WebSocketHttpHeaders(),
                             subscriptionId.asString());
         return true;
@@ -414,7 +414,7 @@ namespace ix
 
         if (!subscriptionId.isString()) return false;
 
-        invokeEventCallback(ix::CobraConnection_EventType_UnSubscribed,
+        invokeEventCallback(ix::CobraEventType::UnSubscribed,
                             std::string(), WebSocketHttpHeaders(),
                             subscriptionId.asString());
         return true;
@@ -462,7 +462,7 @@ namespace ix
 
         uint64_t msgId = id.asUInt64();
 
-        invokeEventCallback(ix::CobraConnection_EventType_Published,
+        invokeEventCallback(ix::CobraEventType::Published,
                             std::string(), WebSocketHttpHeaders(),
                             std::string(), msgId);
 

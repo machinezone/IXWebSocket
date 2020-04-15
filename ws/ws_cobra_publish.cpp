@@ -39,12 +39,12 @@ namespace ix
         std::atomic<bool> messageAcked(false);
 
         conn.setEventCallback([&conn, &channel, &data, &authenticated, &messageAcked](
-                                  ix::CobraConnectionEventType eventType,
+                                  ix::CobraEventType eventType,
                                   const std::string& errMsg,
                                   const ix::WebSocketHttpHeaders& headers,
                                   const std::string& subscriptionId,
                                   CobraConnection::MsgId msgId) {
-            if (eventType == ix::CobraConnection_EventType_Open)
+            if (eventType == ix::CobraEventType::Open)
             {
                 spdlog::info("Publisher connected");
 
@@ -53,7 +53,7 @@ namespace ix
                     spdlog::info("{}: {}", it.first, it.second);
                 }
             }
-            else if (eventType == ix::CobraConnection_EventType_Authenticated)
+            else if (eventType == ix::CobraEventType::Authenticated)
             {
                 spdlog::info("Publisher authenticated");
                 authenticated = true;
@@ -64,24 +64,24 @@ namespace ix
 
                 spdlog::info("Published msg {}", msgId);
             }
-            else if (eventType == ix::CobraConnection_EventType_Subscribed)
+            else if (eventType == ix::CobraEventType::Subscribed)
             {
                 spdlog::info("Publisher: subscribed to channel {}", subscriptionId);
             }
-            else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+            else if (eventType == ix::CobraEventType::UnSubscribed)
             {
                 spdlog::info("Publisher: unsubscribed from channel {}", subscriptionId);
             }
-            else if (eventType == ix::CobraConnection_EventType_Error)
+            else if (eventType == ix::CobraEventType::Error)
             {
                 spdlog::error("Publisher: error {}", errMsg);
             }
-            else if (eventType == ix::CobraConnection_EventType_Published)
+            else if (eventType == ix::CobraEventType::Published)
             {
                 spdlog::info("Published message id {} acked", msgId);
                 messageAcked = true;
             }
-            else if (eventType == ix::CobraConnection_EventType_Pong)
+            else if (eventType == ix::CobraEventType::Pong)
             {
                 spdlog::info("Received websocket pong");
             }

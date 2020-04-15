@@ -14,6 +14,8 @@ set (IXCOBRA_HEADERS
     ixcobra/IXCobraMetricsThreadedPublisher.h
     ixcobra/IXCobraMetricsPublisher.h
     ixcobra/IXCobraConfig.h
+    ixcobra/IXCobraEvent.h
+    ixcobra/IXCobraEventType.h
 )
 
 add_library(ixcobra STATIC

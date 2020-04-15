@@ -202,12 +202,12 @@ namespace ix
 
         conn.setEventCallback(
             [&conn, &channel, &filter, &position, &jsonWriter, verbose, &queueManager, &receivedCount, &fatalCobraError](
-                ix::CobraConnectionEventType eventType,
+                ix::CobraEventType eventType,
                 const std::string& errMsg,
                 const ix::WebSocketHttpHeaders& headers,
                 const std::string& subscriptionId,
                 CobraConnection::MsgId msgId) {
-                if (eventType == ix::CobraConnection_EventType_Open)
+                if (eventType == ix::CobraEventType::Open)
                 {
                     spdlog::info("Subscriber connected");
 
@@ -216,11 +216,11 @@ namespace ix
                         spdlog::info("{}: {}", it.first, it.second);
                     }
                 }
-                if (eventType == ix::CobraConnection_EventType_Closed)
+                if (eventType == ix::CobraEventType::Closed)
                 {
                     spdlog::info("Subscriber closed");
                 }
-                else if (eventType == ix::CobraConnection_EventType_Authenticated)
+                else if (eventType == ix::CobraEventType::Authenticated)
                 {
                     spdlog::info("Subscriber authenticated");
                     conn.subscribe(channel,
@@ -239,37 +239,37 @@ namespace ix
                                        queueManager.add(msg);
                                    });
                 }
-                else if (eventType == ix::CobraConnection_EventType_Subscribed)
+                else if (eventType == ix::CobraEventType::Subscribed)
                 {
                     spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
                 }
-                else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+                else if (eventType == ix::CobraEventType::UnSubscribed)
                 {
                     spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
                 }
-                else if (eventType == ix::CobraConnection_EventType_Error)
+                else if (eventType == ix::CobraEventType::Error)
                 {
                     spdlog::error("Subscriber: error {}", errMsg);
                 }
-                else if (eventType == ix::CobraConnection_EventType_Published)
+                else if (eventType == ix::CobraEventType::Published)
                 {
                     spdlog::error("Published message hacked: {}", msgId);
                 }
-                else if (eventType == ix::CobraConnection_EventType_Pong)
+                else if (eventType == ix::CobraEventType::Pong)
                 {
                     spdlog::info("Received websocket pong");
                 }
-                else if (eventType == ix::CobraConnection_EventType_Handshake_Error)
+                else if (eventType == ix::CobraEventType::HandshakeError)
                 {
                     spdlog::error("Subscriber: Handshake error: {}", errMsg);
                     fatalCobraError = true;
                 }
-                else if (eventType == ix::CobraConnection_EventType_Authentication_Error)
+                else if (eventType == ix::CobraEventType::AuthenticationError)
                 {
                     spdlog::error("Subscriber: Authentication error: {}", errMsg);
                     fatalCobraError = true;
                 }
-                else if (eventType == ix::CobraConnection_EventType_Subscription_Error)
+                else if (eventType == ix::CobraEventType::SubscriptionError)
                 {
                     spdlog::error("Subscriber: Subscription error: {}", errMsg);
                     fatalCobraError = true;

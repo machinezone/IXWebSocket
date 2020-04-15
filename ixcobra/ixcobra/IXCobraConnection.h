@@ -8,6 +8,7 @@
 
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
+#include "IXCobraEventType.h"
 #include <json/json.h>
 #include <memory>
 #include <mutex>
@@ -28,21 +29,6 @@ namespace ix
     class WebSocket;
     struct SocketTLSOptions;
 
-    enum CobraConnectionEventType
-    {
-        CobraConnection_EventType_Authenticated = 0,
-        CobraConnection_EventType_Error = 1,
-        CobraConnection_EventType_Open = 2,
-        CobraConnection_EventType_Closed = 3,
-        CobraConnection_EventType_Subscribed = 4,
-        CobraConnection_EventType_UnSubscribed = 5,
-        CobraConnection_EventType_Published = 6,
-        CobraConnection_EventType_Pong = 7,
-        CobraConnection_EventType_Handshake_Error = 8,
-        CobraConnection_EventType_Authentication_Error = 9,
-        CobraConnection_EventType_Subscription_Error = 10
-    };
-
     enum CobraConnectionPublishMode
     {
         CobraConnection_PublishMode_Immediate = 0,
@@ -50,7 +36,7 @@ namespace ix
     };
 
     using SubscriptionCallback = std::function<void(const Json::Value&, const std::string&)>;
-    using EventCallback = std::function<void(CobraConnectionEventType,
+    using EventCallback = std::function<void(CobraEventType,
                                              const std::string&,
                                              const WebSocketHttpHeaders&,
                                              const std::string&,
@@ -171,7 +157,7 @@ namespace ix
         static void invokePublishTrackerCallback(bool sent, bool acked);
 
         /// Invoke event callbacks
-        void invokeEventCallback(CobraConnectionEventType eventType,
+        void invokeEventCallback(CobraEventType eventType,
                                  const std::string& errorMsg = std::string(),
                                  const WebSocketHttpHeaders& headers = WebSocketHttpHeaders(),
                                  const std::string& subscriptionId = std::string(),

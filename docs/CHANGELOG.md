@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.2.8] - 2020-04-15
+
+(ixcobra) make CobraConnection_EventType an enum class (CobraEventType)
+
 ## [9.2.7] - 2020-04-14
 
 (ixsentry) add a library method to upload a payload directly to sentry

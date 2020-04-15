@@ -106,12 +106,12 @@ namespace ix
                                &msgPerSeconds,
                                &conditionVariableMutex,
                                &condition,
-                               &queue](ix::CobraConnectionEventType eventType,
+                               &queue](ix::CobraEventType eventType,
                                        const std::string& errMsg,
                                        const ix::WebSocketHttpHeaders& headers,
                                        const std::string& subscriptionId,
                                        CobraConnection::MsgId msgId) {
-            if (eventType == ix::CobraConnection_EventType_Open)
+            if (eventType == ix::CobraEventType::Open)
             {
                 spdlog::info("Subscriber connected");
 
@@ -120,7 +120,7 @@ namespace ix
                     spdlog::info("{}: {}", it.first, it.second);
                 }
             }
-            else if (eventType == ix::CobraConnection_EventType_Authenticated)
+            else if (eventType == ix::CobraEventType::Authenticated)
             {
                 spdlog::info("Subscriber authenticated");
 
@@ -141,19 +141,19 @@ namespace ix
                         msgCount++;
                     });
             }
-            else if (eventType == ix::CobraConnection_EventType_Subscribed)
+            else if (eventType == ix::CobraEventType::Subscribed)
             {
                 spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
             }
-            else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+            else if (eventType == ix::CobraEventType::UnSubscribed)
             {
                 spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
             }
-            else if (eventType == ix::CobraConnection_EventType_Error)
+            else if (eventType == ix::CobraEventType::Error)
             {
                 spdlog::error("Subscriber: error {}", errMsg);
             }
-            else if (eventType == ix::CobraConnection_EventType_Published)
+            else if (eventType == ix::CobraEventType::Published)
             {
                 spdlog::error("Published message hacked: {}", msgId);
             }

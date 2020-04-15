@@ -54,12 +54,12 @@ namespace
         conn.configure(config);
         conn.connect();
 
-        conn.setEventCallback([&conn, &channel](ix::CobraConnectionEventType eventType,
+        conn.setEventCallback([&conn, &channel](ix::CobraEventType eventType,
                                                 const std::string& errMsg,
                                                 const ix::WebSocketHttpHeaders& headers,
                                                 const std::string& subscriptionId,
                                                 CobraConnection::MsgId msgId) {
-            if (eventType == ix::CobraConnection_EventType_Open)
+            if (eventType == ix::CobraEventType::Open)
             {
                 TLogger() << "Subscriber connected:";
                 for (auto&& it : headers)
@@ -67,11 +67,11 @@ namespace
                     log("Headers " + it.first + " " + it.second);
                 }
             }
-            if (eventType == ix::CobraConnection_EventType_Error)
+            if (eventType == ix::CobraEventType::Error)
             {
                 TLogger() << "Subscriber error:" << errMsg;
             }
-            else if (eventType == ix::CobraConnection_EventType_Authenticated)
+            else if (eventType == ix::CobraEventType::Authenticated)
             {
                 log("Subscriber authenticated");
                 std::string filter;
@@ -92,7 +92,7 @@ namespace
                                    gMessageCount++;
                                });
             }
-            else if (eventType == ix::CobraConnection_EventType_Subscribed)
+            else if (eventType == ix::CobraEventType::Subscribed)
             {
                 TLogger() << "Subscriber: subscribed to channel " << subscriptionId;
                 if (subscriptionId == channel)
@@ -104,7 +104,7 @@ namespace
                     TLogger() << "Subscriber: unexpected channel " << subscriptionId;
                 }
             }
-            else if (eventType == ix::CobraConnection_EventType_UnSubscribed)
+            else if (eventType == ix::CobraEventType::UnSubscribed)
             {
                 TLogger() << "Subscriber: ununexpected from channel " << subscriptionId;
                 if (subscriptionId != channel)
@@ -112,7 +112,7 @@ namespace
                     TLogger() << "Subscriber: unexpected channel " << subscriptionId;
                 }
             }
-            else if (eventType == ix::CobraConnection_EventType_Published)
+            else if (eventType == ix::CobraEventType::Published)
             {
                 TLogger() << "Subscriber: published message acked: " << msgId;
             }
