@@ -180,8 +180,7 @@ namespace
         _conn.configure(_cobraConfig);
         _conn.connect();
 
-        _conn.setEventCallback([this, channel](const CobraEventPtr& event)
-        {
+        _conn.setEventCallback([this, channel](const CobraEventPtr& event) {
             if (event->type == ix::CobraEventType::Open)
             {
                 log("Subscriber connected: " + _user);

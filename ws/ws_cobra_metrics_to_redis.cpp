@@ -106,8 +106,7 @@ namespace ix
                                &msgPerSeconds,
                                &conditionVariableMutex,
                                &condition,
-                               &queue](const CobraEventPtr& event)
-       {
+                               &queue](const CobraEventPtr& event) {
             if (event->type == ix::CobraEventType::Open)
             {
                 spdlog::info("Subscriber connected");

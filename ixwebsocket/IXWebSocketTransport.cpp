@@ -222,7 +222,8 @@ namespace ix
     {
         _pongReceived = false;
         std::stringstream ss;
-        ss << kPingMessage << "::" << _pingIntervalSecs << "s" << "::" << _pingCount++;
+        ss << kPingMessage << "::" << _pingIntervalSecs << "s"
+           << "::" << _pingCount++;
         return sendPing(ss.str());
     }
 

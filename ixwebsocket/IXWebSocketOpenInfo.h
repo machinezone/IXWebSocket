@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "IXWebSocketHttpHeaders.h"
 #include <cstdint>
 #include <string>
-#include "IXWebSocketHttpHeaders.h"
 
 namespace ix
 {

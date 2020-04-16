@@ -54,8 +54,7 @@ namespace
         conn.configure(config);
         conn.connect();
 
-        conn.setEventCallback([&conn, &channel](const CobraEventPtr& event)
-        {
+        conn.setEventCallback([&conn, &channel](const CobraEventPtr& event) {
             if (event->type == ix::CobraEventType::Open)
             {
                 TLogger() << "Subscriber connected:";

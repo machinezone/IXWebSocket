@@ -106,8 +106,7 @@ namespace ix
                                &msgPerSeconds,
                                &quiet,
                                &fluentd,
-                               &fatalCobraError](const CobraEventPtr& event)
-       {
+                               &fatalCobraError](const CobraEventPtr& event) {
             if (event->type == ix::CobraEventType::Open)
             {
                 spdlog::info("Subscriber connected");
