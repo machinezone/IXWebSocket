@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.2.9] - 2020-04-15
+
+(ixcobra) change cobra event callback to use a struct instead of several objects, which is more flexible/extensible
+
 ## [9.2.8] - 2020-04-15
 
 (ixcobra) make CobraConnection_EventType an enum class (CobraEventType)

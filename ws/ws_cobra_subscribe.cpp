@@ -106,21 +106,22 @@ namespace ix
                                &msgPerSeconds,
                                &quiet,
                                &fluentd,
-                               &fatalCobraError](ix::CobraEventType eventType,
-                                                 const std::string& errMsg,
-                                                 const ix::WebSocketHttpHeaders& headers,
-                                                 const std::string& subscriptionId,
-                                                 CobraConnection::MsgId msgId) {
-            if (eventType == ix::CobraEventType::Open)
+                               &fatalCobraError](const CobraEventPtr& event)
+       {
+            if (event->type == ix::CobraEventType::Open)
             {
                 spdlog::info("Subscriber connected");
 
-                for (auto it : headers)
+                for (auto&& it : event->headers)
                 {
                     spdlog::info("{}: {}", it.first, it.second);
                 }
             }
-            else if (eventType == ix::CobraEventType::Authenticated)
+            else if (event->type == ix::CobraEventType::Closed)
+            {
+                spdlog::info("Subscriber closed: {}", event->errMsg);
+            }
+            else if (event->type == ix::CobraEventType::Authenticated)
             {
                 spdlog::info("Subscriber authenticated");
                 spdlog::info("Subscribing to {} at position {}", channel, subscriptionPosition);
@@ -145,39 +146,39 @@ namespace ix
                         subscriptionPosition = position;
                     });
             }
-            else if (eventType == ix::CobraEventType::Subscribed)
+            else if (event->type == ix::CobraEventType::Subscribed)
             {
-                spdlog::info("Subscriber: subscribed to channel {}", subscriptionId);
+                spdlog::info("Subscriber: subscribed to channel {}", event->subscriptionId);
             }
-            else if (eventType == ix::CobraEventType::UnSubscribed)
+            else if (event->type == ix::CobraEventType::UnSubscribed)
             {
-                spdlog::info("Subscriber: unsubscribed from channel {}", subscriptionId);
+                spdlog::info("Subscriber: unsubscribed from channel {}", event->subscriptionId);
             }
-            else if (eventType == ix::CobraEventType::Error)
+            else if (event->type == ix::CobraEventType::Error)
             {
-                spdlog::error("Subscriber: error {}", errMsg);
+                spdlog::error("Subscriber: error {}", event->errMsg);
             }
-            else if (eventType == ix::CobraEventType::Published)
+            else if (event->type == ix::CobraEventType::Published)
             {
-                spdlog::error("Published message hacked: {}", msgId);
+                spdlog::error("Published message hacked: {}", event->msgId);
             }
-            else if (eventType == ix::CobraEventType::Pong)
+            else if (event->type == ix::CobraEventType::Pong)
             {
                 spdlog::info("Received websocket pong");
             }
-            else if (eventType == ix::CobraEventType::HandshakeError)
+            else if (event->type == ix::CobraEventType::HandshakeError)
             {
-                spdlog::error("Subscriber: Handshake error: {}", errMsg);
+                spdlog::error("Subscriber: Handshake error: {}", event->errMsg);
                 fatalCobraError = true;
             }
-            else if (eventType == ix::CobraEventType::AuthenticationError)
+            else if (event->type == ix::CobraEventType::AuthenticationError)
             {
-                spdlog::error("Subscriber: Authentication error: {}", errMsg);
+                spdlog::error("Subscriber: Authentication error: {}", event->errMsg);
                 fatalCobraError = true;
             }
-            else if (eventType == ix::CobraEventType::SubscriptionError)
+            else if (event->type == ix::CobraEventType::SubscriptionError)
             {
-                spdlog::error("Subscriber: Subscription error: {}", errMsg);
+                spdlog::error("Subscriber: Subscription error: {}", event->errMsg);
                 fatalCobraError = true;
             }
         });

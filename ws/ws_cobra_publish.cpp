@@ -38,22 +38,22 @@ namespace ix
         std::atomic<bool> authenticated(false);
         std::atomic<bool> messageAcked(false);
 
-        conn.setEventCallback([&conn, &channel, &data, &authenticated, &messageAcked](
-                                  ix::CobraEventType eventType,
-                                  const std::string& errMsg,
-                                  const ix::WebSocketHttpHeaders& headers,
-                                  const std::string& subscriptionId,
-                                  CobraConnection::MsgId msgId) {
-            if (eventType == ix::CobraEventType::Open)
+        conn.setEventCallback([&conn, &channel, &data, &authenticated, &messageAcked](const CobraEventPtr& event)
+        {
+            if (event->type == ix::CobraEventType::Open)
             {
                 spdlog::info("Publisher connected");
 
-                for (auto it : headers)
+                for (auto&& it : event->headers)
                 {
                     spdlog::info("{}: {}", it.first, it.second);
                 }
             }
-            else if (eventType == ix::CobraEventType::Authenticated)
+            else if (event->type == ix::CobraEventType::Closed)
+            {
+                spdlog::info("Subscriber closed: {}", event->errMsg);
+            }
+            else if (event->type == ix::CobraEventType::Authenticated)
             {
                 spdlog::info("Publisher authenticated");
                 authenticated = true;
@@ -64,26 +64,34 @@ namespace ix
 
                 spdlog::info("Published msg {}", msgId);
             }
-            else if (eventType == ix::CobraEventType::Subscribed)
+            else if (event->type == ix::CobraEventType::Subscribed)
             {
-                spdlog::info("Publisher: subscribed to channel {}", subscriptionId);
+                spdlog::info("Publisher: subscribed to channel {}", event->subscriptionId);
             }
-            else if (eventType == ix::CobraEventType::UnSubscribed)
+            else if (event->type == ix::CobraEventType::UnSubscribed)
             {
-                spdlog::info("Publisher: unsubscribed from channel {}", subscriptionId);
+                spdlog::info("Publisher: unsubscribed from channel {}", event->subscriptionId);
             }
-            else if (eventType == ix::CobraEventType::Error)
+            else if (event->type == ix::CobraEventType::Error)
             {
-                spdlog::error("Publisher: error {}", errMsg);
+                spdlog::error("Publisher: error {}", event->errMsg);
             }
-            else if (eventType == ix::CobraEventType::Published)
+            else if (event->type == ix::CobraEventType::Published)
             {
-                spdlog::info("Published message id {} acked", msgId);
+                spdlog::info("Published message id {} acked", event->msgId);
                 messageAcked = true;
             }
-            else if (eventType == ix::CobraEventType::Pong)
+            else if (event->type == ix::CobraEventType::Pong)
             {
                 spdlog::info("Received websocket pong");
+            }
+            else if (event->type == ix::CobraEventType::HandshakeError)
+            {
+                spdlog::error("Subscriber: Handshake error: {}", event->errMsg);
+            }
+            else if (event->type == ix::CobraEventType::AuthenticationError)
+            {
+                spdlog::error("Subscriber: Authentication error: {}", event->errMsg);
             }
         });
 

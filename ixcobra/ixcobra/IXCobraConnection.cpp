@@ -96,7 +96,12 @@ namespace ix
         std::lock_guard<std::mutex> lock(_eventCallbackMutex);
         if (_eventCallback)
         {
-            _eventCallback(eventType, errorMsg, headers, subscriptionId, msgId);
+            _eventCallback(
+                std::make_unique<CobraEvent>(eventType,
+                                             errorMsg,
+                                             headers,
+                                             subscriptionId,
+                                             msgId));
         }
     }
 

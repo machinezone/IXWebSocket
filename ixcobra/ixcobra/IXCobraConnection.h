@@ -9,6 +9,7 @@
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
 #include "IXCobraEventType.h"
+#include "IXCobraEvent.h"
 #include <json/json.h>
 #include <memory>
 #include <mutex>
@@ -36,11 +37,7 @@ namespace ix
     };
 
     using SubscriptionCallback = std::function<void(const Json::Value&, const std::string&)>;
-    using EventCallback = std::function<void(CobraEventType,
-                                             const std::string&,
-                                             const WebSocketHttpHeaders&,
-                                             const std::string&,
-                                             uint64_t msgId)>;
+    using EventCallback = std::function<void(const CobraEventPtr&)>;
 
     using TrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
     using PublishTrackerCallback = std::function<void(bool sent, bool acked)>;

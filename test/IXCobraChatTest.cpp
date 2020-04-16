@@ -180,44 +180,41 @@ namespace
         _conn.configure(_cobraConfig);
         _conn.connect();
 
-        _conn.setEventCallback([this, channel](ix::CobraEventType eventType,
-                                               const std::string& errMsg,
-                                               const ix::WebSocketHttpHeaders& headers,
-                                               const std::string& subscriptionId,
-                                               CobraConnection::MsgId msgId) {
-            if (eventType == ix::CobraEventType::Open)
+        _conn.setEventCallback([this, channel](const CobraEventPtr& event)
+        {
+            if (event->type == ix::CobraEventType::Open)
             {
                 log("Subscriber connected: " + _user);
-                for (auto&& it : headers)
+                for (auto&& it : event->headers)
                 {
                     log("Headers " + it.first + " " + it.second);
                 }
             }
-            else if (eventType == ix::CobraEventType::Authenticated)
+            else if (event->type == ix::CobraEventType::Authenticated)
             {
                 log("Subscriber authenticated: " + _user);
                 subscribe(channel);
             }
-            else if (eventType == ix::CobraEventType::Error)
+            else if (event->type == ix::CobraEventType::Error)
             {
-                log(errMsg + _user);
+                log(event->errMsg + _user);
             }
-            else if (eventType == ix::CobraEventType::Closed)
+            else if (event->type == ix::CobraEventType::Closed)
             {
                 log("Connection closed: " + _user);
             }
-            else if (eventType == ix::CobraEventType::Subscribed)
+            else if (event->type == ix::CobraEventType::Subscribed)
             {
-                log("Subscription ok: " + _user + " subscription_id " + subscriptionId);
+                log("Subscription ok: " + _user + " subscription_id " + event->subscriptionId);
                 _connectedAndSubscribed = true;
             }
-            else if (eventType == ix::CobraEventType::UnSubscribed)
+            else if (event->type == ix::CobraEventType::UnSubscribed)
             {
-                log("Unsubscription ok: " + _user + " subscription_id " + subscriptionId);
+                log("Unsubscription ok: " + _user + " subscription_id " + event->subscriptionId);
             }
-            else if (eventType == ix::CobraEventType::Published)
+            else if (event->type == ix::CobraEventType::Published)
             {
-                TLogger() << "Subscriber: published message acked: " << msgId;
+                TLogger() << "Subscriber: published message acked: " << event->msgId;
             }
         });
 
@@ -248,11 +245,7 @@ namespace
         ix::msleep(50);
         _conn.disconnect();
 
-        _conn.setEventCallback([](ix::CobraEventType /*eventType*/,
-                                  const std::string& /*errMsg*/,
-                                  const ix::WebSocketHttpHeaders& /*headers*/,
-                                  const std::string& /*subscriptionId*/,
-                                  CobraConnection::MsgId /*msgId*/) { ; });
+        _conn.setEventCallback([](const CobraEventPtr& /*event*/) {});
     }
 } // namespace
 
