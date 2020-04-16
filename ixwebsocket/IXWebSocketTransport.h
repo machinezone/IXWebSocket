@@ -212,6 +212,7 @@ namespace ix
 
         static const int kDefaultPingIntervalSecs;
         static const std::string kPingMessage;
+        std::atomic<uint64_t> _pingCount;
 
         // We record when ping are being sent so that we can know when to send the next one
         mutable std::mutex _lastSendPingTimePointMutex;

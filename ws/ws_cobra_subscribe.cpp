@@ -164,7 +164,7 @@ namespace ix
             }
             else if (event->type == ix::CobraEventType::Pong)
             {
-                spdlog::info("Received websocket pong");
+                spdlog::info("Received websocket pong: {}", event->errMsg);
             }
             else if (event->type == ix::CobraEventType::HandshakeError)
             {

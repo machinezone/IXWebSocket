@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.3.0] - 2020-04-15
+
+(websocket) add a positive number to the heartbeat message sent, incremented each time the heartbeat is sent
+
 ## [9.2.9] - 2020-04-15
 
 (ixcobra) change cobra event callback to use a struct instead of several objects, which is more flexible/extensible

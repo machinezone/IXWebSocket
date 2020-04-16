@@ -239,7 +239,7 @@ namespace ix
                 }
                 else if (msg->type == ix::WebSocketMessageType::Pong)
                 {
-                    invokeEventCallback(ix::CobraEventType::Pong);
+                    invokeEventCallback(ix::CobraEventType::Pong, msg->str);
                 }
         });
     }

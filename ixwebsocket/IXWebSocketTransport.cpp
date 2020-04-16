@@ -74,6 +74,7 @@ namespace ix
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
         , _pongReceived(false)
+        , _pingCount(0)
         , _lastSendPingTimePoint(std::chrono::steady_clock::now())
     {
         _readbuf.resize(kChunkSize);
@@ -221,7 +222,7 @@ namespace ix
     {
         _pongReceived = false;
         std::stringstream ss;
-        ss << kPingMessage << "::" << _pingIntervalSecs << "s";
+        ss << kPingMessage << "::" << _pingIntervalSecs << "s" << "::" << _pingCount++;
         return sendPing(ss.str());
     }
 
