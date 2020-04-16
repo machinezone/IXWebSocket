@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.3.1] - 2020-04-16
+
+(cobra bots) add a utility class to factor out the common bots features (heartbeat) and move cobra to sentry bot to use it
+
 ## [9.3.0] - 2020-04-15
 
 (websocket) add a positive number to the heartbeat message sent, incremented each time the heartbeat is sent

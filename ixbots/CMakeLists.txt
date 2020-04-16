@@ -4,6 +4,7 @@
 #
 
 set (IXBOTS_SOURCES
+    ixbots/IXCobraBot.cpp
     ixbots/IXCobraToSentryBot.cpp
     ixbots/IXCobraToStatsdBot.cpp
     ixbots/IXQueueManager.cpp
@@ -11,6 +12,7 @@ set (IXBOTS_SOURCES
 )
 
 set (IXBOTS_HEADERS
+    ixbots/IXCobraBot.h
     ixbots/IXCobraToSentryBot.h
     ixbots/IXCobraToStatsdBot.h
     ixbots/IXQueueManager.h
