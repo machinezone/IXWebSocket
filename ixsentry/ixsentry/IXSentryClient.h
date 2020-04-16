@@ -38,8 +38,6 @@ namespace ix
 
         void uploadPayload(
             const Json::Value& payload,
-            const std::string& project,
-            const std::string& key,
             bool verbose,
             const OnResponseCallback& onResponseCallback);
 
