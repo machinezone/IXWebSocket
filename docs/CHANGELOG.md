@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.3.3] - 2020-04-17
+
+(ixbots) display sent/receive message, per seconds as accumulated
+
 ## [9.3.2] - 2020-04-17
 
 (ws) add a --logfile option to configure all logs to go to a file

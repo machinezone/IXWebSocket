@@ -19,8 +19,8 @@
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
-#include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
 
@@ -414,7 +414,7 @@ int main(int argc, char** argv)
 
             std::cerr << "All logs will be redirected to " << logfile << std::endl;
         }
-        catch (const spdlog::spdlog_ex &ex)
+        catch (const spdlog::spdlog_ex& ex)
         {
             std::cerr << "Fatal error, log init failed: " << ex.what() << std::endl;
             ix::uninitNetSystem();

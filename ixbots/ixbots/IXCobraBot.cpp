@@ -34,16 +34,25 @@ namespace ix
         Json::FastWriter jsonWriter;
         std::atomic<uint64_t> sentCount(0);
         std::atomic<uint64_t> receivedCount(0);
+        std::atomic<uint64_t> sentCountTotal(0);
+        std::atomic<uint64_t> receivedCountTotal(0);
         std::atomic<bool> stop(false);
         std::atomic<bool> throttled(false);
         std::atomic<bool> fatalCobraError(false);
 
         QueueManager queueManager(maxQueueSize);
 
-        auto timer = [&sentCount, &receivedCount, &stop] {
+        auto timer = [&sentCount, &receivedCount, &sentCountTotal, &receivedCountTotal, &stop] {
             while (!stop)
             {
-                spdlog::info("messages received {} sent {}", receivedCount, sentCount);
+                spdlog::info("messages received {} {} sent {} {}",
+                             receivedCount, receivedCountTotal, sentCount, sentCountTotal);
+
+                receivedCountTotal += receivedCount;
+                sentCountTotal += sentCount;
+
+                receivedCount = 0;
+                sentCount = 0;
 
                 auto duration = std::chrono::seconds(1);
                 std::this_thread::sleep_for(duration);
