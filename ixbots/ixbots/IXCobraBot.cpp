@@ -36,23 +36,38 @@ namespace ix
         std::atomic<uint64_t> receivedCount(0);
         std::atomic<uint64_t> sentCountTotal(0);
         std::atomic<uint64_t> receivedCountTotal(0);
+        std::atomic<uint64_t> sentCountPerSecs(0);
+        std::atomic<uint64_t> receivedCountPerSecs(0);
         std::atomic<bool> stop(false);
         std::atomic<bool> throttled(false);
         std::atomic<bool> fatalCobraError(false);
 
         QueueManager queueManager(maxQueueSize);
 
-        auto timer = [&sentCount, &receivedCount, &sentCountTotal, &receivedCountTotal, &stop] {
+        auto timer = [&sentCount,
+                      &receivedCount,
+                      &sentCountTotal,
+                      &receivedCountTotal,
+                      &sentCountPerSecs,
+                      &receivedCountPerSecs,
+                      &stop] {
             while (!stop)
             {
+                //
+                // We cannot write to sentCount and receivedCount
+                // as those are used externally, so we need to introduce
+                // our own counters
+                //
                 spdlog::info("messages received {} {} sent {} {}",
-                             receivedCount, receivedCountTotal, sentCount, sentCountTotal);
+                             receivedCountPerSecs,
+                             receivedCountTotal,
+                             sentCountPerSecs,
+                             sentCountTotal);
+                receivedCountPerSecs = receivedCount - receivedCountTotal;
+                sentCountPerSecs = sentCount - receivedCountTotal;
 
-                receivedCountTotal += receivedCount;
-                sentCountTotal += sentCount;
-
-                receivedCount = 0;
-                sentCount = 0;
+                receivedCountTotal += receivedCountPerSecs;
+                sentCountTotal += sentCountPerSecs;
 
                 auto duration = std::chrono::seconds(1);
                 std::this_thread::sleep_for(duration);
