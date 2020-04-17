@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <json/json.h>
 #include <functional>
+#include <atomic>
 
 namespace ix
 {
