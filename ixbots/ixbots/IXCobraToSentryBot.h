@@ -8,17 +8,17 @@
 #include <ixcobra/IXCobraConfig.h>
 #include <ixsentry/IXSentryClient.h>
 #include <string>
+#include <cstdint>
 
 namespace ix
 {
-    int cobra_to_sentry_bot(const CobraConfig& config,
-                            const std::string& channel,
-                            const std::string& filter,
-                            const std::string& position,
-                            SentryClient& sentryClient,
-                            bool verbose,
-                            bool strict,
-                            size_t maxQueueSize,
-                            bool enableHeartbeat,
-                            int runtime);
+    int64_t cobra_to_sentry_bot(const CobraConfig& config,
+                                const std::string& channel,
+                                const std::string& filter,
+                                const std::string& position,
+                                SentryClient& sentryClient,
+                                bool verbose,
+                                size_t maxQueueSize,
+                                bool enableHeartbeat,
+                                int runtime);
 } // namespace ix

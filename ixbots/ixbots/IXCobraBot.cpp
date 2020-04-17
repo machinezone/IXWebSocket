@@ -23,6 +23,7 @@ namespace ix
                           const std::string& position,
                           bool verbose,
                           size_t maxQueueSize,
+                          bool useQueue,
                           bool enableHeartbeat,
                           int runtime)
     {
@@ -83,16 +84,18 @@ namespace ix
         std::thread t2(heartbeat);
 
         auto sender =
-            [this, &queueManager, verbose, &sentCount, &stop, &throttled] {
+            [this, &queueManager, verbose, &sentCount, &stop, &throttled, &fatalCobraError] {
 
                 while (true)
                 {
-                    Json::Value msg = queueManager.pop();
+                    auto data = queueManager.pop();
+                    Json::Value msg = data.first;
+                    std::string position = data.second;
 
                     if (stop) break;
                     if (msg.isNull()) continue;
 
-                    if (_onBotMessageCallback && _onBotMessageCallback(msg, verbose, throttled))
+                    if (_onBotMessageCallback && _onBotMessageCallback(msg, position, verbose, throttled, fatalCobraError))
                     {
                         // That might be too noisy
                         if (verbose)
@@ -114,16 +117,21 @@ namespace ix
 
         std::thread t3(sender);
 
-        conn.setEventCallback([&conn,
+        std::string subscriptionPosition(position);
+
+        conn.setEventCallback([this,
+                               &conn,
                                &channel,
                                &filter,
-                               &position,
+                               &subscriptionPosition,
                                &jsonWriter,
                                verbose,
                                &throttled,
                                &receivedCount,
                                &fatalCobraError,
-                               &queueManager](const CobraEventPtr& event)
+                               &useQueue,
+                               &queueManager,
+                               &sentCount](const CobraEventPtr& event)
        {
             if (event->type == ix::CobraEventType::Open)
             {
@@ -141,15 +149,19 @@ namespace ix
             else if (event->type == ix::CobraEventType::Authenticated)
             {
                 spdlog::info("Subscriber authenticated");
+                spdlog::info("Subscribing to {} at position {}", channel, subscriptionPosition);
+                spdlog::info("Using filter: {}", filter);
                 conn.subscribe(channel,
                                filter,
-                               position,
-                               [&jsonWriter, verbose, &throttled, &receivedCount, &queueManager](
+                               subscriptionPosition,
+                               [this, &jsonWriter, verbose, &throttled, &receivedCount, &queueManager, &useQueue, &subscriptionPosition, &fatalCobraError, &sentCount](
                                    const Json::Value& msg, const std::string& position) {
                                    if (verbose)
                                    {
                                        spdlog::info("Subscriber received message {} -> {}", position, jsonWriter.write(msg));
                                    }
+
+                                   subscriptionPosition = position;
 
                                    // If we cannot send to sentry fast enough, drop the message
                                    if (throttled)
@@ -158,7 +170,27 @@ namespace ix
                                    }
 
                                    ++receivedCount;
-                                   queueManager.add(msg);
+
+                                   if (useQueue)
+                                   {
+                                       queueManager.add(msg, position);
+                                   }
+                                   else
+                                   {
+                                       if (_onBotMessageCallback && _onBotMessageCallback(msg, position, verbose, throttled, fatalCobraError))
+                                       {
+                                           // That might be too noisy
+                                           if (verbose)
+                                           {
+                                               spdlog::info("cobra bot: sending succesfull");
+                                           }
+                                           ++sentCount;
+                                       }
+                                       else
+                                       {
+                                           spdlog::error("cobra bot: error sending");
+                                       }
+                                   }
                                });
             }
             else if (event->type == ix::CobraEventType::Subscribed)

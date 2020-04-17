@@ -9,15 +9,14 @@
 #include <ixcobra/IXCobraConfig.h>
 #include <stddef.h>
 #include <json/json.h>
-#include <mutex>
-#include <condition_variable>
-#include <queue>
-#include <map>
+#include <functional>
 
 namespace ix
 {
     using OnBotMessageCallback = std::function<bool(const Json::Value&,
+                                                    const std::string&,
                                                     const bool verbose,
+                                                    std::atomic<bool>&,
                                                     std::atomic<bool>&)>;
 
     class CobraBot
@@ -31,6 +30,7 @@ namespace ix
                     const std::string& position,
                     bool verbose,
                     size_t maxQueueSize,
+                    bool useQueue,
                     bool enableHeartbeat,
                     int runtime);
 

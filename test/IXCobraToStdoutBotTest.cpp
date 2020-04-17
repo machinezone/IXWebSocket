@@ -1,5 +1,5 @@
 /*
- *  IXCobraToSentryTest.cpp
+ *  IXCobraToStdoutTest.cpp
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2020 Machine Zone. All rights reserved.
  */
@@ -8,7 +8,7 @@
 #include "catch.hpp"
 #include <chrono>
 #include <iostream>
-#include <ixbots/IXCobraToSentryBot.h>
+#include <ixbots/IXCobraToStdoutBot.h>
 #include <ixcobra/IXCobraConnection.h>
 #include <ixcobra/IXCobraMetricsPublisher.h>
 #include <ixcrypto/IXUuid.h>
@@ -22,23 +22,6 @@ using namespace ix;
 
 namespace
 {
-    std::atomic<size_t> incomingBytes(0);
-    std::atomic<size_t> outgoingBytes(0);
-
-    void setupTrafficTrackerCallback()
-    {
-        ix::CobraConnection::setTrafficTrackerCallback([](size_t size, bool incoming) {
-            if (incoming)
-            {
-                incomingBytes += size;
-            }
-            else
-            {
-                outgoingBytes += size;
-            }
-        });
-    }
-
     void runPublisher(const ix::CobraConfig& config, const std::string& channel)
     {
         ix::CobraMetricsPublisher cobraMetricsPublisher;
@@ -69,7 +52,7 @@ namespace
     }
 } // namespace
 
-TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
+TEST_CASE("Cobra_to_stdout_bot", "[cobra_bots]")
 {
     SECTION("Exchange and count sent/received messages.")
     {
@@ -85,42 +68,6 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         // Start a snake server
         snake::SnakeServer snakeServer(appConfig);
         snakeServer.run();
-
-        // Start a fake sentry http server
-        SocketTLSOptions tlsOptionsServer = makeServerTLSOptions(true);
-
-        int sentryPort = getFreePort();
-        ix::HttpServer sentryServer(sentryPort, "127.0.0.1");
-        sentryServer.setTLSOptions(tlsOptionsServer);
-
-        sentryServer.setOnConnectionCallback(
-            [](HttpRequestPtr request,
-               std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
-                WebSocketHttpHeaders headers;
-                headers["Server"] = userAgent();
-
-                // Log request
-                std::stringstream ss;
-                ss << request->method << " " << request->headers["User-Agent"] << " "
-                   << request->uri;
-
-                if (request->method == "POST")
-                {
-                    return std::make_shared<HttpResponse>(
-                        200, "OK", HttpErrorCode::Ok, headers, std::string());
-                }
-                else
-                {
-                    return std::make_shared<HttpResponse>(
-                        405, "OK", HttpErrorCode::Invalid, headers, std::string("Invalid method"));
-                }
-            });
-
-        res = sentryServer.listen();
-        REQUIRE(res.first);
-        sentryServer.start();
-
-        setupTrafficTrackerCallback();
 
         // Run the bot for a small amount of time
         std::string channel = ix::generateSessionId();
@@ -141,34 +88,26 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         std::string filter;
         std::string position("$");
         bool verbose = true;
+        bool quiet = false;
         size_t maxQueueSize = 10;
         bool enableHeartbeat = false;
-
-        // FIXME: try to get this working with https instead of http
-        //        to regress the TLS 1.3 OpenSSL bug
-        //        -> https://github.com/openssl/openssl/issues/7967
-        // https://xxxxx:yyyyyy@sentry.io/1234567
-        std::stringstream oss;
-        oss << getHttpScheme() << "xxxxxxx:yyyyyyy@localhost:" << sentryPort << "/1234567";
-        std::string dsn = oss.str();
-
-        SocketTLSOptions tlsOptionsClient = makeClientTLSOptions();
-
-        SentryClient sentryClient(dsn);
-        sentryClient.setTLSOptions(tlsOptionsClient);
 
         // Only run the bot for 3 seconds
         int runtime = 3;
 
-        int64_t sentCount = cobra_to_sentry_bot(config,
-                                                channel,
-                                                filter,
-                                                position,
-                                                sentryClient,
-                                                verbose,
-                                                maxQueueSize,
-                                                enableHeartbeat,
-                                                runtime);
+        // We could try to capture the output ... not sure how.
+        bool fluentd = true;
+
+        int64_t sentCount = ix::cobra_to_stdout_bot(config,
+                                                    channel,
+                                                    filter,
+                                                    position,
+                                                    fluentd,
+                                                    quiet,
+                                                    verbose,
+                                                    maxQueueSize,
+                                                    enableHeartbeat,
+                                                    runtime);
         //
         // We want at least 2 messages to be sent
         //
@@ -177,9 +116,6 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         // Give us 1s for all messages to be received
         ix::msleep(1000);
 
-        spdlog::info("Incoming bytes {}", incomingBytes);
-        spdlog::info("Outgoing bytes {}", outgoingBytes);
-
         spdlog::info("Stopping snake server...");
         snakeServer.stop();
 
@@ -187,6 +123,5 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         redisServer.stop();
 
         publisherThread.join();
-        sentryServer.stop();
     }
 }

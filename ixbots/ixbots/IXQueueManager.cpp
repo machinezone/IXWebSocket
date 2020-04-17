@@ -10,14 +10,14 @@
 
 namespace ix
 {
-    Json::Value QueueManager::pop()
+    std::pair<Json::Value, std::string> QueueManager::pop()
     {
         std::unique_lock<std::mutex> lock(_mutex);
 
         if (_queues.empty())
         {
             Json::Value val;
-            return val;
+            return std::make_pair(val, std::string());
         }
 
         std::vector<std::string> games;
@@ -35,7 +35,7 @@ namespace ix
         if (_queues[game].empty())
         {
             Json::Value val;
-            return val;
+            return std::make_pair(val, std::string());
         }
 
         auto msg = _queues[game].front();
@@ -43,7 +43,7 @@ namespace ix
         return msg;
     }
 
-    void QueueManager::add(Json::Value msg)
+    void QueueManager::add(const Json::Value& msg, const std::string& position)
     {
         std::unique_lock<std::mutex> lock(_mutex);
 
@@ -59,7 +59,7 @@ namespace ix
         // in queuing too many events.
         if (_queues[game].size() < _maxQueueSize)
         {
-            _queues[game].push(msg);
+            _queues[game].push(std::make_pair(msg, position));
             _condition.notify_one();
         }
     }

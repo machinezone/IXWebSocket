@@ -49,7 +49,6 @@ add_executable(ws
   ws_redis_subscribe.cpp
   ws_redis_server.cpp
   ws_snake.cpp
-  ws_cobra_subscribe.cpp
   ws_cobra_metrics_publish.cpp
   ws_cobra_publish.cpp
   ws_cobra_metrics_to_redis.cpp

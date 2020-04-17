@@ -66,6 +66,7 @@ if (UNIX)
     IXCobraMetricsPublisherTest.cpp
     IXCobraToSentryBotTest.cpp
     IXCobraToStatsdBotTest.cpp
+    IXCobraToStdoutBotTest.cpp
   )
 endif()
 

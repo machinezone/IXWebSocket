@@ -12,26 +12,26 @@
 #include <ixcobra/IXCobraConnection.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
-#include <thread>
 #include <vector>
 
 namespace ix
 {
-    int cobra_to_sentry_bot(const CobraConfig& config,
-                            const std::string& channel,
-                            const std::string& filter,
-                            const std::string& position,
-                            SentryClient& sentryClient,
-                            bool verbose,
-                            bool strict,
-                            size_t maxQueueSize,
-                            bool enableHeartbeat,
-                            int runtime)
+    int64_t cobra_to_sentry_bot(const CobraConfig& config,
+                                const std::string& channel,
+                                const std::string& filter,
+                                const std::string& position,
+                                SentryClient& sentryClient,
+                                bool verbose,
+                                size_t maxQueueSize,
+                                bool enableHeartbeat,
+                                int runtime)
     {
         CobraBot bot;
         bot.setOnBotMessageCallback([&sentryClient](const Json::Value& msg,
+                                                    const std::string& /*position*/,
                                                     const bool verbose,
-                                                    std::atomic<bool>& throttled) -> bool {
+                                                    std::atomic<bool>& throttled,
+                                                    std::atomic<bool>& /*fatalCobraError*/) -> bool {
             auto ret = sentryClient.send(msg, verbose);
             HttpResponsePtr response = ret.first;
 
@@ -102,12 +102,15 @@ namespace ix
             return success;
         });
 
+        bool useQueue = true;
+
         return bot.run(config,
                        channel,
                        filter,
                        position,
                        verbose,
                        maxQueueSize,
+                       useQueue,
                        enableHeartbeat,
                        runtime);
     }

@@ -77,14 +77,6 @@ namespace ix
                                 const std::string& channel,
                                 bool verbose);
 
-    int ws_cobra_subscribe_main(const ix::CobraConfig& config,
-                                const std::string& channel,
-                                const std::string& filter,
-                                const std::string& position,
-                                bool quiet,
-                                bool fluentd,
-                                int runtime);
-
     int ws_cobra_publish_main(const ix::CobraConfig& appkey,
                               const std::string& channel,
                               const std::string& path);

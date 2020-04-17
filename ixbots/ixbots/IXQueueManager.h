@@ -23,11 +23,11 @@ namespace ix
         {
         }
 
-        Json::Value pop();
-        void add(Json::Value msg);
+        std::pair<Json::Value, std::string> pop();
+        void add(const Json::Value& msg, const std::string& position);
 
     private:
-        std::map<std::string, std::queue<Json::Value>> _queues;
+        std::map<std::string, std::queue<std::pair<Json::Value, std::string>>> _queues;
         std::mutex _mutex;
         std::condition_variable _condition;
         size_t _maxQueueSize;

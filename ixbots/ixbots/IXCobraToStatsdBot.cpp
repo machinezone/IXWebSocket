@@ -7,14 +7,12 @@
 #include "IXCobraToStatsdBot.h"
 #include "IXQueueManager.h"
 #include "IXStatsdClient.h"
+#include "IXCobraBot.h"
 
-#include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <ixcobra/IXCobraConnection.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
-#include <thread>
 #include <vector>
 
 namespace ix
@@ -56,18 +54,18 @@ namespace ix
         return val;
     }
 
-    int cobra_to_statsd_bot(const ix::CobraConfig& config,
-                            const std::string& channel,
-                            const std::string& filter,
-                            const std::string& position,
-                            StatsdClient& statsdClient,
-                            const std::string& fields,
-                            const std::string& gauge,
-                            const std::string& timer,
-                            bool verbose,
-                            size_t maxQueueSize,
-                            bool enableHeartbeat,
-                            int runtime)
+    int64_t cobra_to_statsd_bot(const ix::CobraConfig& config,
+                                const std::string& channel,
+                                const std::string& filter,
+                                const std::string& position,
+                                StatsdClient& statsdClient,
+                                const std::string& fields,
+                                const std::string& gauge,
+                                const std::string& timer,
+                                bool verbose,
+                                size_t maxQueueSize,
+                                bool enableHeartbeat,
+                                int runtime)
     {
         ix::CobraConnection conn;
         conn.configure(config);
@@ -75,242 +73,85 @@ namespace ix
 
         auto tokens = parseFields(fields);
 
-        Json::FastWriter jsonWriter;
-        std::atomic<uint64_t> sentCount(0);
-        std::atomic<uint64_t> receivedCount(0);
-        std::atomic<bool> stop(false);
-        std::atomic<bool> fatalCobraError(false);
-
-        QueueManager queueManager(maxQueueSize);
-
-        auto progress = [&sentCount, &receivedCount, &stop] {
-            while (!stop)
+        CobraBot bot;
+        bot.setOnBotMessageCallback([&statsdClient, &tokens, &gauge, &timer](const Json::Value& msg,
+                                                                             const std::string& /*position*/,
+                                                                             const bool verbose,
+                                                                             std::atomic<bool>& /*throttled*/,
+                                                                             std::atomic<bool>& fatalCobraError) -> bool {
+            std::string id;
+            for (auto&& attr : tokens)
             {
-                spdlog::info("messages received {} sent {}", receivedCount, sentCount);
-
-                auto duration = std::chrono::seconds(1);
-                std::this_thread::sleep_for(duration);
+                id += ".";
+                auto val = extractAttr(attr, msg);
+                id += val.asString();
             }
 
-            spdlog::info("timer thread done");
-        };
-
-        std::thread t1(progress);
-
-        auto heartbeat = [&sentCount, &receivedCount, &stop, &enableHeartbeat] {
-            std::string state("na");
-
-            if (!enableHeartbeat) return;
-
-            while (!stop)
+            if (gauge.empty() && timer.empty())
             {
-                std::stringstream ss;
-                ss << "messages received " << receivedCount;
-                ss << "messages sent " << sentCount;
-
-                std::string currentState = ss.str();
-
-                if (currentState == state)
-                {
-                    spdlog::error("no messages received or sent for 1 minute, exiting");
-                    exit(1);
-                }
-                state = currentState;
-
-                auto duration = std::chrono::minutes(1);
-                std::this_thread::sleep_for(duration);
+                statsdClient.count(id, 1);
             }
-
-            spdlog::info("heartbeat thread done");
-        };
-
-        std::thread t2(heartbeat);
-
-        auto statsdSender = [&statsdClient, &queueManager, &sentCount, &tokens, &stop, &gauge, &timer, &fatalCobraError, &verbose] {
-            while (true)
+            else
             {
-                Json::Value msg = queueManager.pop();
+                std::string attrName = (!gauge.empty()) ? gauge : timer;
+                auto val = extractAttr(attrName, msg);
+                size_t x;
 
-                if (stop) return;
-                if (msg.isNull()) continue;
-
-                std::string id;
-                for (auto&& attr : tokens)
+                if (val.isInt())
                 {
-                    id += ".";
-                    auto val = extractAttr(attr, msg);
-                    id += val.asString();
+                    x = (size_t) val.asInt();
                 }
-
-                if (gauge.empty() && timer.empty())
+                else if (val.isInt64())
                 {
-                    statsdClient.count(id, 1);
+                    x = (size_t) val.asInt64();
+                }
+                else if (val.isUInt())
+                {
+                    x = (size_t) val.asUInt();
+                }
+                else if (val.isUInt64())
+                {
+                    x = (size_t) val.asUInt64();
+                }
+                else if (val.isDouble())
+                {
+                    x = (size_t) val.asUInt64();
                 }
                 else
                 {
-                    std::string attrName = (!gauge.empty()) ? gauge : timer;
-                    auto val = extractAttr(attrName, msg);
-                    size_t x;
-
-                    if (val.isInt())
-                    {
-                        x = (size_t) val.asInt();
-                    }
-                    else if (val.isInt64())
-                    {
-                        x = (size_t) val.asInt64();
-                    }
-                    else if (val.isUInt())
-                    {
-                        x = (size_t) val.asUInt();
-                    }
-                    else if (val.isUInt64())
-                    {
-                        x = (size_t) val.asUInt64();
-                    }
-                    else if (val.isDouble())
-                    {
-                        x = (size_t) val.asUInt64();
-                    }
-                    else
-                    {
-                        spdlog::error("Gauge {} is not a numberic type", gauge);
-                        fatalCobraError = true;
-                        break;
-                    }
-
-                    if (verbose)
-                    {
-                        spdlog::info("{} - {} -> {}", id, attrName, x);
-                    }
-
-                    if (!gauge.empty())
-                    {
-                        statsdClient.gauge(id, x);
-                    }
-                    else
-                    {
-                        statsdClient.timing(id, x);
-                    }
-                }
-
-                sentCount += 1;
-            }
-        };
-
-        std::thread t3(statsdSender);
-
-        conn.setEventCallback(
-            [&conn, &channel, &filter, &position, &jsonWriter, verbose, &queueManager, &receivedCount, &fatalCobraError](const CobraEventPtr& event)
-            {
-                if (event->type == ix::CobraEventType::Open)
-                {
-                    spdlog::info("Subscriber connected");
-
-                    for (auto&& it : event->headers)
-                    {
-                        spdlog::info("{}: {}", it.first, it.second);
-                    }
-                }
-                else if (event->type == ix::CobraEventType::Closed)
-                {
-                    spdlog::info("Subscriber closed: {}", event->errMsg);
-                }
-                else if (event->type == ix::CobraEventType::Authenticated)
-                {
-                    spdlog::info("Subscriber authenticated");
-                    conn.subscribe(channel,
-                                   filter,
-                                   position,
-                                   [&jsonWriter, &queueManager, verbose, &receivedCount](
-                                       const Json::Value& msg, const std::string& position) {
-                                       if (verbose)
-                                       {
-                                           spdlog::info("Subscriber received message {} -> {}", position, jsonWriter.write(msg));
-                                       }
-
-                                       receivedCount++;
-
-                                       ++receivedCount;
-                                       queueManager.add(msg);
-                                   });
-                }
-                else if (event->type == ix::CobraEventType::Subscribed)
-                {
-                    spdlog::info("Subscriber: subscribed to channel {}", event->subscriptionId);
-                }
-                else if (event->type == ix::CobraEventType::UnSubscribed)
-                {
-                    spdlog::info("Subscriber: unsubscribed from channel {}", event->subscriptionId);
-                }
-                else if (event->type == ix::CobraEventType::Error)
-                {
-                    spdlog::error("Subscriber: error {}", event->errMsg);
-                }
-                else if (event->type == ix::CobraEventType::Published)
-                {
-                    spdlog::error("Published message hacked: {}", event->msgId);
-                }
-                else if (event->type == ix::CobraEventType::Pong)
-                {
-                    spdlog::info("Received websocket pong");
-                }
-                else if (event->type == ix::CobraEventType::HandshakeError)
-                {
-                    spdlog::error("Subscriber: Handshake error: {}", event->errMsg);
+                    spdlog::error("Gauge {} is not a numeric type", gauge);
                     fatalCobraError = true;
+                    return false;
                 }
-                else if (event->type == ix::CobraEventType::AuthenticationError)
+
+                if (verbose)
                 {
-                    spdlog::error("Subscriber: Authentication error: {}", event->errMsg);
-                    fatalCobraError = true;
+                    spdlog::info("{} - {} -> {}", id, attrName, x);
                 }
-                else if (event->type == ix::CobraEventType::SubscriptionError)
+
+                if (!gauge.empty())
                 {
-                    spdlog::error("Subscriber: Subscription error: {}", event->errMsg);
-                    fatalCobraError = true;
+                    statsdClient.gauge(id, x);
                 }
-            });
-
-        // Run forever
-        if (runtime == -1)
-        {
-            while (true)
-            {
-                auto duration = std::chrono::seconds(1);
-                std::this_thread::sleep_for(duration);
-
-                if (fatalCobraError) break;
+                else
+                {
+                    statsdClient.timing(id, x);
+                }
             }
-        }
-        // Run for a duration, used by unittesting now
-        else
-        {
-            for (int i = 0 ; i < runtime; ++i)
-            {
-                auto duration = std::chrono::seconds(1);
-                std::this_thread::sleep_for(duration);
 
-                if (fatalCobraError) break;
-            }
-        }
+            return true;
+        });
 
-        //
-        // Cleanup.
-        // join all the bg threads and stop them.
-        //
-        conn.disconnect();
-        stop = true;
+        bool useQueue = true;
 
-        // progress thread
-        t1.join();
-
-        // heartbeat thread
-        if (t2.joinable()) t2.join();
-
-        // statsd sender thread
-        t3.join();
-
-        return fatalCobraError ? -1 : (int) sentCount;
+        return bot.run(config,
+                       channel,
+                       filter,
+                       position,
+                       verbose,
+                       maxQueueSize,
+                       useQueue,
+                       enableHeartbeat,
+                       runtime);
     }
 } // namespace ix
