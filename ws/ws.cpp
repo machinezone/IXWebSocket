@@ -20,6 +20,7 @@
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
 #include <sstream>
 #include <string>
 
@@ -83,6 +84,7 @@ int main(int argc, char** argv)
     std::string metadata;
     std::string project;
     std::string key;
+    std::string logfile;
     ix::SocketTLSOptions tlsOptions;
     ix::CobraConfig cobraConfig;
     std::string ciphers;
@@ -140,8 +142,10 @@ int main(int argc, char** argv)
     };
 
     app.add_flag("--version", version, "Print ws version");
+    app.add_option("--logfile", logfile, "path where all logs will be redirected");
 
     CLI::App* sendApp = app.add_subcommand("send", "Send a file");
+    sendApp->fallthrough();
     sendApp->add_option("url", url, "Connection url")->required();
     sendApp->add_option("path", path, "Path to the file to send")
         ->required()
@@ -151,6 +155,7 @@ int main(int argc, char** argv)
     addTLSOptions(sendApp);
 
     CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
+    receiveApp->fallthrough();
     receiveApp->add_option("url", url, "Connection url")->required();
     receiveApp->add_option("--delay",
                            delayMs,
@@ -160,12 +165,14 @@ int main(int argc, char** argv)
     addTLSOptions(receiveApp);
 
     CLI::App* transferApp = app.add_subcommand("transfer", "Broadcasting server");
+    transferApp->fallthrough();
     transferApp->add_option("--port", port, "Connection url");
     transferApp->add_option("--host", hostname, "Hostname");
     transferApp->add_option("--pidfile", pidfile, "Pid file");
     addTLSOptions(transferApp);
 
     CLI::App* connectApp = app.add_subcommand("connect", "Connect to a remote server");
+    connectApp->fallthrough();
     connectApp->add_option("url", url, "Connection url")->required();
     connectApp->add_option("-H", headers, "Header")->join();
     connectApp->add_flag("-d", disableAutomaticReconnection, "Disable Automatic Reconnection");
@@ -179,10 +186,12 @@ int main(int argc, char** argv)
     addTLSOptions(connectApp);
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
+    chatApp->fallthrough();
     chatApp->add_option("url", url, "Connection url")->required();
     chatApp->add_option("user", user, "User name")->required();
 
     CLI::App* echoServerApp = app.add_subcommand("echo_server", "Echo server");
+    echoServerApp->fallthrough();
     echoServerApp->add_option("--port", port, "Port");
     echoServerApp->add_option("--host", hostname, "Hostname");
     echoServerApp->add_flag("-g", greetings, "Verbose");
@@ -192,15 +201,18 @@ int main(int argc, char** argv)
     addTLSOptions(echoServerApp);
 
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
+    broadcastServerApp->fallthrough();
     broadcastServerApp->add_option("--port", port, "Port");
     broadcastServerApp->add_option("--host", hostname, "Hostname");
     addTLSOptions(broadcastServerApp);
 
     CLI::App* pingPongApp = app.add_subcommand("ping", "Ping pong");
+    pingPongApp->fallthrough();
     pingPongApp->add_option("url", url, "Connection url")->required();
     addTLSOptions(pingPongApp);
 
     CLI::App* httpClientApp = app.add_subcommand("curl", "HTTP Client");
+    httpClientApp->fallthrough();
     httpClientApp->add_option("url", url, "Connection url")->required();
     httpClientApp->add_option("-d", data, "Form data")->join();
     httpClientApp->add_option("-F", data, "Form data")->join();
@@ -217,6 +229,7 @@ int main(int argc, char** argv)
     addTLSOptions(httpClientApp);
 
     CLI::App* redisPublishApp = app.add_subcommand("redis_publish", "Redis publisher");
+    redisPublishApp->fallthrough();
     redisPublishApp->add_option("--port", redisPort, "Port");
     redisPublishApp->add_option("--host", hostname, "Hostname");
     redisPublishApp->add_option("--password", password, "Password");
@@ -225,6 +238,7 @@ int main(int argc, char** argv)
     redisPublishApp->add_option("-c", count, "Count");
 
     CLI::App* redisSubscribeApp = app.add_subcommand("redis_subscribe", "Redis subscriber");
+    redisSubscribeApp->fallthrough();
     redisSubscribeApp->add_option("--port", redisPort, "Port");
     redisSubscribeApp->add_option("--host", hostname, "Hostname");
     redisSubscribeApp->add_option("--password", password, "Password");
@@ -233,6 +247,7 @@ int main(int argc, char** argv)
     redisSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
 
     CLI::App* cobraSubscribeApp = app.add_subcommand("cobra_subscribe", "Cobra subscriber");
+    cobraSubscribeApp->fallthrough();
     cobraSubscribeApp->add_option("--channel", channel, "Channel")->required();
     cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
     cobraSubscribeApp->add_option("--filter", filter, "Stream SQL Filter");
@@ -244,6 +259,7 @@ int main(int argc, char** argv)
     addCobraConfig(cobraSubscribeApp);
 
     CLI::App* cobraPublish = app.add_subcommand("cobra_publish", "Cobra publisher");
+    cobraPublish->fallthrough();
     cobraPublish->add_option("--channel", channel, "Channel")->required();
     cobraPublish->add_option("--pidfile", pidfile, "Pid file");
     cobraPublish->add_option("path", path, "Path to the file to send")
@@ -254,6 +270,7 @@ int main(int argc, char** argv)
 
     CLI::App* cobraMetricsPublish =
         app.add_subcommand("cobra_metrics_publish", "Cobra metrics publisher");
+    cobraMetricsPublish->fallthrough();
     cobraMetricsPublish->add_option("--channel", channel, "Channel")->required();
     cobraMetricsPublish->add_option("--pidfile", pidfile, "Pid file");
     cobraMetricsPublish->add_option("path", path, "Path to the file to send")
@@ -264,6 +281,7 @@ int main(int argc, char** argv)
     addCobraConfig(cobraMetricsPublish);
 
     CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra metrics to statsd");
+    cobra2statsd->fallthrough();
     cobra2statsd->add_option("--host", hostname, "Statsd host");
     cobra2statsd->add_option("--port", statsdPort, "Statsd port");
     cobra2statsd->add_option("--prefix", prefix, "Statsd prefix");
@@ -285,6 +303,7 @@ int main(int argc, char** argv)
     addCobraConfig(cobra2statsd);
 
     CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra metrics to sentry");
+    cobra2sentry->fallthrough();
     cobra2sentry->add_option("--dsn", dsn, "Sentry DSN");
     cobra2sentry->add_option("--queue_size",
                              maxQueueSize,
@@ -300,6 +319,7 @@ int main(int argc, char** argv)
 
     CLI::App* cobra2redisApp =
         app.add_subcommand("cobra_metrics_to_redis", "Cobra metrics to redis");
+    cobra2redisApp->fallthrough();
     cobra2redisApp->add_option("channel", channel, "Channel")->required();
     cobra2redisApp->add_option("--pidfile", pidfile, "Pid file");
     cobra2redisApp->add_option("--filter", filter, "Stream SQL Filter");
@@ -311,6 +331,7 @@ int main(int argc, char** argv)
     addCobraConfig(cobra2redisApp);
 
     CLI::App* snakeApp = app.add_subcommand("snake", "Snake server");
+    snakeApp->fallthrough();
     snakeApp->add_option("--port", port, "Connection url");
     snakeApp->add_option("--host", hostname, "Hostname");
     snakeApp->add_option("--pidfile", pidfile, "Pid file");
@@ -324,6 +345,7 @@ int main(int argc, char** argv)
     addTLSOptions(snakeApp);
 
     CLI::App* httpServerApp = app.add_subcommand("httpd", "HTTP server");
+    httpServerApp->fallthrough();
     httpServerApp->add_option("--port", port, "Port");
     httpServerApp->add_option("--host", hostname, "Hostname");
     httpServerApp->add_flag("-L", redirect, "Redirect all request to redirect_url");
@@ -331,14 +353,17 @@ int main(int argc, char** argv)
     addTLSOptions(httpServerApp);
 
     CLI::App* autobahnApp = app.add_subcommand("autobahn", "Test client Autobahn compliance");
+    autobahnApp->fallthrough();
     autobahnApp->add_option("--url", url, "url");
     autobahnApp->add_flag("-q", quiet, "Quiet");
 
     CLI::App* redisServerApp = app.add_subcommand("redis_server", "Redis server");
+    redisServerApp->fallthrough();
     redisServerApp->add_option("--port", port, "Port");
     redisServerApp->add_option("--host", hostname, "Hostname");
 
     CLI::App* proxyServerApp = app.add_subcommand("proxy_server", "Proxy server");
+    proxyServerApp->fallthrough();
     proxyServerApp->add_option("--port", port, "Port");
     proxyServerApp->add_option("--host", hostname, "Hostname");
     proxyServerApp->add_option("--remote_host", remoteHost, "Remote Hostname");
@@ -346,6 +371,7 @@ int main(int argc, char** argv)
     addTLSOptions(proxyServerApp);
 
     CLI::App* minidumpApp = app.add_subcommand("upload_minidump", "Upload a minidump to sentry");
+    minidumpApp->fallthrough();
     minidumpApp->add_option("--minidump", minidump, "Minidump path")
         ->required()
         ->check(CLI::ExistingPath);
@@ -357,6 +383,7 @@ int main(int argc, char** argv)
     minidumpApp->add_flag("-v", verbose, "Verbose");
 
     CLI::App* dnsLookupApp = app.add_subcommand("dnslookup", "DNS lookup");
+    dnsLookupApp->fallthrough();
     dnsLookupApp->add_option("host", hostname, "Hostname")->required();
 
     CLI11_PARSE(app, argc, argv);
@@ -375,6 +402,24 @@ int main(int argc, char** argv)
     if (verifyNone)
     {
         tlsOptions.caFile = "NONE";
+    }
+
+    if (!logfile.empty())
+    {
+        try
+        {
+            auto fileLogger = spdlog::basic_logger_mt("ws", logfile);
+            spdlog::set_default_logger(fileLogger);
+            spdlog::flush_every(std::chrono::seconds(1));
+
+            std::cerr << "All logs will be redirected to " << logfile << std::endl;
+        }
+        catch (const spdlog::spdlog_ex &ex)
+        {
+            std::cerr << "Fatal error, log init failed: " << ex.what() << std::endl;
+            ix::uninitNetSystem();
+            return 1;
+        }
     }
 
     // Cobra config

@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.3.2] - 2020-04-17
+
+(ws) add a --logfile option to configure all logs to go to a file
+
 ## [9.3.1] - 2020-04-16
 
 (cobra bots) add a utility class to factor out the common bots features (heartbeat) and move all bots to used it + convert cobra_subscribe to be a bot and add a unittest for it
