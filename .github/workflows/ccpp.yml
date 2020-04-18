@@ -19,5 +19,5 @@ jobs:
     - run: |
         mkdir build
         cd build
-        cmake -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=cl.exe -DUSE_MBED_TLS=1 -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 ..
+        cmake -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=cl.exe -DUSE_MBED_TLS=1 -DUSE_TLS=1 -DUSE_WS=1 ..
     - run: cmake --build build
