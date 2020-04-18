@@ -15,8 +15,6 @@ jobs:
     - run: |
         vcpkg install mbedtls:x64-windows
     - run: |
-        vcpkg install spdlog:x64-windows
-    - run: |
         mkdir build
         cd build
         cmake -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=cl.exe -DUSE_MBED_TLS=1 -DUSE_TLS=1 -DUSE_WS=1 ..
