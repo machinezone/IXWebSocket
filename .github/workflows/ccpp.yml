@@ -44,7 +44,10 @@ jobs:
     - uses: seanmiddleditch/gha-setup-vsdevenv@master
     - run: |
         vcpkg install zlib:x64-windows
+    - run: |
         vcpkg install mbedtls:x64-windows
+    - run: |
+        vcpkg install spdlog:x64-windows
     - run: |
         mkdir build
         cd build
