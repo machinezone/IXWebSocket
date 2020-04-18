@@ -18,10 +18,12 @@ There is a unittest which can be executed by typing `make test`.
 Options for building:
 
 * `-DUSE_TLS=1` will enable TLS support
+* `-DUSE_OPEN_SSL=1` will use [openssl](https://www.openssl.org/) for the TLS support (default on Linux)
 * `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support (default on Windows)
 * `-DUSE_WS=1` will build the ws interactive command line tool
+* `-DUSE_TEST=1` will build the unittest
 
-If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file that has instructions for building dependencies.
+If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file (not maintained much though) or rather the [github actions](https://github.com/machinezone/IXWebSocket/blob/master/.github/workflows/ccpp.yml#L40) which have instructions for building dependencies.
 
 It is also possible to externally include the project, so that everything is fetched over the wire when you build like so:
 
@@ -59,7 +61,7 @@ Note that the version listed here might not be the latest one. See Bintray or th
 There is a Dockerfile for running the unittest on Linux, and to run the `ws` tool. It is also available on the docker registry.
 
 ```
-docker run bsergean/ws
+docker run docker.pkg.github.com/machinezone/ixwebsocket/ws:latest --help
 ```
 
 To use docker-compose you must make a docker container first.
