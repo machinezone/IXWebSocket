@@ -60,19 +60,19 @@ add_executable(ws
   ws.cpp)
 
 # library with the most dependencies come first
-target_link_libraries(ws PRIVATE ixbots)
-target_link_libraries(ws PRIVATE ixsnake)
-target_link_libraries(ws PRIVATE ixcobra)
-target_link_libraries(ws PRIVATE ixsentry)
-target_link_libraries(ws PRIVATE ixwebsocket)
-target_link_libraries(ws PRIVATE ixcrypto)
-target_link_libraries(ws PRIVATE ixcore)
+target_link_libraries(ws ixbots)
+target_link_libraries(ws ixsnake)
+target_link_libraries(ws ixcobra)
+target_link_libraries(ws ixsentry)
+target_link_libraries(ws ixwebsocket)
+target_link_libraries(ws ixcrypto)
+target_link_libraries(ws ixcore)
 
-target_link_libraries(ws PRIVATE spdlog)
+target_link_libraries(ws spdlog)
 
 if (JSONCPP_FOUND)
-  target_include_directories(ws PRIVATE ${JSONCPP_INCLUDE_DIRS})
-  target_link_libraries(ws PRIVATE ${JSONCPP_LIBRARIES})
+  target_include_directories(ws PUBLIC ${JSONCPP_INCLUDE_DIRS})
+  target_link_libraries(ws ${JSONCPP_LIBRARIES})
 endif()
 
 install(TARGETS ws RUNTIME DESTINATION bin)
