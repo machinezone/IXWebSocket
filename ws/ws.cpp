@@ -31,6 +31,10 @@
 #define getpid _getpid
 #endif
 
+int helper()
+{
+    return 0;
+}
 
 int main(int argc, char** argv)
 {
