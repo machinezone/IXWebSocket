@@ -7,12 +7,12 @@
 #include "IXSentryClient.h"
 
 #include <chrono>
-#include <iostream>
 #include <fstream>
-#include <sstream>
+#include <iostream>
+#include <ixcore/utils/IXCoreLogger.h>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketVersion.h>
-#include <ixcore/utils/IXCoreLogger.h>
+#include <sstream>
 
 
 namespace ix
@@ -246,24 +246,21 @@ namespace ix
     std::string SentryClient::computeUrl(const std::string& project, const std::string& key)
     {
         std::stringstream ss;
-        ss << "https://sentry.io/api/"
-           << project
-           << "/minidump?sentry_key="
-           << key;
+        ss << "https://sentry.io/api/" << project << "/minidump?sentry_key=" << key;
 
         return ss.str();
     }
 
     //
-    // curl -v -X POST -F upload_file_minidump=@ws/crash.dmp 'https://sentry.io/api/123456/minidump?sentry_key=12344567890'
+    // curl -v -X POST -F upload_file_minidump=@ws/crash.dmp
+    // 'https://sentry.io/api/123456/minidump?sentry_key=12344567890'
     //
-    void SentryClient::uploadMinidump(
-        const std::string& sentryMetadata,
-        const std::string& minidumpBytes,
-        const std::string& project,
-        const std::string& key,
-        bool verbose,
-        const OnResponseCallback& onResponseCallback)
+    void SentryClient::uploadMinidump(const std::string& sentryMetadata,
+                                      const std::string& minidumpBytes,
+                                      const std::string& project,
+                                      const std::string& key,
+                                      bool verbose,
+                                      const OnResponseCallback& onResponseCallback)
     {
         std::string multipartBoundary = _httpClient->generateMultipartBoundary();
 
@@ -283,15 +280,15 @@ namespace ix
         httpParameters["sentry"] = sentryMetadata;
 
         args->url = computeUrl(project, key);
-        args->body = _httpClient->serializeHttpFormDataParameters(multipartBoundary, httpFormDataParameters, httpParameters);
+        args->body = _httpClient->serializeHttpFormDataParameters(
+            multipartBoundary, httpFormDataParameters, httpParameters);
 
         _httpClient->performRequest(args, onResponseCallback);
     }
 
-    void SentryClient::uploadPayload(
-        const Json::Value& payload,
-        bool verbose,
-        const OnResponseCallback& onResponseCallback)
+    void SentryClient::uploadPayload(const Json::Value& payload,
+                                     bool verbose,
+                                     const OnResponseCallback& onResponseCallback)
     {
         auto args = _httpClient->createRequest();
         args->extraHeaders["X-Sentry-Auth"] = SentryClient::computeAuthHeader();

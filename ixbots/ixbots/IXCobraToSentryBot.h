@@ -5,10 +5,10 @@
  */
 #pragma once
 
+#include <cstdint>
 #include <ixcobra/IXCobraConfig.h>
 #include <ixsentry/IXSentryClient.h>
 #include <string>
-#include <cstdint>
 
 namespace ix
 {

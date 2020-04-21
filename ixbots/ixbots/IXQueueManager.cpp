@@ -5,8 +5,9 @@
  */
 
 #include "IXQueueManager.h"
-#include <vector>
+
 #include <algorithm>
+#include <vector>
 
 namespace ix
 {
@@ -63,4 +64,4 @@ namespace ix
             _condition.notify_one();
         }
     }
-}
+} // namespace ix

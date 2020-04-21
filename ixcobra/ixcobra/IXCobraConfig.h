@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
+#include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
 
 namespace ix
 {

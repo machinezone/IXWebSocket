@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include "IXSocketServer.h"
 #include "IXSocket.h"
+#include "IXSocketServer.h"
 #include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <set>
-#include <map>
 #include <string>
 #include <thread>
 #include <utility> // pair
@@ -50,18 +50,14 @@ namespace ix
         bool startsWith(const std::string& str, const std::string& start);
         std::string writeString(const std::string& str);
 
-        bool parseRequest(
-            std::unique_ptr<Socket>& socket,
-            std::vector<std::string>& tokens);
+        bool parseRequest(std::unique_ptr<Socket>& socket, std::vector<std::string>& tokens);
 
-        bool handlePublish(std::unique_ptr<Socket>& socket,
-                           const std::vector<std::string>& tokens);
+        bool handlePublish(std::unique_ptr<Socket>& socket, const std::vector<std::string>& tokens);
 
         bool handleSubscribe(std::unique_ptr<Socket>& socket,
                              const std::vector<std::string>& tokens);
 
-        bool handleCommand(std::unique_ptr<Socket>& socket,
-                           const std::vector<std::string>& tokens);
+        bool handleCommand(std::unique_ptr<Socket>& socket, const std::vector<std::string>& tokens);
 
         void cleanupSubscribers(std::unique_ptr<Socket>& socket);
     };

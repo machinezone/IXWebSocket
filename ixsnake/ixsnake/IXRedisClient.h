@@ -8,10 +8,9 @@
 
 #include <atomic>
 #include <functional>
+#include <ixwebsocket/IXSocket.h>
 #include <memory>
 #include <string>
-
-#include <ixwebsocket/IXSocket.h>
 
 namespace ix
 {
@@ -39,14 +38,11 @@ namespace ix
                        const OnRedisSubscribeCallback& callback);
 
         // XADD
-        std::string xadd(
-            const std::string& channel,
-            const std::string& message,
-            std::string& errMsg);
+        std::string xadd(const std::string& channel,
+                         const std::string& message,
+                         std::string& errMsg);
 
-        std::string prepareXaddCommand(
-            const std::string& stream,
-            const std::string& message);
+        std::string prepareXaddCommand(const std::string& stream, const std::string& message);
 
         std::string readXaddReply(std::string& errMsg);
 

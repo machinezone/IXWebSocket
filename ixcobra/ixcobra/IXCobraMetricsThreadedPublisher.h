@@ -27,8 +27,7 @@ namespace ix
         ~CobraMetricsThreadedPublisher();
 
         /// Configuration / set keys, etc...
-        void configure(const CobraConfig& config,
-                       const std::string& channel);
+        void configure(const CobraConfig& config, const std::string& channel);
 
         /// Start the worker thread, used for background publishing
         void start();

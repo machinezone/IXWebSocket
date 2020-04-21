@@ -5,9 +5,9 @@
  */
 
 #include "IXCobraToSentryBot.h"
+
 #include "IXCobraBot.h"
 #include "IXQueueManager.h"
-
 #include <chrono>
 #include <ixcobra/IXCobraConnection.h>
 #include <spdlog/spdlog.h>
@@ -31,7 +31,8 @@ namespace ix
                                                     const std::string& /*position*/,
                                                     const bool verbose,
                                                     std::atomic<bool>& throttled,
-                                                    std::atomic<bool>& /*fatalCobraError*/) -> bool {
+                                                    std::atomic<bool> &
+                                                    /*fatalCobraError*/) -> bool {
             auto ret = sentryClient.send(msg, verbose);
             HttpResponsePtr response = ret.first;
 

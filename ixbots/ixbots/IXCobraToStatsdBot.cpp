@@ -5,10 +5,10 @@
  */
 
 #include "IXCobraToStatsdBot.h"
+
+#include "IXCobraBot.h"
 #include "IXQueueManager.h"
 #include "IXStatsdClient.h"
-#include "IXCobraBot.h"
-
 #include <chrono>
 #include <ixcobra/IXCobraConnection.h>
 #include <spdlog/spdlog.h>
@@ -74,73 +74,74 @@ namespace ix
         auto tokens = parseFields(fields);
 
         CobraBot bot;
-        bot.setOnBotMessageCallback([&statsdClient, &tokens, &gauge, &timer](const Json::Value& msg,
-                                                                             const std::string& /*position*/,
-                                                                             const bool verbose,
-                                                                             std::atomic<bool>& /*throttled*/,
-                                                                             std::atomic<bool>& fatalCobraError) -> bool {
-            std::string id;
-            for (auto&& attr : tokens)
-            {
-                id += ".";
-                auto val = extractAttr(attr, msg);
-                id += val.asString();
-            }
+        bot.setOnBotMessageCallback(
+            [&statsdClient, &tokens, &gauge, &timer](const Json::Value& msg,
+                                                     const std::string& /*position*/,
+                                                     const bool verbose,
+                                                     std::atomic<bool>& /*throttled*/,
+                                                     std::atomic<bool>& fatalCobraError) -> bool {
+                std::string id;
+                for (auto&& attr : tokens)
+                {
+                    id += ".";
+                    auto val = extractAttr(attr, msg);
+                    id += val.asString();
+                }
 
-            if (gauge.empty() && timer.empty())
-            {
-                statsdClient.count(id, 1);
-            }
-            else
-            {
-                std::string attrName = (!gauge.empty()) ? gauge : timer;
-                auto val = extractAttr(attrName, msg);
-                size_t x;
-
-                if (val.isInt())
+                if (gauge.empty() && timer.empty())
                 {
-                    x = (size_t) val.asInt();
-                }
-                else if (val.isInt64())
-                {
-                    x = (size_t) val.asInt64();
-                }
-                else if (val.isUInt())
-                {
-                    x = (size_t) val.asUInt();
-                }
-                else if (val.isUInt64())
-                {
-                    x = (size_t) val.asUInt64();
-                }
-                else if (val.isDouble())
-                {
-                    x = (size_t) val.asUInt64();
+                    statsdClient.count(id, 1);
                 }
                 else
                 {
-                    spdlog::error("Gauge {} is not a numeric type", gauge);
-                    fatalCobraError = true;
-                    return false;
+                    std::string attrName = (!gauge.empty()) ? gauge : timer;
+                    auto val = extractAttr(attrName, msg);
+                    size_t x;
+
+                    if (val.isInt())
+                    {
+                        x = (size_t) val.asInt();
+                    }
+                    else if (val.isInt64())
+                    {
+                        x = (size_t) val.asInt64();
+                    }
+                    else if (val.isUInt())
+                    {
+                        x = (size_t) val.asUInt();
+                    }
+                    else if (val.isUInt64())
+                    {
+                        x = (size_t) val.asUInt64();
+                    }
+                    else if (val.isDouble())
+                    {
+                        x = (size_t) val.asUInt64();
+                    }
+                    else
+                    {
+                        spdlog::error("Gauge {} is not a numeric type", gauge);
+                        fatalCobraError = true;
+                        return false;
+                    }
+
+                    if (verbose)
+                    {
+                        spdlog::info("{} - {} -> {}", id, attrName, x);
+                    }
+
+                    if (!gauge.empty())
+                    {
+                        statsdClient.gauge(id, x);
+                    }
+                    else
+                    {
+                        statsdClient.timing(id, x);
+                    }
                 }
 
-                if (verbose)
-                {
-                    spdlog::info("{} - {} -> {}", id, attrName, x);
-                }
-
-                if (!gauge.empty())
-                {
-                    statsdClient.gauge(id, x);
-                }
-                else
-                {
-                    statsdClient.timing(id, x);
-                }
-            }
-
-            return true;
-        });
+                return true;
+            });
 
         bool useQueue = true;
 

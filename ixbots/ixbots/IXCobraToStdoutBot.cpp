@@ -5,13 +5,13 @@
  */
 
 #include "IXCobraToStdoutBot.h"
+
 #include "IXCobraBot.h"
 #include "IXQueueManager.h"
-
 #include <chrono>
+#include <iostream>
 #include <spdlog/spdlog.h>
 #include <sstream>
-#include <iostream>
 
 namespace ix
 {
@@ -79,17 +79,19 @@ namespace ix
         CobraBot bot;
         auto jsonWriter = makeStreamWriter();
 
-        bot.setOnBotMessageCallback([&fluentd, &quiet, &jsonWriter](const Json::Value& msg,
-                                                                    const std::string& position,
-                                                                    const bool /*verbose*/,
-                                                                    std::atomic<bool>& /*throttled*/,
-                                                                    std::atomic<bool>& /*fatalCobraError*/) -> bool {
-            if (!quiet)
-            {
-                writeToStdout(fluentd, jsonWriter, msg, position);
-            }
-            return true;
-        });
+        bot.setOnBotMessageCallback(
+            [&fluentd, &quiet, &jsonWriter](const Json::Value& msg,
+                                            const std::string& position,
+                                            const bool /*verbose*/,
+                                            std::atomic<bool>& /*throttled*/,
+                                            std::atomic<bool> &
+                                            /*fatalCobraError*/) -> bool {
+                if (!quiet)
+                {
+                    writeToStdout(fluentd, jsonWriter, msg, position);
+                }
+                return true;
+            });
 
         bool useQueue = false;
 

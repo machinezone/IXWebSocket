@@ -10,8 +10,8 @@
 #include "IXSnakeConnectionState.h"
 #include "IXSnakeProtocol.h"
 #include <iostream>
-#include <sstream>
 #include <ixcore/utils/IXCoreLogger.h>
+#include <sstream>
 
 
 namespace snake

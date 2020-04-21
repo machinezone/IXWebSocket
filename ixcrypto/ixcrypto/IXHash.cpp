@@ -19,4 +19,4 @@ namespace ix
 
         return hashAddress;
     }
-}
+} // namespace ix

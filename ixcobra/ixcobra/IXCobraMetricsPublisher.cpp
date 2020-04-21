@@ -5,9 +5,9 @@
  */
 
 #include "IXCobraMetricsPublisher.h"
-#include <ixwebsocket/IXSocketTLSOptions.h>
 
 #include <algorithm>
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <stdexcept>
 
 
@@ -17,8 +17,8 @@ namespace ix
     const std::string CobraMetricsPublisher::kSetRateControlId = "sms_set_rate_control_id";
     const std::string CobraMetricsPublisher::kSetBlacklistId = "sms_set_blacklist_id";
 
-    CobraMetricsPublisher::CobraMetricsPublisher() :
-        _enabled(true)
+    CobraMetricsPublisher::CobraMetricsPublisher()
+        : _enabled(true)
     {
     }
 
@@ -27,8 +27,7 @@ namespace ix
         ;
     }
 
-    void CobraMetricsPublisher::configure(const CobraConfig& config,
-                                          const std::string& channel)
+    void CobraMetricsPublisher::configure(const CobraConfig& config, const std::string& channel)
     {
         // Configure the satori connection and start its publish background thread
         _cobra_metrics_theaded_publisher.configure(config, channel);
@@ -42,7 +41,7 @@ namespace ix
     }
 
     void CobraMetricsPublisher::setGenericAttributes(const std::string& attrName,
-                                                      const Json::Value& value)
+                                                     const Json::Value& value)
     {
         std::lock_guard<std::mutex> lock(_device_mutex);
         _device[attrName] = value;
@@ -107,8 +106,7 @@ namespace ix
         auto last_update = _last_update.find(id);
         if (last_update == _last_update.end()) return false;
 
-        auto timeDeltaFromLastSend =
-            std::chrono::steady_clock::now() - last_update->second;
+        auto timeDeltaFromLastSend = std::chrono::steady_clock::now() - last_update->second;
 
         return timeDeltaFromLastSend < std::chrono::seconds(rate_control_it->second);
     }
@@ -123,8 +121,7 @@ namespace ix
     {
         auto now = std::chrono::system_clock::now();
         auto ms =
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                now.time_since_epoch()).count();
+            std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 
         return ms;
     }
@@ -165,10 +162,9 @@ namespace ix
         return true;
     }
 
-    CobraConnection::MsgId CobraMetricsPublisher::push(
-        const std::string& id,
-        const Json::Value& data,
-        bool shouldPushTest)
+    CobraConnection::MsgId CobraMetricsPublisher::push(const std::string& id,
+                                                       const Json::Value& data,
+                                                       bool shouldPushTest)
     {
         if (shouldPushTest && !shouldPush(id)) return CobraConnection::kInvalidMsgId;
 

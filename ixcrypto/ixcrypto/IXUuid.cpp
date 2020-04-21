@@ -16,23 +16,23 @@
 
 #include "IXUuid.h"
 
-#include <sstream>
-#include <string>
 #include <iomanip>
 #include <random>
+#include <sstream>
+#include <string>
 
 
 namespace ix
 {
     class Uuid
     {
-        public:
-            Uuid();
-            std::string toString() const;
+    public:
+        Uuid();
+        std::string toString() const;
 
-        private:
-            uint64_t _ab;
-            uint64_t _cd;
+    private:
+        uint64_t _ab;
+        uint64_t _cd;
     };
 
     Uuid::Uuid()
@@ -60,7 +60,7 @@ namespace ix
         ss << std::setw(8) << (a);
         ss << std::setw(4) << (b >> 16);
         ss << std::setw(4) << (b & 0xFFFF);
-        ss << std::setw(4) << (c >> 16 );
+        ss << std::setw(4) << (c >> 16);
         ss << std::setw(4) << (c & 0xFFFF);
         ss << std::setw(8) << d;
 
@@ -72,4 +72,4 @@ namespace ix
         Uuid id;
         return id.toString();
     }
-}
+} // namespace ix

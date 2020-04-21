@@ -10,8 +10,8 @@
 #include <ixwebsocket/IXHttpClient.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <json/json.h>
-#include <regex>
 #include <memory>
+#include <regex>
 
 namespace ix
 {
@@ -28,18 +28,16 @@ namespace ix
         // Mostly for testing
         void setTLSOptions(const SocketTLSOptions& tlsOptions);
 
-        void uploadMinidump(
-            const std::string& sentryMetadata,
-            const std::string& minidumpBytes,
-            const std::string& project,
-            const std::string& key,
-            bool verbose,
-            const OnResponseCallback& onResponseCallback);
+        void uploadMinidump(const std::string& sentryMetadata,
+                            const std::string& minidumpBytes,
+                            const std::string& project,
+                            const std::string& key,
+                            bool verbose,
+                            const OnResponseCallback& onResponseCallback);
 
-        void uploadPayload(
-            const Json::Value& payload,
-            bool verbose,
-            const OnResponseCallback& onResponseCallback);
+        void uploadPayload(const Json::Value& payload,
+                           bool verbose,
+                           const OnResponseCallback& onResponseCallback);
 
     private:
         int64_t getTimestamp();
