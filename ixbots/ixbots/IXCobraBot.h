@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include <ixcobra/IXCobraConfig.h>
-#include <stddef.h>
-#include <json/json.h>
-#include <functional>
 #include <atomic>
+#include <functional>
+#include <ixcobra/IXCobraConfig.h>
+#include <json/json.h>
+#include <stddef.h>
 
 namespace ix
 {
@@ -40,4 +40,4 @@ namespace ix
     private:
         OnBotMessageCallback _onBotMessageCallback;
     };
-}
+} // namespace ix

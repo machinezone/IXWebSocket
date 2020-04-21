@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include <ixwebsocket/IXSocketTLSOptions.h>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <ixwebsocket/IXSocketTLSOptions.h>
 
 namespace snake
 {

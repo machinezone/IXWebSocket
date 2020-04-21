@@ -3,12 +3,12 @@
 
 namespace ix
 {
-// Default do nothing logger
-IXCoreLogger::LogFunc IXCoreLogger::_currentLogger = [](const char* /*msg*/){};
+    // Default do nothing logger
+    IXCoreLogger::LogFunc IXCoreLogger::_currentLogger = [](const char* /*msg*/) {};
 
-void IXCoreLogger::Log(const char* msg)
-{
-    _currentLogger(msg);
-}
+    void IXCoreLogger::Log(const char* msg)
+    {
+        _currentLogger(msg);
+    }
 
-} // ix
+} // namespace ix

@@ -5,8 +5,8 @@
  */
 
 #include "IXCobraBot.h"
-#include "IXQueueManager.h"
 
+#include "IXQueueManager.h"
 #include <algorithm>
 #include <chrono>
 #include <ixcobra/IXCobraConnection.h>
@@ -109,7 +109,6 @@ namespace ix
 
         auto sender =
             [this, &queueManager, verbose, &sentCount, &stop, &throttled, &fatalCobraError] {
-
                 while (true)
                 {
                     auto data = queueManager.pop();
@@ -119,7 +118,8 @@ namespace ix
                     if (stop) break;
                     if (msg.isNull()) continue;
 
-                    if (_onBotMessageCallback && _onBotMessageCallback(msg, position, verbose, throttled, fatalCobraError))
+                    if (_onBotMessageCallback &&
+                        _onBotMessageCallback(msg, position, verbose, throttled, fatalCobraError))
                     {
                         // That might be too noisy
                         if (verbose)
@@ -155,8 +155,7 @@ namespace ix
                                &fatalCobraError,
                                &useQueue,
                                &queueManager,
-                               &sentCount](const CobraEventPtr& event)
-       {
+                               &sentCount](const CobraEventPtr& event) {
             if (event->type == ix::CobraEventType::Open)
             {
                 spdlog::info("Subscriber connected");
@@ -178,11 +177,21 @@ namespace ix
                 conn.subscribe(channel,
                                filter,
                                subscriptionPosition,
-                               [this, &jsonWriter, verbose, &throttled, &receivedCount, &queueManager, &useQueue, &subscriptionPosition, &fatalCobraError, &sentCount](
-                                   const Json::Value& msg, const std::string& position) {
+                               [this,
+                                &jsonWriter,
+                                verbose,
+                                &throttled,
+                                &receivedCount,
+                                &queueManager,
+                                &useQueue,
+                                &subscriptionPosition,
+                                &fatalCobraError,
+                                &sentCount](const Json::Value& msg, const std::string& position) {
                                    if (verbose)
                                    {
-                                       spdlog::info("Subscriber received message {} -> {}", position, jsonWriter.write(msg));
+                                       spdlog::info("Subscriber received message {} -> {}",
+                                                    position,
+                                                    jsonWriter.write(msg));
                                    }
 
                                    subscriptionPosition = position;
@@ -201,7 +210,9 @@ namespace ix
                                    }
                                    else
                                    {
-                                       if (_onBotMessageCallback && _onBotMessageCallback(msg, position, verbose, throttled, fatalCobraError))
+                                       if (_onBotMessageCallback &&
+                                           _onBotMessageCallback(
+                                               msg, position, verbose, throttled, fatalCobraError))
                                        {
                                            // That might be too noisy
                                            if (verbose)
@@ -268,7 +279,7 @@ namespace ix
         // Run for a duration, used by unittesting now
         else
         {
-            for (int i = 0 ; i < runtime; ++i)
+            for (int i = 0; i < runtime; ++i)
             {
                 auto duration = std::chrono::seconds(1);
                 std::this_thread::sleep_for(duration);
@@ -300,4 +311,4 @@ namespace ix
     {
         _onBotMessageCallback = callback;
     }
-}
+} // namespace ix

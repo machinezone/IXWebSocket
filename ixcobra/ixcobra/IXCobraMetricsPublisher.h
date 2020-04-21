@@ -40,8 +40,7 @@ namespace ix
 
         /// Configuration / set keys, etc...
         /// All input data but the channel name is encrypted with rc4
-        void configure(const CobraConfig& config,
-                       const std::string& channel);
+        void configure(const CobraConfig& config, const std::string& channel);
 
         /// Setter for the list of blacklisted metrics ids.
         /// That list is sorted internally for fast lookups
@@ -68,10 +67,14 @@ namespace ix
         /// shouldPush method for places where we want to be as lightweight as possible when
         /// collecting metrics. When set to false, it is used so that we don't do double work when
         /// computing whether a metrics should be sent or not.
-        CobraConnection::MsgId push(const std::string& id, const Json::Value& data, bool shouldPushTest = true);
+        CobraConnection::MsgId push(const std::string& id,
+                                    const Json::Value& data,
+                                    bool shouldPushTest = true);
 
         /// Interface used by lua. msg is a json encoded string.
-        CobraConnection::MsgId push(const std::string& id, const std::string& data, bool shouldPushTest = true);
+        CobraConnection::MsgId push(const std::string& id,
+                                    const std::string& data,
+                                    bool shouldPushTest = true);
 
         /// Tells whether a metric can be pushed.
         /// A metric can be pushed if it satisfies those conditions:
@@ -89,10 +92,16 @@ namespace ix
         void setGenericAttributes(const std::string& attrName, const Json::Value& value);
 
         /// Set a unique id for the session. A uuid can be used.
-        void setSession(const std::string& session) { _session = session; }
+        void setSession(const std::string& session)
+        {
+            _session = session;
+        }
 
         /// Get the unique id used to identify the current session
-        const std::string& getSession() const { return _session; }
+        const std::string& getSession() const
+        {
+            return _session;
+        }
 
         /// Return the number of milliseconds since the epoch (~1970)
         uint64_t getMillisecondsSinceEpoch() const;

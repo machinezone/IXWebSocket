@@ -6,20 +6,19 @@
 
 #pragma once
 
+#include "IXCobraConfig.h"
+#include "IXCobraEvent.h"
+#include "IXCobraEventType.h"
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
-#include "IXCobraEventType.h"
-#include "IXCobraEvent.h"
 #include <json/json.h>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <thread>
 #include <unordered_map>
-#include <limits>
-
-#include "IXCobraConfig.h"
 
 #ifdef max
 #undef max
@@ -121,10 +120,9 @@ namespace ix
 
         /// Prepare a message for transmission
         /// (update the pdu, compute a msgId, serialize json to a string)
-        std::pair<CobraConnection::MsgId, std::string> prePublish(
-            const Json::Value& channels,
-            const Json::Value& msg,
-            bool addToQueue);
+        std::pair<CobraConnection::MsgId, std::string> prePublish(const Json::Value& channels,
+                                                                  const Json::Value& msg,
+                                                                  bool addToQueue);
 
         /// Attempt to send next message from the internal queue
         bool publishNext();

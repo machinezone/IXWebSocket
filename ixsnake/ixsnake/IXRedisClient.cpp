@@ -28,10 +28,7 @@ namespace ix
             return false;
         }
 
-        CancellationRequest cancellationRequest = []() -> bool
-        {
-            return false;
-        };
+        CancellationRequest cancellationRequest = []() -> bool { return false; };
 
         std::string errMsg;
         return _socket->connect(hostname, port, errMsg, cancellationRequest);
@@ -252,9 +249,8 @@ namespace ix
         return true;
     }
 
-    std::string RedisClient::prepareXaddCommand(
-        const std::string& stream,
-        const std::string& message)
+    std::string RedisClient::prepareXaddCommand(const std::string& stream,
+                                                const std::string& message)
     {
         std::stringstream ss;
         ss << "*5\r\n";
@@ -328,7 +324,9 @@ namespace ix
         return streamId;
     }
 
-    bool RedisClient::sendCommand(const std::string& commands, int commandsCount, std::string& errMsg)
+    bool RedisClient::sendCommand(const std::string& commands,
+                                  int commandsCount,
+                                  std::string& errMsg)
     {
         bool sent = _socket->writeBytes(commands, nullptr);
         if (!sent)

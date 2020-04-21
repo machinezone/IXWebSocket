@@ -6,21 +6,20 @@
 
 #pragma once
 
+#include <atomic>
+#include <deque>
 #include <ixwebsocket/IXUdpSocket.h>
-
+#include <mutex>
 #include <string>
 #include <thread>
-#include <deque>
-#include <mutex>
-#include <atomic>
 
 namespace ix
 {
     class StatsdClient
     {
     public:
-        StatsdClient(const std::string& host="127.0.0.1",
-                     int port=8125,
+        StatsdClient(const std::string& host = "127.0.0.1",
+                     int port = 8125,
                      const std::string& prefix = "");
         ~StatsdClient();
 

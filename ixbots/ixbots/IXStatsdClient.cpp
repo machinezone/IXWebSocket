@@ -39,24 +39,21 @@
 
 #include "IXStatsdClient.h"
 
+#include <iostream>
 #include <ixwebsocket/IXNetSystem.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <iostream>
 
 namespace ix
 {
-    StatsdClient::StatsdClient(const std::string& host,
-                               int port,
-                               const std::string& prefix)
-    : _host(host)
-      , _port(port)
-      , _prefix(prefix)
-      , _stop(false)
+    StatsdClient::StatsdClient(const std::string& host, int port, const std::string& prefix)
+        : _host(host)
+        , _port(port)
+        , _prefix(prefix)
+        , _stop(false)
     {
-        _thread = std::thread([this]
-        {
+        _thread = std::thread([this] {
             while (!_stop)
             {
                 flushQueue();
@@ -119,8 +116,8 @@ namespace ix
         cleanup(key);
 
         char buf[256];
-        snprintf(buf, sizeof(buf), "%s%s:%zd|%s\n",
-                 _prefix.c_str(), key.c_str(), value, type.c_str());
+        snprintf(
+            buf, sizeof(buf), "%s%s:%zd|%s\n", _prefix.c_str(), key.c_str(), value, type.c_str());
 
         enqueue(buf);
         return 0;
@@ -142,9 +139,7 @@ namespace ix
             auto ret = _socket.sendto(message);
             if (ret != 0)
             {
-                std::cerr << "error: "
-                          << strerror(UdpSocket::getErrno())
-                          << std::endl;
+                std::cerr << "error: " << strerror(UdpSocket::getErrno()) << std::endl;
             }
             _queue.pop_front();
         }

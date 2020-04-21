@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include <stddef.h>
-#include <json/json.h>
-#include <mutex>
 #include <condition_variable>
-#include <queue>
+#include <json/json.h>
 #include <map>
+#include <mutex>
+#include <queue>
+#include <stddef.h>
 
 namespace ix
 {
@@ -32,4 +32,4 @@ namespace ix
         std::condition_variable _condition;
         size_t _maxQueueSize;
     };
-}
+} // namespace ix

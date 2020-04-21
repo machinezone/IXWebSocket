@@ -7,10 +7,10 @@
 #pragma once
 
 #include "IXCobraEventType.h"
+#include <cstdint>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <memory>
 #include <string>
-#include <cstdint>
 
 namespace ix
 {
@@ -38,4 +38,4 @@ namespace ix
     };
 
     using CobraEventPtr = std::unique_ptr<CobraEvent>;
-}
+} // namespace ix

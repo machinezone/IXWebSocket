@@ -6,17 +6,18 @@
 
 #include "IXRedisServer.h"
 
-#include <ixwebsocket/IXNetSystem.h>
-#include <ixwebsocket/IXSocketConnect.h>
-#include <ixwebsocket/IXSocket.h>
-#include <ixwebsocket/IXCancellationRequest.h>
 #include <fstream>
+#include <ixwebsocket/IXCancellationRequest.h>
+#include <ixwebsocket/IXNetSystem.h>
+#include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketConnect.h>
 #include <sstream>
 #include <vector>
 
 namespace ix
 {
-    RedisServer::RedisServer(int port, const std::string& host, int backlog, size_t maxConnections, int addressFamily)
+    RedisServer::RedisServer(
+        int port, const std::string& host, int backlog, size_t maxConnections, int addressFamily)
         : SocketServer(port, host, backlog, maxConnections, addressFamily)
         , _connectedClientsCount(0)
         , _stopHandlingConnections(false)
@@ -114,8 +115,7 @@ namespace ix
         for (auto it : _subscribers)
         {
             std::stringstream ss;
-            ss << "Subscription id: " << it.first
-               << " #subscribers: " << it.second.size();
+            ss << "Subscription id: " << it.first << " #subscribers: " << it.second.size();
 
             logInfo(ss.str());
         }
@@ -126,8 +126,7 @@ namespace ix
         return _connectedClientsCount;
     }
 
-    bool RedisServer::startsWith(const std::string& str,
-                                 const std::string& start)
+    bool RedisServer::startsWith(const std::string& str, const std::string& start)
     {
         return str.compare(0, start.length(), start) == 0;
     }
@@ -144,9 +143,8 @@ namespace ix
         return ss.str();
     }
 
-    bool RedisServer::parseRequest(
-        std::unique_ptr<Socket>& socket,
-        std::vector<std::string>& tokens)
+    bool RedisServer::parseRequest(std::unique_ptr<Socket>& socket,
+                                   std::vector<std::string>& tokens)
     {
         // Parse first line
         auto cb = makeCancellationRequestWithTimeout(30, _stopHandlingConnections);
@@ -190,9 +188,8 @@ namespace ix
         return true;
     }
 
-    bool RedisServer::handleCommand(
-        std::unique_ptr<Socket>& socket,
-        const std::vector<std::string>& tokens)
+    bool RedisServer::handleCommand(std::unique_ptr<Socket>& socket,
+                                    const std::vector<std::string>& tokens)
     {
         if (tokens.size() != 1) return false;
 
@@ -207,31 +204,30 @@ namespace ix
         //
         ss << "*6\r\n";
         ss << writeString("publish"); // 1
-        ss << ":3\r\n"; // 2
-        ss << "*0\r\n"; // 3
-        ss << ":1\r\n"; // 4
-        ss << ":2\r\n"; // 5
-        ss << ":1\r\n"; // 6
+        ss << ":3\r\n";               // 2
+        ss << "*0\r\n";               // 3
+        ss << ":1\r\n";               // 4
+        ss << ":2\r\n";               // 5
+        ss << ":1\r\n";               // 6
 
         //
         // subscribe
         //
         ss << "*6\r\n";
         ss << writeString("subscribe"); // 1
-        ss << ":2\r\n"; // 2
-        ss << "*0\r\n"; // 3
-        ss << ":1\r\n"; // 4
-        ss << ":1\r\n"; // 5
-        ss << ":1\r\n"; // 6
+        ss << ":2\r\n";                 // 2
+        ss << "*0\r\n";                 // 3
+        ss << ":1\r\n";                 // 4
+        ss << ":1\r\n";                 // 5
+        ss << ":1\r\n";                 // 6
 
         socket->writeBytes(ss.str(), cb);
 
         return true;
     }
 
-    bool RedisServer::handleSubscribe(
-        std::unique_ptr<Socket>& socket,
-        const std::vector<std::string>& tokens)
+    bool RedisServer::handleSubscribe(std::unique_ptr<Socket>& socket,
+                                      const std::vector<std::string>& tokens)
     {
         if (tokens.size() != 2) return false;
 
@@ -250,9 +246,8 @@ namespace ix
         return true;
     }
 
-    bool RedisServer::handlePublish(
-        std::unique_ptr<Socket>& socket,
-        const std::vector<std::string>& tokens)
+    bool RedisServer::handlePublish(std::unique_ptr<Socket>& socket,
+                                    const std::vector<std::string>& tokens)
     {
         if (tokens.size() != 3) return false;
 
@@ -281,9 +276,7 @@ namespace ix
 
         // return the number of clients that received the message.
         std::stringstream ss;
-        ss << ":"
-           << std::to_string(subscribers.size())
-           << "\r\n";
+        ss << ":" << std::to_string(subscribers.size()) << "\r\n";
         socket->writeBytes(ss.str(), cb);
 
         return true;
