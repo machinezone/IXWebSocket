@@ -251,3 +251,7 @@ if (USE_WS OR USE_TEST)
       add_subdirectory(test)
   endif()
 endif()
+
+if (USE_LUAROCKS)
+    add_subdirectory(luarocks)
+endif()
