@@ -4,7 +4,7 @@ Notes on how we can update the different packages for ixwebsocket.
 
 Visit the [releases](https://github.com/machinezone/IXWebSocket/releases) page on Github. A tag must have been made first.
 
-Download the latest entry. 
+Download the latest entry.
 
 ```
 $ cd /tmp

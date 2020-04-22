@@ -20,7 +20,7 @@ install: brew
 # Release, Debug, MinSizeRel, RelWithDebInfo are the build types
 #
 brew:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; make -j 4 install)
+	mkdir -p build && (cd build ; cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; make -j 4 install)
 
 # Docker default target. We've add problem with OpenSSL and TLS 1.3 (on the
 # server side ?) and I can't work-around it easily, so we're using mbedtls on
