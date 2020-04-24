@@ -49,7 +49,6 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.cpp
     ixwebsocket/IXWebSocketServer.cpp
     ixwebsocket/IXWebSocketTransport.cpp
-    ixwebsocket/LUrlParser.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
@@ -93,7 +92,6 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketServer.h
     ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/IXWebSocketVersion.h
-    ixwebsocket/LUrlParser.h
 )
 
 if (UNIX)

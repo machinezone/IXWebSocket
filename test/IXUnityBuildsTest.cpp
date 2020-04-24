@@ -17,6 +17,9 @@
 #include <ixwebsocket/IXSelectInterruptFactory.h>
 #include <ixwebsocket/IXSetThreadName.h>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketAppleSSL.h>
+#include <ixwebsocket/IXSocketOpenSSL.h>
+#include <ixwebsocket/IXSocketMbedTLS.h>
 #include <ixwebsocket/IXSocketConnect.h>
 #include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXSocketServer.h>
@@ -26,6 +29,7 @@
 #include <ixwebsocket/IXWebSocketCloseInfo.h>
 #include <ixwebsocket/IXWebSocketErrorInfo.h>
 #include <ixwebsocket/IXWebSocketHandshake.h>
+#include <ixwebsocket/IXWebSocketHandshakeKeyGen.h>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketMessage.h>
 #include <ixwebsocket/IXWebSocketMessageType.h>
@@ -37,7 +41,6 @@
 #include <ixwebsocket/IXWebSocketServer.h>
 #include <ixwebsocket/IXWebSocketTransport.h>
 #include <ixwebsocket/LUrlParser.h>
-#include <ixwebsocket/libwshandshake.hpp>
 
 using namespace ix;
 
