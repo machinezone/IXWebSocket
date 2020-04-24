@@ -518,7 +518,7 @@ server.wait();
 <pre><code class="cpp">webSocket.setTLSOptions({
     .certFile = &quot;path/to/cert/file.pem&quot;,
     .keyFile = &quot;path/to/key/file.pem&quot;,
-    .caFile = &quot;path/to/trust/bundle/file.pem&quot;,
+    .caFile = &quot;path/to/trust/bundle/file.pem&quot;, // as a file, or in memory buffer in PEM format
     .tls = true // required in server mode
 });
 </code></pre>
@@ -528,7 +528,8 @@ server.wait();
 <p>On a server, this is necessary for TLS support.</p>
 <p>Specifying <code>caFile</code> configures the trusted roots bundle file (in PEM format) that will be used to verify peer certificates.
  - The special value of <code>SYSTEM</code> (the default) indicates that the system-configured trust bundle should be used; this is generally what you want when connecting to any publicly exposed API/server.
- - The special value of <code>NONE</code> can be used to disable peer verification; this is only recommended to rule out certificate verification when testing connectivity.</p>
+ - The special value of <code>NONE</code> can be used to disable peer verification; this is only recommended to rule out certificate verification when testing connectivity.
+ - If the value contain the special value <code>-----BEGIN CERTIFICATE-----</code>, the value will be read from memory, and not from a file. This is convenient on platforms like Android where reading / writing to the file system can be challenging without proper permissions, or without knowing the location of a temp directory.</p>
 <p>For a client, specifying <code>caFile</code> can be used if connecting to a server that uses a self-signed cert, or when using a custom CA in an internal environment.</p>
 <p>For a server, specifying <code>caFile</code> implies that:
 1. You require clients to present a certificate
