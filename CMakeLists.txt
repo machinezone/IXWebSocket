@@ -80,6 +80,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketCloseInfo.h
     ixwebsocket/IXWebSocketErrorInfo.h
     ixwebsocket/IXWebSocketHandshake.h
+    ixwebsocket/IXWebSocketHandshakeKeyGen.h
     ixwebsocket/IXWebSocketHttpHeaders.h
     ixwebsocket/IXWebSocketInitResult.h
     ixwebsocket/IXWebSocketMessage.h
@@ -93,7 +94,6 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/IXWebSocketVersion.h
     ixwebsocket/LUrlParser.h
-    ixwebsocket/libwshandshake.hpp
 )
 
 if (UNIX)
