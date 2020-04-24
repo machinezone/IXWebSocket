@@ -11,7 +11,7 @@
 #include "IXStatsdClient.h"
 #include <chrono>
 #include <ixcobra/IXCobraConnection.h>
-#include <spdlog/spdlog.h>
+#include <ixcore/utils/IXCoreLogger.h>
 #include <sstream>
 #include <vector>
 
@@ -120,14 +120,14 @@ namespace ix
                     }
                     else
                     {
-                        spdlog::error("Gauge {} is not a numeric type", gauge);
+                        CoreLogger::error("Gauge " + gauge + " is not a numeric type");
                         fatalCobraError = true;
                         return false;
                     }
 
                     if (verbose)
                     {
-                        spdlog::info("{} - {} -> {}", id, attrName, x);
+                        CoreLogger::info(id + " - " + attrName + " -> " + std::to_string(x));
                     }
 
                     if (!gauge.empty())

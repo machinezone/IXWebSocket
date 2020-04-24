@@ -234,7 +234,7 @@ namespace ix
         args->transferTimeout = 5 * 60;
         args->followRedirects = true;
         args->verbose = verbose;
-        args->logger = [](const std::string& msg) { ix::IXCoreLogger::Log(msg.c_str()); };
+        args->logger = [](const std::string& msg) { CoreLogger::log(msg.c_str()); };
 
         std::string body = computePayload(msg);
         HttpResponsePtr response = _httpClient->post(_url, body, args);
@@ -271,7 +271,7 @@ namespace ix
         args->followRedirects = true;
         args->verbose = verbose;
         args->multipartBoundary = multipartBoundary;
-        args->logger = [](const std::string& msg) { ix::IXCoreLogger::Log(msg.c_str()); };
+        args->logger = [](const std::string& msg) { CoreLogger::log(msg.c_str()); };
 
         HttpFormDataParameters httpFormDataParameters;
         httpFormDataParameters["upload_file_minidump"] = minidumpBytes;
@@ -297,7 +297,7 @@ namespace ix
         args->transferTimeout = 5 * 60;
         args->followRedirects = true;
         args->verbose = verbose;
-        args->logger = [](const std::string& msg) { ix::IXCoreLogger::Log(msg.c_str()); };
+        args->logger = [](const std::string& msg) { CoreLogger::log(msg.c_str()); };
 
         args->url = _url;
         args->body = _jsonWriter.write(payload);

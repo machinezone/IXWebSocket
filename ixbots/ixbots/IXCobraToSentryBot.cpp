@@ -8,9 +8,10 @@
 
 #include "IXCobraBot.h"
 #include "IXQueueManager.h"
-#include <chrono>
 #include <ixcobra/IXCobraConnection.h>
-#include <spdlog/spdlog.h>
+#include <ixcore/utils/IXCoreLogger.h>
+
+#include <chrono>
 #include <sstream>
 #include <vector>
 
@@ -38,7 +39,7 @@ namespace ix
 
             if (!response)
             {
-                spdlog::warn("Null HTTP Response");
+                CoreLogger::warn("Null HTTP Response");
                 return false;
             }
 
@@ -46,21 +47,21 @@ namespace ix
             {
                 for (auto it : response->headers)
                 {
-                    spdlog::info("{}: {}", it.first, it.second);
+                    CoreLogger::info(it.first + ": " + it.second);
                 }
 
-                spdlog::info("Upload size: {}", response->uploadSize);
-                spdlog::info("Download size: {}", response->downloadSize);
+                CoreLogger::info("Upload size: " + std::to_string(response->uploadSize));
+                CoreLogger::info("Download size: " + std::to_string(response->downloadSize));
 
-                spdlog::info("Status: {}", response->statusCode);
+                CoreLogger::info("Status: " + std::to_string(response->statusCode));
                 if (response->errorCode != HttpErrorCode::Ok)
                 {
-                    spdlog::info("error message: {}", response->errorMsg);
+                    CoreLogger::info("error message: " + response->errorMsg);
                 }
 
                 if (response->headers["Content-Type"] != "application/octet-stream")
                 {
-                    spdlog::info("payload: {}", response->payload);
+                    CoreLogger::info("payload: " + response->payload);
                 }
             }
 
@@ -68,9 +69,9 @@ namespace ix
 
             if (!success)
             {
-                spdlog::error("Error sending data to sentry: {}", response->statusCode);
-                spdlog::error("Body: {}", ret.second);
-                spdlog::error("Response: {}", response->payload);
+                CoreLogger::error("Error sending data to sentry: " + std::to_string(response->statusCode));
+                CoreLogger::error("Body: " + ret.second);
+                CoreLogger::error("Response: " + response->payload);
 
                 // Error 429 Too Many Requests
                 if (response->statusCode == 429)
@@ -84,14 +85,12 @@ namespace ix
                     if (!ss.eof() || ss.fail())
                     {
                         seconds = 30;
-                        spdlog::warn("Error parsing Retry-After header. "
-                                     "Using {} for the sleep duration",
-                                     seconds);
+                        CoreLogger::warn("Error parsing Retry-After header. "
+                                         "Using " + retryAfter + " for the sleep duration");
                     }
 
-                    spdlog::warn("Error 429 - Too Many Requests. ws will sleep "
-                                 "and retry after {} seconds",
-                                 retryAfter);
+                    CoreLogger::warn("Error 429 - Too Many Requests. ws will sleep "
+                                     "and retry after " + retryAfter + " seconds");
 
                     throttled = true;
                     auto duration = std::chrono::seconds(seconds);

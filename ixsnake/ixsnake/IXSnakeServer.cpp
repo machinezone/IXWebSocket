@@ -29,7 +29,7 @@ namespace snake
 
         std::stringstream ss;
         ss << "Listening on " << appConfig.hostname << ":" << appConfig.port;
-        ix::IXCoreLogger::Log(ss.str().c_str());
+        ix::CoreLogger::log(ss.str().c_str());
     }
 
     //
@@ -67,6 +67,7 @@ namespace snake
                 webSocket->setOnMessageCallback(
                     [this, webSocket, state](const ix::WebSocketMessagePtr& msg) {
                         std::stringstream ss;
+                        ix::LogLevel logLevel = ix::LogLevel::Debug;
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             ss << "New connection" << std::endl;
@@ -86,6 +87,7 @@ namespace snake
                                                               _appConfig.redisPort))
                             {
                                 ss << "Cannot connect to redis host" << std::endl;
+                                logLevel = ix::LogLevel::Error;
                             }
                         }
                         else if (msg->type == ix::WebSocketMessageType::Close)
@@ -101,6 +103,7 @@ namespace snake
                             ss << "#retries: " << msg->errorInfo.retries << std::endl;
                             ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
                             ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                            logLevel = ix::LogLevel::Error;
                         }
                         else if (msg->type == ix::WebSocketMessageType::Fragment)
                         {
@@ -112,7 +115,7 @@ namespace snake
                             processCobraMessage(state, webSocket, _appConfig, msg->str);
                         }
 
-                        ix::IXCoreLogger::Log(ss.str().c_str());
+                        ix::CoreLogger::log(ss.str().c_str(), logLevel);
                     });
             });
 

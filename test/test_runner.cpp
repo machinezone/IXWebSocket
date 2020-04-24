@@ -14,8 +14,41 @@ int main(int argc, char* argv[])
 {
     ix::initNetSystem();
 
-    ix::IXCoreLogger::LogFunc logFunc = [](const char* msg) { spdlog::info(msg); };
-    ix::IXCoreLogger::setLogFunction(logFunc);
+    ix::CoreLogger::LogFunc logFunc = [](const char* msg, ix::LogLevel level) {
+        switch (level)
+        {
+            case ix::LogLevel::Debug:
+            {
+                spdlog::debug(msg);
+            }
+            break;
+
+            case ix::LogLevel::Info:
+            {
+                spdlog::info(msg);
+            }
+            break;
+
+            case ix::LogLevel::Warning:
+            {
+                spdlog::warn(msg);
+            }
+            break;
+
+            case ix::LogLevel::Error:
+            {
+                spdlog::error(msg);
+            }
+            break;
+
+            case ix::LogLevel::Critical:
+            {
+                spdlog::critical(msg);
+            }
+            break;
+        }
+    };
+    ix::CoreLogger::setLogFunction(logFunc);
 
     int result = Catch::Session().run(argc, argv);
 

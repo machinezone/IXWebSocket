@@ -10,7 +10,6 @@
 #include "IXQueueManager.h"
 #include <chrono>
 #include <iostream>
-#include <spdlog/spdlog.h>
 #include <sstream>
 
 namespace ix

@@ -75,7 +75,7 @@ namespace ix
                 ss << "Subscription error: " << event->errMsg;
             }
 
-            ix::IXCoreLogger::Log(ss.str().c_str());
+            CoreLogger::log(ss.str().c_str());
         });
     }
 
@@ -100,7 +100,7 @@ namespace ix
     void CobraMetricsThreadedPublisher::configure(const CobraConfig& config,
                                                   const std::string& channel)
     {
-        ix::IXCoreLogger::Log(config.socketTLSOptions.getDescription().c_str());
+        CoreLogger::log(config.socketTLSOptions.getDescription().c_str());
 
         _channel = channel;
         _cobra_connection.configure(config);

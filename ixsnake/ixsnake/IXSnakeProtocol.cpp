@@ -198,7 +198,7 @@ namespace snake
         auto responseCallback = [ws, pdu, &subscriptionId](const std::string& redisResponse) {
             std::stringstream ss;
             ss << "Redis Response: " << redisResponse << "...";
-            ix::IXCoreLogger::Log(ss.str().c_str());
+            ix::CoreLogger::log(ss.str().c_str());
 
             // Success
             nlohmann::json response = {{"action", "rtm/subscribe/ok"},
@@ -210,7 +210,7 @@ namespace snake
         {
             std::stringstream ss;
             ss << "Subscribing to " << appChannel << "...";
-            ix::IXCoreLogger::Log(ss.str().c_str());
+            ix::CoreLogger::log(ss.str().c_str());
         }
 
         if (!redisClient.subscribe(appChannel, responseCallback, callback))

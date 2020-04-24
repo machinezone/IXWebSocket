@@ -31,11 +31,6 @@ if (NOT JSONCPP_FOUND)
   set(JSONCPP_INCLUDE_DIRS ../third_party/jsoncpp)
 endif()
 
-find_package(SpdLog)
-if (NOT SPDLOG_FOUND)
-  set(SPDLOG_INCLUDE_DIRS ../third_party/spdlog/include)
-endif()
-
 set(IXBOTS_INCLUDE_DIRS
     .
     ..
