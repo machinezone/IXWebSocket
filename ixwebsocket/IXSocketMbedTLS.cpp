@@ -104,10 +104,18 @@ namespace ix
             {
                 ; // FIXME
             }
-            else if (mbedtls_x509_crt_parse_file(&_cacert, _tlsOptions.caFile.c_str()) < 0)
-            {
-                errMsg = "Cannot parse CA file '" + _tlsOptions.caFile + "'";
-                return false;
+            else {
+                if (_tlsOptions.isUsingInMemoryCAs()) {
+                    const char *buffer = _tlsOptions.caFile.c_str();
+                    size_t      bufferSize = _tlsOptions.caFile.size() + 1; // Needs to include null terminating character otherwise mbedtls will fail.
+                    if (mbedtls_x509_crt_parse(&_cacert, (const unsigned char *)buffer, bufferSize) < 0) {
+                        errMsg = "Cannot parse CA from memory.";
+                        return false;
+                    }
+                } else if (mbedtls_x509_crt_parse_file(&_cacert, _tlsOptions.caFile.c_str()) < 0) {
+                    errMsg = "Cannot parse CA file '" + _tlsOptions.caFile + "'";
+                    return false;
+                }
             }
 
             mbedtls_ssl_conf_ca_chain(&_conf, &_cacert, NULL);
