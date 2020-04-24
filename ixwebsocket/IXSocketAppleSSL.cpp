@@ -1,10 +1,12 @@
 /*
  *  IXSocketAppleSSL.cpp
  *  Author: Benjamin Sergeant
- *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2017-2020 Machine Zone, Inc. All rights reserved.
  *
  *  Adapted from Satori SDK Apple SSL code.
  */
+#ifdef IXWEBSOCKET_USE_SECURE_TRANSPORT
+
 #include "IXSocketAppleSSL.h"
 
 #include "IXSocketConnect.h"
@@ -307,3 +309,5 @@ namespace ix
     }
 
 } // namespace ix
+
+#endif // IXWEBSOCKET_USE_SECURE_TRANSPORT

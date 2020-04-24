@@ -1,8 +1,9 @@
 /*
  *  IXSocketOpenSSL.h
  *  Author: Benjamin Sergeant, Matt DeBoer
- *  Copyright (c) 2017-2019 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2017-2020 Machine Zone, Inc. All rights reserved.
  */
+#ifdef IXWEBSOCKET_USE_OPEN_SSL
 
 #pragma once
 
@@ -59,3 +60,5 @@ namespace ix
     };
 
 } // namespace ix
+
+#endif // IXWEBSOCKET_USE_OPEN_SSL

@@ -1,10 +1,11 @@
 /*
  *  IXSocketOpenSSL.cpp
  *  Author: Benjamin Sergeant, Matt DeBoer
- *  Copyright (c) 2017-2019 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2017-2020 Machine Zone, Inc. All rights reserved.
  *
  *  Adapted from Satori SDK OpenSSL code.
  */
+#ifdef IXWEBSOCKET_USE_OPEN_SSL
 
 #include "IXSocketOpenSSL.h"
 
@@ -731,3 +732,5 @@ namespace ix
     }
 
 } // namespace ix
+
+#endif // IXWEBSOCKET_USE_OPEN_SSL

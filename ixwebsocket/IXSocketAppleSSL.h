@@ -1,8 +1,9 @@
 /*
  *  IXSocketAppleSSL.h
  *  Author: Benjamin Sergeant
- *  Copyright (c) 2017-2018 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2017-2020 Machine Zone, Inc. All rights reserved.
  */
+#ifdef IXWEBSOCKET_USE_SECURE_TRANSPORT
 
 #pragma once
 
@@ -47,3 +48,5 @@ namespace ix
     };
 
 } // namespace ix
+
+#endif // IXWEBSOCKET_USE_SECURE_TRANSPORT

@@ -10,7 +10,7 @@
 #include "IXSocketConnect.h"
 #include "IXUrlParser.h"
 #include "IXUserAgent.h"
-#include "libwshandshake.hpp"
+#include "IXWebSocketHandshakeKeyGen.h"
 #include <algorithm>
 #include <iostream>
 #include <random>

@@ -120,16 +120,22 @@ option(USE_TLS "Enable TLS support" FALSE)
 if (USE_TLS)
     option(USE_MBED_TLS "Use Mbed TLS" OFF)
     option(USE_OPEN_SSL "Use OpenSSL" OFF)
+    option(USE_SECURE_TRANSPORT "Use Secure Transport" OFF)
 
     # default to mbedtls on windows if nothing is configured
     if (WIN32 AND NOT USE_OPEN_SSL AND NOT USE_MBED_TLS)
       option(USE_MBED_TLS "Use Mbed TLS" ON)
     endif()
 
+    # default to securetranport on windows if nothing is configured
+    if (APPLE AND NOT USE_OPEN_SSL AND NOT USE_MBED_TLS)
+      option(USE_SECURE_TRANSPORT "Use Secure Transport" ON)
+    endif()
+
     if (USE_MBED_TLS)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketMbedTLS.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketMbedTLS.cpp)
-    elseif (APPLE AND NOT USE_OPEN_SSL)
+    elseif (USE_SECURE_TRANSPORT)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketAppleSSL.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketAppleSSL.cpp)
     else()
@@ -150,6 +156,8 @@ if (USE_TLS)
         target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_MBED_TLS)
     elseif (USE_OPEN_SSL)
         target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_OPEN_SSL)
+    elseif (USE_SECURE_TRANSPORT)
+        target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_SECURE_TRANSPORT)
     endif()
 endif()
 

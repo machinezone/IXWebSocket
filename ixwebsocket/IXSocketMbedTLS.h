@@ -1,8 +1,9 @@
 /*
  *  IXSocketMbedTLS.h
  *  Author: Benjamin Sergeant
- *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2019-2020 Machine Zone, Inc. All rights reserved.
  */
+#ifdef IXWEBSOCKET_USE_MBED_TLS
 
 #pragma once
 
@@ -54,3 +55,5 @@ namespace ix
     };
 
 } // namespace ix
+
+#endif // IXWEBSOCKET_USE_MBED_TLS

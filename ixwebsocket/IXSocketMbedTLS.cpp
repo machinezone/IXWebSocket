@@ -1,12 +1,13 @@
 /*
  *  IXSocketMbedTLS.cpp
  *  Author: Benjamin Sergeant
- *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
+ *  Copyright (c) 2019-2020 Machine Zone, Inc. All rights reserved.
  *
  *  Some code taken from
  *  https://github.com/rottor12/WsClientLib/blob/master/lib/src/WsClientLib.cpp
  *  and mini_client.c example from mbedtls
  */
+#ifdef IXWEBSOCKET_USE_MBED_TLS
 
 #include "IXSocketMbedTLS.h"
 
@@ -280,3 +281,5 @@ namespace ix
     }
 
 } // namespace ix
+
+#endif // IXWEBSOCKET_USE_MBED_TLS
