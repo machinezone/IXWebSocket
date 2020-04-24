@@ -40,7 +40,6 @@
 #include <ixwebsocket/IXWebSocketSendInfo.h>
 #include <ixwebsocket/IXWebSocketServer.h>
 #include <ixwebsocket/IXWebSocketTransport.h>
-#include <ixwebsocket/LUrlParser.h>
 
 using namespace ix;
 
