@@ -38,8 +38,7 @@ The regression test is running after each commit on github actions for multiple 
 
 ## Limitations
 
-* On Windows and Android certificate validation needs to be setup so that SocketTLSOptions.caFile point to a pem file, such as the one distributed by Firefox. Unless that setup is done connecting to a wss endpoint will display an error. On Windows with mbedtls the message will contain `error in handshake : X509 - Certificate verification failed, e.g. CRL, CA or signature check failed`.
-* There is no convenient way to embed a ca cert.
+* On some configuration (mostly Android) certificate validation needs to be setup so that SocketTLSOptions.caFile point to a pem file, such as the one distributed by Firefox. Unless that setup is done connecting to a wss endpoint will display an error. With mbedtls the message will contain `error in handshake : X509 - Certificate verification failed, e.g. CRL, CA or signature check failed`.
 * Automatic reconnection works at the TCP socket level, and will detect remote end disconnects. However, if the device/computer network become unreachable (by turning off wifi), it is quite hard to reliably and timely detect it at the socket level using `recv` and `send` error codes. [Here](https://stackoverflow.com/questions/14782143/linux-socket-how-to-detect-disconnected-network-in-a-client-program) is a good discussion on the subject. This behavior is consistent with other runtimes such as node.js. One way to detect a disconnected device with low level C code is to do a name resolution with DNS but this can be expensive. Mobile devices have good and reliable API to do that.
 * The server code is using select to detect incoming data, and creates one OS thread per connection. This is not as scalable as strategies using epoll or kqueue.
 

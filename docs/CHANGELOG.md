@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.4.0] - 2020-04-24
+
+(ssl) Add support for supplying SSL CA from memory, for OpenSSL and MbedTLS backends
+
 ## [9.3.3] - 2020-04-17
 
 (ixbots) display sent/receive message, per seconds as accumulated

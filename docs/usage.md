@@ -447,7 +447,7 @@ Additional TLS options can be configured by passing a `ix::SocketTLSOptions` ins
 webSocket.setTLSOptions({
     .certFile = "path/to/cert/file.pem",
     .keyFile = "path/to/key/file.pem",
-    .caFile = "path/to/trust/bundle/file.pem",
+    .caFile = "path/to/trust/bundle/file.pem", // as a file, or in memory buffer in PEM format
     .tls = true // required in server mode
 });
 ```
@@ -461,6 +461,7 @@ On a server, this is necessary for TLS support.
 Specifying `caFile` configures the trusted roots bundle file (in PEM format) that will be used to verify peer certificates.
  - The special value of `SYSTEM` (the default) indicates that the system-configured trust bundle should be used; this is generally what you want when connecting to any publicly exposed API/server.
  - The special value of `NONE` can be used to disable peer verification; this is only recommended to rule out certificate verification when testing connectivity.
+ - If the value contain the special value `-----BEGIN CERTIFICATE-----`, the value will be read from memory, and not from a file. This is convenient on platforms like Android where reading / writing to the file system can be challenging without proper permissions, or without knowing the location of a temp directory.
 
 For a client, specifying `caFile` can be used if connecting to a server that uses a self-signed cert, or when using a custom CA in an internal environment.
 
