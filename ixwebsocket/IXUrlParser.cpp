@@ -31,6 +31,9 @@
 
 #include "IXUrlParser.h"
 
+#include <algorithm>
+#include <cstring>
+
 namespace
 {
     enum LUrlParserError
