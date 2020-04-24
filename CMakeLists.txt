@@ -111,8 +111,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/freebsd/IXSetThreadName_freebsd.cpp)
 else()
     list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/linux/IXSetThreadName_linux.cpp)
-    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSelectInterruptEventFd.cpp)
-    list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSelectInterruptEventFd.h)
 endif()
 
 option(USE_TLS "Enable TLS support" FALSE)
