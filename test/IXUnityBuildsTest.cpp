@@ -18,10 +18,10 @@
 #include <ixwebsocket/IXSetThreadName.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketAppleSSL.h>
-#include <ixwebsocket/IXSocketOpenSSL.h>
-#include <ixwebsocket/IXSocketMbedTLS.h>
 #include <ixwebsocket/IXSocketConnect.h>
 #include <ixwebsocket/IXSocketFactory.h>
+#include <ixwebsocket/IXSocketMbedTLS.h>
+#include <ixwebsocket/IXSocketOpenSSL.h>
 #include <ixwebsocket/IXSocketServer.h>
 #include <ixwebsocket/IXUrlParser.h>
 #include <ixwebsocket/IXWebSocket.h>

@@ -36,7 +36,7 @@ namespace ix
         bool hasCertAndKey() const;
 
         bool isUsingSystemDefaults() const;
-        
+
         bool isUsingInMemoryCAs() const;
 
         bool isPeerVerifyDisabled() const;

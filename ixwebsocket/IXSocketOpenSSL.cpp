@@ -195,58 +195,63 @@ namespace ix
         return ctx;
     }
 
-    bool SocketOpenSSL::openSSLAddCARootsFromString(const std::string roots) {
+    bool SocketOpenSSL::openSSLAddCARootsFromString(const std::string roots)
+    {
         // Create certificate store
-        X509_STORE *certificate_store = SSL_CTX_get_cert_store(_ssl_context);
-        if (certificate_store == nullptr)
-            return false;
-        
+        X509_STORE* certificate_store = SSL_CTX_get_cert_store(_ssl_context);
+        if (certificate_store == nullptr) return false;
+
         // Configure to allow intermediate certs
-        X509_STORE_set_flags(certificate_store, X509_V_FLAG_TRUSTED_FIRST | X509_V_FLAG_PARTIAL_CHAIN);
-        
+        X509_STORE_set_flags(certificate_store,
+                             X509_V_FLAG_TRUSTED_FIRST | X509_V_FLAG_PARTIAL_CHAIN);
+
         // Create a new buffer and populate it with the roots
-        BIO *buffer = BIO_new_mem_buf((void *)roots.c_str(), static_cast<int>(roots.length()));
-        if (buffer == nullptr)
-            return false;
-        
+        BIO* buffer = BIO_new_mem_buf((void*) roots.c_str(), static_cast<int>(roots.length()));
+        if (buffer == nullptr) return false;
+
         // Read each root in the buffer and add to the certificate store
         bool success = true;
         size_t number_of_roots = 0;
-        
-        while (true) {
+
+        while (true)
+        {
             // Read the next root in the buffer
-            X509 *root = PEM_read_bio_X509_AUX(buffer, nullptr, nullptr, (void *)"");
-            if (root == nullptr) {
+            X509* root = PEM_read_bio_X509_AUX(buffer, nullptr, nullptr, (void*) "");
+            if (root == nullptr)
+            {
                 // No more certs left in the buffer, we're done.
                 ERR_clear_error();
                 break;
             }
-            
+
             // Try adding the root to the certificate store
             ERR_clear_error();
-            if (!X509_STORE_add_cert(certificate_store, root)) {
-                // Failed to add. If the error is unrelated to the x509 lib or the cert already exists, we're safe to continue.
+            if (!X509_STORE_add_cert(certificate_store, root))
+            {
+                // Failed to add. If the error is unrelated to the x509 lib or the cert already
+                // exists, we're safe to continue.
                 unsigned long error = ERR_get_error();
-                if (ERR_GET_LIB(error) != ERR_LIB_X509 || ERR_GET_REASON(error) != X509_R_CERT_ALREADY_IN_HASH_TABLE) {
+                if (ERR_GET_LIB(error) != ERR_LIB_X509 ||
+                    ERR_GET_REASON(error) != X509_R_CERT_ALREADY_IN_HASH_TABLE)
+                {
                     // Failed. Clean up and bail.
                     success = false;
                     X509_free(root);
                     break;
                 }
             }
-            
+
             // Clean up and loop
             X509_free(root);
             number_of_roots++;
         }
-        
+
         // Clean up buffer
         BIO_free(buffer);
-        
+
         // Make sure we loaded at least one certificate.
-        if (number_of_roots == 0)
-            success = false;
-        
+        if (number_of_roots == 0) success = false;
+
         return success;
     }
 
@@ -457,24 +462,30 @@ namespace ix
                     return false;
                 }
 #endif
-            } else {
-                if (_tlsOptions.isUsingInMemoryCAs()) {
+            }
+            else
+            {
+                if (_tlsOptions.isUsingInMemoryCAs())
+                {
                     // Load from memory
                     openSSLAddCARootsFromString(_tlsOptions.caFile);
-                } else {
+                }
+                else
+                {
                     if (SSL_CTX_load_verify_locations(
-                             _ssl_context, _tlsOptions.caFile.c_str(), NULL) != 1)
+                            _ssl_context, _tlsOptions.caFile.c_str(), NULL) != 1)
                     {
                         auto sslErr = ERR_get_error();
-                        errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" + _tlsOptions.caFile +
-                                 "\") failed: ";
+                        errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +
+                                 _tlsOptions.caFile + "\") failed: ";
                         errMsg += ERR_error_string(sslErr, nullptr);
                         return false;
                     }
-                    
-                    SSL_CTX_set_verify(_ssl_context,
-                                       SSL_VERIFY_PEER,
-                                       [](int preverify, X509_STORE_CTX*) -> int { return preverify; });
+
+                    SSL_CTX_set_verify(
+                        _ssl_context, SSL_VERIFY_PEER, [](int preverify, X509_STORE_CTX*) -> int {
+                            return preverify;
+                        });
                     SSL_CTX_set_verify_depth(_ssl_context, 4);
                 }
             }
@@ -587,24 +598,28 @@ namespace ix
                 }
                 else
                 {
-                    if (_tlsOptions.isUsingInMemoryCAs()) {
+                    if (_tlsOptions.isUsingInMemoryCAs())
+                    {
                         // Load from memory
                         openSSLAddCARootsFromString(_tlsOptions.caFile);
-                    } else {
+                    }
+                    else
+                    {
                         const char* root_ca_file = _tlsOptions.caFile.c_str();
                         STACK_OF(X509_NAME) * rootCAs;
                         rootCAs = SSL_load_client_CA_file(root_ca_file);
                         if (rootCAs == NULL)
                         {
                             auto sslErr = ERR_get_error();
-                            errMsg = "OpenSSL failed - SSL_load_client_CA_file('" + _tlsOptions.caFile +
-                                     "') failed: ";
+                            errMsg = "OpenSSL failed - SSL_load_client_CA_file('" +
+                                     _tlsOptions.caFile + "') failed: ";
                             errMsg += ERR_error_string(sslErr, nullptr);
                         }
                         else
                         {
                             SSL_CTX_set_client_CA_list(_ssl_context, rootCAs);
-                            if (SSL_CTX_load_verify_locations(_ssl_context, root_ca_file, nullptr) != 1)
+                            if (SSL_CTX_load_verify_locations(
+                                    _ssl_context, root_ca_file, nullptr) != 1)
                             {
                                 auto sslErr = ERR_get_error();
                                 errMsg = "OpenSSL failed - SSL_CTX_load_verify_locations(\"" +

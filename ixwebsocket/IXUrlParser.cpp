@@ -128,8 +128,8 @@ namespace
         /*
          *	<scheme>:<scheme-specific-part>
          *	<scheme> := [a-z\+\-\.]+
-         *	For resiliency, programs interpreting URLs should treat upper case letters as equivalent to
-         *lower case in scheme names
+         *	For resiliency, programs interpreting URLs should treat upper case letters as
+         *equivalent to lower case in scheme names
          */
 
         // try to read scheme
@@ -332,7 +332,7 @@ namespace
 
         return Result;
     }
-}
+} // namespace
 
 namespace ix
 {

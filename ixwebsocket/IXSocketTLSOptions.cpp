@@ -58,7 +58,8 @@ namespace ix
         return caFile == kTLSCAFileUseSystemDefaults;
     }
 
-    bool SocketTLSOptions::isUsingInMemoryCAs() const {
+    bool SocketTLSOptions::isUsingInMemoryCAs() const
+    {
         return caFile.find("-----BEGIN CERTIFICATE-----") != std::string::npos;
     }
 
