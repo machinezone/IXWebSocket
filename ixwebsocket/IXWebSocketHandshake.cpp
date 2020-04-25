@@ -133,7 +133,7 @@ namespace ix
 
         for (auto& it : extraHeaders)
         {
-            ss << it.first << ":" << it.second << "\r\n";
+            ss << it.first << ": " << it.second << "\r\n";
         }
 
         if (_enablePerMessageDeflate)
