@@ -24,7 +24,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: install openssl
-      run: brew install openssl
+      run: brew install openssl@1.1
     - name: make test
       run: make test_tsan_openssl
 
