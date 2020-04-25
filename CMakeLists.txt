@@ -118,9 +118,9 @@ if (USE_TLS)
     option(USE_OPEN_SSL "Use OpenSSL" OFF)
     option(USE_SECURE_TRANSPORT "Use Secure Transport" OFF)
 
-    # default to mbedtls on windows if nothing is configured
-    if (WIN32 AND NOT USE_OPEN_SSL AND NOT USE_MBED_TLS)
-      option(USE_MBED_TLS "Use Mbed TLS" ON)
+    # default to OpenSSL on windows if nothing is configured
+    if (WIN32 AND NOT USE_MBED_TLS)
+      option(USE_OPEN_SSL "Use OpenSSL" ON)
     endif()
 
     # default to securetranport on windows if nothing is configured
@@ -164,6 +164,10 @@ endif()
 if (WIN32)
   target_link_libraries(ixwebsocket wsock32 ws2_32 shlwapi)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+
+  if (USE_TLS)
+    target_link_libraries(ixwebsocket Crypt32)
+  endif()
 endif()
 
 if (UNIX)

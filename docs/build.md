@@ -18,8 +18,8 @@ There is a unittest which can be executed by typing `make test`.
 Options for building:
 
 * `-DUSE_TLS=1` will enable TLS support
-* `-DUSE_OPEN_SSL=1` will use [openssl](https://www.openssl.org/) for the TLS support (default on Linux)
-* `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support (default on Windows)
+* `-DUSE_OPEN_SSL=1` will use [openssl](https://www.openssl.org/) for the TLS support (default on Linux and Windows)
+* `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support
 * `-DUSE_WS=1` will build the ws interactive command line tool
 * `-DUSE_TEST=1` will build the unittest
 

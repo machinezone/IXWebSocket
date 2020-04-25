@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.5.0] - 2020-04-25
+
+(ssl) Default to OpenSSL on Windows, since it can load the system certificates by default
+
 ## [9.4.1] - 2020-04-25
 
 (header) Add a space between header name and header value since most http parsers expects it, although it it not required. Cf #184 and #155
