@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.5.2] - 2020-04-27
+
+(cmake) fix cmake broken tls option parsing
+
 ## [9.5.1] - 2020-04-27
 
 (http client) Set default values for most HttpRequestArgs struct members (fix #185)
