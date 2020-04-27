@@ -114,18 +114,15 @@ endif()
 option(USE_TLS "Enable TLS support" FALSE)
 
 if (USE_TLS)
-    option(USE_MBED_TLS "Use Mbed TLS" OFF)
-    option(USE_OPEN_SSL "Use OpenSSL" OFF)
-    option(USE_SECURE_TRANSPORT "Use Secure Transport" OFF)
-
-    # default to OpenSSL on windows if nothing is configured
-    if (WIN32 AND NOT USE_MBED_TLS)
-      option(USE_OPEN_SSL "Use OpenSSL" ON)
-    endif()
-
-    # default to securetranport on windows if nothing is configured
-    if (APPLE AND NOT USE_OPEN_SSL AND NOT USE_MBED_TLS)
-      option(USE_SECURE_TRANSPORT "Use Secure Transport" ON)
+    # default to securetranport on Apple if nothing is configured
+    if (APPLE)
+      if (NOT USE_MBED_TLS AND NOT USE_OPEN_SSL) # unless we want something else
+        set(USE_SECURE_TRANSPORT ON)
+      endif()
+    else() # default to OpenSSL on all other platforms
+      if (NOT USE_MBED_TLS) # Unless mbedtls is requested
+        set(USE_OPEN_SSL ON)
+      endif()
     endif()
 
     if (USE_MBED_TLS)
