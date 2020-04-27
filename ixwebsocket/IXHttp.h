@@ -78,12 +78,12 @@ namespace ix
         WebSocketHttpHeaders extraHeaders;
         std::string body;
         std::string multipartBoundary;
-        int connectTimeout;
-        int transferTimeout;
-        bool followRedirects;
-        int maxRedirects;
-        bool verbose;
-        bool compress;
+        int connectTimeout = 60;
+        int transferTimeout = 1800;
+        bool followRedirects = true;
+        int maxRedirects = 5;
+        bool verbose = false;
+        bool compress = true;
         Logger logger;
         OnProgressCallback onProgressCallback;
     };

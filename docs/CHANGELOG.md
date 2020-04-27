@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.5.1] - 2020-04-27
+
+(http client) Set default values for most HttpRequestArgs struct members (fix #185)
+
 ## [9.5.0] - 2020-04-25
 
 (ssl) Default to OpenSSL on Windows, since it can load the system certificates by default
