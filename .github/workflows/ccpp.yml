@@ -5,38 +5,6 @@ on:
     - 'docs/**'
 
 jobs:
-  linux:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: make test
-      run: make test
-
-  mac_tsan_sectransport:
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: make test_tsan
-      run: make test_tsan
-
-  mac_tsan_openssl:
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: install openssl
-      run: brew install openssl@1.1
-    - name: make test
-      run: make test_tsan_openssl
-
-  mac_tsan_mbedtls:
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: install mbedtls
-      run: brew install mbedtls
-    - name: make test
-      run: make test_tsan_mbedtls
-
   windows_openssl:
     runs-on: windows-latest
     steps:
@@ -45,7 +13,7 @@ jobs:
     - run: |
         mkdir build
         cd build
-        cmake -DCMAKE_CXX_COMPILER=cl.exe -DUSE_WS=1 -DUSE_TEST=1 ..
+        cmake -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION=10.0 -DCMAKE_CXX_COMPILER=cl.exe -DUSE_WS=1 -DUSE_TEST=1 ..
     - run: cmake --build build
 
     # Running the unittest does not work, the binary cannot be found
