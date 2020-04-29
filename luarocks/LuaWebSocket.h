@@ -68,7 +68,7 @@ namespace ix
             std::mutex _queueMutex;
     };
 
-    LuaWebSocket* WebSocket_new(lua_State* L)
+    LuaWebSocket* WebSocket_new(lua_State* /*L*/)
     {
         LuaWebSocket* webSocket = new LuaWebSocket();
         return webSocket;
@@ -125,11 +125,11 @@ namespace ix
         return 1;
     }
 
-    // This should be a static method
+    // FIXME: This should be a static method, or be part of a different module
     int WebSocket_sleep(lua_State* L)
     {
-        LuaWebSocket* luaWebSocket = luaW_check<LuaWebSocket>(L, 1);
-        int duration = luaL_checkinteger(L, 2);
+        // LuaWebSocket* luaWebSocket = luaW_check<LuaWebSocket>(L, 1);
+        auto duration = luaL_checkinteger(L, 2);
         std::this_thread::sleep_for(std::chrono::milliseconds(duration));
         return 0;
     }

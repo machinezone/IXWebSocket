@@ -30,9 +30,9 @@ int main()
 
     //
     // Simple version does little error handling
-    // luaL_dofile(L, "ia.lua");
+    // luaL_dofile(L, "echo_client.lua");
     //
-    std::string luaFile("ia.lua");
+    std::string luaFile("echo_client.lua");
     int loadStatus = luaL_loadfile(L, luaFile.c_str());
     if (loadStatus)
     {

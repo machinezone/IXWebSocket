@@ -58,7 +58,7 @@ extern "C"
 // A simple utility function to adjust a given index
 // Useful for when a parameter index needs to be adjusted
 // after pushing or popping things off the stack
-inline int luaW_correctindex(lua_State* L, int index, int correction)
+inline int luaW_correctindex(lua_State* /*L*/, int index, int correction)
 {
     return index < 0 ? index - correction : index;
 }
