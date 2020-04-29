@@ -8,7 +8,7 @@ extern "C"
 }
 
 #include "functions.hpp"
-#include "LuaPlayer.hpp"
+#include "LuaWebSocket.h"
 
 int main()
 {
@@ -24,4 +24,3 @@ int main()
     luaL_dofile(L, "ia.lua");
     lua_close(L);
 }
-

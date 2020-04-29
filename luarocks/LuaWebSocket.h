@@ -1,5 +1,4 @@
-#ifndef LUAPLAYER_HPP
-#define LUAPLAYER_HPP
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -89,5 +88,3 @@ int luaopen_Player(lua_State* L)
         );
     return 1;
 }
-
-#endif // LUAPLAYER_HPP

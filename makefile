@@ -159,6 +159,9 @@ test_no_ssl:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TEST=1 .. ; make -j 4)
 	(cd test ; python2.7 run.py -r)
 
+luarocks:
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_LUAROCKS=1 .. ; ninja)
+
 ws_test: ws
 	(cd ws ; env DEBUG=1 PATH=../ws/build:$$PATH bash test_ws.sh)
 
@@ -185,3 +188,4 @@ doc:
 .PHONY: test
 .PHONY: build
 .PHONY: ws
+.PHONY: luarocks
