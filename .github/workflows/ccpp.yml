@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: make test
-      run: make test
+    - name: make test_make
+      run: make test_make
 
   mac_tsan_sectransport:
     runs-on: macOS-latest
