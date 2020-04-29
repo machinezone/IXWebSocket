@@ -10,81 +10,82 @@ extern "C"
 }
 
 #include "luawrapper.hpp"
-#include "Player.hpp"
+#include <ixwebsocket/IXWebSocket.h>
+#include <chrono>
+#include <thread>
 
-Player* Player_new(lua_State* L)
+using namespace ix;
+
+WebSocket* WebSocket_new(lua_State* L)
 {
-    const char* name = luaL_checkstring(L, 1);
-    unsigned int health = luaL_checkinteger(L, 2);
-    return new Player(name, health);
+    WebSocket* webSocket = new WebSocket();
+    webSocket->setOnMessageCallback([](const WebSocketMessagePtr& msg) {
+        if (msg->type == ix::WebSocketMessageType::Message)
+        {
+            std::cout << msg->str << std::endl;
+        }
+    });
+    return webSocket;
 }
 
-int Player_getName(lua_State* L)
+int WebSocket_getUrl(lua_State* L)
 {
-    Player* player = luaW_check<Player>(L, 1);
-    lua_pushstring(L, player->getName());
+    WebSocket* webSocket = luaW_check<WebSocket>(L, 1);
+    lua_pushstring(L, webSocket->getUrl().c_str());
     return 1;
 }
 
-int Player_getHealth(lua_State* L)
+int WebSocket_setUrl(lua_State* L)
 {
-    Player* player = luaW_check<Player>(L, 1);
-    lua_pushinteger(L, player->getHealth());
-    return 1;
-}
-
-int Player_setHealth(lua_State* L)
-{
-    Player* player = luaW_check<Player>(L, 1);
-    unsigned int health = luaL_checkinteger(L, 2);
-    player->setHealth(health);
+    WebSocket* webSocket = luaW_check<WebSocket>(L, 1);
+    const char* url = luaL_checkstring(L, 2);
+    webSocket->setUrl(url);
     return 0;
 }
 
-int Player_heal(lua_State* L)
+int WebSocket_start(lua_State* L)
 {
-    Player* player = luaW_check<Player>(L, 1);
-    Player* target = luaW_check<Player>(L, 2);
-    player->heal(target);
+    WebSocket* webSocket = luaW_check<WebSocket>(L, 1);
+    webSocket->start();
     return 0;
 }
 
-int Player_say(lua_State* L)
+int WebSocket_send(lua_State* L)
 {
-    Player* player = luaW_check<Player>(L, 1);
-    const char* text = luaL_checkstring(L, 2);
-    player->say(text);
+    WebSocket* webSocket = luaW_check<WebSocket>(L, 1);
+    const char* msg = luaL_checkstring(L, 2);
+    webSocket->send(msg);
     return 0;
 }
 
-int Player_info(lua_State* L)
+int WebSocket_sleep(lua_State* L)
 {
-    Player* player = luaW_check<Player>(L, 1);
-    player->info();
+    WebSocket* webSocket = luaW_check<WebSocket>(L, 1);
+    int duration = luaL_checkinteger(L, 2);
+    std::this_thread::sleep_for(std::chrono::milliseconds(duration));
     return 0;
 }
 
-static luaL_Reg Player_table[] = {
+static luaL_Reg WebSocket_table[] = {
     { NULL, NULL }
 };
 
-static luaL_Reg Player_metatable[] = {
-    { "getName", Player_getName },
-    { "getHealth", Player_getHealth },
-    { "setHealth", Player_setHealth },
-    { "heal", Player_heal },
-    { "say", Player_say },
-    { "info", Player_info },
+static luaL_Reg WebSocket_metatable[] = {
+    { "getUrl", WebSocket_getUrl },
+    { "setUrl", WebSocket_setUrl },
+    { "start", WebSocket_start },
+    { "send", WebSocket_send },
+    { "sleep", WebSocket_sleep },
     { NULL, NULL }
 };
 
-int luaopen_Player(lua_State* L)
+int luaopen_WebSocket(lua_State* L)
 {
-    luaW_register<Player>(L,
-        "Player",
-        Player_table,
-        Player_metatable,
-        Player_new
+    luaW_register<WebSocket>(L,
+        "WebSocket",
+        WebSocket_table,
+        WebSocket_metatable,
+        WebSocket_new
         );
     return 1;
 }
