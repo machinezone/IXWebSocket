@@ -220,11 +220,10 @@ namespace ix
 
         std::string req(ss.str());
         std::string errMsg;
-        std::atomic<bool> requestInitCancellation(false);
 
         // Make a cancellation object dealing with connection timeout
         auto isCancellationRequested =
-            makeCancellationRequestWithTimeout(args->connectTimeout, requestInitCancellation);
+            makeCancellationRequestWithTimeout(args->connectTimeout, _stop);
 
         bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
         if (!success)
@@ -243,7 +242,7 @@ namespace ix
 
         // Make a new cancellation object dealing with transfer timeout
         isCancellationRequested =
-            makeCancellationRequestWithTimeout(args->transferTimeout, requestInitCancellation);
+            makeCancellationRequestWithTimeout(args->transferTimeout, _stop);
 
         if (args->verbose)
         {

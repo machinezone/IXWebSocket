@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.5.3] - 2020-04-29
+
+(http client) better current request cancellation support when the HttpClient destructor is invoked (see #189)
+
 ## [9.5.2] - 2020-04-27
 
 (cmake) fix cmake broken tls option parsing
