@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.5.4] - 2020-05-01
+
+(windows) fix build for universal windows platform
+
 ## [9.5.3] - 2020-04-29
 
 (http client) better current request cancellation support when the HttpClient destructor is invoked (see #189)
