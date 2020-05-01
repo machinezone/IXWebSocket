@@ -4,6 +4,15 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
+// Try to disable unicode on Windows uwp
+#ifdef _UNICODE
+#undef _UNICODE
+#endif
+
+#ifdef UNICODE
+#undef UNICODE
+#endif
+
 #include "IXDNSLookup.h"
 
 #include "IXNetSystem.h"
