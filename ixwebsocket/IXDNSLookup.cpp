@@ -4,13 +4,14 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  */
 
-// Try to disable unicode on Windows uwp
+//
+// On Windows Universal Platform (uwp), gai_strerror defaults behavior is to returns wchar_t
+// which is different from all other platforms. We want the non unicode version.
+// See https://github.com/microsoft/vcpkg/pull/11030
+// We could do this in IXNetSystem.cpp but so far we are only using gai_strerror in here.
+//
 #ifdef _UNICODE
 #undef _UNICODE
-#endif
-
-#ifdef UNICODE
-#undef UNICODE
 #endif
 
 #include "IXDNSLookup.h"
