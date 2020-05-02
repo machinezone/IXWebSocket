@@ -175,9 +175,7 @@ if (USE_TLS)
     endif()
     message(STATUS "OpenSSL: " ${OPENSSL_VERSION})
 
-    #add_definitions(${OPENSSL_DEFINITIONS})
-    #target_include_directories(ixwebsocket PUBLIC ${OPENSSL_INCLUDE_DIR})
-    target_link_libraries(ixwebsocket OpenSSL::SSL)
+    target_link_libraries(ixwebsocket OpenSSL::SSL OpenSSL::Crypto)
   elseif (USE_MBED_TLS)
     message(STATUS "TLS configured to use mbedtls")
 
