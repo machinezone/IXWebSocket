@@ -146,6 +146,10 @@ add_library( ixwebsocket STATIC
 
 add_library ( ixwebsocket::ixwebsocket ALIAS ixwebsocket )
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
 if (USE_TLS)
     target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_TLS)
     if (USE_MBED_TLS)
