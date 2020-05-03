@@ -9,6 +9,7 @@
 #include "IXNetSystem.h"
 #include <cstring>
 #include <sstream>
+#include <thread>
 
 namespace ix
 {
@@ -92,5 +93,23 @@ namespace ix
     {
         return (ssize_t)::sendto(
             _sockfd, buffer.data(), buffer.size(), 0, (struct sockaddr*) &_server, sizeof(_server));
+    }
+
+    void UdpSocket::receive_async(const OnDataReveive &receiver, size_t Size)
+    {
+        std::thread([this, receiver, Size]()
+        {
+            uint8_t *Buf = new uint8_t[Size];
+
+            uint32_t add_len = sizeof(_server);
+            ssize_t RecvLen = recvfrom(_sockfd, Buf, Size, 0, (struct sockaddr*) &_server, &add_len);
+            if(RecvLen != -1)
+            {
+                std::vector<uint8_t> Ret(Buf, Buf + RecvLen);
+                receiver(Ret);
+            } 
+
+            delete[] Buf;
+        }).detach();
     }
 } // namespace ix
