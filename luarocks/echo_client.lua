@@ -1,6 +1,8 @@
 --
 -- make luarocks && (cd luarocks ; ../build/luarocks/luarocks)
 --
+-- ... git push test with ssh key
+--
 local webSocket = WebSocket.new()
 
 webSocket:setUrl("ws://localhost:8008")
