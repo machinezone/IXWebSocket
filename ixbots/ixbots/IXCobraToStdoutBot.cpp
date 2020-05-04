@@ -7,7 +7,6 @@
 #include "IXCobraToStdoutBot.h"
 
 #include "IXCobraBot.h"
-#include "IXQueueManager.h"
 #include <chrono>
 #include <iostream>
 #include <sstream>
@@ -71,7 +70,6 @@ namespace ix
                                 bool fluentd,
                                 bool quiet,
                                 bool verbose,
-                                size_t maxQueueSize,
                                 bool enableHeartbeat,
                                 int runtime)
     {
@@ -83,24 +81,20 @@ namespace ix
                                             const std::string& position,
                                             const bool /*verbose*/,
                                             std::atomic<bool>& /*throttled*/,
-                                            std::atomic<bool> &
-                                            /*fatalCobraError*/) -> bool {
+                                            std::atomic<bool>& /*fatalCobraError*/,
+                                            std::atomic<uint64_t>& sentCount) -> void {
                 if (!quiet)
                 {
                     writeToStdout(fluentd, jsonWriter, msg, position);
                 }
-                return true;
+                sentCount++;
             });
-
-        bool useQueue = false;
 
         return bot.run(config,
                        channel,
                        filter,
                        position,
                        verbose,
-                       maxQueueSize,
-                       useQueue,
                        enableHeartbeat,
                        runtime);
     }

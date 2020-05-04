@@ -7,7 +7,6 @@
 #include "IXCobraToStatsdBot.h"
 
 #include "IXCobraBot.h"
-#include "IXQueueManager.h"
 #include "IXStatsdClient.h"
 #include <chrono>
 #include <ixcobra/IXCobraConnection.h>
@@ -63,7 +62,6 @@ namespace ix
                                 const std::string& gauge,
                                 const std::string& timer,
                                 bool verbose,
-                                size_t maxQueueSize,
                                 bool enableHeartbeat,
                                 int runtime)
     {
@@ -79,7 +77,8 @@ namespace ix
                                                      const std::string& /*position*/,
                                                      const bool verbose,
                                                      std::atomic<bool>& /*throttled*/,
-                                                     std::atomic<bool>& fatalCobraError) -> bool {
+                                                     std::atomic<bool>& fatalCobraError,
+                                                     std::atomic<uint64_t>& sentCount) -> void {
                 std::string id;
                 for (auto&& attr : tokens)
                 {
@@ -122,7 +121,7 @@ namespace ix
                     {
                         CoreLogger::error("Gauge " + gauge + " is not a numeric type");
                         fatalCobraError = true;
-                        return false;
+                        return;
                     }
 
                     if (verbose)
@@ -140,18 +139,14 @@ namespace ix
                     }
                 }
 
-                return true;
+                sentCount++;
             });
-
-        bool useQueue = true;
 
         return bot.run(config,
                        channel,
                        filter,
                        position,
                        verbose,
-                       maxQueueSize,
-                       useQueue,
                        enableHeartbeat,
                        runtime);
     }

@@ -90,7 +90,6 @@ TEST_CASE("Cobra_to_statsd_bot", "[cobra_bots]")
         std::string filter;
         std::string position("$");
         bool verbose = true;
-        size_t maxQueueSize = 10;
         bool enableHeartbeat = false;
 
         // Only run the bot for 3 seconds
@@ -123,7 +122,6 @@ TEST_CASE("Cobra_to_statsd_bot", "[cobra_bots]")
                                                     gauge,
                                                     timer,
                                                     verbose,
-                                                    maxQueueSize,
                                                     enableHeartbeat,
                                                     runtime);
         //

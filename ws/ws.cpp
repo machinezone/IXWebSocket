@@ -148,7 +148,6 @@ int main(int argc, char** argv)
     int delayMs = -1;
     int count = 1;
     uint32_t maxWaitBetweenReconnectionRetries;
-    size_t maxQueueSize = 100;
     int pingIntervalSecs = 30;
     int runtime = -1; // run indefinitely
 
@@ -328,9 +327,6 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
     cobra2statsd->add_option("--filter", filter, "Stream SQL Filter");
     cobra2statsd->add_option("--position", position, "Stream position");
-    cobra2statsd->add_option("--queue_size",
-                             maxQueueSize,
-                             "Size of the queue to hold messages before they are sent to Sentry");
     cobra2statsd->add_option("--runtime", runtime, "Runtime in seconds");
     addTLSOptions(cobra2statsd);
     addCobraConfig(cobra2statsd);
@@ -338,9 +334,6 @@ int main(int argc, char** argv)
     CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra metrics to sentry");
     cobra2sentry->fallthrough();
     cobra2sentry->add_option("--dsn", dsn, "Sentry DSN");
-    cobra2sentry->add_option("--queue_size",
-                             maxQueueSize,
-                             "Size of the queue to hold messages before they are sent to Sentry");
     cobra2sentry->add_option("channel", channel, "Channel")->required();
     cobra2sentry->add_flag("-v", verbose, "Verbose");
     cobra2sentry->add_option("--pidfile", pidfile, "Pid file");
@@ -536,7 +529,6 @@ int main(int argc, char** argv)
                                                     fluentd,
                                                     quiet,
                                                     verbose,
-                                                    maxQueueSize,
                                                     enableHeartbeat,
                                                     runtime);
         ret = (int) sentCount;
@@ -580,7 +572,6 @@ int main(int argc, char** argv)
                                                     gauge,
                                                     timer,
                                                     verbose,
-                                                    maxQueueSize,
                                                     enableHeartbeat,
                                                     runtime);
             }
@@ -598,7 +589,6 @@ int main(int argc, char** argv)
                                             position,
                                             sentryClient,
                                             verbose,
-                                            maxQueueSize,
                                             enableHeartbeat,
                                             runtime);
     }

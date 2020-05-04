@@ -19,7 +19,6 @@ namespace ix
                                 bool fluentd,
                                 bool quiet,
                                 bool verbose,
-                                size_t maxQueueSize,
                                 bool enableHeartbeat,
                                 int runtime);
 } // namespace ix

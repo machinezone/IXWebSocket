@@ -22,7 +22,6 @@ namespace ix
                                 const std::string& gauge,
                                 const std::string& timer,
                                 bool verbose,
-                                size_t maxQueueSize,
                                 bool enableHeartbeat,
                                 int runtime);
 } // namespace ix

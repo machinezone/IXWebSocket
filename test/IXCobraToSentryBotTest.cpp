@@ -141,7 +141,6 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         std::string filter;
         std::string position("$");
         bool verbose = true;
-        size_t maxQueueSize = 10;
         bool enableHeartbeat = false;
 
         // FIXME: try to get this working with https instead of http
@@ -166,7 +165,6 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
                                                 position,
                                                 sentryClient,
                                                 verbose,
-                                                maxQueueSize,
                                                 enableHeartbeat,
                                                 runtime);
         //

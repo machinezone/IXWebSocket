@@ -6,7 +6,6 @@
 
 #include "IXCobraBot.h"
 
-#include "IXQueueManager.h"
 #include <ixcobra/IXCobraConnection.h>
 #include <ixcore/utils/IXCoreLogger.h>
 
@@ -23,8 +22,6 @@ namespace ix
                           const std::string& filter,
                           const std::string& position,
                           bool verbose,
-                          size_t maxQueueSize,
-                          bool useQueue,
                           bool enableHeartbeat,
                           int runtime)
     {
@@ -42,8 +39,6 @@ namespace ix
         std::atomic<bool> stop(false);
         std::atomic<bool> throttled(false);
         std::atomic<bool> fatalCobraError(false);
-
-        QueueManager queueManager(maxQueueSize);
 
         auto timer = [&sentCount,
                       &receivedCount,
@@ -114,40 +109,6 @@ namespace ix
 
         std::thread t2(heartbeat);
 
-        auto sender =
-            [this, &queueManager, verbose, &sentCount, &stop, &throttled, &fatalCobraError] {
-                while (true)
-                {
-                    auto data = queueManager.pop();
-                    Json::Value msg = data.first;
-                    std::string position = data.second;
-
-                    if (stop) break;
-                    if (msg.isNull()) continue;
-
-                    if (_onBotMessageCallback &&
-                        _onBotMessageCallback(msg, position, verbose, throttled, fatalCobraError))
-                    {
-                        // That might be too noisy
-                        if (verbose)
-                        {
-                            CoreLogger::info("cobra bot: sending succesfull");
-                        }
-                        ++sentCount;
-                    }
-                    else
-                    {
-                        CoreLogger::error("cobra bot: error sending");
-                    }
-
-                    if (stop) break;
-                }
-
-                CoreLogger::info("sender thread done");
-            };
-
-        std::thread t3(sender);
-
         std::string subscriptionPosition(position);
 
         conn.setEventCallback([this,
@@ -160,8 +121,6 @@ namespace ix
                                &throttled,
                                &receivedCount,
                                &fatalCobraError,
-                               &useQueue,
-                               &queueManager,
                                &sentCount](const CobraEventPtr& event) {
             if (event->type == ix::CobraEventType::Open)
             {
@@ -190,8 +149,6 @@ namespace ix
                                 verbose,
                                 &throttled,
                                 &receivedCount,
-                                &queueManager,
-                                &useQueue,
                                 &subscriptionPosition,
                                 &fatalCobraError,
                                 &sentCount](const Json::Value& msg, const std::string& position) {
@@ -211,28 +168,9 @@ namespace ix
 
                                    ++receivedCount;
 
-                                   if (useQueue)
-                                   {
-                                       queueManager.add(msg, position);
-                                   }
-                                   else
-                                   {
-                                       if (_onBotMessageCallback &&
-                                           _onBotMessageCallback(
-                                               msg, position, verbose, throttled, fatalCobraError))
-                                       {
-                                           // That might be too noisy
-                                           if (verbose)
-                                           {
-                                               CoreLogger::info("cobra bot: sending succesfull");
-                                           }
-                                           ++sentCount;
-                                       }
-                                       else
-                                       {
-                                           CoreLogger::error("cobra bot: error sending");
-                                       }
-                                   }
+                                   _onBotMessageCallback(
+                                       msg, position, verbose,
+                                       throttled, fatalCobraError, sentCount);
                                });
             }
             else if (event->type == ix::CobraEventType::Subscribed)
@@ -307,9 +245,6 @@ namespace ix
 
         // heartbeat thread
         if (t2.joinable()) t2.join();
-
-        // sentry sender thread
-        t3.join();
 
         return fatalCobraError ? -1 : (int64_t) sentCount;
     }

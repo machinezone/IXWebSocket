@@ -89,7 +89,6 @@ TEST_CASE("Cobra_to_stdout_bot", "[cobra_bots]")
         std::string position("$");
         bool verbose = true;
         bool quiet = false;
-        size_t maxQueueSize = 10;
         bool enableHeartbeat = false;
 
         // Only run the bot for 3 seconds
@@ -105,7 +104,6 @@ TEST_CASE("Cobra_to_stdout_bot", "[cobra_bots]")
                                                     fluentd,
                                                     quiet,
                                                     verbose,
-                                                    maxQueueSize,
                                                     enableHeartbeat,
                                                     runtime);
         //

@@ -21,12 +21,9 @@ namespace ix
         SentryClient(const std::string& dsn);
         ~SentryClient() = default;
 
-        std::pair<HttpResponsePtr, std::string> send(const Json::Value& msg, bool verbose);
-
-        Json::Value parseLuaStackTrace(const std::string& stack);
-
-        // Mostly for testing
-        void setTLSOptions(const SocketTLSOptions& tlsOptions);
+        void send(const Json::Value& msg,
+                  bool verbose,
+                  const OnResponseCallback& onResponseCallback);
 
         void uploadMinidump(const std::string& sentryMetadata,
                             const std::string& minidumpBytes,
@@ -38,6 +35,12 @@ namespace ix
         void uploadPayload(const Json::Value& payload,
                            bool verbose,
                            const OnResponseCallback& onResponseCallback);
+
+        Json::Value parseLuaStackTrace(const std::string& stack);
+
+        // Mostly for testing
+        void setTLSOptions(const SocketTLSOptions& tlsOptions);
+
 
     private:
         int64_t getTimestamp();

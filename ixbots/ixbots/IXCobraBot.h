@@ -14,11 +14,12 @@
 
 namespace ix
 {
-    using OnBotMessageCallback = std::function<bool(const Json::Value&,
+    using OnBotMessageCallback = std::function<void(const Json::Value&,
                                                     const std::string&,
                                                     const bool verbose,
                                                     std::atomic<bool>&,
-                                                    std::atomic<bool>&)>;
+                                                    std::atomic<bool>&,
+                                                    std::atomic<uint64_t>&)>;
 
     class CobraBot
     {
@@ -30,8 +31,6 @@ namespace ix
                     const std::string& filter,
                     const std::string& position,
                     bool verbose,
-                    size_t maxQueueSize,
-                    bool useQueue,
                     bool enableHeartbeat,
                     int runtime);
 

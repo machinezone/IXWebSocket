@@ -18,7 +18,6 @@ namespace ix
                                 const std::string& position,
                                 SentryClient& sentryClient,
                                 bool verbose,
-                                size_t maxQueueSize,
                                 bool enableHeartbeat,
                                 int runtime);
 } // namespace ix

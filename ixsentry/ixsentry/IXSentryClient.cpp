@@ -226,20 +226,23 @@ namespace ix
         return _jsonWriter.write(payload);
     }
 
-    std::pair<HttpResponsePtr, std::string> SentryClient::send(const Json::Value& msg, bool verbose)
+    void SentryClient::send(
+        const Json::Value& msg,
+        bool verbose,
+        const OnResponseCallback& onResponseCallback)
     {
         auto args = _httpClient->createRequest();
+        args->url = _url;
+        args->verb = HttpClient::kPost;
         args->extraHeaders["X-Sentry-Auth"] = SentryClient::computeAuthHeader();
         args->connectTimeout = 60;
         args->transferTimeout = 5 * 60;
         args->followRedirects = true;
         args->verbose = verbose;
         args->logger = [](const std::string& msg) { CoreLogger::log(msg.c_str()); };
+        args->body = computePayload(msg);
 
-        std::string body = computePayload(msg);
-        HttpResponsePtr response = _httpClient->post(_url, body, args);
-
-        return std::make_pair(response, body);
+        _httpClient->performRequest(args, onResponseCallback);
     }
 
     // https://sentry.io/api/12345/minidump?sentry_key=abcdefgh");
