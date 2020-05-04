@@ -9,8 +9,6 @@
 #include <atomic>
 #include <memory>
 #include <string>
-#include <functional>
-#include <vector>
 
 #ifdef _WIN32
 #include <BaseTsd.h>
@@ -20,9 +18,7 @@ typedef SSIZE_T ssize_t;
 #include "IXNetSystem.h"
 
 namespace ix
-{
-    using OnDataReveive = std::function<void(const std::vector<uint8_t>&)>;
-
+{    
     class UdpSocket
     {
     public:
@@ -32,10 +28,12 @@ namespace ix
         // Virtual methods
         bool init(const std::string& host, int port, std::string& errMsg);
         ssize_t sendto(const std::string& buffer);
-        void receive_async(const OnDataReveive &receiver, size_t Size);
+        ssize_t recvfrom(void* buffer, size_t length);
+
         void close();
 
         static int getErrno();
+        static bool isWaitNeeded();
         static void closeSocket(int fd);
 
     private:

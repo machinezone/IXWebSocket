@@ -10,6 +10,7 @@
 #include <cstring>
 #include <sstream>
 #include <thread>
+#include <fcntl.h>
 
 namespace ix
 {
@@ -45,6 +46,18 @@ namespace ix
         return err;
     }
 
+    bool UdpSocket::isWaitNeeded()
+    {
+        int err = getErrno();
+
+        if (err == EWOULDBLOCK || err == EAGAIN || err == EINPROGRESS)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     void UdpSocket::closeSocket(int fd)
     {
 #ifdef _WIN32
@@ -62,6 +75,13 @@ namespace ix
             errMsg = "Could not create socket";
             return false;
         }
+
+#ifdef _WIN32
+        unsigned long nonblocking = 1;
+        ioctlsocket(sockfd, FIONBIO, &nonblocking);
+#else
+        fcntl(_sockfd, F_SETFL, O_NONBLOCK); // make socket non blocking
+#endif
 
         memset(&_server, 0, sizeof(_server));
         _server.sin_family = AF_INET;
@@ -95,21 +115,10 @@ namespace ix
             _sockfd, buffer.data(), buffer.size(), 0, (struct sockaddr*) &_server, sizeof(_server));
     }
 
-    void UdpSocket::receive_async(const OnDataReveive &receiver, size_t Size)
+    ssize_t UdpSocket::recvfrom(void* buffer, size_t length)
     {
-        std::thread([this, receiver, Size]()
-        {
-            uint8_t *Buf = new uint8_t[Size];
-
-            uint32_t add_len = sizeof(_server);
-            ssize_t RecvLen = recvfrom(_sockfd, Buf, Size, 0, (struct sockaddr*) &_server, &add_len);
-            if(RecvLen != -1)
-            {
-                std::vector<uint8_t> Ret(Buf, Buf + RecvLen);
-                receiver(Ret);
-            } 
-
-            delete[] Buf;
-        }).detach();
+        uint32_t add_len = sizeof(_server);
+        return (ssize_t)::recvfrom(
+            _sockfd, buffer, length, 0, (struct sockaddr*) &_server, &add_len);
     }
 } // namespace ix
