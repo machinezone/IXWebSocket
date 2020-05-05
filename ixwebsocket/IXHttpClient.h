@@ -51,7 +51,7 @@ namespace ix
                                 const std::string& body,
                                 HttpRequestArgsPtr args,
                                 int redirects = 0);
-
+        void setForceBody(bool value);
         // Async API
         HttpRequestArgsPtr createRequest(const std::string& url = std::string(),
                                          const std::string& verb = HttpClient::kGet);
@@ -78,6 +78,7 @@ namespace ix
         const static std::string kHead;
         const static std::string kDel;
         const static std::string kPut;
+        const static std::string kPatch;
 
     private:
         void log(const std::string& msg, HttpRequestArgsPtr args);
@@ -86,7 +87,7 @@ namespace ix
 
         // Async API background thread runner
         void run();
-
+        bool _forceBody;
         // Async API
         bool _async;
         std::queue<std::pair<HttpRequestArgsPtr, OnResponseCallback>> _queue;
