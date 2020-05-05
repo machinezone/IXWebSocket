@@ -28,7 +28,6 @@ namespace ix
         conn.configure(config);
         conn.connect();
 
-        Json::FastWriter jsonWriter;
         std::atomic<uint64_t> sentCount(0);
         std::atomic<uint64_t> receivedCount(0);
         uint64_t sentCountTotal(0);
@@ -115,7 +114,6 @@ namespace ix
                                &channel,
                                &filter,
                                &subscriptionPosition,
-                               &jsonWriter,
                                &throttled,
                                &receivedCount,
                                &fatalCobraError,
@@ -143,7 +141,6 @@ namespace ix
                                filter,
                                subscriptionPosition,
                                [this,
-                                &jsonWriter,
                                 &throttled,
                                 &receivedCount,
                                 &subscriptionPosition,
