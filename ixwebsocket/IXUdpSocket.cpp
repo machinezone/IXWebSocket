@@ -115,8 +115,7 @@ namespace ix
 
     ssize_t UdpSocket::recvfrom(void* buffer, size_t length)
     {
-        uint32_t add_len = sizeof(_server);
         return (ssize_t)::recvfrom(
-            _sockfd, buffer, length, 0, (struct sockaddr*) &_server, &add_len);
+            _sockfd, buffer, length, 0, (struct sockaddr*) &_server, sizeof(_server));
     }
 } // namespace ix
