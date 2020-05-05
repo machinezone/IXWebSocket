@@ -25,6 +25,7 @@ namespace ix
     const std::string HttpClient::kHead = "HEAD";
     const std::string HttpClient::kDel = "DEL";
     const std::string HttpClient::kPut = "PUT";
+    const std::string HttpClient::kPatch = "PATCH";
 
     HttpClient::HttpClient(bool async)
         : _async(async)
@@ -49,6 +50,9 @@ namespace ix
         _tlsOptions = tlsOptions;
     }
 
+    void setForceBody(bool value) {
+        _forceBody = value;
+    }
     HttpRequestArgsPtr HttpClient::createRequest(const std::string& url, const std::string& verb)
     {
         auto request = std::make_shared<HttpRequestArgs>();
@@ -192,7 +196,7 @@ namespace ix
             ss << "User-Agent: " << userAgent() << "\r\n";
         }
 
-        if (verb == kPost || verb == kPut)
+        if (verb == kPost || verb == kPut || verb == kPatch || _forceBody)
         {
             ss << "Content-Length: " << body.size() << "\r\n";
 
