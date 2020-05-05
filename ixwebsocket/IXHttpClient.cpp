@@ -30,6 +30,7 @@ namespace ix
     HttpClient::HttpClient(bool async)
         : _async(async)
         , _stop(false)
+        , _forceBody(false)
     {
         if (!_async) return;
 
@@ -50,9 +51,11 @@ namespace ix
         _tlsOptions = tlsOptions;
     }
 
-    void setForceBody(bool value) {
+    void HttpClient::setForceBody(bool value)
+    {
         _forceBody = value;
     }
+
     HttpRequestArgsPtr HttpClient::createRequest(const std::string& url, const std::string& verb)
     {
         auto request = std::make_shared<HttpRequestArgs>();
@@ -562,6 +565,20 @@ namespace ix
                                     const HttpRequestArgsPtr args)
     {
         return request(url, kPut, body, args);
+    }
+
+    HttpResponsePtr HttpClient::patch(const std::string& url,
+                                      const HttpParameters& httpParameters,
+                                      HttpRequestArgsPtr args)
+    {
+        return request(url, kPatch, serializeHttpParameters(httpParameters), args);
+    }
+
+    HttpResponsePtr HttpClient::patch(const std::string& url,
+                                      const std::string& body,
+                                      const HttpRequestArgsPtr args)
+    {
+        return request(url, kPatch, body, args);
     }
 
     std::string HttpClient::urlEncode(const std::string& value)

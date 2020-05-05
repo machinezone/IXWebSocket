@@ -46,6 +46,13 @@ namespace ix
                             const std::string& body,
                             HttpRequestArgsPtr args);
 
+        HttpResponsePtr patch(const std::string& url,
+                              const HttpParameters& httpParameters,
+                              HttpRequestArgsPtr args);
+        HttpResponsePtr patch(const std::string& url,
+                              const std::string& body,
+                              HttpRequestArgsPtr args);
+
         HttpResponsePtr request(const std::string& url,
                                 const std::string& verb,
                                 const std::string& body,
@@ -84,7 +91,6 @@ namespace ix
         void log(const std::string& msg, HttpRequestArgsPtr args);
 
         bool gzipInflate(const std::string& in, std::string& out);
-        bool _forceBody;
 
         // Async API background thread runner
         void run();
@@ -100,5 +106,7 @@ namespace ix
         std::mutex _mutex; // to protect accessing the _socket (only one socket per client)
 
         SocketTLSOptions _tlsOptions;
+
+        bool _forceBody;
     };
 } // namespace ix
