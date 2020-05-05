@@ -45,4 +45,6 @@ IXWebSocket client code is autobahn compliant beginning with the 6.0.0 version. 
 If your company or project is using this library, feel free to open an issue or PR to amend this list.
 
 - [Machine Zone](https://www.mz.com)
-- A discord [library](https://gitlab.com/HCInk/dis-light) with a node frontend.
+- [dis-light](https://gitlab.com/HCInk/dis-light), a discord library with a node frontend.
+- [libDiscordBot](https://github.com/tostc/libDiscordBot/tree/master), a work in progress discord library
+- [gwebsocket](https://github.com/norrbotten/gwebsocket), a websocket (lua) module for Garry's Mod
