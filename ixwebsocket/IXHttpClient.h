@@ -84,10 +84,10 @@ namespace ix
         void log(const std::string& msg, HttpRequestArgsPtr args);
 
         bool gzipInflate(const std::string& in, std::string& out);
+        bool _forceBody;
 
         // Async API background thread runner
         void run();
-        bool _forceBody;
         // Async API
         bool _async;
         std::queue<std::pair<HttpRequestArgsPtr, OnResponseCallback>> _queue;
