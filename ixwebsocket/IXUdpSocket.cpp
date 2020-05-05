@@ -9,7 +9,6 @@
 #include "IXNetSystem.h"
 #include <cstring>
 #include <sstream>
-#include <fcntl.h>
 
 namespace ix
 {
