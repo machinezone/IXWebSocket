@@ -29,6 +29,7 @@ typedef unsigned long int nfds_t;
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <fcntl.h>
 #endif
 
 namespace ix

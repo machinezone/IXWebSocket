@@ -18,7 +18,7 @@ typedef SSIZE_T ssize_t;
 #include "IXNetSystem.h"
 
 namespace ix
-{
+{    
     class UdpSocket
     {
     public:
@@ -28,9 +28,12 @@ namespace ix
         // Virtual methods
         bool init(const std::string& host, int port, std::string& errMsg);
         ssize_t sendto(const std::string& buffer);
+        ssize_t recvfrom(void* buffer, size_t length);
+
         void close();
 
         static int getErrno();
+        static bool isWaitNeeded();
         static void closeSocket(int fd);
 
     private:
