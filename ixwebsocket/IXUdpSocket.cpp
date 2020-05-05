@@ -113,9 +113,10 @@ namespace ix
             _sockfd, buffer.data(), buffer.size(), 0, (struct sockaddr*) &_server, sizeof(_server));
     }
 
-    ssize_t UdpSocket::recvfrom(void* buffer, size_t length)
+    ssize_t UdpSocket::recvfrom(char* buffer, size_t length)
     {
+        uint32_t addressLen = sizeof(_server);
         return (ssize_t)::recvfrom(
-            _sockfd, buffer, length, 0, (struct sockaddr*) &_server, sizeof(_server));
+            _sockfd, buffer, length, 0, (struct sockaddr*) &_server, &addressLen);
     }
 } // namespace ix
