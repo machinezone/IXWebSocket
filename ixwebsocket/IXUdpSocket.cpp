@@ -76,7 +76,7 @@ namespace ix
 
 #ifdef _WIN32
         unsigned long nonblocking = 1;
-        ioctlsocket(sockfd, FIONBIO, &nonblocking);
+        ioctlsocket(_sockfd, FIONBIO, &nonblocking);
 #else
         fcntl(_sockfd, F_SETFL, O_NONBLOCK); // make socket non blocking
 #endif
