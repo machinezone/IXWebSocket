@@ -69,7 +69,6 @@ namespace ix
                                 const std::string& position,
                                 bool fluentd,
                                 bool quiet,
-                                bool verbose,
                                 bool enableHeartbeat,
                                 int runtime)
     {
@@ -79,7 +78,6 @@ namespace ix
         bot.setOnBotMessageCallback(
             [&fluentd, &quiet, &jsonWriter](const Json::Value& msg,
                                             const std::string& position,
-                                            const bool /*verbose*/,
                                             std::atomic<bool>& /*throttled*/,
                                             std::atomic<bool>& /*fatalCobraError*/,
                                             std::atomic<uint64_t>& sentCount) -> void {
@@ -94,7 +92,6 @@ namespace ix
                        channel,
                        filter,
                        position,
-                       verbose,
                        enableHeartbeat,
                        runtime);
     }

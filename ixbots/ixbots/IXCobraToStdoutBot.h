@@ -18,7 +18,6 @@ namespace ix
                                 const std::string& position,
                                 bool fluentd,
                                 bool quiet,
-                                bool verbose,
                                 bool enableHeartbeat,
                                 int runtime);
 } // namespace ix

@@ -528,7 +528,6 @@ int main(int argc, char** argv)
                                                     position,
                                                     fluentd,
                                                     quiet,
-                                                    verbose,
                                                     enableHeartbeat,
                                                     runtime);
         ret = (int) sentCount;

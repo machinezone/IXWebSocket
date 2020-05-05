@@ -16,7 +16,6 @@ namespace ix
 {
     using OnBotMessageCallback = std::function<void(const Json::Value&,
                                                     const std::string&,
-                                                    const bool verbose,
                                                     std::atomic<bool>&,
                                                     std::atomic<bool>&,
                                                     std::atomic<uint64_t>&)>;
@@ -30,7 +29,6 @@ namespace ix
                     const std::string& channel,
                     const std::string& filter,
                     const std::string& position,
-                    bool verbose,
                     bool enableHeartbeat,
                     int runtime);
 

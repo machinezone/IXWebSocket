@@ -21,7 +21,6 @@ namespace ix
                           const std::string& channel,
                           const std::string& filter,
                           const std::string& position,
-                          bool verbose,
                           bool enableHeartbeat,
                           int runtime)
     {
@@ -117,7 +116,6 @@ namespace ix
                                &filter,
                                &subscriptionPosition,
                                &jsonWriter,
-                               verbose,
                                &throttled,
                                &receivedCount,
                                &fatalCobraError,
@@ -146,18 +144,11 @@ namespace ix
                                subscriptionPosition,
                                [this,
                                 &jsonWriter,
-                                verbose,
                                 &throttled,
                                 &receivedCount,
                                 &subscriptionPosition,
                                 &fatalCobraError,
                                 &sentCount](const Json::Value& msg, const std::string& position) {
-                                   if (verbose)
-                                   {
-                                       CoreLogger::info("Subscriber received message "
-                                                        + position + " -> " + jsonWriter.write(msg));
-                                   }
-
                                    subscriptionPosition = position;
 
                                    // If we cannot send to sentry fast enough, drop the message
@@ -169,8 +160,8 @@ namespace ix
                                    ++receivedCount;
 
                                    _onBotMessageCallback(
-                                       msg, position, verbose,
-                                       throttled, fatalCobraError, sentCount);
+                                       msg, position, throttled,
+                                       fatalCobraError, sentCount);
                                });
             }
             else if (event->type == ix::CobraEventType::Subscribed)

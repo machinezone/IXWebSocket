@@ -73,9 +73,8 @@ namespace ix
 
         CobraBot bot;
         bot.setOnBotMessageCallback(
-            [&statsdClient, &tokens, &gauge, &timer](const Json::Value& msg,
+            [&statsdClient, &tokens, &gauge, &timer, &verbose](const Json::Value& msg,
                                                      const std::string& /*position*/,
-                                                     const bool verbose,
                                                      std::atomic<bool>& /*throttled*/,
                                                      std::atomic<bool>& fatalCobraError,
                                                      std::atomic<uint64_t>& sentCount) -> void {
@@ -146,7 +145,6 @@ namespace ix
                        channel,
                        filter,
                        position,
-                       verbose,
                        enableHeartbeat,
                        runtime);
     }

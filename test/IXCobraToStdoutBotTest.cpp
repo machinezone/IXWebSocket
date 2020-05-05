@@ -87,7 +87,6 @@ TEST_CASE("Cobra_to_stdout_bot", "[cobra_bots]")
 
         std::string filter;
         std::string position("$");
-        bool verbose = true;
         bool quiet = false;
         bool enableHeartbeat = false;
 
@@ -103,7 +102,6 @@ TEST_CASE("Cobra_to_stdout_bot", "[cobra_bots]")
                                                     position,
                                                     fluentd,
                                                     quiet,
-                                                    verbose,
                                                     enableHeartbeat,
                                                     runtime);
         //
