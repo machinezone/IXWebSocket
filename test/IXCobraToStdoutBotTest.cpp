@@ -96,14 +96,8 @@ TEST_CASE("Cobra_to_stdout_bot", "[cobra_bots]")
         // We could try to capture the output ... not sure how.
         bool fluentd = true;
 
-        int64_t sentCount = ix::cobra_to_stdout_bot(config,
-                                                    channel,
-                                                    filter,
-                                                    position,
-                                                    fluentd,
-                                                    quiet,
-                                                    enableHeartbeat,
-                                                    runtime);
+        int64_t sentCount = ix::cobra_to_stdout_bot(
+            config, channel, filter, position, fluentd, quiet, enableHeartbeat, runtime);
         //
         // We want at least 2 messages to be sent
         //

@@ -159,14 +159,8 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         // Only run the bot for 3 seconds
         int runtime = 3;
 
-        int64_t sentCount = cobra_to_sentry_bot(config,
-                                                channel,
-                                                filter,
-                                                position,
-                                                sentryClient,
-                                                verbose,
-                                                enableHeartbeat,
-                                                runtime);
+        int64_t sentCount = cobra_to_sentry_bot(
+            config, channel, filter, position, sentryClient, verbose, enableHeartbeat, runtime);
         //
         // We want at least 2 messages to be sent
         //

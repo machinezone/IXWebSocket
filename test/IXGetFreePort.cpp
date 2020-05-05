@@ -4,7 +4,7 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
-// Using inet_addr will trigger an error on uwp without this 
+// Using inet_addr will trigger an error on uwp without this
 // FIXME: use a different api
 #ifdef _WIN32
 #ifndef _WINSOCK_DEPRECATED_NO_WARNINGS

@@ -241,8 +241,7 @@ namespace ix
         }
 
         // Make a new cancellation object dealing with transfer timeout
-        isCancellationRequested =
-            makeCancellationRequestWithTimeout(args->transferTimeout, _stop);
+        isCancellationRequested = makeCancellationRequestWithTimeout(args->transferTimeout, _stop);
 
         if (args->verbose)
         {

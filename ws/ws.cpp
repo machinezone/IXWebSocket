@@ -19,8 +19,8 @@
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
-#include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
 
@@ -522,14 +522,8 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("cobra_subscribe"))
     {
         bool enableHeartbeat = true;
-        int64_t sentCount = ix::cobra_to_stdout_bot(cobraConfig,
-                                                    channel,
-                                                    filter,
-                                                    position,
-                                                    fluentd,
-                                                    quiet,
-                                                    enableHeartbeat,
-                                                    runtime);
+        int64_t sentCount = ix::cobra_to_stdout_bot(
+            cobraConfig, channel, filter, position, fluentd, quiet, enableHeartbeat, runtime);
         ret = (int) sentCount;
     }
     else if (app.got_subcommand("cobra_publish"))
