@@ -115,7 +115,11 @@ namespace ix
 
     ssize_t UdpSocket::recvfrom(char* buffer, size_t length)
     {
-        uint32_t addressLen = sizeof(_server);
+#ifdef _WIN32
+        int addressLen = (int) sizeof(_server);
+#else
+        socklen_t addressLen = (socklen_t) sizeof(_server);
+#endif
         return (ssize_t)::recvfrom(
             _sockfd, buffer, length, 0, (struct sockaddr*) &_server, &addressLen);
     }
