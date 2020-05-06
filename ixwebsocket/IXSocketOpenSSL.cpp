@@ -108,7 +108,11 @@ namespace ix
         if (!OPENSSL_init_ssl(OPENSSL_INIT_LOAD_CONFIG, nullptr)) return;
 #else
         (void) OPENSSL_config(nullptr);
-        CRYPTO_set_locking_callback(SocketOpenSSL::openSSLLockingCallback);
+
+        if (CRYPTO_get_locking_callback() != nullptr)
+        {
+            CRYPTO_set_locking_callback(SocketOpenSSL::openSSLLockingCallback);
+        }
 #endif
 
         (void) OpenSSL_add_ssl_algorithms();
