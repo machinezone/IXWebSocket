@@ -18,7 +18,7 @@ typedef SSIZE_T ssize_t;
 #include "IXNetSystem.h"
 
 namespace ix
-{    
+{
     class UdpSocket
     {
     public:

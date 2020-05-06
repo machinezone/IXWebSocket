@@ -49,6 +49,12 @@ namespace ix
         bool handleTLSOptions(std::string& errMsg);
         bool openSSLServerHandshake(std::string& errMsg);
 
+        // Required for OpenSSL < 1.1
+        void openSSLLockingCallback(int mode,
+                                    int type,
+                                    const char* /*file*/,
+                                    int /*line*/);
+
         SSL* _ssl_connection;
         SSL_CTX* _ssl_context;
         const SSL_METHOD* _ssl_method;
@@ -58,6 +64,7 @@ namespace ix
 
         static std::once_flag _openSSLInitFlag;
         static std::atomic<bool> _openSSLInitializationSuccessful;
+        static std::unique_ptr<std::mutex[]> _openSSLMutexes;
     };
 
 } // namespace ix

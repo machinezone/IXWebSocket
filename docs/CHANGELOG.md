@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.5.5] - 2020-05-06
+
+(openssl tls) when OpenSSL is older than 1.1, register the crypto locking callback to be thread safe. Should fix lots of CI failures
+
 ## [9.5.4] - 2020-05-04
 
 (cobra bots) do not use a queue to store messages pending processing, let the bot handle queuing

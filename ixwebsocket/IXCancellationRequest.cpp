@@ -6,8 +6,8 @@
 
 #include "IXCancellationRequest.h"
 
-#include <chrono>
 #include <cassert>
+#include <chrono>
 
 namespace ix
 {

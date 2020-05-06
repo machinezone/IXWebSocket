@@ -19,6 +19,7 @@ typedef unsigned long int nfds_t;
 #else
 #include <arpa/inet.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -29,7 +30,6 @@ typedef unsigned long int nfds_t;
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <fcntl.h>
 #endif
 
 namespace ix
