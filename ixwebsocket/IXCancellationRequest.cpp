@@ -7,12 +7,15 @@
 #include "IXCancellationRequest.h"
 
 #include <chrono>
+#include <cassert>
 
 namespace ix
 {
     CancellationRequest makeCancellationRequestWithTimeout(
         int secs, std::atomic<bool>& requestInitCancellation)
     {
+        assert(secs > 0);
+
         auto start = std::chrono::system_clock::now();
         auto timeout = std::chrono::seconds(secs);
 
