@@ -23,5 +23,6 @@ namespace ix
                                 const std::string& timer,
                                 bool verbose,
                                 bool enableHeartbeat,
+                                int heartBeatTimeout,
                                 int runtime);
 } // namespace ix

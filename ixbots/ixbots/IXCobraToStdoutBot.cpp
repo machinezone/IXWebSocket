@@ -70,6 +70,7 @@ namespace ix
                                 bool fluentd,
                                 bool quiet,
                                 bool enableHeartbeat,
+                                int heartBeatTimeout,
                                 int runtime)
     {
         CobraBot bot;
@@ -93,6 +94,7 @@ namespace ix
                        filter,
                        position,
                        enableHeartbeat,
+                       heartBeatTimeout,
                        runtime);
     }
 } // namespace ix

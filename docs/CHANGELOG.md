@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.5.6] - 2020-05-06
+
+(cobra bots) add a --heartbeat_timeout option to specify when the bot should terminate because no events are received
+
 ## [9.5.5] - 2020-05-06
 
 (openssl tls) when OpenSSL is older than 1.1, register the crypto locking callback to be thread safe. Should fix lots of CI failures

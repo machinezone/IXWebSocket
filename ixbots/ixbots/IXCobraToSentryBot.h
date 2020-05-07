@@ -19,5 +19,6 @@ namespace ix
                                 SentryClient& sentryClient,
                                 bool verbose,
                                 bool enableHeartbeat,
+                                int heartBeatTimeout,
                                 int runtime);
 } // namespace ix

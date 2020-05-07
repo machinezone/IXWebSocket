@@ -63,6 +63,7 @@ namespace ix
                                 const std::string& timer,
                                 bool verbose,
                                 bool enableHeartbeat,
+                                int heartBeatTimeout,
                                 int runtime)
     {
         ix::CobraConnection conn;
@@ -146,6 +147,7 @@ namespace ix
                        filter,
                        position,
                        enableHeartbeat,
+                       heartBeatTimeout,
                        runtime);
     }
 } // namespace ix

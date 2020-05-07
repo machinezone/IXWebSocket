@@ -23,6 +23,7 @@ namespace ix
                                 SentryClient& sentryClient,
                                 bool verbose,
                                 bool enableHeartbeat,
+                                int heartBeatTimeout,
                                 int runtime)
     {
         CobraBot bot;
@@ -81,6 +82,7 @@ namespace ix
                        filter,
                        position,
                        enableHeartbeat,
+                       heartBeatTimeout,
                        runtime);
     }
 } // namespace ix

@@ -150,6 +150,7 @@ int main(int argc, char** argv)
     uint32_t maxWaitBetweenReconnectionRetries;
     int pingIntervalSecs = 30;
     int runtime = -1; // run indefinitely
+    int heartBeatTimeout = 60;
 
     auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* app) {
         app->add_option(
@@ -287,6 +288,7 @@ int main(int argc, char** argv)
     cobraSubscribeApp->add_flag("-q", quiet, "Quiet / only display stats");
     cobraSubscribeApp->add_flag("--fluentd", fluentd, "Write fluentd prefix");
     cobraSubscribeApp->add_option("--runtime", runtime, "Runtime in seconds");
+    cobraSubscribeApp->add_option("--heartbeat_timeout", heartBeatTimeout, "Heartbeat timeout");
     addTLSOptions(cobraSubscribeApp);
     addCobraConfig(cobraSubscribeApp);
 
@@ -328,6 +330,7 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("--filter", filter, "Stream SQL Filter");
     cobra2statsd->add_option("--position", position, "Stream position");
     cobra2statsd->add_option("--runtime", runtime, "Runtime in seconds");
+    cobra2statsd->add_option("--heartbeat_timeout", heartBeatTimeout, "Heartbeat timeout");
     addTLSOptions(cobra2statsd);
     addCobraConfig(cobra2statsd);
 
@@ -340,6 +343,7 @@ int main(int argc, char** argv)
     cobra2sentry->add_option("--filter", filter, "Stream SQL Filter");
     cobra2sentry->add_option("--position", position, "Stream position");
     cobra2sentry->add_option("--runtime", runtime, "Runtime in seconds");
+    cobra2sentry->add_option("--heartbeat_timeout", heartBeatTimeout, "Heartbeat timeout");
     addTLSOptions(cobra2sentry);
     addCobraConfig(cobra2sentry);
 
@@ -522,8 +526,15 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("cobra_subscribe"))
     {
         bool enableHeartbeat = true;
-        int64_t sentCount = ix::cobra_to_stdout_bot(
-            cobraConfig, channel, filter, position, fluentd, quiet, enableHeartbeat, runtime);
+        int64_t sentCount = ix::cobra_to_stdout_bot(cobraConfig,
+                                                    channel,
+                                                    filter,
+                                                    position,
+                                                    fluentd,
+                                                    quiet,
+                                                    enableHeartbeat,
+                                                    heartBeatTimeout,
+                                                    runtime);
         ret = (int) sentCount;
     }
     else if (app.got_subcommand("cobra_publish"))
@@ -566,6 +577,7 @@ int main(int argc, char** argv)
                                                     timer,
                                                     verbose,
                                                     enableHeartbeat,
+                                                    heartBeatTimeout,
                                                     runtime);
             }
         }
@@ -583,6 +595,7 @@ int main(int argc, char** argv)
                                             sentryClient,
                                             verbose,
                                             enableHeartbeat,
+                                            heartBeatTimeout,
                                             runtime);
     }
     else if (app.got_subcommand("cobra_metrics_to_redis"))

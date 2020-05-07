@@ -19,5 +19,6 @@ namespace ix
                                 bool fluentd,
                                 bool quiet,
                                 bool enableHeartbeat,
+                                int heartBeatTimeout,
                                 int runtime);
 } // namespace ix

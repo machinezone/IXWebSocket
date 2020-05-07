@@ -91,6 +91,7 @@ TEST_CASE("Cobra_to_statsd_bot", "[cobra_bots]")
         std::string position("$");
         bool verbose = true;
         bool enableHeartbeat = false;
+        int heartBeatTimeout = 60;
 
         // Only run the bot for 3 seconds
         int runtime = 3;
@@ -123,6 +124,7 @@ TEST_CASE("Cobra_to_statsd_bot", "[cobra_bots]")
                                                     timer,
                                                     verbose,
                                                     enableHeartbeat,
+                                                    heartBeatTimeout,
                                                     runtime);
         //
         // We want at least 2 messages to be sent

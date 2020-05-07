@@ -30,6 +30,7 @@ namespace ix
                     const std::string& filter,
                     const std::string& position,
                     bool enableHeartbeat,
+                    int heartBeatTimeout,
                     int runtime);
 
         void setOnBotMessageCallback(const OnBotMessageCallback& callback);

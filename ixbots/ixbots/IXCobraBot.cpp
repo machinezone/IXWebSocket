@@ -22,6 +22,7 @@ namespace ix
                           const std::string& filter,
                           const std::string& position,
                           bool enableHeartbeat,
+                          int heartBeatTimeout,
                           int runtime)
     {
         ix::CobraConnection conn;
@@ -78,7 +79,7 @@ namespace ix
 
         std::thread t1(timer);
 
-        auto heartbeat = [&sentCount, &receivedCount, &stop, &enableHeartbeat] {
+        auto heartbeat = [&sentCount, &receivedCount, &stop, &enableHeartbeat, &heartBeatTimeout] {
             std::string state("na");
 
             if (!enableHeartbeat) return;
@@ -94,11 +95,12 @@ namespace ix
                 if (currentState == state)
                 {
                     CoreLogger::error("no messages received or sent for 1 minute, exiting");
-                    exit(1);
+                    fatalCobraError = true;
+                    break;
                 }
                 state = currentState;
 
-                auto duration = std::chrono::minutes(1);
+                auto duration = std::chrono::seconds(heartBeatTimeout);
                 std::this_thread::sleep_for(duration);
             }
 
