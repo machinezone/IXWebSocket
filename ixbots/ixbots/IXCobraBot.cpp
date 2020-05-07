@@ -79,7 +79,7 @@ namespace ix
 
         std::thread t1(timer);
 
-        auto heartbeat = [&sentCount, &receivedCount, &stop, &enableHeartbeat, &heartBeatTimeout] {
+        auto heartbeat = [&sentCount, &receivedCount, &stop, &enableHeartbeat, &heartBeatTimeout, &fatalCobraError] {
             std::string state("na");
 
             if (!enableHeartbeat) return;
