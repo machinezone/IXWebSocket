@@ -93,10 +93,11 @@ TEST_CASE("subprotocol", "[websocket_subprotocol]")
         webSocket.setUrl(url);
         webSocket.start();
 
+        // Give us 3 seconds to connect
         int attempts = 0;
         while (!connected)
         {
-            REQUIRE(attempts++ < 100);
+            REQUIRE(attempts++ < 300);
             ix::msleep(10);
         }
 
