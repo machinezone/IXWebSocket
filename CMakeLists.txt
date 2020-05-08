@@ -12,6 +12,10 @@ set (CMAKE_CXX_STANDARD 14)
 set (CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
 if (UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 endif()
@@ -145,10 +149,6 @@ add_library( ixwebsocket STATIC
 )
 
 add_library ( ixwebsocket::ixwebsocket ALIAS ixwebsocket )
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
 
 if (USE_TLS)
     target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_TLS)
