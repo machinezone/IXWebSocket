@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.5.8] - 2020-05-08
+
+(openssl tls) (openssl < 1.1) logic inversion - crypto locking callback are not registered properly
+
 ## [9.5.7] - 2020-05-08
 
 (cmake) default TLS back to mbedtls on Windows Universal Platform

@@ -109,7 +109,7 @@ namespace ix
 #else
         (void) OPENSSL_config(nullptr);
 
-        if (CRYPTO_get_locking_callback() != nullptr)
+        if (CRYPTO_get_locking_callback() == nullptr)
         {
             CRYPTO_set_locking_callback(SocketOpenSSL::openSSLLockingCallback);
         }
