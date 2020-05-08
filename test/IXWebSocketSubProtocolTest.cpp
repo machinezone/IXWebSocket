@@ -96,7 +96,7 @@ TEST_CASE("subprotocol", "[websocket_subprotocol]")
         int attempts = 0;
         while (!connected)
         {
-            REQUIRE(attempts++ < 10);
+            REQUIRE(attempts++ < 100);
             ix::msleep(10);
         }
 

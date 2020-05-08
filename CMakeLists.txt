@@ -171,6 +171,10 @@ if (USE_TLS)
     if (APPLE)
       set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /usr/local/opt/openssl/lib)
       set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} /usr/local/opt/openssl/include)
+
+      # This is for MacPort OpenSSL 1.0
+      # set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib/openssl-1.0)
+      # set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} /opt/local/include/openssl-1.0)
     endif()
 
     # This OPENSSL_FOUND check is to help find a cmake manually configured OpenSSL
