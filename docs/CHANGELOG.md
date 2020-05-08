@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.5.7] - 2020-05-08
+
+(cmake) default TLS back to mbedtls on Windows Universal Platform
+
 ## [9.5.6] - 2020-05-06
 
 (cobra bots) add a --heartbeat_timeout option to specify when the bot should terminate because no events are received
