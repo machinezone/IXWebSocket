@@ -177,13 +177,18 @@ int main(int argc, char** argv)
         app->add_option("--appkey", cobraBotConfig.cobraConfig.appkey, "Appkey")->required();
         app->add_option("--endpoint", cobraBotConfig.cobraConfig.endpoint, "Endpoint")->required();
         app->add_option("--rolename", cobraBotConfig.cobraConfig.rolename, "Role name")->required();
-        app->add_option("--rolesecret", cobraBotConfig.cobraConfig.rolesecret, "Role secret")->required();
+        app->add_option("--rolesecret", cobraBotConfig.cobraConfig.rolesecret, "Role secret")
+            ->required();
         app->add_option("--channel", cobraBotConfig.channel, "Channel")->required();
         app->add_option("--filter", cobraBotConfig.filter, "Filter");
         app->add_option("--position", cobraBotConfig.position, "Position");
         app->add_option("--runtime", cobraBotConfig.runtime, "Runtime");
         app->add_option("--heartbeat", cobraBotConfig.enableHeartbeat, "Runtime");
         app->add_option("--heartbeat_timeout", cobraBotConfig.heartBeatTimeout, "Runtime");
+        app->add_flag(
+            "--limit_received_events", cobraBotConfig.limitReceivedEvents, "Max events per minute");
+        app->add_option(
+            "--max_events_per_minute", cobraBotConfig.maxEventsPerMinute, "Max events per minute");
     };
 
     app.add_flag("--version", version, "Print ws version");
@@ -453,7 +458,8 @@ int main(int argc, char** argv)
     cobraConfig.webSocketPerMessageDeflateOptions = ix::WebSocketPerMessageDeflateOptions(true);
     cobraConfig.socketTLSOptions = tlsOptions;
 
-    cobraBotConfig.cobraConfig.webSocketPerMessageDeflateOptions = ix::WebSocketPerMessageDeflateOptions(true);
+    cobraBotConfig.cobraConfig.webSocketPerMessageDeflateOptions =
+        ix::WebSocketPerMessageDeflateOptions(true);
     cobraBotConfig.cobraConfig.socketTLSOptions = tlsOptions;
 
     int ret = 1;
@@ -525,9 +531,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_subscribe"))
     {
-        int64_t sentCount = ix::cobra_to_stdout_bot(cobraBotConfig,
-                                                    fluentd,
-                                                    quiet);
+        int64_t sentCount = ix::cobra_to_stdout_bot(cobraBotConfig, fluentd, quiet);
         ret = (int) sentCount;
     }
     else if (app.got_subcommand("cobra_publish"))
@@ -559,12 +563,8 @@ int main(int argc, char** argv)
             }
             else
             {
-                ret = (int) ix::cobra_to_statsd_bot(cobraBotConfig,
-                                                    statsdClient,
-                                                    fields,
-                                                    gauge,
-                                                    timer,
-                                                    verbose);
+                ret = (int) ix::cobra_to_statsd_bot(
+                    cobraBotConfig, statsdClient, fields, gauge, timer, verbose);
             }
         }
     }
@@ -573,9 +573,7 @@ int main(int argc, char** argv)
         ix::SentryClient sentryClient(dsn);
         sentryClient.setTLSOptions(tlsOptions);
 
-        ret = (int) ix::cobra_to_sentry_bot(cobraBotConfig,
-                                            sentryClient,
-                                            verbose);
+        ret = (int) ix::cobra_to_sentry_bot(cobraBotConfig, sentryClient, verbose);
     }
     else if (app.got_subcommand("cobra_metrics_to_redis"))
     {

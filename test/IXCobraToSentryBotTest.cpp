@@ -158,9 +158,7 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         SentryClient sentryClient(dsn);
         sentryClient.setTLSOptions(tlsOptionsClient);
 
-        int64_t sentCount = cobra_to_sentry_bot(cobraBotConfig,
-                                                sentryClient,
-                                                verbose);
+        int64_t sentCount = cobra_to_sentry_bot(cobraBotConfig, sentryClient, verbose);
         //
         // We want at least 2 messages to be sent
         //

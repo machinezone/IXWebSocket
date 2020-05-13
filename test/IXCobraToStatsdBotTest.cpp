@@ -112,12 +112,8 @@ TEST_CASE("Cobra_to_statsd_bot", "[cobra_bots]")
         std::string timer;
         bool verbose = true;
 
-        int64_t sentCount = ix::cobra_to_statsd_bot(cobraBotConfig,
-                                                    statsdClient,
-                                                    fields,
-                                                    gauge,
-                                                    timer,
-                                                    verbose);
+        int64_t sentCount =
+            ix::cobra_to_statsd_bot(cobraBotConfig, statsdClient, fields, gauge, timer, verbose);
         //
         // We want at least 2 messages to be sent
         //

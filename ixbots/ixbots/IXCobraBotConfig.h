@@ -7,6 +7,7 @@
 #pragma once
 
 #include <string>
+#include <limits>
 #include <ixcobra/IXCobraConfig.h>
 
 namespace ix
@@ -20,5 +21,7 @@ namespace ix
         bool enableHeartbeat = true;
         int heartBeatTimeout = 60;
         int runtime = -1;
+        int maxEventsPerMinute = std::numeric_limits<int>::max();
+        bool limitReceivedEvents = false;
     };
 } // namespace ix

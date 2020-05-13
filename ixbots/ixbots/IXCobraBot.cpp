@@ -26,6 +26,8 @@ namespace ix
         auto enableHeartbeat = botConfig.enableHeartbeat;
         auto heartBeatTimeout = botConfig.heartBeatTimeout;
         auto runtime = botConfig.runtime;
+        auto maxEventsPerMinute = botConfig.maxEventsPerMinute;
+        auto limitReceivedEvents = botConfig.limitReceivedEvents;
 
         ix::CobraConnection conn;
         conn.configure(config);
@@ -37,9 +39,11 @@ namespace ix
         uint64_t receivedCountTotal(0);
         uint64_t sentCountPerSecs(0);
         uint64_t receivedCountPerSecs(0);
+        std::atomic<int> receivedCountPerMinutes(0);
         std::atomic<bool> stop(false);
         std::atomic<bool> throttled(false);
         std::atomic<bool> fatalCobraError(false);
+        int minuteCounter = 0;
 
         auto timer = [&sentCount,
                       &receivedCount,
@@ -47,6 +51,8 @@ namespace ix
                       &receivedCountTotal,
                       &sentCountPerSecs,
                       &receivedCountPerSecs,
+                      &receivedCountPerMinutes,
+                      &minuteCounter,
                       &stop] {
             while (!stop)
             {
@@ -67,13 +73,19 @@ namespace ix
                 CoreLogger::info(ss.str());
 
                 receivedCountPerSecs = receivedCount - receivedCountTotal;
-                sentCountPerSecs = sentCount - receivedCountTotal;
+                sentCountPerSecs = sentCount - sentCountTotal;
 
                 receivedCountTotal += receivedCountPerSecs;
                 sentCountTotal += sentCountPerSecs;
 
                 auto duration = std::chrono::seconds(1);
                 std::this_thread::sleep_for(duration);
+
+                if (minuteCounter++ == 60)
+                {
+                    receivedCountPerMinutes = 0;
+                    minuteCounter = 0;
+                }
             }
 
             CoreLogger::info("timer thread done");
@@ -120,6 +132,9 @@ namespace ix
                                &subscriptionPosition,
                                &throttled,
                                &receivedCount,
+                               &receivedCountPerMinutes,
+                               maxEventsPerMinute,
+                               limitReceivedEvents,
                                &fatalCobraError,
                                &sentCount](const CobraEventPtr& event) {
             if (event->type == ix::CobraEventType::Open)
@@ -141,29 +156,34 @@ namespace ix
                 CoreLogger::info("Subscribing to " + channel);
                 CoreLogger::info("Subscribing at position " + subscriptionPosition);
                 CoreLogger::info("Subscribing with filter " + filter);
-                conn.subscribe(channel,
-                               filter,
-                               subscriptionPosition,
-                               [this,
-                                &throttled,
-                                &receivedCount,
-                                &subscriptionPosition,
-                                &fatalCobraError,
-                                &sentCount](const Json::Value& msg, const std::string& position) {
-                                   subscriptionPosition = position;
+                conn.subscribe(channel, filter, subscriptionPosition,
+                    [&sentCount, &receivedCountPerMinutes,
+                     maxEventsPerMinute, limitReceivedEvents,
+                     &throttled, &receivedCount,
+                     &subscriptionPosition, &fatalCobraError,
+                     this](const Json::Value& msg, const std::string& position) {
+                        subscriptionPosition = position;
+                        ++receivedCount;
 
-                                   // If we cannot send to sentry fast enough, drop the message
-                                   if (throttled)
-                                   {
-                                       return;
-                                   }
+                        ++receivedCountPerMinutes;
+                        if (limitReceivedEvents)
+                        {
+                            if (receivedCountPerMinutes > maxEventsPerMinute)
+                            {
+                                return;
+                            }
+                        }
 
-                                   ++receivedCount;
+                        // If we cannot send to sentry fast enough, drop the message
+                        if (throttled)
+                        {
+                            return;
+                        }
 
-                                   _onBotMessageCallback(
-                                       msg, position, throttled,
-                                       fatalCobraError, sentCount);
-                               });
+                        _onBotMessageCallback(
+                            msg, position, throttled,
+                            fatalCobraError, sentCount);
+                    });
             }
             else if (event->type == ix::CobraEventType::Subscribed)
             {
