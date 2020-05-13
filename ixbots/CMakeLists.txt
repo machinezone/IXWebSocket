@@ -13,6 +13,7 @@ set (IXBOTS_SOURCES
 
 set (IXBOTS_HEADERS
     ixbots/IXCobraBot.h
+    ixbots/IXCobraBotConfig.h
     ixbots/IXCobraToSentryBot.h
     ixbots/IXCobraToStatsdBot.h
     ixbots/IXCobraToStdoutBot.h

@@ -85,27 +85,19 @@ TEST_CASE("Cobra_to_stdout_bot", "[cobra_bots]")
 
         std::thread publisherThread(runPublisher, config, channel);
 
-        std::string filter;
-        std::string position("$");
+        ix::CobraBotConfig cobraBotConfig;
+        cobraBotConfig.cobraConfig = config;
+        cobraBotConfig.channel = channel;
+        cobraBotConfig.runtime = 3; // Only run the bot for 3 seconds
+        cobraBotConfig.enableHeartbeat = false;
         bool quiet = false;
-        bool enableHeartbeat = false;
-        int heartBeatTimeout = 60;
-
-        // Only run the bot for 3 seconds
-        int runtime = 3;
 
         // We could try to capture the output ... not sure how.
         bool fluentd = true;
 
-        int64_t sentCount = ix::cobra_to_stdout_bot(config,
-                                                    channel,
-                                                    filter,
-                                                    position,
+        int64_t sentCount = ix::cobra_to_stdout_bot(cobraBotConfig,
                                                     fluentd,
-                                                    quiet,
-                                                    enableHeartbeat,
-                                                    heartBeatTimeout,
-                                                    runtime);
+                                                    quiet);
         //
         // We want at least 2 messages to be sent
         //

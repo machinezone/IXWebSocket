@@ -53,23 +53,13 @@ namespace ix
         return val;
     }
 
-    int64_t cobra_to_statsd_bot(const ix::CobraConfig& config,
-                                const std::string& channel,
-                                const std::string& filter,
-                                const std::string& position,
+    int64_t cobra_to_statsd_bot(const ix::CobraBotConfig& config,
                                 StatsdClient& statsdClient,
                                 const std::string& fields,
                                 const std::string& gauge,
                                 const std::string& timer,
-                                bool verbose,
-                                bool enableHeartbeat,
-                                int heartBeatTimeout,
-                                int runtime)
+                                bool verbose)
     {
-        ix::CobraConnection conn;
-        conn.configure(config);
-        conn.connect();
-
         auto tokens = parseFields(fields);
 
         CobraBot bot;
@@ -142,12 +132,6 @@ namespace ix
                 sentCount++;
             });
 
-        return bot.run(config,
-                       channel,
-                       filter,
-                       position,
-                       enableHeartbeat,
-                       heartBeatTimeout,
-                       runtime);
+        return bot.run(config);
     }
 } // namespace ix

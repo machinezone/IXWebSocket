@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.5.9] - 2020-05-12
+
+(ixbots) add new class to configure a bot to simplify passing options around
+
 ## [9.5.8] - 2020-05-08
 
 (openssl tls) (openssl < 1.1) logic inversion - crypto locking callback are not registered properly

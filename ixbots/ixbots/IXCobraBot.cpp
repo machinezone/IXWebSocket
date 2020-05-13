@@ -17,14 +17,16 @@
 
 namespace ix
 {
-    int64_t CobraBot::run(const CobraConfig& config,
-                          const std::string& channel,
-                          const std::string& filter,
-                          const std::string& position,
-                          bool enableHeartbeat,
-                          int heartBeatTimeout,
-                          int runtime)
+    int64_t CobraBot::run(const CobraBotConfig& botConfig)
     {
+        auto config = botConfig.cobraConfig;
+        auto channel = botConfig.channel;
+        auto filter = botConfig.filter;
+        auto position = botConfig.position;
+        auto enableHeartbeat = botConfig.enableHeartbeat;
+        auto heartBeatTimeout = botConfig.heartBeatTimeout;
+        auto runtime = botConfig.runtime;
+
         ix::CobraConnection conn;
         conn.configure(config);
         conn.connect();

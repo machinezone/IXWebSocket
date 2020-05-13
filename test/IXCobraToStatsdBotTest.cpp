@@ -87,14 +87,11 @@ TEST_CASE("Cobra_to_statsd_bot", "[cobra_bots]")
 
         std::thread publisherThread(runPublisher, config, channel);
 
-        std::string filter;
-        std::string position("$");
-        bool verbose = true;
-        bool enableHeartbeat = false;
-        int heartBeatTimeout = 60;
-
-        // Only run the bot for 3 seconds
-        int runtime = 3;
+        ix::CobraBotConfig cobraBotConfig;
+        cobraBotConfig.cobraConfig = config;
+        cobraBotConfig.channel = channel;
+        cobraBotConfig.runtime = 3; // Only run the bot for 3 seconds
+        cobraBotConfig.enableHeartbeat = false;
 
         std::string hostname("127.0.0.1");
         // std::string hostname("www.google.com");
@@ -113,19 +110,14 @@ TEST_CASE("Cobra_to_statsd_bot", "[cobra_bots]")
         std::string fields("device.game\ndevice.os_name");
         std::string gauge;
         std::string timer;
+        bool verbose = true;
 
-        int64_t sentCount = ix::cobra_to_statsd_bot(config,
-                                                    channel,
-                                                    filter,
-                                                    position,
+        int64_t sentCount = ix::cobra_to_statsd_bot(cobraBotConfig,
                                                     statsdClient,
                                                     fields,
                                                     gauge,
                                                     timer,
-                                                    verbose,
-                                                    enableHeartbeat,
-                                                    heartBeatTimeout,
-                                                    runtime);
+                                                    verbose);
         //
         // We want at least 2 messages to be sent
         //

@@ -120,6 +120,7 @@ int main(int argc, char** argv)
     std::string logfile;
     ix::SocketTLSOptions tlsOptions;
     ix::CobraConfig cobraConfig;
+    ix::CobraBotConfig cobraBotConfig;
     std::string ciphers;
     std::string redirectUrl;
     bool headersOnly = false;
@@ -149,8 +150,6 @@ int main(int argc, char** argv)
     int count = 1;
     uint32_t maxWaitBetweenReconnectionRetries;
     int pingIntervalSecs = 30;
-    int runtime = -1; // run indefinitely
-    int heartBeatTimeout = 60;
 
     auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* app) {
         app->add_option(
@@ -172,6 +171,19 @@ int main(int argc, char** argv)
         app->add_option("--endpoint", cobraConfig.endpoint, "Endpoint")->required();
         app->add_option("--rolename", cobraConfig.rolename, "Role name")->required();
         app->add_option("--rolesecret", cobraConfig.rolesecret, "Role secret")->required();
+    };
+
+    auto addCobraBotConfig = [&cobraBotConfig](CLI::App* app) {
+        app->add_option("--appkey", cobraBotConfig.cobraConfig.appkey, "Appkey")->required();
+        app->add_option("--endpoint", cobraBotConfig.cobraConfig.endpoint, "Endpoint")->required();
+        app->add_option("--rolename", cobraBotConfig.cobraConfig.rolename, "Role name")->required();
+        app->add_option("--rolesecret", cobraBotConfig.cobraConfig.rolesecret, "Role secret")->required();
+        app->add_option("--channel", cobraBotConfig.channel, "Channel")->required();
+        app->add_option("--filter", cobraBotConfig.filter, "Filter");
+        app->add_option("--position", cobraBotConfig.position, "Position");
+        app->add_option("--runtime", cobraBotConfig.runtime, "Runtime");
+        app->add_option("--heartbeat", cobraBotConfig.enableHeartbeat, "Runtime");
+        app->add_option("--heartbeat_timeout", cobraBotConfig.heartBeatTimeout, "Runtime");
     };
 
     app.add_flag("--version", version, "Print ws version");
@@ -281,16 +293,11 @@ int main(int argc, char** argv)
 
     CLI::App* cobraSubscribeApp = app.add_subcommand("cobra_subscribe", "Cobra subscriber");
     cobraSubscribeApp->fallthrough();
-    cobraSubscribeApp->add_option("--channel", channel, "Channel")->required();
     cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
-    cobraSubscribeApp->add_option("--filter", filter, "Stream SQL Filter");
-    cobraSubscribeApp->add_option("--position", position, "Stream position");
     cobraSubscribeApp->add_flag("-q", quiet, "Quiet / only display stats");
     cobraSubscribeApp->add_flag("--fluentd", fluentd, "Write fluentd prefix");
-    cobraSubscribeApp->add_option("--runtime", runtime, "Runtime in seconds");
-    cobraSubscribeApp->add_option("--heartbeat_timeout", heartBeatTimeout, "Heartbeat timeout");
     addTLSOptions(cobraSubscribeApp);
-    addCobraConfig(cobraSubscribeApp);
+    addCobraBotConfig(cobraSubscribeApp);
 
     CLI::App* cobraPublish = app.add_subcommand("cobra_publish", "Cobra publisher");
     cobraPublish->fallthrough();
@@ -324,28 +331,18 @@ int main(int argc, char** argv)
         ->join();
     cobra2statsd->add_option("--timer", timer, "Value to extract, and use as a statsd timer")
         ->join();
-    cobra2statsd->add_option("channel", channel, "Channel")->required();
     cobra2statsd->add_flag("-v", verbose, "Verbose");
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
-    cobra2statsd->add_option("--filter", filter, "Stream SQL Filter");
-    cobra2statsd->add_option("--position", position, "Stream position");
-    cobra2statsd->add_option("--runtime", runtime, "Runtime in seconds");
-    cobra2statsd->add_option("--heartbeat_timeout", heartBeatTimeout, "Heartbeat timeout");
     addTLSOptions(cobra2statsd);
-    addCobraConfig(cobra2statsd);
+    addCobraBotConfig(cobra2statsd);
 
     CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra metrics to sentry");
     cobra2sentry->fallthrough();
     cobra2sentry->add_option("--dsn", dsn, "Sentry DSN");
-    cobra2sentry->add_option("channel", channel, "Channel")->required();
     cobra2sentry->add_flag("-v", verbose, "Verbose");
     cobra2sentry->add_option("--pidfile", pidfile, "Pid file");
-    cobra2sentry->add_option("--filter", filter, "Stream SQL Filter");
-    cobra2sentry->add_option("--position", position, "Stream position");
-    cobra2sentry->add_option("--runtime", runtime, "Runtime in seconds");
-    cobra2sentry->add_option("--heartbeat_timeout", heartBeatTimeout, "Heartbeat timeout");
     addTLSOptions(cobra2sentry);
-    addCobraConfig(cobra2sentry);
+    addCobraBotConfig(cobra2sentry);
 
     CLI::App* cobra2redisApp =
         app.add_subcommand("cobra_metrics_to_redis", "Cobra metrics to redis");
@@ -456,6 +453,9 @@ int main(int argc, char** argv)
     cobraConfig.webSocketPerMessageDeflateOptions = ix::WebSocketPerMessageDeflateOptions(true);
     cobraConfig.socketTLSOptions = tlsOptions;
 
+    cobraBotConfig.cobraConfig.webSocketPerMessageDeflateOptions = ix::WebSocketPerMessageDeflateOptions(true);
+    cobraBotConfig.cobraConfig.socketTLSOptions = tlsOptions;
+
     int ret = 1;
     if (app.got_subcommand("transfer"))
     {
@@ -525,16 +525,9 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_subscribe"))
     {
-        bool enableHeartbeat = true;
-        int64_t sentCount = ix::cobra_to_stdout_bot(cobraConfig,
-                                                    channel,
-                                                    filter,
-                                                    position,
+        int64_t sentCount = ix::cobra_to_stdout_bot(cobraBotConfig,
                                                     fluentd,
-                                                    quiet,
-                                                    enableHeartbeat,
-                                                    heartBeatTimeout,
-                                                    runtime);
+                                                    quiet);
         ret = (int) sentCount;
     }
     else if (app.got_subcommand("cobra_publish"))
@@ -555,7 +548,6 @@ int main(int argc, char** argv)
         }
         else
         {
-            bool enableHeartbeat = true;
             ix::StatsdClient statsdClient(hostname, statsdPort, prefix);
 
             std::string errMsg;
@@ -567,36 +559,23 @@ int main(int argc, char** argv)
             }
             else
             {
-                ret = (int) ix::cobra_to_statsd_bot(cobraConfig,
-                                                    channel,
-                                                    filter,
-                                                    position,
+                ret = (int) ix::cobra_to_statsd_bot(cobraBotConfig,
                                                     statsdClient,
                                                     fields,
                                                     gauge,
                                                     timer,
-                                                    verbose,
-                                                    enableHeartbeat,
-                                                    heartBeatTimeout,
-                                                    runtime);
+                                                    verbose);
             }
         }
     }
     else if (app.got_subcommand("cobra_to_sentry"))
     {
-        bool enableHeartbeat = true;
         ix::SentryClient sentryClient(dsn);
         sentryClient.setTLSOptions(tlsOptions);
 
-        ret = (int) ix::cobra_to_sentry_bot(cobraConfig,
-                                            channel,
-                                            filter,
-                                            position,
+        ret = (int) ix::cobra_to_sentry_bot(cobraBotConfig,
                                             sentryClient,
-                                            verbose,
-                                            enableHeartbeat,
-                                            heartBeatTimeout,
-                                            runtime);
+                                            verbose);
     }
     else if (app.got_subcommand("cobra_metrics_to_redis"))
     {

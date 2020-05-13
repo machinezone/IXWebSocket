@@ -138,11 +138,12 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
 
         std::thread publisherThread(runPublisher, config, channel);
 
-        std::string filter;
-        std::string position("$");
+        ix::CobraBotConfig cobraBotConfig;
+        cobraBotConfig.cobraConfig = config;
+        cobraBotConfig.channel = channel;
+        cobraBotConfig.runtime = 3; // Only run the bot for 3 seconds
+        cobraBotConfig.enableHeartbeat = false;
         bool verbose = true;
-        bool enableHeartbeat = false;
-        int heartBeatTimeout = 60;
 
         // FIXME: try to get this working with https instead of http
         //        to regress the TLS 1.3 OpenSSL bug
@@ -157,18 +158,9 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
         SentryClient sentryClient(dsn);
         sentryClient.setTLSOptions(tlsOptionsClient);
 
-        // Only run the bot for 3 seconds
-        int runtime = 3;
-
-        int64_t sentCount = cobra_to_sentry_bot(config,
-                                                channel,
-                                                filter,
-                                                position,
+        int64_t sentCount = cobra_to_sentry_bot(cobraBotConfig,
                                                 sentryClient,
-                                                verbose,
-                                                enableHeartbeat,
-                                                heartBeatTimeout,
-                                                runtime);
+                                                verbose);
         //
         // We want at least 2 messages to be sent
         //
