@@ -10,6 +10,10 @@
 #include <limits>
 #include <ixcobra/IXCobraConfig.h>
 
+#ifdef max
+#undef max
+#endif
+
 namespace ix
 {
     struct CobraBotConfig
