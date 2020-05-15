@@ -182,10 +182,7 @@ if (USE_TLS)
       # set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} /opt/local/include/openssl-1.0)
     endif()
 
-    # This OPENSSL_FOUND check is to help find a cmake manually configured OpenSSL
-    if (NOT OPENSSL_FOUND)
-	    include(FindOpenSSL)
-    endif()
+    find_package(OpenSSL REQUIRED) 
     message(STATUS "OpenSSL: " ${OPENSSL_VERSION})
 
     target_link_libraries(ixwebsocket PUBLIC OpenSSL::SSL OpenSSL::Crypto)
