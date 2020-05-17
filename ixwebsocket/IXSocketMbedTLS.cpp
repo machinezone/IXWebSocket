@@ -71,6 +71,7 @@ namespace ix
                 {
                     ++certificateCount;
                 }
+            }
         }
 
         CertFreeCertificateContext(certificateIterator);
