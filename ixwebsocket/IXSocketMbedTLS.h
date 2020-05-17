@@ -52,6 +52,7 @@ namespace ix
 
         bool init(const std::string& host, bool isClient, std::string& errMsg);
         void initMBedTLS();
+        bool loadSystemCertificates(std::string& errMsg);
     };
 
 } // namespace ix
