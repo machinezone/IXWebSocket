@@ -123,8 +123,8 @@ if (USE_TLS)
       if (NOT USE_MBED_TLS AND NOT USE_OPEN_SSL) # unless we want something else
         set(USE_SECURE_TRANSPORT ON)
       endif()
-    # default to mbedtls on uwp (universal windows platform) if nothing is configured
-    elseif (${CMAKE_SYSTEM_NAME} MATCHES "WindowsStore")
+    # default to mbedtls on windows if nothing is configured
+    elseif (WIN32)
       if (NOT USE_OPEN_SSL) # unless we want something else
         set(USE_MBED_TLS ON)
       endif()

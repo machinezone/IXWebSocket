@@ -43,6 +43,55 @@ namespace ix
         mbedtls_pk_init(&_pkey);
     }
 
+    bool SocketMbedTLS::loadSystemCertificates(std::string& errorMsg)
+    {
+#ifdef _WIN32
+        DWORD flags = CERT_STORE_READONLY_FLAG | CERT_STORE_OPEN_EXISTING_FLAG |
+                      CERT_SYSTEM_STORE_CURRENT_USER;
+        HCERTSTORE systemStore = CertOpenStore(CERT_STORE_PROV_SYSTEM, 0, 0, flags, L"Root");
+
+        if (!systemStore)
+        {
+            errorMsg = "CertOpenStore failed with ";
+            errorMsg += std::to_string(GetLastError());
+            return false;
+        }
+
+        PCCERT_CONTEXT certificateIterator = NULL;
+
+        int certificateCount = 0;
+        while (certificateIterator = CertEnumCertificatesInStore(systemStore, certificateIterator))
+        {
+            if (certificateIterator->dwCertEncodingType & X509_ASN_ENCODING)
+            {
+                int ret = mbedtls_x509_crt_parse(&_cacert,
+                                                 certificateIterator->pbCertEncoded,
+                                                 certificateIterator->cbCertEncoded);
+                if (ret == 0)
+                {
+                    ++certificateCount;
+                }
+            }
+        }
+
+        CertFreeCertificateContext(certificateIterator);
+        CertCloseStore(systemStore, 0);
+
+        if (certificateCount == 0)
+        {
+            errorMsg = "No certificates found";
+            return false;
+        }
+
+        return true;
+#else
+        // On macOS we can query the system cert location from the keychain
+        // On Linux we could try to fetch some local files based on the distribution
+        // On Android we could use JNI to get to the system certs
+        return false;
+#endif
+    }
+
     bool SocketMbedTLS::init(const std::string& host, bool isClient, std::string& errMsg)
     {
         initMBedTLS();
@@ -96,13 +145,15 @@ namespace ix
         }
         else
         {
-            mbedtls_ssl_conf_authmode(&_conf, MBEDTLS_SSL_VERIFY_REQUIRED);
-
             // FIXME: should we call mbedtls_ssl_conf_verify ?
+            mbedtls_ssl_conf_authmode(&_conf, MBEDTLS_SSL_VERIFY_REQUIRED);
 
             if (_tlsOptions.isUsingSystemDefaults())
             {
-                ; // FIXME
+                if (!loadSystemCertificates(errMsg))
+                {
+                    return false;
+                }
             }
             else
             {
