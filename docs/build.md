@@ -42,6 +42,19 @@ It is possible to get IXWebSocket through Microsoft [vcpkg](https://github.com/m
 ```
 vcpkg install ixwebsocket
 ```
+To use the installed package within a cmake project, use the following:
+```cmake
+ set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "") # this is super important in order for cmake to include the vcpkg search/lib paths!
+
+ # find library and its headers
+ find_path(IXWEBSOCKET_INCLUDE_DIR ixwebsocket/IXWebSocket.h)
+ find_library(IXWEBSOCKET_LIBRARY ixwebsocket)
+ # include headers
+ include_directories(${IXWEBSOCKET_INCLUDE_DIR})
+ # ...
+ target_link_libraries(${PROJECT_NAME} ... ${IXWEBSOCKET_LIBRARY}) # Cmake will automatically fail the generation if the lib was not found, i.e is set to NOTFOUNS
+
+```
 
 ### Conan
 
