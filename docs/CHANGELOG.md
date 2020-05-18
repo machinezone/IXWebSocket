@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.6.2] - 2020-05-17
+
+(cmake) make install cmake files optional to not conflict with vcpkg
+
 ## [9.6.1] - 2020-05-17
 
 (windows + tls) mbedtls is the default windows tls backend + add ability to load system certificates with mbdetls on windows

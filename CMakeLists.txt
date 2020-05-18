@@ -247,8 +247,13 @@ install(TARGETS ixwebsocket EXPORT ixwebsocket
 	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ixwebsocket/
 )
 
-install(EXPORT ixwebsocket NAMESPACE ixwebsocket:: DESTINATION lib/cmake/ixwebsocket)
-export(EXPORT ixwebsocket NAMESPACE ixwebsocket:: FILE ixwebsocketConfig.cmake)
+# This gets in the way of vcpkg in ways I do not know how to fix
+# https://github.com/microsoft/vcpkg/pull/11030
+# Maybe using vcpkg_fixup_cmake_targets could fix it
+if (INSTALL_CMAKE_FILE)
+  install(EXPORT ixwebsocket NAMESPACE ixwebsocket:: DESTINATION lib/cmake/ixwebsocket)
+  export(EXPORT ixwebsocket NAMESPACE ixwebsocket:: FILE ixwebsocketConfig.cmake)
+endif()
 
 if (USE_WS OR USE_TEST)
   add_subdirectory(ixcore)
