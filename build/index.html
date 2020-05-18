@@ -136,6 +136,19 @@ There is a unittest which can be executed by typing <code>make test</code>.</p>
 <pre><code>vcpkg install ixwebsocket
 </code></pre>
 
+<p>To use the installed package within a cmake project, use the following:</p>
+<pre><code class="cmake"> set(CMAKE_TOOLCHAIN_FILE &quot;$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake&quot; CACHE STRING &quot;&quot;) # this is super important in order for cmake to include the vcpkg search/lib paths!
+
+ # find library and its headers
+ find_path(IXWEBSOCKET_INCLUDE_DIR ixwebsocket/IXWebSocket.h)
+ find_library(IXWEBSOCKET_LIBRARY ixwebsocket)
+ # include headers
+ include_directories(${IXWEBSOCKET_INCLUDE_DIR})
+ # ...
+ target_link_libraries(${PROJECT_NAME} ... ${IXWEBSOCKET_LIBRARY}) # Cmake will automatically fail the generation if the lib was not found, i.e is set to NOTFOUNS
+
+</code></pre>
+
 <h3 id="conan">Conan</h3>
 <p><a href="https://bintray.com/conan/conan-center/ixwebsocket%3A_/_latestVersion"> <img alt="Download" src="https://api.bintray.com/packages/conan/conan-center/ixwebsocket%3A_/images/download.svg" /> </a></p>
 <p>Conan is currently supported through a recipe in <a href="https://github.com/conan-io/conan-center-index/tree/master/recipes/ixwebsocket">Conan Center</a> (<a href="https://bintray.com/conan/conan-center/ixwebsocket%3A_">Bintray entry</a>).</p>
