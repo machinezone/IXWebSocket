@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.6.3] - 2020-05-18
+
+(cmake) revert CMake changes to fix #203 and be able to use an external OpenSSL
+
 ## [9.6.2] - 2020-05-17
 
 (cmake) make install cmake files optional to not conflict with vcpkg

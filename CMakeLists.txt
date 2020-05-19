@@ -153,8 +153,6 @@ add_library( ixwebsocket STATIC
     ${IXWEBSOCKET_HEADERS}
 )
 
-add_library ( ixwebsocket::ixwebsocket ALIAS ixwebsocket )
-
 if (USE_TLS)
     target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_TLS)
     if (USE_MBED_TLS)
@@ -184,20 +182,22 @@ if (USE_TLS)
 
     # This OPENSSL_FOUND check is to help find a cmake manually configured OpenSSL
     if (NOT OPENSSL_FOUND)
-	    include(FindOpenSSL)
+      find_package(OpenSSL REQUIRED)
     endif()
     message(STATUS "OpenSSL: " ${OPENSSL_VERSION})
 
-    target_link_libraries(ixwebsocket PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+    add_definitions(${OPENSSL_DEFINITIONS})
+    target_include_directories(ixwebsocket PUBLIC ${OPENSSL_INCLUDE_DIR})
+    target_link_libraries(ixwebsocket ${OPENSSL_LIBRARIES})
   elseif (USE_MBED_TLS)
     message(STATUS "TLS configured to use mbedtls")
 
     find_package(MbedTLS REQUIRED)
     target_include_directories(ixwebsocket PUBLIC ${MBEDTLS_INCLUDE_DIRS})
-    target_link_libraries(ixwebsocket PUBLIC ${MBEDTLS_LIBRARIES})
+    target_link_libraries(ixwebsocket ${MBEDTLS_LIBRARIES})
   elseif (USE_SECURE_TRANSPORT)
     message(STATUS "TLS configured to use secure transport")
-    target_link_libraries(ixwebsocket PUBLIC "-framework foundation" "-framework security")
+    target_link_libraries(ixwebsocket "-framework foundation" "-framework security")
   endif()
 endif()
 
@@ -207,25 +207,25 @@ if (NOT ZLIB_FOUND)
 endif()
 if (ZLIB_FOUND)
   include_directories(${ZLIB_INCLUDE_DIRS})
-  target_link_libraries(ixwebsocket PUBLIC ${ZLIB_LIBRARIES})
+  target_link_libraries(ixwebsocket ${ZLIB_LIBRARIES})
 else()
   include_directories(third_party/zlib ${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib)
-  add_subdirectory(third_party/zlib EXCLUDE_FROM_ALL)
-  target_link_libraries(ixwebsocket PRIVATE $<LINK_ONLY:zlibstatic>)
+  add_subdirectory(third_party/zlib)
+  target_link_libraries(ixwebsocket zlibstatic)
 endif()
 
 if (WIN32)
-  target_link_libraries(ixwebsocket PUBLIC wsock32 ws2_32 shlwapi)
+  target_link_libraries(ixwebsocket wsock32 ws2_32 shlwapi)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
   if (USE_TLS)
-    target_link_libraries(ixwebsocket PUBLIC Crypt32)
+    target_link_libraries(ixwebsocket Crypt32)
   endif()
 endif()
 
 if (UNIX)
   find_package(Threads)
-  target_link_libraries(ixwebsocket PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(ixwebsocket ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 
@@ -238,22 +238,14 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(ixwebsocket PRIVATE /MP)
 endif()
 
-target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${IXWEBSOCKET_INCLUDE_DIRS}> $<INSTALL_INTERFACE:include/ixwebsocket>)
+target_include_directories(ixwebsocket PUBLIC ${IXWEBSOCKET_INCLUDE_DIRS})
 
 set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
 
-install(TARGETS ixwebsocket EXPORT ixwebsocket
-	ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ixwebsocket/
+install(TARGETS ixwebsocket
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ixwebsocket/
 )
-
-# This gets in the way of vcpkg in ways I do not know how to fix
-# https://github.com/microsoft/vcpkg/pull/11030
-# Maybe using vcpkg_fixup_cmake_targets could fix it
-if (INSTALL_CMAKE_FILE)
-  install(EXPORT ixwebsocket NAMESPACE ixwebsocket:: DESTINATION lib/cmake/ixwebsocket)
-  export(EXPORT ixwebsocket NAMESPACE ixwebsocket:: FILE ixwebsocketConfig.cmake)
-endif()
 
 if (USE_WS OR USE_TEST)
   add_subdirectory(ixcore)
