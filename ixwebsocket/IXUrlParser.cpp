@@ -33,6 +33,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
 
 namespace
 {
