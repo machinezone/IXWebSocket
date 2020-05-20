@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.6.4] - 2020-05-20
+
+(compiler fix) support clang 5 and earlier (contributed by @LunarWatcher)
+
 ## [9.6.3] - 2020-05-18
 
 (cmake) revert CMake changes to fix #203 and be able to use an external OpenSSL
