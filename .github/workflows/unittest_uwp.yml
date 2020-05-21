@@ -1,57 +1,10 @@
-name: unittest
+name: uwp
 on:
   push:
     paths-ignore:
     - 'docs/**'
 
 jobs:
-  linux:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: make test_make
-      run: make test_make
-
-  mac_tsan_sectransport:
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: make test_tsan
-      run: make test_tsan
-
-  mac_tsan_openssl:
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: install openssl
-      run: brew install openssl@1.1
-    - name: make test
-      run: make test_tsan_openssl
-
-  mac_tsan_mbedtls:
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: install mbedtls
-      run: brew install mbedtls
-    - name: make test
-      run: make test_tsan_mbedtls
-
-  windows:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v1
-    - uses: seanmiddleditch/gha-setup-vsdevenv@master
-    - run: |
-        mkdir build
-        cd build
-        cmake -DCMAKE_CXX_COMPILER=cl.exe -DUSE_WS=1 -DUSE_TEST=1 ..
-    - run: cmake --build build
-
-    # Running the unittest does not work, the binary cannot be found
-    #- run: ../build/test/ixwebsocket_unittest.exe
-    # working-directory: test
-
   uwp:
     runs-on: windows-latest
     steps:
@@ -83,4 +36,3 @@ jobs:
 #     # Running the unittest does not work, the binary cannot be found
 #     #- run: ../build/test/ixwebsocket_unittest.exe
 #     # working-directory: test
-

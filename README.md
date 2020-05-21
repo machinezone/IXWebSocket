@@ -1,6 +1,11 @@
 ## Hello world
 
-![Build status](https://github.com/machinezone/IXWebSocket/workflows/unittest/badge.svg)
+![Build status](https://github.com/machinezone/IXWebSocket/workflows/linux/badge.svg)
+![Build status](https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_sectransport/badge.svg)
+![Build status](https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_openssl/badge.svg)
+![Build status](https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_mbedtls/badge.svg)
+![Build status](https://github.com/machinezone/IXWebSocket/workflows/windows/badge.svg)
+![Build status](https://github.com/machinezone/IXWebSocket/workflows/uwp/badge.svg)
 
 IXWebSocket is a C++ library for WebSocket client and server development. It has minimal dependencies (no boost), is very simple to use and support everything you'll likely need for websocket dev (SSL, deflate compression, compiles on most platforms, etc...). HTTP client and server code is also available, but it hasn't received as much testing.
 

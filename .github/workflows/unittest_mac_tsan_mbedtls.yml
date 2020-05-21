@@ -1,0 +1,15 @@
+name: mac_tsan_mbedtls
+on:
+  push:
+    paths-ignore:
+    - 'docs/**'
+
+jobs:
+  mac_tsan_mbedtls:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: install mbedtls
+      run: brew install mbedtls
+    - name: make test
+      run: make test_tsan_mbedtls
