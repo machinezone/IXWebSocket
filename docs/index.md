@@ -1,5 +1,3 @@
-![Build status](https://github.com/machinezone/IXWebSocket/workflows/unittest/badge.svg)
-
 ## Introduction
 
 [*WebSocket*](https://en.wikipedia.org/wiki/WebSocket) is a computer communications protocol, providing full-duplex and bi-directionnal communication channels over a single TCP connection. *IXWebSocket* is a C++ library for client and server Websocket communication, and for client and server HTTP communication. *TLS* aka *SSL* is supported. The code is derived from [easywsclient](https://github.com/dhbaird/easywsclient) and from the [Satori C SDK](https://github.com/satori-com/satori-rtm-sdk-c). It has been tested on the following platforms.
