@@ -1,12 +1,5 @@
 ## Hello world
 
-![Build status](https://github.com/machinezone/IXWebSocket/workflows/linux/badge.svg)
-![Build status](https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_sectransport/badge.svg)
-![Build status](https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_openssl/badge.svg)
-![Build status](https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_mbedtls/badge.svg)
-![Build status](https://github.com/machinezone/IXWebSocket/workflows/windows/badge.svg)
-![Build status](https://github.com/machinezone/IXWebSocket/workflows/uwp/badge.svg)
-
 IXWebSocket is a C++ library for WebSocket client and server development. It has minimal dependencies (no boost), is very simple to use and support everything you'll likely need for websocket dev (SSL, deflate compression, compiles on most platforms, etc...). HTTP client and server code is also available, but it hasn't received as much testing.
 
 It is been used on big mobile video game titles sending and receiving tons of messages since 2017 (iOS and Android). It was tested on macOS, iOS, Linux, Android, Windows and FreeBSD. Two important design goals are simplicity and correctness.
@@ -54,3 +47,23 @@ If your company or project is using this library, feel free to open an issue or 
 - [libDiscordBot](https://github.com/tostc/libDiscordBot/tree/master), a work in progress discord library
 - [gwebsocket](https://github.com/norrbotten/gwebsocket), a websocket (lua) module for Garry's Mod
 - [DisCPP](https://github.com/DisCPP/DisCPP), a simple but feature rich Discord API wrapper
+
+## Continuous Integration
+
+| OS                | TLS               | Sanitizer         | Status            |
+|-------------------|-------------------|-------------------|-------------------|
+| Linux             | OpenSSL           | None              | [![Build2][1]][7] |
+| macOS             | Secure Transport  | Thread Sanitizer  | [![Build2][2]][7] |
+| macOS             | OpenSSL           | Thread Sanitizer  | [![Build2][3]][7] |
+| macOS             | MbedTLS           | Thread Sanitizer  | [![Build2][4]][7] |
+| Windows           | Disabled          | None              | [![Build2][5]][7] |
+| UWP               | Disabled          | None              | [![Build2][6]][7] |
+
+[1]: https://github.com/machinezone/IXWebSocket/workflows/linux/badge.svg
+[2]: https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_sectransport/badge.svg
+[3]: https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_openssl/badge.svg
+[4]: https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_mbedtls/badge.svg
+[5]: https://github.com/machinezone/IXWebSocket/workflows/windows/badge.svg
+[6]: https://github.com/machinezone/IXWebSocket/workflows/uwp/badge.svg
+[7]: https://github.com/machinezone/IXWebSocket
+
