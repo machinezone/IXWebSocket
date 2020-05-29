@@ -13,6 +13,7 @@
 #include <sstream>
 #include <vector>
 #include <zlib.h>
+#include <cstring>
 
 namespace
 {
