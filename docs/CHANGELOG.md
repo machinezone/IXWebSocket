@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.6.5] - 2020-05-29
+
+(http server) support gzip compression
+
 ## [9.6.4] - 2020-05-20
 
 (compiler fix) support clang 5 and earlier (contributed by @LunarWatcher)
