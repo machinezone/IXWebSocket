@@ -189,10 +189,11 @@ httpd:
 		ixwebsocket/IXConnectionState.cpp \
 		ixwebsocket/IXUrlParser.cpp \
 		ixwebsocket/IXSelectInterrupt.cpp \
-		ixwebsocket/apple/IXSetThreadName_apple.cpp -lz
+		ixwebsocket/apple/IXSetThreadName_apple.cpp \
+		-lz
 
 httpd_linux:
-	g++ --std=c++11 -o /usr/local/bin/ixhttpd httpd.cpp -Iixwebsocket \
+	g++ --std=c++11 -o ixhttpd httpd.cpp -Iixwebsocket \
 		ixwebsocket/IXSelectInterruptFactory.cpp \
 		ixwebsocket/IXCancellationRequest.cpp \
 		ixwebsocket/IXSocketTLSOptions.cpp \
@@ -211,7 +212,9 @@ httpd_linux:
 		ixwebsocket/IXConnectionState.cpp \
 		ixwebsocket/IXUrlParser.cpp \
 		ixwebsocket/IXSelectInterrupt.cpp \
-		ixwebsocket/linux/IXSetThreadName_linux.cpp -lz -lpthread
+		ixwebsocket/linux/IXSetThreadName_linux.cpp \
+		-lz -lpthread
+	cp -f ixhttpd /usr/local/bin
 
 # For the fork that is configured with appveyor
 rebase_upstream:
