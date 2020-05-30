@@ -169,6 +169,28 @@ ws_test: ws
 autobahn_report:
 	cp -rvf ~/sandbox/reports/clients/* ../bsergean.github.io/IXWebSocket/autobahn/
 
+httpd:
+	clang++ --std=c++14 --stdlib=libc++ httpd.cpp \
+		ixwebsocket/IXSelectInterruptFactory.cpp \
+		ixwebsocket/IXCancellationRequest.cpp \
+		ixwebsocket/IXSocketTLSOptions.cpp \
+		ixwebsocket/IXUserAgent.cpp \
+		ixwebsocket/IXDNSLookup.cpp \
+		ixwebsocket/IXBench.cpp \
+		ixwebsocket/IXWebSocketHttpHeaders.cpp \
+		ixwebsocket/IXSelectInterruptPipe.cpp \
+		ixwebsocket/IXHttp.cpp \
+		ixwebsocket/IXSocketConnect.cpp \
+		ixwebsocket/IXSocket.cpp \
+		ixwebsocket/IXSocketServer.cpp \
+		ixwebsocket/IXNetSystem.cpp \
+		ixwebsocket/IXHttpServer.cpp \
+		ixwebsocket/IXSocketFactory.cpp \
+		ixwebsocket/IXConnectionState.cpp \
+		ixwebsocket/IXUrlParser.cpp \
+		ixwebsocket/IXSelectInterrupt.cpp \
+		ixwebsocket/apple/IXSetThreadName_apple.cpp -lz
+
 # For the fork that is configured with appveyor
 rebase_upstream:
 	git fetch upstream
