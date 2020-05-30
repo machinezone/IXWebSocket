@@ -14,9 +14,10 @@ int main(int argc, char** argv)
 {
     if (argc != 3)
     {
-        std::cerr << "Usage: httpd <port> <host>" << std::endl;
-        std::cerr << " ./a.out 9090 127.0.0.1" << std::endl;
-        std::cerr << " ./a.out 9090 0.0.0.0" << std::endl;
+        std::cerr << "Usage: " << argv[0]
+                  << " <port> <host>" << std::endl;
+        std::cerr << " " << argv[0] << " 9090 127.0.0.1" << std::endl;
+        std::cerr << " " << argv[0] << " 9090 0.0.0.0" << std::endl;
         return 1;
     }
 
