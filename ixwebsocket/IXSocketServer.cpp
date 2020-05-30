@@ -12,6 +12,7 @@
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
 #include "IXSocketFactory.h"
+#include "IXUniquePtr.h"
 #include <assert.h>
 #include <sstream>
 #include <stdio.h>
@@ -258,7 +259,7 @@ namespace ix
             // Use poll to check whether a new connection is in progress
             int timeoutMs = 10;
             bool readyToRead = true;
-            auto selectInterrupt = std::make_unique<SelectInterrupt>();
+            auto selectInterrupt = ix::make_unique<SelectInterrupt>();
             PollResultType pollResult =
                 Socket::poll(readyToRead, timeoutMs, _serverFd, selectInterrupt);
 

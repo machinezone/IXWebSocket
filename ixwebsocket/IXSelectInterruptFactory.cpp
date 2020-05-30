@@ -6,6 +6,7 @@
 
 #include "IXSelectInterruptFactory.h"
 
+#include "IXUniquePtr.h"
 #if defined(__linux__) || defined(__APPLE__)
 #include "IXSelectInterruptPipe.h"
 #else
@@ -17,9 +18,9 @@ namespace ix
     SelectInterruptPtr createSelectInterrupt()
     {
 #if defined(__linux__) || defined(__APPLE__)
-        return std::make_unique<SelectInterruptPipe>();
+        return ix::make_unique<SelectInterruptPipe>();
 #else
-        return std::make_unique<SelectInterrupt>();
+        return ix::make_unique<SelectInterrupt>();
 #endif
     }
 } // namespace ix
