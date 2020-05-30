@@ -170,7 +170,7 @@ autobahn_report:
 	cp -rvf ~/sandbox/reports/clients/* ../bsergean.github.io/IXWebSocket/autobahn/
 
 httpd:
-	clang++ --std=c++11 --stdlib=libc++ httpd.cpp \
+	clang++ --std=c++11 --stdlib=libc++ -Iixwebsocket httpd.cpp \
 		ixwebsocket/IXSelectInterruptFactory.cpp \
 		ixwebsocket/IXCancellationRequest.cpp \
 		ixwebsocket/IXSocketTLSOptions.cpp \
@@ -192,7 +192,7 @@ httpd:
 		ixwebsocket/apple/IXSetThreadName_apple.cpp -lz
 
 httpd_linux:
-	g++ --std=c++11 httpd.cpp \
+	g++ --std=c++11 -o /usr/local/bin/ixhttpd httpd.cpp -Iixwebsocket \
 		ixwebsocket/IXSelectInterruptFactory.cpp \
 		ixwebsocket/IXCancellationRequest.cpp \
 		ixwebsocket/IXSocketTLSOptions.cpp \
@@ -211,7 +211,7 @@ httpd_linux:
 		ixwebsocket/IXConnectionState.cpp \
 		ixwebsocket/IXUrlParser.cpp \
 		ixwebsocket/IXSelectInterrupt.cpp \
-		ixwebsocket/apple/IXSetThreadName_linux.cpp -lz
+		ixwebsocket/linux/IXSetThreadName_linux.cpp -lz -lpthread
 
 # For the fork that is configured with appveyor
 rebase_upstream:

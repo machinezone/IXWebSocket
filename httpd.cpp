@@ -6,7 +6,7 @@
  *  Buid with make httpd
  */
 
-#include <ixwebsocket/IXHttpServer.h>
+#include "IXHttpServer.h"
 #include <sstream>
 #include <iostream>
 
