@@ -164,9 +164,10 @@ namespace ix
                 std::string content = res.second;
 
                 std::string acceptEncoding = request->headers["Accept-encoding"];
-                if (acceptEncoding == "gzip" || acceptEncoding == "*")
+                if (acceptEncoding == "*" || acceptEncoding.find("gzip") != std::string::npos)
                 {
                     content = gzipCompress(content);
+                    headers["Content-Encoding"] = "gzip";
                 }
 
                 // Log request
