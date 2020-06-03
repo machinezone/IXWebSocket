@@ -1,4 +1,4 @@
-FROM alpine:3.11 as build
+FROM alpine:3.12 as build
 
 RUN apk add --no-cache \
     gcc g++ musl-dev linux-headers \
@@ -18,7 +18,7 @@ USER app
 RUN make ws_mbedtls_install && \
     sh tools/trim_repo_for_docker.sh
 
-FROM alpine:3.11 as runtime
+FROM alpine:3.12 as runtime
 
 RUN apk add --no-cache libstdc++ mbedtls ca-certificates && \
     addgroup -S app && \
