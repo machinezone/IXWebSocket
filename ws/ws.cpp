@@ -14,6 +14,7 @@
 #include <ixbots/IXCobraToSentryBot.h>
 #include <ixbots/IXCobraToStatsdBot.h>
 #include <ixbots/IXCobraToStdoutBot.h>
+#include <ixbots/IXCobraMetricsToStatsdBot.h>
 #include <ixcore/utils/IXCoreLogger.h>
 #include <ixsentry/IXSentryClient.h>
 #include <ixwebsocket/IXNetSystem.h>
@@ -326,7 +327,7 @@ int main(int argc, char** argv)
     addTLSOptions(cobraMetricsPublish);
     addCobraConfig(cobraMetricsPublish);
 
-    CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra metrics to statsd");
+    CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra to statsd");
     cobra2statsd->fallthrough();
     cobra2statsd->add_option("--host", hostname, "Statsd host");
     cobra2statsd->add_option("--port", statsdPort, "Statsd port");
@@ -341,7 +342,17 @@ int main(int argc, char** argv)
     addTLSOptions(cobra2statsd);
     addCobraBotConfig(cobra2statsd);
 
-    CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra metrics to sentry");
+    CLI::App* cobraMetrics2statsd = app.add_subcommand("cobra_metrics_to_statsd", "Cobra metrics to statsd");
+    cobraMetrics2statsd->fallthrough();
+    cobraMetrics2statsd->add_option("--host", hostname, "Statsd host");
+    cobraMetrics2statsd->add_option("--port", statsdPort, "Statsd port");
+    cobraMetrics2statsd->add_option("--prefix", prefix, "Statsd prefix");
+    cobraMetrics2statsd->add_flag("-v", verbose, "Verbose");
+    cobraMetrics2statsd->add_option("--pidfile", pidfile, "Pid file");
+    addTLSOptions(cobraMetrics2statsd);
+    addCobraBotConfig(cobraMetrics2statsd);
+
+    CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra to sentry");
     cobra2sentry->fallthrough();
     cobra2sentry->add_option("--dsn", dsn, "Sentry DSN");
     cobra2sentry->add_flag("-v", verbose, "Verbose");
@@ -566,6 +577,23 @@ int main(int argc, char** argv)
                 ret = (int) ix::cobra_to_statsd_bot(
                     cobraBotConfig, statsdClient, fields, gauge, timer, verbose);
             }
+        }
+    }
+    else if (app.got_subcommand("cobra_metrics_to_statsd"))
+    {
+        ix::StatsdClient statsdClient(hostname, statsdPort, prefix);
+
+        std::string errMsg;
+        bool initialized = statsdClient.init(errMsg);
+        if (!initialized)
+        {
+            spdlog::error(errMsg);
+            ret = 1;
+        }
+        else
+        {
+            ret = (int) ix::cobra_metrics_to_statsd_bot(
+                cobraBotConfig, statsdClient, verbose);
         }
     }
     else if (app.got_subcommand("cobra_to_sentry"))
