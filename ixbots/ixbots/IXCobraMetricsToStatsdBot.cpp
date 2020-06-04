@@ -14,30 +14,6 @@
 #include <sstream>
 #include <vector>
 
-namespace
-{
-    //
-    // Extract an attribute from a Json Value.
-    // extractAttr("foo.bar", {"foo": {"bar": "baz"}}) => baz
-    //
-    Json::Value extractAttr(const std::string& attr, const Json::Value& jsonValue)
-    {
-        // Split by .
-        std::string token;
-        std::stringstream tokenStream(attr);
-
-        Json::Value val(jsonValue);
-
-        while (std::getline(tokenStream, token, '.'))
-        {
-            val = val[token];
-        }
-
-        return val;
-    }
-
-}
-
 namespace ix
 {
     bool processPerfMetricsEvent(const Json::Value& msg,
@@ -71,6 +47,8 @@ namespace ix
         statsdClient.gauge(id + ".lt_12", lt_12);
         statsdClient.gauge(id + ".lt_10", lt_10);
         statsdClient.gauge(id + ".lt_08", lt_08);
+
+        return true;
     }
 
     int64_t cobra_metrics_to_statsd_bot(const ix::CobraBotConfig& config,
@@ -82,7 +60,7 @@ namespace ix
             [&statsdClient, &verbose](const Json::Value& msg,
                                       const std::string& /*position*/,
                                       std::atomic<bool>& /*throttled*/,
-                                      std::atomic<bool>& fatalCobraError,
+                                      std::atomic<bool>& /*fatalCobraError*/,
                                       std::atomic<uint64_t>& sentCount) -> void {
             if (msg["device"].isNull() || msg["id"].isNull())
             {
@@ -92,8 +70,11 @@ namespace ix
 
             //
             // Display full message with
-            //  CoreLogger::info(msg.toStyledString());
-            //
+            if (verbose)
+            {
+                CoreLogger::info(msg.toStyledString());
+            }
+
             bool success = false;
             if (msg["id"].asString() == "engine_performance_metrics_id")
             {
