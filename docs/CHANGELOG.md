@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.6.6] - 2020-06-04
+
+(statsd cobra bots) statsd improvement: prefix does not need a dot as a suffix, message size can be larger than 256 bytes, error handling was invalid, use core logger for logging instead of std::cerr
+
 ## [9.6.5] - 2020-05-29
 
 (http server) support gzip compression

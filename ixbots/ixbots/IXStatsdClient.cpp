@@ -39,9 +39,10 @@
 
 #include "IXStatsdClient.h"
 
-#include <iostream>
 #include <ixwebsocket/IXNetSystem.h>
-#include <stdio.h>
+#include <ixwebsocket/IXSetThreadName.h>
+#include <ixcore/utils/IXCoreLogger.h>
+#include <sstream>
 #include <stdlib.h>
 #include <string.h>
 
@@ -54,6 +55,8 @@ namespace ix
         , _stop(false)
     {
         _thread = std::thread([this] {
+            setThreadName("Statsd");
+
             while (!_stop)
             {
                 flushQueue();
@@ -115,11 +118,10 @@ namespace ix
     {
         cleanup(key);
 
-        char buf[256];
-        snprintf(
-            buf, sizeof(buf), "%s%s:%zd|%s\n", _prefix.c_str(), key.c_str(), value, type.c_str());
+        std::stringstream ss;
+        ss << _prefix << "." << key << ":" << value << "|" << type << "\n";
 
-        enqueue(buf);
+        enqueue(ss.str());
         return 0;
     }
 
@@ -137,10 +139,13 @@ namespace ix
         {
             auto message = _queue.front();
             auto ret = _socket.sendto(message);
-            if (ret != 0)
+            if (ret == -1)
             {
-                std::cerr << "error: " << strerror(UdpSocket::getErrno()) << std::endl;
+                CoreLogger::error(std::string("statsd error: ") + strerror(UdpSocket::getErrno()));
             }
+
+            // we always dequeue regardless of the ability to send the message
+            // so that we keep our queue size under control
             _queue.pop_front();
         }
     }
