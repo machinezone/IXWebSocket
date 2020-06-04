@@ -8,6 +8,7 @@
 
 #include <ixcobra/IXCobraConnection.h>
 #include <ixcore/utils/IXCoreLogger.h>
+#include <ixwebsocket/IXSetThreadName.h>
 
 #include <algorithm>
 #include <chrono>
@@ -54,6 +55,7 @@ namespace ix
                       &receivedCountPerMinutes,
                       &minuteCounter,
                       &stop] {
+            setThreadName("Bot progress");
             while (!stop)
             {
                 //
@@ -94,6 +96,7 @@ namespace ix
         std::thread t1(timer);
 
         auto heartbeat = [&sentCount, &receivedCount, &stop, &enableHeartbeat, &heartBeatTimeout, &fatalCobraError] {
+            setThreadName("Bot heartbeat");
             std::string state("na");
 
             if (!enableHeartbeat) return;
