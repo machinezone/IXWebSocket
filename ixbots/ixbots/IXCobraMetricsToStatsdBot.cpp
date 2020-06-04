@@ -13,6 +13,9 @@
 #include <ixcore/utils/IXCoreLogger.h>
 #include <sstream>
 #include <vector>
+#include <algorithm>
+#include <cctype>
+
 
 namespace
 {
