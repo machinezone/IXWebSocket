@@ -563,7 +563,7 @@ int main(int argc, char** argv)
         }
         else
         {
-            ix::StatsdClient statsdClient(hostname, statsdPort, prefix);
+            ix::StatsdClient statsdClient(hostname, statsdPort, prefix, verbose);
 
             std::string errMsg;
             bool initialized = statsdClient.init(errMsg);
@@ -581,7 +581,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_metrics_to_statsd"))
     {
-        ix::StatsdClient statsdClient(hostname, statsdPort, prefix);
+        ix::StatsdClient statsdClient(hostname, statsdPort, prefix, verbose);
 
         std::string errMsg;
         bool initialized = statsdClient.init(errMsg);

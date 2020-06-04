@@ -14,6 +14,19 @@
 #include <sstream>
 #include <vector>
 
+namespace
+{
+    std::string removeSpaces(const std::string& str)
+    {
+        std::string out(str);
+        out.erase(
+            std::remove_if(out.begin(), out.end(), [](unsigned char x) { return std::isspace(x); }),
+            out.end());
+
+        return out;
+    }
+}
+
 namespace ix
 {
     bool processPerfMetricsEvent(const Json::Value& msg,
@@ -35,7 +48,7 @@ namespace ix
         ss <<  msg["id"].asString() << "."
            <<  msg["device"]["game"].asString() << "."
            <<  msg["device"]["os_name"].asString() << "."
-           <<  msg["data"]["Tag"].asString();
+           <<  removeSpaces(msg["data"]["Tag"].asString());
 
         std::string id = ss.str();
 

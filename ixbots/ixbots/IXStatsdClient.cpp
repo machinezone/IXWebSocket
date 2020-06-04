@@ -48,11 +48,15 @@
 
 namespace ix
 {
-    StatsdClient::StatsdClient(const std::string& host, int port, const std::string& prefix)
+    StatsdClient::StatsdClient(const std::string& host,
+                               int port,
+                               const std::string& prefix,
+                               bool verbose)
         : _host(host)
         , _port(port)
         , _prefix(prefix)
         , _stop(false)
+        , _verbose(verbose)
     {
         _thread = std::thread([this] {
             setThreadName("Statsd");
@@ -119,9 +123,14 @@ namespace ix
         cleanup(key);
 
         std::stringstream ss;
-        ss << _prefix << "." << key << ":" << value << "|" << type << "\n";
+        ss << _prefix << "." << key << ":" << value << "|" << type;
 
-        enqueue(ss.str());
+        if (_verbose)
+        {
+            CoreLogger::info(ss.str());
+        }
+
+        enqueue(ss.str() + "\n");
         return 0;
     }
 
