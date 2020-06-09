@@ -8,6 +8,7 @@ set (IXBOTS_SOURCES
     ixbots/IXCobraToSentryBot.cpp
     ixbots/IXCobraToStatsdBot.cpp
     ixbots/IXCobraToStdoutBot.cpp
+    ixbots/IXCobraMetricsToStatsdBot.cpp
     ixbots/IXStatsdClient.cpp
 )
 
@@ -17,6 +18,7 @@ set (IXBOTS_HEADERS
     ixbots/IXCobraToSentryBot.h
     ixbots/IXCobraToStatsdBot.h
     ixbots/IXCobraToStdoutBot.h
+    ixbots/IXCobraMetricsToStatsdBot.h
     ixbots/IXStatsdClient.h
 )
 
