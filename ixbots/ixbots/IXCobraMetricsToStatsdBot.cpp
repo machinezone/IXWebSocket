@@ -48,21 +48,42 @@ namespace ix
         auto lt_08 = 100 * frameRateHistogram[7].asFloat() / frameTimeTotal;
 
         std::stringstream ss;
-        ss <<  msg["id"].asString() << "."
-           <<  msg["device"]["game"].asString() << "."
-           <<  msg["device"]["os_name"].asString() << "."
-           <<  removeSpaces(msg["data"]["Tag"].asString());
+        ss << msg["id"].asString() << "."
+           << msg["device"]["game"].asString() << "."
+           << msg["device"]["os_name"].asString() << "."
+           << removeSpaces(msg["data"]["Tag"].asString());
 
         std::string id = ss.str();
 
-        statsdClient.gauge(id + ".gt_60", gt_60);
-        statsdClient.gauge(id + ".lt_60", lt_60);
-        statsdClient.gauge(id + ".lt_30", lt_30);
+        statsdClient.gauge(id + ".lt_30", gt_60 + lt_60 + lt_30);
         statsdClient.gauge(id + ".lt_20", lt_20);
         statsdClient.gauge(id + ".lt_15", lt_15);
         statsdClient.gauge(id + ".lt_12", lt_12);
         statsdClient.gauge(id + ".lt_10", lt_10);
         statsdClient.gauge(id + ".lt_08", lt_08);
+
+        return true;
+    }
+
+    bool processPerfMetricsEventSlowFrames(const Json::Value& msg,
+                                           StatsdClient& statsdClient)
+    {
+        auto frameRateHistogramCounts = msg["data"]["FrameRateHistogramCounts"];
+
+        int slowFrames = 0;
+        slowFrames += frameRateHistogramCounts[4].asInt();
+        slowFrames += frameRateHistogramCounts[5].asInt();
+        slowFrames += frameRateHistogramCounts[6].asInt();
+        slowFrames += frameRateHistogramCounts[7].asInt();
+
+        std::stringstream ss;
+        ss << msg["id"].asString() << "_slow_frames" << "."
+           << msg["device"]["game"].asString() << "."
+           << msg["device"]["os_name"].asString() << "."
+           << removeSpaces(msg["data"]["Tag"].asString());
+
+        std::string id = ss.str();
+        statsdClient.gauge(id, slowFrames);
 
         return true;
     }
@@ -95,6 +116,7 @@ namespace ix
             if (msg["id"].asString() == "engine_performance_metrics_id")
             {
                 success = processPerfMetricsEvent(msg, statsdClient);
+                success |= processPerfMetricsEventSlowFrames(msg, statsdClient);
             }
 
             if (success) sentCount++;
