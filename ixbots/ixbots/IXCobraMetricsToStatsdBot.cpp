@@ -14,6 +14,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <map>
 #include <cctype>
 
 
@@ -65,8 +66,27 @@ namespace ix
         return true;
     }
 
+    std::string getDeviceIdentifier(const Json::Value& msg)
+    {
+        std::string deviceId("na");
+
+        auto osName = msg["device"]["os_name"];
+        if (osName == "Android")
+        {
+            deviceId = msg["device"]["model"].asString();
+        }
+        else if (osName == "iOS")
+        {
+            deviceId = msg["device"]["hardware_model"].asString();
+        }
+
+        return deviceId;
+    }
+
     bool processPerfMetricsEventSlowFrames(const Json::Value& msg,
-                                           StatsdClient& statsdClient)
+                                           StatsdClient& statsdClient,
+                                           std::map<std::string, int>& deviceIdCounters,
+                                           std::atomic<uint64_t>& sentCount)
     {
         auto frameRateHistogramCounts = msg["data"]["FrameRateHistogramCounts"];
 
@@ -85,6 +105,35 @@ namespace ix
         std::string id = ss.str();
         statsdClient.gauge(id, slowFrames);
 
+        // extract device model names for common devices
+        auto deviceId = getDeviceIdentifier(msg);
+        deviceIdCounters[deviceId]++;
+
+        if (deviceId == "N841AP" || deviceId == "SM-N960U")
+        {
+            ss.str(""); // reset the stringstream
+            ss << msg["id"].asString() << "_slow_frames_by_device" << "."
+               << deviceId << "."
+               << msg["device"]["game"].asString() << "."
+               << msg["device"]["os_name"].asString() << "."
+               << removeSpaces(msg["data"]["Tag"].asString());
+
+            std::string id = ss.str();
+            statsdClient.gauge(id, slowFrames);
+        }
+
+        // periodically display all device ids
+        if (sentCount % 100 == 0)
+        {
+            ss.str(""); // reset the stringstream
+            ss << "## " << deviceIdCounters.size() << " unique device ids ##" << std::endl;
+            for (auto&& it : deviceIdCounters)
+            {
+                ss << it.first << " => " << it.second << std::endl;
+            }
+            CoreLogger::info(ss.str());
+        }
+
         return true;
     }
 
@@ -93,8 +142,11 @@ namespace ix
                                         bool verbose)
     {
         CobraBot bot;
+        std::map<std::string, int> deviceIdCounters;
+
         bot.setOnBotMessageCallback(
-            [&statsdClient, &verbose](const Json::Value& msg,
+            [&statsdClient, &verbose, &deviceIdCounters]
+                                     (const Json::Value& msg,
                                       const std::string& /*position*/,
                                       std::atomic<bool>& /*throttled*/,
                                       std::atomic<bool>& /*fatalCobraError*/,
@@ -116,7 +168,7 @@ namespace ix
             if (msg["id"].asString() == "engine_performance_metrics_id")
             {
                 success = processPerfMetricsEvent(msg, statsdClient);
-                success |= processPerfMetricsEventSlowFrames(msg, statsdClient);
+                success |= processPerfMetricsEventSlowFrames(msg, statsdClient, deviceIdCounters, sentCount);
             }
 
             if (success) sentCount++;
