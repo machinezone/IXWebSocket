@@ -123,7 +123,7 @@ namespace ix
         }
 
         // periodically display all device ids
-        if (sentCount % 100 == 0)
+        if (sentCount % 1000 == 0)
         {
             ss.str(""); // reset the stringstream
             ss << "## " << deviceIdCounters.size() << " unique device ids ##" << std::endl;

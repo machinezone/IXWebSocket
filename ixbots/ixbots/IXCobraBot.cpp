@@ -44,6 +44,7 @@ namespace ix
         std::atomic<bool> stop(false);
         std::atomic<bool> throttled(false);
         std::atomic<bool> fatalCobraError(false);
+        std::atomic<bool> stalledConnection(false);
         int minuteCounter = 0;
 
         auto timer = [&sentCount,
@@ -95,7 +96,13 @@ namespace ix
 
         std::thread t1(timer);
 
-        auto heartbeat = [&sentCount, &receivedCount, &stop, &enableHeartbeat, &heartBeatTimeout, &fatalCobraError] {
+        auto heartbeat = [&sentCount,
+                          &receivedCount,
+                          &stop,
+                          &enableHeartbeat,
+                          &heartBeatTimeout,
+                          &stalledConnection]
+        {
             setThreadName("Bot heartbeat");
             std::string state("na");
 
@@ -111,9 +118,12 @@ namespace ix
 
                 if (currentState == state)
                 {
-                    CoreLogger::error("no messages received or sent for 1 minute, exiting");
-                    fatalCobraError = true;
-                    break;
+                    ss.str("");
+                    ss << "no messages received or sent for "
+                       << heartBeatTimeout << " seconds, reconnecting";
+
+                    CoreLogger::error(ss.str());
+                    stalledConnection = true;
                 }
                 state = currentState;
 
@@ -234,6 +244,13 @@ namespace ix
                 std::this_thread::sleep_for(duration);
 
                 if (fatalCobraError) break;
+
+                if (stalledConnection)
+                {
+                    conn.disconnect();
+                    conn.connect();
+                    stalledConnection = false;
+                }
             }
         }
         // Run for a duration, used by unittesting now
@@ -245,6 +262,13 @@ namespace ix
                 std::this_thread::sleep_for(duration);
 
                 if (fatalCobraError) break;
+
+                if (stalledConnection)
+                {
+                    conn.disconnect();
+                    conn.connect();
+                    stalledConnection = false;
+                }
             }
         }
 
