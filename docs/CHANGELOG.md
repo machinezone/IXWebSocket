@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.7.1] - 2020-06-11
+
+(redis cobra bots) ws cobra metrics to redis / hostname invalid parsing
+
 ## [9.7.0] - 2020-06-11
 
 (redis cobra bots) xadd with maxlen + fix bug in xadd client implementation and ws cobra metrics to redis command argument parsing

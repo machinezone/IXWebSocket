@@ -605,7 +605,7 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("cobra_metrics_to_redis"))
     {
         ix::RedisClient redisClient;
-        if (!redisClient.connect(redisHosts, redisPort))
+        if (!redisClient.connect(hostname, redisPort))
         {
             spdlog::error("Cannot connect to redis host {}:{}",
                           redisHosts, redisPort);
