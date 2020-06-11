@@ -112,7 +112,7 @@ namespace ix
             it.second.erase(socket.get());
         }
 
-        for (auto it : _subscribers)
+        for (auto&& it : _subscribers)
         {
             std::stringstream ss;
             ss << "Subscription id: " << it.first << " #subscribers: " << it.second.size();
