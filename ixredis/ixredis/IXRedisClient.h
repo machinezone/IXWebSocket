@@ -40,9 +40,12 @@ namespace ix
         // XADD
         std::string xadd(const std::string& channel,
                          const std::string& message,
+                         int maxLen,
                          std::string& errMsg);
 
-        std::string prepareXaddCommand(const std::string& stream, const std::string& message);
+        std::string prepareXaddCommand(const std::string& stream,
+                                       const std::string& message,
+                                       int maxLen);
 
         std::string readXaddReply(std::string& errMsg);
 

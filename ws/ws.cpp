@@ -370,7 +370,7 @@ int main(int argc, char** argv)
     cobra2redisApp->add_option("--port", redisPort, "Redis port");
     cobra2redisApp->add_flag("-v", verbose, "Verbose");
     addTLSOptions(cobra2redisApp);
-    addCobraConfig(cobra2redisApp);
+    addCobraBotConfig(cobra2redisApp);
 
     CLI::App* snakeApp = app.add_subcommand("snake", "Snake server");
     snakeApp->fallthrough();

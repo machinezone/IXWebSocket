@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.7.0] - 2020-06-11
+
+(redis cobra bots) xadd with maxlen + fix bug in xadd client implementation and ws cobra metrics to redis command argument parsing
+
 ## [9.6.9] - 2020-06-10
 
 (redis cobra bots) update the cobra to redis bot to use the bot framework, and change it to report fps metrics into redis streams.

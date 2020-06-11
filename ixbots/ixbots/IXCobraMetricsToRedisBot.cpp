@@ -45,33 +45,39 @@ namespace ix
         slowFrames += frameRateHistogramCounts[6].asInt();
         slowFrames += frameRateHistogramCounts[7].asInt();
 
+        //
+        // XADD without a device id
+        //
         std::stringstream ss;
         ss << msg["id"].asString() << "_slow_frames" << "."
            << msg["device"]["game"].asString() << "."
            << msg["device"]["os_name"].asString() << "."
            << removeSpaces(msg["data"]["Tag"].asString());
 
+        int maxLen;
+        maxLen = 100000;
         std::string id = ss.str();
         std::string errMsg;
-        if (redisClient.xadd(id, std::to_string(slowFrames), errMsg).empty())
+        if (redisClient.xadd(id, std::to_string(slowFrames), maxLen, errMsg).empty())
         {
             CoreLogger::info(std::string("redis xadd error: ") + errMsg);
         }
 
-        if (deviceId == "N841AP" || deviceId == "SM-N960U")
-        {
-            ss.str(""); // reset the stringstream
-            ss << msg["id"].asString() << "_slow_frames_by_device" << "."
-               << deviceId << "."
-               << msg["device"]["game"].asString() << "."
-               << msg["device"]["os_name"].asString() << "."
-               << removeSpaces(msg["data"]["Tag"].asString());
+        //
+        // XADD with a device id
+        //
+        ss.str(""); // reset the stringstream
+        ss << msg["id"].asString() << "_slow_frames_by_device" << "."
+           << deviceId << "."
+           << msg["device"]["game"].asString() << "."
+           << msg["device"]["os_name"].asString() << "."
+           << removeSpaces(msg["data"]["Tag"].asString());
 
-            std::string id = ss.str();
-            if (redisClient.xadd(id, std::to_string(slowFrames), errMsg).empty())
-            {
-                CoreLogger::info(std::string("redis xadd error: ") + errMsg);
-            }
+        id = ss.str();
+        maxLen = 1000;
+        if (redisClient.xadd(id, std::to_string(slowFrames), maxLen, errMsg).empty())
+        {
+            CoreLogger::info(std::string("redis xadd error: ") + errMsg);
         }
 
         return true;

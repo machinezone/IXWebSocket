@@ -251,12 +251,16 @@ namespace ix
     }
 
     std::string RedisClient::prepareXaddCommand(const std::string& stream,
-                                                const std::string& message)
+                                                const std::string& message,
+                                                int maxLen)
     {
         std::stringstream ss;
-        ss << "*5\r\n";
+        ss << "*8\r\n";
         ss << writeString("XADD");
         ss << writeString(stream);
+        ss << writeString("MAXLEN");
+        ss << writeString("~");
+        ss << writeString(std::to_string(maxLen));
         ss << writeString("*");
         ss << writeString("field");
         ss << writeString(message);
@@ -266,6 +270,7 @@ namespace ix
 
     std::string RedisClient::xadd(const std::string& stream,
                                   const std::string& message,
+                                  int maxLen,
                                   std::string& errMsg)
     {
         errMsg.clear();
@@ -276,7 +281,7 @@ namespace ix
             return std::string();
         }
 
-        std::string command = prepareXaddCommand(stream, message);
+        std::string command = prepareXaddCommand(stream, message, maxLen);
 
         bool sent = _socket->writeBytes(command, nullptr);
         if (!sent)
