@@ -292,4 +292,22 @@ namespace ix
     {
         _onBotMessageCallback = callback;
     }
+
+    std::string CobraBot::getDeviceIdentifier(const Json::Value& msg)
+    {
+        std::string deviceId("na");
+
+        auto osName = msg["device"]["os_name"];
+        if (osName == "Android")
+        {
+            deviceId = msg["device"]["model"].asString();
+        }
+        else if (osName == "iOS")
+        {
+            deviceId = msg["device"]["hardware_model"].asString();
+        }
+
+        return deviceId;
+    }
+
 } // namespace ix

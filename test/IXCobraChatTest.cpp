@@ -10,7 +10,7 @@
 #include <iostream>
 #include <ixcobra/IXCobraConnection.h>
 #include <ixcrypto/IXUuid.h>
-#include <ixsnake/IXRedisServer.h>
+#include <ixredis/IXRedisServer.h>
 #include <ixsnake/IXSnakeServer.h>
 
 using namespace ix;

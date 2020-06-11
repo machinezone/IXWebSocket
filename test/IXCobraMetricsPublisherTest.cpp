@@ -8,7 +8,7 @@
 #include <iostream>
 #include <ixcobra/IXCobraMetricsPublisher.h>
 #include <ixcrypto/IXUuid.h>
-#include <ixsnake/IXRedisServer.h>
+#include <ixredis/IXRedisServer.h>
 #include <ixsnake/IXSnakeServer.h>
 #include <set>
 

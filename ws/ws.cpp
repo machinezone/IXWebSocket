@@ -15,6 +15,8 @@
 #include <ixbots/IXCobraToStatsdBot.h>
 #include <ixbots/IXCobraToStdoutBot.h>
 #include <ixbots/IXCobraMetricsToStatsdBot.h>
+#include <ixbots/IXCobraMetricsToRedisBot.h>
+#include <ixredis/IXRedisClient.h>
 #include <ixcore/utils/IXCoreLogger.h>
 #include <ixsentry/IXSentryClient.h>
 #include <ixwebsocket/IXNetSystem.h>
@@ -363,13 +365,10 @@ int main(int argc, char** argv)
     CLI::App* cobra2redisApp =
         app.add_subcommand("cobra_metrics_to_redis", "Cobra metrics to redis");
     cobra2redisApp->fallthrough();
-    cobra2redisApp->add_option("channel", channel, "Channel")->required();
     cobra2redisApp->add_option("--pidfile", pidfile, "Pid file");
-    cobra2redisApp->add_option("--filter", filter, "Stream SQL Filter");
-    cobra2redisApp->add_option("--position", position, "Stream position");
     cobra2redisApp->add_option("--hostname", hostname, "Redis hostname");
     cobra2redisApp->add_option("--port", redisPort, "Redis port");
-    cobra2redisApp->add_flag("-q", quiet, "Quiet / only display stats");
+    cobra2redisApp->add_flag("-v", verbose, "Verbose");
     addTLSOptions(cobra2redisApp);
     addCobraConfig(cobra2redisApp);
 
@@ -605,8 +604,18 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("cobra_metrics_to_redis"))
     {
-        ret = ix::ws_cobra_metrics_to_redis(
-            cobraConfig, channel, filter, position, hostname, redisPort);
+        ix::RedisClient redisClient;
+        if (!redisClient.connect(redisHosts, redisPort))
+        {
+            spdlog::error("Cannot connect to redis host {}:{}",
+                          redisHosts, redisPort);
+            return 1;
+        }
+        else
+        {
+            ret = (int) ix::cobra_metrics_to_redis_bot(
+                cobraBotConfig, redisClient, verbose);
+        }
     }
     else if (app.got_subcommand("snake"))
     {

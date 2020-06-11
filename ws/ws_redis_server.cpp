@@ -4,7 +4,7 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
-#include <ixsnake/IXRedisServer.h>
+#include <ixredis/IXRedisServer.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 

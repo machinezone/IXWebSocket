@@ -51,7 +51,6 @@ add_executable(ws
   ws_snake.cpp
   ws_cobra_metrics_publish.cpp
   ws_cobra_publish.cpp
-  ws_cobra_metrics_to_redis.cpp
   ws_httpd.cpp
   ws_autobahn.cpp
   ws_proxy_server.cpp
@@ -64,6 +63,7 @@ target_link_libraries(ws ixbots)
 target_link_libraries(ws ixsnake)
 target_link_libraries(ws ixcobra)
 target_link_libraries(ws ixsentry)
+target_link_libraries(ws ixredis)
 target_link_libraries(ws ixwebsocket)
 target_link_libraries(ws ixcrypto)
 target_link_libraries(ws ixcore)

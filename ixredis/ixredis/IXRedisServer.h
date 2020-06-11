@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "IXSocket.h"
-#include "IXSocketServer.h"
+#include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXSocketServer.h>
 #include <functional>
 #include <map>
 #include <memory>

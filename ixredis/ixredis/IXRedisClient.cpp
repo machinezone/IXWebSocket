@@ -9,6 +9,7 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <sstream>

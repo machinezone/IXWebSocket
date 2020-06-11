@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.6.9] - 2020-06-10
+
+(redis cobra bots) update the cobra to redis bot to use the bot framework, and change it to report fps metrics into redis streams.
+
 ## [9.6.6] - 2020-06-04
 
 (statsd cobra bots) statsd improvement: prefix does not need a dot as a suffix, message size can be larger than 256 bytes, error handling was invalid, use core logger for logging instead of std::cerr

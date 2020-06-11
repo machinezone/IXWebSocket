@@ -8,9 +8,9 @@
 
 #include <atomic>
 #include <functional>
-#include <ixwebsocket/IXSocket.h>
 #include <memory>
 #include <string>
+#include <ixwebsocket/IXSocket.h>
 
 namespace ix
 {

@@ -28,6 +28,8 @@ namespace ix
         int64_t run(const CobraBotConfig& botConfig);
         void setOnBotMessageCallback(const OnBotMessageCallback& callback);
 
+        std::string getDeviceIdentifier(const Json::Value& msg);
+
     private:
         OnBotMessageCallback _onBotMessageCallback;
     };
