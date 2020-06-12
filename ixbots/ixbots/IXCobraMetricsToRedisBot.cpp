@@ -60,7 +60,7 @@ namespace ix
         std::string errMsg;
         if (redisClient.xadd(id, std::to_string(slowFrames), maxLen, errMsg).empty())
         {
-            CoreLogger::info(std::string("redis xadd error: ") + errMsg);
+            CoreLogger::info(std::string("redis XADD error: ") + errMsg);
         }
 
         //
@@ -77,7 +77,26 @@ namespace ix
         maxLen = 1000;
         if (redisClient.xadd(id, std::to_string(slowFrames), maxLen, errMsg).empty())
         {
-            CoreLogger::info(std::string("redis xadd error: ") + errMsg);
+            CoreLogger::info(std::string("redis XADD error: ") + errMsg);
+        }
+
+        //
+        // Add device to the device zset, and increment the score
+        // so that we know which devices are used more than others
+        // ZINCRBY myzset 1 one
+        //
+        ss.str(""); // reset the stringstream
+        ss << msg["id"].asString() << "_slow_frames_devices" << "."
+           << msg["device"]["game"].asString();
+
+        id = ss.str();
+        std::vector<std::string> args = {
+            "ZINCRBY", id, "1", deviceId
+        };
+        auto response = redisClient.send(args, errMsg);
+        if (response.first == RespType::Error)
+        {
+            CoreLogger::info(std::string("redis ZINCRBY error: ") + errMsg);
         }
 
         return true;

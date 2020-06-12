@@ -234,7 +234,7 @@ doc:
 	mkdocs gh-deploy
 
 change:
-	vi ixwebsocket/IXWebSocketVersion.h docs/CHANGELOG.md
+	vim ixwebsocket/IXWebSocketVersion.h docs/CHANGELOG.md
 
 .PHONY: test
 .PHONY: build
