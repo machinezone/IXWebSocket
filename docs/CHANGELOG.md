@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.7.4] - 2020-06-11
+
+(cobra metrics to statsd bot) change from a statsd type of gauge to a timing one
+
 ## [9.7.3] - 2020-06-11
 
 (redis cobra bots) capture most used devices in a zset

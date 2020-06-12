@@ -103,7 +103,7 @@ namespace ix
            << removeSpaces(msg["data"]["Tag"].asString());
 
         std::string id = ss.str();
-        statsdClient.gauge(id, slowFrames);
+        statsdClient.timing(id, slowFrames);
 
         // extract device model names for common devices
         auto deviceId = getDeviceIdentifier(msg);
@@ -119,7 +119,7 @@ namespace ix
                << removeSpaces(msg["data"]["Tag"].asString());
 
             std::string id = ss.str();
-            statsdClient.gauge(id, slowFrames);
+            statsdClient.timing(id, slowFrames);
         }
 
         // periodically display all device ids
