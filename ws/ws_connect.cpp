@@ -11,6 +11,7 @@
 #include <ixwebsocket/IXWebSocket.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
+#include <iostream>
 
 
 namespace ix

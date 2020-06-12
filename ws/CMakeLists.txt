@@ -34,6 +34,7 @@ endif()
 
 add_executable(ws
   ../third_party/msgpack11/msgpack11.cpp
+  ../third_party/cpp-linenoise/linenoise.cpp
   ${JSONCPP_SOURCES}
 
   ws_http_client.cpp
