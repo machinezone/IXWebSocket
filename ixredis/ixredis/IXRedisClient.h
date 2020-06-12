@@ -14,6 +14,14 @@
 
 namespace ix
 {
+    enum class RespType : int
+    {
+        String = 0,
+        Error = 1,
+        Integer = 2,
+        Unknown = 3
+    };
+
     class RedisClient
     {
     public:
@@ -42,14 +50,20 @@ namespace ix
                          const std::string& message,
                          int maxLen,
                          std::string& errMsg);
-
         std::string prepareXaddCommand(const std::string& stream,
                                        const std::string& message,
                                        int maxLen);
-
         std::string readXaddReply(std::string& errMsg);
+        bool sendCommand(
+            const std::string& commands, int commandsCount, std::string& errMsg);
 
-        bool sendCommand(const std::string& commands, int commandsCount, std::string& errMsg);
+        // Arbitrary commands
+        std::pair<RespType, std::string> send(
+            const std::vector<std::string>& args,
+            std::string& errMsg);
+        std::pair<RespType, std::string> readResponse(std::string& errMsg);
+
+        std::string getRespTypeDescription(RespType respType);
 
         void stop();
 

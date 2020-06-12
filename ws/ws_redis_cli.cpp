@@ -8,6 +8,7 @@
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <iostream>
+#include "linenoise.hpp"
 
 namespace ix
 {
@@ -36,17 +37,50 @@ namespace ix
 
         while (true)
         {
-            std::string text;
-            std::cout << "> " << std::flush;
-            std::getline(std::cin, text);
+            // Read line
+            std::string line;
+            std::string prompt;
+            prompt += hostname;
+            prompt += ":";
+            prompt += std::to_string(port);
+            prompt += "> ";
+            auto quit = linenoise::Readline(prompt.c_str(), line);
 
-#if 0
-            if (!redisClient.send(args, errMsg))
+            if (quit)
             {
-                spdlog::error("Error", channel, errMsg);
-                return 1;
+                break;
             }
-#endif
+
+            std::stringstream ss(line);
+            std::vector<std::string> args;
+            std::string arg;
+
+            while (ss.good())
+            {
+                ss >> arg;
+                args.push_back(arg);
+            }
+
+            std::string errMsg;
+            auto response = redisClient.send(args, errMsg);
+            if (!errMsg.empty())
+            {
+                spdlog::error("(error) {}", errMsg);
+            }
+            else
+            {
+                if (response.first != RespType::String)
+                {
+                    std::cout << "("
+                              << redisClient.getRespTypeDescription(response.first)
+                              << ")"
+                              << " ";
+                }
+
+                std::cout << response.second << std::endl;
+            }
+
+            linenoise::AddHistory(line.c_str());
         }
 
         return 0;

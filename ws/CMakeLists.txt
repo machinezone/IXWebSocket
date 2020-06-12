@@ -45,6 +45,7 @@ add_executable(ws
   ws_transfer.cpp
   ws_send.cpp
   ws_receive.cpp
+  ws_redis_cli.cpp
   ws_redis_publish.cpp
   ws_redis_subscribe.cpp
   ws_redis_server.cpp

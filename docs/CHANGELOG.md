@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.7.2] - 2020-06-11
+
+(ws) add bare bone redis-cli like sub-command, with command line editing powered by libnoise
+
 ## [9.7.1] - 2020-06-11
 
 (redis cobra bots) ws cobra metrics to redis / hostname invalid parsing

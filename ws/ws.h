@@ -64,6 +64,10 @@ namespace ix
                      bool disablePerMessageDeflate,
                      const ix::SocketTLSOptions& tlsOptions);
 
+    int ws_redis_cli_main(const std::string& hostname,
+                          int port,
+                          const std::string& password);
+
     int ws_redis_publish_main(const std::string& hostname,
                               int port,
                               const std::string& password,

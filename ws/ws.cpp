@@ -281,6 +281,12 @@ int main(int argc, char** argv)
     httpClientApp->add_option("--transfer-timeout", transferTimeout, "Transfer timeout");
     addTLSOptions(httpClientApp);
 
+    CLI::App* redisCliApp = app.add_subcommand("redis_cli", "Redis cli");
+    redisCliApp->fallthrough();
+    redisCliApp->add_option("--port", redisPort, "Port");
+    redisCliApp->add_option("--host", hostname, "Hostname");
+    redisCliApp->add_option("--password", password, "Password");
+
     CLI::App* redisPublishApp = app.add_subcommand("redis_publish", "Redis publisher");
     redisPublishApp->fallthrough();
     redisPublishApp->add_option("--port", redisPort, "Port");
@@ -530,6 +536,10 @@ int main(int argc, char** argv)
                                       output,
                                       compress,
                                       tlsOptions);
+    }
+    else if (app.got_subcommand("redis_cli"))
+    {
+        ret = ix::ws_redis_cli_main(hostname, redisPort, password);
     }
     else if (app.got_subcommand("redis_publish"))
     {

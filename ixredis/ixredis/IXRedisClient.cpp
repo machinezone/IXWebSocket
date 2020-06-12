@@ -354,4 +354,104 @@ namespace ix
 
         return success;
     }
+
+    std::pair<RespType, std::string> RedisClient::send(
+        const std::vector<std::string>& args,
+        std::string& errMsg)
+    {
+        std::stringstream ss;
+        ss << "*";
+        ss << std::to_string(args.size());
+        ss << "\r\n";
+
+        for (auto&& arg : args)
+        {
+            ss << writeString(arg);
+        }
+
+        bool sent = _socket->writeBytes(ss.str(), nullptr);
+        if (!sent)
+        {
+            errMsg = "Cannot write bytes to socket";
+            return std::make_pair(RespType::Error, "");
+        }
+
+        return readResponse(errMsg);
+    }
+
+    std::pair<RespType, std::string> RedisClient::readResponse(std::string& errMsg)
+    {
+        // Read result
+        auto pollResult = _socket->isReadyToRead(-1);
+        if (pollResult == PollResultType::Error)
+        {
+            errMsg = "Error while polling for result";
+            return std::make_pair(RespType::Error, "");
+        }
+
+        // First line is the string length
+        auto lineResult = _socket->readLine(nullptr);
+        auto lineValid = lineResult.first;
+        auto line = lineResult.second;
+
+        if (!lineValid)
+        {
+            errMsg = "Error while polling for result";
+            return std::make_pair(RespType::Error, "");
+        }
+
+        std::string response;
+
+        if (line[0] == '+') // Simple string
+        {
+            std::stringstream ss;
+            response = line.substr(1, line.size() - 3);
+            return std::make_pair(RespType::String, response);
+        }
+        else if (line[0] == '-') // Errors
+        {
+            std::stringstream ss;
+            response = line.substr(1, line.size() - 3);
+            return std::make_pair(RespType::Error, response);
+        }
+        else if (line[0] == ':') // Integers
+        {
+            std::stringstream ss;
+            response = line.substr(1, line.size() - 3);
+            return std::make_pair(RespType::Integer, response);
+        }
+        else if (line[0] == '$') // Bulk strings
+        {
+            int stringSize;
+            {
+                std::stringstream ss;
+                ss << line.substr(1, line.size() - 1);
+                ss >> stringSize;
+            }
+
+            // Read the result, which is the stream id computed by the redis server
+            lineResult = _socket->readLine(nullptr);
+            lineValid = lineResult.first;
+            line = lineResult.second;
+
+            std::string str = line.substr(0, stringSize);
+            return std::make_pair(RespType::String, str);
+        }
+        else
+        {
+            errMsg = "Unhandled response type";
+            return std::make_pair(RespType::Unknown, std::string());
+        }
+    }
+
+    std::string RedisClient::getRespTypeDescription(RespType respType)
+    {
+        switch (respType)
+        {
+            case RespType::Integer: return "integer";
+            case RespType::Error: return "error";
+            case RespType::String: return "string";
+            default: return "unknown";
+        }
+    }
 } // namespace ix
