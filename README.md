@@ -81,7 +81,7 @@ If your company or project is using this library, feel free to open an issue or 
 
 - [Machine Zone](https://www.mz.com)
 - [Tokio](https://gitlab.com/HCInk/tokio), a discord library focused on audio playback with node bindings.
-- [libDiscordBot](https://github.com/tostc/libDiscordBot/tree/master), a work in progress discord library
+- [libDiscordBot](https://github.com/tostc/libDiscordBot/tree/master), an easy to use Discord-bot framework.
 - [gwebsocket](https://github.com/norrbotten/gwebsocket), a websocket (lua) module for Garry's Mod
 - [DisCPP](https://github.com/DisCPP/DisCPP), a simple but feature rich Discord API wrapper
 
