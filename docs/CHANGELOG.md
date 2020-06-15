@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.7.5] - 2020-06-15
+
+(cobra bots) minor aesthetic change, in how we display http headers with a : then space as key value separator instead of :: with no space
+
 ## [9.7.4] - 2020-06-11
 
 (cobra metrics to statsd bot) change from a statsd type of gauge to a timing one

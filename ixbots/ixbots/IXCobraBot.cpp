@@ -156,7 +156,7 @@ namespace ix
 
                 for (auto&& it : event->headers)
                 {
-                    CoreLogger::info(it.first + "::" + it.second);
+                    CoreLogger::info(it.first + ": " + it.second);
                 }
             }
             else if (event->type == ix::CobraEventType::Closed)
