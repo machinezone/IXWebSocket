@@ -70,7 +70,7 @@ namespace ix
                                                      std::atomic<bool>& fatalCobraError,
                                                      std::atomic<uint64_t>& sentCount) -> void {
                 std::string id;
-                int idx = 0;
+                size_t idx = 0;
                 for (auto&& attr : tokens)
                 {
                     auto val = extractAttr(attr, msg);
