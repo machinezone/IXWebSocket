@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.7.7] - 2020-06-17
+
+(cobra client and bots) add batch_size subscription option for retrieving multiple messages at once
+
 ## [9.7.6] - 2020-06-15
 
 (websocket) WebSocketServer is not a final class, so that users can extend it (fix #215)

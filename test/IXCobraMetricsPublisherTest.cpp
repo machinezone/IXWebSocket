@@ -76,10 +76,12 @@ namespace
                 log("Subscriber authenticated");
                 std::string filter;
                 std::string position("$");
+                int batchSize = 1;
 
                 conn.subscribe(channel,
                                filter,
                                position,
+                               batchSize,
                                [](const Json::Value& msg, const std::string& /*position*/) {
                                    log(msg.toStyledString());
 

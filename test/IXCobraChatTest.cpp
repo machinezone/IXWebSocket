@@ -125,10 +125,12 @@ namespace
     {
         std::string filter;
         std::string position("$");
+        int batchSize = 1;
 
         _conn.subscribe(channel,
                         filter,
                         position,
+                        batchSize,
                         [this](const Json::Value& msg, const std::string& /*position*/) {
                             spdlog::info("receive {}", msg.toStyledString());
 

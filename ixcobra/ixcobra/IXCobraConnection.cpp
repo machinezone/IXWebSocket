@@ -562,11 +562,13 @@ namespace ix
     void CobraConnection::subscribe(const std::string& channel,
                                     const std::string& filter,
                                     const std::string& position,
+                                    int batchSize,
                                     SubscriptionCallback cb)
     {
         // Create and send a subscribe pdu
         Json::Value body;
         body["channel"] = channel;
+        body["batch_size"] = batchSize;
 
         if (!filter.empty())
         {

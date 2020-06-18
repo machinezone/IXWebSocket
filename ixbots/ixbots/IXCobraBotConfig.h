@@ -27,5 +27,6 @@ namespace ix
         int runtime = -1;
         int maxEventsPerMinute = std::numeric_limits<int>::max();
         bool limitReceivedEvents = false;
+        int batchSize = 1;
     };
 } // namespace ix

@@ -192,6 +192,8 @@ int main(int argc, char** argv)
             "--limit_received_events", cobraBotConfig.limitReceivedEvents, "Max events per minute");
         app->add_option(
             "--max_events_per_minute", cobraBotConfig.maxEventsPerMinute, "Max events per minute");
+        app->add_option(
+            "--batch_size", cobraBotConfig.batchSize, "Subscription batch size");
     };
 
     app.add_flag("--version", version, "Print ws version");

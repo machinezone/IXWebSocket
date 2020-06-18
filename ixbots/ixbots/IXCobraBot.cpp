@@ -29,6 +29,7 @@ namespace ix
         auto runtime = botConfig.runtime;
         auto maxEventsPerMinute = botConfig.maxEventsPerMinute;
         auto limitReceivedEvents = botConfig.limitReceivedEvents;
+        auto batchSize = botConfig.batchSize;
 
         ix::CobraConnection conn;
         conn.configure(config);
@@ -148,6 +149,7 @@ namespace ix
                                &receivedCountPerMinutes,
                                maxEventsPerMinute,
                                limitReceivedEvents,
+                               batchSize,
                                &fatalCobraError,
                                &sentCount](const CobraEventPtr& event) {
             if (event->type == ix::CobraEventType::Open)
@@ -169,7 +171,7 @@ namespace ix
                 CoreLogger::info("Subscribing to " + channel);
                 CoreLogger::info("Subscribing at position " + subscriptionPosition);
                 CoreLogger::info("Subscribing with filter " + filter);
-                conn.subscribe(channel, filter, subscriptionPosition,
+                conn.subscribe(channel, filter, subscriptionPosition, batchSize,
                     [&sentCount, &receivedCountPerMinutes,
                      maxEventsPerMinute, limitReceivedEvents,
                      &throttled, &receivedCount,
