@@ -56,6 +56,7 @@ namespace ix
                       &receivedCountPerSecs,
                       &receivedCountPerMinutes,
                       &minuteCounter,
+                      &conn,
                       &stop] {
             setThreadName("Bot progress");
             while (!stop)
@@ -74,7 +75,11 @@ namespace ix
                    << sentCountPerSecs
                    << " "
                    << sentCountTotal;
-                CoreLogger::info(ss.str());
+
+                if (conn.isAuthenticated())
+                {
+                    CoreLogger::info(ss.str());
+                }
 
                 receivedCountPerSecs = receivedCount - receivedCountTotal;
                 sentCountPerSecs = sentCount - sentCountTotal;
