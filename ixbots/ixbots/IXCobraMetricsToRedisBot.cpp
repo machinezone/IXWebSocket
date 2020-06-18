@@ -115,9 +115,15 @@ namespace ix
               std::atomic<bool>& /*throttled*/,
               std::atomic<bool>& /*fatalCobraError*/,
               std::atomic<uint64_t>& sentCount) -> void {
-            if (msg["device"].isNull() || msg["id"].isNull())
+            if (msg["device"].isNull())
             {
-                CoreLogger::info("no device or id entry, skipping event");
+                CoreLogger::info("no device entry, skipping event");
+                return;
+            }
+
+            if (msg["id"].isNull())
+            {
+                CoreLogger::info("no id entry, skipping event");
                 return;
             }
 

@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.7.8] - 2020-06-18
+
+(cobra metrics to statsd bot) send info about net requests
+
 ## [9.7.7] - 2020-06-17
 
 (cobra client and bots) add batch_size subscription option for retrieving multiple messages at once

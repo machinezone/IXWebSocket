@@ -33,6 +33,42 @@ namespace
 
 namespace ix
 {
+    bool processNetRequestMetricsEvent(const Json::Value& msg,
+                                       StatsdClient& statsdClient)
+    {
+        auto durationMs = msg["data"]["duration_ms"].asUInt64();
+        auto size = msg["data"]["size"].asUInt64();
+        auto controller = msg["data"]["params"]["_controller"].asString();
+        auto action = msg["data"]["params"]["_action"].asString();
+        auto game = msg["device"]["game"].asString();
+        auto status = msg["data"]["status"].asInt();
+        auto osName = msg["device"]["os_name"].asString();
+
+        bool valid = true;
+        valid |= controller == "game_session" && action == "start";
+        valid |= controller == "asset" && action == "manifest";
+        valid |= controller == "iso_login" && action == "post_start_session";
+        if (!valid) return false;
+
+        // We only worry about successful requests
+        if (status != 200) return false;
+
+        std::stringstream ss;
+        ss << msg["id"].asString() << "."
+           << "v1."
+           << game << "."
+           << osName << "."
+           << controller << "."
+           << action;
+
+        std::string id = ss.str();
+
+        statsdClient.gauge(id + ".duration_ms", durationMs);
+        statsdClient.gauge(id + ".size", size);
+
+        return true;
+    }
+
     bool processPerfMetricsEvent(const Json::Value& msg,
                                  StatsdClient& statsdClient)
     {
@@ -151,9 +187,15 @@ namespace ix
                                       std::atomic<bool>& /*throttled*/,
                                       std::atomic<bool>& /*fatalCobraError*/,
                                       std::atomic<uint64_t>& sentCount) -> void {
-            if (msg["device"].isNull() || msg["id"].isNull())
+            if (msg["device"].isNull())
             {
-                CoreLogger::info("no device or id entry, skipping event");
+                CoreLogger::info("no device entry, skipping event");
+                return;
+            }
+
+            if (msg["id"].isNull())
+            {
+                CoreLogger::info("no id entry, skipping event");
                 return;
             }
 
@@ -169,6 +211,10 @@ namespace ix
             {
                 success = processPerfMetricsEvent(msg, statsdClient);
                 success |= processPerfMetricsEventSlowFrames(msg, statsdClient, deviceIdCounters, sentCount);
+            }
+            else if (msg["id"].asString() == "engine_net_request_id")
+            {
+                success = processNetRequestMetricsEvent(msg, statsdClient);
             }
 
             if (success) sentCount++;
