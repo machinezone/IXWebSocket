@@ -67,7 +67,7 @@ TEST_CASE("http server", "[httpd]")
 
 TEST_CASE("http server redirection", "[httpd_redirect]")
 {
-    SECTION("Connect to a local HTTP server, with redirection enabled")
+    SECTION("Connect to a local HTTP server, with redirection enabled, but we do not follow redirects")
     {
         int port = getFreePort();
         ix::HttpServer server(port, "127.0.0.1");
@@ -114,6 +114,56 @@ TEST_CASE("http server redirection", "[httpd_redirect]")
         REQUIRE(response->errorCode == HttpErrorCode::Ok);
         REQUIRE(response->statusCode == 301);
         REQUIRE(response->headers["Location"] == "http://example.com");
+
+        server.stop();
+    }
+
+    SECTION("Connect to a local HTTP server, with redirection enabled, but we do follow redirects")
+    {
+        int port = getFreePort();
+        ix::HttpServer server(port, "127.0.0.1");
+        server.makeRedirectServer("http://www.google.com");
+
+        auto res = server.listen();
+        REQUIRE(res.first);
+        server.start();
+
+        HttpClient httpClient;
+        WebSocketHttpHeaders headers;
+
+        std::string url("http://127.0.0.1:");
+        url += std::to_string(port);
+        url += "/data/foo.txt";
+        auto args = httpClient.createRequest(url);
+
+        args->extraHeaders = headers;
+        args->connectTimeout = 60;
+        args->transferTimeout = 60;
+        args->followRedirects = true;
+        args->maxRedirects = 10;
+        args->verbose = true;
+        args->compress = true;
+        args->logger = [](const std::string& msg) { std::cout << msg; };
+        args->onProgressCallback = [](int current, int total) -> bool {
+            std::cerr << "\r"
+                      << "Downloaded " << current << " bytes out of " << total;
+            return true;
+        };
+
+        auto response = httpClient.get(url, args);
+
+        for (auto it : response->headers)
+        {
+            std::cerr << it.first << ": " << it.second << std::endl;
+        }
+
+        std::cerr << "Upload size: " << response->uploadSize << std::endl;
+        std::cerr << "Download size: " << response->downloadSize << std::endl;
+        std::cerr << "Status: " << response->statusCode << std::endl;
+        std::cerr << "Error message: " << response->errorMsg << std::endl;
+
+        REQUIRE(response->errorCode == HttpErrorCode::Ok);
+        REQUIRE(response->statusCode == 200);
 
         server.stop();
     }
