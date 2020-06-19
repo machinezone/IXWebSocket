@@ -127,7 +127,7 @@ namespace ix
     {
         // We only have one socket connection, so we cannot
         // make multiple requests concurrently.
-        std::lock_guard<std::mutex> lock(_mutex);
+        std::lock_guard<std::recursive_mutex> lock(_mutex);
 
         uint64_t uploadSize = 0;
         uint64_t downloadSize = 0;

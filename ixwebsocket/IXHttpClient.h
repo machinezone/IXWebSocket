@@ -103,7 +103,9 @@ namespace ix
         std::thread _thread;
 
         std::unique_ptr<Socket> _socket;
-        std::mutex _mutex; // to protect accessing the _socket (only one socket per client)
+        std::recursive_mutex _mutex; // to protect accessing the _socket (only one socket per client)
+                                     // the mutex needs to be recursive as this function might
+                                     // be called recursively to follow HTTP redirections
 
         SocketTLSOptions _tlsOptions;
 
