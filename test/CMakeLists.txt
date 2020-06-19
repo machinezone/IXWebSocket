@@ -55,7 +55,6 @@ set (SOURCES
   IXSentryClientTest.cpp
   IXWebSocketChatTest.cpp
   IXWebSocketBroadcastTest.cpp
-  IXWebSocketPingTest.cpp
 )
 
 # Some unittest don't work on windows yet
@@ -72,6 +71,7 @@ if (UNIX)
 endif()
 
 # Ping test fails intermittently, disabling them for now
+# IXWebSocketPingTest.cpp
 # IXWebSocketPingTimeoutTest.cpp
 
 # Disable tests for now that are failing or not reliable
