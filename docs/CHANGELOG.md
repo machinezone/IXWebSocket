@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.8.0] - 2020-06-19
+
+(cobra metrics to statsd bot) send info about memory warnings
+
 ## [9.7.9] - 2020-06-18
 
 (http client) fix deadlock when following redirects

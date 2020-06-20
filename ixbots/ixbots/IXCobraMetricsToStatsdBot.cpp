@@ -33,6 +33,24 @@ namespace
 
 namespace ix
 {
+    bool processMemoryWarningsMetricsEvent(const Json::Value& msg,
+                                           StatsdClient& statsdClient)
+    {
+        auto startTime = msg["device"]["start_time"].asUInt64();
+        auto timestamp = msg["timestamp"].asUInt64();
+        auto game = msg["device"]["game"].asString();
+
+        std::stringstream ss;
+        ss << msg["id"].asString() << "."
+           << game;
+
+        std::string id = ss.str();
+
+        statsdClient.timing(id, (timestamp - startTime) / 1000);
+
+        return true;
+    }
+
     bool processNetRequestMetricsEvent(const Json::Value& msg,
                                        StatsdClient& statsdClient)
     {
@@ -215,6 +233,10 @@ namespace ix
             else if (msg["id"].asString() == "engine_net_request_id")
             {
                 success = processNetRequestMetricsEvent(msg, statsdClient);
+            }
+            else if (msg["id"].asString() == "engine_memory_warning_id")
+            {
+                success = processMemoryWarningsMetricsEvent(msg, statsdClient);
             }
 
             if (success) sentCount++;
