@@ -153,7 +153,6 @@ namespace ix
         std::stringstream ss;
         ss << msg["id"].asString() << "_slow_frames" << "."
            << msg["device"]["game"].asString() << "."
-           << msg["device"]["os_name"].asString() << "."
            << removeSpaces(msg["data"]["Tag"].asString());
 
         std::string id = ss.str();
@@ -169,7 +168,6 @@ namespace ix
             ss << msg["id"].asString() << "_slow_frames_by_device" << "."
                << deviceId << "."
                << msg["device"]["game"].asString() << "."
-               << msg["device"]["os_name"].asString() << "."
                << removeSpaces(msg["data"]["Tag"].asString());
 
             std::string id = ss.str();

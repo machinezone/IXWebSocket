@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.8.1] - 2020-06-19
+
+(cobra metrics to statsd bot) fps slow frame info : do not include os name
+
 ## [9.8.0] - 2020-06-19
 
 (cobra metrics to statsd bot) send info about memory warnings
