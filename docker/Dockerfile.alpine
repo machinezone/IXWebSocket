@@ -2,7 +2,7 @@ FROM alpine:3.12 as build
 
 RUN apk add --no-cache \
     gcc g++ musl-dev linux-headers \
-    cmake mbedtls-dev make zlib-dev ninja
+    cmake mbedtls-dev make zlib-dev python3-dev ninja
 
 RUN addgroup -S app && \
     adduser -S -G app app && \
@@ -20,7 +20,7 @@ RUN make ws_mbedtls_install && \
 
 FROM alpine:3.12 as runtime
 
-RUN apk add --no-cache libstdc++ mbedtls ca-certificates && \
+RUN apk add --no-cache libstdc++ mbedtls ca-certificates python3 && \
     addgroup -S app && \
     adduser -S -G app app
 

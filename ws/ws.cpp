@@ -11,6 +11,7 @@
 
 #include <cli11/CLI11.hpp>
 #include <fstream>
+#include <ixbots/IXCobraToPythonBot.h>
 #include <ixbots/IXCobraToSentryBot.h>
 #include <ixbots/IXCobraToStatsdBot.h>
 #include <ixbots/IXCobraToStdoutBot.h>
@@ -121,6 +122,7 @@ int main(int argc, char** argv)
     std::string project;
     std::string key;
     std::string logfile;
+    std::string scriptPath;
     ix::SocketTLSOptions tlsOptions;
     ix::CobraConfig cobraConfig;
     ix::CobraBotConfig cobraBotConfig;
@@ -351,6 +353,16 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
     addTLSOptions(cobra2statsd);
     addCobraBotConfig(cobra2statsd);
+
+    CLI::App* cobra2python = app.add_subcommand("cobra_to_python", "Cobra to python");
+    cobra2python->fallthrough();
+    cobra2python->add_option("--host", hostname, "Statsd host");
+    cobra2python->add_option("--port", statsdPort, "Statsd port");
+    cobra2python->add_option("--prefix", prefix, "Statsd prefix");
+    cobra2python->add_option("--script", scriptPath, "Python script path")->check(CLI::ExistingPath);
+    cobra2python->add_option("--pidfile", pidfile, "Pid file");
+    addTLSOptions(cobra2python);
+    addCobraBotConfig(cobra2python);
 
     CLI::App* cobraMetrics2statsd = app.add_subcommand("cobra_metrics_to_statsd", "Cobra metrics to statsd");
     cobraMetrics2statsd->fallthrough();
@@ -588,6 +600,23 @@ int main(int argc, char** argv)
                 ret = (int) ix::cobra_to_statsd_bot(
                     cobraBotConfig, statsdClient, fields, gauge, timer, verbose);
             }
+        }
+    }
+    else if (app.got_subcommand("cobra_to_python"))
+    {
+        ix::StatsdClient statsdClient(hostname, statsdPort, prefix, verbose);
+
+        std::string errMsg;
+        bool initialized = statsdClient.init(errMsg);
+        if (!initialized)
+        {
+            spdlog::error(errMsg);
+            ret = 1;
+        }
+        else
+        {
+            ret = (int) ix::cobra_to_python_bot(
+                cobraBotConfig, statsdClient, scriptPath);
         }
     }
     else if (app.got_subcommand("cobra_metrics_to_statsd"))

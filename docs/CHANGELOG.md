@@ -1,6 +1,11 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+=======
+## [9.8.2] - 2020-06-24
+
+(cobra bots) new cobra metrics bot to send data to statsd using Python for processing the message
+
 ## [9.8.1] - 2020-06-19
 
 (cobra metrics to statsd bot) fps slow frame info : do not include os name

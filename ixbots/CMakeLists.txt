@@ -10,6 +10,7 @@ set (IXBOTS_SOURCES
     ixbots/IXCobraToStdoutBot.cpp
     ixbots/IXCobraMetricsToStatsdBot.cpp
     ixbots/IXCobraMetricsToRedisBot.cpp
+    ixbots/IXCobraToPythonBot.cpp
     ixbots/IXStatsdClient.cpp
 )
 
@@ -21,6 +22,7 @@ set (IXBOTS_HEADERS
     ixbots/IXCobraToStdoutBot.h
     ixbots/IXCobraMetricsToStatsdBot.h
     ixbots/IXCobraMetricsToRedisBot.h
+    ixbots/IXCobraToPythonBot.h
     ixbots/IXStatsdClient.h
 )
 
@@ -34,6 +36,8 @@ if (NOT JSONCPP_FOUND)
   set(JSONCPP_INCLUDE_DIRS ../third_party/jsoncpp)
 endif()
 
+find_package(Python COMPONENTS Development)
+
 set(IXBOTS_INCLUDE_DIRS
     .
     ..
@@ -43,6 +47,7 @@ set(IXBOTS_INCLUDE_DIRS
     ../ixredis
     ../ixsentry
     ${JSONCPP_INCLUDE_DIRS}
-    ${SPDLOG_INCLUDE_DIRS})
+    ${SPDLOG_INCLUDE_DIRS}
+    ${Python_INCLUDE_DIRS})
 
 target_include_directories( ixbots PUBLIC ${IXBOTS_INCLUDE_DIRS} )

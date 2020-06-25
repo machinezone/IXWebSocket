@@ -91,6 +91,15 @@ if (JSONCPP_FOUND)
   target_link_libraries(ixwebsocket_unittest ${JSONCPP_LIBRARIES})
 endif()
 
+find_package(Python COMPONENTS Development)
+if (NOT Python_FOUND)
+  message(FATAL_ERROR "Python3 not found")
+endif()
+message("Python_FOUND:${Python_FOUND}")
+message("Python_VERSION:${Python_VERSION}")
+message("Python_Development_FOUND:${Python_Development_FOUND}")
+message("Python_LIBRARIES:${Python_LIBRARIES}")
+
 # library with the most dependencies come first
 target_link_libraries(ixwebsocket_unittest ixbots)
 target_link_libraries(ixwebsocket_unittest ixsnake)
@@ -102,5 +111,8 @@ target_link_libraries(ixwebsocket_unittest ixcrypto)
 target_link_libraries(ixwebsocket_unittest ixcore)
 
 target_link_libraries(ixwebsocket_unittest spdlog)
+if (NOT WIN32)
+  target_link_libraries(ixwebsocket_unittest ${Python_LIBRARIES})
+endif()
 
 install(TARGETS ixwebsocket_unittest DESTINATION bin)

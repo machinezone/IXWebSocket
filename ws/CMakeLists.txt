@@ -32,6 +32,15 @@ if (NOT JSONCPP_FOUND)
   set(JSONCPP_SOURCES ../third_party/jsoncpp/jsoncpp.cpp)
 endif()
 
+find_package(Python COMPONENTS Development)
+if (NOT Python_FOUND)
+  message(FATAL_ERROR "Python3 not found")
+endif()
+message("Python_FOUND:${Python_FOUND}")
+message("Python_VERSION:${Python_VERSION}")
+message("Python_Development_FOUND:${Python_Development_FOUND}")
+message("Python_LIBRARIES:${Python_LIBRARIES}")
+
 add_executable(ws
   ../third_party/msgpack11/msgpack11.cpp
   ../third_party/cpp-linenoise/linenoise.cpp
@@ -71,6 +80,9 @@ target_link_libraries(ws ixcrypto)
 target_link_libraries(ws ixcore)
 
 target_link_libraries(ws spdlog)
+if (NOT WIN32)
+  target_link_libraries(ws ${Python_LIBRARIES})
+endif()
 
 if (JSONCPP_FOUND)
   target_include_directories(ws PUBLIC ${JSONCPP_INCLUDE_DIRS})
