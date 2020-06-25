@@ -338,6 +338,6 @@ namespace ix
         Py_FinalizeEx();
 
         return status;
-    }
 #endif
+    }
 }
