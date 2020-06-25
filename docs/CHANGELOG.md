@@ -1,7 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
-=======
+## [9.8.3] - 2020-06-25
+
+(cmake) new python code is optional and enabled at cmake time with -DUSE_PYTHON=1
+
 ## [9.8.2] - 2020-06-24
 
 (cobra bots) new cobra metrics bot to send data to statsd using Python for processing the message

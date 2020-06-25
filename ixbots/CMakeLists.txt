@@ -36,7 +36,10 @@ if (NOT JSONCPP_FOUND)
   set(JSONCPP_INCLUDE_DIRS ../third_party/jsoncpp)
 endif()
 
-find_package(Python COMPONENTS Development)
+if (USE_PYTHON)
+  target_compile_definitions(ixbots PUBLIC IXBOTS_USE_PYTHON)
+  find_package(Python COMPONENTS Development)
+endif()
 
 set(IXBOTS_INCLUDE_DIRS
     .
@@ -47,7 +50,10 @@ set(IXBOTS_INCLUDE_DIRS
     ../ixredis
     ../ixsentry
     ${JSONCPP_INCLUDE_DIRS}
-    ${SPDLOG_INCLUDE_DIRS}
-    ${Python_INCLUDE_DIRS})
+    ${SPDLOG_INCLUDE_DIRS})
+
+if (USE_PYTHON)
+  set(IXBOTS_INCLUDE_DIRS ${IXBOTS_INCLUDE_DIRS} ${Python_INCLUDE_DIRS})
+endif()
 
 target_include_directories( ixbots PUBLIC ${IXBOTS_INCLUDE_DIRS} )

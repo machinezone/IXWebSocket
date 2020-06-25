@@ -22,8 +22,9 @@ Options for building:
 * `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support
 * `-DUSE_WS=1` will build the ws interactive command line tool
 * `-DUSE_TEST=1` will build the unittest
+* `-DUSE_PYTHON=1` will use Python3 for cobra bots, require Python3 to be installed.
 
-If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file (not maintained much though) or rather the [github actions](https://github.com/machinezone/IXWebSocket/blob/master/.github/workflows/ccpp.yml#L40) which have instructions for building dependencies.
+If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file (not maintained much though) or rather the [github actions](https://github.com/machinezone/IXWebSocket/blob/master/.github/workflows/unittest_windows.yml) which have instructions for building dependencies.
 
 It is also possible to externally include the project, so that everything is fetched over the wire when you build like so:
 

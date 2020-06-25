@@ -23,18 +23,18 @@
 // (linking error about missing debug build)
 //
 
-#ifndef _WIN32
+#ifdef IXBOTS_USE_PYTHON
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #endif
 
-#ifndef _WIN32
+#ifdef IXBOTS_USE_PYTHON
 namespace
 {
     //
     // This function is unused at this point. It produce a correct output,
-    // but triggers memory leaks when called repeateadly, as the reference counting
-    // Python functions are not used properly
+    // but triggers memory leaks when called repeateadly, as I cannot figure out how to
+    // make the reference counting Python functions to work properly (Py_DECREF and friends)
     //
     PyObject* jsonToPythonObject(const Json::Value& val)
     {
@@ -104,8 +104,9 @@ namespace ix
                                 StatsdClient& statsdClient,
                                 const std::string& scriptPath)
     {
-#ifdef _WIN32
-        CoreLogger::error("Command is disabled on Windows.");
+#ifndef IXBOTS_USE_PYTHON
+        CoreLogger::error("Command is disabled. "
+                          "Needs to be configured with USE_PYTHON=1");
         return -1;
 #else
         CobraBot bot;

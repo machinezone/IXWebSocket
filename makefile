@@ -19,26 +19,28 @@ install: brew
 #
 # Release, Debug, MinSizeRel, RelWithDebInfo are the build types
 #
+# Default rule does not use python as that requires first time users to have Python3 installed
+#
 brew:
 	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; ninja install)
 
-# Docker default target. We've add problem with OpenSSL and TLS 1.3 (on the
+# Docker default target. We've had problems with OpenSSL and TLS 1.3 (on the
 # server side ?) and I can't work-around it easily, so we're using mbedtls on
 # Linux for the SSL backend, which works great.
 ws_mbedtls_install:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; ninja install)
 
 ws:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. && ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_WS=1 .. && ninja install)
 
 ws_install:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. && make -j 4 install)
+	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_WS=1 .. && make -j 4 install)
 
 ws_openssl:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_OPEN_SSL=1 .. ; make -j 4)
+	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_WS=1 -DUSE_OPEN_SSL=1 .. ; make -j 4)
 
 ws_mbedtls:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j 4)
+	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j 4)
 
 ws_no_ssl:
 	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_WS=1 .. ; make -j 4)
@@ -107,16 +109,16 @@ test:
 	(cd test ; python2.7 run.py -r)
 
 test_make:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; make -j 4)
+	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; make -j 4)
 	(cd test ; python2.7 run.py -r)
 
 test_tsan:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)
+	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)
 	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
 	(cd test ; python2.7 run.py -r)
 
 test_ubsan:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableUndefinedBehaviorSanitizer YES)
+	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableUndefinedBehaviorSanitizer YES)
 	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
 	(cd test ; python2.7 run.py -r)
 
@@ -124,37 +126,37 @@ test_asan: build_test_asan
 	(cd test ; python2.7 run.py -r)
 
 build_test_asan:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableAddressSanitizer YES)
+	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableAddressSanitizer YES)
 	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
 
 test_tsan_openssl:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)
+	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)
 	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
 	(cd test ; python2.7 run.py -r)
 
 test_ubsan_openssl:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableUndefinedBehaviorSanitizer YES)
+	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableUndefinedBehaviorSanitizer YES)
 	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
 	(cd test ; python2.7 run.py -r)
 
 test_tsan_openssl_release:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Release -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 .. && xcodebuild -project ixwebsocket.xcodeproj -configuration Release -target ixwebsocket_unittest -enableThreadSanitizer YES)
+	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Release -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 .. && xcodebuild -project ixwebsocket.xcodeproj -configuration Release -target ixwebsocket_unittest -enableThreadSanitizer YES)
 	(cd build/test ; ln -sf Release/ixwebsocket_unittest)
 	(cd test ; python2.7 run.py -r)
 
 test_tsan_mbedtls:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_MBED_TLS=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)
+	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_MBED_TLS=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)
 	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
 	(cd test ; python2.7 run.py -r)
 
 build_test_openssl:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPEN_SSL=1 -DUSE_TEST=1 .. ; ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_OPEN_SSL=1 -DUSE_TEST=1 .. ; ninja install)
 
 test_openssl: build_test_openssl
 	(cd test ; python2.7 run.py -r)
 
 build_test_mbedtls:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DUSE_TEST=1 .. ; make -j 4)
+	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DUSE_TEST=1 .. ; make -j 4)
 
 test_mbedtls: build_test_mbedtls
 	(cd test ; python2.7 run.py -r)
@@ -223,6 +225,7 @@ rebase_upstream:
 	git reset --hard upstream/master
 	git push origin master --force
 
+# Legacy target
 install_cmake_for_linux:
 	mkdir -p /tmp/cmake
 	(cd /tmp/cmake ; curl -L -O https://github.com/Kitware/CMake/releases/download/v3.14.0/cmake-3.14.0-Linux-x86_64.tar.gz ; tar zxf cmake-3.14.0-Linux-x86_64.tar.gz)
