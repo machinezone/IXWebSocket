@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.8.4] - 2020-06-26
+
+(cobra bots) remove bots which is not required now that we can use Python extensions
+
 ## [9.8.3] - 2020-06-25
 
 (cmake) new python code is optional and enabled at cmake time with -DUSE_PYTHON=1
