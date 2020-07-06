@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.8.5] - 2020-07-06
+
+(cobra python bots) remove the test which stop the bot when events do not follow cobra metrics system schema with an id and a device entry
+
 ## [9.8.4] - 2020-06-26
 
 (cobra bots) remove bots which is not required now that we can use Python extensions
