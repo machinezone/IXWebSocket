@@ -326,9 +326,10 @@ namespace ix
         return _txbuf.empty();
     }
 
+    template<class Iterator>
     void WebSocketTransport::appendToSendBuffer(const std::vector<uint8_t>& header,
-                                                std::string::const_iterator begin,
-                                                std::string::const_iterator end,
+                                                Iterator begin,
+                                                Iterator end,
                                                 uint64_t message_size,
                                                 uint8_t masking_key[4])
     {
@@ -750,8 +751,9 @@ namespace ix
         return static_cast<unsigned>(seconds);
     }
 
+    template<class T>
     WebSocketSendInfo WebSocketTransport::sendData(wsheader_type::opcode_type type,
-                                                   const std::string& message,
+                                                   const T& message,
                                                    bool compress,
                                                    const OnProgressCallback& onProgressCallback)
     {
@@ -764,8 +766,8 @@ namespace ix
         size_t wireSize = message.size();
         bool compressionError = false;
 
-        std::string::const_iterator message_begin = message.begin();
-        std::string::const_iterator message_end = message.end();
+        auto message_begin = message.begin();
+        auto message_end = message.end();
 
         if (compress)
         {
@@ -859,10 +861,11 @@ namespace ix
         return WebSocketSendInfo(success, compressionError, payloadSize, wireSize);
     }
 
+    template<class Iterator>
     bool WebSocketTransport::sendFragment(wsheader_type::opcode_type type,
                                           bool fin,
-                                          std::string::const_iterator message_begin,
-                                          std::string::const_iterator message_end,
+                                          Iterator message_begin,
+                                          Iterator message_end,
                                           bool compress)
     {
         uint64_t message_size = static_cast<uint64_t>(message_end - message_begin);
@@ -1055,7 +1058,7 @@ namespace ix
         else
         {
             // no close code/reason set
-            sendData(wsheader_type::CLOSE, "", compress);
+            sendData(wsheader_type::CLOSE, std::string(""), compress);
         }
     }
 

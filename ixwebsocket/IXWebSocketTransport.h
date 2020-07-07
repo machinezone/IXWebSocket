@@ -239,15 +239,17 @@ namespace ix
         bool sendOnSocket();
         bool receiveFromSocket();
 
+        template<class T>
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
-                                   const std::string& message,
+                                   const T& message,
                                    bool compress,
                                    const OnProgressCallback& onProgressCallback = nullptr);
 
+        template<class Iterator>
         bool sendFragment(wsheader_type::opcode_type type,
                           bool fin,
-                          std::string::const_iterator begin,
-                          std::string::const_iterator end,
+                          Iterator begin,
+                          Iterator end,
                           bool compress);
 
         void emitMessage(MessageKind messageKind,
@@ -256,9 +258,11 @@ namespace ix
                          const OnMessageCallback& onMessageCallback);
 
         bool isSendBufferEmpty() const;
+
+        template<class Iterator>
         void appendToSendBuffer(const std::vector<uint8_t>& header,
-                                std::string::const_iterator begin,
-                                std::string::const_iterator end,
+                                Iterator begin,
+                                Iterator end,
                                 uint64_t message_size,
                                 uint8_t masking_key[4]);
 
