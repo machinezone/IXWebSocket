@@ -199,6 +199,7 @@ if (USE_TLS)
   endif()
 endif()
 
+# Use ZLIB_ROOT CMake variable if you need to use your own zlib
 find_package(ZLIB REQUIRED)
 include_directories(${ZLIB_INCLUDE_DIRS})
 target_link_libraries(ixwebsocket ${ZLIB_LIBRARIES})
