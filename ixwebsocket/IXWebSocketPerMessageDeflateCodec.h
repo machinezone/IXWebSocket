@@ -9,6 +9,7 @@
 #include "zlib.h"
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace ix
 {
@@ -20,6 +21,9 @@ namespace ix
 
         bool init(uint8_t deflateBits, bool clientNoContextTakeOver);
         bool compress(const std::string& in, std::string& out);
+        bool compress(const std::vector<uint8_t>& in, std::string& out);
+
+        template<typename T, typename S> bool compressData(const T& in, S& out);
 
     private:
         static bool endsWith(const std::string& value, const std::string& ending);
