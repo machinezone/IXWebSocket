@@ -276,6 +276,7 @@ namespace ix
             }
 
             // Accept a connection.
+            // FIXME: Is this working for ipv6 ?
             struct sockaddr_in client; // client address information
             int clientFd;              // socket connected to client
             socklen_t addressLen = sizeof(client);
@@ -307,9 +308,44 @@ namespace ix
                 continue;
             }
 
-            // FIXME error handling
-            char *remoteIp = inet_ntoa(client.sin_addr);
-            auto connectionInfo = std::make_unique<ConnectionInfo>(remoteIp, client.sin_port);
+            std::unique_ptr<ConnectionInfo> connectionInfo;
+
+            if (_addressFamily == AF_INET)
+            {
+                char remoteIp[INET_ADDRSTRLEN];
+                if (inet_ntop(AF_INET, &client.sin_addr, remoteIp, INET_ADDRSTRLEN) == nullptr)
+                {
+                    int err = Socket::getErrno();
+                    std::stringstream ss;
+                    ss << "SocketServer::run() error calling inet_ntop (ipv4): " << err << ", "
+                       << strerror(err);
+                    logError(ss.str());
+
+                    Socket::closeSocket(clientFd);
+
+                    continue;
+                }
+
+                connectionInfo = std::make_unique<ConnectionInfo>(remoteIp, client.sin_port);
+            }
+            else // AF_INET6
+            {
+                char remoteIp[INET6_ADDRSTRLEN];
+                if (inet_ntop(AF_INET6, &client.sin_addr, remoteIp, INET6_ADDRSTRLEN) == nullptr)
+                {
+                    int err = Socket::getErrno();
+                    std::stringstream ss;
+                    ss << "SocketServer::run() error calling inet_ntop (ipv6): " << err << ", "
+                       << strerror(err);
+                    logError(ss.str());
+
+                    Socket::closeSocket(clientFd);
+
+                    continue;
+                }
+
+                connectionInfo = std::make_unique<ConnectionInfo>(remoteIp, client.sin_port);
+            }
 
             std::shared_ptr<ConnectionState> connectionState;
             if (_connectionStateFactory)
