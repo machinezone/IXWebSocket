@@ -67,7 +67,8 @@ TEST_CASE("http server", "[httpd]")
 
 TEST_CASE("http server redirection", "[httpd_redirect]")
 {
-    SECTION("Connect to a local HTTP server, with redirection enabled, but we do not follow redirects")
+    SECTION(
+        "Connect to a local HTTP server, with redirection enabled, but we do not follow redirects")
     {
         int port = getFreePort();
         ix::HttpServer server(port, "127.0.0.1");

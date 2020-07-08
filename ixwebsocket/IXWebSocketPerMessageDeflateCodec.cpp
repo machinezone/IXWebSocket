@@ -75,22 +75,26 @@ namespace ix
         return compressData(in, out);
     }
 
-    bool WebSocketPerMessageDeflateCompressor::compress(const std::string& in, std::vector<uint8_t>& out)
+    bool WebSocketPerMessageDeflateCompressor::compress(const std::string& in,
+                                                        std::vector<uint8_t>& out)
     {
         return compressData(in, out);
     }
 
-    bool WebSocketPerMessageDeflateCompressor::compress(const std::vector<uint8_t>& in, std::string& out)
+    bool WebSocketPerMessageDeflateCompressor::compress(const std::vector<uint8_t>& in,
+                                                        std::string& out)
     {
         return compressData(in, out);
     }
 
-    bool WebSocketPerMessageDeflateCompressor::compress(const std::vector<uint8_t>& in, std::vector<uint8_t>& out)
+    bool WebSocketPerMessageDeflateCompressor::compress(const std::vector<uint8_t>& in,
+                                                        std::vector<uint8_t>& out)
     {
         return compressData(in, out);
     }
 
-    template<typename T, typename S> bool WebSocketPerMessageDeflateCompressor::compressData(const T& in, S& out)
+    template<typename T, typename S>
+    bool WebSocketPerMessageDeflateCompressor::compressData(const T& in, S& out)
     {
         //
         // 7.2.1.  Compression

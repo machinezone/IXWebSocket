@@ -56,7 +56,8 @@ namespace ix
             REQUIRE(compressAndDecompress("foo") == "foo");
             REQUIRE(compressAndDecompress("bar") == "bar");
             REQUIRE(compressAndDecompress("asdcaseqw`21897dehqwed") == "asdcaseqw`21897dehqwed");
-            REQUIRE(compressAndDecompress("/usr/local/include/ixwebsocket/IXSocketAppleSSL.h") == "/usr/local/include/ixwebsocket/IXSocketAppleSSL.h");
+            REQUIRE(compressAndDecompress("/usr/local/include/ixwebsocket/IXSocketAppleSSL.h") ==
+                    "/usr/local/include/ixwebsocket/IXSocketAppleSSL.h");
         }
 
         SECTION("vector api")
@@ -64,8 +65,11 @@ namespace ix
             REQUIRE(compressAndDecompressVector("") == "");
             REQUIRE(compressAndDecompressVector("foo") == "foo");
             REQUIRE(compressAndDecompressVector("bar") == "bar");
-            REQUIRE(compressAndDecompressVector("asdcaseqw`21897dehqwed") == "asdcaseqw`21897dehqwed");
-            REQUIRE(compressAndDecompressVector("/usr/local/include/ixwebsocket/IXSocketAppleSSL.h") == "/usr/local/include/ixwebsocket/IXSocketAppleSSL.h");
+            REQUIRE(compressAndDecompressVector("asdcaseqw`21897dehqwed") ==
+                    "asdcaseqw`21897dehqwed");
+            REQUIRE(
+                compressAndDecompressVector("/usr/local/include/ixwebsocket/IXSocketAppleSSL.h") ==
+                "/usr/local/include/ixwebsocket/IXSocketAppleSSL.h");
         }
     }
 

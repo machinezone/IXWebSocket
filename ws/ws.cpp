@@ -11,13 +11,13 @@
 
 #include <cli11/CLI11.hpp>
 #include <fstream>
+#include <ixbots/IXCobraMetricsToRedisBot.h>
 #include <ixbots/IXCobraToPythonBot.h>
 #include <ixbots/IXCobraToSentryBot.h>
 #include <ixbots/IXCobraToStatsdBot.h>
 #include <ixbots/IXCobraToStdoutBot.h>
-#include <ixbots/IXCobraMetricsToRedisBot.h>
-#include <ixredis/IXRedisClient.h>
 #include <ixcore/utils/IXCoreLogger.h>
+#include <ixredis/IXRedisClient.h>
 #include <ixsentry/IXSentryClient.h>
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocket.h>
@@ -193,8 +193,7 @@ int main(int argc, char** argv)
             "--limit_received_events", cobraBotConfig.limitReceivedEvents, "Max events per minute");
         app->add_option(
             "--max_events_per_minute", cobraBotConfig.maxEventsPerMinute, "Max events per minute");
-        app->add_option(
-            "--batch_size", cobraBotConfig.batchSize, "Subscription batch size");
+        app->add_option("--batch_size", cobraBotConfig.batchSize, "Subscription batch size");
     };
 
     app.add_flag("--version", version, "Print ws version");
@@ -358,7 +357,8 @@ int main(int argc, char** argv)
     cobra2python->add_option("--host", hostname, "Statsd host");
     cobra2python->add_option("--port", statsdPort, "Statsd port");
     cobra2python->add_option("--prefix", prefix, "Statsd prefix");
-    cobra2python->add_option("--script", scriptPath, "Python script path")->check(CLI::ExistingPath);
+    cobra2python->add_option("--script", scriptPath, "Python script path")
+        ->check(CLI::ExistingPath);
     cobra2python->add_option("--pidfile", pidfile, "Pid file");
     addTLSOptions(cobra2python);
     addCobraBotConfig(cobra2python);
@@ -604,8 +604,7 @@ int main(int argc, char** argv)
         }
         else
         {
-            ret = (int) ix::cobra_to_python_bot(
-                cobraBotConfig, statsdClient, scriptPath);
+            ret = (int) ix::cobra_to_python_bot(cobraBotConfig, statsdClient, scriptPath);
         }
     }
     else if (app.got_subcommand("cobra_to_sentry"))
@@ -620,14 +619,12 @@ int main(int argc, char** argv)
         ix::RedisClient redisClient;
         if (!redisClient.connect(hostname, redisPort))
         {
-            spdlog::error("Cannot connect to redis host {}:{}",
-                          redisHosts, redisPort);
+            spdlog::error("Cannot connect to redis host {}:{}", redisHosts, redisPort);
             return 1;
         }
         else
         {
-            ret = (int) ix::cobra_metrics_to_redis_bot(
-                cobraBotConfig, redisClient, verbose);
+            ret = (int) ix::cobra_metrics_to_redis_bot(cobraBotConfig, redisClient, verbose);
         }
     }
     else if (app.got_subcommand("snake"))

@@ -246,11 +246,8 @@ namespace ix
                                    const OnProgressCallback& onProgressCallback = nullptr);
 
         template<class Iterator>
-        bool sendFragment(wsheader_type::opcode_type type,
-                          bool fin,
-                          Iterator begin,
-                          Iterator end,
-                          bool compress);
+        bool sendFragment(
+            wsheader_type::opcode_type type, bool fin, Iterator begin, Iterator end, bool compress);
 
         void emitMessage(MessageKind messageKind,
                          const std::string& message,

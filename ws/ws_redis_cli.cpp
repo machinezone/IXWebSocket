@@ -4,17 +4,15 @@
  *  Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
  */
 
+#include "linenoise.hpp"
+#include <iostream>
 #include <ixredis/IXRedisClient.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
-#include <iostream>
-#include "linenoise.hpp"
 
 namespace ix
 {
-    int ws_redis_cli_main(const std::string& hostname,
-                          int port,
-                          const std::string& password)
+    int ws_redis_cli_main(const std::string& hostname, int port, const std::string& password)
     {
         RedisClient redisClient;
         if (!redisClient.connect(hostname, port))
@@ -71,9 +69,7 @@ namespace ix
             {
                 if (response.first != RespType::String)
                 {
-                    std::cout << "("
-                              << redisClient.getRespTypeDescription(response.first)
-                              << ")"
+                    std::cout << "(" << redisClient.getRespTypeDescription(response.first) << ")"
                               << " ";
                 }
 

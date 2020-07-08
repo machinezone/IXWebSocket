@@ -12,8 +12,8 @@
 #include <ixcobra/IXCobraConnection.h>
 #include <ixcobra/IXCobraMetricsPublisher.h>
 #include <ixcrypto/IXUuid.h>
-#include <ixsentry/IXSentryClient.h>
 #include <ixredis/IXRedisServer.h>
+#include <ixsentry/IXSentryClient.h>
 #include <ixsnake/IXSnakeServer.h>
 #include <ixwebsocket/IXHttpServer.h>
 #include <ixwebsocket/IXUserAgent.h>

@@ -9,11 +9,11 @@
 #include "IXNetSystem.h"
 #include "IXSocketConnect.h"
 #include "IXUserAgent.h"
+#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <zlib.h>
-#include <cstring>
 
 namespace
 {
@@ -50,8 +50,11 @@ namespace
         const int windowBits = 15;
         const int GZIP_ENCODING = 16;
 
-        deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
-                     windowBits | GZIP_ENCODING, 8,
+        deflateInit2(&zs,
+                     Z_DEFAULT_COMPRESSION,
+                     Z_DEFLATED,
+                     windowBits | GZIP_ENCODING,
+                     8,
                      Z_DEFAULT_STRATEGY);
 
         zs.next_in = (Bytef*) str.data();
@@ -69,13 +72,12 @@ namespace
 
             ret = deflate(&zs, Z_FINISH);
 
-            if(outstring.size() < zs.total_out)
+            if (outstring.size() < zs.total_out)
             {
                 // append the block to the output string
-                outstring.append(outbuffer,
-                                 zs.total_out - outstring.size());
+                outstring.append(outbuffer, zs.total_out - outstring.size());
             }
-        } while(ret == Z_OK);
+        } while (ret == Z_OK);
 
         deflateEnd(&zs);
 
