@@ -1,7 +1,9 @@
 /*
- *  IXSocketTest.cpp
- *  Author: Korchynskyi Dmytro
- *  Copyright (c) 2019 Machine Zone. All rights reserved.
+ *  IXWebSocketPerMessageDeflateCodecTest.cpp
+ *  Author: Benjamin Sergeant
+ *  Copyright (c) 2020 Machine Zone. All rights reserved.
+ *
+ *  make build_test && build/test/ixwebsocket_unittest per-message-deflate-codec
  */
 
 #include "IXTest.h"
@@ -14,22 +16,30 @@ using namespace ix;
 
 namespace ix
 {
+    std::string compressAndDecompress(const std::string& a)
+    {
+        std::string b, c;
+
+        WebSocketPerMessageDeflateCompressor compressor;
+        compressor.init(11, true);
+        compressor.compress(a, b);
+
+        WebSocketPerMessageDeflateDecompressor decompressor;
+        decompressor.init(11, true);
+        decompressor.decompress(b, c);
+
+        return c;
+    }
+
     TEST_CASE("per-message-deflate-codec", "[zlib]")
     {
-        SECTION("http://google.com")
+        SECTION("blah")
         {
-            std::string a = "foobarbaz";
-            std::string b, c;
-
-            WebSocketPerMessageDeflateCompressor compressor;
-            compressor.compress(a, b);
-
-            WebSocketPerMessageDeflateDecompressor decompressor;
-            decompressor.decompress(b, c);
-
-            REQUIRE(a != b);
-            REQUIRE(b != c);
-            REQUIRE(a == c);
+            REQUIRE(compressAndDecompress("") == "");
+            REQUIRE(compressAndDecompress("foo") == "foo");
+            REQUIRE(compressAndDecompress("bar") == "bar");
+            REQUIRE(compressAndDecompress("asdcaseqw`21897dehqwed") == "asdcaseqw`21897dehqwed");
+            REQUIRE(compressAndDecompress("/usr/local/include/ixwebsocket/IXSocketAppleSSL.h") == "/usr/local/include/ixwebsocket/IXSocketAppleSSL.h");
         }
     }
 

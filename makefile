@@ -104,8 +104,10 @@ test_server:
 # env TEST=Websocket_server make test
 # env TEST=Websocket_chat make test
 # env TEST=heartbeat make test
-test:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; ninja install)
+build_test:
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. ; ninja install)
+
+test: build_test
 	(cd test ; python2.7 run.py -r)
 
 test_make:
