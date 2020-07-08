@@ -31,15 +31,41 @@ namespace ix
         return c;
     }
 
+    std::string compressAndDecompressVector(const std::string& a)
+    {
+        std::string b, c;
+
+        std::vector<uint8_t> vec(a.begin(), a.end());
+
+        WebSocketPerMessageDeflateCompressor compressor;
+        compressor.init(11, true);
+        compressor.compress(vec, b);
+
+        WebSocketPerMessageDeflateDecompressor decompressor;
+        decompressor.init(11, true);
+        decompressor.decompress(b, c);
+
+        return c;
+    }
+
     TEST_CASE("per-message-deflate-codec", "[zlib]")
     {
-        SECTION("blah")
+        SECTION("string api")
         {
             REQUIRE(compressAndDecompress("") == "");
             REQUIRE(compressAndDecompress("foo") == "foo");
             REQUIRE(compressAndDecompress("bar") == "bar");
             REQUIRE(compressAndDecompress("asdcaseqw`21897dehqwed") == "asdcaseqw`21897dehqwed");
             REQUIRE(compressAndDecompress("/usr/local/include/ixwebsocket/IXSocketAppleSSL.h") == "/usr/local/include/ixwebsocket/IXSocketAppleSSL.h");
+        }
+
+        SECTION("vector api")
+        {
+            REQUIRE(compressAndDecompressVector("") == "");
+            REQUIRE(compressAndDecompressVector("foo") == "foo");
+            REQUIRE(compressAndDecompressVector("bar") == "bar");
+            REQUIRE(compressAndDecompressVector("asdcaseqw`21897dehqwed") == "asdcaseqw`21897dehqwed");
+            REQUIRE(compressAndDecompressVector("/usr/local/include/ixwebsocket/IXSocketAppleSSL.h") == "/usr/local/include/ixwebsocket/IXSocketAppleSSL.h");
         }
     }
 

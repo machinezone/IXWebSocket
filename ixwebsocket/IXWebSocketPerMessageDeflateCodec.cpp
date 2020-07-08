@@ -59,14 +59,38 @@ namespace ix
         return true;
     }
 
-    bool WebSocketPerMessageDeflateCompressor::endsWith(const std::string& value,
-                                                        const std::string& ending)
+    template<typename T>
+    bool WebSocketPerMessageDeflateCompressor::endsWithEmptyUnCompressedBlock(const T& value)
     {
-        if (ending.size() > value.size()) return false;
-        return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+        if (kEmptyUncompressedBlock.size() > value.size()) return false;
+        auto N = value.size();
+        return value[N - 1] == kEmptyUncompressedBlock[3] &&
+               value[N - 2] == kEmptyUncompressedBlock[2] &&
+               value[N - 3] == kEmptyUncompressedBlock[1] &&
+               value[N - 4] == kEmptyUncompressedBlock[0];
     }
 
     bool WebSocketPerMessageDeflateCompressor::compress(const std::string& in, std::string& out)
+    {
+        return compressData(in, out);
+    }
+
+    bool WebSocketPerMessageDeflateCompressor::compress(const std::string& in, std::vector<uint8_t>& out)
+    {
+        return compressData(in, out);
+    }
+
+    bool WebSocketPerMessageDeflateCompressor::compress(const std::vector<uint8_t>& in, std::string& out)
+    {
+        return compressData(in, out);
+    }
+
+    bool WebSocketPerMessageDeflateCompressor::compress(const std::vector<uint8_t>& in, std::vector<uint8_t>& out)
+    {
+        return compressData(in, out);
+    }
+
+    template<typename T, typename S> bool WebSocketPerMessageDeflateCompressor::compressData(const T& in, S& out)
     {
         //
         // 7.2.1.  Compression
@@ -96,7 +120,8 @@ namespace ix
             // The normal buffer size should be 6 but
             // we remove the 4 octets from the tail (#4)
             uint8_t buf[2] = {0x02, 0x00};
-            out.append((char*) (buf), 2);
+            out.push_back(buf[0]);
+            out.push_back(buf[1]);
 
             return true;
         }
@@ -114,10 +139,10 @@ namespace ix
 
             output = _compressBufferSize - _deflateState.avail_out;
 
-            out.append((char*) (_compressBuffer.get()), output);
+            out.insert(out.end(), _compressBuffer.get(), _compressBuffer.get() + output);
         } while (_deflateState.avail_out == 0);
 
-        if (endsWith(out, kEmptyUncompressedBlock))
+        if (endsWithEmptyUnCompressedBlock(out))
         {
             out.resize(out.size() - 4);
         }
