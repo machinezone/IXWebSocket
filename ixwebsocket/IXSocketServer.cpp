@@ -307,6 +307,10 @@ namespace ix
                 continue;
             }
 
+            // FIXME error handling
+            char *remoteIp = inet_ntoa(client.sin_addr);
+            auto connectionInfo = std::make_unique<ConnectionInfo>(remoteIp, client.sin_port);
+
             std::shared_ptr<ConnectionState> connectionState;
             if (_connectionStateFactory)
             {
@@ -342,7 +346,7 @@ namespace ix
             _connectionsThreads.push_back(std::make_pair(
                 connectionState,
                 std::thread(
-                    &SocketServer::handleConnection, this, std::move(socket), connectionState)));
+                    &SocketServer::handleConnection, this, std::move(socket), connectionState, std::move(connectionInfo))));
         }
     }
 

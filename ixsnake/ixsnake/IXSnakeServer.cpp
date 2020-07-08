@@ -61,16 +61,19 @@ namespace snake
 
         _server.setOnConnectionCallback(
             [this](std::shared_ptr<ix::WebSocket> webSocket,
-                   std::shared_ptr<ix::ConnectionState> connectionState) {
+                   std::shared_ptr<ix::ConnectionState> connectionState,
+                   std::unique_ptr<ix::ConnectionInfo> connectionInfo) {
                 auto state = std::dynamic_pointer_cast<SnakeConnectionState>(connectionState);
-
+                auto remoteIp = connectionInfo->remoteIp;
+            
                 webSocket->setOnMessageCallback(
-                    [this, webSocket, state](const ix::WebSocketMessagePtr& msg) {
+                    [this, webSocket, state, remoteIp](const ix::WebSocketMessagePtr& msg) {
                         std::stringstream ss;
                         ix::LogLevel logLevel = ix::LogLevel::Debug;
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             ss << "New connection" << std::endl;
+                            ss << "remote ip: " << remoteIp << std::endl;
                             ss << "id: " << state->getId() << std::endl;
                             ss << "Uri: " << msg->openInfo.uri << std::endl;
                             ss << "Headers:" << std::endl;

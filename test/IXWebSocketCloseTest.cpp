@@ -171,9 +171,12 @@ namespace
         server.setOnConnectionCallback(
             [&receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite](
                 std::shared_ptr<ix::WebSocket> webSocket,
-                std::shared_ptr<ConnectionState> connectionState) {
+                std::shared_ptr<ConnectionState> connectionState,
+                std::unique_ptr<ConnectionInfo> connectionInfo) {
+                auto remoteIp = connectionInfo->remoteIp;
                 webSocket->setOnMessageCallback([webSocket,
                                                  connectionState,
+                                                 remoteIp,
                                                  &receivedCloseCode,
                                                  &receivedCloseReason,
                                                  &receivedCloseRemote,
@@ -181,6 +184,7 @@ namespace
                     if (msg->type == ix::WebSocketMessageType::Open)
                     {
                         TLogger() << "New server connection";
+                        TLogger() << "remote ip: " << remoteIp;
                         TLogger() << "id: " << connectionState->getId();
                         TLogger() << "Uri: " << msg->openInfo.uri;
                         TLogger() << "Headers:";

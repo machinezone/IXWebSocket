@@ -44,12 +44,15 @@ namespace ix
 
         server.setOnConnectionCallback(
             [greetings](std::shared_ptr<ix::WebSocket> webSocket,
-                        std::shared_ptr<ConnectionState> connectionState) {
+                        std::shared_ptr<ConnectionState> connectionState,
+                        std::unique_ptr<ConnectionInfo> connectionInfo) {
+                auto remoteIp = connectionInfo->remoteIp;
                 webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, greetings](const WebSocketMessagePtr& msg) {
+                    [webSocket, connectionState, remoteIp, greetings](const WebSocketMessagePtr& msg) {
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             spdlog::info("New connection");
+                            spdlog::info("remote ip: {}", remoteIp);
                             spdlog::info("id: {}", connectionState->getId());
                             spdlog::info("Uri: {}", msg->openInfo.uri);
                             spdlog::info("Headers:");

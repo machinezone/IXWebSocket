@@ -115,7 +115,8 @@ namespace ix
     }
 
     void HttpServer::handleConnection(std::unique_ptr<Socket> socket,
-                                      std::shared_ptr<ConnectionState> connectionState)
+                                      std::shared_ptr<ConnectionState> connectionState,
+                                      std::unique_ptr<ConnectionInfo> connectionInfo)
     {
         _connectedClientsCount++;
 
@@ -124,7 +125,9 @@ namespace ix
 
         if (std::get<0>(ret))
         {
-            auto response = _onConnectionCallback(std::get<2>(ret), connectionState);
+            auto response = _onConnectionCallback(std::get<2>(ret),
+                                                  connectionState,
+                                                  std::move(connectionInfo));
             if (!Http::sendResponse(response, socket))
             {
                 logError("Cannot send response");
@@ -144,7 +147,8 @@ namespace ix
     {
         setOnConnectionCallback(
             [this](HttpRequestPtr request,
-                   std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
+                   std::shared_ptr<ConnectionState> /*connectionState*/,
+                   std::unique_ptr<ConnectionInfo> connectionInfo) -> HttpResponsePtr {
                 std::string uri(request->uri);
                 if (uri.empty() || uri == "/")
                 {
@@ -174,7 +178,8 @@ namespace ix
 
                 // Log request
                 std::stringstream ss;
-                ss << request->method << " " << request->headers["User-Agent"] << " "
+                ss << connectionInfo->remoteIp << ":" << connectionInfo->remotePort << " "
+                   << request->method << " " << request->headers["User-Agent"] << " "
                    << request->uri << " " << content.size();
                 logInfo(ss.str());
 
@@ -200,13 +205,15 @@ namespace ix
         setOnConnectionCallback(
             [this,
              redirectUrl](HttpRequestPtr request,
-                          std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
+                          std::shared_ptr<ConnectionState> /*connectionState*/,
+                          std::unique_ptr<ConnectionInfo> connectionInfo) -> HttpResponsePtr {
                 WebSocketHttpHeaders headers;
                 headers["Server"] = userAgent();
 
                 // Log request
                 std::stringstream ss;
-                ss << request->method << " " << request->headers["User-Agent"] << " "
+                ss << connectionInfo->remoteIp << ":" << connectionInfo->remotePort << " "
+                   << request->method << " " << request->headers["User-Agent"] << " "
                    << request->uri;
                 logInfo(ss.str());
 

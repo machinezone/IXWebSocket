@@ -257,28 +257,31 @@ ix::WebSocketServer server(port);
 
 server.setOnConnectionCallback(
     [&server](std::shared_ptr<WebSocket> webSocket,
-              std::shared_ptr<ConnectionState> connectionState)
+              std::shared_ptr<ConnectionState> connectionState,
+              std::unique_ptr<ConnectionInfo> connectionInfo)
     {
+        std::cout << "Remote ip: " << connectionInfo->remoteIp << std::endl;
+
         webSocket->setOnMessageCallback(
             [webSocket, connectionState, &server](const ix::WebSocketMessagePtr msg)
             {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    std::cerr << "New connection" << std::endl;
+                    std::cout << "New connection" << std::endl;
 
                     // A connection state object is available, and has a default id
                     // You can subclass ConnectionState and pass an alternate factory
                     // to override it. It is useful if you want to store custom
                     // attributes per connection (authenticated bool flag, attributes, etc...)
-                    std::cerr << "id: " << connectionState->getId() << std::endl;
+                    std::cout << "id: " << connectionState->getId() << std::endl;
 
                     // The uri the client did connect to.
-                    std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
+                    std::cout << "Uri: " << msg->openInfo.uri << std::endl;
 
-                    std::cerr << "Headers:" << std::endl;
+                    std::cout << "Headers:" << std::endl;
                     for (auto it : msg->openInfo.headers)
                     {
-                        std::cerr << it.first << ": " << it.second << std::endl;
+                        std::cout << it.first << ": " << it.second << std::endl;
                     }
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
@@ -417,11 +420,14 @@ If you want to handle how requests are processed, implement the setOnConnectionC
 ```cpp
 setOnConnectionCallback(
     [this](HttpRequestPtr request,
-           std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr
+           std::shared_ptr<ConnectionState> /*connectionState*/,
+           std::unique_ptr<ConnectionInfo> connectionInfo) -> HttpResponsePtr
     {
         // Build a string for the response
         std::stringstream ss;
-        ss << request->method
+        ss << connectionInfo->remoteIp
+           << " "
+           << request->method
            << " "
            << request->uri;
 

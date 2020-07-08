@@ -35,13 +35,16 @@ namespace ix
 
         server.setOnConnectionCallback([&server, &connectionId](
                                            std::shared_ptr<ix::WebSocket> webSocket,
-                                           std::shared_ptr<ConnectionState> connectionState) {
-            webSocket->setOnMessageCallback([webSocket, connectionState, &connectionId, &server](
+                                           std::shared_ptr<ConnectionState> connectionState,
+                                           std::unique_ptr<ConnectionInfo> connectionInfo) {
+            auto remoteIp = connectionInfo->remoteIp;
+            webSocket->setOnMessageCallback([webSocket, connectionState, remoteIp, &connectionId, &server](
                                                 const ix::WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     TLogger() << "New connection";
                     connectionState->computeId();
+                    TLogger() << "remote ip: " << remoteIp;
                     TLogger() << "id: " << connectionState->getId();
                     TLogger() << "Uri: " << msg->openInfo.uri;
                     TLogger() << "Headers:";

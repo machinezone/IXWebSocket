@@ -56,15 +56,18 @@ namespace ix
 
         server.setOnConnectionCallback([remoteUrl,
                                         verbose](std::shared_ptr<ix::WebSocket> webSocket,
-                                                 std::shared_ptr<ConnectionState> connectionState) {
+                                                 std::shared_ptr<ConnectionState> connectionState,
+                                                 std::unique_ptr<ConnectionInfo> connectionInfo) {
             auto state = std::dynamic_pointer_cast<ProxyConnectionState>(connectionState);
+            auto remoteIp = connectionInfo->remoteIp;
 
             // Server connection
-            state->webSocket().setOnMessageCallback([webSocket, state, verbose](
+            state->webSocket().setOnMessageCallback([webSocket, state, remoteIp, verbose](
                                                         const WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     spdlog::info("New connection to remote server");
+                    spdlog::info("remote ip: {}", remoteIp);
                     spdlog::info("id: {}", state->getId());
                     spdlog::info("Uri: {}", msg->openInfo.uri);
                     spdlog::info("Headers:");

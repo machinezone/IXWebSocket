@@ -45,8 +45,11 @@ namespace ix
     }
 
     void RedisServer::handleConnection(std::unique_ptr<Socket> socket,
-                                       std::shared_ptr<ConnectionState> connectionState)
+                                       std::shared_ptr<ConnectionState> connectionState,
+                                       std::unique_ptr<ConnectionInfo> connectionInfo)
     {
+        logInfo("New connection from remote ip " + connectionInfo->remoteIp);
+
         _connectedClientsCount++;
 
         while (!_stopHandlingConnections)

@@ -23,7 +23,9 @@ namespace ix
     {
     public:
         using OnConnectionCallback =
-            std::function<HttpResponsePtr(HttpRequestPtr, std::shared_ptr<ConnectionState>)>;
+            std::function<HttpResponsePtr(HttpRequestPtr,
+                                          std::shared_ptr<ConnectionState>,
+                                          std::unique_ptr<ConnectionInfo> connectionInfo)>;
 
         HttpServer(int port = SocketServer::kDefaultPort,
                    const std::string& host = SocketServer::kDefaultHost,
@@ -44,7 +46,8 @@ namespace ix
 
         // Methods
         virtual void handleConnection(std::unique_ptr<Socket>,
-                                      std::shared_ptr<ConnectionState> connectionState) final;
+                                      std::shared_ptr<ConnectionState> connectionState,
+                                      std::unique_ptr<ConnectionInfo> connectionInfo) final;
         virtual size_t getConnectedClientsCount() final;
 
         void setDefaultConnectionCallback();

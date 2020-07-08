@@ -21,12 +21,15 @@ namespace ix
         server.setTLSOptions(tlsOptions);
 
         server.setOnConnectionCallback([&server](std::shared_ptr<WebSocket> webSocket,
-                                                 std::shared_ptr<ConnectionState> connectionState) {
-            webSocket->setOnMessageCallback([webSocket, connectionState, &server](
+                                                 std::shared_ptr<ConnectionState> connectionState,
+                                                 std::unique_ptr<ConnectionInfo> connectionInfo) {
+            auto remoteIp = connectionInfo->remoteIp;
+            webSocket->setOnMessageCallback([webSocket, connectionState, remoteIp, &server](
                                                 const WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     spdlog::info("New connection");
+                    spdlog::info("remote ip: {}", remoteIp);
                     spdlog::info("id: {}", connectionState->getId());
                     spdlog::info("Uri: {}", msg->openInfo.uri);
                     spdlog::info("Headers:");

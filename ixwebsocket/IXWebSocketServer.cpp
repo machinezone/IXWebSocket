@@ -72,12 +72,13 @@ namespace ix
     }
 
     void WebSocketServer::handleConnection(std::unique_ptr<Socket> socket,
-                                           std::shared_ptr<ConnectionState> connectionState)
+                                           std::shared_ptr<ConnectionState> connectionState,
+                                           std::unique_ptr<ConnectionInfo> connectionInfo)
     {
         setThreadName("WebSocketServer::" + connectionState->getId());
 
         auto webSocket = std::make_shared<WebSocket>();
-        _onConnectionCallback(webSocket, connectionState);
+        _onConnectionCallback(webSocket, connectionState, std::move(connectionInfo));
 
         webSocket->disableAutomaticReconnection();
 

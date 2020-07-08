@@ -95,13 +95,15 @@ TEST_CASE("Cobra_to_sentry_bot", "[cobra_bots]")
 
         sentryServer.setOnConnectionCallback(
             [](HttpRequestPtr request,
-               std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
+               std::shared_ptr<ConnectionState> /*connectionState*/,
+               std::unique_ptr<ConnectionInfo> connectionInfo) -> HttpResponsePtr {
                 WebSocketHttpHeaders headers;
                 headers["Server"] = userAgent();
 
                 // Log request
                 std::stringstream ss;
-                ss << request->method << " " << request->headers["User-Agent"] << " "
+                ss << connectionInfo->remoteIp << ":" << connectionInfo->remotePort << " "
+                   << request->method << " " << request->headers["User-Agent"] << " "
                    << request->uri;
 
                 if (request->method == "POST")

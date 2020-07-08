@@ -122,6 +122,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace linenoise 
 {
     bool Readline(const char *prompt, std::string& line);

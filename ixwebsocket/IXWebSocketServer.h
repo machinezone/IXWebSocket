@@ -23,7 +23,8 @@ namespace ix
     {
     public:
         using OnConnectionCallback =
-            std::function<void(std::shared_ptr<WebSocket>, std::shared_ptr<ConnectionState>)>;
+            std::function<void(std::shared_ptr<WebSocket>, std::shared_ptr<ConnectionState>,
+                               std::unique_ptr<ConnectionInfo> connectionInfo)>;
 
         WebSocketServer(int port = SocketServer::kDefaultPort,
                         const std::string& host = SocketServer::kDefaultHost,
@@ -60,7 +61,8 @@ namespace ix
 
         // Methods
         virtual void handleConnection(std::unique_ptr<Socket> socket,
-                                      std::shared_ptr<ConnectionState> connectionState) final;
+                                      std::shared_ptr<ConnectionState> connectionState,
+                                      std::unique_ptr<ConnectionInfo> connectionInfo);
         virtual size_t getConnectedClientsCount() final;
     };
 } // namespace ix
