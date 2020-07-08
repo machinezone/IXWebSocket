@@ -21,12 +21,14 @@ namespace ix
 
         bool init(uint8_t deflateBits, bool clientNoContextTakeOver);
         bool compress(const std::string& in, std::string& out);
+        bool compress(const std::string& in, std::vector<uint8_t>& out);
         bool compress(const std::vector<uint8_t>& in, std::string& out);
+        bool compress(const std::vector<uint8_t>& in, std::vector<uint8_t>& out);
 
         template<typename T, typename S> bool compressData(const T& in, S& out);
 
     private:
-        static bool endsWith(const std::string& value, const std::string& ending);
+        template<typename T> bool endsWithEmptyUnCompressedBlock(const T& value);
 
         int _flush;
         size_t _compressBufferSize;
