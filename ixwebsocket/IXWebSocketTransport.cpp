@@ -766,8 +766,8 @@ namespace ix
         size_t wireSize = message.size();
         bool compressionError = false;
 
-        auto message_begin = message.begin();
-        auto message_end = message.end();
+        auto message_begin = message.cbegin();
+        auto message_end = message.cend();
 
         if (compress)
         {
@@ -782,8 +782,8 @@ namespace ix
             compressionError = false;
             wireSize = _compressedMessage.size();
 
-            message_begin = _compressedMessage.begin();
-            message_end = _compressedMessage.end();
+            message_begin = _compressedMessage.cbegin();
+            message_end = _compressedMessage.cend();
         }
 
         {
