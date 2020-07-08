@@ -100,6 +100,7 @@ namespace
         }
 
         _webSocket.setUrl(url);
+        _webSocket.disablePerMessageDeflate();
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
@@ -188,7 +189,9 @@ namespace
 
     void WebSocketChat::sendMessage(const std::string& text)
     {
-        _webSocket.sendBinary(encodeMessage(text));
+        auto msg = encodeMessage(text);
+        std::vector<uint8_t> data(text.begin(), text.end());
+        _webSocket.sendBinary(data);
     }
 
     bool startServer(ix::WebSocketServer& server)

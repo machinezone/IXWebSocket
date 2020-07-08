@@ -216,7 +216,8 @@ namespace ix
     {
         if (_binaryMode)
         {
-            _webSocket.sendBinary(text);
+            std::vector<uint8_t> data(text.begin(), text.end());
+            _webSocket.sendBinary(data);
         }
         else
         {

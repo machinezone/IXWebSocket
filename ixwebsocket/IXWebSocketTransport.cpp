@@ -751,11 +751,28 @@ namespace ix
         return static_cast<unsigned>(seconds);
     }
 
-    template<class T>
     WebSocketSendInfo WebSocketTransport::sendData(wsheader_type::opcode_type type,
-                                                   const T& message,
-                                                   bool compress,
-                                                   const OnProgressCallback& onProgressCallback)
+                               const std::string& message,
+                               bool compress,
+                               const OnProgressCallback& onProgressCallback)
+    {
+        return sendRawData(type, message, compress, onProgressCallback);
+    }
+
+    WebSocketSendInfo WebSocketTransport::sendData(wsheader_type::opcode_type type,
+                               const std::vector<uint8_t>& message,
+                               bool compress,
+                               const OnProgressCallback& onProgressCallback)
+    {
+        return sendRawData(type, message, compress, onProgressCallback);
+    }
+
+
+    template<class T>
+    WebSocketSendInfo WebSocketTransport::sendRawData(wsheader_type::opcode_type type,
+                                                      const T& message,
+                                                      bool compress,
+                                                      const OnProgressCallback& onProgressCallback)
     {
         if (_readyState != ReadyState::OPEN && _readyState != ReadyState::CLOSING)
         {
@@ -769,9 +786,11 @@ namespace ix
         auto message_begin = message.begin();
         auto message_end = message.end();
 
+#if 0
         if (compress)
         {
-            if (!_perMessageDeflate->compress(message, _compressedMessage))
+            T compressedMessage;
+            if (!_perMessageDeflate->compress(message, compressedMessage))
             {
                 bool success = false;
                 compressionError = true;
@@ -780,11 +799,12 @@ namespace ix
                 return WebSocketSendInfo(success, compressionError, payloadSize, wireSize);
             }
             compressionError = false;
-            wireSize = _compressedMessage.size();
+            wireSize = compressedMessage.size();
 
-            message_begin = _compressedMessage.begin();
-            message_end = _compressedMessage.end();
+            message_begin = compressedMessage.begin();
+            message_end = compressedMessage.end();
         }
+#endif
 
         {
             std::lock_guard<std::mutex> lock(_txbufMutex);
@@ -810,8 +830,8 @@ namespace ix
             //
             auto steps = wireSize / kChunkSize;
 
-            std::string::const_iterator begin = message_begin;
-            std::string::const_iterator end = message_end;
+            auto begin = message_begin;
+            auto end = message_end;
 
             for (uint64_t i = 0; i < steps; ++i)
             {
@@ -962,6 +982,14 @@ namespace ix
         }
 
         return info;
+    }
+
+    WebSocketSendInfo WebSocketTransport::sendBinary(const std::vector<uint8_t>& message,
+                                                     const OnProgressCallback& onProgressCallback)
+
+    {
+        return sendData(
+            wsheader_type::BINARY_FRAME, message, _enablePerMessageDeflate, onProgressCallback);
     }
 
     WebSocketSendInfo WebSocketTransport::sendBinary(const std::string& message,

@@ -429,6 +429,16 @@ namespace ix
         return (binary) ? sendBinary(data, onProgressCallback) : sendText(data, onProgressCallback);
     }
 
+    WebSocketSendInfo WebSocket::sendBinary(const std::vector<uint8_t>& data,
+                                            const OnProgressCallback& onProgressCallback)
+    {
+        if (!isConnected()) return WebSocketSendInfo(false);
+        std::lock_guard<std::mutex> lock(_writeMutex);
+        auto webSocketSendInfo = _ws.sendBinary(data, onProgressCallback);
+        WebSocket::invokeTrafficTrackerCallback(webSocketSendInfo.wireSize, false);
+        return webSocketSendInfo;
+    }
+
     WebSocketSendInfo WebSocket::sendBinary(const std::string& text,
                                             const OnProgressCallback& onProgressCallback)
     {

@@ -25,9 +25,8 @@ namespace ix
         bool compress(const std::vector<uint8_t>& in, std::string& out);
         bool compress(const std::vector<uint8_t>& in, std::vector<uint8_t>& out);
 
-        template<typename T, typename S> bool compressData(const T& in, S& out);
-
     private:
+        template<typename T, typename S> bool compressData(const T& in, S& out);
         template<typename T> bool endsWithEmptyUnCompressedBlock(const T& value);
 
         int _flush;

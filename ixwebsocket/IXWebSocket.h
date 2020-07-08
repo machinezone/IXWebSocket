@@ -74,7 +74,10 @@ namespace ix
         WebSocketSendInfo send(const std::string& data,
                                bool binary = false,
                                const OnProgressCallback& onProgressCallback = nullptr);
+
         WebSocketSendInfo sendBinary(const std::string& text,
+                                     const OnProgressCallback& onProgressCallback = nullptr);
+        WebSocketSendInfo sendBinary(const std::vector<uint8_t>& data,
                                      const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo sendText(const std::string& text,
                                    const OnProgressCallback& onProgressCallback = nullptr);

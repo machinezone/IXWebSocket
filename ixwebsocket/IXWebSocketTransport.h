@@ -86,6 +86,9 @@ namespace ix
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket, int timeoutSecs);
 
         PollResult poll();
+
+        WebSocketSendInfo sendBinary(const std::vector<uint8_t>& message,
+                                     const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendBinary(const std::string& message,
                                      const OnProgressCallback& onProgressCallback);
         WebSocketSendInfo sendText(const std::string& message,
@@ -190,7 +193,7 @@ namespace ix
         std::atomic<bool> _enablePerMessageDeflate;
 
         std::string _decompressedMessage;
-        std::string _compressedMessage;
+        std::vector<uint8_t> _compressedMessage;
 
         // Used to control TLS connection behavior
         SocketTLSOptions _socketTLSOptions;
@@ -239,11 +242,21 @@ namespace ix
         bool sendOnSocket();
         bool receiveFromSocket();
 
-        template<class T>
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
-                                   const T& message,
+                                   const std::string& message,
                                    bool compress,
                                    const OnProgressCallback& onProgressCallback = nullptr);
+
+        WebSocketSendInfo sendData(wsheader_type::opcode_type type,
+                                   const std::vector<uint8_t>& message,
+                                   bool compress,
+                                   const OnProgressCallback& onProgressCallback = nullptr);
+
+        template<class T>
+        WebSocketSendInfo sendRawData(wsheader_type::opcode_type type,
+                                      const T& message,
+                                      bool compress,
+                                      const OnProgressCallback& onProgressCallback = nullptr);
 
         template<class Iterator>
         bool sendFragment(wsheader_type::opcode_type type,
