@@ -42,6 +42,7 @@ set (SOURCES
 
   IXSocketTest.cpp
   IXSocketConnectTest.cpp
+  IXWebSocketLeakTest.cpp
   IXWebSocketServerTest.cpp
   IXWebSocketTestConnectionDisconnection.cpp
   IXUrlParserTest.cpp
