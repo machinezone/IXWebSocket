@@ -1,3 +1,9 @@
+/*
+ *  IXWebSocketServer.cpp
+ *  Author: Benjamin Sergeant, @marcelkauf
+ *  Copyright (c) 2020 Machine Zone, Inc. All rights reserved.
+ */
+
 #include "IXTest.h"
 
 #include "catch.hpp"
