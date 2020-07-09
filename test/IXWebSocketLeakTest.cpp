@@ -117,7 +117,7 @@ TEST_CASE("Websocket leak test")
                                                            std::unique_ptr<ConnectionInfo> connectionInfo)
            {
                 // original ptr in WebSocketServer::handleConnection and the callback argument
-                REQUIRE(webSocket.use_count() == 2, );
+                REQUIRE(webSocket.use_count() == 2);
                 webSocket->setOnMessageCallback([&webSocketPtr, webSocket, connectionState](const ix::WebSocketMessagePtr& msg)
                 {
                     if (msg->type == ix::WebSocketMessageType::Open)
