@@ -8,6 +8,7 @@
 
 #include "IXAppConfig.h"
 #include "IXSnakeConnectionState.h"
+#include "IXStreamSql.h"
 #include "nlohmann/json.hpp"
 #include <iostream>
 #include <ixcore/utils/IXCoreLogger.h>
@@ -187,11 +188,24 @@ namespace snake
             }
         }
 
+        std::string filterStr;
+        if (pdu["body"].find("filter") != pdu["body"].end())
+        {
+            std::string filterStr = pdu["body"]["filter"];
+        }
+
+        std::unique_ptr<StreamSql> streamSql = std::make_unique<StreamSql>(filterStr);
+
         int id = 0;
-        auto callback = [ws, &id, &subscriptionId](const std::string& messageStr) {
+        auto callback = [ws, &id, &subscriptionId, &streamSql](const std::string& messageStr) {
             auto msg = nlohmann::json::parse(messageStr);
 
             msg = msg["body"]["message"];
+
+            if (streamSql->valid() && !streamSql->match(msg))
+            {
+                return;
+            }
 
             nlohmann::json response = {
                 {"action", "rtm/subscription/data"},

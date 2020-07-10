@@ -18,14 +18,24 @@ namespace ix
     {
         SECTION("expression A")
         {
-            snake::StreamSql streamSql("select * from subscriber_republished_v1_neo where session LIKE '%{self.session_id}%'");
+            snake::StreamSql streamSql(
+                "select * from subscriber_republished_v1_neo where session LIKE '%123456%'");
 
-            nlohmann::json msg = {
-                {"action", "auth/authenticate/error"},
-                {"id", 1},
-                {"body", {{"error", "authentication_failed"}, {"reason", "invalid secret"}}}};
+            nlohmann::json msg = {{"session", "123456"}, {"id", "foo_id"}, {"timestamp", 12}};
 
-            REQUIRE(streamSql.match(msg));
+            CHECK(streamSql.match(msg));
+        }
+
+        SECTION("expression A")
+        {
+            snake::StreamSql streamSql("select * from `subscriber_republished_v1_neo` where "
+                                       "session = '30091320ed8d4e50b758f8409b83bed7'");
+
+            nlohmann::json msg = {{"session", "30091320ed8d4e50b758f8409b83bed7"},
+                                  {"id", "foo_id"},
+                                  {"timestamp", 12}};
+
+            CHECK(streamSql.match(msg));
         }
     }
 

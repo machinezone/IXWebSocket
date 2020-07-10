@@ -92,6 +92,9 @@ TEST_CASE("Cobra_to_stdout_bot", "[cobra_bots]")
         cobraBotConfig.enableHeartbeat = false;
         bool quiet = false;
 
+        cobraBotConfig.filter =
+            std::string("select * from `") + channel + "` where id = 'sms_metric_A_id'";
+
         // We could try to capture the output ... not sure how.
         bool fluentd = true;
 
