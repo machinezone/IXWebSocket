@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.9.1] - 2020-07-10
+
+(snake) implement super simple stream sql expression support in snake server
+
 ## [9.9.0] - 2020-07-08
 
 (socket+websocket+http+redis+snake servers) expose the remote ip and remote port when a new connection is made
