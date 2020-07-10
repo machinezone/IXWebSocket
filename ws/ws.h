@@ -103,7 +103,8 @@ namespace ix
                       bool verbose,
                       const std::string& appsConfigPath,
                       const ix::SocketTLSOptions& tlsOptions,
-                      bool disablePong);
+                      bool disablePong,
+                      const std::string& republishChannel);
 
     int ws_httpd_main(int port,
                       const std::string& hostname,

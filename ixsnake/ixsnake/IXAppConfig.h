@@ -33,6 +33,9 @@ namespace snake
         // Misc
         bool verbose;
         bool disablePong;
+
+        // If non empty, every published message gets republished to a given channel
+        std::string republishChannel;
     };
 
     bool isAppKeyValid(const AppConfig& appConfig, std::string appkey);

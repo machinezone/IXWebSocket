@@ -57,6 +57,7 @@ set (SOURCES
   IXWebSocketChatTest.cpp
   IXWebSocketBroadcastTest.cpp
   IXWebSocketPerMessageDeflateCompressorTest.cpp
+  IXStreamSqlTest.cpp
 )
 
 # Some unittest don't work on windows yet

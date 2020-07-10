@@ -45,7 +45,8 @@ namespace ix
                       bool verbose,
                       const std::string& appsConfigPath,
                       const SocketTLSOptions& socketTLSOptions,
-                      bool disablePong)
+                      bool disablePong,
+                      const std::string& republishChannel)
     {
         snake::AppConfig appConfig;
         appConfig.port = port;
@@ -55,6 +56,7 @@ namespace ix
         appConfig.redisPassword = redisPassword;
         appConfig.socketTLSOptions = socketTLSOptions;
         appConfig.disablePong = disablePong;
+        appConfig.republishChannel = republishChannel;
 
         // Parse config file
         auto str = readAsString(appsConfigPath);

@@ -7,12 +7,14 @@ set (IXSNAKE_SOURCES
     ixsnake/IXSnakeServer.cpp
     ixsnake/IXSnakeProtocol.cpp
     ixsnake/IXAppConfig.cpp
+    ixsnake/IXStreamSql.cpp
 )
 
 set (IXSNAKE_HEADERS
     ixsnake/IXSnakeServer.h
     ixsnake/IXSnakeProtocol.h
     ixsnake/IXAppConfig.h
+    ixsnake/IXStreamSql.h
 )
 
 add_library(ixsnake STATIC

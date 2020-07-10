@@ -122,6 +122,7 @@ int main(int argc, char** argv)
     std::string key;
     std::string logfile;
     std::string scriptPath;
+    std::string republishChannel;
     ix::SocketTLSOptions tlsOptions;
     ix::CobraConfig cobraConfig;
     ix::CobraBotConfig cobraBotConfig;
@@ -391,6 +392,7 @@ int main(int argc, char** argv)
     snakeApp->add_option("--redis_password", redisPassword, "Redis password");
     snakeApp->add_option("--apps_config_path", appsConfigPath, "Path to auth data")
         ->check(CLI::ExistingPath);
+    snakeApp->add_option("--republish_channel", republishChannel, "Republish channel");
     snakeApp->add_flag("-v", verbose, "Verbose");
     snakeApp->add_flag("-d", disablePong, "Disable Pongs");
     addTLSOptions(snakeApp);
@@ -637,7 +639,8 @@ int main(int argc, char** argv)
                                 verbose,
                                 appsConfigPath,
                                 tlsOptions,
-                                disablePong);
+                                disablePong,
+                                republishChannel);
     }
     else if (app.got_subcommand("httpd"))
     {

@@ -30,6 +30,7 @@ namespace snake
         {
             return _appkey;
         }
+
         void setAppkey(const std::string& appkey)
         {
             _appkey = appkey;
@@ -39,6 +40,7 @@ namespace snake
         {
             return _role;
         }
+
         void setRole(const std::string& role)
         {
             _role = role;
