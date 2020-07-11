@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.9.2] - 2020-07-10
+
+(socket server) bump default max connection count from 32 to 128
+
 ## [9.9.1] - 2020-07-10
 
 (snake) implement super simple stream sql expression support in snake server

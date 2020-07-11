@@ -22,7 +22,7 @@ namespace ix
     const int SocketServer::kDefaultPort(8080);
     const std::string SocketServer::kDefaultHost("127.0.0.1");
     const int SocketServer::kDefaultTcpBacklog(5);
-    const size_t SocketServer::kDefaultMaxConnections(32);
+    const size_t SocketServer::kDefaultMaxConnections(128);
     const int SocketServer::kDefaultAddressFamily(AF_INET);
 
     SocketServer::SocketServer(
