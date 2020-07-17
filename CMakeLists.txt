@@ -36,6 +36,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXNetSystem.cpp
     ixwebsocket/IXSelectInterrupt.cpp
     ixwebsocket/IXSelectInterruptFactory.cpp
+    ixwebsocket/IXSelectInterruptPipe.cpp
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketConnect.cpp
     ixwebsocket/IXSocketFactory.cpp
@@ -69,6 +70,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXProgressCallback.h
     ixwebsocket/IXSelectInterrupt.h
     ixwebsocket/IXSelectInterruptFactory.h
+    ixwebsocket/IXSelectInterruptPipe.h
     ixwebsocket/IXSetThreadName.h
     ixwebsocket/IXSocket.h
     ixwebsocket/IXSocketConnect.h
@@ -98,12 +100,6 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/IXWebSocketVersion.h
 )
-
-if (UNIX)
-    # Linux, Mac, iOS, Android
-    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSelectInterruptPipe.cpp )
-    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSelectInterruptPipe.h )
-endif()
 
 # Platform specific code
 if (APPLE)

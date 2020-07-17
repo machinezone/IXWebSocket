@@ -5,8 +5,10 @@
  */
 
 //
-// On macOS we use UNIX pipes to wake up select.
+// On UNIX we use pipes to wake up select. There is no way to do that
+// on Windows so this file is compiled out on Windows.
 //
+#ifndef _WIN32
 
 #include "IXSelectInterruptPipe.h"
 
@@ -144,3 +146,5 @@ namespace ix
         return _fildes[kPipeReadIndex];
     }
 } // namespace ix
+
+#endif // !_WIN32
