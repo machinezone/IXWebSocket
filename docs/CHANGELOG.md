@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.9.3] - 2020-07-17
+
+(build) merge platform specific files which were used to have different implementations for setting a thread name into a single file, to make it easier to include every source files and build the ixwebsocket library (fix #226)
+
 ## [9.9.2] - 2020-07-10
 
 (socket server) bump default max connection count from 32 to 128
