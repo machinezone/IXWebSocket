@@ -37,6 +37,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSelectInterrupt.cpp
     ixwebsocket/IXSelectInterruptFactory.cpp
     ixwebsocket/IXSelectInterruptPipe.cpp
+    ixwebsocket/IXSetThreadName.cpp
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketConnect.cpp
     ixwebsocket/IXSocketFactory.cpp
@@ -100,17 +101,6 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/IXWebSocketVersion.h
 )
-
-# Platform specific code
-if (APPLE)
-    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/apple/IXSetThreadName_apple.cpp)
-elseif (WIN32)
-    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/windows/IXSetThreadName_windows.cpp)
-elseif (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/freebsd/IXSetThreadName_freebsd.cpp)
-else()
-    list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/linux/IXSetThreadName_linux.cpp)
-endif()
 
 option(USE_TLS "Enable TLS support" FALSE)
 
