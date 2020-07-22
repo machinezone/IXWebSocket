@@ -118,33 +118,39 @@ TEST_CASE("Websocket leak test")
             int port = getFreePort();
             WebSocketServer server(port);
 
-            server.setOnConnectionCallback([&webSocketPtr](std::shared_ptr<ix::WebSocket> webSocket,
+            server.setOnConnectionCallback([&webSocketPtr](std::weak_ptr<ix::WebSocket> webSocket,
                                                            std::shared_ptr<ConnectionState> connectionState,
                                                            std::unique_ptr<ConnectionInfo> connectionInfo)
            {
-                // original ptr in WebSocketServer::handleConnection and the callback argument
+                // original ptr in WebSocketServer::handleConnection
+                REQUIRE(webSocket.use_count() == 1);
+                auto ws = webSocket.lock();
                 REQUIRE(webSocket.use_count() == 2);
-                webSocket->setOnMessageCallback([&webSocketPtr, webSocket, connectionState](const ix::WebSocketMessagePtr& msg)
+                if (ws)
                 {
-                    if (msg->type == ix::WebSocketMessageType::Open)
-                    {
-                        log(std::string("New connection id: ") + connectionState->getId());
-                        // original ptr in WebSocketServer::handleConnection, captured ptr of this callback, and ptr in WebSocketServer::_clients
-                        REQUIRE(webSocket.use_count() == 3);
-                        webSocketPtr = std::shared_ptr<WebSocket>(webSocket);
-                        REQUIRE(webSocket.use_count() == 4);
-                    }
-                    else if (msg->type == ix::WebSocketMessageType::Close)
-                    {
-                        log(std::string("Client closed connection id: ") + connectionState->getId());
-                    }
-                    else
-                    {
-                        log(std::string(msg->str));
-                    }
-                });
-                // original ptr in WebSocketServer::handleConnection, argument of this callback, and captured ptr in websocket callback
-                REQUIRE(webSocket.use_count() == 3);
+                    ws->setOnMessageCallback([&webSocketPtr, webSocket, connectionState](
+                                                        const ix::WebSocketMessagePtr& msg) {
+                        if (msg->type == ix::WebSocketMessageType::Open)
+                        {
+                            log(std::string("New connection id: ") + connectionState->getId());
+                            // original ptr in WebSocketServer::handleConnection and ptr in WebSocketServer::_clients
+                            REQUIRE(webSocket.use_count() == 2);
+                            webSocketPtr = std::shared_ptr<WebSocket>(webSocket);
+                            REQUIRE(webSocket.use_count() == 3);
+                        }
+                        else if (msg->type == ix::WebSocketMessageType::Close)
+                        {
+                            log(std::string("Client closed connection id: ") +
+                                connectionState->getId());
+                        }
+                        else
+                        {
+                            log(std::string(msg->str));
+                        }
+                    });
+                }
+                // original ptr in WebSocketServer::handleConnection and ws ptr
+                REQUIRE(webSocket.use_count() == 2);
             });
 
             server.listen();
@@ -162,14 +168,14 @@ TEST_CASE("Websocket leak test")
 
             REQUIRE(server.getClients().size() == 1);
             // same value as in Open-handler above
-            REQUIRE(webSocketPtr.use_count() == 4);
+            REQUIRE(webSocketPtr.use_count() == 3);
 
             ix::msleep(500);
             webSocketClient.stop();
             ix::msleep(500);
             REQUIRE(server.getClients().size() == 0);
 
-            // websocket should only be referenced by webSocketPtr but is still used by the websocket callback
+            // websocket should only be referenced by webSocketPtr
             REQUIRE(webSocketPtr.use_count() == 1);
             webSocketPtr->setOnMessageCallback(nullptr);
             // websocket should only be referenced by webSocketPtr

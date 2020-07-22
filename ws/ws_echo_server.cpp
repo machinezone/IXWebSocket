@@ -43,12 +43,15 @@ namespace ix
         }
 
         server.setOnConnectionCallback(
-            [greetings](std::shared_ptr<ix::WebSocket> webSocket,
+            [greetings](std::weak_ptr<ix::WebSocket> webSocket,
                         std::shared_ptr<ConnectionState> connectionState,
                         std::unique_ptr<ConnectionInfo> connectionInfo) {
                 auto remoteIp = connectionInfo->remoteIp;
-                webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, remoteIp, greetings](const WebSocketMessagePtr& msg) {
+                auto ws = webSocket.lock();
+                if (ws)
+                {
+                    ws->setOnMessageCallback([webSocket, connectionState, remoteIp, greetings](
+                                                const WebSocketMessagePtr& msg) {
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             spdlog::info("New connection");
@@ -63,7 +66,11 @@ namespace ix
 
                             if (greetings)
                             {
-                                webSocket->sendText("Welcome !");
+                                auto ws = webSocket.lock();
+                                if (ws)
+                                {
+                                    ws->sendText("Welcome !");
+                                }
                             }
                         }
                         else if (msg->type == ix::WebSocketMessageType::Close)
@@ -83,9 +90,14 @@ namespace ix
                         else if (msg->type == ix::WebSocketMessageType::Message)
                         {
                             spdlog::info("Received {} bytes", msg->wireSize);
-                            webSocket->send(msg->str, msg->binary);
+                            auto ws = webSocket.lock();
+                            if (ws)
+                            {
+                                ws->send(msg->str, msg->binary);
+                            }
                         }
                     });
+                }
             });
 
         auto res = server.listen();

@@ -60,14 +60,15 @@ namespace snake
         _server.setConnectionStateFactory(factory);
 
         _server.setOnConnectionCallback(
-            [this](std::shared_ptr<ix::WebSocket> webSocket,
+            [this](std::weak_ptr<ix::WebSocket> webSocket,
                    std::shared_ptr<ix::ConnectionState> connectionState,
                    std::unique_ptr<ix::ConnectionInfo> connectionInfo) {
                 auto state = std::dynamic_pointer_cast<SnakeConnectionState>(connectionState);
                 auto remoteIp = connectionInfo->remoteIp;
-            
-                webSocket->setOnMessageCallback(
-                    [this, webSocket, state, remoteIp](const ix::WebSocketMessagePtr& msg) {
+                auto ws = webSocket.lock();
+                if (ws)
+                {
+                    ws->setOnMessageCallback([this, webSocket, state, remoteIp](const ix::WebSocketMessagePtr& msg) {
                         std::stringstream ss;
                         ix::LogLevel logLevel = ix::LogLevel::Debug;
                         if (msg->type == ix::WebSocketMessageType::Open)
@@ -115,11 +116,16 @@ namespace snake
                         else if (msg->type == ix::WebSocketMessageType::Message)
                         {
                             ss << "Received " << msg->wireSize << " bytes" << std::endl;
-                            processCobraMessage(state, webSocket, _appConfig, msg->str);
+                            auto ws = webSocket.lock();
+                            if (ws)
+                            {
+                                processCobraMessage(state, ws, _appConfig, msg->str);
+                            }
                         }
 
                         ix::CoreLogger::log(ss.str().c_str(), logLevel);
                     });
+                }
             });
 
         auto res = _server.listen();

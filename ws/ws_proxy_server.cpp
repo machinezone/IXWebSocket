@@ -55,7 +55,7 @@ namespace ix
         server.setConnectionStateFactory(factory);
 
         server.setOnConnectionCallback([remoteUrl,
-                                        verbose](std::shared_ptr<ix::WebSocket> webSocket,
+                                        verbose](std::weak_ptr<ix::WebSocket> webSocket,
                                                  std::shared_ptr<ConnectionState> connectionState,
                                                  std::unique_ptr<ConnectionInfo> connectionInfo) {
             auto state = std::dynamic_pointer_cast<ProxyConnectionState>(connectionState);
@@ -98,14 +98,19 @@ namespace ix
                     {
                         spdlog::info("payload {}", msg->str);
                     }
-
-                    webSocket->send(msg->str, msg->binary);
+                    auto ws = webSocket.lock();
+                    if (ws)
+                    {
+                        ws->send(msg->str, msg->binary);
+                    }
                 }
             });
 
             // Client connection
-            webSocket->setOnMessageCallback(
-                [state, remoteUrl, verbose](const WebSocketMessagePtr& msg) {
+            auto ws = webSocket.lock();
+            if (ws)
+            {
+                ws->setOnMessageCallback([state, remoteUrl, verbose](const WebSocketMessagePtr& msg) {
                     if (msg->type == ix::WebSocketMessageType::Open)
                     {
                         spdlog::info("New connection from client");
@@ -159,6 +164,7 @@ namespace ix
                         state->webSocket().send(msg->str, msg->binary);
                     }
                 });
+            }
         });
 
         auto res = server.listen();
