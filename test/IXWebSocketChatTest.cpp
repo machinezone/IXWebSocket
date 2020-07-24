@@ -193,13 +193,12 @@ namespace
 
     bool startServer(ix::WebSocketServer& server)
     {
-        server.setOnConnectionCallback([&server](std::shared_ptr<ix::WebSocket> webSocket,
-                                                 std::shared_ptr<ConnectionState> connectionState,
-
-                                                 std::unique_ptr<ConnectionInfo> connectionInfo) {
-            auto remoteIp = connectionInfo->remoteIp;
-            webSocket->setOnMessageCallback([webSocket, connectionState, remoteIp, &server](
-                                                const ix::WebSocketMessagePtr& msg) {
+        server.setOnClientMessageCallback(
+            [&server](std::shared_ptr<ConnectionState> connectionState,
+                      ConnectionInfo& connectionInfo,
+                      WebSocket& webSocket,
+                      const ix::WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionInfo.remoteIp;
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     TLogger() << "New connection";
@@ -220,14 +219,13 @@ namespace
                 {
                     for (auto&& client : server.getClients())
                     {
-                        if (client != webSocket)
+                        if (client.get() != &webSocket)
                         {
                             client->sendBinary(msg->str);
                         }
                     }
                 }
             });
-        });
 
         auto res = server.listen();
         if (!res.first)

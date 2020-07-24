@@ -168,45 +168,39 @@ namespace
                      std::mutex& mutexWrite)
     {
         // A dev/null server
-        server.setOnConnectionCallback(
-            [&receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite](
-                std::shared_ptr<ix::WebSocket> webSocket,
-                std::shared_ptr<ConnectionState> connectionState,
-                std::unique_ptr<ConnectionInfo> connectionInfo) {
-                auto remoteIp = connectionInfo->remoteIp;
-                webSocket->setOnMessageCallback([webSocket,
-                                                 connectionState,
-                                                 remoteIp,
-                                                 &receivedCloseCode,
-                                                 &receivedCloseReason,
-                                                 &receivedCloseRemote,
-                                                 &mutexWrite](const ix::WebSocketMessagePtr& msg) {
-                    if (msg->type == ix::WebSocketMessageType::Open)
-                    {
-                        TLogger() << "New server connection";
-                        TLogger() << "remote ip: " << remoteIp;
-                        TLogger() << "id: " << connectionState->getId();
-                        TLogger() << "Uri: " << msg->openInfo.uri;
-                        TLogger() << "Headers:";
-                        for (auto it : msg->openInfo.headers)
-                        {
-                            TLogger() << it.first << ": " << it.second;
-                        }
-                    }
-                    else if (msg->type == ix::WebSocketMessageType::Close)
-                    {
-                        std::stringstream ss;
-                        ss << "Server closed connection(" << msg->closeInfo.code << ","
-                           << msg->closeInfo.reason << ")";
-                        log(ss.str());
+        server.setOnClientMessageCallback(
+            [&receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite
 
-                        std::lock_guard<std::mutex> lck(mutexWrite);
-
-                        receivedCloseCode = msg->closeInfo.code;
-                        receivedCloseReason = std::string(msg->closeInfo.reason);
-                        receivedCloseRemote = msg->closeInfo.remote;
+        ](std::shared_ptr<ConnectionState> connectionState,
+            ConnectionInfo& connectionInfo,
+            WebSocket& webSocket,
+            const ix::WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionInfo.remoteIp;
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    TLogger() << "New server connection";
+                    TLogger() << "remote ip: " << remoteIp;
+                    TLogger() << "id: " << connectionState->getId();
+                    TLogger() << "Uri: " << msg->openInfo.uri;
+                    TLogger() << "Headers:";
+                    for (auto it : msg->openInfo.headers)
+                    {
+                        TLogger() << it.first << ": " << it.second;
                     }
-                });
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    std::stringstream ss;
+                    ss << "Server closed connection(" << msg->closeInfo.code << ","
+                       << msg->closeInfo.reason << ")";
+                    log(ss.str());
+
+                    std::lock_guard<std::mutex> lck(mutexWrite);
+
+                    receivedCloseCode = msg->closeInfo.code;
+                    receivedCloseReason = std::string(msg->closeInfo.reason);
+                    receivedCloseRemote = msg->closeInfo.remote;
+                }
             });
 
         auto res = server.listen();
