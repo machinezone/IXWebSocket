@@ -136,6 +136,8 @@ namespace ix
             logError(ss.str());
         }
 
+        webSocket->setOnMessageCallback(nullptr);
+
         // Remove this client from our client set
         {
             std::lock_guard<std::mutex> lock(_clientsMutex);

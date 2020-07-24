@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.10.1] - 2020-07-24
+
+(websocket server) reset client websocket callback when the connection is closed
+
 ## [9.10.0] - 2020-07-23
 
 (websocket server) add a new simpler API to handle client connections / that API does not trigger a memory leak while the previous one did
