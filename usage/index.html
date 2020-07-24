@@ -330,6 +330,7 @@ uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 </code></pre>
 
 <h2 id="websocket-server-api">WebSocket server API</h2>
+<h3 id="legacy-api">Legacy api</h3>
 <pre><code class="cpp">#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
 
 ...
@@ -377,6 +378,70 @@ server.setOnConnectionCallback(
                 }
             }
         );
+    }
+);
+
+auto res = server.listen();
+if (!res.first)
+{
+    // Error handling
+    return 1;
+}
+
+// Run the server in the background. Server can be stoped by calling server.stop()
+server.start();
+
+// Block until server.stop() is called.
+server.wait();
+
+</code></pre>
+
+<h3 id="new-api">New api</h3>
+<p>The new API does not require to use 2 nested callbacks, which is a bit annoying. The real fix is that there was a memory leak due to a shared_ptr cycle, due to passing down a shared_ptr<WebSocket> down to the callbacks.</p>
+<p>The webSocket reference is guaranteed to be always valid ; by design the callback will never be invoked with a null webSocket object.</p>
+<pre><code class="cpp">#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
+
+...
+
+// Run a server on localhost at a given port.
+// Bound host name, max connections and listen backlog can also be passed in as parameters.
+ix::WebSocketServer server(port);
+
+server.setOnClientMessageCallback(std::shared_ptr&lt;ConnectionState&gt; connectionState,
+                                  ConnectionInfo&amp; connectionInfo,
+                                  WebSocket&amp; webSocket,
+                                  const WebSocketMessagePtr&amp; msg)
+{
+    // The ConnectionInfo object contains information about the connection,
+    // at this point only the client ip address and the port.
+    std::cout &lt;&lt; &quot;Remote ip: &quot; &lt;&lt; connectionInfo.remoteIp &lt;&lt; std::endl;
+
+    if (msg-&gt;type == ix::WebSocketMessageType::Open)
+    {
+        std::cout &lt;&lt; &quot;New connection&quot; &lt;&lt; std::endl;
+
+        // A connection state object is available, and has a default id
+        // You can subclass ConnectionState and pass an alternate factory
+        // to override it. It is useful if you want to store custom
+        // attributes per connection (authenticated bool flag, attributes, etc...)
+        std::cout &lt;&lt; &quot;id: &quot; &lt;&lt; connectionState-&gt;getId() &lt;&lt; std::endl;
+
+        // The uri the client did connect to.
+        std::cout &lt;&lt; &quot;Uri: &quot; &lt;&lt; msg-&gt;openInfo.uri &lt;&lt; std::endl;
+
+        std::cout &lt;&lt; &quot;Headers:&quot; &lt;&lt; std::endl;
+        for (auto it : msg-&gt;openInfo.headers)
+        {
+            std::cout &lt;&lt; it.first &lt;&lt; &quot;: &quot; &lt;&lt; it.second &lt;&lt; std::endl;
+        }
+    }
+    else if (msg-&gt;type == ix::WebSocketMessageType::Message)
+    {
+        // For an echo server, we just send back to the client whatever was received by the server
+        // All connected clients are available in an std::set. See the broadcast cpp example.
+        // Second parameter tells whether we are sending the message in binary or text mode.
+        // Here we send it in the same mode as it was received.
+        webSocket.send(msg-&gt;str, msg-&gt;binary);
     }
 );
 
