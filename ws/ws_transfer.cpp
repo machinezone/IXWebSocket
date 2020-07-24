@@ -19,12 +19,12 @@ namespace ix
         ix::WebSocketServer server(port, hostname);
         server.setTLSOptions(tlsOptions);
 
-        server.setOnConnectionCallback([&server](std::shared_ptr<ix::WebSocket> webSocket,
-                                                 std::shared_ptr<ConnectionState> connectionState,
-                                                 std::unique_ptr<ConnectionInfo> connectionInfo) {
-            auto remoteIp = connectionInfo->remoteIp;
-            webSocket->setOnMessageCallback([webSocket, connectionState, remoteIp, &server](
-                                                const WebSocketMessagePtr& msg) {
+        server.setOnClientMessageCallback(
+            [&server](std::shared_ptr<ConnectionState> connectionState,
+                      ConnectionInfo& connectionInfo,
+                      WebSocket& webSocket,
+                      const WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionInfo.remoteIp;
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     spdlog::info("ws_transfer: New connection");
@@ -43,7 +43,7 @@ namespace ix
                                  connectionState->getId(),
                                  msg->closeInfo.code,
                                  msg->closeInfo.reason);
-                    auto remaining = server.getClients().erase(webSocket);
+                    auto remaining = server.getClients().size() - 1;
                     spdlog::info("ws_transfer: {} remaining clients", remaining);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
@@ -65,7 +65,7 @@ namespace ix
                     size_t receivers = 0;
                     for (auto&& client : server.getClients())
                     {
-                        if (client != webSocket)
+                        if (client.get() != &webSocket)
                         {
                             auto readyState = client->getReadyState();
                             auto id = connectionState->getId();
@@ -119,7 +119,6 @@ namespace ix
                     }
                 }
             });
-        });
 
         auto res = server.listen();
         if (!res.first)

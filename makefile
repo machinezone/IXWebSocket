@@ -238,7 +238,7 @@ install_cmake_for_linux:
 doc:
 	mkdocs gh-deploy
 
-change:
+change: format
 	vim ixwebsocket/IXWebSocketVersion.h docs/CHANGELOG.md
 
 .PHONY: test
