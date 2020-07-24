@@ -42,50 +42,48 @@ namespace ix
             server.disablePong();
         }
 
-        server.setOnConnectionCallback(
-            [greetings](std::shared_ptr<ix::WebSocket> webSocket,
-                        std::shared_ptr<ConnectionState> connectionState,
-                        std::unique_ptr<ConnectionInfo> connectionInfo) {
-                auto remoteIp = connectionInfo->remoteIp;
-                webSocket->setOnMessageCallback(
-                    [webSocket, connectionState, remoteIp, greetings](const WebSocketMessagePtr& msg) {
-                        if (msg->type == ix::WebSocketMessageType::Open)
-                        {
-                            spdlog::info("New connection");
-                            spdlog::info("remote ip: {}", remoteIp);
-                            spdlog::info("id: {}", connectionState->getId());
-                            spdlog::info("Uri: {}", msg->openInfo.uri);
-                            spdlog::info("Headers:");
-                            for (auto it : msg->openInfo.headers)
-                            {
-                                spdlog::info("{}: {}", it.first, it.second);
-                            }
+        server.setOnClientMessageCallback(
+            [greetings](std::shared_ptr<ConnectionState> connectionState,
+                        ConnectionInfo& connectionInfo,
+                        WebSocket& webSocket,
+                        const WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionInfo.remoteIp;
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    spdlog::info("New connection");
+                    spdlog::info("remote ip: {}", remoteIp);
+                    spdlog::info("id: {}", connectionState->getId());
+                    spdlog::info("Uri: {}", msg->openInfo.uri);
+                    spdlog::info("Headers:");
+                    for (auto it : msg->openInfo.headers)
+                    {
+                        spdlog::info("{}: {}", it.first, it.second);
+                    }
 
-                            if (greetings)
-                            {
-                                webSocket->sendText("Welcome !");
-                            }
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Close)
-                        {
-                            spdlog::info("Closed connection: client id {} code {} reason {}",
-                                         connectionState->getId(),
-                                         msg->closeInfo.code,
-                                         msg->closeInfo.reason);
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Error)
-                        {
-                            spdlog::error("Connection error: {}", msg->errorInfo.reason);
-                            spdlog::error("#retries: {}", msg->errorInfo.retries);
-                            spdlog::error("Wait time(ms): {}", msg->errorInfo.wait_time);
-                            spdlog::error("HTTP Status: {}", msg->errorInfo.http_status);
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Message)
-                        {
-                            spdlog::info("Received {} bytes", msg->wireSize);
-                            webSocket->send(msg->str, msg->binary);
-                        }
-                    });
+                    if (greetings)
+                    {
+                        webSocket.sendText("Welcome !");
+                    }
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    spdlog::info("Closed connection: client id {} code {} reason {}",
+                                 connectionState->getId(),
+                                 msg->closeInfo.code,
+                                 msg->closeInfo.reason);
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    spdlog::error("Connection error: {}", msg->errorInfo.reason);
+                    spdlog::error("#retries: {}", msg->errorInfo.retries);
+                    spdlog::error("Wait time(ms): {}", msg->errorInfo.wait_time);
+                    spdlog::error("HTTP Status: {}", msg->errorInfo.http_status);
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    spdlog::info("Received {} bytes", msg->wireSize);
+                    webSocket.send(msg->str, msg->binary);
+                }
             });
 
         auto res = server.listen();

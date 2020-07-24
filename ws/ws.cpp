@@ -484,7 +484,24 @@ int main(int argc, char** argv)
     cobraBotConfig.cobraConfig.socketTLSOptions = tlsOptions;
 
     int ret = 1;
-    if (app.got_subcommand("transfer"))
+    if (app.got_subcommand("connect"))
+    {
+        ret = ix::ws_connect_main(url,
+                                  headers,
+                                  disableAutomaticReconnection,
+                                  disablePerMessageDeflate,
+                                  binaryMode,
+                                  maxWaitBetweenReconnectionRetries,
+                                  tlsOptions,
+                                  subprotocol,
+                                  pingIntervalSecs);
+    }
+    else if (app.got_subcommand("echo_server"))
+    {
+        ret = ix::ws_echo_server_main(
+            port, greetings, hostname, tlsOptions, ipv6, disablePerMessageDeflate, disablePong);
+    }
+    else if (app.got_subcommand("transfer"))
     {
         ret = ix::ws_transfer_main(port, hostname, tlsOptions);
     }
@@ -497,26 +514,9 @@ int main(int argc, char** argv)
         bool enablePerMessageDeflate = false;
         ret = ix::ws_receive_main(url, enablePerMessageDeflate, delayMs, tlsOptions);
     }
-    else if (app.got_subcommand("connect"))
-    {
-        ret = ix::ws_connect_main(url,
-                                  headers,
-                                  disableAutomaticReconnection,
-                                  disablePerMessageDeflate,
-                                  binaryMode,
-                                  maxWaitBetweenReconnectionRetries,
-                                  tlsOptions,
-                                  subprotocol,
-                                  pingIntervalSecs);
-    }
     else if (app.got_subcommand("chat"))
     {
         ret = ix::ws_chat_main(url, user);
-    }
-    else if (app.got_subcommand("echo_server"))
-    {
-        ret = ix::ws_echo_server_main(
-            port, greetings, hostname, tlsOptions, ipv6, disablePerMessageDeflate, disablePong);
     }
     else if (app.got_subcommand("broadcast_server"))
     {

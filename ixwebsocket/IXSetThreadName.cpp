@@ -7,17 +7,17 @@
 
 // unix systems
 #if defined(__APPLE__) || defined(__linux__) || defined(BSD)
-# include <pthread.h>
+#include <pthread.h>
 #endif
 
 // freebsd needs this header as well
 #if defined(BSD)
-# include <pthread_np.h>
+#include <pthread_np.h>
 #endif
 
 // Windows
 #ifdef _WIN32
-# include <Windows.h>
+#include <Windows.h>
 #endif
 
 namespace ix

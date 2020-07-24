@@ -189,44 +189,45 @@ namespace
         bool preferTLS = true;
         server.setTLSOptions(makeServerTLSOptions(preferTLS));
 
-        server.setOnConnectionCallback([&server, &connectionId](
-                                           std::shared_ptr<ix::WebSocket> webSocket,
-                                           std::shared_ptr<ConnectionState> connectionState,
-                                           std::unique_ptr<ConnectionInfo> connectionInfo) {
-            auto remoteIp = connectionInfo->remoteIp;
-            webSocket->setOnMessageCallback([webSocket, connectionState, remoteIp, &connectionId, &server](
-                                                const ix::WebSocketMessagePtr& msg) {
-                if (msg->type == ix::WebSocketMessageType::Open)
-                {
-                    TLogger() << "New connection";
-                    connectionState->computeId();
-                    TLogger() << "remote ip: " << remoteIp;
-                    TLogger() << "id: " << connectionState->getId();
-                    TLogger() << "Uri: " << msg->openInfo.uri;
-                    TLogger() << "Headers:";
-                    for (auto it : msg->openInfo.headers)
-                    {
-                        TLogger() << it.first << ": " << it.second;
-                    }
-
-                    connectionId = connectionState->getId();
-                }
-                else if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    TLogger() << "Closed connection";
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    for (auto&& client : server.getClients())
-                    {
-                        if (client != webSocket)
+        server.setOnConnectionCallback(
+            [&server, &connectionId](std::shared_ptr<ix::WebSocket> webSocket,
+                                     std::shared_ptr<ConnectionState> connectionState,
+                                     std::unique_ptr<ConnectionInfo> connectionInfo) {
+                auto remoteIp = connectionInfo->remoteIp;
+                webSocket->setOnMessageCallback(
+                    [webSocket, connectionState, remoteIp, &connectionId, &server](
+                        const ix::WebSocketMessagePtr& msg) {
+                        if (msg->type == ix::WebSocketMessageType::Open)
                         {
-                            client->send(msg->str, msg->binary);
+                            TLogger() << "New connection";
+                            connectionState->computeId();
+                            TLogger() << "remote ip: " << remoteIp;
+                            TLogger() << "id: " << connectionState->getId();
+                            TLogger() << "Uri: " << msg->openInfo.uri;
+                            TLogger() << "Headers:";
+                            for (auto it : msg->openInfo.headers)
+                            {
+                                TLogger() << it.first << ": " << it.second;
+                            }
+
+                            connectionId = connectionState->getId();
                         }
-                    }
-                }
+                        else if (msg->type == ix::WebSocketMessageType::Close)
+                        {
+                            TLogger() << "Closed connection";
+                        }
+                        else if (msg->type == ix::WebSocketMessageType::Message)
+                        {
+                            for (auto&& client : server.getClients())
+                            {
+                                if (client != webSocket)
+                                {
+                                    client->send(msg->str, msg->binary);
+                                }
+                            }
+                        }
+                    });
             });
-        });
 
         auto res = server.listen();
         if (!res.first)

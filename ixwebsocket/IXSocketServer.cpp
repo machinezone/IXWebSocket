@@ -379,10 +379,13 @@ namespace ix
 
             // Launch the handleConnection work asynchronously in its own thread.
             std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
-            _connectionsThreads.push_back(std::make_pair(
-                connectionState,
-                std::thread(
-                    &SocketServer::handleConnection, this, std::move(socket), connectionState, std::move(connectionInfo))));
+            _connectionsThreads.push_back(
+                std::make_pair(connectionState,
+                               std::thread(&SocketServer::handleConnection,
+                                           this,
+                                           std::move(socket),
+                                           connectionState,
+                                           std::move(connectionInfo))));
         }
     }
 

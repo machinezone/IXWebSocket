@@ -125,9 +125,8 @@ namespace ix
 
         if (std::get<0>(ret))
         {
-            auto response = _onConnectionCallback(std::get<2>(ret),
-                                                  connectionState,
-                                                  std::move(connectionInfo));
+            auto response =
+                _onConnectionCallback(std::get<2>(ret), connectionState, std::move(connectionInfo));
             if (!Http::sendResponse(response, socket))
             {
                 logError("Cannot send response");
@@ -203,10 +202,9 @@ namespace ix
         // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
         //
         setOnConnectionCallback(
-            [this,
-             redirectUrl](HttpRequestPtr request,
-                          std::shared_ptr<ConnectionState> /*connectionState*/,
-                          std::unique_ptr<ConnectionInfo> connectionInfo) -> HttpResponsePtr {
+            [this, redirectUrl](HttpRequestPtr request,
+                                std::shared_ptr<ConnectionState> /*connectionState*/,
+                                std::unique_ptr<ConnectionInfo> connectionInfo) -> HttpResponsePtr {
                 WebSocketHttpHeaders headers;
                 headers["Server"] = userAgent();
 

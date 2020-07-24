@@ -71,6 +71,11 @@ namespace ix
         _onConnectionCallback = callback;
     }
 
+    void WebSocketServer::setOnClientMessageCallback(const OnClientMessageCallback& callback)
+    {
+        _onClientMessageCallback = callback;
+    }
+
     void WebSocketServer::handleConnection(std::unique_ptr<Socket> socket,
                                            std::shared_ptr<ConnectionState> connectionState,
                                            std::unique_ptr<ConnectionInfo> connectionInfo)
@@ -78,7 +83,26 @@ namespace ix
         setThreadName("WebSocketServer::" + connectionState->getId());
 
         auto webSocket = std::make_shared<WebSocket>();
-        _onConnectionCallback(webSocket, connectionState, std::move(connectionInfo));
+        if (_onConnectionCallback)
+        {
+            _onConnectionCallback(webSocket, connectionState, std::move(connectionInfo));
+        }
+        else if (_onClientMessageCallback)
+        {
+            webSocket->setOnMessageCallback(
+                [this, &ws = *webSocket.get(), connectionState, &ci = *connectionInfo.get()](
+                    const WebSocketMessagePtr& msg) {
+                    _onClientMessageCallback(connectionState, ci, ws, msg);
+                });
+        }
+        else
+        {
+            logError(
+                "WebSocketServer Application developer error: No server callback is registerered.");
+            logError("Missing call to setOnConnectionCallback or setOnClientMessageCallback.");
+            connectionState->setTerminated();
+            return;
+        }
 
         webSocket->disableAutomaticReconnection();
 

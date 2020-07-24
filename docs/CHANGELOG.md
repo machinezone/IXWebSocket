@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.10.0] - 2020-07-23
+
+(websocket server) add a new simpler API to handle client connections / that API does not trigger a memory leak while the previous one did
+
 ## [9.9.3] - 2020-07-17
 
 (build) merge platform specific files which were used to have different implementations for setting a thread name into a single file, to make it easier to include every source files and build the ixwebsocket library (fix #226)

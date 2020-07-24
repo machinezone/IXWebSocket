@@ -88,34 +88,34 @@ namespace ix
                                                  std::shared_ptr<ConnectionState> connectionState,
                                                  std::unique_ptr<ConnectionInfo> connectionInfo) {
             auto remoteIp = connectionInfo->remoteIp;
-            webSocket->setOnMessageCallback(
-                [webSocket, connectionState, remoteIp, &server](const ix::WebSocketMessagePtr& msg) {
-                    if (msg->type == ix::WebSocketMessageType::Open)
+            webSocket->setOnMessageCallback([webSocket, connectionState, remoteIp, &server](
+                                                const ix::WebSocketMessagePtr& msg) {
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    TLogger() << "New connection";
+                    TLogger() << "Remote ip: " << remoteIp;
+                    TLogger() << "Uri: " << msg->openInfo.uri;
+                    TLogger() << "Headers:";
+                    for (auto it : msg->openInfo.headers)
                     {
-                        TLogger() << "New connection";
-                        TLogger() << "Remote ip: " << remoteIp;
-                        TLogger() << "Uri: " << msg->openInfo.uri;
-                        TLogger() << "Headers:";
-                        for (auto it : msg->openInfo.headers)
+                        TLogger() << it.first << ": " << it.second;
+                    }
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    TLogger() << "Closed connection";
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    for (auto&& client : server.getClients())
+                    {
+                        if (client != webSocket)
                         {
-                            TLogger() << it.first << ": " << it.second;
+                            client->send(msg->str, msg->binary);
                         }
                     }
-                    else if (msg->type == ix::WebSocketMessageType::Close)
-                    {
-                        TLogger() << "Closed connection";
-                    }
-                    else if (msg->type == ix::WebSocketMessageType::Message)
-                    {
-                        for (auto&& client : server.getClients())
-                        {
-                            if (client != webSocket)
-                            {
-                                client->send(msg->str, msg->binary);
-                            }
-                        }
-                    }
-                });
+                }
+            });
         });
 
         auto res = server.listen();

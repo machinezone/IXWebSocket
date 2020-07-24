@@ -5,13 +5,11 @@
  */
 
 #include "IXTest.h"
-
 #include "catch.hpp"
-#include <memory>
-#include <sstream>
-
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXWebSocketServer.h>
+#include <memory>
+#include <sstream>
 
 using namespace ix;
 
@@ -69,8 +67,7 @@ namespace
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
 
-        _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg)
-        {
+        _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
             std::stringstream ss;
             if (msg->type == ix::WebSocketMessageType::Open)
             {
@@ -118,34 +115,37 @@ TEST_CASE("Websocket leak test")
             int port = getFreePort();
             WebSocketServer server(port);
 
-            server.setOnConnectionCallback([&webSocketPtr](std::shared_ptr<ix::WebSocket> webSocket,
-                                                           std::shared_ptr<ConnectionState> connectionState,
-                                                           std::unique_ptr<ConnectionInfo> connectionInfo)
-           {
-                // original ptr in WebSocketServer::handleConnection and the callback argument
-                REQUIRE(webSocket.use_count() == 2);
-                webSocket->setOnMessageCallback([&webSocketPtr, webSocket, connectionState](const ix::WebSocketMessagePtr& msg)
-                {
-                    if (msg->type == ix::WebSocketMessageType::Open)
-                    {
-                        log(std::string("New connection id: ") + connectionState->getId());
-                        // original ptr in WebSocketServer::handleConnection, captured ptr of this callback, and ptr in WebSocketServer::_clients
-                        REQUIRE(webSocket.use_count() == 3);
-                        webSocketPtr = std::shared_ptr<WebSocket>(webSocket);
-                        REQUIRE(webSocket.use_count() == 4);
-                    }
-                    else if (msg->type == ix::WebSocketMessageType::Close)
-                    {
-                        log(std::string("Client closed connection id: ") + connectionState->getId());
-                    }
-                    else
-                    {
-                        log(std::string(msg->str));
-                    }
+            server.setOnConnectionCallback(
+                [&webSocketPtr](std::shared_ptr<ix::WebSocket> webSocket,
+                                std::shared_ptr<ConnectionState> connectionState,
+                                std::unique_ptr<ConnectionInfo> connectionInfo) {
+                    // original ptr in WebSocketServer::handleConnection and the callback argument
+                    REQUIRE(webSocket.use_count() == 2);
+                    webSocket->setOnMessageCallback([&webSocketPtr, webSocket, connectionState](
+                                                        const ix::WebSocketMessagePtr& msg) {
+                        if (msg->type == ix::WebSocketMessageType::Open)
+                        {
+                            log(std::string("New connection id: ") + connectionState->getId());
+                            // original ptr in WebSocketServer::handleConnection, captured ptr of
+                            // this callback, and ptr in WebSocketServer::_clients
+                            REQUIRE(webSocket.use_count() == 3);
+                            webSocketPtr = std::shared_ptr<WebSocket>(webSocket);
+                            REQUIRE(webSocket.use_count() == 4);
+                        }
+                        else if (msg->type == ix::WebSocketMessageType::Close)
+                        {
+                            log(std::string("Client closed connection id: ") +
+                                connectionState->getId());
+                        }
+                        else
+                        {
+                            log(std::string(msg->str));
+                        }
+                    });
+                    // original ptr in WebSocketServer::handleConnection, argument of this callback,
+                    // and captured ptr in websocket callback
+                    REQUIRE(webSocket.use_count() == 3);
                 });
-                // original ptr in WebSocketServer::handleConnection, argument of this callback, and captured ptr in websocket callback
-                REQUIRE(webSocket.use_count() == 3);
-            });
 
             server.listen();
             server.start();
@@ -169,7 +169,8 @@ TEST_CASE("Websocket leak test")
             ix::msleep(500);
             REQUIRE(server.getClients().size() == 0);
 
-            // websocket should only be referenced by webSocketPtr but is still used by the websocket callback
+            // websocket should only be referenced by webSocketPtr but is still used by the
+            // websocket callback
             REQUIRE(webSocketPtr.use_count() == 1);
             webSocketPtr->setOnMessageCallback(nullptr);
             // websocket should only be referenced by webSocketPtr
