@@ -33,45 +33,44 @@ namespace ix
         };
         server.setConnectionStateFactory(factory);
 
-        server.setOnClientMessageCallback([&server, &connectionId
+        server.setOnClientMessageCallback(
+            [&server, &connectionId](std::shared_ptr<ConnectionState> connectionState,
+                                     ConnectionInfo& connectionInfo,
+                                     WebSocket& webSocket,
+                                     const ix::WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionInfo.remoteIp;
 
-        ](std::shared_ptr<ConnectionState> connectionState,
-                                          ConnectionInfo& connectionInfo,
-                                          WebSocket& webSocket,
-                                          const ix::WebSocketMessagePtr& msg) {
-            auto remoteIp = connectionInfo.remoteIp;
 
-
-            if (msg->type == ix::WebSocketMessageType::Open)
-            {
-                TLogger() << "New connection";
-                connectionState->computeId();
-                TLogger() << "remote ip: " << remoteIp;
-                TLogger() << "id: " << connectionState->getId();
-                TLogger() << "Uri: " << msg->openInfo.uri;
-                TLogger() << "Headers:";
-                for (auto it : msg->openInfo.headers)
+                if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    TLogger() << it.first << ": " << it.second;
-                }
-
-                connectionId = connectionState->getId();
-            }
-            else if (msg->type == ix::WebSocketMessageType::Close)
-            {
-                TLogger() << "Closed connection";
-            }
-            else if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                for (auto&& client : server.getClients())
-                {
-                    if (client.get() != &webSocket)
+                    TLogger() << "New connection";
+                    connectionState->computeId();
+                    TLogger() << "remote ip: " << remoteIp;
+                    TLogger() << "id: " << connectionState->getId();
+                    TLogger() << "Uri: " << msg->openInfo.uri;
+                    TLogger() << "Headers:";
+                    for (auto it : msg->openInfo.headers)
                     {
-                        client->send(msg->str, msg->binary);
+                        TLogger() << it.first << ": " << it.second;
+                    }
+
+                    connectionId = connectionState->getId();
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    TLogger() << "Closed connection";
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    for (auto&& client : server.getClients())
+                    {
+                        if (client.get() != &webSocket)
+                        {
+                            client->send(msg->str, msg->binary);
+                        }
                     }
                 }
-            }
-        });
+            });
 
         auto res = server.listen();
         if (!res.first)
