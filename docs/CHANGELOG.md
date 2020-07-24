@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.10.2] - 2020-07-24
+
+(websocket client) reset WebSocketTransport onClose callback in the WebSocket destructor
+
 ## [9.10.1] - 2020-07-24
 
 (websocket server) reset client websocket callback when the connection is closed

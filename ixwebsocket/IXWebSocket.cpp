@@ -46,6 +46,7 @@ namespace ix
     WebSocket::~WebSocket()
     {
         stop();
+        _ws.setOnCloseCallback(nullptr);
     }
 
     void WebSocket::setUrl(const std::string& url)

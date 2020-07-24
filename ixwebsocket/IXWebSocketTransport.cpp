@@ -180,7 +180,10 @@ namespace ix
         if (readyState == ReadyState::CLOSED)
         {
             std::lock_guard<std::mutex> lock(_closeDataMutex);
-            _onCloseCallback(_closeCode, _closeReason, _closeWireSize, _closeRemote);
+            if (_onCloseCallback)
+            {
+                _onCloseCallback(_closeCode, _closeReason, _closeWireSize, _closeRemote);
+            }
             _closeCode = WebSocketCloseConstants::kInternalErrorCode;
             _closeReason = WebSocketCloseConstants::kInternalErrorMessage;
             _closeWireSize = 0;
