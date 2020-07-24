@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.10.6] - 2020-07-24
+
+(ws) port broadcast_server sub-command to the new server API
+
 ## [9.10.5] - 2020-07-24
 
 (unittest) port most unittests to the new server API

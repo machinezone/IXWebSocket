@@ -20,12 +20,12 @@ namespace ix
         ix::WebSocketServer server(port, hostname);
         server.setTLSOptions(tlsOptions);
 
-        server.setOnConnectionCallback([&server](std::shared_ptr<WebSocket> webSocket,
-                                                 std::shared_ptr<ConnectionState> connectionState,
-                                                 std::unique_ptr<ConnectionInfo> connectionInfo) {
-            auto remoteIp = connectionInfo->remoteIp;
-            webSocket->setOnMessageCallback([webSocket, connectionState, remoteIp, &server](
-                                                const WebSocketMessagePtr& msg) {
+        server.setOnClientMessageCallback(
+            [&server](std::shared_ptr<ConnectionState> connectionState,
+                      ConnectionInfo& connectionInfo,
+                      WebSocket& webSocket,
+                      const WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionInfo.remoteIp;
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     spdlog::info("New connection");
@@ -63,7 +63,7 @@ namespace ix
 
                     for (auto&& client : server.getClients())
                     {
-                        if (client != webSocket)
+                        if (client.get() != &webSocket)
                         {
                             client->send(msg->str, msg->binary, [](int current, int total) -> bool {
                                 spdlog::info("Step {} out of {}", current, total);
@@ -82,7 +82,6 @@ namespace ix
                     }
                 }
             });
-        });
 
         auto res = server.listen();
         if (!res.first)
