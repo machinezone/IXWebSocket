@@ -20,7 +20,7 @@ namespace snake
     struct AppConfig;
 
     void processCobraMessage(std::shared_ptr<SnakeConnectionState> state,
-                             std::shared_ptr<ix::WebSocket> ws,
+                             ix::WebSocket& ws,
                              const AppConfig& appConfig,
                              const std::string& str);
 } // namespace snake

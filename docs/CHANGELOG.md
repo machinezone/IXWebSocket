@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.10.4] - 2020-07-24
+
+(ws) port ws snake to the new server API
+
 ## [9.10.3] - 2020-07-24
 
 (ws) port ws transfer to the new server API

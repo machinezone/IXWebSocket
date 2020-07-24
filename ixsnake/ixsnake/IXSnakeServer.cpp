@@ -59,68 +59,66 @@ namespace snake
         };
         _server.setConnectionStateFactory(factory);
 
-        _server.setOnConnectionCallback(
-            [this](std::shared_ptr<ix::WebSocket> webSocket,
-                   std::shared_ptr<ix::ConnectionState> connectionState,
-                   std::unique_ptr<ix::ConnectionInfo> connectionInfo) {
+        _server.setOnClientMessageCallback(
+            [this](std::shared_ptr<ix::ConnectionState> connectionState,
+                   ix::ConnectionInfo& connectionInfo,
+                   ix::WebSocket& webSocket,
+                   const ix::WebSocketMessagePtr& msg) {
                 auto state = std::dynamic_pointer_cast<SnakeConnectionState>(connectionState);
-                auto remoteIp = connectionInfo->remoteIp;
+                auto remoteIp = connectionInfo.remoteIp;
             
-                webSocket->setOnMessageCallback(
-                    [this, webSocket, state, remoteIp](const ix::WebSocketMessagePtr& msg) {
-                        std::stringstream ss;
-                        ix::LogLevel logLevel = ix::LogLevel::Debug;
-                        if (msg->type == ix::WebSocketMessageType::Open)
-                        {
-                            ss << "New connection" << std::endl;
-                            ss << "remote ip: " << remoteIp << std::endl;
-                            ss << "id: " << state->getId() << std::endl;
-                            ss << "Uri: " << msg->openInfo.uri << std::endl;
-                            ss << "Headers:" << std::endl;
-                            for (auto it : msg->openInfo.headers)
-                            {
-                                ss << it.first << ": " << it.second << std::endl;
-                            }
+                std::stringstream ss;
+                ix::LogLevel logLevel = ix::LogLevel::Debug;
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    ss << "New connection" << std::endl;
+                    ss << "remote ip: " << remoteIp << std::endl;
+                    ss << "id: " << state->getId() << std::endl;
+                    ss << "Uri: " << msg->openInfo.uri << std::endl;
+                    ss << "Headers:" << std::endl;
+                    for (auto it : msg->openInfo.headers)
+                    {
+                        ss << it.first << ": " << it.second << std::endl;
+                    }
 
-                            std::string appkey = parseAppKey(msg->openInfo.uri);
-                            state->setAppkey(appkey);
+                    std::string appkey = parseAppKey(msg->openInfo.uri);
+                    state->setAppkey(appkey);
 
-                            // Connect to redis first
-                            if (!state->redisClient().connect(_appConfig.redisHosts[0],
-                                                              _appConfig.redisPort))
-                            {
-                                ss << "Cannot connect to redis host" << std::endl;
-                                logLevel = ix::LogLevel::Error;
-                            }
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Close)
-                        {
-                            ss << "Closed connection"
-                               << " code " << msg->closeInfo.code << " reason "
-                               << msg->closeInfo.reason << std::endl;
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Error)
-                        {
-                            std::stringstream ss;
-                            ss << "Connection error: " << msg->errorInfo.reason << std::endl;
-                            ss << "#retries: " << msg->errorInfo.retries << std::endl;
-                            ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
-                            ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                            logLevel = ix::LogLevel::Error;
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Fragment)
-                        {
-                            ss << "Received message fragment" << std::endl;
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Message)
-                        {
-                            ss << "Received " << msg->wireSize << " bytes" << std::endl;
-                            processCobraMessage(state, webSocket, _appConfig, msg->str);
-                        }
+                    // Connect to redis first
+                    if (!state->redisClient().connect(_appConfig.redisHosts[0],
+                                                      _appConfig.redisPort))
+                    {
+                        ss << "Cannot connect to redis host" << std::endl;
+                        logLevel = ix::LogLevel::Error;
+                    }
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    ss << "Closed connection"
+                       << " code " << msg->closeInfo.code << " reason "
+                       << msg->closeInfo.reason << std::endl;
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    std::stringstream ss;
+                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                    ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                    ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                    ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                    logLevel = ix::LogLevel::Error;
+                }
+                else if (msg->type == ix::WebSocketMessageType::Fragment)
+                {
+                    ss << "Received message fragment" << std::endl;
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    ss << "Received " << msg->wireSize << " bytes" << std::endl;
+                    processCobraMessage(state, webSocket, _appConfig, msg->str);
+                }
 
-                        ix::CoreLogger::log(ss.str().c_str(), logLevel);
-                    });
-            });
+                ix::CoreLogger::log(ss.str().c_str(), logLevel);
+        });
 
         auto res = _server.listen();
         if (!res.first)

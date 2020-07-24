@@ -26,6 +26,12 @@ namespace snake
         }
 
         auto roles = appConfig.apps[appkey]["roles"];
+        if (roles.count(role) == 0)
+        {
+            std::cerr << "Missing role " << role << std::endl;
+            return std::string();
+        }
+
         auto channel = roles[role]["secret"];
         return channel;
     }

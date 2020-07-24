@@ -19,7 +19,7 @@
 namespace snake
 {
     void handleError(const std::string& action,
-                     std::shared_ptr<ix::WebSocket> ws,
+                     ix::WebSocket& ws,
                      nlohmann::json pdu,
                      const std::string& errMsg)
     {
@@ -28,11 +28,11 @@ namespace snake
 
         nlohmann::json response = {
             {"action", actionError}, {"id", pdu.value("id", 1)}, {"body", {{"reason", errMsg}}}};
-        ws->sendText(response.dump());
+        ws.sendText(response.dump());
     }
 
     void handleHandshake(std::shared_ptr<SnakeConnectionState> state,
-                         std::shared_ptr<ix::WebSocket> ws,
+                         ix::WebSocket& ws,
                          const nlohmann::json& pdu)
     {
         std::string role = pdu["body"]["data"]["role"];
@@ -50,11 +50,11 @@ namespace snake
 
         auto serializedResponse = response.dump();
 
-        ws->sendText(serializedResponse);
+        ws.sendText(serializedResponse);
     }
 
     void handleAuth(std::shared_ptr<SnakeConnectionState> state,
-                    std::shared_ptr<ix::WebSocket> ws,
+                    ix::WebSocket& ws,
                     const AppConfig& appConfig,
                     const nlohmann::json& pdu)
     {
@@ -66,7 +66,7 @@ namespace snake
                 {"action", "auth/authenticate/error"},
                 {"id", pdu.value("id", 1)},
                 {"body", {{"error", "authentication_failed"}, {"reason", "invalid secret"}}}};
-            ws->sendText(response.dump());
+            ws.sendText(response.dump());
             return;
         }
 
@@ -80,18 +80,18 @@ namespace snake
                 {"action", "auth/authenticate/error"},
                 {"id", pdu.value("id", 1)},
                 {"body", {{"error", "authentication_failed"}, {"reason", "invalid hash"}}}};
-            ws->sendText(response.dump());
+            ws.sendText(response.dump());
             return;
         }
 
         nlohmann::json response = {
             {"action", "auth/authenticate/ok"}, {"id", pdu.value("id", 1)}, {"body", {}}};
 
-        ws->sendText(response.dump());
+        ws.sendText(response.dump());
     }
 
     void handlePublish(std::shared_ptr<SnakeConnectionState> state,
-                       std::shared_ptr<ix::WebSocket> ws,
+                       ix::WebSocket& ws,
                        const AppConfig& appConfig,
                        const nlohmann::json& pdu)
     {
@@ -141,14 +141,14 @@ namespace snake
         nlohmann::json response = {
             {"action", "rtm/publish/ok"}, {"id", pdu.value("id", 1)}, {"body", {}}};
 
-        ws->sendText(response.dump());
+        ws.sendText(response.dump());
     }
 
     //
     // FIXME: this is not cancellable. We should be able to cancel the redis subscription
     //
     void handleRedisSubscription(std::shared_ptr<SnakeConnectionState> state,
-                                 std::shared_ptr<ix::WebSocket> ws,
+                                 ix::WebSocket& ws,
                                  const AppConfig& appConfig,
                                  const nlohmann::json& pdu)
     {
@@ -197,7 +197,7 @@ namespace snake
         std::unique_ptr<StreamSql> streamSql = std::make_unique<StreamSql>(filterStr);
 
         int id = 0;
-        auto callback = [ws, &id, &subscriptionId, &streamSql](const std::string& messageStr) {
+        auto callback = [&ws, &id, &subscriptionId, &streamSql](const std::string& messageStr) {
             auto msg = nlohmann::json::parse(messageStr);
 
             msg = msg["body"]["message"];
@@ -213,10 +213,10 @@ namespace snake
                 {"body",
                  {{"subscription_id", subscriptionId}, {"position", "0-0"}, {"messages", {msg}}}}};
 
-            ws->sendText(response.dump());
+            ws.sendText(response.dump());
         };
 
-        auto responseCallback = [ws, pdu, &subscriptionId](const std::string& redisResponse) {
+        auto responseCallback = [&ws, pdu, &subscriptionId](const std::string& redisResponse) {
             std::stringstream ss;
             ss << "Redis Response: " << redisResponse << "...";
             ix::CoreLogger::log(ss.str().c_str());
@@ -225,7 +225,7 @@ namespace snake
             nlohmann::json response = {{"action", "rtm/subscribe/ok"},
                                        {"id", pdu.value("id", 1)},
                                        {"body", {{"subscription_id", subscriptionId}}}};
-            ws->sendText(response.dump());
+            ws.sendText(response.dump());
         };
 
         {
@@ -244,16 +244,16 @@ namespace snake
     }
 
     void handleSubscribe(std::shared_ptr<SnakeConnectionState> state,
-                         std::shared_ptr<ix::WebSocket> ws,
+                         ix::WebSocket& ws,
                          const AppConfig& appConfig,
                          const nlohmann::json& pdu)
     {
         state->fut =
-            std::async(std::launch::async, handleRedisSubscription, state, ws, appConfig, pdu);
+            std::async(std::launch::async, handleRedisSubscription, state, std::ref(ws), appConfig, pdu);
     }
 
     void handleUnSubscribe(std::shared_ptr<SnakeConnectionState> state,
-                           std::shared_ptr<ix::WebSocket> ws,
+                           ix::WebSocket& ws,
                            const nlohmann::json& pdu)
     {
         // extract subscription_id
@@ -265,11 +265,11 @@ namespace snake
         nlohmann::json response = {{"action", "rtm/unsubscribe/ok"},
                                    {"id", pdu.value("id", 1)},
                                    {"body", {{"subscription_id", subscriptionId}}}};
-        ws->sendText(response.dump());
+        ws.sendText(response.dump());
     }
 
     void processCobraMessage(std::shared_ptr<SnakeConnectionState> state,
-                             std::shared_ptr<ix::WebSocket> ws,
+                             ix::WebSocket& ws,
                              const AppConfig& appConfig,
                              const std::string& str)
     {
@@ -284,7 +284,7 @@ namespace snake
             ss << "malformed json pdu: " << e.what() << " -> " << str << "";
 
             nlohmann::json response = {{"body", {{"error", "invalid_json"}, {"reason", ss.str()}}}};
-            ws->sendText(response.dump());
+            ws.sendText(response.dump());
             return;
         }
 
