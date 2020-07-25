@@ -116,12 +116,6 @@ namespace ix
 
     int ws_redis_server_main(int port, const std::string& hostname);
 
-    int ws_proxy_server_main(int port,
-                             const std::string& hostname,
-                             const ix::SocketTLSOptions& tlsOptions,
-                             const std::string& remoteHost,
-                             bool verbose);
-
     int ws_sentry_minidump_upload(const std::string& metadataPath,
                                   const std::string& minidump,
                                   const std::string& project,

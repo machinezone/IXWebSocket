@@ -66,7 +66,6 @@ add_executable(ws
   ws_cobra_publish.cpp
   ws_httpd.cpp
   ws_autobahn.cpp
-  ws_proxy_server.cpp
   ws_sentry_minidump_upload.cpp
   ws_dns_lookup.cpp
   ws.cpp)

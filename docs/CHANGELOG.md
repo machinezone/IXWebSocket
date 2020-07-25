@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [9.10.7] - 2020-07-25
+
+(ixwebsocket) add WebSocketProxyServer, from ws. Still need to make the interface better.
+
 ## [9.10.6] - 2020-07-24
 
 (ws) port broadcast_server sub-command to the new server API

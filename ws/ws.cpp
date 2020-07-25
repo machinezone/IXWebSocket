@@ -22,6 +22,7 @@
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
+#include <ixwebsocket/IXWebSocketProxyServer.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -657,7 +658,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("proxy_server"))
     {
-        ret = ix::ws_proxy_server_main(port, hostname, tlsOptions, remoteHost, verbose);
+        ret = ix::websocket_proxy_server_main(port, hostname, tlsOptions, remoteHost, verbose);
     }
     else if (app.got_subcommand("upload_minidump"))
     {
