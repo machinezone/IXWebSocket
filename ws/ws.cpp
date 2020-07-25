@@ -74,6 +74,7 @@ int main(int argc, char** argv)
         }
     };
     ix::CoreLogger::setLogFunction(logFunc);
+    spdlog::set_level(spdlog::level::debug);
 
 #ifndef _WIN32
     signal(SIGPIPE, SIG_IGN);

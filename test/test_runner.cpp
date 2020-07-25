@@ -10,9 +10,17 @@
 #include <ixwebsocket/IXNetSystem.h>
 #include <spdlog/spdlog.h>
 
+#ifndef _WIN32
+#include <signal.h>
+#endif
+
 int main(int argc, char* argv[])
 {
     ix::initNetSystem();
+
+#ifndef _WIN32
+    signal(SIGPIPE, SIG_IGN);
+#endif
 
     ix::CoreLogger::LogFunc logFunc = [](const char* msg, ix::LogLevel level) {
         switch (level)
@@ -49,6 +57,7 @@ int main(int argc, char* argv[])
         }
     };
     ix::CoreLogger::setLogFunction(logFunc);
+    spdlog::set_level(spdlog::level::debug);
 
     int result = Catch::Session().run(argc, argv);
 

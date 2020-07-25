@@ -68,6 +68,8 @@ namespace snake
                 auto remoteIp = connectionInfo.remoteIp;
             
                 std::stringstream ss;
+                ss << "[" << state->getId() << "] ";
+
                 ix::LogLevel logLevel = ix::LogLevel::Debug;
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
@@ -97,6 +99,8 @@ namespace snake
                     ss << "Closed connection"
                        << " code " << msg->closeInfo.code << " reason "
                        << msg->closeInfo.reason << std::endl;
+
+                    state->cleanup();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
@@ -113,7 +117,7 @@ namespace snake
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    ss << "Received " << msg->wireSize << " bytes" << std::endl;
+                    ss << "Received " << msg->wireSize << " bytes" << " " << msg->str << std::endl;
                     processCobraMessage(state, webSocket, _appConfig, msg->str);
                 }
 

@@ -7,9 +7,10 @@
 #pragma once
 
 #include <ixredis/IXRedisClient.h>
-#include <future>
+#include <thread>
 #include <ixwebsocket/IXConnectionState.h>
 #include <string>
+#include "IXStreamSql.h"
 
 namespace snake
 {
@@ -51,7 +52,23 @@ namespace snake
             return _redisClient;
         }
 
-        std::future<void> fut;
+        void cleanup()
+        {
+            if (subscriptionThread.joinable())
+            {
+                subscriptionRedisClient.stop();
+                subscriptionThread.join();
+            }
+        }
+
+        // We could make those accessible through methods
+        std::thread subscriptionThread;
+        std::string appChannel;
+        std::string subscriptionId;
+        std::unique_ptr<StreamSql> streamSql;
+        ix::RedisClient subscriptionRedisClient;
+        ix::RedisClient::OnRedisSubscribeResponseCallback onRedisSubscribeResponseCallback;
+        ix::RedisClient::OnRedisSubscribeCallback onRedisSubscribeCallback;
 
     private:
         std::string _nonce;

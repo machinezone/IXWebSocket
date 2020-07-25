@@ -65,8 +65,8 @@ set (SOURCES
 if (UNIX)
   list(APPEND SOURCES
     IXWebSocketCloseTest.cpp
-    IXCobraChatTest.cpp
-    IXCobraMetricsPublisherTest.cpp
+    # IXCobraChatTest.cpp
+    # IXCobraMetricsPublisherTest.cpp # Disabled for now
     IXCobraToSentryBotTest.cpp
     IXCobraToStatsdBotTest.cpp
     IXCobraToStdoutBotTest.cpp
