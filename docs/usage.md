@@ -248,6 +248,8 @@ uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 
 ### Legacy api
 
+This api was actually changed to take a weak_ptr<WebSocket> as the first argument to setOnConnectionCallback ; previously it would take a shared_ptr<WebSocket> which was creating cycles and then memory leaks problems.
+
 ```cpp
 #include <ixwebsocket/IXWebSocketServer.h>
 
@@ -258,41 +260,49 @@ uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 ix::WebSocketServer server(port);
 
 server.setOnConnectionCallback(
-    [&server](std::shared_ptr<WebSocket> webSocket,
+    [&server](std::weak_ptr<WebSocket> webSocket,
               std::shared_ptr<ConnectionState> connectionState,
               std::unique_ptr<ConnectionInfo> connectionInfo)
     {
         std::cout << "Remote ip: " << connectionInfo->remoteIp << std::endl;
 
-        webSocket->setOnMessageCallback(
-            [webSocket, connectionState, &server](const ix::WebSocketMessagePtr msg)
-            {
-                if (msg->type == ix::WebSocketMessageType::Open)
+        auto ws = webSocket.lock();
+        if (ws)
+        {
+            ws->setOnMessageCallback(
+                [webSocket, connectionState, &server](const ix::WebSocketMessagePtr msg)
                 {
-                    std::cout << "New connection" << std::endl;
-
-                    // A connection state object is available, and has a default id
-                    // You can subclass ConnectionState and pass an alternate factory
-                    // to override it. It is useful if you want to store custom
-                    // attributes per connection (authenticated bool flag, attributes, etc...)
-                    std::cout << "id: " << connectionState->getId() << std::endl;
-
-                    // The uri the client did connect to.
-                    std::cout << "Uri: " << msg->openInfo.uri << std::endl;
-
-                    std::cout << "Headers:" << std::endl;
-                    for (auto it : msg->openInfo.headers)
+                    if (msg->type == ix::WebSocketMessageType::Open)
                     {
-                        std::cout << it.first << ": " << it.second << std::endl;
+                        std::cout << "New connection" << std::endl;
+
+                        // A connection state object is available, and has a default id
+                        // You can subclass ConnectionState and pass an alternate factory
+                        // to override it. It is useful if you want to store custom
+                        // attributes per connection (authenticated bool flag, attributes, etc...)
+                        std::cout << "id: " << connectionState->getId() << std::endl;
+
+                        // The uri the client did connect to.
+                        std::cout << "Uri: " << msg->openInfo.uri << std::endl;
+
+                        std::cout << "Headers:" << std::endl;
+                        for (auto it : msg->openInfo.headers)
+                        {
+                            std::cout << it.first << ": " << it.second << std::endl;
+                        }
                     }
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    // For an echo server, we just send back to the client whatever was received by the server
-                    // All connected clients are available in an std::set. See the broadcast cpp example.
-                    // Second parameter tells whether we are sending the message in binary or text mode.
-                    // Here we send it in the same mode as it was received.
-                    webSocket->send(msg->str, msg->binary);
+                    else if (msg->type == ix::WebSocketMessageType::Message)
+                    {
+                        // For an echo server, we just send back to the client whatever was received by the server
+                        // All connected clients are available in an std::set. See the broadcast cpp example.
+                        // Second parameter tells whether we are sending the message in binary or text mode.
+                        // Here we send it in the same mode as it was received.
+                        auto ws = webSocket.lock();
+                        if (ws)
+                        {
+                            ws->send(msg->str, msg->binary);
+                        }
+                    }
                 }
             }
         );

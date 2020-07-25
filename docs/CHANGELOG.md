@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [10.0.0] - 2020-07-25
+
+(ixwebsocket server) change legacy api with 2 nested callbacks, so that the first api takes a weak_ptr<WebSocket> as its first argument
+
 ## [9.10.7] - 2020-07-25
 
 (ixwebsocket) add WebSocketProxyServer, from ws. Still need to make the interface better.

@@ -23,7 +23,7 @@ namespace ix
     {
     public:
         using OnConnectionCallback =
-            std::function<void(std::shared_ptr<WebSocket>,
+            std::function<void(std::weak_ptr<WebSocket>,
                                std::shared_ptr<ConnectionState>,
                                std::unique_ptr<ConnectionInfo> connectionInfo)>;
 

@@ -53,28 +53,35 @@ namespace ix
         };
         server.setConnectionStateFactory(factory);
 
-        server.setOnConnectionCallback(
-            [remoteUrl, verbose](std::shared_ptr<ix::WebSocket> webSocket,
-                                 std::shared_ptr<ConnectionState> connectionState,
-                                 std::unique_ptr<ConnectionInfo> connectionInfo) {
-                auto state = std::dynamic_pointer_cast<ProxyConnectionState>(connectionState);
-                auto remoteIp = connectionInfo->remoteIp;
+        server.setOnConnectionCallback([remoteUrl,
+                                        verbose](std::weak_ptr<ix::WebSocket> webSocket,
+                                                 std::shared_ptr<ConnectionState> connectionState,
+                                                 std::unique_ptr<ConnectionInfo> connectionInfo) {
+            auto state = std::dynamic_pointer_cast<ProxyConnectionState>(connectionState);
+            auto remoteIp = connectionInfo->remoteIp;
 
-                // Server connection
-                state->webSocket().setOnMessageCallback(
-                    [webSocket, state, remoteIp, verbose](const WebSocketMessagePtr& msg) {
-                        if (msg->type == ix::WebSocketMessageType::Close)
+            // Server connection
+            state->webSocket().setOnMessageCallback(
+                [webSocket, state, remoteIp, verbose](const WebSocketMessagePtr& msg) {
+                    if (msg->type == ix::WebSocketMessageType::Close)
+                    {
+                        state->setTerminated();
+                    }
+                    else if (msg->type == ix::WebSocketMessageType::Message)
+                    {
+                        auto ws = webSocket.lock();
+                        if (ws)
                         {
-                            state->setTerminated();
+                            ws->send(msg->str, msg->binary);
                         }
-                        else if (msg->type == ix::WebSocketMessageType::Message)
-                        {
-                            webSocket->send(msg->str, msg->binary);
-                        }
-                    });
+                    }
+                });
 
-                // Client connection
-                webSocket->setOnMessageCallback(
+            // Client connection
+            auto ws = webSocket.lock();
+            if (ws)
+            {
+                ws->setOnMessageCallback(
                     [state, remoteUrl, verbose](const WebSocketMessagePtr& msg) {
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
@@ -101,7 +108,8 @@ namespace ix
                             state->webSocket().send(msg->str, msg->binary);
                         }
                     });
-            });
+            }
+        });
 
         auto res = server.listen();
         if (!res.first)
