@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [10.0.2] - 2020-07-28
+
+(ixcobra) CobraConnection: unsubscribe from all subscriptions when disconnecting
+
 ## [10.0.1] - 2020-07-27
 
 (socket utility) move ix::getFreePort to ixwebsocket library

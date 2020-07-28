@@ -111,6 +111,12 @@ namespace ix
 
     void CobraConnection::disconnect()
     {
+        auto subscriptionIds = getSubscriptionsIds();
+        for (auto&& subscriptionId : subscriptionIds)
+        {
+            unsubscribe(subscriptionId);
+        }
+
         _authenticated = false;
         _webSocket->stop();
     }
@@ -612,6 +618,18 @@ namespace ix
         pdu["id"] = Json::UInt64(_id++);
 
         _webSocket->send(pdu.toStyledString());
+    }
+
+    std::vector<std::string> CobraConnection::getSubscriptionsIds()
+    {
+        std::vector<std::string> subscriptionIds;
+        std::lock_guard<std::mutex> lock(_cbsMutex);
+
+        for (auto&& it : _cbs)
+        {
+            subscriptionIds.push_back(it.first);
+        }
+        return subscriptionIds;
     }
 
     //

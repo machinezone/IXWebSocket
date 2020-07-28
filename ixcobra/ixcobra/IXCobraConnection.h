@@ -163,6 +163,9 @@ namespace ix
         /// Tells whether the internal queue is empty or not
         bool isQueueEmpty();
 
+        /// Retrieve all subscriptions ids
+        std::vector<std::string> getSubscriptionsIds();
+
         ///
         /// Member variables
         ///
