@@ -37,7 +37,6 @@ set (SOURCES
 
   test_runner.cpp
   IXTest.cpp
-  IXGetFreePort.cpp
   ../third_party/msgpack11/msgpack11.cpp
 
   IXSocketTest.cpp

@@ -19,11 +19,7 @@ namespace snake
     public:
         virtual ~SnakeConnectionState()
         {
-            if (subscriptionThread.joinable())
-            {
-                subscriptionRedisClient.stop();
-                subscriptionThread.join();
-            }
+            stopSubScriptionThread();
         }
 
         std::string getNonce()
@@ -59,6 +55,15 @@ namespace snake
         ix::RedisClient& redisClient()
         {
             return _redisClient;
+        }
+
+        void stopSubScriptionThread()
+        {
+            if (subscriptionThread.joinable())
+            {
+                subscriptionRedisClient.stop();
+                subscriptionThread.join();
+            }
         }
 
         // We could make those accessible through methods

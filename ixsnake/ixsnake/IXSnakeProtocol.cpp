@@ -261,7 +261,7 @@ namespace snake
         auto body = pdu["body"];
         auto subscriptionId = body["subscription_id"];
 
-        state->redisClient().stop();
+        state->stopSubScriptionThread();
 
         nlohmann::json response = {{"action", "rtm/unsubscribe/ok"},
                                    {"id", pduId},
