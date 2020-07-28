@@ -178,11 +178,11 @@ namespace ix
         std::atomic<ReadyState> _readyState;
 
         OnCloseCallback _onCloseCallback;
-        uint16_t _closeCode;
         std::string _closeReason;
-        size_t _closeWireSize;
-        bool _closeRemote;
-        mutable std::mutex _closeDataMutex;
+        mutable std::mutex _closeReasonMutex;
+        std::atomic<uint16_t> _closeCode;
+        std::atomic<size_t> _closeWireSize;
+        std::atomic<bool> _closeRemote;
 
         // Data used for Per Message Deflate compression (with zlib)
         WebSocketPerMessageDeflatePtr _perMessageDeflate;
@@ -267,5 +267,8 @@ namespace ix
         void unmaskReceiveBuffer(const wsheader_type& ws);
 
         std::string getMergedChunks() const;
+
+        void setCloseReason(const std::string& reason);
+        const std::string& getCloseReason() const;
     };
 } // namespace ix

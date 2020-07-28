@@ -65,7 +65,6 @@ namespace ix
         , _receivedMessageCompressed(false)
         , _readyState(ReadyState::CLOSED)
         , _closeCode(WebSocketCloseConstants::kInternalErrorCode)
-        , _closeReason(WebSocketCloseConstants::kInternalErrorMessage)
         , _closeWireSize(0)
         , _closeRemote(false)
         , _enablePerMessageDeflate(false)
@@ -77,6 +76,7 @@ namespace ix
         , _pingCount(0)
         , _lastSendPingTimePoint(std::chrono::steady_clock::now())
     {
+        setCloseReason(WebSocketCloseConstants::kInternalErrorMessage);
         _readbuf.resize(kChunkSize);
     }
 
@@ -179,13 +179,12 @@ namespace ix
 
         if (readyState == ReadyState::CLOSED)
         {
-            std::lock_guard<std::mutex> lock(_closeDataMutex);
             if (_onCloseCallback)
             {
-                _onCloseCallback(_closeCode, _closeReason, _closeWireSize, _closeRemote);
+                _onCloseCallback(_closeCode, getCloseReason(), _closeWireSize, _closeRemote);
             }
+            setCloseReason(WebSocketCloseConstants::kInternalErrorMessage);
             _closeCode = WebSocketCloseConstants::kInternalErrorCode;
-            _closeReason = WebSocketCloseConstants::kInternalErrorMessage;
             _closeWireSize = 0;
             _closeRemote = false;
         }
@@ -642,11 +641,7 @@ namespace ix
                 {
                     // we got the CLOSE frame answer from our close, so we can close the connection
                     // if the code/reason are the same
-                    bool identicalReason;
-                    {
-                        std::lock_guard<std::mutex> lock(_closeDataMutex);
-                        identicalReason = _closeCode == code && _closeReason == reason;
-                    }
+                    bool identicalReason = _closeCode == code && getCloseReason() == reason;
 
                     if (identicalReason)
                     {
@@ -1084,13 +1079,10 @@ namespace ix
     {
         closeSocket();
 
-        {
-            std::lock_guard<std::mutex> lock(_closeDataMutex);
-            _closeCode = code;
-            _closeReason = reason;
-            _closeWireSize = closeWireSize;
-            _closeRemote = remote;
-        }
+        setCloseReason(reason);
+        _closeCode = code;
+        _closeWireSize = closeWireSize;
+        _closeRemote = remote;
 
         setReadyState(ReadyState::CLOSED);
         _requestInitCancellation = false;
@@ -1110,13 +1102,11 @@ namespace ix
             closeWireSize = reason.size();
         }
 
-        {
-            std::lock_guard<std::mutex> lock(_closeDataMutex);
-            _closeCode = code;
-            _closeReason = reason;
-            _closeWireSize = closeWireSize;
-            _closeRemote = remote;
-        }
+        setCloseReason(reason);
+        _closeCode = code;
+        _closeWireSize = closeWireSize;
+        _closeRemote = remote;
+
         {
             std::lock_guard<std::mutex> lock(_closingTimePointMutex);
             _closingTimePoint = std::chrono::steady_clock::now();
@@ -1161,4 +1151,15 @@ namespace ix
         return true;
     }
 
+    void WebSocketTransport::setCloseReason(const std::string& reason)
+    {
+        std::lock_guard<std::mutex> lock(_closeReasonMutex);
+        _closeReason = reason;
+    }
+
+    const std::string& WebSocketTransport::getCloseReason() const
+    {
+        std::lock_guard<std::mutex> lock(_closeReasonMutex);
+        return _closeReason;
+    }
 } // namespace ix
