@@ -174,7 +174,7 @@ autobahn_report:
 	cp -rvf ~/sandbox/reports/clients/* ../bsergean.github.io/IXWebSocket/autobahn/
 
 httpd:
-	clang++ --std=c++14 --stdlib=libc++ httpd.cpp \
+	clang++ --std=c++14 --stdlib=libc++ -o ixhttpd httpd.cpp \
 		ixwebsocket/IXSelectInterruptFactory.cpp \
 		ixwebsocket/IXCancellationRequest.cpp \
 		ixwebsocket/IXSocketTLSOptions.cpp \
@@ -193,11 +193,11 @@ httpd:
 		ixwebsocket/IXConnectionState.cpp \
 		ixwebsocket/IXUrlParser.cpp \
 		ixwebsocket/IXSelectInterrupt.cpp \
-		ixwebsocket/apple/IXSetThreadName_apple.cpp \
+		ixwebsocket/IXSetThreadName.cpp \
 		-lz
 
 httpd_linux:
-	g++ --std=c++11 -o ixhttpd httpd.cpp -Iixwebsocket \
+	g++ --std=c++14 -o ixhttpd httpd.cpp -Iixwebsocket \
 		ixwebsocket/IXSelectInterruptFactory.cpp \
 		ixwebsocket/IXCancellationRequest.cpp \
 		ixwebsocket/IXSocketTLSOptions.cpp \
@@ -216,7 +216,7 @@ httpd_linux:
 		ixwebsocket/IXConnectionState.cpp \
 		ixwebsocket/IXUrlParser.cpp \
 		ixwebsocket/IXSelectInterrupt.cpp \
-		ixwebsocket/linux/IXSetThreadName_linux.cpp \
+		ixwebsocket/IXSetThreadName.cpp \
 		-lz -lpthread
 	cp -f ixhttpd /usr/local/bin
 
