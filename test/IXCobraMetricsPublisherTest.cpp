@@ -108,7 +108,7 @@ namespace
             }
             else if (event->type == ix::CobraEventType::UnSubscribed)
             {
-                TLogger() << "Subscriber: ununexpected from channel " << event->subscriptionId;
+                TLogger() << "Subscriber: unsubscribed from channel " << event->subscriptionId;
                 if (event->subscriptionId != channel)
                 {
                     TLogger() << "Subscriber: unexpected channel " << event->subscriptionId;
