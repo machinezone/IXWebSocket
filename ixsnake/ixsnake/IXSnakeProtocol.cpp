@@ -198,9 +198,8 @@ namespace snake
             std::string filterStr = pdu["body"]["filter"];
         }
         state->streamSql = std::make_unique<StreamSql>(filterStr);
-
-        int id = 0;
-        state->onRedisSubscribeCallback = [&ws, &id, state](const std::string& messageStr) {
+        state->id = 0;
+        state->onRedisSubscribeCallback = [&ws, state](const std::string& messageStr) {
             auto msg = nlohmann::json::parse(messageStr);
 
             msg = msg["body"]["message"];
@@ -212,7 +211,7 @@ namespace snake
 
             nlohmann::json response = {
                 {"action", "rtm/subscription/data"},
-                {"id", id++},
+                {"id", state->id++},
                 {"body",
                  {{"subscription_id", state->subscriptionId}, {"position", "0-0"}, {"messages", {msg}}}}};
 

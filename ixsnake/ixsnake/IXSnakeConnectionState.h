@@ -17,6 +17,15 @@ namespace snake
     class SnakeConnectionState : public ix::ConnectionState
     {
     public:
+        virtual ~SnakeConnectionState()
+        {
+            if (subscriptionThread.joinable())
+            {
+                subscriptionRedisClient.stop();
+                subscriptionThread.join();
+            }
+        }
+
         std::string getNonce()
         {
             return _nonce;
@@ -52,19 +61,11 @@ namespace snake
             return _redisClient;
         }
 
-        void cleanup()
-        {
-            if (subscriptionThread.joinable())
-            {
-                subscriptionRedisClient.stop();
-                subscriptionThread.join();
-            }
-        }
-
         // We could make those accessible through methods
         std::thread subscriptionThread;
         std::string appChannel;
         std::string subscriptionId;
+        uint64_t id;
         std::unique_ptr<StreamSql> streamSql;
         ix::RedisClient subscriptionRedisClient;
         ix::RedisClient::OnRedisSubscribeResponseCallback onRedisSubscribeResponseCallback;

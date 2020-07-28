@@ -99,8 +99,6 @@ namespace snake
                     ss << "Closed connection"
                        << " code " << msg->closeInfo.code << " reason "
                        << msg->closeInfo.reason << std::endl;
-
-                    state->cleanup();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
