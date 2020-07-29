@@ -6,7 +6,6 @@
 
 #include <fstream>
 #include <ixsentry/IXSentryClient.h>
-#include <jsoncpp/json/json.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 

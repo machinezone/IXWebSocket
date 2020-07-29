@@ -20,7 +20,6 @@ option(USE_TLS "Add TLS support" ON)
 
 include_directories(ws .)
 include_directories(ws ..)
-include_directories(ws ../third_party)
 include_directories(ws ../third_party/spdlog/include)
 include_directories(ws ../third_party/cpp-linenoise)
 

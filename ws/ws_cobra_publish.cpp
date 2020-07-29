@@ -8,7 +8,6 @@
 #include <chrono>
 #include <fstream>
 #include <ixcobra/IXCobraMetricsPublisher.h>
-#include <jsoncpp/json/json.h>
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include <sstream>
