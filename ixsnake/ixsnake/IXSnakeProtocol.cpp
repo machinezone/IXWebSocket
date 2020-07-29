@@ -19,7 +19,6 @@ namespace snake
 {
     void handleError(const std::string& action,
                      ix::WebSocket& ws,
-                     const nlohmann::json& pdu,
                      uint64_t pduId,
                      const std::string& errMsg)
     {
@@ -116,7 +115,7 @@ namespace snake
         {
             std::stringstream ss;
             ss << "Missing channels or channel field in publish data";
-            handleError("rtm/publish", ws, pdu, pduId, ss.str());
+            handleError("rtm/publish", ws, pduId, ss.str());
             return;
         }
 
@@ -136,7 +135,7 @@ namespace snake
             {
                 std::stringstream ss;
                 ss << "Cannot publish to redis host " << errMsg;
-                handleError("rtm/publish", ws, pdu, pduId, ss.str());
+                handleError("rtm/publish", ws, pduId, ss.str());
                 return;
             }
         }
@@ -175,7 +174,7 @@ namespace snake
         {
             std::stringstream ss;
             ss << "Cannot connect to redis host " << hostname << ":" << port;
-            handleError("rtm/subscribe", ws, pdu, pduId, ss.str());
+            handleError("rtm/subscribe", ws, pduId, ss.str());
             return;
         }
 
@@ -187,7 +186,7 @@ namespace snake
             {
                 std::stringstream ss;
                 ss << "Cannot authenticated to redis";
-                handleError("rtm/subscribe", ws, pdu, pduId, ss.str());
+                handleError("rtm/subscribe", ws, pduId, ss.str());
                 return;
             }
         }
@@ -236,7 +235,7 @@ namespace snake
             ix::CoreLogger::log(ss.str().c_str());
         }
 
-        auto subscription = [&redisClient, state, &ws, &pdu, pduId]
+        auto subscription = [&redisClient, state, &ws, pduId]
         {
             if (!redisClient.subscribe(state->appChannel, 
                                        state->onRedisSubscribeResponseCallback,
@@ -244,7 +243,7 @@ namespace snake
             {
                 std::stringstream ss;
                 ss << "Error subscribing to channel " << state->appChannel;
-                handleError("rtm/subscribe", ws, pdu, pduId, ss.str());
+                handleError("rtm/subscribe", ws, pduId, ss.str());
                 return;
             }
         };

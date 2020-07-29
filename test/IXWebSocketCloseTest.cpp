@@ -169,12 +169,11 @@ namespace
     {
         // A dev/null server
         server.setOnClientMessageCallback(
-            [&receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite
-
-        ](std::shared_ptr<ConnectionState> connectionState,
-            ConnectionInfo& connectionInfo,
-            WebSocket& webSocket,
-            const ix::WebSocketMessagePtr& msg) {
+            [&receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite](
+                std::shared_ptr<ConnectionState> connectionState,
+                ConnectionInfo& connectionInfo,
+                WebSocket& /*webSocket*/,
+                const ix::WebSocketMessagePtr& msg) {
                 auto remoteIp = connectionInfo.remoteIp;
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {

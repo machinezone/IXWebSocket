@@ -85,7 +85,7 @@ namespace ix
     bool startWebSocketEchoServer(ix::WebSocketServer& server)
     {
         server.setOnClientMessageCallback(
-            [&server](std::shared_ptr<ConnectionState> connectionState,
+            [&server](std::shared_ptr<ConnectionState> /*connectionState*/,
                       ConnectionInfo& connectionInfo,
                       WebSocket& webSocket,
                       const ix::WebSocketMessagePtr& msg) {
