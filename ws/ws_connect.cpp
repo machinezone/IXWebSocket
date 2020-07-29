@@ -200,7 +200,7 @@ namespace ix
             }
             else if (msg->type == ix::WebSocketMessageType::Pong)
             {
-                spdlog::info("Received pong");
+                spdlog::info("Received pong {}", msg->str);
             }
             else
             {

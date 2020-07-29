@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [10.1.0] - 2020-07-29
+
+(websocket client) heartbeat is not sent at the requested frequency (fix #232)
+
 ## [10.0.3] - 2020-07-28
 
 compiler warning fixes

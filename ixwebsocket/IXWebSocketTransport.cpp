@@ -263,9 +263,10 @@ namespace ix
         {
             // compute lasting delay to wait for next ping / timeout, if at least one set
             auto now = std::chrono::steady_clock::now();
-            lastingTimeoutDelayInMs = (int) std::chrono::duration_cast<std::chrono::milliseconds>(
+            int timeSinceLastPingMs = (int) std::chrono::duration_cast<std::chrono::milliseconds>(
                                           now - _lastSendPingTimePoint)
                                           .count();
+            lastingTimeoutDelayInMs = (1000 * _pingIntervalSecs) - timeSinceLastPingMs;
         }
 
 #ifdef _WIN32
