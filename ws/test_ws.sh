@@ -14,6 +14,7 @@ function cleanup_and_exit {
 }
 
 WITH_TLS=${WITH_TLS:-0}
+BLOCKS=${BLOCKS:-20000}
 
 rm -rf /tmp/ws_test
 mkdir -p /tmp/ws_test
@@ -57,7 +58,7 @@ ws receive "${protocol}127.0.0.1:8090" ${delay} --pidfile /tmp/ws_test/pidfile.r
 
 mkdir -p /tmp/ws_test/send
 cd /tmp/ws_test/send
-dd if=/dev/urandom of=/tmp/ws_test/send/20M_file count=20000 bs=1024
+dd if=/dev/urandom of=/tmp/ws_test/send/20M_file count=$BLOCKS bs=1024
 
 # Start the sender job
 ws send ${client_tls} --pidfile /tmp/ws_test/pidfile.send "${protocol}127.0.0.1:8090" /tmp/ws_test/send/20M_file
