@@ -796,6 +796,11 @@ namespace ix
         if (wireSize < kChunkSize)
         {
             success = sendFragment(type, true, message_begin, message_end, compress);
+
+            if (onProgressCallback)
+            {
+                onProgressCallback(0, 1);
+            }
         }
         else
         {

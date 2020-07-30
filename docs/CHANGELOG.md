@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [10.1.1] - 2020-07-29
+
+(websocket client) onProgressCallback not called for short messages on a websocket (fix #233)
+
 ## [10.1.0] - 2020-07-29
 
 (websocket client) heartbeat is not sent at the requested frequency (fix #232)
