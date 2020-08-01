@@ -13,7 +13,10 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+
+#ifdef IXWEBSOCKET_USE_ZLIB
 #include <zlib.h>
+#endif
 
 namespace
 {
