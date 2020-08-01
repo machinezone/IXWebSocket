@@ -116,6 +116,7 @@ make install # will install to /usr/local on Unix, on macOS it is a good idea to
 There is a unittest which can be executed by typing <code>make test</code>.</p>
 <p>Options for building:</p>
 <ul>
+<li><code>-DUSE_ZLIB=1</code> will enable zlib support, required for http client + server + websocket per message deflate extension</li>
 <li><code>-DUSE_TLS=1</code> will enable TLS support</li>
 <li><code>-DUSE_OPEN_SSL=1</code> will use <a href="https://www.openssl.org/">openssl</a> for the TLS support (default on Linux and Windows)</li>
 <li><code>-DUSE_MBED_TLS=1</code> will use <a href="https://tls.mbed.org/">mbedlts</a> for the TLS support</li>
