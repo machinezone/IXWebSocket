@@ -61,6 +61,7 @@ namespace ix
         _clientMaxWindowBits = kDefaultClientMaxWindowBits;
         _serverMaxWindowBits = kDefaultServerMaxWindowBits;
 
+#ifdef IXWEBSOCKET_USE_ZLIB
         // Split by ;
         std::string token;
         std::stringstream tokenStream(extension);
@@ -112,6 +113,7 @@ namespace ix
                 sanitizeClientMaxWindowBits();
             }
         }
+#endif
     }
 
     void WebSocketPerMessageDeflateOptions::sanitizeClientMaxWindowBits()
@@ -126,6 +128,7 @@ namespace ix
 
     std::string WebSocketPerMessageDeflateOptions::generateHeader()
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         std::stringstream ss;
         ss << "Sec-WebSocket-Extensions: permessage-deflate";
 
@@ -138,11 +141,18 @@ namespace ix
         ss << "\r\n";
 
         return ss.str();
+#else
+        return std::string();
+#endif
     }
 
     bool WebSocketPerMessageDeflateOptions::enabled() const
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         return _enabled;
+#else
+        return false;
+#endif
     }
 
     bool WebSocketPerMessageDeflateOptions::getClientNoContextTakeover() const

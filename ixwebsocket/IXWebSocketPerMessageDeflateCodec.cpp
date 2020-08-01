@@ -28,21 +28,26 @@ namespace ix
     WebSocketPerMessageDeflateCompressor::WebSocketPerMessageDeflateCompressor()
         : _compressBufferSize(kBufferSize)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         memset(&_deflateState, 0, sizeof(_deflateState));
 
         _deflateState.zalloc = Z_NULL;
         _deflateState.zfree = Z_NULL;
         _deflateState.opaque = Z_NULL;
+#endif
     }
 
     WebSocketPerMessageDeflateCompressor::~WebSocketPerMessageDeflateCompressor()
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         deflateEnd(&_deflateState);
+#endif
     }
 
     bool WebSocketPerMessageDeflateCompressor::init(uint8_t deflateBits,
                                                     bool clientNoContextTakeOver)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         int ret = deflateInit2(&_deflateState,
                                Z_DEFAULT_COMPRESSION,
                                Z_DEFLATED,
@@ -57,6 +62,9 @@ namespace ix
         _flush = (clientNoContextTakeOver) ? Z_FULL_FLUSH : Z_SYNC_FLUSH;
 
         return true;
+#else
+        return false;
+#endif
     }
 
     template<typename T>
@@ -96,6 +104,7 @@ namespace ix
     template<typename T, typename S>
     bool WebSocketPerMessageDeflateCompressor::compressData(const T& in, S& out)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         //
         // 7.2.1.  Compression
         //
@@ -152,6 +161,9 @@ namespace ix
         }
 
         return true;
+#else
+        return false;
+#endif
     }
 
     //
@@ -160,6 +172,7 @@ namespace ix
     WebSocketPerMessageDeflateDecompressor::WebSocketPerMessageDeflateDecompressor()
         : _compressBufferSize(kBufferSize)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         memset(&_inflateState, 0, sizeof(_inflateState));
 
         _inflateState.zalloc = Z_NULL;
@@ -167,16 +180,20 @@ namespace ix
         _inflateState.opaque = Z_NULL;
         _inflateState.avail_in = 0;
         _inflateState.next_in = Z_NULL;
+#endif
     }
 
     WebSocketPerMessageDeflateDecompressor::~WebSocketPerMessageDeflateDecompressor()
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         inflateEnd(&_inflateState);
+#endif
     }
 
     bool WebSocketPerMessageDeflateDecompressor::init(uint8_t inflateBits,
                                                       bool clientNoContextTakeOver)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         int ret = inflateInit2(&_inflateState, -1 * inflateBits);
 
         if (ret != Z_OK) return false;
@@ -186,10 +203,14 @@ namespace ix
         _flush = (clientNoContextTakeOver) ? Z_FULL_FLUSH : Z_SYNC_FLUSH;
 
         return true;
+#else
+        return false;
+#endif
     }
 
     bool WebSocketPerMessageDeflateDecompressor::decompress(const std::string& in, std::string& out)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         //
         // 7.2.2.  Decompression
         //
@@ -226,5 +247,8 @@ namespace ix
         } while (_inflateState.avail_out == 0);
 
         return true;
+#else
+        return false;
+#endif
     }
 } // namespace ix

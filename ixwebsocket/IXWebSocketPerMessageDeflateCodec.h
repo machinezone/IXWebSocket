@@ -6,7 +6,9 @@
 
 #pragma once
 
+#ifdef IXWEBSOCKET_USE_ZLIB
 #include "zlib.h"
+#endif
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,7 +36,10 @@ namespace ix
         int _flush;
         size_t _compressBufferSize;
         std::unique_ptr<unsigned char[]> _compressBuffer;
+
+#ifdef IXWEBSOCKET_USE_ZLIB
         z_stream _deflateState;
+#endif
     };
 
     class WebSocketPerMessageDeflateDecompressor
@@ -50,7 +55,10 @@ namespace ix
         int _flush;
         size_t _compressBufferSize;
         std::unique_ptr<unsigned char[]> _compressBuffer;
+
+#ifdef IXWEBSOCKET_USE_ZLIB
         z_stream _inflateState;
+#endif
     };
 
 } // namespace ix
