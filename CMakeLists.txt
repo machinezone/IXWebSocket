@@ -190,10 +190,16 @@ if (USE_TLS)
   endif()
 endif()
 
-# Use ZLIB_ROOT CMake variable if you need to use your own zlib
-find_package(ZLIB REQUIRED)
-include_directories(${ZLIB_INCLUDE_DIRS})
-target_link_libraries(ixwebsocket ${ZLIB_LIBRARIES})
+option(USE_ZLIB "Enable zlib support" TRUE)
+
+if (USE_ZLIB)
+  # Use ZLIB_ROOT CMake variable if you need to use your own zlib
+  find_package(ZLIB REQUIRED)
+  include_directories(${ZLIB_INCLUDE_DIRS})
+  target_link_libraries(ixwebsocket ${ZLIB_LIBRARIES})
+
+  target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_ZLIB)
+endif()
 
 if (WIN32)
   target_link_libraries(ixwebsocket wsock32 ws2_32 shlwapi)

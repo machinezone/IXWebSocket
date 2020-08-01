@@ -1,6 +1,10 @@
 # Changelog
 All changes to this project will be documented in this file.
 
+## [10.1.2] - 2020-07-31
+
+(build) make using zlib optional, with the caveat that some http and websocket features are not available when zlib is absent
+
 ## [10.1.1] - 2020-07-29
 
 (websocket client) onProgressCallback not called for short messages on a websocket (fix #233)

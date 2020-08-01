@@ -16,7 +16,10 @@
 #include <random>
 #include <sstream>
 #include <vector>
+
+#ifdef IXWEBSOCKET_USE_ZLIB
 #include <zlib.h>
+#endif
 
 namespace ix
 {
@@ -174,11 +177,13 @@ namespace ix
         ss << verb << " " << path << " HTTP/1.1\r\n";
         ss << "Host: " << host << "\r\n";
 
+#ifdef IXWEBSOCKET_USE_ZLIB
         if (args->compress)
         {
             ss << "Accept-Encoding: gzip"
                << "\r\n";
         }
+#endif
 
         // Append extra headers
         for (auto&& it : args->extraHeaders)
@@ -495,6 +500,7 @@ namespace ix
 
         downloadSize = payload.size();
 
+#ifdef IXWEBSOCKET_USE_ZLIB
         // If the content was compressed with gzip, decode it
         if (headers["Content-Encoding"] == "gzip")
         {
@@ -513,6 +519,7 @@ namespace ix
             }
             payload = decompressedPayload;
         }
+#endif
 
         return std::make_shared<HttpResponse>(code,
                                               description,
@@ -672,6 +679,7 @@ namespace ix
         return ss.str();
     }
 
+#ifdef IXWEBSOCKET_USE_ZLIB
     bool HttpClient::gzipInflate(const std::string& in, std::string& out)
     {
         z_stream inflateState;
@@ -716,6 +724,7 @@ namespace ix
         inflateEnd(&inflateState);
         return true;
     }
+#endif
 
     void HttpClient::log(const std::string& msg, HttpRequestArgsPtr args)
     {

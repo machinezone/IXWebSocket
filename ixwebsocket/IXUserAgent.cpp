@@ -8,7 +8,9 @@
 
 #include "IXWebSocketVersion.h"
 #include <sstream>
+#ifdef IXWEBSOCKET_USE_ZLIB
 #include <zlib.h>
+#endif
 
 // Platform name
 #if defined(_WIN32)
@@ -77,8 +79,10 @@ namespace ix
         ss << " nossl";
 #endif
 
+#ifdef IXWEBSOCKET_USE_ZLIB
         // Zlib version
         ss << " zlib " << ZLIB_VERSION;
+#endif
 
         return ss.str();
     }

@@ -13,7 +13,10 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+
+#ifdef IXWEBSOCKET_USE_ZLIB
 #include <zlib.h>
+#endif
 
 namespace
 {
@@ -41,6 +44,7 @@ namespace
         return std::make_pair(res.first, std::string(vec.begin(), vec.end()));
     }
 
+#ifdef IXWEBSOCKET_USE_ZLIB
     std::string gzipCompress(const std::string& str)
     {
         z_stream zs; // z_stream is zlib's control structure
@@ -83,6 +87,7 @@ namespace
 
         return outstring;
     }
+#endif
 } // namespace
 
 namespace ix
@@ -168,12 +173,14 @@ namespace ix
 
                 std::string content = res.second;
 
+#ifdef IXWEBSOCKET_USE_ZLIB
                 std::string acceptEncoding = request->headers["Accept-encoding"];
                 if (acceptEncoding == "*" || acceptEncoding.find("gzip") != std::string::npos)
                 {
                     content = gzipCompress(content);
                     headers["Content-Encoding"] = "gzip";
                 }
+#endif
 
                 // Log request
                 std::stringstream ss;
