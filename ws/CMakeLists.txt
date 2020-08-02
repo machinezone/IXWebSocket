@@ -51,6 +51,7 @@ add_executable(ws
   ws_ping_pong.cpp
   ws_broadcast_server.cpp
   ws_echo_server.cpp
+  ws_echo_client.cpp
   ws_chat.cpp
   ws_connect.cpp
   ws_transfer.cpp

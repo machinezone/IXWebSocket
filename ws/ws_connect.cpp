@@ -160,7 +160,7 @@ namespace ix
             std::stringstream ss;
             if (msg->type == ix::WebSocketMessageType::Open)
             {
-                log("ws_connect: connected");
+                spdlog::info("ws_connect: connected");
                 spdlog::info("Uri: {}", msg->openInfo.uri);
                 spdlog::info("Headers:");
                 for (auto it : msg->openInfo.headers)

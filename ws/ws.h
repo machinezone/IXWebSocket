@@ -54,6 +54,14 @@ namespace ix
                         const std::string& subprotocol,
                         int pingIntervalSecs);
 
+    int ws_echo_client(const std::string& url,
+                       bool disablePerMessageDeflate,
+                       bool binaryMode,
+                       const ix::SocketTLSOptions& tlsOptions,
+                       const std::string& subprotocol,
+                       int pingIntervalSecs,
+                       const std::string& sendMsg);
+
     int ws_receive_main(const std::string& url,
                         bool enablePerMessageDeflate,
                         int delayMs,

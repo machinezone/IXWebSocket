@@ -125,6 +125,7 @@ int main(int argc, char** argv)
     std::string logfile;
     std::string scriptPath;
     std::string republishChannel;
+    std::string sendMsg("hello world");
     ix::SocketTLSOptions tlsOptions;
     ix::CobraConfig cobraConfig;
     ix::CobraBotConfig cobraBotConfig;
@@ -242,6 +243,18 @@ int main(int argc, char** argv)
     connectApp->add_option("--ping_interval", pingIntervalSecs, "Interval between sending pings");
     connectApp->add_option("--subprotocol", subprotocol, "Subprotocol");
     addTLSOptions(connectApp);
+
+    CLI::App* echoClientApp =
+        app.add_subcommand("echo_client", "Echo messages sent by a remote server");
+    echoClientApp->fallthrough();
+    echoClientApp->add_option("url", url, "Connection url")->required();
+    echoClientApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
+    echoClientApp->add_flag("-b", binaryMode, "Send in binary mode");
+    echoClientApp->add_option(
+        "--ping_interval", pingIntervalSecs, "Interval between sending pings");
+    echoClientApp->add_option("--subprotocol", subprotocol, "Subprotocol");
+    echoClientApp->add_option("--send_msg", sendMsg, "Send message");
+    addTLSOptions(echoClientApp);
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
     chatApp->fallthrough();
@@ -503,6 +516,16 @@ int main(int argc, char** argv)
                                   tlsOptions,
                                   subprotocol,
                                   pingIntervalSecs);
+    }
+    else if (app.got_subcommand("echo_client"))
+    {
+        ret = ix::ws_echo_client(url,
+                                 disablePerMessageDeflate,
+                                 binaryMode,
+                                 tlsOptions,
+                                 subprotocol,
+                                 pingIntervalSecs,
+                                 sendMsg);
     }
     else if (app.got_subcommand("echo_server"))
     {
