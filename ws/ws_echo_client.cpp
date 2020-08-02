@@ -21,7 +21,8 @@ namespace ix
                        const ix::SocketTLSOptions& tlsOptions,
                        const std::string& subprotocol,
                        int pingIntervalSecs,
-                       const std::string& sendMsg)
+                       const std::string& sendMsg,
+                       bool noSend)
     {
         // Our websocket object
         ix::WebSocket webSocket;
@@ -46,26 +47,33 @@ namespace ix
 
         // Setup a callback to be fired (in a background thread, watch out for race conditions !)
         // when a message or an event (open, close, error) is received
-        webSocket.setOnMessageCallback(
-            [&webSocket, &receivedCount, &sendMsg, binaryMode](const ix::WebSocketMessagePtr& msg) {
-                if (msg->type == ix::WebSocketMessageType::Message)
+        webSocket.setOnMessageCallback([&webSocket, &receivedCount, &sendMsg, noSend, binaryMode](
+                                           const ix::WebSocketMessagePtr& msg) {
+            if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                if (!noSend)
                 {
                     webSocket.send(msg->str, msg->binary);
-                    receivedCount++;
                 }
-                else if (msg->type == ix::WebSocketMessageType::Open)
+                receivedCount++;
+            }
+            else if (msg->type == ix::WebSocketMessageType::Open)
+            {
+                spdlog::info("ws_echo_client: connected");
+                spdlog::info("Uri: {}", msg->openInfo.uri);
+                spdlog::info("Headers:");
+                for (auto it : msg->openInfo.headers)
                 {
-                    spdlog::info("ws_echo_client: connected");
-                    spdlog::info("Uri: {}", msg->openInfo.uri);
-                    spdlog::info("Headers:");
-                    for (auto it : msg->openInfo.headers)
-                    {
-                        spdlog::info("{}: {}", it.first, it.second);
-                    }
-
-                    webSocket.send(sendMsg, binaryMode);
+                    spdlog::info("{}: {}", it.first, it.second);
                 }
-            });
+
+                webSocket.send(sendMsg, binaryMode);
+            }
+            else if (msg->type == ix::WebSocketMessageType::Pong)
+            {
+                spdlog::info("Received pong {}", msg->str);
+            }
+        });
 
         auto timer = [&receivedCount, &receivedCountTotal, &receivedCountPerSecs] {
             setThreadName("Timer");

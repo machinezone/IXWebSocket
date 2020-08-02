@@ -50,6 +50,7 @@ add_executable(ws
   ws_http_client.cpp
   ws_ping_pong.cpp
   ws_broadcast_server.cpp
+  ws_push_server.cpp
   ws_echo_server.cpp
   ws_echo_client.cpp
   ws_chat.cpp

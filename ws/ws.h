@@ -35,6 +35,15 @@ namespace ix
                             bool disablePerMessageDeflate,
                             bool disablePong);
 
+    int ws_push_server(int port,
+                       bool greetings,
+                       const std::string& hostname,
+                       const ix::SocketTLSOptions& tlsOptions,
+                       bool ipv6,
+                       bool disablePerMessageDeflate,
+                       bool disablePong,
+                       const std::string& sendMsg);
+
     int ws_broadcast_server_main(int port,
                                  const std::string& hostname,
                                  const ix::SocketTLSOptions& tlsOptions);
@@ -60,7 +69,8 @@ namespace ix
                        const ix::SocketTLSOptions& tlsOptions,
                        const std::string& subprotocol,
                        int pingIntervalSecs,
-                       const std::string& sendMsg);
+                       const std::string& sendMsg,
+                       bool noSend);
 
     int ws_receive_main(const std::string& url,
                         bool enablePerMessageDeflate,

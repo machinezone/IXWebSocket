@@ -1,9 +1,14 @@
 # Changelog
+
 All changes to this project will be documented in this file.
+
+## [10.1.5] - 2020-08-02
+
+(ws) Add a new ws sub-command, push_server. This command runs a server which sends many messages in a loop to a websocket client. We can receive above 200,000 messages per second (cf #235).
 
 ## [10.1.4] - 2020-08-02
 
-(ws) Add a new ws sub-command, echo_client. This command send a message to an echo server, and send back to a server whatever message it does receive. When connecting to a local ws echo_server, on my MacBook Pro 2015 I can send/receive around 30,000 messages per second. (cf #235)
+(ws) Add a new ws sub-command, echo_client. This command sends a message to an echo server, and send back to a server whatever message it does receive. When connecting to a local ws echo_server, on my MacBook Pro 2015 I can send/receive around 30,000 messages per second. (cf #235)
 
 ## [10.1.3] - 2020-08-02
 

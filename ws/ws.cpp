@@ -148,6 +148,7 @@ int main(int argc, char** argv)
     bool version = false;
     bool verifyNone = false;
     bool disablePong = false;
+    bool noSend = false;
     int port = 8008;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -254,6 +255,7 @@ int main(int argc, char** argv)
         "--ping_interval", pingIntervalSecs, "Interval between sending pings");
     echoClientApp->add_option("--subprotocol", subprotocol, "Subprotocol");
     echoClientApp->add_option("--send_msg", sendMsg, "Send message");
+    echoClientApp->add_flag("-m", noSend, "Do not send messages, only receive messages");
     addTLSOptions(echoClientApp);
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
@@ -271,6 +273,18 @@ int main(int argc, char** argv)
     echoServerApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
     echoServerApp->add_flag("-p", disablePong, "Disable sending PONG in response to PING");
     addTLSOptions(echoServerApp);
+
+    CLI::App* pushServerApp = app.add_subcommand("push_server", "Push server");
+    pushServerApp->fallthrough();
+    pushServerApp->add_option("--port", port, "Port");
+    pushServerApp->add_option("--host", hostname, "Hostname");
+    pushServerApp->add_flag("-q", quiet, "Quiet / only display warnings and errors");
+    pushServerApp->add_flag("-g", greetings, "Greet");
+    pushServerApp->add_flag("-6", ipv6, "IpV6");
+    pushServerApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
+    pushServerApp->add_flag("-p", disablePong, "Disable sending PONG in response to PING");
+    pushServerApp->add_option("--send_msg", sendMsg, "Send message");
+    addTLSOptions(pushServerApp);
 
     CLI::App* broadcastServerApp = app.add_subcommand("broadcast_server", "Broadcasting server");
     broadcastServerApp->fallthrough();
@@ -525,12 +539,24 @@ int main(int argc, char** argv)
                                  tlsOptions,
                                  subprotocol,
                                  pingIntervalSecs,
-                                 sendMsg);
+                                 sendMsg,
+                                 noSend);
     }
     else if (app.got_subcommand("echo_server"))
     {
         ret = ix::ws_echo_server_main(
             port, greetings, hostname, tlsOptions, ipv6, disablePerMessageDeflate, disablePong);
+    }
+    else if (app.got_subcommand("push_server"))
+    {
+        ret = ix::ws_push_server(port,
+                                 greetings,
+                                 hostname,
+                                 tlsOptions,
+                                 ipv6,
+                                 disablePerMessageDeflate,
+                                 disablePong,
+                                 sendMsg);
     }
     else if (app.got_subcommand("transfer"))
     {
