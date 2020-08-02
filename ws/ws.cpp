@@ -252,7 +252,8 @@ int main(int argc, char** argv)
     echoServerApp->fallthrough();
     echoServerApp->add_option("--port", port, "Port");
     echoServerApp->add_option("--host", hostname, "Hostname");
-    echoServerApp->add_flag("-g", greetings, "Verbose");
+    echoServerApp->add_flag("-q", quiet, "Quiet / only display warnings and errors");
+    echoServerApp->add_flag("-g", greetings, "Greet");
     echoServerApp->add_flag("-6", ipv6, "IpV6");
     echoServerApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
     echoServerApp->add_flag("-p", disablePong, "Disable sending PONG in response to PING");
@@ -475,6 +476,11 @@ int main(int argc, char** argv)
             ix::uninitNetSystem();
             return 1;
         }
+    }
+
+    if (quiet)
+    {
+        spdlog::set_level(spdlog::level::warn);
     }
 
     // Cobra config
