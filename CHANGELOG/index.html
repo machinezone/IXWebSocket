@@ -52,6 +52,9 @@
                                 <a href="../packages/" class="nav-link">Packages</a>
                             </li>
                             <li class="navitem">
+                                <a href="../performance/" class="nav-link">Performance</a>
+                            </li>
+                            <li class="navitem">
                                 <a href="../usage/" class="nav-link">Examples</a>
                             </li>
                             <li class="navitem">
@@ -95,6 +98,10 @@
             
             <li class="nav-item" data-level="1"><a href="#changelog" class="nav-link">Changelog</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#1015-2020-08-02" class="nav-link">[10.1.5] - 2020-08-02</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#1014-2020-08-02" class="nav-link">[10.1.4] - 2020-08-02</a>
               <ul class="nav flex-column">
               </ul>
@@ -916,8 +923,10 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="1015-2020-08-02">[10.1.5] - 2020-08-02</h2>
+<p>(ws) Add a new ws sub-command, push_server. This command runs a server which sends many messages in a loop to a websocket client. We can receive above 200,000 messages per second (cf #235).</p>
 <h2 id="1014-2020-08-02">[10.1.4] - 2020-08-02</h2>
-<p>(ws) Add a new ws sub-command, echo_client. This command send a message to an echo server, and send back to a server whatever message it does receive. When connecting to a local ws echo_server, on my MacBook Pro 2015 I can send/receive around 30,000 messages per second. (cf #235)</p>
+<p>(ws) Add a new ws sub-command, echo_client. This command sends a message to an echo server, and send back to a server whatever message it does receive. When connecting to a local ws echo_server, on my MacBook Pro 2015 I can send/receive around 30,000 messages per second. (cf #235)</p>
 <h2 id="1013-2020-08-02">[10.1.3] - 2020-08-02</h2>
 <p>(ws) ws echo_server. Add a -q option to only enable warning and error log levels. This is useful for bench-marking so that we do not print a lot of things on the console. (cf #235)</p>
 <h2 id="1012-2020-07-31">[10.1.2] - 2020-07-31</h2>

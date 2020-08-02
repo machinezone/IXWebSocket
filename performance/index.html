@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Design - IXWebSocket</title>
+        <title>Performance - IXWebSocket</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
@@ -45,14 +45,14 @@
                             <li class="navitem">
                                 <a href="../cobra/" class="nav-link">Cobra</a>
                             </li>
-                            <li class="navitem active">
-                                <a href="./" class="nav-link">Design</a>
+                            <li class="navitem">
+                                <a href="../design/" class="nav-link">Design</a>
                             </li>
                             <li class="navitem">
                                 <a href="../packages/" class="nav-link">Packages</a>
                             </li>
-                            <li class="navitem">
-                                <a href="../performance/" class="nav-link">Performance</a>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Performance</a>
                             </li>
                             <li class="navitem">
                                 <a href="../usage/" class="nav-link">Examples</a>
@@ -69,12 +69,12 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../cobra/" class="nav-link">
+                                <a rel="prev" href="../packages/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../packages/" class="nav-link">
+                                <a rel="next" href="../usage/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -96,17 +96,7 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="2"><a href="#implementation-details" class="nav-link">Implementation details</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            
-            <li class="nav-item" data-level="2"><a href="#limitations" class="nav-link">Limitations</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            
-            <li class="nav-item" data-level="2"><a href="#c-code-organization" class="nav-link">C++ code organization</a>
+            <li class="nav-item" data-level="2"><a href="#websocket-client-performance" class="nav-link">WebSocket Client performance</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -115,69 +105,34 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h2 id="implementation-details">Implementation details</h2>
-<h3 id="per-message-deflate-compression">Per Message Deflate compression.</h3>
-<p>The per message deflate compression option is supported. It can lead to very nice bandbwith savings (20x !) if your messages are similar, which is often the case for example for chat applications. All features of the spec should be supported.</p>
-<h3 id="tlsssl">TLS/SSL</h3>
-<p>Connections can be optionally secured and encrypted with TLS/SSL when using a wss:// endpoint, or using normal un-encrypted socket with ws:// endpoints. AppleSSL is used on iOS and macOS, OpenSSL and mbedTLS can be used on Android, Linux and Windows.</p>
-<p>If you are using OpenSSL, try to be on a version higher than 1.1.x as there there are thread safety problems with 1.0.x.</p>
-<h3 id="polling-and-background-thread-work">Polling and background thread work</h3>
-<p>No manual polling to fetch data is required. Data is sent and received instantly by using a background thread for receiving data and the select <a href="http://man7.org/linux/man-pages/man2/select.2.html">system</a> call to be notified by the OS of incoming data. No timeout is used for select so that the background thread is only woken up when data is available, to optimize battery life. This is also the recommended way of using select according to the select tutorial, section <a href="https://linux.die.net/man/2/select_tut">select law</a>. Read and Writes to the socket are non blocking. Data is sent right away and not enqueued by writing directly to the socket, which is <a href="https://stackoverflow.com/questions/1981372/are-parallel-calls-to-send-recv-on-the-same-socket-valid">possible</a> since system socket implementations allow concurrent read/writes. However concurrent writes need to be protected with mutex.</p>
-<h3 id="automatic-reconnection">Automatic reconnection</h3>
-<p>If the remote end (server) breaks the connection, the code will try to perpetually reconnect, by using an exponential backoff strategy, capped at one retry every 10 seconds. This behavior can be disabled.</p>
-<h3 id="large-messages">Large messages</h3>
-<p>Large frames are broken up into smaller chunks or messages to avoid filling up the os tcp buffers, which is permitted thanks to WebSocket <a href="https://tools.ietf.org/html/rfc6455#section-5.4">fragmentation</a>. Messages up to 1G were sent and received succesfully.</p>
-<h3 id="testing">Testing</h3>
-<p>The library has an interactive tool which is handy for testing compatibility ith other libraries. We have tested our client against Python, Erlang, Node.js, and C++ websocket server libraries.</p>
-<p>The unittest tries to be comprehensive, and has been running on multiple platforms, with different sanitizers such as a thread sanitizer to catch data races or the undefined behavior sanitizer.</p>
-<p>The regression test is running after each commit on github actions for multiple configurations.</p>
-<ul>
-<li>Linux</li>
-<li>macOS with thread sanitizer</li>
-<li>macOS, with OpenSSL, with thread sanitizer</li>
-<li>macOS, with MbedTLS, with thread sanitizer</li>
-<li>Windows, with MbedTLS (the unittest is not run yet)</li>
-</ul>
-<h2 id="limitations">Limitations</h2>
-<ul>
-<li>On some configuration (mostly Android) certificate validation needs to be setup so that SocketTLSOptions.caFile point to a pem file, such as the one distributed by Firefox. Unless that setup is done connecting to a wss endpoint will display an error. With mbedtls the message will contain <code>error in handshake : X509 - Certificate verification failed, e.g. CRL, CA or signature check failed</code>.</li>
-<li>Automatic reconnection works at the TCP socket level, and will detect remote end disconnects. However, if the device/computer network become unreachable (by turning off wifi), it is quite hard to reliably and timely detect it at the socket level using <code>recv</code> and <code>send</code> error codes. <a href="https://stackoverflow.com/questions/14782143/linux-socket-how-to-detect-disconnected-network-in-a-client-program">Here</a> is a good discussion on the subject. This behavior is consistent with other runtimes such as node.js. One way to detect a disconnected device with low level C code is to do a name resolution with DNS but this can be expensive. Mobile devices have good and reliable API to do that.</li>
-<li>The server code is using select to detect incoming data, and creates one OS thread per connection. This is not as scalable as strategies using epoll or kqueue.</li>
-</ul>
-<h2 id="c-code-organization">C++ code organization</h2>
-<p>Here is a simplistic diagram which explains how the code is structured in term of class/modules.</p>
-<pre><code>+-----------------------+ --- Public
-|                       | Start the receiving Background thread. Auto reconnection. Simple websocket Ping.
-|  IXWebSocket          | Interface used by C++ test clients. No IX dependencies.
-|                       |
-+-----------------------+
-|                       |
-|  IXWebSocketServer    | Run a server and give each connections its own WebSocket object.
-|                       | Each connection is handled in a new OS thread.
-|                       |
-+-----------------------+ --- Private
-|                       |
-|  IXWebSocketTransport | Low level websocket code, framing, managing raw socket. Adapted from easywsclient.
-|                       |
-+-----------------------+
-|                       |
-|  IXWebSocketHandshake | Establish the connection between client and server.
-|                       |
-+-----------------------+
-|                       |
-|  IXWebSocket          | ws://  Unencrypted Socket handler
-|  IXWebSocketAppleSSL  | wss:// TLS encrypted Socket AppleSSL handler. Used on iOS and macOS
-|  IXWebSocketOpenSSL   | wss:// TLS encrypted Socket OpenSSL handler.  Used on Android and Linux
-|                       |                                               Can be used on macOS too.
-+-----------------------+
-|                       |
-|  IXSocketConnect      | Connect to the remote host (client).
-|                       |
-+-----------------------+
-|                       |
-|  IXDNSLookup          | Does DNS resolution asynchronously so that it can be interrupted.
-|                       |
-+-----------------------+
+<h2 id="websocket-client-performance">WebSocket Client performance</h2>
+<p>We will run a client and a server on the same machine, connecting to localhost. This bench is run on a MacBook Pro from 2015. We can receive over 200,000 (small) messages per second, another way to put it is that it takes 5 micro-second to receive and process one message. This is an indication about the minimal latency to receive messages.</p>
+<h3 id="receiving-messages">Receiving messages</h3>
+<p>By using the push_server ws sub-command, the server will send the same message in a loop to any connected client.</p>
+<pre><code>ws push_server -q --send_msg 'yo'
+</code></pre>
+
+<p>By using the echo_client ws sub-command, with the -m (mute or no_send), we will display statistics on how many messages we can receive per second.</p>
+<pre><code>$ ws echo_client -m ws://localhost:8008
+[2020-08-02 12:31:17.284] [info] ws_echo_client: connected
+[2020-08-02 12:31:17.284] [info] Uri: /
+[2020-08-02 12:31:17.284] [info] Headers:
+[2020-08-02 12:31:17.284] [info] Connection: Upgrade
+[2020-08-02 12:31:17.284] [info] Sec-WebSocket-Accept: byy/pMK2d0PtRwExaaiOnXJTQHo=
+[2020-08-02 12:31:17.284] [info] Server: ixwebsocket/10.1.4 macos ssl/SecureTransport zlib 1.2.11
+[2020-08-02 12:31:17.284] [info] Upgrade: websocket
+[2020-08-02 12:31:17.663] [info] messages received: 0 per second 2595307 total
+[2020-08-02 12:31:18.668] [info] messages received: 79679 per second 2674986 total
+[2020-08-02 12:31:19.668] [info] messages received: 207438 per second 2882424 total
+[2020-08-02 12:31:20.673] [info] messages received: 209207 per second 3091631 total
+[2020-08-02 12:31:21.676] [info] messages received: 216056 per second 3307687 total
+[2020-08-02 12:31:22.680] [info] messages received: 214927 per second 3522614 total
+[2020-08-02 12:31:23.684] [info] messages received: 216960 per second 3739574 total
+[2020-08-02 12:31:24.688] [info] messages received: 215232 per second 3954806 total
+[2020-08-02 12:31:25.691] [info] messages received: 212300 per second 4167106 total
+[2020-08-02 12:31:26.694] [info] messages received: 212501 per second 4379607 total
+[2020-08-02 12:31:27.699] [info] messages received: 212330 per second 4591937 total
+[2020-08-02 12:31:28.702] [info] messages received: 216511 per second 4808448 total
 </code></pre></div>
             </div>
         </div>
