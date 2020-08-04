@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <sstream>
 #include <thread>
 
 namespace ix
@@ -52,9 +53,18 @@ namespace ix
                                 HttpRequestArgsPtr args,
                                 int redirects = 0);
 
+		HttpResponsePtr request(const std::string& url,
+								const std::string& verb,
+								std::istream& body,
+								HttpRequestArgsPtr args,
+								size_t bufferSize,
+								int redirects = 0);
+
         // Async API
         HttpRequestArgsPtr createRequest(const std::string& url = std::string(),
                                          const std::string& verb = HttpClient::kGet);
+        HttpRequestArgsPtr createStreamRequest(std::istream &stream, size_t bufferSize = 4096, const std::string& url = std::string(),
+											   const std::string& verb = HttpClient::kGet);
 
         bool performRequest(HttpRequestArgsPtr request,
                             const OnResponseCallback& onResponseCallback);
@@ -83,6 +93,36 @@ namespace ix
         void log(const std::string& msg, HttpRequestArgsPtr args);
 
         bool gzipInflate(const std::string& in, std::string& out);
+
+		struct RequestData
+        {
+            std::string protocol, host, path, query;
+            int port;
+
+            uint64_t uploadSize = 0;
+            uint64_t downloadSize = 0;
+            int code = 0;
+            WebSocketHttpHeaders headers;
+            std::string payload;
+            std::string description;
+            std::string req;
+            CancellationRequest isCancellationRequested;
+            int redirects = 0;
+            std::string errorMsg;
+            std::stringstream ss;
+
+			std::function<HttpResponsePtr()> redirect;
+        };
+        HttpResponsePtr pre_request(RequestData& data,
+                         const std::string& url,
+                         const std::string& verb,
+                         HttpRequestArgsPtr args,
+                         int redirects = 0);
+        HttpResponsePtr post_request(RequestData& data,
+									 const std::string& url,
+                                     const std::string& verb,
+                                     HttpRequestArgsPtr args,
+                                     int redirects = 0);
 
         // Async API background thread runner
         void run();

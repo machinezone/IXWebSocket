@@ -73,6 +73,8 @@ namespace ix
 
     struct HttpRequestArgs
     {
+        virtual ~HttpRequestArgs() = default;
+
         std::string url;
         std::string verb;
         WebSocketHttpHeaders extraHeaders;
@@ -86,6 +88,15 @@ namespace ix
         bool compress;
         Logger logger;
         OnProgressCallback onProgressCallback;
+    };
+    struct HttpStreamRequestArgs : public HttpRequestArgs
+    {
+        explicit HttpStreamRequestArgs(std::istream& stream)
+            : stream(stream)
+        {
+        }
+        std::reference_wrapper<std::istream> stream;
+        size_t bufferSize = 4096;
     };
 
     using HttpRequestArgsPtr = std::shared_ptr<HttpRequestArgs>;

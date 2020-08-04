@@ -57,6 +57,16 @@ namespace ix
         return request;
     }
 
+	HttpRequestArgsPtr HttpClient::createStreamRequest(std::istream& stream, size_t bufferSize, const std::string& url,
+                                                       const std::string& verb)
+    {
+        auto request = std::make_shared<HttpStreamRequestArgs>(stream);
+        request->url = url;
+        request->verb = verb;
+        request->bufferSize = bufferSize;
+        return request;
+    }
+
     bool HttpClient::performRequest(HttpRequestArgsPtr args,
                                     const OnResponseCallback& onResponseCallback)
     {
@@ -105,189 +115,118 @@ namespace ix
 
             if (_stop) return;
 
-            HttpResponsePtr response = request(args->url, args->verb, args->body, args);
+
+            HttpResponsePtr response;
+            if (auto streamRequest = dynamic_cast<HttpStreamRequestArgs*>(args.get()))
+            {
+                response = request(
+                    args->url, args->verb, streamRequest->stream, args, streamRequest->bufferSize);
+            }
+            else
+            {
+                response = request(args->url, args->verb, args->body, args);
+            }
+            
             onResponseCallback(response);
 
             if (_stop) return;
         }
     }
 
-    HttpResponsePtr HttpClient::request(const std::string& url,
-                                        const std::string& verb,
-                                        const std::string& body,
-                                        HttpRequestArgsPtr args,
-                                        int redirects)
+	HttpResponsePtr HttpClient::pre_request(RequestData& data,
+                                 const std::string& url,
+                                 const std::string& verb,
+                                 HttpRequestArgsPtr args,
+                                 int redirects)
     {
         // We only have one socket connection, so we cannot
         // make multiple requests concurrently.
         std::lock_guard<std::mutex> lock(_mutex);
 
-        uint64_t uploadSize = 0;
-        uint64_t downloadSize = 0;
-        int code = 0;
-        WebSocketHttpHeaders headers;
-        std::string payload;
-        std::string description;
-
-        std::string protocol, host, path, query;
-        int port;
-
-        if (!UrlParser::parse(url, protocol, host, path, query, port))
+        if (!UrlParser::parse(url, data.protocol, data.host, data.path, data.query, data.port))
         {
             std::stringstream ss;
             ss << "Cannot parse url: " << url;
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  HttpErrorCode::UrlMalformed,
-                                                  headers,
-                                                  payload,
-                                                  ss.str(),
-                                                  uploadSize,
-                                                  downloadSize);
+            return std::make_shared<HttpResponse>(data.code,
+                                                    data.description,
+                                                    HttpErrorCode::UrlMalformed,
+                                                    data.headers,
+                                                    data.payload,
+                                                    ss.str(),
+                                                    data.uploadSize,
+                                                    data.downloadSize);
         }
 
-        bool tls = protocol == "https";
-        std::string errorMsg;
-        _socket = createSocket(tls, -1, errorMsg, _tlsOptions);
+        bool tls = data.protocol == "https";
+        _socket = createSocket(tls, -1, data.errorMsg, _tlsOptions);
 
         if (!_socket)
         {
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  HttpErrorCode::CannotCreateSocket,
-                                                  headers,
-                                                  payload,
-                                                  errorMsg,
-                                                  uploadSize,
-                                                  downloadSize);
+            return std::make_shared<HttpResponse>(data.code,
+                                                    data.description,
+                                                    HttpErrorCode::CannotCreateSocket,
+                                                    data.headers,
+                                                    data.payload,
+                                                    data.errorMsg,
+                                                    data.uploadSize,
+                                                    data.downloadSize);
         }
 
         // Build request string
-        std::stringstream ss;
-        ss << verb << " " << path << " HTTP/1.1\r\n";
-        ss << "Host: " << host << "\r\n";
+        data.ss << verb << " " << data.path << " HTTP/1.1\r\n";
+        data.ss << "Host: " << data.host << "\r\n";
 
         if (args->compress)
         {
-            ss << "Accept-Encoding: gzip"
-               << "\r\n";
+            data.ss << "Accept-Encoding: gzip"
+                << "\r\n";
         }
 
         // Append extra headers
         for (auto&& it : args->extraHeaders)
         {
-            ss << it.first << ": " << it.second << "\r\n";
+            data.ss << it.first << ": " << it.second << "\r\n";
         }
 
         // Set a default Accept header if none is present
-        if (headers.find("Accept") == headers.end())
+        if (data.headers.find("Accept") == data.headers.end())
         {
-            ss << "Accept: */*"
-               << "\r\n";
+            data.ss << "Accept: */*"
+                << "\r\n";
         }
 
         // Set a default User agent if none is present
-        if (headers.find("User-Agent") == headers.end())
+        if (data.headers.find("User-Agent") == data.headers.end())
         {
-            ss << "User-Agent: " << userAgent() << "\r\n";
-        }
+            data.ss << "User-Agent: " << userAgent() << "\r\n";
+        }  
 
-        if (verb == kPost || verb == kPut)
-        {
-            ss << "Content-Length: " << body.size() << "\r\n";
+		return nullptr;
+	}
 
-            // Set default Content-Type if unspecified
-            if (args->extraHeaders.find("Content-Type") == args->extraHeaders.end())
-            {
-                if (args->multipartBoundary.empty())
-                {
-                    ss << "Content-Type: application/x-www-form-urlencoded"
-                       << "\r\n";
-                }
-                else
-                {
-                    ss << "Content-Type: multipart/form-data; boundary=" << args->multipartBoundary
-                       << "\r\n";
-                }
-            }
-            ss << "\r\n";
-            ss << body;
-        }
-        else
-        {
-            ss << "\r\n";
-        }
+	HttpResponsePtr HttpClient::post_request(RequestData& data,
+                                             const std::string& url,
+                                             const std::string& verb,
+                                             HttpRequestArgsPtr args,
+                                             int redirects)
+    {
+        data.uploadSize = data.req.size();
 
-        std::string req(ss.str());
-        std::string errMsg;
-        std::atomic<bool> requestInitCancellation(false);
-
-        // Make a cancellation object dealing with connection timeout
-        auto isCancellationRequested =
-            makeCancellationRequestWithTimeout(args->connectTimeout, requestInitCancellation);
-
-        bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
-        if (!success)
-        {
-            std::stringstream ss;
-            ss << "Cannot connect to url: " << url << " / error : " << errMsg;
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  HttpErrorCode::CannotConnect,
-                                                  headers,
-                                                  payload,
-                                                  ss.str(),
-                                                  uploadSize,
-                                                  downloadSize);
-        }
-
-        // Make a new cancellation object dealing with transfer timeout
-        isCancellationRequested =
-            makeCancellationRequestWithTimeout(args->transferTimeout, requestInitCancellation);
-
-        if (args->verbose)
-        {
-            std::stringstream ss;
-            ss << "Sending " << verb << " request "
-               << "to " << host << ":" << port << std::endl
-               << "request size: " << req.size() << " bytes" << std::endl
-               << "=============" << std::endl
-               << req << "=============" << std::endl
-               << std::endl;
-
-            log(ss.str(), args);
-        }
-
-        if (!_socket->writeBytes(req, isCancellationRequested))
-        {
-            std::string errorMsg("Cannot send request");
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  HttpErrorCode::SendError,
-                                                  headers,
-                                                  payload,
-                                                  errorMsg,
-                                                  uploadSize,
-                                                  downloadSize);
-        }
-
-        uploadSize = req.size();
-
-        auto lineResult = _socket->readLine(isCancellationRequested);
+        auto lineResult = _socket->readLine(data.isCancellationRequested);
         auto lineValid = lineResult.first;
         auto line = lineResult.second;
 
         if (!lineValid)
         {
             std::string errorMsg("Cannot retrieve status line");
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
+            return std::make_shared<HttpResponse>(data.code,
+                                                  data.description,
                                                   HttpErrorCode::CannotReadStatusLine,
-                                                  headers,
-                                                  payload,
+                                                  data.headers,
+                                                  data.payload,
                                                   errorMsg,
-                                                  uploadSize,
-                                                  downloadSize);
+                                                  data.uploadSize,
+                                                  data.downloadSize);
         }
 
         if (args->verbose)
@@ -297,129 +236,129 @@ namespace ix
             log(ss.str(), args);
         }
 
-        if (sscanf(line.c_str(), "HTTP/1.1 %d", &code) != 1)
+        if (sscanf(line.c_str(), "HTTP/1.1 %d", &data.code) != 1)
         {
             std::string errorMsg("Cannot parse response code from status line");
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
+            return std::make_shared<HttpResponse>(data.code,
+                                                  data.description,
                                                   HttpErrorCode::MissingStatus,
-                                                  headers,
-                                                  payload,
+                                                  data.headers,
+                                                  data.payload,
                                                   errorMsg,
-                                                  uploadSize,
-                                                  downloadSize);
+                                                  data.uploadSize,
+                                                  data.downloadSize);
         }
 
-        auto result = parseHttpHeaders(_socket, isCancellationRequested);
+        auto result = parseHttpHeaders(_socket, data.isCancellationRequested);
         auto headersValid = result.first;
-        headers = result.second;
+        data.headers = result.second;
 
         if (!headersValid)
         {
             std::string errorMsg("Cannot parse http headers");
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
+            return std::make_shared<HttpResponse>(data.code,
+                                                  data.description,
                                                   HttpErrorCode::HeaderParsingError,
-                                                  headers,
-                                                  payload,
+                                                  data.headers,
+                                                  data.payload,
                                                   errorMsg,
-                                                  uploadSize,
-                                                  downloadSize);
+                                                  data.uploadSize,
+                                                  data.downloadSize);
         }
 
         // Redirect ?
-        if ((code >= 301 && code <= 308) && args->followRedirects)
+        if ((data.code >= 301 && data.code <= 308) && args->followRedirects)
         {
-            if (headers.find("Location") == headers.end())
+            if (data.headers.find("Location") == data.headers.end())
             {
                 std::string errorMsg("Missing location header for redirect");
-                return std::make_shared<HttpResponse>(code,
-                                                      description,
+                return std::make_shared<HttpResponse>(data.code,
+                                                      data.description,
                                                       HttpErrorCode::MissingLocation,
-                                                      headers,
-                                                      payload,
+                                                      data.headers,
+                                                      data.payload,
                                                       errorMsg,
-                                                      uploadSize,
-                                                      downloadSize);
+                                                      data.uploadSize,
+                                                      data.downloadSize);
             }
 
-            if (redirects >= args->maxRedirects)
+            if (data.redirects >= args->maxRedirects)
             {
                 std::stringstream ss;
-                ss << "Too many redirects: " << redirects;
-                return std::make_shared<HttpResponse>(code,
-                                                      description,
+                ss << "Too many redirects: " << data.redirects;
+                return std::make_shared<HttpResponse>(data.code,
+                                                      data.description,
                                                       HttpErrorCode::TooManyRedirects,
-                                                      headers,
-                                                      payload,
+                                                      data.headers,
+                                                      data.payload,
                                                       ss.str(),
-                                                      uploadSize,
-                                                      downloadSize);
+                                                      data.uploadSize,
+                                                      data.downloadSize);
             }
 
             // Recurse
-            std::string location = headers["Location"];
-            return request(location, verb, body, args, redirects + 1);
+            std::string location = data.headers["Location"];
+            return data.redirect();
         }
 
         if (verb == "HEAD")
         {
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
+            return std::make_shared<HttpResponse>(data.code,
+                                                  data.description,
                                                   HttpErrorCode::Ok,
-                                                  headers,
-                                                  payload,
+                                                  data.headers,
+                                                  data.payload,
                                                   std::string(),
-                                                  uploadSize,
-                                                  downloadSize);
+                                                  data.uploadSize,
+                                                  data.downloadSize);
         }
 
         // Parse response:
-        if (headers.find("Content-Length") != headers.end())
+        if (data.headers.find("Content-Length") != data.headers.end())
         {
             ssize_t contentLength = -1;
-            ss.str("");
-            ss << headers["Content-Length"];
-            ss >> contentLength;
+            data.ss.str("");
+            data.ss << data.headers["Content-Length"];
+            data.ss >> contentLength;
 
-            payload.reserve(contentLength);
+            data.payload.reserve(contentLength);
 
             auto chunkResult = _socket->readBytes(
-                contentLength, args->onProgressCallback, isCancellationRequested);
+                contentLength, args->onProgressCallback, data.isCancellationRequested);
             if (!chunkResult.first)
             {
-                errorMsg = "Cannot read chunk";
-                return std::make_shared<HttpResponse>(code,
-                                                      description,
+                data.errorMsg = "Cannot read chunk";
+                return std::make_shared<HttpResponse>(data.code,
+                                                      data.description,
                                                       HttpErrorCode::ChunkReadError,
-                                                      headers,
-                                                      payload,
-                                                      errorMsg,
-                                                      uploadSize,
-                                                      downloadSize);
+                                                      data.headers,
+                                                      data.payload,
+                                                      data.errorMsg,
+                                                      data.uploadSize,
+                                                      data.downloadSize);
             }
-            payload += chunkResult.second;
+            data.payload += chunkResult.second;
         }
-        else if (headers.find("Transfer-Encoding") != headers.end() &&
-                 headers["Transfer-Encoding"] == "chunked")
+        else if (data.headers.find("Transfer-Encoding") != data.headers.end() &&
+                 data.headers["Transfer-Encoding"] == "chunked")
         {
             std::stringstream ss;
 
             while (true)
             {
-                lineResult = _socket->readLine(isCancellationRequested);
+                lineResult = _socket->readLine(data.isCancellationRequested);
                 line = lineResult.second;
 
                 if (!lineResult.first)
                 {
-                    return std::make_shared<HttpResponse>(code,
-                                                          description,
+                    return std::make_shared<HttpResponse>(data.code,
+                                                          data.description,
                                                           HttpErrorCode::ChunkReadError,
-                                                          headers,
-                                                          payload,
-                                                          errorMsg,
-                                                          uploadSize,
-                                                          downloadSize);
+                                                          data.headers,
+                                                          data.payload,
+                                                          data.errorMsg,
+                                                          data.uploadSize,
+                                                          data.downloadSize);
                 }
 
                 uint64_t chunkSize;
@@ -434,90 +373,305 @@ namespace ix
                     log(oss.str(), args);
                 }
 
-                payload.reserve(payload.size() + (size_t) chunkSize);
+                data.payload.reserve(data.payload.size() + (size_t) chunkSize);
 
                 // Read a chunk
                 auto chunkResult = _socket->readBytes(
-                    (size_t) chunkSize, args->onProgressCallback, isCancellationRequested);
+                    (size_t) chunkSize, args->onProgressCallback, data.isCancellationRequested);
                 if (!chunkResult.first)
                 {
-                    errorMsg = "Cannot read chunk";
-                    return std::make_shared<HttpResponse>(code,
-                                                          description,
+                    data.errorMsg = "Cannot read chunk";
+                    return std::make_shared<HttpResponse>(data.code,
+                                                          data.description,
                                                           HttpErrorCode::ChunkReadError,
-                                                          headers,
-                                                          payload,
-                                                          errorMsg,
-                                                          uploadSize,
-                                                          downloadSize);
+                                                          data.headers,
+                                                          data.payload,
+                                                          data.errorMsg,
+                                                          data.uploadSize,
+                                                          data.downloadSize);
                 }
-                payload += chunkResult.second;
+                data.payload += chunkResult.second;
 
                 // Read the line that terminates the chunk (\r\n)
-                lineResult = _socket->readLine(isCancellationRequested);
+                lineResult = _socket->readLine(data.isCancellationRequested);
 
                 if (!lineResult.first)
                 {
-                    return std::make_shared<HttpResponse>(code,
-                                                          description,
+                    return std::make_shared<HttpResponse>(data.code,
+                                                          data.description,
                                                           HttpErrorCode::ChunkReadError,
-                                                          headers,
-                                                          payload,
-                                                          errorMsg,
-                                                          uploadSize,
-                                                          downloadSize);
+                                                          data.headers,
+                                                          data.payload,
+                                                          data.errorMsg,
+                                                          data.uploadSize,
+                                                          data.downloadSize);
                 }
 
                 if (chunkSize == 0) break;
             }
         }
-        else if (code == 204)
+        else if (data.code == 204)
         {
             ; // 204 is NoContent response code
         }
         else
         {
             std::string errorMsg("Cannot read http body");
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
+            return std::make_shared<HttpResponse>(data.code,
+                                                  data.description,
                                                   HttpErrorCode::CannotReadBody,
-                                                  headers,
-                                                  payload,
+                                                  data.headers,
+                                                  data.payload,
                                                   errorMsg,
-                                                  uploadSize,
-                                                  downloadSize);
+                                                  data.uploadSize,
+                                                  data.downloadSize);
         }
 
-        downloadSize = payload.size();
+        data.downloadSize = data.payload.size();
 
         // If the content was compressed with gzip, decode it
-        if (headers["Content-Encoding"] == "gzip")
+        if (data.headers["Content-Encoding"] == "gzip")
         {
             std::string decompressedPayload;
-            if (!gzipInflate(payload, decompressedPayload))
+            if (!gzipInflate(data.payload, decompressedPayload))
             {
                 std::string errorMsg("Error decompressing payload");
-                return std::make_shared<HttpResponse>(code,
-                                                      description,
+                return std::make_shared<HttpResponse>(data.code,
+                                                      data.description,
                                                       HttpErrorCode::Gzip,
-                                                      headers,
-                                                      payload,
+                                                      data.headers,
+                                                      data.payload,
                                                       errorMsg,
-                                                      uploadSize,
-                                                      downloadSize);
+                                                      data.uploadSize,
+                                                      data.downloadSize);
             }
-            payload = decompressedPayload;
+            data.payload = decompressedPayload;
         }
 
-        return std::make_shared<HttpResponse>(code,
-                                              description,
+        return std::make_shared<HttpResponse>(data.code,
+                                              data.description,
                                               HttpErrorCode::Ok,
-                                              headers,
-                                              payload,
+                                              data.headers,
+                                              data.payload,
                                               std::string(),
-                                              uploadSize,
-                                              downloadSize);
+                                              data.uploadSize,
+                                              data.downloadSize);
     }
+
+	HttpResponsePtr HttpClient::request(const std::string& url,
+                                        const std::string& verb,
+                                        const std::string& body,
+                                        HttpRequestArgsPtr args,
+                                        int redirects)
+    {
+        RequestData data;
+        data.redirect = [&] { return request(url, verb, body, args, redirects + 1); };
+        auto ret = pre_request(data, url, verb, args, redirects);
+        if (ret) return ret;
+
+        if (verb == kPost || verb == kPut)
+        {
+            data.ss << "Content-Length: " << body.size() << "\r\n";
+
+            // Set default Content-Type if unspecified
+            if (args->extraHeaders.find("Content-Type") == args->extraHeaders.end())
+            {
+                if (args->multipartBoundary.empty())
+                {
+                    data.ss << "Content-Type: application/x-www-form-urlencoded"
+                            << "\r\n";
+                }
+                else
+                {
+                    data.ss << "Content-Type: multipart/form-data; boundary="
+                            << args->multipartBoundary << "\r\n";
+                }
+            }
+            data.ss << "\r\n";
+            data.ss << body;
+        }
+        else
+        {
+            data.ss << "\r\n";
+        }
+
+        data.req = data.ss.str();
+        std::string errMsg;
+        std::atomic<bool> requestInitCancellation(false);
+
+        // Make a cancellation object dealing with connection timeout
+        data.isCancellationRequested =
+            makeCancellationRequestWithTimeout(args->connectTimeout, requestInitCancellation);
+
+        bool success = _socket->connect(data.host, data.port, errMsg, data.isCancellationRequested);
+        if (!success)
+        {
+            std::stringstream ss;
+            ss << "Cannot connect to url: " << url << " / error : " << errMsg;
+            return std::make_shared<HttpResponse>(data.code,
+                                                  data.description,
+                                                  HttpErrorCode::CannotConnect,
+                                                  data.headers,
+                                                  data.payload,
+                                                  ss.str(),
+                                                  data.uploadSize,
+                                                  data.downloadSize);
+        }
+
+        // Make a new cancellation object dealing with transfer timeout
+        data.isCancellationRequested =
+            makeCancellationRequestWithTimeout(args->transferTimeout, requestInitCancellation);
+
+        if (args->verbose)
+        {
+            std::stringstream ss;
+            ss << "Sending " << verb << " request "
+               << "to " << data.host << ":" << data.port << std::endl
+               << "request size: " << data.req.size() << " bytes" << std::endl
+               << "=============" << std::endl
+               << data.req << "=============" << std::endl
+               << std::endl;
+
+            log(ss.str(), args);
+        }
+
+        if (!_socket->writeBytes(data.req, data.isCancellationRequested))
+        {
+            std::string errorMsg("Cannot send request");
+            return std::make_shared<HttpResponse>(data.code,
+                                                  data.description,
+                                                  HttpErrorCode::SendError,
+                                                  data.headers,
+                                                  data.payload,
+                                                  errorMsg,
+                                                  data.uploadSize,
+                                                  data.downloadSize);
+        }
+
+        return post_request(data, url, verb, args, redirects);
+    }
+
+	HttpResponsePtr HttpClient::request(const std::string& url,
+                            const std::string& verb,
+                            std::istream& body,
+                            HttpRequestArgsPtr args,
+							size_t bufferSize,
+							int redirects)
+    {
+        RequestData data;
+        data.redirect = [&] { return request(url, verb, body, args, bufferSize, redirects + 1); };
+        auto ret = pre_request(data, url, verb, args, redirects);
+        if (ret) return ret;
+
+		std::streampos bodySize = 0;
+        if (verb == kPost || verb == kPut)
+        {
+            body.seekg(0, std::ios::end);
+            bodySize = body.tellg();
+            body.seekg(0, std::ios::beg);
+            data.ss << "Content-Length: " << bodySize << "\r\n";
+
+            // Set default Content-Type if unspecified
+            if (args->extraHeaders.find("Content-Type") == args->extraHeaders.end())
+            {
+                if (args->multipartBoundary.empty())
+                {
+                    data.ss << "Content-Type: application/x-www-form-urlencoded"
+                        << "\r\n";
+                }
+                else
+                {
+                    data.ss << "Content-Type: multipart/form-data; boundary="
+                        << args->multipartBoundary << "\r\n";
+                }
+            }
+            data.ss << "\r\n";
+            //ss << body;
+        }
+        else
+        {
+            data.ss << "\r\n";
+        }
+
+		data.req = data.ss.str();
+        std::string errMsg;
+        std::atomic<bool> requestInitCancellation(false);
+
+        // Make a cancellation object dealing with connection timeout
+        data.isCancellationRequested =
+            makeCancellationRequestWithTimeout(args->connectTimeout, requestInitCancellation);
+
+        bool success = _socket->connect(data.host, data.port, errMsg, data.isCancellationRequested);
+        if (!success)
+        {
+            std::stringstream ss;
+            ss << "Cannot connect to url: " << url << " / error : " << errMsg;
+            return std::make_shared<HttpResponse>(data.code,
+                                                    data.description,
+                                                    HttpErrorCode::CannotConnect,
+                                                    data.headers,
+                                                    data.payload,
+                                                    ss.str(),
+                                                    data.uploadSize,
+                                                    data.downloadSize);
+        }
+
+        // Make a new cancellation object dealing with transfer timeout
+        data.isCancellationRequested =
+            makeCancellationRequestWithTimeout(args->transferTimeout, requestInitCancellation);
+
+		if (args->verbose)
+        {
+            std::stringstream ss;
+            ss << "Sending " << verb << " request "
+                << "to " << data.host << ":" << data.port << std::endl
+                << "request size: " << data.req.size() + bodySize << " bytes" << std::endl
+                << "=============" << std::endl
+                << data.req << "=============" << std::endl
+                << std::endl;
+
+            log(ss.str(), args);
+        }
+
+		// Write header first
+        if (!_socket->writeBytes(data.req, data.isCancellationRequested))
+        {
+            std::string errorMsg("Cannot send request");
+            return std::make_shared<HttpResponse>(data.code,
+                                                    data.description,
+                                                    HttpErrorCode::SendError,
+                                                    data.headers,
+                                                    data.payload,
+                                                    errorMsg,
+                                                    data.uploadSize,
+                                                    data.downloadSize);
+        }
+		// If we have a body, write that next
+        if (body)
+        {
+            std::string buffer;
+            buffer.resize(bufferSize);
+            body.read(reinterpret_cast<char*>(&buffer[0]), bufferSize);
+            while (body.gcount())
+            {
+                auto size = buffer.size();
+                if (!_socket->writeBytes(buffer, data.isCancellationRequested))
+                {
+                    std::string errorMsg("Cannot send request");
+                    return std::make_shared<HttpResponse>(data.code,
+                                                            data.description,
+                                                            HttpErrorCode::SendError,
+                                                            data.headers,
+                                                            data.payload,
+                                                            errorMsg,
+                                                            data.uploadSize,
+                                                            data.downloadSize);
+                }
+                body.read(reinterpret_cast<char*>(&buffer[0]), bufferSize);
+            }
+        }
+        return post_request(data, url, verb, args, redirects);
+	}
 
     HttpResponsePtr HttpClient::get(const std::string& url, HttpRequestArgsPtr args)
     {
