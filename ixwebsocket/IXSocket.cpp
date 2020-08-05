@@ -52,10 +52,11 @@ namespace ix
     PollResultType Socket::poll(bool readyToRead,
                                 int timeoutMs,
                                 int sockfd,
-                                const SelectInterruptPtr& selectInterrupt)
+                                const SelectInterruptPtr& selectInterrupt,
+                                int kqueuefd)
     {
 #if defined(__APPLE__)
-        int kqueuefd = kqueue();
+        // FIXME int kqueuefd = kqueue();
 
         struct kevent ke;
         EV_SET(&ke, sockfd, (readyToRead) ? EVFILT_READ : EVFILT_WRITE, EV_ADD, 0, 0, NULL);
@@ -145,7 +146,8 @@ namespace ix
 #endif
 
         free(events);
-        ::close(kqueuefd);
+
+        // ::close(kqueuefd); //FMXE
 
         return pollResult;
 #else
@@ -254,7 +256,7 @@ namespace ix
         }
 
         bool readyToRead = true;
-        return poll(readyToRead, timeoutMs, _sockfd, _selectInterrupt);
+        return poll(readyToRead, timeoutMs, _sockfd, _selectInterrupt, _kqueuefd);
     }
 
     PollResultType Socket::isReadyToWrite(int timeoutMs)
@@ -265,7 +267,7 @@ namespace ix
         }
 
         bool readyToRead = false;
-        return poll(readyToRead, timeoutMs, _sockfd, _selectInterrupt);
+        return poll(readyToRead, timeoutMs, _sockfd, _selectInterrupt, _kqueuefd);
     }
 
     // Wake up from poll/select by writing to the pipe which is watched by select

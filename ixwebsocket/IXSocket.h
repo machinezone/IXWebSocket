@@ -101,7 +101,8 @@ namespace ix
         static PollResultType poll(bool readyToRead,
                                    int timeoutMs,
                                    int sockfd,
-                                   const SelectInterruptPtr& selectInterrupt);
+                                   const SelectInterruptPtr& selectInterrupt,
+                                   int kqueuefd);
 
 
         // Used as special codes for pipe communication

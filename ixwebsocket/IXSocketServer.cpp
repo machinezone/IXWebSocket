@@ -259,8 +259,11 @@ namespace ix
             int timeoutMs = 10;
             bool readyToRead = true;
             auto selectInterrupt = std::make_unique<SelectInterrupt>();
+
+            int kqueuefd = kqueue();
             PollResultType pollResult =
-                Socket::poll(readyToRead, timeoutMs, _serverFd, selectInterrupt);
+                Socket::poll(readyToRead, timeoutMs, _serverFd, selectInterrupt, kqueuefd);
+            ::close(kqueuefd);
 
             if (pollResult == PollResultType::Error)
             {
