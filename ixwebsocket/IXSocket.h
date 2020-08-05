@@ -13,6 +13,13 @@
 #include <string>
 #include <vector>
 
+// For kqueue
+#if defined(__APPLE__)
+#include <sys/types.h>
+#include <sys/event.h>
+#include <sys/time.h>
+#endif
+
 #ifdef _WIN32
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
@@ -114,5 +121,9 @@ namespace ix
         static constexpr size_t kChunkSize = 1 << 15;
 
         SelectInterruptPtr _selectInterrupt;
+
+#if defined(__APPLE__)
+        int _kqueuefd;
+#endif
     };
 } // namespace ix

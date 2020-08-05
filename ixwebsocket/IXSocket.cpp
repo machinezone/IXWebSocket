@@ -35,12 +35,18 @@ namespace ix
         : _sockfd(fd)
         , _selectInterrupt(createSelectInterrupt())
     {
-        ;
+#if defined(__APPLE__)
+        _kqueuefd = kqueue();
+#endif
     }
 
     Socket::~Socket()
     {
         close();
+
+#if defined(__APPLE__)
+        ::close(_kqueuefd);
+#endif
     }
 
     PollResultType Socket::poll(bool readyToRead,
@@ -48,6 +54,101 @@ namespace ix
                                 int sockfd,
                                 const SelectInterruptPtr& selectInterrupt)
     {
+#if defined(__APPLE__)
+        int kqueuefd = kqueue();
+
+        struct kevent ke;
+        EV_SET(&ke, sockfd, (readyToRead) ? EVFILT_READ : EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+        if (kevent(kqueuefd, &ke, 1, NULL, 0, NULL) == -1) return PollResultType::Error;
+
+        int retval, numevents = 0;
+
+        int nfds = 1;
+#if 0
+        if (selectInterrupt) 
+        {
+            nfds = 2;
+            int interruptFd = selectInterrupt->getFd();
+
+            struct kevent ke;
+            EV_SET(&ke, interruptFd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+            if (kevent(kqueuefd, &ke, 1, NULL, 0, NULL) == -1) return PollResultType::Error;
+        }
+#endif
+
+        struct kevent *events;
+        events = (struct kevent*) malloc(sizeof(struct kevent) * nfds);
+
+        if (timeoutMs != 0)
+        {
+            struct timespec timeout;
+            timeout.tv_sec = timeoutMs / 1000;
+            timeout.tv_nsec = (timeoutMs % 1000) * 1000 * 1000;
+            retval = kevent(kqueuefd, NULL, 0, events, nfds, &timeout);
+        }
+        else
+        {
+            retval = kevent(kqueuefd, NULL, 0, events, nfds, NULL);
+        }
+
+#if 0
+        if (retval > 0) {
+            int j;
+
+            numevents = retval;
+            for(j = 0; j < numevents; j++) {
+                int mask = 0;
+                struct kevent *e = events+j;
+
+                if (e->filter == EVFILT_READ) mask |= AE_READABLE;
+                if (e->filter == EVFILT_WRITE) mask |= AE_WRITABLE;
+                eventLoop->fired[j].fd = e->ident;
+                eventLoop->fired[j].mask = mask;
+            }
+        }
+#else
+        PollResultType pollResult = PollResultType::ReadyForRead;
+        if (retval < 0)
+        {
+            pollResult = PollResultType::Error;
+        }
+
+        if (retval > 0) {
+            struct kevent *e = events;
+            if (e->filter == EVFILT_READ)
+            {
+                pollResult = PollResultType::ReadyForRead;
+            }
+            else if (e->filter == EVFILT_WRITE) 
+            {
+                pollResult = PollResultType::ReadyForWrite;
+
+                int optval = -1;
+                socklen_t optlen = sizeof(optval);
+
+                // getsockopt() puts the errno value for connect into optval so 0
+                // means no-error.
+                if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, &optlen) == -1 || optval != 0)
+                {
+                    pollResult = PollResultType::Error;
+
+                    // set errno to optval so that external callers can have an
+                    // appropriate error description when calling strerror
+                    errno = optval;
+                }
+            }
+        }
+        else
+        {
+            pollResult = PollResultType::Timeout;
+        }
+#endif
+
+        free(events);
+        ::close(kqueuefd);
+
+        return pollResult;
+#else
         //
         // We used to use ::select to poll but on Android 9 we get large fds out of
         // ::connect which crash in FD_SET as they are larger than FD_SETSIZE. Switching
@@ -142,6 +243,7 @@ namespace ix
         }
 
         return pollResult;
+#endif
     }
 
     PollResultType Socket::isReadyToRead(int timeoutMs)
