@@ -82,12 +82,12 @@ namespace ix
         std::string multipartBoundary;
         int connectTimeout;
         int transferTimeout;
-        bool followRedirects;
+        bool followRedirects = false;
         int maxRedirects;
-        bool verbose;
-        bool compress;
-        Logger logger;
-        OnProgressCallback onProgressCallback;
+        bool verbose = false;
+        bool compress = false;
+        Logger logger = nullptr;
+        OnProgressCallback onProgressCallback = nullptr;
     };
     struct HttpStreamRequestArgs : public HttpRequestArgs
     {

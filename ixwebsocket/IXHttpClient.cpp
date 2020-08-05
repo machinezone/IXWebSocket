@@ -667,6 +667,8 @@ namespace ix
                                                             data.uploadSize,
                                                             data.downloadSize);
                 }
+                if (args->onProgressCallback) args->onProgressCallback(body.tellg(), bodySize);
+
                 body.read(reinterpret_cast<char*>(&buffer[0]), bufferSize);
             }
         }
