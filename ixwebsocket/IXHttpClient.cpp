@@ -667,11 +667,13 @@ namespace ix
                                                             data.uploadSize,
                                                             data.downloadSize);
                 }
-                if (args->onProgressCallback) args->onProgressCallback(body.tellg(), bodySize);
+                if (args->onProgressCallback) args->onProgressCallback(body.eof() ? bodySize : body.tellg(), bodySize);
 
                 body.read(reinterpret_cast<char*>(&buffer[0]), bufferSize);
             }
         }
+        // Don't report response progress
+        args->onProgressCallback = nullptr;
         return post_request(data, url, verb, args, redirects);
 	}
 
