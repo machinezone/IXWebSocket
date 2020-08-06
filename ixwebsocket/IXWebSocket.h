@@ -84,6 +84,7 @@ namespace ix
                    const std::string& reason = WebSocketCloseConstants::kNormalClosureMessage);
 
         void setOnMessageCallback(const OnMessageCallback& callback);
+        bool isOnMessageCallbackRegistered() const;
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
         static void resetTrafficTrackerCallback();
 

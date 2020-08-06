@@ -405,6 +405,11 @@ namespace ix
         _onMessageCallback = callback;
     }
 
+    bool WebSocket::isOnMessageCallbackRegistered() const
+    {
+        return _onMessageCallback != nullptr;
+    }
+
     void WebSocket::setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback)
     {
         _onTrafficTrackerCallback = callback;

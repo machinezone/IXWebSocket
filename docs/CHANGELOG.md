@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.1.6] - 2020-08-06
+
+(websocket server) Handle programmer error when the server callback is not registered properly (fix #227)
+
 ## [10.1.5] - 2020-08-02
 
 (ws) Add a new ws sub-command, push_server. This command runs a server which sends many messages in a loop to a websocket client. We can receive above 200,000 messages per second (cf #235).

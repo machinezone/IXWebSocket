@@ -86,6 +86,15 @@ namespace ix
         if (_onConnectionCallback)
         {
             _onConnectionCallback(webSocket, connectionState, std::move(connectionInfo));
+
+            if (!webSocket->isOnMessageCallbackRegistered())
+            {
+                logError("WebSocketServer Application developer error: Server callback improperly "
+                         "registerered.");
+                logError("Missing call to setOnMessageCallback inside setOnConnectionCallback.");
+                connectionState->setTerminated();
+                return;
+            }
         }
         else if (_onClientMessageCallback)
         {
