@@ -57,7 +57,7 @@ namespace ix
         return request;
     }
 
-	HttpRequestArgsPtr HttpClient::createStreamRequest(std::istream& stream, size_t bufferSize, const std::string& url,
+	HttpRequestArgsPtr HttpClient::createStreamRequest(std::istream* stream, size_t bufferSize, const std::string& url,
                                                        const std::string& verb)
     {
         auto request = std::make_shared<HttpStreamRequestArgs>(stream);
@@ -553,7 +553,7 @@ namespace ix
 
 	HttpResponsePtr HttpClient::request(const std::string& url,
                             const std::string& verb,
-                            std::istream& body,
+                            std::istream* body,
                             HttpRequestArgsPtr args,
 							size_t bufferSize,
 							int redirects)
@@ -566,9 +566,9 @@ namespace ix
 		std::streampos bodySize = 0;
         if (verb == kPost || verb == kPut)
         {
-            body.seekg(0, std::ios::end);
-            bodySize = body.tellg();
-            body.seekg(0, std::ios::beg);
+            body->seekg(0, std::ios::end);
+            bodySize = body->tellg();
+            body->seekg(0, std::ios::beg);
             data.ss << "Content-Length: " << bodySize << "\r\n";
 
             // Set default Content-Type if unspecified
@@ -651,8 +651,8 @@ namespace ix
         {
             std::string buffer;
             buffer.resize(bufferSize);
-            body.read(reinterpret_cast<char*>(&buffer[0]), bufferSize);
-            while (body.gcount())
+            body->read(reinterpret_cast<char*>(&buffer[0]), bufferSize);
+            while (body->gcount())
             {
                 auto size = buffer.size();
                 if (!_socket->writeBytes(buffer, data.isCancellationRequested))
@@ -667,9 +667,10 @@ namespace ix
                                                             data.uploadSize,
                                                             data.downloadSize);
                 }
-                if (args->onProgressCallback) args->onProgressCallback(body.eof() ? bodySize : body.tellg(), bodySize);
+                if (args->onProgressCallback)
+                    args->onProgressCallback(body->eof() ? bodySize : body->tellg(), bodySize);
 
-                body.read(reinterpret_cast<char*>(&buffer[0]), bufferSize);
+                body->read(reinterpret_cast<char*>(&buffer[0]), bufferSize);
             }
         }
         // Don't report response progress

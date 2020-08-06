@@ -55,7 +55,7 @@ namespace ix
 
 		HttpResponsePtr request(const std::string& url,
 								const std::string& verb,
-								std::istream& body,
+								std::istream* body,
 								HttpRequestArgsPtr args,
 								size_t bufferSize,
 								int redirects = 0);
@@ -63,7 +63,7 @@ namespace ix
         // Async API
         HttpRequestArgsPtr createRequest(const std::string& url = std::string(),
                                          const std::string& verb = HttpClient::kGet);
-        HttpRequestArgsPtr createStreamRequest(std::istream &stream, size_t bufferSize = 4096, const std::string& url = std::string(),
+        HttpRequestArgsPtr createStreamRequest(std::istream* stream, size_t bufferSize = 4096, const std::string& url = std::string(),
 											   const std::string& verb = HttpClient::kGet);
 
         bool performRequest(HttpRequestArgsPtr request,

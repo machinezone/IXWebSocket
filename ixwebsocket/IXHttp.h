@@ -91,11 +91,11 @@ namespace ix
     };
     struct HttpStreamRequestArgs : public HttpRequestArgs
     {
-        explicit HttpStreamRequestArgs(std::istream& stream)
+        explicit HttpStreamRequestArgs(std::istream* stream)
             : stream(stream)
         {
         }
-        std::reference_wrapper<std::istream> stream;
+        std::istream* stream;
         size_t bufferSize = 4096;
     };
 
