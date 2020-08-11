@@ -67,9 +67,28 @@ webSocket.stop()
 
 ### Sending messages
 
-`websocket.send("foo")` will send a message.
+`WebSocketSendInfo result = websocket.send("foo")` will send a message.
 
-If the connection was closed and sending failed, the return value will be set to false.
+If the connection was closed, sending will fail, and the success field of the result object  will be set to false. There could also be a compression error in which case the compressError field will be set to true. The payloadSize field and wireSize fields will tell you respectively how much bytes the message weight, and how many bytes were sent on the wire (potentially compressed + counting the message header (a few bytes).
+
+There is an optional progress callback that can be passed in as the second argument. If a message is large it will be fragmented into chunks which will be sent independantly. Everytime the we can write a fragment into the OS network cache, the callback will be invoked. If a user wants to cancel a slow send, false should be returned from within the callback.
+
+Here is an example code snippet copied from the ws send sub-command. Each fragment weights 32K, so the total integer is the wireSize divided by 32K. As an example if you are sending 32M of data, uncompressed, total will be 1000. current will be set to 0 for the first fragment, then 1, 2 etc...
+
+```
+auto result =
+    _webSocket.sendBinary(serializedMsg, [this, throttle](int current, int total) -> bool {
+        spdlog::info("ws_send: Step {} out of {}", current + 1, total);
+
+        if (throttle)
+        {
+            std::chrono::duration<double, std::milli> duration(10);
+            std::this_thread::sleep_for(duration);
+        }
+
+        return _connected;
+    });
+```
 
 ### ReadyState
 
