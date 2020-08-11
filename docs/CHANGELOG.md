@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.1.7] - 2020-08-11
+
+(ws) -q option imply info log level, not warning log level
+
 ## [10.1.6] - 2020-08-06
 
 (websocket server) Handle programmer error when the server callback is not registered properly (fix #227)

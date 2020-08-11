@@ -507,7 +507,7 @@ int main(int argc, char** argv)
 
     if (quiet)
     {
-        spdlog::set_level(spdlog::level::warn);
+        spdlog::set_level(spdlog::level::info);
     }
 
     // Cobra config
