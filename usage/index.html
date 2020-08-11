@@ -190,8 +190,24 @@ webSocket.stop()
 </code></pre>
 
 <h3 id="sending-messages">Sending messages</h3>
-<p><code>websocket.send("foo")</code> will send a message.</p>
-<p>If the connection was closed and sending failed, the return value will be set to false.</p>
+<p><code>WebSocketSendInfo result = websocket.send("foo")</code> will send a message.</p>
+<p>If the connection was closed, sending will fail, and the success field of the result object  will be set to false. There could also be a compression error in which case the compressError field will be set to true. The payloadSize field and wireSize fields will tell you respectively how much bytes the message weight, and how many bytes were sent on the wire (potentially compressed + counting the message header (a few bytes).</p>
+<p>There is an optional progress callback that can be passed in as the second argument. If a message is large it will be fragmented into chunks which will be sent independantly. Everytime the we can write a fragment into the OS network cache, the callback will be invoked. If a user wants to cancel a slow send, false should be returned from within the callback.</p>
+<p>Here is an example code snippet copied from the ws send sub-command. Each fragment weights 32K, so the total integer is the wireSize divided by 32K. As an example if you are sending 32M of data, uncompressed, total will be 1000. current will be set to 0 for the first fragment, then 1, 2 etc...</p>
+<pre><code>auto result =
+    _webSocket.sendBinary(serializedMsg, [this, throttle](int current, int total) -&gt; bool {
+        spdlog::info(&quot;ws_send: Step {} out of {}&quot;, current + 1, total);
+
+        if (throttle)
+        {
+            std::chrono::duration&lt;double, std::milli&gt; duration(10);
+            std::this_thread::sleep_for(duration);
+        }
+
+        return _connected;
+    });
+</code></pre>
+
 <h3 id="readystate">ReadyState</h3>
 <p><code>getReadyState()</code> returns the state of the connection. There are 4 possible states.</p>
 <ol>
