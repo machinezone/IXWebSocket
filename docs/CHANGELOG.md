@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.1.8] - 2020-08-12
+
+(ws) on macOS, with OpenSSL or MbedTLS, use /etc/ssl/cert.pem as the system certs
+
 ## [10.1.7] - 2020-08-11
 
 (ws) -q option imply info log level, not warning log level

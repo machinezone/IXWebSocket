@@ -488,6 +488,16 @@ int main(int argc, char** argv)
         tlsOptions.caFile = "NONE";
     }
 
+    if (tlsOptions.isUsingSystemDefaults())
+    {
+#ifdef __APPLE__
+#if defined(IXWEBSOCKET_USE_MBED_TLS) || defined(IXWEBSOCKET_USE_OPEN_SSL)
+        // We could try to load some system certs as well, but this is easy enough
+        tlsOptions.caFile = "/etc/ssl/cert.pem";
+#endif
+#endif
+    }
+
     if (!logfile.empty())
     {
         try
