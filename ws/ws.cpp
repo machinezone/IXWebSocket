@@ -11,6 +11,7 @@
 
 #include <cli11/CLI11.hpp>
 #include <fstream>
+#include <iostream>
 #include <ixbots/IXCobraMetricsToRedisBot.h>
 #include <ixbots/IXCobraToPythonBot.h>
 #include <ixbots/IXCobraToSentryBot.h>
@@ -725,7 +726,7 @@ int main(int argc, char** argv)
     }
     else if (version)
     {
-        spdlog::info("ws {}", ix::userAgent());
+        std::cout << "ws " << ix::userAgent() << std::endl;
     }
     else
     {
