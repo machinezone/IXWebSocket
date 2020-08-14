@@ -24,6 +24,7 @@
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
 #include <ixwebsocket/IXWebSocketProxyServer.h>
+#include <nlohmann/json.hpp>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -36,6 +37,32 @@
 #define getpid _getpid
 #endif
 
+namespace
+{
+    std::pair<bool, std::vector<uint8_t>> load(const std::string& path)
+    {
+        std::vector<uint8_t> memblock;
+
+        std::ifstream file(path);
+        if (!file.is_open()) return std::make_pair(false, memblock);
+
+        file.seekg(0, file.end);
+        std::streamoff size = file.tellg();
+        file.seekg(0, file.beg);
+
+        memblock.resize((size_t) size);
+        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
+
+        return std::make_pair(true, memblock);
+    }
+
+    std::pair<bool, std::string> readAsString(const std::string& path)
+    {
+        auto res = load(path);
+        auto vec = res.second;
+        return std::make_pair(res.first, std::string(vec.begin(), vec.end()));
+    }
+} // namespace
 
 int main(int argc, char** argv)
 {
@@ -117,6 +144,7 @@ int main(int argc, char** argv)
     std::string redisHosts("127.0.0.1");
     std::string redisPassword;
     std::string appsConfigPath("appsConfig.json");
+    std::string configPath;
     std::string subprotocol;
     std::string remoteHost;
     std::string minidump;
@@ -452,6 +480,8 @@ int main(int argc, char** argv)
     proxyServerApp->add_option("--host", hostname, "Hostname");
     proxyServerApp->add_option("--remote_host", remoteHost, "Remote Hostname");
     proxyServerApp->add_flag("-v", verbose, "Verbose");
+    proxyServerApp->add_option("--config_path", configPath, "Path to config data")
+        ->check(CLI::ExistingPath);
     addTLSOptions(proxyServerApp);
 
     CLI::App* minidumpApp = app.add_subcommand("upload_minidump", "Upload a minidump to sentry");
@@ -724,7 +754,30 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("proxy_server"))
     {
-        ret = ix::websocket_proxy_server_main(port, hostname, tlsOptions, remoteHost, verbose);
+        ix::RemoteUrlsMapping remoteUrlsMapping;
+
+        if (!configPath.empty())
+        {
+            auto res = readAsString(configPath);
+            bool found = res.first;
+            if (!found)
+            {
+                spdlog::error("Cannot read config file {} from disk", configPath);
+            }
+            else
+            {
+                auto jsonData = nlohmann::json::parse(res.second);
+                auto remoteUrls = jsonData["remote_urls"];
+
+                for (auto& el : remoteUrls.items())
+                {
+                    remoteUrlsMapping[el.key()] = el.value();
+                }
+            }
+        }
+
+        ret = ix::websocket_proxy_server_main(
+            port, hostname, tlsOptions, remoteHost, remoteUrlsMapping, verbose);
     }
     else if (app.got_subcommand("upload_minidump"))
     {

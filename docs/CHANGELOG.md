@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.1.9] - 2020-08-13
+
+(websocket proxy server) add ability to map different hosts to different websocket servers, using a json config file
+
 ## [10.1.8] - 2020-08-12
 
 (ws) on macOS, with OpenSSL or MbedTLS, use /etc/ssl/cert.pem as the system certs
