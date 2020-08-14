@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.2.0] - 2020-08-13
+
+(ws) upgrade to latest version of nlohmann json (3.9.1 from 3.2.0)
+
 ## [10.1.9] - 2020-08-13
 
 (websocket proxy server) add ability to map different hosts to different websocket servers, using a json config file

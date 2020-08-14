@@ -97,7 +97,7 @@ namespace ix
                                 url = it->second;
                             }
 
-                            // append the uri to form the full url 
+                            // append the uri to form the full url
                             // (say ws://localhost:1234/foo/?bar=baz)
                             url += msg->openInfo.uri;
 
