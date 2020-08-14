@@ -189,6 +189,10 @@ int main(int argc, char** argv)
     uint32_t maxWaitBetweenReconnectionRetries;
     int pingIntervalSecs = 30;
 
+    auto addGenericOptions = [&pidfile](CLI::App* app) {
+        app->add_option("--pidfile", pidfile, "Pid file");
+    };
+
     auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* app) {
         app->add_option(
                "--cert-file", tlsOptions.certFile, "Path to the (PEM format) TLS cert file")
@@ -239,8 +243,8 @@ int main(int argc, char** argv)
     sendApp->add_option("path", path, "Path to the file to send")
         ->required()
         ->check(CLI::ExistingPath);
-    sendApp->add_option("--pidfile", pidfile, "Pid file");
     sendApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
+    addGenericOptions(sendApp);
     addTLSOptions(sendApp);
 
     CLI::App* receiveApp = app.add_subcommand("receive", "Receive a file");
@@ -272,6 +276,7 @@ int main(int argc, char** argv)
                            "Max Wait Time between reconnection retries");
     connectApp->add_option("--ping_interval", pingIntervalSecs, "Interval between sending pings");
     connectApp->add_option("--subprotocol", subprotocol, "Subprotocol");
+    addGenericOptions(connectApp);
     addTLSOptions(connectApp);
 
     CLI::App* echoClientApp =
@@ -301,6 +306,7 @@ int main(int argc, char** argv)
     echoServerApp->add_flag("-6", ipv6, "IpV6");
     echoServerApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
     echoServerApp->add_flag("-p", disablePong, "Disable sending PONG in response to PING");
+    addGenericOptions(echoServerApp);
     addTLSOptions(echoServerApp);
 
     CLI::App* pushServerApp = app.add_subcommand("push_server", "Push server");
@@ -482,6 +488,7 @@ int main(int argc, char** argv)
     proxyServerApp->add_flag("-v", verbose, "Verbose");
     proxyServerApp->add_option("--config_path", configPath, "Path to config data")
         ->check(CLI::ExistingPath);
+    addGenericOptions(proxyServerApp);
     addTLSOptions(proxyServerApp);
 
     CLI::App* minidumpApp = app.add_subcommand("upload_minidump", "Upload a minidump to sentry");
