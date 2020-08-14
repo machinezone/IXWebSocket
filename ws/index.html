@@ -323,6 +323,20 @@ Listening on 127.0.0.1:8008
 </code></pre>
 
 <p>If you connect to ws://127.0.0.1:8008, the proxy will connect to ws://127.0.0.1:9000 and pass all traffic to this server.</p>
+<p>You can also use a more complex setup if you want to redirect to different websocket servers based on the hostname your client is trying to connect to. If you have multiple CNAME aliases that point to the same server.</p>
+<p>A JSON config file is used to express that mapping ; here connecting to echo.jeanserge.com will proxy the client to ws://localhost:8008 on the local machine (which actually runs ws echo_server), while connecting to bavarde.jeanserge.com will proxy the client to ws://localhost:5678 where a cobra python server is running. As a side note you will need a wildcard SSL certificate if you want to have SSL enabled on that machine.</p>
+<pre><code class="json">{
+        &quot;remote_urls&quot;: {
+                &quot;echo.jeanserge.com&quot;: &quot;ws://localhost:8008&quot;,
+                &quot;bavarde.jeanserge.com&quot;: &quot;ws://localhost:5678&quot;
+        }
+}
+</code></pre>
+
+<p>The --config_path option is required to instruct ws proxy_server to read that file.</p>
+<pre><code>ws proxy_server --config_path proxyConfig.json --port 8765
+</code></pre>
+
 <h2 id="file-transfer">File transfer</h2>
 <pre><code># Start transfer server, which is just a broadcast server at this point
 ws transfer # running on port 8080.
