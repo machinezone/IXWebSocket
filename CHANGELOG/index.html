@@ -98,6 +98,10 @@
             
             <li class="nav-item" data-level="1"><a href="#changelog" class="nav-link">Changelog</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#1023-2020-08-15" class="nav-link">[10.2.3] - 2020-08-15</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#1022-2020-08-15" class="nav-link">[10.2.2] - 2020-08-15</a>
               <ul class="nav flex-column">
               </ul>
@@ -955,6 +959,8 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="1023-2020-08-15">[10.2.3] - 2020-08-15</h2>
+<p>(socket server) instead of busy looping with a sleep, only wake up the GC thread when a new thread will have to be joined, (we know that thanks to the ConnectionState OnSetTerminated callback</p>
 <h2 id="1022-2020-08-15">[10.2.2] - 2020-08-15</h2>
 <p>(socket server) add a callback to the ConnectionState to be invoked when the connection is terminated. This will be used by the SocketServer in the future to know on time that the associated connection thread can be terminated.</p>
 <h2 id="1021-2020-08-15">[10.2.1] - 2020-08-15</h2>
