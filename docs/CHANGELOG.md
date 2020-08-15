@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.2.0] - 2020-08-14
+
+(ixwebsocket client) handle HTTP redirects
+
 ## [10.2.0] - 2020-08-13
 
 (ws) upgrade to latest version of nlohmann json (3.9.1 from 3.2.0)

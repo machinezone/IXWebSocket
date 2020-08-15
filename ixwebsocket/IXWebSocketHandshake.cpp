@@ -170,17 +170,8 @@ namespace ix
         {
             std::stringstream ss;
             ss << "Expecting HTTP/1.1, got " << httpVersion << ". "
-               << "Rejecting connection to " << host << ":" << port << ", status: " << status
+               << "Rejecting connection to " << url << ", status: " << status
                << ", HTTP Status line: " << line;
-            return WebSocketInitResult(false, status, ss.str());
-        }
-
-        // We want an 101 HTTP status
-        if (status != 101)
-        {
-            std::stringstream ss;
-            ss << "Expecting status 101 (Switching Protocol), got " << status
-               << " status connecting to " << host << ":" << port << ", HTTP Status line: " << line;
             return WebSocketInitResult(false, status, ss.str());
         }
 
@@ -191,6 +182,17 @@ namespace ix
         if (!headersValid)
         {
             return WebSocketInitResult(false, status, "Error parsing HTTP headers");
+        }
+
+        // We want an 101 HTTP status for websocket, otherwise it could be
+        // a redirection (like 301)
+        if (status != 101)
+        {
+            std::stringstream ss;
+            ss << "Expecting status 101 (Switching Protocol), got " << status
+               << " status connecting to " << url << ", HTTP Status line: " << line;
+
+            return WebSocketInitResult(false, status, ss.str(), headers, path);
         }
 
         // Check the presence of the connection field

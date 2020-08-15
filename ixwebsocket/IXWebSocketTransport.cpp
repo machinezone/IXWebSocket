@@ -107,36 +107,62 @@ namespace ix
 
         std::string protocol, host, path, query;
         int port;
+        std::string remoteUrl(url);
 
-        if (!UrlParser::parse(url, protocol, host, path, query, port))
+        WebSocketInitResult result;
+        const int maxRedirections = 10;
+
+        for (int i = 0; i < maxRedirections; ++i)
         {
-            std::stringstream ss;
-            ss << "Could not parse url: '" << url << "'";
-            return WebSocketInitResult(false, 0, ss.str());
+            if (!UrlParser::parse(remoteUrl, protocol, host, path, query, port))
+            {
+                std::stringstream ss;
+                ss << "Could not parse url: '" << url << "'";
+                return WebSocketInitResult(false, 0, ss.str());
+            }
+
+            std::string errorMsg;
+            bool tls = protocol == "wss";
+            _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions);
+            _perMessageDeflate = std::make_unique<WebSocketPerMessageDeflate>();
+
+            if (!_socket)
+            {
+                return WebSocketInitResult(false, 0, errorMsg);
+            }
+
+            WebSocketHandshake webSocketHandshake(_requestInitCancellation,
+                                                  _socket,
+                                                  _perMessageDeflate,
+                                                  _perMessageDeflateOptions,
+                                                  _enablePerMessageDeflate);
+
+            result = webSocketHandshake.clientHandshake(
+                remoteUrl, headers, host, path, port, timeoutSecs);
+
+            if (result.http_status >= 300 && result.http_status < 400)
+            {
+                auto it = result.headers.find("Location");
+                if (it == result.headers.end())
+                {
+                    std::stringstream ss;
+                    ss << "Missing Location Header for HTTP Redirect response. "
+                       << "Rejecting connection to " << url << ", status: " << result.http_status;
+                    result.errorStr = ss.str();
+                    break;
+                }
+
+                remoteUrl = it->second;
+                continue;
+            }
+
+            if (result.success)
+            {
+                setReadyState(ReadyState::OPEN);
+            }
+            return result;
         }
 
-        std::string errorMsg;
-        bool tls = protocol == "wss";
-        _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions);
-        _perMessageDeflate = std::make_unique<WebSocketPerMessageDeflate>();
-
-        if (!_socket)
-        {
-            return WebSocketInitResult(false, 0, errorMsg);
-        }
-
-        WebSocketHandshake webSocketHandshake(_requestInitCancellation,
-                                              _socket,
-                                              _perMessageDeflate,
-                                              _perMessageDeflateOptions,
-                                              _enablePerMessageDeflate);
-
-        auto result =
-            webSocketHandshake.clientHandshake(url, headers, host, path, port, timeoutSecs);
-        if (result.success)
-        {
-            setReadyState(ReadyState::OPEN);
-        }
         return result;
     }
 
