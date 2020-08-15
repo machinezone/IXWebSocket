@@ -7,12 +7,15 @@
 #pragma once
 
 #include <atomic>
+#include <functional>
 #include <memory>
 #include <stdint.h>
 #include <string>
 
 namespace ix
 {
+    using OnSetTerminatedCallback = std::function<void()>;
+
     class ConnectionState
     {
     public:
@@ -27,10 +30,16 @@ namespace ix
 
         static std::shared_ptr<ConnectionState> createConnectionState();
 
+    private:
+        void setOnSetTerminatedCallback(const OnSetTerminatedCallback& callback);
+
     protected:
         std::atomic<bool> _terminated;
         std::string _id;
+        OnSetTerminatedCallback _onSetTerminatedCallback;
 
         static std::atomic<uint64_t> _globalId;
+
+        friend class SocketServer;
     };
 } // namespace ix

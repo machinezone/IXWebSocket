@@ -31,6 +31,11 @@ namespace ix
         return std::make_shared<ConnectionState>();
     }
 
+    void ConnectionState::setOnSetTerminatedCallback(const OnSetTerminatedCallback& callback)
+    {
+        _onSetTerminatedCallback = callback;
+    }
+
     bool ConnectionState::isTerminated() const
     {
         return _terminated;
@@ -39,5 +44,10 @@ namespace ix
     void ConnectionState::setTerminated()
     {
         _terminated = true;
+
+        if (_onSetTerminatedCallback)
+        {
+            _onSetTerminatedCallback();
+        }
     }
 } // namespace ix

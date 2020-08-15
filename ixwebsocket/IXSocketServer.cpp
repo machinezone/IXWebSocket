@@ -8,11 +8,11 @@
 
 #include "IXNetSystem.h"
 #include "IXSelectInterrupt.h"
+#include "IXSelectInterruptFactory.h"
 #include "IXSetThreadName.h"
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
 #include "IXSocketFactory.h"
-#include "IXSelectInterruptFactory.h"
 #include <assert.h>
 #include <sstream>
 #include <stdio.h>
@@ -259,7 +259,7 @@ namespace ix
             if (_stop) return;
 
             // Use poll to check whether a new connection is in progress
-            int timeoutMs = 10;
+            int timeoutMs = 10000;
             bool readyToRead = true;
             PollResultType pollResult =
                 Socket::poll(readyToRead, timeoutMs, _serverFd, _acceptSelectInterrupt);
@@ -355,6 +355,7 @@ namespace ix
             {
                 connectionState = _connectionStateFactory();
             }
+            connectionState->setOnSetTerminatedCallback([this] { onSetTerminatedCallback(); });
 
             if (_stop) return;
 
@@ -422,5 +423,10 @@ namespace ix
     void SocketServer::setTLSOptions(const SocketTLSOptions& socketTLSOptions)
     {
         _socketTLSOptions = socketTLSOptions;
+    }
+
+    void SocketServer::onSetTerminatedCallback()
+    {
+        ;
     }
 } // namespace ix

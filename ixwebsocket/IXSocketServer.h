@@ -85,6 +85,7 @@ namespace ix
         // background thread to wait for incoming connections
         std::thread _thread;
         void run();
+        void onSetTerminatedCallback();
 
         // background thread to cleanup (join) terminated threads
         std::atomic<bool> _stopGc;
