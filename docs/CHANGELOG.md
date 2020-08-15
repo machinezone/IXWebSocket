@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.2.3] - 2020-08-15
+
+(socket server) instead of busy looping with a sleep, only wake up the GC thread when a new thread will have to be joined, (we know that thanks to the ConnectionState OnSetTerminated callback
+
 ## [10.2.2] - 2020-08-15
 
 (socket server) add a callback to the ConnectionState to be invoked when the connection is terminated. This will be used by the SocketServer in the future to know on time that the associated connection thread can be terminated.

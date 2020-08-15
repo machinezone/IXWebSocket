@@ -117,5 +117,10 @@ namespace ix
 
         // to wake up from select
         SelectInterruptPtr _acceptSelectInterrupt;
+
+        // used by the gc thread, to know that a thread needs to be garbage collected
+        // as a connection
+        std::condition_variable _conditionVariableGC;
+        std::mutex _conditionVariableMutexGC;
     };
 } // namespace ix

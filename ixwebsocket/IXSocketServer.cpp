@@ -204,6 +204,7 @@ namespace ix
         if (_gcThread.joinable())
         {
             _stopGc = true;
+            _conditionVariableGC.notify_one();
             _gcThread.join();
             _stopGc = false;
         }
@@ -259,7 +260,7 @@ namespace ix
             if (_stop) return;
 
             // Use poll to check whether a new connection is in progress
-            int timeoutMs = 10000;
+            int timeoutMs = 10;
             bool readyToRead = true;
             PollResultType pollResult =
                 Socket::poll(readyToRead, timeoutMs, _serverFd, _acceptSelectInterrupt);
@@ -415,8 +416,14 @@ namespace ix
                 break;
             }
 
-            // Sleep a little bit then keep cleaning up
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            // Unless we are stopping the server, wait for a connection
+            // to be terminated to run the threads GC, instead of busy waiting
+            // with a sleep
+            if (!_stopGc)
+            {
+                std::unique_lock<std::mutex> lock(_conditionVariableMutexGC);
+                _conditionVariableGC.wait(lock);
+            }
         }
     }
 
@@ -427,6 +434,8 @@ namespace ix
 
     void SocketServer::onSetTerminatedCallback()
     {
-        ;
+        // a connection got terminated, we can run the connection thread GC,
+        // so wake up the thread responsible for that
+        _conditionVariableGC.notify_one();
     }
 } // namespace ix
