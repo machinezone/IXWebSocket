@@ -98,6 +98,10 @@
             
             <li class="nav-item" data-level="1"><a href="#changelog" class="nav-link">Changelog</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#1021-2020-08-15" class="nav-link">[10.2.1] - 2020-08-15</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#1020-2020-08-14" class="nav-link">[10.2.0] - 2020-08-14</a>
               <ul class="nav flex-column">
               </ul>
@@ -947,6 +951,8 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="1021-2020-08-15">[10.2.1] - 2020-08-15</h2>
+<p>(socket server) do not create a select interrupt object everytime when polling for notifications while waiting for new connections, instead use a persistent one which is a member variable</p>
 <h2 id="1020-2020-08-14">[10.2.0] - 2020-08-14</h2>
 <p>(ixwebsocket client) handle HTTP redirects</p>
 <h2 id="1020-2020-08-13">[10.2.0] - 2020-08-13</h2>
