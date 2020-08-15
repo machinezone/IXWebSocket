@@ -8,6 +8,7 @@
 
 #include "IXConnectionInfo.h"
 #include "IXConnectionState.h"
+#include "IXSelectInterrupt.h"
 #include "IXSocketTLSOptions.h"
 #include <atomic>
 #include <condition_variable>
@@ -112,5 +113,8 @@ namespace ix
         size_t getConnectionsThreadsCount();
 
         SocketTLSOptions _socketTLSOptions;
+
+        // to wake up from select
+        SelectInterruptPtr _acceptSelectInterrupt;
     };
 } // namespace ix

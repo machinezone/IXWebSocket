@@ -34,12 +34,10 @@ typedef SSIZE_T ssize_t;
 
 #include "IXCancellationRequest.h"
 #include "IXProgressCallback.h"
+#include "IXSelectInterrupt.h"
 
 namespace ix
 {
-    class SelectInterrupt;
-    using SelectInterruptPtr = std::unique_ptr<SelectInterrupt>;
-
     enum class PollResultType
     {
         ReadyForRead = 0,
@@ -95,11 +93,6 @@ namespace ix
                                    int timeoutMs,
                                    int sockfd,
                                    const SelectInterruptPtr& selectInterrupt);
-
-
-        // Used as special codes for pipe communication
-        static const uint64_t kSendRequest;
-        static const uint64_t kCloseRequest;
 
     protected:
         std::atomic<int> _sockfd;

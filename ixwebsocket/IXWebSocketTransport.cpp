@@ -659,7 +659,7 @@ namespace ix
                     // send back the CLOSE frame
                     sendCloseFrame(code, reason);
 
-                    wakeUpFromPoll(Socket::kCloseRequest);
+                    wakeUpFromPoll(SelectInterrupt::kCloseRequest);
 
                     bool remote = true;
                     closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
@@ -879,7 +879,7 @@ namespace ix
         // Request to flush the send buffer on the background thread if it isn't empty
         if (!isSendBufferEmpty())
         {
-            wakeUpFromPoll(Socket::kSendRequest);
+            wakeUpFromPoll(SelectInterrupt::kSendRequest);
 
             // FIXME: we should have a timeout when sending large messages: see #131
             if (_blockingSend && !flushSendBuffer())
@@ -1148,7 +1148,7 @@ namespace ix
         sendCloseFrame(code, reason);
 
         // wake up the poll, but do not close yet
-        wakeUpFromPoll(Socket::kSendRequest);
+        wakeUpFromPoll(SelectInterrupt::kSendRequest);
     }
 
     size_t WebSocketTransport::bufferedAmount() const

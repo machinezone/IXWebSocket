@@ -12,6 +12,7 @@
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
 #include "IXSocketFactory.h"
+#include "IXSelectInterruptFactory.h"
 #include <assert.h>
 #include <sstream>
 #include <stdio.h>
@@ -36,6 +37,7 @@ namespace ix
         , _stop(false)
         , _stopGc(false)
         , _connectionStateFactory(&ConnectionState::createConnectionState)
+        , _acceptSelectInterrupt(createSelectInterrupt())
     {
     }
 
@@ -193,6 +195,7 @@ namespace ix
         if (_thread.joinable())
         {
             _stop = true;
+            _acceptSelectInterrupt->notify(SelectInterrupt::kCloseRequest); // Wake up select
             _thread.join();
             _stop = false;
         }
@@ -249,7 +252,7 @@ namespace ix
         // Set the socket to non blocking mode, so that accept calls are not blocking
         SocketConnect::configure(_serverFd);
 
-        setThreadName("SocketServer::listen");
+        setThreadName("SocketServer::accept");
 
         for (;;)
         {
@@ -258,9 +261,8 @@ namespace ix
             // Use poll to check whether a new connection is in progress
             int timeoutMs = 10;
             bool readyToRead = true;
-            auto selectInterrupt = std::make_unique<SelectInterrupt>();
             PollResultType pollResult =
-                Socket::poll(readyToRead, timeoutMs, _serverFd, selectInterrupt);
+                Socket::poll(readyToRead, timeoutMs, _serverFd, _acceptSelectInterrupt);
 
             if (pollResult == PollResultType::Error)
             {
@@ -308,6 +310,7 @@ namespace ix
                 continue;
             }
 
+            // Retrieve connection info, the ip address of the remote peer/client)
             std::unique_ptr<ConnectionInfo> connectionInfo;
 
             if (_addressFamily == AF_INET)

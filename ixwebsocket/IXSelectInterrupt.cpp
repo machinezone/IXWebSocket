@@ -8,6 +8,9 @@
 
 namespace ix
 {
+    const uint64_t SelectInterrupt::kSendRequest = 1;
+    const uint64_t SelectInterrupt::kCloseRequest = 2;
+
     SelectInterrupt::SelectInterrupt()
     {
         ;

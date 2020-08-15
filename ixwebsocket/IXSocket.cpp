@@ -27,8 +27,6 @@ namespace ix
 {
     const int Socket::kDefaultPollNoTimeout = -1; // No poll timeout by default
     const int Socket::kDefaultPollTimeout = kDefaultPollNoTimeout;
-    const uint64_t Socket::kSendRequest = 1;
-    const uint64_t Socket::kCloseRequest = 2;
     constexpr size_t Socket::kChunkSize;
 
     Socket::Socket(int fd)
@@ -96,11 +94,11 @@ namespace ix
         {
             uint64_t value = selectInterrupt->read();
 
-            if (value == kSendRequest)
+            if (value == SelectInterrupt::kSendRequest)
             {
                 pollResult = PollResultType::SendRequest;
             }
-            else if (value == kCloseRequest)
+            else if (value == SelectInterrupt::kCloseRequest)
             {
                 pollResult = PollResultType::CloseRequest;
             }
