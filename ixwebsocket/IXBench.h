@@ -3,6 +3,7 @@
  *  Author: Benjamin Sergeant
  *  Copyright (c) 2017-2020 Machine Zone, Inc. All rights reserved.
  */
+#pragma once
 
 #include <chrono>
 #include <stdint.h>
