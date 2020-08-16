@@ -60,6 +60,16 @@ namespace ix
 
     std::pair<bool, std::string> SocketServer::listen()
     {
+        std::string acceptSelectInterruptInitErrorMsg;
+        if (!_acceptSelectInterrupt->init(acceptSelectInterruptInitErrorMsg))
+        {
+            std::stringstream ss;
+            ss << "SocketServer::listen() error in SelectInterrupt::init: "
+               << acceptSelectInterruptInitErrorMsg;
+
+            return std::make_pair(false, ss.str());
+        }
+
         if (_addressFamily != AF_INET && _addressFamily != AF_INET6)
         {
             std::string errMsg("SocketServer::listen() AF_INET and AF_INET6 are currently "
@@ -195,7 +205,12 @@ namespace ix
         if (_thread.joinable())
         {
             _stop = true;
-            _acceptSelectInterrupt->notify(SelectInterrupt::kCloseRequest); // Wake up select
+            // Wake up select
+            if (!_acceptSelectInterrupt->notify(SelectInterrupt::kCloseRequest))
+            {
+                logError("SocketServer::stop: Cannot wake up from select");
+            }
+
             _thread.join();
             _stop = false;
         }
@@ -260,7 +275,12 @@ namespace ix
             if (_stop) return;
 
             // Use poll to check whether a new connection is in progress
-            int timeoutMs = 10;
+            int timeoutMs = -1;
+#ifdef _WIN32
+            // select cannot be interrupted on Windows so we need to pass a small timeout
+            timeoutMs = 10;
+#endif
+
             bool readyToRead = true;
             PollResultType pollResult =
                 Socket::poll(readyToRead, timeoutMs, _serverFd, _acceptSelectInterrupt);

@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.2.4] - 2020-08-15
+
+(socket server) in the loop accepting connections, call select without a timeout on unix to avoid busy looping, and only wake up when a new connection happens
+
 ## [10.2.3] - 2020-08-15
 
 (socket server) instead of busy looping with a sleep, only wake up the GC thread when a new thread will have to be joined, (we know that thanks to the ConnectionState OnSetTerminated callback
