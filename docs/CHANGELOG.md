@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.2.5] - 2020-08-15
+
+(ws) merge all ws_*.cpp files into a single one to speedup compilation
+
 ## [10.2.4] - 2020-08-15
 
 (socket server) in the loop accepting connections, call select without a timeout on unix to avoid busy looping, and only wake up when a new connection happens

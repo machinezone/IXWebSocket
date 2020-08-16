@@ -46,29 +46,6 @@ add_executable(ws
   ../third_party/msgpack11/msgpack11.cpp
   ../third_party/cpp-linenoise/linenoise.cpp
   ${JSONCPP_SOURCES}
-
-  ws_http_client.cpp
-  ws_ping_pong.cpp
-  ws_broadcast_server.cpp
-  ws_push_server.cpp
-  ws_echo_server.cpp
-  ws_echo_client.cpp
-  ws_chat.cpp
-  ws_connect.cpp
-  ws_transfer.cpp
-  ws_send.cpp
-  ws_receive.cpp
-  ws_redis_cli.cpp
-  ws_redis_publish.cpp
-  ws_redis_subscribe.cpp
-  ws_redis_server.cpp
-  ws_snake.cpp
-  ws_cobra_metrics_publish.cpp
-  ws_cobra_publish.cpp
-  ws_httpd.cpp
-  ws_autobahn.cpp
-  ws_sentry_minidump_upload.cpp
-  ws_dns_lookup.cpp
   ws.cpp)
 
 # library with the most dependencies come first
