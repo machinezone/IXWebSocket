@@ -98,6 +98,10 @@
             
             <li class="nav-item" data-level="1"><a href="#changelog" class="nav-link">Changelog</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#1025-2020-08-15" class="nav-link">[10.2.5] - 2020-08-15</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#1024-2020-08-15" class="nav-link">[10.2.4] - 2020-08-15</a>
               <ul class="nav flex-column">
               </ul>
@@ -963,6 +967,8 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="1025-2020-08-15">[10.2.5] - 2020-08-15</h2>
+<p>(ws) merge all ws_*.cpp files into a single one to speedup compilation</p>
 <h2 id="1024-2020-08-15">[10.2.4] - 2020-08-15</h2>
 <p>(socket server) in the loop accepting connections, call select without a timeout on unix to avoid busy looping, and only wake up when a new connection happens</p>
 <h2 id="1023-2020-08-15">[10.2.3] - 2020-08-15</h2>
