@@ -16,6 +16,7 @@
 #include <random>
 #include <sstream>
 #include <vector>
+#include <array>
 
 #ifdef IXWEBSOCKET_USE_ZLIB
 #include <zlib.h>
@@ -700,14 +701,12 @@ namespace ix
         inflateState.next_in = (unsigned char*) (const_cast<char*>(in.data()));
 
         const int kBufferSize = 1 << 14;
-
-        std::unique_ptr<unsigned char[]> compressBuffer =
-            std::make_unique<unsigned char[]>(kBufferSize);
+        std::array<unsigned char, kBufferSize> compressBuffer;
 
         do
         {
             inflateState.avail_out = (uInt) kBufferSize;
-            inflateState.next_out = compressBuffer.get();
+            inflateState.next_out = &compressBuffer.front();
 
             int ret = inflate(&inflateState, Z_SYNC_FLUSH);
 
@@ -717,7 +716,7 @@ namespace ix
                 return false;
             }
 
-            out.append(reinterpret_cast<char*>(compressBuffer.get()),
+            out.append(reinterpret_cast<char*>(&compressBuffer.front()),
                        kBufferSize - inflateState.avail_out);
         } while (inflateState.avail_out == 0);
 
