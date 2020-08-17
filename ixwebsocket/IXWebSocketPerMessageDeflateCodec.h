@@ -9,7 +9,7 @@
 #ifdef IXWEBSOCKET_USE_ZLIB
 #include "zlib.h"
 #endif
-#include <memory>
+#include <array>
 #include <string>
 #include <vector>
 
@@ -34,8 +34,7 @@ namespace ix
         bool endsWithEmptyUnCompressedBlock(const T& value);
 
         int _flush;
-        size_t _compressBufferSize;
-        std::unique_ptr<unsigned char[]> _compressBuffer;
+        std::array<unsigned char, 1 << 14> _compressBuffer;
 
 #ifdef IXWEBSOCKET_USE_ZLIB
         z_stream _deflateState;
@@ -53,8 +52,7 @@ namespace ix
 
     private:
         int _flush;
-        size_t _compressBufferSize;
-        std::unique_ptr<unsigned char[]> _compressBuffer;
+        std::array<unsigned char, 1 << 14> _compressBuffer;
 
 #ifdef IXWEBSOCKET_USE_ZLIB
         z_stream _inflateState;

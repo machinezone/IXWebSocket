@@ -16,8 +16,6 @@ namespace
     // is treated as a char* and the null termination (\x00) makes it
     // look like an empty string.
     const std::string kEmptyUncompressedBlock = std::string("\x00\x00\xff\xff", 4);
-
-    const int kBufferSize = 1 << 14;
 } // namespace
 
 namespace ix
@@ -26,7 +24,6 @@ namespace ix
     // Compressor
     //
     WebSocketPerMessageDeflateCompressor::WebSocketPerMessageDeflateCompressor()
-        : _compressBufferSize(kBufferSize)
     {
 #ifdef IXWEBSOCKET_USE_ZLIB
         memset(&_deflateState, 0, sizeof(_deflateState));
@@ -56,8 +53,6 @@ namespace ix
                                Z_DEFAULT_STRATEGY);
 
         if (ret != Z_OK) return false;
-
-        _compressBuffer = std::make_unique<unsigned char[]>(_compressBufferSize);
 
         _flush = (clientNoContextTakeOver) ? Z_FULL_FLUSH : Z_SYNC_FLUSH;
 
@@ -145,14 +140,14 @@ namespace ix
         do
         {
             // Output to local buffer
-            _deflateState.avail_out = (uInt) _compressBufferSize;
-            _deflateState.next_out = _compressBuffer.get();
+            _deflateState.avail_out = (uInt) _compressBuffer.size();
+            _deflateState.next_out = &_compressBuffer.front();
 
             deflate(&_deflateState, _flush);
 
-            output = _compressBufferSize - _deflateState.avail_out;
+            output = _compressBuffer.size() - _deflateState.avail_out;
 
-            out.insert(out.end(), _compressBuffer.get(), _compressBuffer.get() + output);
+            out.insert(out.end(), _compressBuffer.begin(), _compressBuffer.begin() + output);
         } while (_deflateState.avail_out == 0);
 
         if (endsWithEmptyUnCompressedBlock(out))
@@ -170,7 +165,6 @@ namespace ix
     // Decompressor
     //
     WebSocketPerMessageDeflateDecompressor::WebSocketPerMessageDeflateDecompressor()
-        : _compressBufferSize(kBufferSize)
     {
 #ifdef IXWEBSOCKET_USE_ZLIB
         memset(&_inflateState, 0, sizeof(_inflateState));
@@ -197,8 +191,6 @@ namespace ix
         int ret = inflateInit2(&_inflateState, -1 * inflateBits);
 
         if (ret != Z_OK) return false;
-
-        _compressBuffer = std::make_unique<unsigned char[]>(_compressBufferSize);
 
         _flush = (clientNoContextTakeOver) ? Z_FULL_FLUSH : Z_SYNC_FLUSH;
 
@@ -232,8 +224,8 @@ namespace ix
 
         do
         {
-            _inflateState.avail_out = (uInt) _compressBufferSize;
-            _inflateState.next_out = _compressBuffer.get();
+            _inflateState.avail_out = (uInt) _compressBuffer.size();
+            _inflateState.next_out = &_compressBuffer.front();
 
             int ret = inflate(&_inflateState, Z_SYNC_FLUSH);
 
@@ -242,8 +234,8 @@ namespace ix
                 return false; // zlib error
             }
 
-            out.append(reinterpret_cast<char*>(_compressBuffer.get()),
-                       _compressBufferSize - _inflateState.avail_out);
+            out.append(reinterpret_cast<char*>(&_compressBuffer.front()),
+                       _compressBuffer.size() - _inflateState.avail_out);
         } while (_inflateState.avail_out == 0);
 
         return true;
