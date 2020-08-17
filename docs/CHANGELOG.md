@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.2.6] - 2020-08-17
+
+(ixwebsocket) replace std::unique_ptr<unsigned char[]> with std::array for some fixed arrays (which are in C++11)
+
 ## [10.2.5] - 2020-08-15
 
 (ws) merge all ws_*.cpp files into a single one to speedup compilation

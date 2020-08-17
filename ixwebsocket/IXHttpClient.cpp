@@ -10,13 +10,13 @@
 #include "IXUrlParser.h"
 #include "IXUserAgent.h"
 #include "IXWebSocketHttpHeaders.h"
+#include <array>
 #include <assert.h>
 #include <cstring>
 #include <iomanip>
 #include <random>
 #include <sstream>
 #include <vector>
-#include <array>
 
 #ifdef IXWEBSOCKET_USE_ZLIB
 #include <zlib.h>
