@@ -1692,7 +1692,13 @@ namespace ix
                     bool binary = false;
                     while (true)
                     {
-                        webSocket.send(sendMsg, binary);
+                        auto sendInfo = webSocket.send(sendMsg, binary);
+                        if (!sendInfo.success)
+                        {
+                            spdlog::info("Error sending message, closing connection");
+                            webSocket.close();
+                            break;
+                        }
                     }
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)

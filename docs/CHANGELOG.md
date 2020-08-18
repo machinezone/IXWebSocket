@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.2.7] - 2020-08-18
+
+(ws push_server) on the server side, stop sending and close the connection when the remote end has disconnected
+
 ## [10.2.6] - 2020-08-17
 
 (ixwebsocket) replace std::unique_ptr<unsigned char[]> with std::array for some fixed arrays (which are in C++11)
