@@ -15,5 +15,5 @@ namespace ix
 {
     int64_t cobra_to_python_bot(const ix::CobraBotConfig& config,
                                 StatsdClient& statsdClient,
-                                const std::string& scriptPath);
+                                const std::string& moduleName);
 } // namespace ix

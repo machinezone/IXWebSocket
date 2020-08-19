@@ -2814,7 +2814,7 @@ int main(int argc, char** argv)
     std::string project;
     std::string key;
     std::string logfile;
-    std::string scriptPath;
+    std::string moduleName;
     std::string republishChannel;
     std::string sendMsg("hello world");
     ix::SocketTLSOptions tlsOptions;
@@ -3085,8 +3085,7 @@ int main(int argc, char** argv)
     cobra2python->add_option("--host", hostname, "Statsd host");
     cobra2python->add_option("--port", statsdPort, "Statsd port");
     cobra2python->add_option("--prefix", prefix, "Statsd prefix");
-    cobra2python->add_option("--script", scriptPath, "Python script path")
-        ->check(CLI::ExistingPath);
+    cobra2python->add_option("--module", moduleName, "Python module");
     cobra2python->add_option("--pidfile", pidfile, "Pid file");
     addTLSOptions(cobra2python);
     addCobraBotConfig(cobra2python);
@@ -3389,7 +3388,7 @@ int main(int argc, char** argv)
         }
         else
         {
-            ret = (int) ix::cobra_to_python_bot(cobraBotConfig, statsdClient, scriptPath);
+            ret = (int) ix::cobra_to_python_bot(cobraBotConfig, statsdClient, moduleName);
         }
     }
     else if (app.got_subcommand("cobra_to_sentry"))

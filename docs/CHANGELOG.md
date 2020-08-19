@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.2.9] - 2020-08-19
+
+(ws) cobra to python bot / take a module python name as argument foo.bar.baz instead of a path foo/bar/baz.py
+
 ## [10.2.8] - 2020-08-19
 
 (ws) on Linux with mbedtls, when the system ca certs are specified (the default) pick up sensible OS supplied paths (tested with CentOS and Alpine)

@@ -102,7 +102,7 @@ namespace ix
 {
     int64_t cobra_to_python_bot(const ix::CobraBotConfig& config,
                                 StatsdClient& statsdClient,
-                                const std::string& scriptPath)
+                                const std::string& moduleName)
     {
 #ifndef IXBOTS_USE_PYTHON
         CoreLogger::error("Command is disabled. "
@@ -113,10 +113,7 @@ namespace ix
         Py_InitializeEx(0); // 0 arg so that we do not install signal handlers 
                             // which prevent us from using Ctrl-C
 
-        size_t lastIndex = scriptPath.find_last_of("."); 
-        std::string modulePath = scriptPath.substr(0, lastIndex);
-
-        PyObject* pyModuleName = PyUnicode_DecodeFSDefault(modulePath.c_str());
+        PyObject* pyModuleName = PyUnicode_DecodeFSDefault(moduleName.c_str());
 
         if (pyModuleName == nullptr)
         {
