@@ -120,6 +120,12 @@ namespace
             return str.substr(0, n) + "...";
         }
     }
+
+    bool fileExists(const std::string& fileName)
+    {
+        std::ifstream infile(fileName);
+        return infile.good();
+    }
 } // namespace
 
 namespace ix
@@ -3183,10 +3189,26 @@ int main(int argc, char** argv)
 
     if (tlsOptions.isUsingSystemDefaults())
     {
-#ifdef __APPLE__
+#if defined(__APPLE__)
 #if defined(IXWEBSOCKET_USE_MBED_TLS) || defined(IXWEBSOCKET_USE_OPEN_SSL)
         // We could try to load some system certs as well, but this is easy enough
         tlsOptions.caFile = "/etc/ssl/cert.pem";
+#endif
+#elif defined(__linux__)
+#if defined(IXWEBSOCKET_USE_MBED_TLS)
+        std::vector<std::string> caFiles = {
+            "/etc/ssl/certs/ca-bundle.crt",       // CentOS
+            "/etc/ssl/certs/ca-certificates.crt", // Alpine
+        };
+
+        for (auto&& caFile : caFiles)
+        {
+            if (fileExists(caFile))
+            {
+                tlsOptions.caFile = caFile;
+                break;
+            }
+        }
 #endif
 #endif
     }

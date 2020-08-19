@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.2.8] - 2020-08-19
+
+(ws) on Linux with mbedtls, when the system ca certs are specified (the default) pick up sensible OS supplied paths (tested with CentOS and Alpine)
+
 ## [10.2.7] - 2020-08-18
 
 (ws push_server) on the server side, stop sending and close the connection when the remote end has disconnected
