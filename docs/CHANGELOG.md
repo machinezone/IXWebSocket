@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.3.0] - 2020-08-26
+
+(ws) set the main thread name, to help with debugging in XCode, gdb, lldb etc...
+
 ## [10.2.9] - 2020-08-19
 
 (ws) cobra to python bot / take a module python name as argument foo.bar.baz instead of a path foo/bar/baz.py

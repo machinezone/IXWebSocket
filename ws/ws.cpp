@@ -2728,6 +2728,7 @@ namespace ix
 
 int main(int argc, char** argv)
 {
+    setThreadName("ws main thread");
     ix::initNetSystem();
 
     ix::CoreLogger::LogFunc logFunc = [](const char* msg, ix::LogLevel level) {
