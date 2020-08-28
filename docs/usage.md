@@ -280,10 +280,9 @@ ix::WebSocketServer server(port);
 
 server.setOnConnectionCallback(
     [&server](std::weak_ptr<WebSocket> webSocket,
-              std::shared_ptr<ConnectionState> connectionState,
-              std::unique_ptr<ConnectionInfo> connectionInfo)
+              std::shared_ptr<ConnectionState> connectionState)
     {
-        std::cout << "Remote ip: " << connectionInfo->remoteIp << std::endl;
+        std::cout << "Remote ip: " << connectionState->remoteIp << std::endl;
 
         auto ws = webSocket.lock();
         if (ws)
@@ -359,13 +358,12 @@ The webSocket reference is guaranteed to be always valid ; by design the callbac
 ix::WebSocketServer server(port);
 
 server.setOnClientMessageCallback(std::shared_ptr<ConnectionState> connectionState,
-                                  ConnectionInfo& connectionInfo,
                                   WebSocket& webSocket,
                                   const WebSocketMessagePtr& msg)
 {
-    // The ConnectionInfo object contains information about the connection,
+    // The ConnectionState object contains information about the connection,
     // at this point only the client ip address and the port.
-    std::cout << "Remote ip: " << connectionInfo.remoteIp << std::endl;
+    std::cout << "Remote ip: " << connectionState->getRemoteIp();
 
     if (msg->type == ix::WebSocketMessageType::Open)
     {
@@ -519,12 +517,11 @@ If you want to handle how requests are processed, implement the setOnConnectionC
 ```cpp
 setOnConnectionCallback(
     [this](HttpRequestPtr request,
-           std::shared_ptr<ConnectionState> /*connectionState*/,
-           std::unique_ptr<ConnectionInfo> connectionInfo) -> HttpResponsePtr
+           std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr
     {
         // Build a string for the response
         std::stringstream ss;
-        ss << connectionInfo->remoteIp
+        ss << connectionState->getRemoteIp();
            << " "
            << request->method
            << " "

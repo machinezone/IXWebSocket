@@ -412,10 +412,9 @@ namespace ix
 
         server.setOnClientMessageCallback(
             [&server](std::shared_ptr<ConnectionState> connectionState,
-                      ConnectionInfo& connectionInfo,
                       WebSocket& webSocket,
                       const WebSocketMessagePtr& msg) {
-                auto remoteIp = connectionInfo.remoteIp;
+                auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     spdlog::info("New connection");
@@ -1240,10 +1239,9 @@ namespace ix
 
         server.setOnClientMessageCallback(
             [greetings](std::shared_ptr<ConnectionState> connectionState,
-                        ConnectionInfo& connectionInfo,
                         WebSocket& webSocket,
                         const WebSocketMessagePtr& msg) {
-                auto remoteIp = connectionInfo.remoteIp;
+                auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     spdlog::info("New connection");
@@ -1674,10 +1672,9 @@ namespace ix
 
         server.setOnClientMessageCallback(
             [greetings, &sendMsg](std::shared_ptr<ConnectionState> connectionState,
-                                  ConnectionInfo& connectionInfo,
                                   WebSocket& webSocket,
                                   const WebSocketMessagePtr& msg) {
-                auto remoteIp = connectionInfo.remoteIp;
+                auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     spdlog::info("New connection");
@@ -2613,10 +2610,9 @@ namespace ix
 
         server.setOnClientMessageCallback(
             [&server](std::shared_ptr<ConnectionState> connectionState,
-                      ConnectionInfo& connectionInfo,
                       WebSocket& webSocket,
                       const WebSocketMessagePtr& msg) {
-                auto remoteIp = connectionInfo.remoteIp;
+                auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     spdlog::info("ws_transfer: New connection");

@@ -120,8 +120,7 @@ namespace ix
     }
 
     void HttpServer::handleConnection(std::unique_ptr<Socket> socket,
-                                      std::shared_ptr<ConnectionState> connectionState,
-                                      std::unique_ptr<ConnectionInfo> connectionInfo)
+                                      std::shared_ptr<ConnectionState> connectionState)
     {
         _connectedClientsCount++;
 
@@ -130,8 +129,7 @@ namespace ix
 
         if (std::get<0>(ret))
         {
-            auto response =
-                _onConnectionCallback(std::get<2>(ret), connectionState, std::move(connectionInfo));
+            auto response = _onConnectionCallback(std::get<2>(ret), connectionState);
             if (!Http::sendResponse(response, socket))
             {
                 logError("Cannot send response");
@@ -151,8 +149,7 @@ namespace ix
     {
         setOnConnectionCallback(
             [this](HttpRequestPtr request,
-                   std::shared_ptr<ConnectionState> /*connectionState*/,
-                   std::unique_ptr<ConnectionInfo> connectionInfo) -> HttpResponsePtr {
+                   std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr {
                 std::string uri(request->uri);
                 if (uri.empty() || uri == "/")
                 {
@@ -184,8 +181,8 @@ namespace ix
 
                 // Log request
                 std::stringstream ss;
-                ss << connectionInfo->remoteIp << ":" << connectionInfo->remotePort << " "
-                   << request->method << " " << request->headers["User-Agent"] << " "
+                ss << connectionState->getRemoteIp() << ":" << connectionState->getRemotePort()
+                   << " " << request->method << " " << request->headers["User-Agent"] << " "
                    << request->uri << " " << content.size();
                 logInfo(ss.str());
 
@@ -209,16 +206,16 @@ namespace ix
         // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
         //
         setOnConnectionCallback(
-            [this, redirectUrl](HttpRequestPtr request,
-                                std::shared_ptr<ConnectionState> /*connectionState*/,
-                                std::unique_ptr<ConnectionInfo> connectionInfo) -> HttpResponsePtr {
+            [this,
+             redirectUrl](HttpRequestPtr request,
+                          std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr {
                 WebSocketHttpHeaders headers;
                 headers["Server"] = userAgent();
 
                 // Log request
                 std::stringstream ss;
-                ss << connectionInfo->remoteIp << ":" << connectionInfo->remotePort << " "
-                   << request->method << " " << request->headers["User-Agent"] << " "
+                ss << connectionState->getRemoteIp() << ":" << connectionState->getRemotePort()
+                   << " " << request->method << " " << request->headers["User-Agent"] << " "
                    << request->uri;
                 logInfo(ss.str());
 

@@ -77,15 +77,14 @@ namespace ix
     }
 
     void WebSocketServer::handleConnection(std::unique_ptr<Socket> socket,
-                                           std::shared_ptr<ConnectionState> connectionState,
-                                           std::unique_ptr<ConnectionInfo> connectionInfo)
+                                           std::shared_ptr<ConnectionState> connectionState)
     {
         setThreadName("WebSocketServer::" + connectionState->getId());
 
         auto webSocket = std::make_shared<WebSocket>();
         if (_onConnectionCallback)
         {
-            _onConnectionCallback(webSocket, connectionState, std::move(connectionInfo));
+            _onConnectionCallback(webSocket, connectionState);
 
             if (!webSocket->isOnMessageCallbackRegistered())
             {
@@ -99,9 +98,8 @@ namespace ix
         else if (_onClientMessageCallback)
         {
             webSocket->setOnMessageCallback(
-                [this, &ws = *webSocket.get(), connectionState, &ci = *connectionInfo.get()](
-                    const WebSocketMessagePtr& msg) {
-                    _onClientMessageCallback(connectionState, ci, ws, msg);
+                [this, &ws = *webSocket.get(), connectionState](const WebSocketMessagePtr& msg) {
+                    _onClientMessageCallback(connectionState, ws, msg);
                 });
         }
         else

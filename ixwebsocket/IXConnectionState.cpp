@@ -50,4 +50,24 @@ namespace ix
             _onSetTerminatedCallback();
         }
     }
+
+    const std::string& ConnectionState::getRemoteIp()
+    {
+        return _remoteIp;
+    }
+
+    int ConnectionState::getRemotePort()
+    {
+        return _remotePort;
+    }
+
+    void ConnectionState::setRemoteIp(const std::string& remoteIp)
+    {
+        _remoteIp = remoteIp;
+    }
+
+    void ConnectionState::setRemotePort(int remotePort)
+    {
+        _remotePort = remotePort;
+    }
 } // namespace ix

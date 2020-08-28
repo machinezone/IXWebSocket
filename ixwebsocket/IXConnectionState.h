@@ -28,10 +28,16 @@ namespace ix
         void setTerminated();
         bool isTerminated() const;
 
+        const std::string& getRemoteIp();
+        int getRemotePort();
+
         static std::shared_ptr<ConnectionState> createConnectionState();
 
     private:
         void setOnSetTerminatedCallback(const OnSetTerminatedCallback& callback);
+
+        void setRemoteIp(const std::string& remoteIp);
+        void setRemotePort(int remotePort);
 
     protected:
         std::atomic<bool> _terminated;
@@ -39,6 +45,9 @@ namespace ix
         OnSetTerminatedCallback _onSetTerminatedCallback;
 
         static std::atomic<uint64_t> _globalId;
+
+        std::string _remoteIp;
+        int _remotePort;
 
         friend class SocketServer;
     };

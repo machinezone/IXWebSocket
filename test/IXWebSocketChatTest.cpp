@@ -195,10 +195,9 @@ namespace
     {
         server.setOnClientMessageCallback(
             [&server](std::shared_ptr<ConnectionState> connectionState,
-                      ConnectionInfo& connectionInfo,
                       WebSocket& webSocket,
                       const ix::WebSocketMessagePtr& msg) {
-                auto remoteIp = connectionInfo.remoteIp;
+                auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     TLogger() << "New connection";

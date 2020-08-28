@@ -61,11 +61,10 @@ namespace snake
 
         _server.setOnClientMessageCallback(
             [this](std::shared_ptr<ix::ConnectionState> connectionState,
-                   ix::ConnectionInfo& connectionInfo,
                    ix::WebSocket& webSocket,
                    const ix::WebSocketMessagePtr& msg) {
                 auto state = std::dynamic_pointer_cast<SnakeConnectionState>(connectionState);
-                auto remoteIp = connectionInfo.remoteIp;
+                auto remoteIp = connectionState->getRemoteIp();
             
                 std::stringstream ss;
                 ss << "[" << state->getId() << "] ";

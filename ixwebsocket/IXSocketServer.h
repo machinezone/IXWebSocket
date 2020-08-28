@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "IXConnectionInfo.h"
 #include "IXConnectionState.h"
 #include "IXSelectInterrupt.h"
 #include "IXSocketTLSOptions.h"
@@ -105,8 +104,7 @@ namespace ix
         ConnectionStateFactory _connectionStateFactory;
 
         virtual void handleConnection(std::unique_ptr<Socket>,
-                                      std::shared_ptr<ConnectionState> connectionState,
-                                      std::unique_ptr<ConnectionInfo> connectionInfo) = 0;
+                                      std::shared_ptr<ConnectionState> connectionState) = 0;
         virtual size_t getConnectedClientsCount() = 0;
 
         // Returns true if all connection threads are joined

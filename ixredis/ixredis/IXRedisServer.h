@@ -44,8 +44,7 @@ namespace ix
 
         // Methods
         virtual void handleConnection(std::unique_ptr<Socket>,
-                                      std::shared_ptr<ConnectionState> connectionState,
-                                      std::unique_ptr<ConnectionInfo> connectionInfo) final;
+                                      std::shared_ptr<ConnectionState> connectionState) final;
         virtual size_t getConnectedClientsCount() final;
 
         bool startsWith(const std::string& str, const std::string& start);

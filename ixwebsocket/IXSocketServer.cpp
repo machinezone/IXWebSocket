@@ -332,12 +332,13 @@ namespace ix
             }
 
             // Retrieve connection info, the ip address of the remote peer/client)
-            std::unique_ptr<ConnectionInfo> connectionInfo;
+            std::string remoteIp;
+            int remotePort;
 
             if (_addressFamily == AF_INET)
             {
-                char remoteIp[INET_ADDRSTRLEN];
-                if (inet_ntop(AF_INET, &client.sin_addr, remoteIp, INET_ADDRSTRLEN) == nullptr)
+                char remoteIp4[INET_ADDRSTRLEN];
+                if (inet_ntop(AF_INET, &client.sin_addr, remoteIp4, INET_ADDRSTRLEN) == nullptr)
                 {
                     int err = Socket::getErrno();
                     std::stringstream ss;
@@ -350,12 +351,13 @@ namespace ix
                     continue;
                 }
 
-                connectionInfo = std::make_unique<ConnectionInfo>(remoteIp, client.sin_port);
+                remotePort = client.sin_port;
+                remoteIp = remoteIp4;
             }
             else // AF_INET6
             {
-                char remoteIp[INET6_ADDRSTRLEN];
-                if (inet_ntop(AF_INET6, &client.sin_addr, remoteIp, INET6_ADDRSTRLEN) == nullptr)
+                char remoteIp6[INET6_ADDRSTRLEN];
+                if (inet_ntop(AF_INET6, &client.sin_addr, remoteIp6, INET6_ADDRSTRLEN) == nullptr)
                 {
                     int err = Socket::getErrno();
                     std::stringstream ss;
@@ -368,7 +370,8 @@ namespace ix
                     continue;
                 }
 
-                connectionInfo = std::make_unique<ConnectionInfo>(remoteIp, client.sin_port);
+                remotePort = client.sin_port;
+                remoteIp = remoteIp6;
             }
 
             std::shared_ptr<ConnectionState> connectionState;
@@ -377,6 +380,8 @@ namespace ix
                 connectionState = _connectionStateFactory();
             }
             connectionState->setOnSetTerminatedCallback([this] { onSetTerminatedCallback(); });
+            connectionState->setRemoteIp(remoteIp);
+            connectionState->setRemotePort(remotePort);
 
             if (_stop) return;
 
@@ -404,13 +409,10 @@ namespace ix
 
             // Launch the handleConnection work asynchronously in its own thread.
             std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
-            _connectionsThreads.push_back(
-                std::make_pair(connectionState,
-                               std::thread(&SocketServer::handleConnection,
-                                           this,
-                                           std::move(socket),
-                                           connectionState,
-                                           std::move(connectionInfo))));
+            _connectionsThreads.push_back(std::make_pair(
+                connectionState,
+                std::thread(
+                    &SocketServer::handleConnection, this, std::move(socket), connectionState)));
         }
     }
 

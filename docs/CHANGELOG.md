@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.3.1] - 2020-08-28
+
+(socket servers) merge the ConnectionInfo class with the ConnectionState one, which simplify all the server apis
+
 ## [10.3.0] - 2020-08-26
 
 (ws) set the main thread name, to help with debugging in XCode, gdb, lldb etc...
