@@ -361,10 +361,9 @@ ix::WebSocketServer server(port);
 
 server.setOnConnectionCallback(
     [&amp;server](std::weak_ptr&lt;WebSocket&gt; webSocket,
-              std::shared_ptr&lt;ConnectionState&gt; connectionState,
-              std::unique_ptr&lt;ConnectionInfo&gt; connectionInfo)
+              std::shared_ptr&lt;ConnectionState&gt; connectionState)
     {
-        std::cout &lt;&lt; &quot;Remote ip: &quot; &lt;&lt; connectionInfo-&gt;remoteIp &lt;&lt; std::endl;
+        std::cout &lt;&lt; &quot;Remote ip: &quot; &lt;&lt; connectionState-&gt;remoteIp &lt;&lt; std::endl;
 
         auto ws = webSocket.lock();
         if (ws)
@@ -436,13 +435,12 @@ server.wait();
 ix::WebSocketServer server(port);
 
 server.setOnClientMessageCallback(std::shared_ptr&lt;ConnectionState&gt; connectionState,
-                                  ConnectionInfo&amp; connectionInfo,
                                   WebSocket&amp; webSocket,
                                   const WebSocketMessagePtr&amp; msg)
 {
-    // The ConnectionInfo object contains information about the connection,
+    // The ConnectionState object contains information about the connection,
     // at this point only the client ip address and the port.
-    std::cout &lt;&lt; &quot;Remote ip: &quot; &lt;&lt; connectionInfo.remoteIp &lt;&lt; std::endl;
+    std::cout &lt;&lt; &quot;Remote ip: &quot; &lt;&lt; connectionState-&gt;getRemoteIp();
 
     if (msg-&gt;type == ix::WebSocketMessageType::Open)
     {
@@ -589,12 +587,11 @@ server.wait();
 <p>If you want to handle how requests are processed, implement the setOnConnectionCallback callback, which takes an HttpRequestPtr as input, and returns an HttpResponsePtr. You can look at HttpServer::setDefaultConnectionCallback for a slightly more advanced callback example.</p>
 <pre><code class="cpp">setOnConnectionCallback(
     [this](HttpRequestPtr request,
-           std::shared_ptr&lt;ConnectionState&gt; /*connectionState*/,
-           std::unique_ptr&lt;ConnectionInfo&gt; connectionInfo) -&gt; HttpResponsePtr
+           std::shared_ptr&lt;ConnectionState&gt; connectionState) -&gt; HttpResponsePtr
     {
         // Build a string for the response
         std::stringstream ss;
-        ss &lt;&lt; connectionInfo-&gt;remoteIp
+        ss &lt;&lt; connectionState-&gt;getRemoteIp();
            &lt;&lt; &quot; &quot;
            &lt;&lt; request-&gt;method
            &lt;&lt; &quot; &quot;
