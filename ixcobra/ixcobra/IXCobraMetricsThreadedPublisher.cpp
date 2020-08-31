@@ -24,6 +24,7 @@ namespace ix
     {
         _cobra_connection.setEventCallback([](const CobraEventPtr& event) {
             std::stringstream ss;
+            ix::LogLevel logLevel = LogLevel::Info;
 
             if (event->type == ix::CobraEventType::Open)
             {
@@ -41,6 +42,7 @@ namespace ix
             else if (event->type == ix::CobraEventType::Error)
             {
                 ss << "Error: " << event->errMsg;
+                logLevel = ix::LogLevel::Error;
             }
             else if (event->type == ix::CobraEventType::Closed)
             {
@@ -57,6 +59,7 @@ namespace ix
             else if (event->type == ix::CobraEventType::Published)
             {
                 ss << "Published message " << event->msgId << " acked";
+                logLevel = ix::LogLevel::Debug;
             }
             else if (event->type == ix::CobraEventType::Pong)
             {
@@ -65,17 +68,20 @@ namespace ix
             else if (event->type == ix::CobraEventType::HandshakeError)
             {
                 ss << "Handshake error: " << event->errMsg;
+                logLevel = ix::LogLevel::Error;
             }
             else if (event->type == ix::CobraEventType::AuthenticationError)
             {
                 ss << "Authentication error: " << event->errMsg;
+                logLevel = ix::LogLevel::Error;
             }
             else if (event->type == ix::CobraEventType::SubscriptionError)
             {
                 ss << "Subscription error: " << event->errMsg;
+                logLevel = ix::LogLevel::Error;
             }
 
-            CoreLogger::log(ss.str().c_str());
+            CoreLogger::log(ss.str().c_str(), logLevel);
         });
     }
 

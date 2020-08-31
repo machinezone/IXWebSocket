@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <ixbots/IXCobraMetricsToRedisBot.h>
+#include <ixbots/IXCobraToCobraBot.h>
 #include <ixbots/IXCobraToPythonBot.h>
 #include <ixbots/IXCobraToSentryBot.h>
 #include <ixbots/IXCobraToStatsdBot.h>
@@ -2813,6 +2814,8 @@ int main(int argc, char** argv)
     std::string logfile;
     std::string moduleName;
     std::string republishChannel;
+    std::string publisherRolename;
+    std::string publisherRolesecret;
     std::string sendMsg("hello world");
     ix::SocketTLSOptions tlsOptions;
     ix::CobraConfig cobraConfig;
@@ -3076,6 +3079,17 @@ int main(int argc, char** argv)
     cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
     addTLSOptions(cobra2statsd);
     addCobraBotConfig(cobra2statsd);
+
+    CLI::App* cobra2cobra = app.add_subcommand("cobra_to_cobra", "Cobra to Cobra");
+    cobra2cobra->fallthrough();
+    cobra2cobra->add_option("--republish", republishChannel, "Republish channel");
+    cobra2cobra->add_option("--publisher_rolename", publisherRolename, "Publisher Role name")
+        ->required();
+    cobra2cobra->add_option("--publisher_rolesecret", publisherRolesecret, "Publisher Role secret")
+        ->required();
+    cobra2cobra->add_flag("-q", quiet, "Quiet");
+    addTLSOptions(cobra2cobra);
+    addCobraBotConfig(cobra2cobra);
 
     CLI::App* cobra2python = app.add_subcommand("cobra_to_python", "Cobra to python");
     cobra2python->fallthrough();
@@ -3407,6 +3421,11 @@ int main(int argc, char** argv)
         {
             ret = (int) ix::cobra_metrics_to_redis_bot(cobraBotConfig, redisClient, verbose);
         }
+    }
+    else if (app.got_subcommand("cobra_to_cobra"))
+    {
+        ret = (int) ix::cobra_to_cobra_bot(
+            cobraBotConfig, republishChannel, publisherRolename, publisherRolesecret);
     }
     else if (app.got_subcommand("snake"))
     {

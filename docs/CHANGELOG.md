@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.3.2] - 2020-08-31
+
+(ws + cobra bots) add a cobra_to_cobra ws subcommand to subscribe to a channel and republish received events to a different channel
+
 ## [10.3.1] - 2020-08-28
 
 (socket servers) merge the ConnectionInfo class with the ConnectionState one, which simplify all the server apis
