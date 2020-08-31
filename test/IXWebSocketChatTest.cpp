@@ -285,27 +285,27 @@ TEST_CASE("Websocket_chat", "[websocket_chat]")
         int attempts = 0;
         while (chatA.getReceivedMessagesCount() != 3 || chatB.getReceivedMessagesCount() != 3)
         {
-            REQUIRE(attempts++ < 10);
+            CHECK(attempts++ < 10);
             ix::msleep(1000);
         }
 
         chatA.stop();
         chatB.stop();
 
-        REQUIRE(chatA.getReceivedMessagesCount() == 3);
-        REQUIRE(chatB.getReceivedMessagesCount() == 3);
+        CHECK(chatA.getReceivedMessagesCount() == 3);
+        CHECK(chatB.getReceivedMessagesCount() == 3);
 
-        REQUIRE(chatB.getReceivedMessages()[0] == "from A1");
-        REQUIRE(chatB.getReceivedMessages()[1] == "from A2");
-        REQUIRE(chatB.getReceivedMessages()[2] == "from A3");
+        CHECK(chatB.getReceivedMessages()[0] == "from A1");
+        CHECK(chatB.getReceivedMessages()[1] == "from A2");
+        CHECK(chatB.getReceivedMessages()[2] == "from A3");
 
-        REQUIRE(chatA.getReceivedMessages()[0] == "from B1");
-        REQUIRE(chatA.getReceivedMessages()[1] == "from B2");
-        REQUIRE(chatA.getReceivedMessages()[2].size() == bigMessage.size());
+        CHECK(chatA.getReceivedMessages()[0] == "from B1");
+        CHECK(chatA.getReceivedMessages()[1] == "from B2");
+        CHECK(chatA.getReceivedMessages()[2].size() == bigMessage.size());
 
         // Give us 1000ms for the server to notice that clients went away
         ix::msleep(1000);
-        REQUIRE(server.getClients().size() == 0);
+        CHECK(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
     }
