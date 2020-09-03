@@ -12,10 +12,8 @@ namespace ix
 {
     Bench::Bench(const std::string& description)
         : _description(description)
-        , _start(std::chrono::high_resolution_clock::now())
-        , _reported(false)
     {
-        ;
+        reset();
     }
 
     Bench::~Bench()
@@ -24,6 +22,12 @@ namespace ix
         {
             report();
         }
+    }
+
+    void Bench::reset()
+    {
+        _start = std::chrono::high_resolution_clock::now();
+        _reported = false;
     }
 
     void Bench::report()

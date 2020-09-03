@@ -1,67 +1,11 @@
-version: "3"
+version: "3.3"
 services:
-  # snake:
-  #   image: bsergean/ws:build
-  #   entrypoint: ws snake --port 8767 --host 0.0.0.0 --redis_hosts redis1
-  #   ports:
-  #     - "8767:8767"
-  #   networks:
-  #     - ws-net
-  #   depends_on:
-  #     - redis1
+  push:
+    entrypoint: ws push_server --host 0.0.0.0
+    image: ${DOCKER_REPO}/ws:build
 
-  # proxy:
-  #   image: bsergean/ws:build
-  #   entrypoint: strace ws proxy_server --remote_host 'wss://cobra.addsrv.com' --host 0.0.0.0 --port 8765 -v
-  #   ports:
-  #     - "8765:8765"
-  #   networks:
-  #     - ws-net
-
-  #pyproxy:
-  #  image: bsergean/ws_proxy:build
-  #  entrypoint: /usr/bin/ws_proxy.py --remote_url 'wss://cobra.addsrv.com' --host 0.0.0.0 --port 8765
-  #  ports:
-  #    - "8765:8765"
-  #  networks:
-  #    - ws-net
-
-  #      #  ws:
-  #      #    security_opt:
-  #      #    - seccomp:unconfined
-  #      #    cap_add:
-  #      #    - SYS_PTRACE
-  #      #    stdin_open: true
-  #      #    tty: true
-  #      #    image: bsergean/ws:build
-  #      #    entrypoint: sh
-  #      #    networks:
-  #      #      - ws-net
-  #      #    depends_on:
-  #      #      - redis1
-  #      #
-  #      #  redis1:
-  #      #    image: redis:alpine
-  #      #    networks:
-  #      #      - ws-net
-  #      #
-  #      #  statsd:
-  #      #    image: jaconel/statsd
-  #      #    ports:
-  #      #      - "8125:8125"
-  #      #    environment:
-  #      #      - STATSD_DUMP_MSG=true
-  #      #      - GRAPHITE_HOST=127.0.0.1
-  #      #    networks:
-  #      #      - ws-net
-
-  compile:
-    image: alpine
-    entrypoint: sh
-    stdin_open: true
-    tty: true
-    volumes:
-      - /Users/bsergeant/src/foss:/home/bsergean/src/foss
-
-networks:
-  ws-net:
+  autoroute:
+    entrypoint: ws autoroute ws://push:8008
+    image: ${DOCKER_REPO}/ws:build
+    depends_on:
+      - push

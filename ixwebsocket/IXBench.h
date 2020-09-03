@@ -17,6 +17,7 @@ namespace ix
         Bench(const std::string& description);
         ~Bench();
 
+        void reset();
         void report();
         uint64_t getDuration() const;
 

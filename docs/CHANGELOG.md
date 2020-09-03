@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.3.3] - 2020-09-02
+
+(ws) echo_client command renamed to autoroute. Command exit once the server close the connection. push_server commands exit once N messages have been sent.
+
 ## [10.3.2] - 2020-08-31
 
 (ws + cobra bots) add a cobra_to_cobra ws subcommand to subscribe to a channel and republish received events to a different channel
