@@ -2872,7 +2872,6 @@ int main(int argc, char** argv)
     bool version = false;
     bool verifyNone = false;
     bool disablePong = false;
-    bool noSend = false;
     int port = 8008;
     int redisPort = 6379;
     int statsdPort = 8125;
