@@ -3308,13 +3308,8 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("push_server"))
     {
-        ret = ix::ws_push_server(port,
-                                 hostname,
-                                 tlsOptions,
-                                 ipv6,
-                                 disablePerMessageDeflate,
-                                 disablePong,
-                                 sendMsg);
+        ret = ix::ws_push_server(
+            port, hostname, tlsOptions, ipv6, disablePerMessageDeflate, disablePong, sendMsg);
     }
     else if (app.got_subcommand("transfer"))
     {

@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.3.4] - 2020-09-04
+
+(docker) ws docker file installs strace
+
 ## [10.3.3] - 2020-09-02
 
 (ws) echo_client command renamed to autoroute. Command exit once the server close the connection. push_server commands exit once N messages have been sent.

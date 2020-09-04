@@ -20,7 +20,7 @@ RUN make ws_mbedtls_install && \
 
 FROM alpine:3.12 as runtime
 
-RUN apk add --no-cache libstdc++ mbedtls ca-certificates python3 && \
+RUN apk add --no-cache libstdc++ mbedtls ca-certificates python3 strace && \
     addgroup -S app && \
     adduser -S -G app app
 
