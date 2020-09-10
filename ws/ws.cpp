@@ -1134,8 +1134,8 @@ namespace ix
             webSocket.addSubProtocol(subprotocol);
         }
 
-        std::atomic<uint64_t> receivedCountTotal(0);
         std::atomic<uint64_t> receivedCountPerSecs(0);
+        std::atomic<uint64_t> target(msgCount);
         std::mutex conditionVariableMutex;
         std::condition_variable condition;
 
@@ -1144,12 +1144,20 @@ namespace ix
         // Setup a callback to be fired
         // when a message or an event (open, close, ping, pong, error) is received
         webSocket.setOnMessageCallback(
-            [&webSocket, &receivedCountPerSecs, &receivedCountTotal, &stop, &condition, &bench](
+            [&webSocket, &receivedCountPerSecs, &target, &stop, &condition, &bench](
                 const ix::WebSocketMessagePtr& msg) {
                 if (msg->type == ix::WebSocketMessageType::Message)
                 {
                     receivedCountPerSecs++;
-                    receivedCountTotal++;
+
+                    target -= 1;
+                    if (target == 0)
+                    {
+                        stop = true;
+                        condition.notify_one();
+
+                        bench.report();
+                    }
                 }
                 else if (msg->type == ix::WebSocketMessageType::Open)
                 {
@@ -1170,14 +1178,10 @@ namespace ix
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
                     spdlog::info("ws_autoroute: connection closed");
-                    stop = true;
-                    condition.notify_one();
-
-                    bench.report();
                 }
             });
 
-        auto timer = [&receivedCountTotal, &receivedCountPerSecs, &stop] {
+        auto timer = [&receivedCountPerSecs, &stop] {
             setThreadName("Timer");
             while (!stop)
             {
@@ -1187,8 +1191,7 @@ namespace ix
                 // our own counters
                 //
                 std::stringstream ss;
-                ss << "messages received: " << receivedCountPerSecs << " per second "
-                   << receivedCountTotal << " total";
+                ss << "messages received per second: " << receivedCountPerSecs;
 
                 CoreLogger::info(ss.str());
 
@@ -1211,11 +1214,6 @@ namespace ix
 
         t1.join();
         webSocket.stop();
-
-        std::stringstream ss;
-        ss << "messages received: " << receivedCountTotal << " total";
-
-        CoreLogger::info(ss.str());
 
         return 0;
     }

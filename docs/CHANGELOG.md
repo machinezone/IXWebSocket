@@ -2,6 +2,11 @@
 
 All changes to this project will be documented in this file.
 
+
+## [10.3.5] - 2020-09-09
+
+(ws) autoroute command exit on its own once all messages have been received
+
 ## [10.3.4] - 2020-09-04
 
 (docker) ws docker file installs strace
