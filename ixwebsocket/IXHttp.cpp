@@ -130,7 +130,7 @@ namespace ix
             return std::make_tuple(false, "Error parsing HTTP headers", httpRequest);
         }
 
-        std::string body = "";
+        std::string body;
         if (headers.find("Content-Length") != headers.end())
         {
             int contentLength = 0;
@@ -144,13 +144,19 @@ namespace ix
                     false, "Error parsing HTTP Header 'Content-Length'", httpRequest);
             }
 
-            char c;
-            body.reserve(contentLength);
-
-            for (int i = 0; i < contentLength; i++)
+            if (contentLength < 0)
             {
-                if (socket->readByte(&c, isCancellationRequested)) body += c;
+                return std::make_tuple(
+                    false, "Error: 'Content-Length' should be a positive integer", httpRequest);
             }
+
+            auto res = socket->readBytes(contentLength, nullptr, isCancellationRequested);
+            if (!res.first)
+            {
+                return std::make_tuple(
+                    false, std::string("Error reading request: ") + res.second, httpRequest);
+            }
+            body = res.second;
         }
 
         httpRequest = std::make_shared<HttpRequest>(uri, method, httpVersion, body, headers);
