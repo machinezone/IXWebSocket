@@ -29,7 +29,8 @@ namespace ix
                    const std::string& host = SocketServer::kDefaultHost,
                    int backlog = SocketServer::kDefaultTcpBacklog,
                    size_t maxConnections = SocketServer::kDefaultMaxConnections,
-                   int addressFamily = SocketServer::kDefaultAddressFamily);
+                   int addressFamily = SocketServer::kDefaultAddressFamily,
+                   int timeoutSecs = HttpServer::kDefaultTimeoutSecs);
         virtual ~HttpServer();
         virtual void stop() final;
 
@@ -41,6 +42,9 @@ namespace ix
         // Member variables
         OnConnectionCallback _onConnectionCallback;
         std::atomic<int> _connectedClientsCount;
+
+        const static int kDefaultTimeoutSecs;
+        int _timeoutSecs;
 
         // Methods
         virtual void handleConnection(std::unique_ptr<Socket>,

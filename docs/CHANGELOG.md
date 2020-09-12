@@ -2,6 +2,9 @@
 
 All changes to this project will be documented in this file.
 
+## [10.4.0] - 2020-09-12
+
+(http server) read body request when the Content-Length is specified + set timeout to read the request to 30 seconds max by default, and make it configurable as a constructor parameter
 
 ## [10.3.5] - 2020-09-09
 

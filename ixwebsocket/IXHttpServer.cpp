@@ -92,10 +92,17 @@ namespace
 
 namespace ix
 {
-    HttpServer::HttpServer(
-        int port, const std::string& host, int backlog, size_t maxConnections, int addressFamily)
+    const int HttpServer::kDefaultTimeoutSecs(30);
+
+    HttpServer::HttpServer(int port,
+                           const std::string& host,
+                           int backlog,
+                           size_t maxConnections,
+                           int addressFamily,
+                           int timeoutSecs)
         : SocketServer(port, host, backlog, maxConnections, addressFamily)
         , _connectedClientsCount(0)
+        , _timeoutSecs(timeoutSecs)
     {
         setDefaultConnectionCallback();
     }
@@ -124,7 +131,7 @@ namespace ix
     {
         _connectedClientsCount++;
 
-        auto ret = Http::parseRequest(socket);
+        auto ret = Http::parseRequest(socket, _timeoutSecs);
         // FIXME: handle errors in parseRequest
 
         if (std::get<0>(ret))

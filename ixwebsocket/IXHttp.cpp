@@ -93,13 +93,11 @@ namespace ix
     }
 
     std::tuple<bool, std::string, HttpRequestPtr> Http::parseRequest(
-        std::unique_ptr<Socket>& socket)
+        std::unique_ptr<Socket>& socket, int timeoutSecs)
     {
         HttpRequestPtr httpRequest;
 
         std::atomic<bool> requestInitCancellation(false);
-
-        int timeoutSecs = 5; // FIXME
 
         auto isCancellationRequested =
             makeCancellationRequestWithTimeout(timeoutSecs, requestInitCancellation);
