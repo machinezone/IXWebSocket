@@ -39,7 +39,7 @@ namespace ix
         std::string description;
         HttpErrorCode errorCode;
         WebSocketHttpHeaders headers;
-        std::string payload;
+        std::string body;
         std::string errorMsg;
         uint64_t uploadSize;
         uint64_t downloadSize;
@@ -48,7 +48,7 @@ namespace ix
                      const std::string& des = std::string(),
                      const HttpErrorCode& c = HttpErrorCode::Ok,
                      const WebSocketHttpHeaders& h = WebSocketHttpHeaders(),
-                     const std::string& p = std::string(),
+                     const std::string& b = std::string(),
                      const std::string& e = std::string(),
                      uint64_t u = 0,
                      uint64_t d = 0)
@@ -56,7 +56,7 @@ namespace ix
             , description(des)
             , errorCode(c)
             , headers(h)
-            , payload(p)
+            , body(b)
             , errorMsg(e)
             , uploadSize(u)
             , downloadSize(d)

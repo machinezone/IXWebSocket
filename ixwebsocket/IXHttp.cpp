@@ -178,7 +178,7 @@ namespace ix
 
         // Write headers
         ss.str("");
-        ss << "Content-Length: " << response->payload.size() << "\r\n";
+        ss << "Content-Length: " << response->body.size() << "\r\n";
         for (auto&& it : response->headers)
         {
             ss << it.first << ": " << it.second << "\r\n";
@@ -190,6 +190,6 @@ namespace ix
             return false;
         }
 
-        return response->payload.empty() ? true : socket->writeBytes(response->payload, nullptr);
+        return response->body.empty() ? true : socket->writeBytes(response->body, nullptr);
     }
 } // namespace ix
