@@ -129,24 +129,27 @@ namespace ix
         {
             return std::make_tuple(false, "Error parsing HTTP headers", httpRequest);
         }
-        
+
         std::string body = "";
-        if (headers.find("Content-Length") != headers.end()){
-            
+        if (headers.find("Content-Length") != headers.end())
+        {
             int contentLength = 0;
-            try {
+            try
+            {
                 contentLength = std::stoi(headers["Content-Length"]);
             }
-            catch (std::exception){
-                return std::make_tuple(false, "Error parsing HTTP Header 'Content-Length'", httpRequest);
+            catch (std::exception)
+            {
+                return std::make_tuple(
+                    false, "Error parsing HTTP Header 'Content-Length'", httpRequest);
             }
-            
+
             char c;
             body.reserve(contentLength);
-            
-            for (int i = 0; i < contentLength; i++){
-                if (socket->readByte(&c, isCancellationRequested))
-                    body += c;
+
+            for (int i = 0; i < contentLength; i++)
+            {
+                if (socket->readByte(&c, isCancellationRequested)) body += c;
             }
         }
 

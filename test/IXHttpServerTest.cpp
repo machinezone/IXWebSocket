@@ -69,14 +69,17 @@ TEST_CASE("http server", "[httpd]")
         int port = getFreePort();
         ix::HttpServer server(port, "127.0.0.1");
 
-        server.setOnConnectionCallback([](HttpRequestPtr request, std::shared_ptr<ConnectionState>) -> HttpResponsePtr {
-            if (request->method == "POST"){
-                return std::make_shared<HttpResponse>(200, "OK", HttpErrorCode::Ok, WebSocketHttpHeaders(), request->body);
-            }
-            
-            return std::make_shared<HttpResponse>(400, "BAD REQUEST");
-        });
-        
+        server.setOnConnectionCallback(
+            [](HttpRequestPtr request, std::shared_ptr<ConnectionState>) -> HttpResponsePtr {
+                if (request->method == "POST")
+                {
+                    return std::make_shared<HttpResponse>(
+                        200, "OK", HttpErrorCode::Ok, WebSocketHttpHeaders(), request->body);
+                }
+
+                return std::make_shared<HttpResponse>(400, "BAD REQUEST");
+            });
+
         auto res = server.listen();
         REQUIRE(res.first);
         server.start();
@@ -97,7 +100,7 @@ TEST_CASE("http server", "[httpd]")
         args->body = "Hello World!";
 
         auto response = httpClient.post(url, args->body, args);
-        
+
         std::cerr << "Status: " << response->statusCode << std::endl;
         std::cerr << "Error message: " << response->errorMsg << std::endl;
         std::cerr << "Payload: " << response->payload << std::endl;
