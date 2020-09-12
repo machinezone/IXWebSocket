@@ -1454,14 +1454,14 @@ namespace ix
 
                 spdlog::info("Writing to disk: {}", filename);
                 std::ofstream out(filename);
-                out.write((char*) &response->payload.front(), response->payload.size());
+                out.write((char*) &response->body.front(), response->body.size());
                 out.close();
             }
             else
             {
                 if (response->headers["Content-Type"] != "application/octet-stream")
                 {
-                    spdlog::info("payload: {}", response->payload);
+                    spdlog::info("body: {}", response->body);
                 }
                 else
                 {
@@ -2546,7 +2546,7 @@ namespace ix
 
                     if (response->headers["Content-Type"] != "application/octet-stream")
                     {
-                        spdlog::info("payload: {}", response->payload);
+                        spdlog::info("body: {}", response->body);
                     }
                 }
 
@@ -2554,7 +2554,7 @@ namespace ix
                 {
                     spdlog::error("Error sending data to sentry: {}", response->statusCode);
                     spdlog::error("Status: {}", response->statusCode);
-                    spdlog::error("Response: {}", response->payload);
+                    spdlog::error("Response: {}", response->body);
                 }
                 else
                 {
