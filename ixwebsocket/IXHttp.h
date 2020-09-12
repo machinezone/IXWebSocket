@@ -95,15 +95,18 @@ namespace ix
         std::string uri;
         std::string method;
         std::string version;
+        std::string body;
         WebSocketHttpHeaders headers;
 
         HttpRequest(const std::string& u,
                     const std::string& m,
                     const std::string& v,
+                    const std::string& b,
                     const WebSocketHttpHeaders& h = WebSocketHttpHeaders())
             : uri(u)
             , method(m)
             , version(v)
+            , body(b)
             , headers(h)
         {
         }
