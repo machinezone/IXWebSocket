@@ -469,7 +469,7 @@ out = httpClient.post(url, std::string("foo=bar"), args);
 auto statusCode = response->statusCode; // Can be HttpErrorCode::Ok, HttpErrorCode::UrlMalformed, etc...
 auto errorCode = response->errorCode; // 200, 404, etc...
 auto responseHeaders = response->headers; // All the headers in a special case-insensitive unordered_map of (string, string)
-auto payload = response->payload; // All the bytes from the response as an std::string
+auto body = response->body; // All the bytes from the response as an std::string
 auto errorMsg = response->errorMsg; // Descriptive error message in case of failure
 auto uploadSize = response->uploadSize; // Byte count of uploaded data
 auto downloadSize = response->downloadSize; // Byte count of downloaded data

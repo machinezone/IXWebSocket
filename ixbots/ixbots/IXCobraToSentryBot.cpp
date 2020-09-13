@@ -41,7 +41,7 @@ namespace ix
                 else
                 {
                     CoreLogger::error("Error sending data to sentry: " + std::to_string(response->statusCode));
-                    CoreLogger::error("Response: " + response->payload);
+                    CoreLogger::error("Response: " + response->body);
 
                     // Error 429 Too Many Requests
                     if (response->statusCode == 429)

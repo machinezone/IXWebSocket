@@ -103,11 +103,11 @@ TEST_CASE("http server", "[httpd]")
 
         std::cerr << "Status: " << response->statusCode << std::endl;
         std::cerr << "Error message: " << response->errorMsg << std::endl;
-        std::cerr << "Payload: " << response->payload << std::endl;
+        std::cerr << "Body: " << response->body << std::endl;
 
         REQUIRE(response->errorCode == HttpErrorCode::Ok);
         REQUIRE(response->statusCode == 200);
-        REQUIRE(response->payload == args->body);
+        REQUIRE(response->body == args->body);
 
         server.stop();
     }
