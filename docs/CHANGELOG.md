@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.4.2] - 2020-09-18
+
+(cobra bots) change an error log to a warning log when reconnecting because no messages were received for a minute
+
 ## [10.4.1] - 2020-09-18
 
 (cobra connection and bots) set an HTTP header when connecting to help with debugging bots

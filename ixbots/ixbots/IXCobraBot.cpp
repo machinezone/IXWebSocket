@@ -130,7 +130,7 @@ namespace ix
                     ss << "no messages received or sent for "
                        << heartBeatTimeout << " seconds, reconnecting";
 
-                    CoreLogger::error(ss.str());
+                    CoreLogger::warn(ss.str());
                     stalledConnection = true;
                 }
                 state = currentState;
