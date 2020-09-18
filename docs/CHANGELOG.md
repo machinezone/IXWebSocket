@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.4.1] - 2020-09-18
+
+(cobra connection and bots) set an HTTP header when connecting to help with debugging bots
+
 ## [10.4.0] - 2020-09-12
 
 (http server) read body request when the Content-Length is specified + set timeout to read the request to 30 seconds max by default, and make it configurable as a constructor parameter

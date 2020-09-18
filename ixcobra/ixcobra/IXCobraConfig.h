@@ -8,6 +8,7 @@
 
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocketPerMessageDeflateOptions.h>
+#include <ixwebsocket/IXWebSocketHttpHeaders.h>
 
 namespace ix
 {
@@ -19,6 +20,7 @@ namespace ix
         std::string rolesecret;
         WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions;
         SocketTLSOptions socketTLSOptions;
+        WebSocketHttpHeaders headers;
 
         CobraConfig(const std::string& a = std::string(),
                     const std::string& e = std::string(),

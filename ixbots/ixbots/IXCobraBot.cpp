@@ -31,6 +31,8 @@ namespace ix
         auto limitReceivedEvents = botConfig.limitReceivedEvents;
         auto batchSize = botConfig.batchSize;
 
+        config.headers["X-Cobra-Channel"] = channel;
+
         ix::CobraConnection conn;
         conn.configure(config);
         conn.connect();

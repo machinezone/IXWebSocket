@@ -255,7 +255,8 @@ namespace ix
         const std::string& rolename,
         const std::string& rolesecret,
         const WebSocketPerMessageDeflateOptions& webSocketPerMessageDeflateOptions,
-        const SocketTLSOptions& socketTLSOptions)
+        const SocketTLSOptions& socketTLSOptions,
+        const WebSocketHttpHeaders& headers)
     {
         _roleName = rolename;
         _roleSecret = rolesecret;
@@ -269,6 +270,7 @@ namespace ix
         _webSocket->setUrl(url);
         _webSocket->setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
         _webSocket->setTLSOptions(socketTLSOptions);
+        _webSocket->setExtraHeaders(headers);
 
         // Send a websocket ping every N seconds (N = 30) now
         // This should keep the connection open and prevent some load balancers such as
@@ -283,7 +285,8 @@ namespace ix
                   config.rolename,
                   config.rolesecret,
                   config.webSocketPerMessageDeflateOptions,
-                  config.socketTLSOptions);
+                  config.socketTLSOptions,
+                  config.headers);
     }
 
     //

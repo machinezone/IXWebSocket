@@ -56,7 +56,8 @@ namespace ix
                        const std::string& rolename,
                        const std::string& rolesecret,
                        const WebSocketPerMessageDeflateOptions& webSocketPerMessageDeflateOptions,
-                       const SocketTLSOptions& socketTLSOptions);
+                       const SocketTLSOptions& socketTLSOptions,
+                       const WebSocketHttpHeaders& headers);
 
         void configure(const ix::CobraConfig& config);
 
