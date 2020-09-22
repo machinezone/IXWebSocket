@@ -23,6 +23,8 @@ namespace ix
         CobraConfig cobraPublisherConfig = cobraBotConfig.cobraConfig;
         cobraPublisherConfig.rolename = publisherRolename;
         cobraPublisherConfig.rolesecret = publisherRolesecret;
+        cobraPublisherConfig.headers["X-Cobra-Republish-Channel"] = republishChannel;
+
         cobraMetricsPublisher.configure(cobraPublisherConfig, republishChannel);
 
         bot.setOnBotMessageCallback(

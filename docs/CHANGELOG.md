@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.4.3] - 2020-09-22
+
+(cobra 2 cobra) specify as an HTTP header which channel we will republish to
+
 ## [10.4.2] - 2020-09-18
 
 (cobra bots) change an error log to a warning log when reconnecting because no messages were received for a minute
