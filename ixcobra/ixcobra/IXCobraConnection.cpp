@@ -91,13 +91,14 @@ namespace ix
                                               const std::string& errorMsg,
                                               const WebSocketHttpHeaders& headers,
                                               const std::string& subscriptionId,
-                                              CobraConnection::MsgId msgId)
+                                              CobraConnection::MsgId msgId,
+                                              const std::string& connectionId)
     {
         std::lock_guard<std::mutex> lock(_eventCallbackMutex);
         if (_eventCallback)
         {
             _eventCallback(
-                std::make_unique<CobraEvent>(eventType, errorMsg, headers, subscriptionId, msgId));
+                std::make_unique<CobraEvent>(eventType, errorMsg, headers, subscriptionId, msgId, connectionId));
         }
     }
 
@@ -351,6 +352,18 @@ namespace ix
         Json::Value nonce = data["nonce"];
 
         if (!nonce.isString()) return false;
+
+        if (!data.isMember("connection_id")) return false;
+        Json::Value connectionId = data["connection_id"];
+
+        if (!connectionId.isString()) return false;
+
+        invokeEventCallback(ix::CobraEventType::Handshake,
+                            std::string(),
+                            WebSocketHttpHeaders(),
+                            std::string(),
+                            0,
+                            connectionId.asString());
 
         return sendAuthMessage(nonce.asString());
     }

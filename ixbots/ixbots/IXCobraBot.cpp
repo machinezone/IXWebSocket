@@ -170,7 +170,11 @@ namespace ix
             }
             else if (event->type == ix::CobraEventType::Closed)
             {
-                CoreLogger::info("Subscriber closed: {}" + event->errMsg);
+                CoreLogger::info("Subscriber closed: " + event->errMsg);
+            }
+            else if (event->type == ix::CobraEventType::Handshake)
+            {
+                CoreLogger::info("Subscriber: Cobra handshake connection id: " + event->connectionId);
             }
             else if (event->type == ix::CobraEventType::Authenticated)
             {

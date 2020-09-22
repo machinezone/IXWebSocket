@@ -35,6 +35,10 @@ namespace ix
                     ss << it.first << ": " << it.second << std::endl;
                 }
             }
+            else if (event->type == ix::CobraEventType::Handshake)
+            {
+                ss << "Cobra handshake connection id: " << event->connectionId;
+            }
             else if (event->type == ix::CobraEventType::Authenticated)
             {
                 ss << "Authenticated";

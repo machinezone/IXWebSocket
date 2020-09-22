@@ -21,17 +21,20 @@ namespace ix
         const ix::WebSocketHttpHeaders& headers;
         const std::string& subscriptionId;
         uint64_t msgId; // CobraConnection::MsgId
+        const std::string& connectionId;
 
         CobraEvent(ix::CobraEventType t,
                    const std::string& e,
                    const ix::WebSocketHttpHeaders& h,
                    const std::string& s,
-                   uint64_t m)
+                   uint64_t m,
+                   const std::string& c)
             : type(t)
             , errMsg(e)
             , headers(h)
             , subscriptionId(s)
             , msgId(m)
+            , connectionId(c)
         {
             ;
         }

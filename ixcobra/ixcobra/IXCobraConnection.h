@@ -158,7 +158,9 @@ namespace ix
                                  const std::string& errorMsg = std::string(),
                                  const WebSocketHttpHeaders& headers = WebSocketHttpHeaders(),
                                  const std::string& subscriptionId = std::string(),
-                                 uint64_t msgId = std::numeric_limits<uint64_t>::max());
+                                 uint64_t msgId = std::numeric_limits<uint64_t>::max(),
+                                 const std::string& connectionId = std::string());
+
         void invokeErrorCallback(const std::string& errorMsg, const std::string& serializedPdu);
 
         /// Tells whether the internal queue is empty or not

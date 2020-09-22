@@ -20,6 +20,7 @@ namespace ix
         Pong = 7,
         HandshakeError = 8,
         AuthenticationError = 9,
-        SubscriptionError = 10
+        SubscriptionError = 10,
+        Handshake = 11
     };
 }
