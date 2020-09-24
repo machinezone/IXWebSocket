@@ -49,6 +49,9 @@ namespace ix
 
         SSL* _ssl_connection;
         SSL_CTX* _ssl_context;
+        X509* certX509 = nullptr;
+        RSA* rsa = nullptr;
+        EVP_PKEY* pkey = nullptr;
         const SSL_METHOD* _ssl_method;
         SocketTLSOptions _tlsOptions;
 

@@ -22,6 +22,12 @@ namespace ix
         // the key used for signing/encryption
         std::string keyFile;
 
+        // the certificate presented to peers (as a string)
+        std::string certString;
+
+        // the key used for signing/encryption (as a string)
+        std::string keyString;
+
         // the ca certificate (or certificate bundle) file containing
         // certificates to be trusted by peers; use 'SYSTEM' to
         // leverage the system defaults, use 'NONE' to disable peer verification
@@ -34,6 +40,7 @@ namespace ix
         bool tls = false;
 
         bool hasCertAndKey() const;
+        bool hasCertAndKeyString() const;
 
         bool isUsingSystemDefaults() const;
 

@@ -53,6 +53,11 @@ namespace ix
         return !certFile.empty() && !keyFile.empty();
     }
 
+    bool SocketTLSOptions::hasCertAndKeyString() const
+    {
+        return !certString.empty() && !keyString.empty();
+    }
+
     bool SocketTLSOptions::isUsingSystemDefaults() const
     {
         return caFile == kTLSCAFileUseSystemDefaults;

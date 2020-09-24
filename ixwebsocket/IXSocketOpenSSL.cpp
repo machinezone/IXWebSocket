@@ -332,6 +332,44 @@ namespace ix
         }
 
         ERR_clear_error();
+        if (_tlsOptions.hasCertAndKeyString())
+        {
+            BIO* certBio = BIO_new(BIO_s_mem());
+            BIO_write(certBio, _tlsOptions.certString.c_str(), _tlsOptions.certString.size());
+            PEM_read_bio_X509(certBio, &certX509, nullptr, nullptr);
+            BIO_free(certBio);
+
+            BIO* keyBio = BIO_new_mem_buf((void*) _tlsOptions.keyString.c_str(), -1);
+            PEM_read_bio_RSAPrivateKey(keyBio, &rsa, nullptr, nullptr);
+            BIO_free(keyBio);
+            pkey = EVP_PKEY_new();
+            EVP_PKEY_assign_RSA(pkey, rsa);
+
+            if (SSL_CTX_use_certificate(_ssl_context, certX509) != 1)
+            {
+                auto sslErr = ERR_get_error();
+                errMsg = "OpenSSL failed - SSL_CTX_use_certificate_chain_file(\"" +
+                         _tlsOptions.certFile + "\") failed: ";
+                errMsg += ERR_error_string(sslErr, nullptr);
+            }
+            else if (SSL_CTX_use_PrivateKey(
+                         _ssl_context, pkey))
+            {
+                auto sslErr = ERR_get_error();
+                errMsg = "OpenSSL failed - SSL_CTX_use_PrivateKey_file(\"" + _tlsOptions.keyFile +
+                         "\") failed: ";
+                errMsg += ERR_error_string(sslErr, nullptr);
+            }
+            else if (!SSL_CTX_check_private_key(_ssl_context))
+            {
+                auto sslErr = ERR_get_error();
+                errMsg = "OpenSSL failed - cert/key mismatch(\"" + _tlsOptions.certFile + ", " +
+                         _tlsOptions.keyFile + "\")";
+                errMsg += ERR_error_string(sslErr, nullptr);
+            }            
+        }
+
+        ERR_clear_error();
         if (!_tlsOptions.isPeerVerifyDisabled())
         {
             if (_tlsOptions.isUsingSystemDefaults())
@@ -610,6 +648,17 @@ namespace ix
         {
             SSL_CTX_free(_ssl_context);
             _ssl_context = nullptr;
+        }
+        if (certX509 != nullptr)
+        {
+            X509_free(certX509);
+            certX509 = nullptr;
+        }
+        if (pkey != nullptr)
+        {
+            EVP_PKEY_free(pkey);
+            pkey = nullptr;
+            rsa = nullptr;
         }
 
         Socket::close();
