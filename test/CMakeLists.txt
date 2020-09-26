@@ -16,18 +16,8 @@ include_directories(
   ../ws
 )
 
-add_definitions(-DSPDLOG_COMPILED_LIB=1)
-
-find_package(JsonCpp)
-if (NOT JSONCPP_FOUND)
-  include_directories(../third_party/jsoncpp)
-  set(JSONCPP_SOURCES ../third_party/jsoncpp/jsoncpp.cpp)
-endif()
-
 # Shared sources
 set (SOURCES
-  ${JSONCPP_SOURCES}
-
   test_runner.cpp
   IXTest.cpp
   ../third_party/msgpack11/msgpack11.cpp
@@ -108,6 +98,7 @@ target_link_libraries(ixwebsocket_unittest ixcrypto)
 target_link_libraries(ixwebsocket_unittest ixcore)
 
 target_link_libraries(ixwebsocket_unittest spdlog)
+target_link_libraries(ixwebsocket_unittest jsoncpp_static)
 if (USE_PYTHON)
   target_link_libraries(ixwebsocket_unittest ${Python_LIBRARIES})
 endif()

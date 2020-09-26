@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.4.6] - 2020-09-26
+
+(cmake) use FetchContent cmake module to retrieve jsoncpp third party dependency
+
 ## [10.4.5] - 2020-09-26
 
 (cmake) use FetchContent cmake module to retrieve spdlog third party dependency
