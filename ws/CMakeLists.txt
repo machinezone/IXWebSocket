@@ -16,13 +16,6 @@ endif()
 
 set (CMAKE_CXX_STANDARD 14)
 
-include(FetchContent)
-FetchContent_Declare(spdlog
-    GIT_REPOSITORY "https://github.com/gabime/spdlog"
-    GIT_TAG "v1.8.0") 
-
-FetchContent_MakeAvailable(spdlog)
-
 option(USE_TLS "Add TLS support" ON)
 
 include_directories(ws .)
