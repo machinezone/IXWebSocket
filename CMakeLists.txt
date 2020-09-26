@@ -251,7 +251,7 @@ if (USE_WS OR USE_TEST)
   add_subdirectory(ixsentry)
   add_subdirectory(ixbots)
 
-  add_subdirectory(third_party/spdlog spdlog)
+  # add_subdirectory(third_party/spdlog spdlog)
 
   if (USE_WS)
       add_subdirectory(ws)

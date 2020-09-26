@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.4.5] - 2020-09-26
+
+(cmake) use FetchContent cmake module to retrieve spdlog third party dependency
+
 ## [10.4.4] - 2020-09-22
 
 (cobra connection) retrieve cobra server connection id from the cobra handshake message and display it in ws clients, metrics publisher and bots

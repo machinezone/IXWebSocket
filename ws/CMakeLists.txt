@@ -3,7 +3,7 @@
 # Copyright (c) 2019 Machine Zone, Inc. All rights reserved.
 #
 
-cmake_minimum_required (VERSION 3.4.1)
+cmake_minimum_required (VERSION 3.14)
 project (ws)
 
 # There's -Weverything too for clang
@@ -16,14 +16,18 @@ endif()
 
 set (CMAKE_CXX_STANDARD 14)
 
+include(FetchContent)
+FetchContent_Declare(spdlog
+    GIT_REPOSITORY "https://github.com/gabime/spdlog"
+    GIT_TAG "v1.8.0") 
+
+FetchContent_MakeAvailable(spdlog)
+
 option(USE_TLS "Add TLS support" ON)
 
 include_directories(ws .)
 include_directories(ws ..)
-include_directories(ws ../third_party/spdlog/include)
 include_directories(ws ../third_party/cpp-linenoise)
-
-add_definitions(-DSPDLOG_COMPILED_LIB=1)
 
 find_package(JsonCpp)
 if (NOT JSONCPP_FOUND)

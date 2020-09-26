@@ -7,19 +7,19 @@ project (ixwebsocket_unittest)
 
 set (CMAKE_CXX_STANDARD 14)
 
-if (MAC)
-  set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../third_party/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
-  find_package(Sanitizers)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
-  set(CMAKE_LD_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
-  option(USE_TLS "Add TLS support" ON)
-endif()
+include(FetchContent)
+FetchContent_Declare(spdlog
+    GIT_REPOSITORY "https://github.com/gabime/spdlog"
+    GIT_TAG "v1.8.0") 
+
+FetchContent_MakeAvailable(spdlog)
+
+option(USE_TLS "Add TLS support" ON)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/Catch2/single_include
   ../third_party
   ../third_party/msgpack11
-  ../third_party/spdlog/include
   ../ws
 )
 
