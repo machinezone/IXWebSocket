@@ -6,21 +6,17 @@
 
 #include "IXHttpClient.h"
 
+#include "IXGzipCodec.h"
 #include "IXSocketFactory.h"
 #include "IXUrlParser.h"
 #include "IXUserAgent.h"
 #include "IXWebSocketHttpHeaders.h"
-#include <array>
 #include <assert.h>
 #include <cstring>
 #include <iomanip>
 #include <random>
 #include <sstream>
 #include <vector>
-
-#ifdef IXWEBSOCKET_USE_ZLIB
-#include <zlib.h>
-#endif
 
 namespace ix
 {
@@ -501,12 +497,12 @@ namespace ix
 
         downloadSize = payload.size();
 
-#ifdef IXWEBSOCKET_USE_ZLIB
         // If the content was compressed with gzip, decode it
         if (headers["Content-Encoding"] == "gzip")
         {
+#ifdef IXWEBSOCKET_USE_ZLIB
             std::string decompressedPayload;
-            if (!gzipInflate(payload, decompressedPayload))
+            if (!gzipDecompress(payload, decompressedPayload))
             {
                 std::string errorMsg("Error decompressing payload");
                 return std::make_shared<HttpResponse>(code,
@@ -519,8 +515,18 @@ namespace ix
                                                       downloadSize);
             }
             payload = decompressedPayload;
-        }
+#else
+            std::string errorMsg("ixwebsocket was not compiled with gzip support on");
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::Gzip,
+                                                  headers,
+                                                  payload,
+                                                  errorMsg,
+                                                  uploadSize,
+                                                  downloadSize);
 #endif
+        }
 
         return std::make_shared<HttpResponse>(code,
                                               description,
@@ -679,51 +685,6 @@ namespace ix
 
         return ss.str();
     }
-
-#ifdef IXWEBSOCKET_USE_ZLIB
-    bool HttpClient::gzipInflate(const std::string& in, std::string& out)
-    {
-        z_stream inflateState;
-        std::memset(&inflateState, 0, sizeof(inflateState));
-
-        inflateState.zalloc = Z_NULL;
-        inflateState.zfree = Z_NULL;
-        inflateState.opaque = Z_NULL;
-        inflateState.avail_in = 0;
-        inflateState.next_in = Z_NULL;
-
-        if (inflateInit2(&inflateState, 16 + MAX_WBITS) != Z_OK)
-        {
-            return false;
-        }
-
-        inflateState.avail_in = (uInt) in.size();
-        inflateState.next_in = (unsigned char*) (const_cast<char*>(in.data()));
-
-        const int kBufferSize = 1 << 14;
-        std::array<unsigned char, kBufferSize> compressBuffer;
-
-        do
-        {
-            inflateState.avail_out = (uInt) kBufferSize;
-            inflateState.next_out = &compressBuffer.front();
-
-            int ret = inflate(&inflateState, Z_SYNC_FLUSH);
-
-            if (ret == Z_NEED_DICT || ret == Z_DATA_ERROR || ret == Z_MEM_ERROR)
-            {
-                inflateEnd(&inflateState);
-                return false;
-            }
-
-            out.append(reinterpret_cast<char*>(&compressBuffer.front()),
-                       kBufferSize - inflateState.avail_out);
-        } while (inflateState.avail_out == 0);
-
-        inflateEnd(&inflateState);
-        return true;
-    }
-#endif
 
     void HttpClient::log(const std::string& msg, HttpRequestArgsPtr args)
     {

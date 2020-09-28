@@ -90,10 +90,6 @@ namespace ix
     private:
         void log(const std::string& msg, HttpRequestArgsPtr args);
 
-#ifdef IXWEBSOCKET_USE_ZLIB
-        bool gzipInflate(const std::string& in, std::string& out);
-#endif
-
         // Async API background thread runner
         void run();
         // Async API

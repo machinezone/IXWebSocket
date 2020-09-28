@@ -33,6 +33,7 @@
 #include <ixsentry/IXSentryClient.h>
 #include <ixsnake/IXSnakeServer.h>
 #include <ixwebsocket/IXDNSLookup.h>
+#include <ixwebsocket/IXGzipCodec.h>
 #include <ixwebsocket/IXHttpClient.h>
 #include <ixwebsocket/IXHttpServer.h>
 #include <ixwebsocket/IXNetSystem.h>
@@ -126,6 +127,38 @@ namespace
     {
         std::ifstream infile(fileName);
         return infile.good();
+    }
+
+    std::string extractFilename(const std::string& path)
+    {
+        std::string::size_type idx;
+
+        idx = path.rfind('/');
+        if (idx != std::string::npos)
+        {
+            std::string filename = path.substr(idx + 1);
+            return filename;
+        }
+        else
+        {
+            return path;
+        }
+    }
+
+    std::string removeExtension(const std::string& path)
+    {
+        std::string::size_type idx;
+
+        idx = path.rfind('.');
+        if (idx != std::string::npos)
+        {
+            std::string filename = path.substr(idx + 1);
+            return filename;
+        }
+        else
+        {
+            return path;
+        }
     }
 } // namespace
 
@@ -1103,6 +1136,76 @@ namespace ix
         return 0;
     }
 
+    int ws_gzip(const std::string& filename)
+    {
+        auto res = readAsString(filename);
+        bool found = res.first;
+        if (!found)
+        {
+            spdlog::error("Cannot read content of {}", filename);
+            return 1;
+        }
+
+        spdlog::info("gzip input: {} cksum {}", filename, ix::djb2HashStr(res.second));
+
+        std::string compressedBytes;
+
+        {
+            Bench bench("compressing file");
+            compressedBytes = gzipCompress(res.second);
+        }
+
+        std::string outputFilename(filename);
+        outputFilename += ".gz";
+
+        std::ofstream f;
+        f.open(outputFilename);
+        f << compressedBytes;
+        f.close();
+
+        spdlog::info("gzip output: {} cksum {}", outputFilename, ix::djb2HashStr(compressedBytes));
+
+        return 0;
+    }
+
+    int ws_gunzip(const std::string& filename)
+    {
+        spdlog::info("filename to gunzip: {}", filename);
+
+        auto res = readAsString(filename);
+        bool found = res.first;
+        if (!found)
+        {
+            spdlog::error("Cannot read content of {}", filename);
+            return 1;
+        }
+
+        spdlog::info("gunzip input: {} cksum {}", filename, ix::djb2HashStr(res.second));
+
+        std::string decompressedBytes;
+
+        {
+            Bench bench("decompressing file");
+            if (!gzipDecompress(res.second, decompressedBytes))
+            {
+                spdlog::error("Cannot decompress content of {}", filename);
+                return 1;
+            }
+        }
+
+        std::string outputFilename(removeExtension(filename));
+
+        std::ofstream f;
+        f.open(outputFilename);
+        f << decompressedBytes;
+        f.close();
+
+        spdlog::info(
+            "gunzip output: {} cksum {}", outputFilename, ix::djb2HashStr(decompressedBytes));
+
+        return 0;
+    }
+
     int ws_autoroute(const std::string& url,
                      bool disablePerMessageDeflate,
                      const ix::SocketTLSOptions& tlsOptions,
@@ -1303,22 +1406,6 @@ namespace ix
         server.wait();
 
         return 0;
-    }
-
-    std::string extractFilename(const std::string& path)
-    {
-        std::string::size_type idx;
-
-        idx = path.rfind('/');
-        if (idx != std::string::npos)
-        {
-            std::string filename = path.substr(idx + 1);
-            return filename;
-        }
-        else
-        {
-            return path;
-        }
     }
 
     WebSocketHttpHeaders parseHeaders(const std::string& data)
@@ -2848,6 +2935,7 @@ int main(int argc, char** argv)
     std::string publisherRolename;
     std::string publisherRolesecret;
     std::string sendMsg("hello world");
+    std::string filename;
     ix::SocketTLSOptions tlsOptions;
     ix::CobraConfig cobraConfig;
     ix::CobraBotConfig cobraBotConfig;
@@ -3206,6 +3294,14 @@ int main(int argc, char** argv)
     dnsLookupApp->fallthrough();
     dnsLookupApp->add_option("host", hostname, "Hostname")->required();
 
+    CLI::App* gzipApp = app.add_subcommand("gzip", "Gzip compressor");
+    gzipApp->fallthrough();
+    gzipApp->add_option("filename", filename, "Filename")->required();
+
+    CLI::App* gunzipApp = app.add_subcommand("gunzip", "Gzip decompressor");
+    gunzipApp->fallthrough();
+    gunzipApp->add_option("filename", filename, "Filename")->required();
+
     CLI11_PARSE(app, argc, argv);
 
     // pid file handling
@@ -3501,6 +3597,14 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("dnslookup"))
     {
         ret = ix::ws_dns_lookup(hostname);
+    }
+    else if (app.got_subcommand("gzip"))
+    {
+        ret = ix::ws_gzip(filename);
+    }
+    else if (app.got_subcommand("gunzip"))
+    {
+        ret = ix::ws_gunzip(filename);
     }
     else if (version)
     {

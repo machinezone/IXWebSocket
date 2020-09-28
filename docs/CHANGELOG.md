@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.4.7] - 2020-09-28
+
+(ws) add gzip and gunzip ws sub commands
+
 ## [10.4.6] - 2020-09-26
 
 (cmake) use FetchContent cmake module to retrieve jsoncpp third party dependency

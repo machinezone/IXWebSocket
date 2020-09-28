@@ -19,4 +19,16 @@ namespace ix
 
         return hashAddress;
     }
+
+    uint64_t djb2HashStr(const std::string& data)
+    {
+        uint64_t hashAddress = 5381;
+
+        for (size_t i = 0; i < data.size(); ++i)
+        {
+            hashAddress = ((hashAddress << 5) + hashAddress) + data[i];
+        }
+
+        return hashAddress;
+    }
 } // namespace ix
