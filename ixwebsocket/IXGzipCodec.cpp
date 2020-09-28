@@ -7,6 +7,7 @@
 #include "IXGzipCodec.h"
 
 #include <array>
+#include <string.h>
 
 #ifdef IXWEBSOCKET_USE_ZLIB
 #include <zlib.h>
