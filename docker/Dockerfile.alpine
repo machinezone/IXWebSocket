@@ -2,7 +2,7 @@ FROM alpine:3.12 as build
 
 RUN apk add --no-cache \
     gcc g++ musl-dev linux-headers \
-    cmake mbedtls-dev make zlib-dev python3-dev ninja
+    cmake mbedtls-dev make zlib-dev python3-dev ninja git
 
 RUN addgroup -S app && \
     adduser -S -G app app && \

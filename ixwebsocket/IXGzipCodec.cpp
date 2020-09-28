@@ -62,7 +62,7 @@ namespace ix
     bool gzipDecompress(const std::string& in, std::string& out)
     {
         z_stream inflateState;
-        std::memset(&inflateState, 0, sizeof(inflateState));
+        memset(&inflateState, 0, sizeof(inflateState));
 
         inflateState.zalloc = Z_NULL;
         inflateState.zfree = Z_NULL;
