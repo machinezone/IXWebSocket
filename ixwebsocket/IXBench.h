@@ -24,7 +24,7 @@ namespace ix
     private:
         std::string _description;
         std::chrono::time_point<std::chrono::high_resolution_clock> _start;
-        uint64_t _ms;
+        uint64_t _duration;
         bool _reported;
     };
 } // namespace ix

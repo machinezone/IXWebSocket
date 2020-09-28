@@ -33,16 +33,16 @@ namespace ix
     void Bench::report()
     {
         auto now = std::chrono::high_resolution_clock::now();
-        auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _start);
+        auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(now - _start);
 
-        _ms = milliseconds.count();
-        std::cerr << _description << " completed in " << _ms << "ms" << std::endl;
+        _duration = microseconds.count();
+        std::cerr << _description << " completed in " << _duration << " us" << std::endl;
 
         _reported = true;
     }
 
     uint64_t Bench::getDuration() const
     {
-        return _ms;
+        return _duration;
     }
 } // namespace ix
