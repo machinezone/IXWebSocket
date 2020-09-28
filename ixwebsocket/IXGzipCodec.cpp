@@ -13,11 +13,55 @@
 #include <zlib.h>
 #endif
 
+#ifdef IXWEBSOCKET_USE_DEFLATE
+#include <libdeflate.h>
+#endif
+
 namespace ix
 {
 #ifdef IXWEBSOCKET_USE_ZLIB
     std::string gzipCompress(const std::string& str)
     {
+#ifdef IXWEBSOCKET_USE_DEFLATE
+        int compressionLevel = 6;
+        struct libdeflate_compressor *compressor =
+            libdeflate_alloc_compressor(compressionLevel);
+
+        const void *uncompressed_data = str.data();
+        size_t uncompressed_size = str.size();
+        void *compressed_data;
+        size_t actual_compressed_size;
+        size_t max_compressed_size;
+
+        max_compressed_size = libdeflate_gzip_compress_bound(compressor,
+                                                             uncompressed_size);
+        compressed_data = malloc(max_compressed_size);
+        if (compressed_data == NULL)
+        {
+            return std::string();
+        }
+
+        actual_compressed_size = libdeflate_gzip_compress(
+            compressor,
+            uncompressed_data,
+            uncompressed_size,
+            compressed_data,
+            max_compressed_size);
+
+        if (actual_compressed_size == 0)
+        {
+            free(compressed_data);
+            return std::string();
+        }
+
+        libdeflate_free_compressor(compressor);
+
+        std::string out;
+        out.append(reinterpret_cast<char*>(compressed_data), actual_compressed_size);
+        free(compressed_data);
+
+        return out;
+#else
         z_stream zs; // z_stream is zlib's control structure
         memset(&zs, 0, sizeof(zs));
 
@@ -57,6 +101,7 @@ namespace ix
         deflateEnd(&zs);
 
         return outstring;
+#endif
     }
 
     bool gzipDecompress(const std::string& in, std::string& out)
