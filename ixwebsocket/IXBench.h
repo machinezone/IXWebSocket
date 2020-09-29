@@ -18,7 +18,9 @@ namespace ix
         ~Bench();
 
         void reset();
+        void record();
         void report();
+        void setReported();
         uint64_t getDuration() const;
 
     private:

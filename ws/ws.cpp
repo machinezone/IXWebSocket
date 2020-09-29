@@ -1136,7 +1136,7 @@ namespace ix
         return 0;
     }
 
-    int ws_gzip(const std::string& filename)
+    int ws_gzip(const std::string& filename, int runCount)
     {
         auto res = readAsString(filename);
         bool found = res.first;
@@ -1150,9 +1150,22 @@ namespace ix
 
         std::string compressedBytes;
 
+        std::vector<uint64_t> durations;
         {
             Bench bench("compressing file");
-            compressedBytes = gzipCompress(res.second);
+            bench.setReported();
+
+            for (int i = 0; i < runCount; ++i)
+            {
+                bench.reset();
+                compressedBytes = gzipCompress(res.second);
+                bench.record();
+                durations.push_back(bench.getDuration());
+            }
+
+            size_t medianIdx = durations.size() / 2;
+            uint64_t medianRuntime = durations[medianIdx];
+            spdlog::info("compressing file in {}", medianRuntime);
         }
 
         std::string outputFilename(filename);
@@ -2969,6 +2982,7 @@ int main(int argc, char** argv)
     int msgCount = 1000 * 1000;
     uint32_t maxWaitBetweenReconnectionRetries;
     int pingIntervalSecs = 30;
+    int runCount = 1;
 
     auto addGenericOptions = [&pidfile](CLI::App* app) {
         app->add_option("--pidfile", pidfile, "Pid file");
@@ -3297,6 +3311,7 @@ int main(int argc, char** argv)
     CLI::App* gzipApp = app.add_subcommand("gzip", "Gzip compressor");
     gzipApp->fallthrough();
     gzipApp->add_option("filename", filename, "Filename")->required();
+    gzipApp->add_option("--run_count", runCount, "Number of time to run the compression");
 
     CLI::App* gunzipApp = app.add_subcommand("gunzip", "Gzip decompressor");
     gunzipApp->fallthrough();
@@ -3600,7 +3615,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("gzip"))
     {
-        ret = ix::ws_gzip(filename);
+        ret = ix::ws_gzip(filename, runCount);
     }
     else if (app.got_subcommand("gunzip"))
     {

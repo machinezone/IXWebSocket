@@ -38,6 +38,19 @@ namespace ix
         _duration = microseconds.count();
         std::cerr << _description << " completed in " << _duration << " us" << std::endl;
 
+        setReported();
+    }
+
+    void Bench::record()
+    {
+        auto now = std::chrono::high_resolution_clock::now();
+        auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(now - _start);
+
+        _duration = microseconds.count();
+    }
+
+    void Bench::setReported()
+    {
         _reported = true;
     }
 
