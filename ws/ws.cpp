@@ -1146,7 +1146,7 @@ namespace ix
             return 1;
         }
 
-        spdlog::info("gzip input: {} cksum {}", filename, ix::djb2HashStr(res.second));
+        spdlog::info("gzip input: {} size {} cksum {}", filename, res.second.size(), ix::djb2HashStr(res.second));
 
         std::string compressedBytes;
 
@@ -1163,7 +1163,7 @@ namespace ix
         f << compressedBytes;
         f.close();
 
-        spdlog::info("gzip output: {} cksum {}", outputFilename, ix::djb2HashStr(compressedBytes));
+        spdlog::info("gzip output: {} size {} cksum {}", outputFilename, compressedBytes.size(), ix::djb2HashStr(compressedBytes));
 
         return 0;
     }
@@ -1180,7 +1180,7 @@ namespace ix
             return 1;
         }
 
-        spdlog::info("gunzip input: {} cksum {}", filename, ix::djb2HashStr(res.second));
+        spdlog::info("gunzip input: {} size {} cksum {}", filename, res.second.size(), ix::djb2HashStr(res.second));
 
         std::string decompressedBytes;
 
@@ -1201,7 +1201,7 @@ namespace ix
         f.close();
 
         spdlog::info(
-            "gunzip output: {} cksum {}", outputFilename, ix::djb2HashStr(decompressedBytes));
+            "gunzip output: {} size {} cksum {}", outputFilename, decompressedBytes.size(), ix::djb2HashStr(decompressedBytes));
 
         return 0;
     }
