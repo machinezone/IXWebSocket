@@ -5,6 +5,7 @@
  */
 
 #include "IXGzipCodec.h"
+#include "IXBench.h"
 
 #include <array>
 #include <string.h>
@@ -24,8 +25,13 @@ namespace ix
     {
 #ifdef IXWEBSOCKET_USE_DEFLATE
         int compressionLevel = 6;
-        struct libdeflate_compressor *compressor =
-            libdeflate_alloc_compressor(compressionLevel);
+        struct libdeflate_compressor *compressor;
+
+        {
+            Bench bench("creating compressor");
+            compressor =
+                libdeflate_alloc_compressor(compressionLevel);
+        }
 
         const void *uncompressed_data = str.data();
         size_t uncompressed_size = str.size();
@@ -35,18 +41,25 @@ namespace ix
 
         max_compressed_size = libdeflate_gzip_compress_bound(compressor,
                                                              uncompressed_size);
-        compressed_data = malloc(max_compressed_size);
+        {
+            Bench bench("alloc data");
+            compressed_data = malloc(max_compressed_size);
+        }
+
         if (compressed_data == NULL)
         {
             return std::string();
         }
 
-        actual_compressed_size = libdeflate_gzip_compress(
-            compressor,
-            uncompressed_data,
-            uncompressed_size,
-            compressed_data,
-            max_compressed_size);
+        {
+            Bench bench("compressing data");
+            actual_compressed_size = libdeflate_gzip_compress(
+                compressor,
+                uncompressed_data,
+                uncompressed_size,
+                compressed_data,
+                max_compressed_size);
+        }
 
         if (actual_compressed_size == 0)
         {
@@ -57,8 +70,15 @@ namespace ix
         libdeflate_free_compressor(compressor);
 
         std::string out;
-        out.append(reinterpret_cast<char*>(compressed_data), actual_compressed_size);
-        free(compressed_data);
+        {
+            Bench bench("append data");
+            out.append(reinterpret_cast<char*>(compressed_data), actual_compressed_size);
+        }
+
+        {
+            Bench bench("free data");
+            free(compressed_data);
+        }
 
         return out;
 #else

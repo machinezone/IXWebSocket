@@ -1150,6 +1150,7 @@ namespace ix
 
         std::string compressedBytes;
 
+        spdlog::info("compressing {} times", runCount);
         std::vector<uint64_t> durations;
         {
             Bench bench("compressing file");
@@ -1165,7 +1166,7 @@ namespace ix
 
             size_t medianIdx = durations.size() / 2;
             uint64_t medianRuntime = durations[medianIdx];
-            spdlog::info("compressing file in {}", medianRuntime);
+            spdlog::info("median runtime to compress file: {}", medianRuntime);
         }
 
         std::string outputFilename(filename);
