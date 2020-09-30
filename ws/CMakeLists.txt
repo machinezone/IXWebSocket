@@ -22,6 +22,12 @@ include_directories(ws .)
 include_directories(ws ..)
 include_directories(ws ../third_party/cpp-linenoise)
 
+find_package(JsonCpp)
+if (NOT JSONCPP_FOUND)
+  include_directories(../third_party/jsoncpp)
+  set(JSONCPP_SOURCES ../third_party/jsoncpp/jsoncpp.cpp)
+endif()
+
 if (USE_PYTHON)
   find_package(Python COMPONENTS Development)
   if (NOT Python_FOUND)
@@ -50,9 +56,13 @@ target_link_libraries(ws ixcrypto)
 target_link_libraries(ws ixcore)
 
 target_link_libraries(ws spdlog)
-target_link_libraries(ws jsoncpp_static)
 if (USE_PYTHON)
   target_link_libraries(ws ${Python_LIBRARIES})
+endif()
+
+if (JSONCPP_FOUND)
+  target_include_directories(ws PUBLIC ${JSONCPP_INCLUDE_DIRS})
+  target_link_libraries(ws ${JSONCPP_LIBRARIES})
 endif()
 
 install(TARGETS ws RUNTIME DESTINATION bin)
