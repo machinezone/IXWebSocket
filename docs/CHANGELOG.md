@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.4.9] - 2020-09-30
+
+(http server + utility code) Add support for doing gzip compression with libdeflate library, if available
+
 ## [10.4.8] - 2020-09-30
 
 (cmake) Stop using FetchContent cmake module to retrieve jsoncpp third party dependency

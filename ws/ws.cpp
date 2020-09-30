@@ -1136,7 +1136,7 @@ namespace ix
         return 0;
     }
 
-    int ws_gzip(const std::string& filename)
+    int ws_gzip(const std::string& filename, int runCount)
     {
         auto res = readAsString(filename);
         bool found = res.first;
@@ -1146,13 +1146,30 @@ namespace ix
             return 1;
         }
 
-        spdlog::info("gzip input: {} cksum {}", filename, ix::djb2HashStr(res.second));
+        spdlog::info("gzip input: {} size {} cksum {}",
+                     filename,
+                     res.second.size(),
+                     ix::djb2HashStr(res.second));
 
         std::string compressedBytes;
 
+        spdlog::info("compressing {} times", runCount);
+        std::vector<uint64_t> durations;
         {
             Bench bench("compressing file");
-            compressedBytes = gzipCompress(res.second);
+            bench.setReported();
+
+            for (int i = 0; i < runCount; ++i)
+            {
+                bench.reset();
+                compressedBytes = gzipCompress(res.second);
+                bench.record();
+                durations.push_back(bench.getDuration());
+            }
+
+            size_t medianIdx = durations.size() / 2;
+            uint64_t medianRuntime = durations[medianIdx];
+            spdlog::info("median runtime to compress file: {}", medianRuntime);
         }
 
         std::string outputFilename(filename);
@@ -1163,7 +1180,10 @@ namespace ix
         f << compressedBytes;
         f.close();
 
-        spdlog::info("gzip output: {} cksum {}", outputFilename, ix::djb2HashStr(compressedBytes));
+        spdlog::info("gzip output: {} size {} cksum {}",
+                     outputFilename,
+                     compressedBytes.size(),
+                     ix::djb2HashStr(compressedBytes));
 
         return 0;
     }
@@ -1180,7 +1200,10 @@ namespace ix
             return 1;
         }
 
-        spdlog::info("gunzip input: {} cksum {}", filename, ix::djb2HashStr(res.second));
+        spdlog::info("gunzip input: {} size {} cksum {}",
+                     filename,
+                     res.second.size(),
+                     ix::djb2HashStr(res.second));
 
         std::string decompressedBytes;
 
@@ -1200,8 +1223,10 @@ namespace ix
         f << decompressedBytes;
         f.close();
 
-        spdlog::info(
-            "gunzip output: {} cksum {}", outputFilename, ix::djb2HashStr(decompressedBytes));
+        spdlog::info("gunzip output: {} size {} cksum {}",
+                     outputFilename,
+                     decompressedBytes.size(),
+                     ix::djb2HashStr(decompressedBytes));
 
         return 0;
     }
@@ -2969,6 +2994,7 @@ int main(int argc, char** argv)
     int msgCount = 1000 * 1000;
     uint32_t maxWaitBetweenReconnectionRetries;
     int pingIntervalSecs = 30;
+    int runCount = 1;
 
     auto addGenericOptions = [&pidfile](CLI::App* app) {
         app->add_option("--pidfile", pidfile, "Pid file");
@@ -3297,6 +3323,7 @@ int main(int argc, char** argv)
     CLI::App* gzipApp = app.add_subcommand("gzip", "Gzip compressor");
     gzipApp->fallthrough();
     gzipApp->add_option("filename", filename, "Filename")->required();
+    gzipApp->add_option("--run_count", runCount, "Number of time to run the compression");
 
     CLI::App* gunzipApp = app.add_subcommand("gunzip", "Gzip decompressor");
     gunzipApp->fallthrough();
@@ -3600,7 +3627,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("gzip"))
     {
-        ret = ix::ws_gzip(filename);
+        ret = ix::ws_gzip(filename, runCount);
     }
     else if (app.got_subcommand("gunzip"))
     {

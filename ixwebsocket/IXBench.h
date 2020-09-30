@@ -18,13 +18,15 @@ namespace ix
         ~Bench();
 
         void reset();
+        void record();
         void report();
+        void setReported();
         uint64_t getDuration() const;
 
     private:
         std::string _description;
         std::chrono::time_point<std::chrono::high_resolution_clock> _start;
-        uint64_t _ms;
+        uint64_t _duration;
         bool _reported;
     };
 } // namespace ix

@@ -202,6 +202,14 @@ if (USE_ZLIB)
   target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_ZLIB)
 endif()
 
+# brew install libdeflate
+find_package(DEFLATE)
+if (DEFLATE_FOUND)
+  include_directories(${DEFLATE_INCLUDE_DIRS})
+  target_link_libraries(ixwebsocket ${DEFLATE_LIBRARIES})
+  target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_DEFLATE)
+endif()
+
 if (WIN32)
   target_link_libraries(ixwebsocket wsock32 ws2_32 shlwapi)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
