@@ -133,7 +133,7 @@
 <p>The <a href="https://github.com/machinezone/IXWebSocket/tree/master/ws"><em>ws</em></a> folder countains many interactive programs for chat, <a href="https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_send.cpp">file transfers</a>, <a href="https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_http_client.cpp">curl like</a> http clients, demonstrating client and server usage.</p>
 <h2 id="windows-note">Windows note</h2>
 <p>To use the network system on Windows, you need to initialize it once with <em>WSAStartup()</em> and clean it up with <em>WSACleanup()</em>. We have helpers for that which you can use, see below. This init would typically take place in your main function.</p>
-<pre><code class="cpp">#include &lt;ixwebsocket/IXNetSystem.h&gt;
+<pre><code class="language-cpp">#include &lt;ixwebsocket/IXNetSystem.h&gt;
 
 int main()
 {
@@ -145,9 +145,8 @@ int main()
     return 0;
 }
 </code></pre>
-
 <h2 id="websocket-client-api">WebSocket client API</h2>
-<pre><code class="cpp">#include &lt;ixwebsocket/IXWebSocket.h&gt;
+<pre><code class="language-cpp">#include &lt;ixwebsocket/IXWebSocket.h&gt;
 
 ...
 
@@ -188,7 +187,6 @@ webSocket.sendBinary(&quot;some serialized binary data&quot;);
 // Stop the connection
 webSocket.stop()
 </code></pre>
-
 <h3 id="sending-messages">Sending messages</h3>
 <p><code>WebSocketSendInfo result = websocket.send("foo")</code> will send a message.</p>
 <p>If the connection was closed, sending will fail, and the success field of the result object  will be set to false. There could also be a compression error in which case the compressError field will be set to true. The payloadSize field and wireSize fields will tell you respectively how much bytes the message weight, and how many bytes were sent on the wire (potentially compressed + counting the message header (a few bytes).</p>
@@ -207,7 +205,6 @@ webSocket.stop()
         return _connected;
     });
 </code></pre>
-
 <h3 id="readystate">ReadyState</h3>
 <p><code>getReadyState()</code> returns the state of the connection. There are 4 possible states.</p>
 <ol>
@@ -218,7 +215,7 @@ webSocket.stop()
 </ol>
 <h3 id="open-and-close-notifications">Open and Close notifications</h3>
 <p>The onMessage event will be fired when the connection is opened or closed. This is similar to the <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSocket">JavaScript browser API</a>, which has <code>open</code> and <code>close</code> events notification that can be registered with the browser <code>addEventListener</code>.</p>
-<pre><code class="cpp">webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
+<pre><code class="language-cpp">webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
     {
         if (msg-&gt;type == ix::WebSocketMessageType::Open)
         {
@@ -243,10 +240,9 @@ webSocket.stop()
     }
 );
 </code></pre>
-
 <h3 id="error-notification">Error notification</h3>
 <p>A message will be fired when there is an error with the connection. The message type will be <code>ix::WebSocketMessageType::Error</code>. Multiple fields will be available on the event to describe the error.</p>
-<pre><code class="cpp">webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
+<pre><code class="language-cpp">webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
     {
         if (msg-&gt;type == ix::WebSocketMessageType::Error)
         {
@@ -260,7 +256,6 @@ webSocket.stop()
     }
 );
 </code></pre>
-
 <h3 id="start-stop">start, stop</h3>
 <ol>
 <li><code>websocket.start()</code> connect to the remote server and starts the message receiving background thread.</li>
@@ -268,13 +263,12 @@ webSocket.stop()
 </ol>
 <h3 id="configuring-the-remote-url">Configuring the remote url</h3>
 <p>The url can be set and queried after a websocket object has been created. You will have to call <code>stop</code> and <code>start</code> if you want to disconnect and connect to that new url.</p>
-<pre><code class="cpp">std::string url(&quot;wss://example.com&quot;);
+<pre><code class="language-cpp">std::string url(&quot;wss://example.com&quot;);
 websocket.configure(url);
 </code></pre>
-
 <h3 id="pingpong-support">Ping/Pong support</h3>
 <p>Ping/pong messages are used to implement keep-alive. 2 message types exists to identify ping and pong messages. Note that when a ping message is received, a pong is instantly send back as requested by the WebSocket spec.</p>
-<pre><code class="cpp">webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
+<pre><code class="language-cpp">webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
     {
         if (msg-&gt;type == ix::WebSocketMessageType::Ping ||
             msg-&gt;type == ix::WebSocketMessageType::Pong)
@@ -284,42 +278,35 @@ websocket.configure(url);
     }
 );
 </code></pre>
-
 <p>A ping message can be sent to the server, with an optional data string.</p>
-<pre><code class="cpp">websocket.ping(&quot;ping data, optional (empty string is ok): limited to 125 bytes long&quot;);
+<pre><code class="language-cpp">websocket.ping(&quot;ping data, optional (empty string is ok): limited to 125 bytes long&quot;);
 </code></pre>
-
 <h3 id="heartbeat">Heartbeat.</h3>
 <p>You can configure an optional heart beat / keep-alive, sent every 45 seconds
 when there is no any traffic to make sure that load balancers do not kill an
 idle connection.</p>
-<pre><code class="cpp">webSocket.setPingInterval(45);
+<pre><code class="language-cpp">webSocket.setPingInterval(45);
 </code></pre>
-
 <h3 id="supply-extra-http-headers">Supply extra HTTP headers.</h3>
 <p>You can set extra HTTP headers to be sent during the WebSocket handshake.</p>
-<pre><code class="cpp">WebSocketHttpHeaders headers;
+<pre><code class="language-cpp">WebSocketHttpHeaders headers;
 headers[&quot;foo&quot;] = &quot;bar&quot;;
 webSocket.setExtraHeaders(headers);
 </code></pre>
-
 <h3 id="subprotocols">Subprotocols</h3>
 <p>You can specify subprotocols to be set during the WebSocket handshake. For more info you can refer to <a href="https://hpbn.co/websocket/#subprotocol-negotiation">this doc</a>.</p>
-<pre><code class="cpp">webSocket.addSubprotocol(&quot;appProtocol-v1&quot;);
+<pre><code class="language-cpp">webSocket.addSubprotocol(&quot;appProtocol-v1&quot;);
 webSocket.addSubprotocol(&quot;appProtocol-v2&quot;);
 </code></pre>
-
 <p>The protocol that the server did accept is available in the open info <code>protocol</code> field.</p>
-<pre><code class="cpp">std::cout &lt;&lt; &quot;protocol: &quot; &lt;&lt; msg-&gt;openInfo.protocol &lt;&lt; std::endl;
+<pre><code class="language-cpp">std::cout &lt;&lt; &quot;protocol: &quot; &lt;&lt; msg-&gt;openInfo.protocol &lt;&lt; std::endl;
 </code></pre>
-
 <h3 id="automatic-reconnection">Automatic reconnection</h3>
 <p>Automatic reconnection kicks in when the connection is disconnected without the user consent. This feature is on by default and can be turned off.</p>
-<pre><code class="cpp">webSocket.enableAutomaticReconnection();  // turn on
+<pre><code class="language-cpp">webSocket.enableAutomaticReconnection();  // turn on
 webSocket.disableAutomaticReconnection(); // turn off
 bool enabled = webSocket.isAutomaticReconnectionEnabled(); // query state
 </code></pre>
-
 <p>The technique to calculate wait time is called <a href="https://docs.aws.amazon.com/general/latest/gr/api-retries.html">exponential
 backoff</a>. Here
 are the default waiting times between attempts (from connecting with <code>ws connect ws://foo.com</code>)</p>
@@ -342,16 +329,14 @@ Wait time(ms): 6400
 #retries: 8
 Wait time(ms): 10000
 </code></pre>
-
 <p>The waiting time is capped by default at 10s between 2 attempts, but that value can be changed and queried.</p>
-<pre><code class="cpp">webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
+<pre><code class="language-cpp">webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
 uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 </code></pre>
-
 <h2 id="websocket-server-api">WebSocket server API</h2>
 <h3 id="legacy-api">Legacy api</h3>
 <p>This api was actually changed to take a weak_ptr<WebSocket> as the first argument to setOnConnectionCallback ; previously it would take a shared_ptr<WebSocket> which was creating cycles and then memory leaks problems.</p>
-<pre><code class="cpp">#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
+<pre><code class="language-cpp">#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
 
 ...
 
@@ -422,11 +407,10 @@ server.start();
 server.wait();
 
 </code></pre>
-
 <h3 id="new-api">New api</h3>
 <p>The new API does not require to use 2 nested callbacks, which is a bit annoying. The real fix is that there was a memory leak due to a shared_ptr cycle, due to passing down a shared_ptr<WebSocket> down to the callbacks.</p>
 <p>The webSocket reference is guaranteed to be always valid ; by design the callback will never be invoked with a null webSocket object.</p>
-<pre><code class="cpp">#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
+<pre><code class="language-cpp">#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
 
 ...
 
@@ -485,9 +469,8 @@ server.start();
 server.wait();
 
 </code></pre>
-
 <h2 id="http-client-api">HTTP client API</h2>
-<pre><code class="cpp">#include &lt;ixwebsocket/IXHttpClient.h&gt;
+<pre><code class="language-cpp">#include &lt;ixwebsocket/IXHttpClient.h&gt;
 
 ...
 
@@ -533,10 +516,17 @@ out = httpClient.get(url, args);
 // POST request with parameters
 HttpParameters httpParameters;
 httpParameters[&quot;foo&quot;] = &quot;bar&quot;;
-out = httpClient.post(url, httpParameters, args);
+
+// HTTP form data can be passed in as well, for multi-part upload of files
+HttpFormDataParameters httpFormDataParameters;
+httpParameters[&quot;baz&quot;] = &quot;booz&quot;;
+
+out = httpClient.post(url, httpParameters, httpFormDataParameters, args);
 
 // POST request with a body
 out = httpClient.post(url, std::string(&quot;foo=bar&quot;), args);
+
+// PUT and PATCH are available too.
 
 //
 // Result
@@ -566,10 +556,9 @@ bool ok = httpClient.performRequest(args, [](const HttpResponsePtr&amp; response
 
 // ok will be false if your httpClient is not async
 </code></pre>
-
 <p>See this <a href="https://github.com/machinezone/IXWebSocket/issues/209">issue</a> for links about uploading files with HTTP multipart.</p>
 <h2 id="http-server-api">HTTP server API</h2>
-<pre><code class="cpp">#include &lt;ixwebsocket/IXHttpServer.h&gt;
+<pre><code class="language-cpp">#include &lt;ixwebsocket/IXHttpServer.h&gt;
 
 ix::HttpServer server(port, hostname);
 
@@ -583,9 +572,8 @@ if (!res.first)
 server.start();
 server.wait();
 </code></pre>
-
 <p>If you want to handle how requests are processed, implement the setOnConnectionCallback callback, which takes an HttpRequestPtr as input, and returns an HttpResponsePtr. You can look at HttpServer::setDefaultConnectionCallback for a slightly more advanced callback example.</p>
-<pre><code class="cpp">setOnConnectionCallback(
+<pre><code class="language-cpp">setOnConnectionCallback(
     [this](HttpRequestPtr request,
            std::shared_ptr&lt;ConnectionState&gt; connectionState) -&gt; HttpResponsePtr
     {
@@ -605,21 +593,19 @@ server.wait();
                                               content);
 }
 </code></pre>
-
 <h2 id="tls-support-and-configuration">TLS support and configuration</h2>
 <p>To leverage TLS features, the library must be compiled with the option <code>USE_TLS=1</code>.</p>
 <p>If you are using OpenSSL, try to be on a version higher than 1.1.x as there there are thread safety problems with 1.0.x.</p>
 <p>Then, secure sockets are automatically used when connecting to a <code>wss://*</code> url.</p>
 <p>Additional TLS options can be configured by passing a <code>ix::SocketTLSOptions</code> instance to the
 <code>setTLSOptions</code> on <code>ix::WebSocket</code> (or <code>ix::WebSocketServer</code> or <code>ix::HttpServer</code>)</p>
-<pre><code class="cpp">webSocket.setTLSOptions({
+<pre><code class="language-cpp">webSocket.setTLSOptions({
     .certFile = &quot;path/to/cert/file.pem&quot;,
     .keyFile = &quot;path/to/key/file.pem&quot;,
     .caFile = &quot;path/to/trust/bundle/file.pem&quot;, // as a file, or in memory buffer in PEM format
     .tls = true // required in server mode
 });
 </code></pre>
-
 <p>Specifying <code>certFile</code> and <code>keyFile</code> configures the certificate that will be used to communicate with TLS peers.</p>
 <p>On a client, this is only necessary for connecting to servers that require a client certificate.</p>
 <p>On a server, this is necessary for TLS support.</p>

@@ -136,7 +136,7 @@
 <li>FreeBSD</li>
 </ul>
 <h2 id="example-code">Example code</h2>
-<pre><code class="c++">// Required on Windows
+<pre><code class="language-c++">// Required on Windows
 ix::initNetSystem();
 
 // Our websocket object
@@ -161,7 +161,6 @@ webSocket.start();
 // Send a message to the server (default to TEXT mode)
 webSocket.send(&quot;hello world&quot;);
 </code></pre>
-
 <h2 id="why-another-library">Why another library?</h2>
 <p>There are 2 main reasons that explain why IXWebSocket got written. First, we needed a C++ cross-platform client library, which should have few dependencies. What looked like the most solid one, <a href="https://github.com/zaphoyd/websocketpp">websocketpp</a> did depend on boost and this was not an option for us. Secondly, there were other available libraries with fewer dependencies (C ones), but they required calling an explicit poll routine periodically to know if a client had received data from a server, which was not elegant.</p>
 <p>We started by solving those 2 problems, then we added server websocket code, then an HTTP client, and finally a very simple HTTP server. IXWebSocket comes with a command line utility named ws which is quite handy, and is now packaged with alpine linux. You can install it with <code>apk add ws</code>.</p>
@@ -265,5 +264,5 @@ webSocket.send(&quot;hello world&quot;);
 
 <!--
 MkDocs version : 1.1.2
-Build Date UTC : 2020-09-30 21:35:01.038353+00:00
+Build Date UTC : 2020-10-08 19:44:07.118071+00:00
 -->

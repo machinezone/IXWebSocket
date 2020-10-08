@@ -98,6 +98,10 @@
             
             <li class="nav-item" data-level="1"><a href="#changelog" class="nav-link">Changelog</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#1050-2020-09-30" class="nav-link">[10.5.0] - 2020-09-30</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#1049-2020-09-30" class="nav-link">[10.4.9] - 2020-09-30</a>
               <ul class="nav flex-column">
               </ul>
@@ -1047,6 +1051,8 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="1050-2020-09-30">[10.5.0] - 2020-09-30</h2>
+<p>(http client + server + ws) Add support for uploading files with ws -F foo=@filename, new -D http server option to debug incoming client requests, internal api changed for http POST, PUT and PATCH to supply an HttpFormDataParameters</p>
 <h2 id="1049-2020-09-30">[10.4.9] - 2020-09-30</h2>
 <p>(http server + utility code) Add support for doing gzip compression with libdeflate library, if available</p>
 <h2 id="1048-2020-09-30">[10.4.8] - 2020-09-30</h2>
@@ -1321,7 +1327,6 @@ ws_connect: connection closed: code 1000 reason Normal closure
 [2020-03-17 23:53:19.502] [info] Received 208 bytes
 [2020-03-17 23:53:19.502] [info] Sent 0 bytes
 </code></pre>
-
 <h2 id="826-2020-03-16">[8.2.6] - 2020-03-16</h2>
 <p>(cobra to sentry bot + docker) default docker file uses mbedtls + ws cobra_to_sentry pass tls options to sentryClient.</p>
 <h2 id="825-2020-03-13">[8.2.5] - 2020-03-13</h2>
@@ -1432,11 +1437,9 @@ ws_connect: connection closed: code 1000 reason Normal closure
 <p>Before:</p>
 <pre><code>Connection error: Got bad status connecting to example.com:443, status: 200, HTTP Status line: HTTP/1.1 200 OK
 </code></pre>
-
 <p>After:</p>
 <pre><code>Connection error: Expecting status 101 (Switching Protocol), got 200 status connecting to example.com:443, HTTP Status line: HTTP/1.1 200 OK
 </code></pre>
-
 <h2 id="753-2019-12-12">[7.5.3] - 2019-12-12</h2>
 <p>(server) attempt at fixing #131 by using blocking writes in server mode</p>
 <h2 id="752-2019-12-11">[7.5.2] - 2019-12-11</h2>
@@ -1467,7 +1470,6 @@ ws_connect: connection closed: code 1000 reason Normal closure
 [2019-12-05 15:50:44.763] [info] messages received 18839 sent 25
 [2019-12-05 15:50:45.768] [info] messages received 18839 sent 25
 </code></pre>
-
 <h2 id="745-2019-12-03">[7.4.5] - 2019-12-03</h2>
 <ul>
 <li>(ws) #125 / fix build problem when jsoncpp is not installed locally</li>
@@ -1559,7 +1561,6 @@ ws_connect: connection closed: code 1000 reason Normal closure
 </ul>
 <pre><code>ws httpd -L --redirect_url https://www.google.com
 </code></pre>
-
 <h2 id="627-2019-09-25">[6.2.7] - 2019-09-25</h2>
 <ul>
 <li>Stop having ws send subcommand send a binary message in text mode, which would cause error in <code>make ws_test</code> shell script test.</li>
@@ -1663,7 +1664,6 @@ ws_connect: connection closed: code 1000 reason Normal closure
 </ul>
 <pre><code>ws connect --max_wait 5000 ws://example.com # will only wait 5 seconds max between reconnection attempts
 </code></pre>
-
 <h2 id="507-2019-08-23">[5.0.7] - 2019-08-23</h2>
 <ul>
 <li>WebSocket: add new option to pass in extra HTTP headers when connecting.</li>
@@ -1672,7 +1672,6 @@ ws_connect: connection closed: code 1000 reason Normal closure
 <p>If you run against <code>ws echo_server</code> you will see the headers being received printed in the terminal.</p>
 <pre><code>ws connect -H &quot;foo: bar&quot; -H &quot;baz: buz&quot; ws://127.0.0.1:8008
 </code></pre>
-
 <ul>
 <li>CobraConnection: sets a unique id field for all messages sent to <a href="https://github.com/machinezone/cobra">cobra</a>.</li>
 <li>CobraConnection: sets a counter as a field for each event published.</li>

@@ -162,7 +162,6 @@ Subcommands:
   snake                       Snake server
   httpd                       HTTP server
 </code></pre>
-
 <h2 id="curl">curl</h2>
 <p>The curl subcommand try to be compatible with the curl syntax, to fetch http pages.</p>
 <p>Making a HEAD request with the -I parameter.</p>
@@ -185,7 +184,6 @@ Upload size: 143
 Download size: 0
 Status: 200
 </code></pre>
-
 <p>Making a POST request with the -F parameter.</p>
 <pre><code>$ ws curl -F foo=bar https://httpbin.org/post
 foo: bar
@@ -224,7 +222,6 @@ payload: {
   &quot;url&quot;: &quot;https://httpbin.org/post&quot;
 }
 </code></pre>
-
 <p>Passing in a custom header with -H.</p>
 <pre><code>$ ws curl -F foo=bar -H 'my_custom_header: baz' https://httpbin.org/post
 my_custom_header:  baz
@@ -265,7 +262,6 @@ payload: {
   &quot;url&quot;: &quot;https://httpbin.org/post&quot;
 }
 </code></pre>
-
 <h2 id="connect">connect</h2>
 <p>The connect command connects to a websocket endpoint, and starts an interactive prompt. Line editing, such as using the direction keys to fetch the last thing you tried to type) is provided. That command is pretty useful to try to send random data to an endpoint and verify that the service handles it with grace (such as sending invalid json).</p>
 <pre><code>ws connect wss://echo.websocket.org
@@ -290,7 +286,6 @@ ws_connect: received message: Hello world !
 &gt; Received 13 bytes
 ws_connect: received message: Hello world !
 </code></pre>
-
 <pre><code>ws connect 'ws://jeanserge.com/v2?appkey=_pubsub'
 Type Ctrl-D to exit prompt...
 Connecting to url: ws://jeanserge.com/v2?appkey=_pubsub
@@ -316,27 +311,23 @@ Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_
 Server: Python/3.7 websockets/8.0.2
 Upgrade: websocket
 </code></pre>
-
 <h2 id="websocket-proxy">Websocket proxy</h2>
 <pre><code>ws proxy_server --remote_host ws://127.0.0.1:9000 -v
 Listening on 127.0.0.1:8008
 </code></pre>
-
 <p>If you connect to ws://127.0.0.1:8008, the proxy will connect to ws://127.0.0.1:9000 and pass all traffic to this server.</p>
 <p>You can also use a more complex setup if you want to redirect to different websocket servers based on the hostname your client is trying to connect to. If you have multiple CNAME aliases that point to the same server.</p>
 <p>A JSON config file is used to express that mapping ; here connecting to echo.jeanserge.com will proxy the client to ws://localhost:8008 on the local machine (which actually runs ws echo_server), while connecting to bavarde.jeanserge.com will proxy the client to ws://localhost:5678 where a cobra python server is running. As a side note you will need a wildcard SSL certificate if you want to have SSL enabled on that machine.</p>
-<pre><code class="json">{
+<pre><code class="language-json">{
         &quot;remote_urls&quot;: {
                 &quot;echo.jeanserge.com&quot;: &quot;ws://localhost:8008&quot;,
                 &quot;bavarde.jeanserge.com&quot;: &quot;ws://localhost:5678&quot;
         }
 }
 </code></pre>
-
 <p>The --config_path option is required to instruct ws proxy_server to read that file.</p>
 <pre><code>ws proxy_server --config_path proxyConfig.json --port 8765
 </code></pre>
-
 <h2 id="file-transfer">File transfer</h2>
 <pre><code># Start transfer server, which is just a broadcast server at this point
 ws transfer # running on port 8080.
@@ -347,7 +338,6 @@ ws receive ws://localhost:8080
 # Then send a file. File will be received and written to disk by the receiver process
 ws send ws://localhost:8080 /file/to/path
 </code></pre>
-
 <h2 id="http-client">HTTP Client</h2>
 <pre><code>$ ws curl --help
 HTTP Client
@@ -371,7 +361,6 @@ Options:
   --connect-timeout INT       Connection timeout
   --transfer-timeout INT      Transfer timeout
 </code></pre>
-
 <h2 id="cobra-client-and-server">Cobra client and server</h2>
 <p><a href="https://github.com/machinezone/cobra">cobra</a> is a real time messenging server. ws has several sub-command to interact with cobra. There is also a minimal cobra compatible server named snake available.</p>
 <p>Below are examples on running a snake server and clients with TLS enabled (the server only works with the OpenSSL and the Mbed TLS backend for now).</p>
@@ -428,7 +417,6 @@ subject=/O=machinezone/O=IXWebSocket/CN=selfsigned-client
 Getting Private key
 generated ./.certs/selfsigned-client-crt.pem
 </code></pre>
-
 <p>Now run the snake server.</p>
 <pre><code>$ export certs=.certs
 $ ws snake --tls --port 8765 --cert-file ${certs}/trusted-server-crt.pem --key-file ${certs}/trusted-server-key.pem --ca-file ${certs}/trusted-ca-crt.pem
@@ -451,7 +439,6 @@ redis host: 127.0.0.1
 redis password:
 redis port: 6379
 </code></pre>
-
 <p>As a new connection comes in, such output should be printed</p>
 <pre><code>[2019-12-19 20:27:19.724] [info] New connection
 id: 0
@@ -466,7 +453,6 @@ Sec-WebSocket-Version: 13
 Upgrade: websocket
 User-Agent: ixwebsocket/7.5.8 macos ssl/OpenSSL OpenSSL 1.0.2q  20 Nov 2018 zlib 1.2.11
 </code></pre>
-
 <p>To connect and publish a message, do:</p>
 <pre><code>$ export certs=.certs
 $ cd /path/to/ws/folder
@@ -483,7 +469,6 @@ $ ws cobra_publish --endpoint wss://127.0.0.1:8765 --appkey FC2F10139A2BAc53BB72
 [2019-12-19 20:46:42.658] [info] Published msg 3
 [2019-12-19 20:46:42.659] [info] Published message id 3 acked
 </code></pre>
-
 <p>To use OpenSSL on macOS, compile with <code>make ws_openssl</code>. First you will have to install OpenSSL libraries, which can be done with Homebrew. Use <code>make ws_mbedtls</code> accordingly to use MbedTLS.</p></div>
             </div>
         </div>

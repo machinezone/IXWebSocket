@@ -110,7 +110,7 @@
 <p>Bring up 3 terminals and run a server, a publisher and a subscriber in each one. As you publish data you should see it being received by the subscriber. You can run <code>redis-cli MONITOR</code> too to see how redis is being used.</p>
 <h3 id="server">Server</h3>
 <p>You will need to have a redis server running locally. To run the server:</p>
-<pre><code class="bash">$ cd &lt;ixwebsocket-top-level-folder&gt;/ixsnake/ixsnake
+<pre><code class="language-bash">$ cd &lt;ixwebsocket-top-level-folder&gt;/ixsnake/ixsnake
 $ ws snake
 {
   &quot;apps&quot;: {
@@ -131,9 +131,8 @@ redis host: 127.0.0.1
 redis password:
 redis port: 6379
 </code></pre>
-
 <h3 id="publisher">Publisher</h3>
-<pre><code class="bash">$ cd &lt;ixwebsocket-top-level-folder&gt;/ws
+<pre><code class="language-bash">$ cd &lt;ixwebsocket-top-level-folder&gt;/ws
 $ ws cobra_publish --appkey FC2F10139A2BAc53BB72D9db967b024f --endpoint ws://127.0.0.1:8008 --rolename _pub --rolesecret 1c04DB8fFe76A4EeFE3E318C72d771db test_channel cobraMetricsSample.json
 [2019-11-27 09:06:12.980] [info] Publisher connected
 [2019-11-27 09:06:12.980] [info] Connection: Upgrade
@@ -145,9 +144,8 @@ $ ws cobra_publish --appkey FC2F10139A2BAc53BB72D9db967b024f --endpoint ws://127
 [2019-11-27 09:06:12.982] [info] Published msg 3
 [2019-11-27 09:06:12.982] [info] Published message id 3 acked
 </code></pre>
-
 <h3 id="subscriber">Subscriber</h3>
-<pre><code class="bash">$ ws cobra_subscribe --appkey FC2F10139A2BAc53BB72D9db967b024f --endpoint ws://127.0.0.1:8008 --rolename _pub --rolesecret 1c04DB8fFe76A4EeFE3E318C72d771db test_channel
+<pre><code class="language-bash">$ ws cobra_subscribe --appkey FC2F10139A2BAc53BB72D9db967b024f --endpoint ws://127.0.0.1:8008 --rolename _pub --rolesecret 1c04DB8fFe76A4EeFE3E318C72d771db test_channel
 #messages 0 msg/s 0
 [2019-11-27 09:07:39.341] [info] Subscriber connected
 [2019-11-27 09:07:39.341] [info] Connection: Upgrade
