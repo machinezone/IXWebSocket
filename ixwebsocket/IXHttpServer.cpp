@@ -190,4 +190,40 @@ namespace ix
                     301, "OK", HttpErrorCode::Ok, headers, std::string());
             });
     }
+
+    //
+    // Display the client parameter and body on the console
+    //
+    void HttpServer::makeDebugServer()
+    {
+        setOnConnectionCallback(
+            [this](HttpRequestPtr request,
+                   std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr {
+                WebSocketHttpHeaders headers;
+                headers["Server"] = userAgent();
+
+                // Log request
+                std::stringstream ss;
+                ss << connectionState->getRemoteIp() << ":" << connectionState->getRemotePort()
+                   << " " << request->method << " " << request->headers["User-Agent"] << " "
+                   << request->uri;
+                logInfo(ss.str());
+
+                logInfo("== Headers == ");
+                for (auto&& it : request->headers)
+                {
+                    std::ostringstream oss;
+                    oss << it.first << ": " << it.second;
+                    logInfo(oss.str());
+                }
+                logInfo("");
+
+                logInfo("== Body == ");
+                logInfo(request->body);
+                logInfo("");
+
+                return std::make_shared<HttpResponse>(
+                    200, "OK", HttpErrorCode::Ok, headers, std::string("OK"));
+            });
+    }
 } // namespace ix

@@ -34,6 +34,7 @@ namespace ix
 
         HttpResponsePtr post(const std::string& url,
                              const HttpParameters& httpParameters,
+                             const HttpFormDataParameters& httpFormDataParameters,
                              HttpRequestArgsPtr args);
         HttpResponsePtr post(const std::string& url,
                              const std::string& body,
@@ -41,6 +42,7 @@ namespace ix
 
         HttpResponsePtr put(const std::string& url,
                             const HttpParameters& httpParameters,
+                            const HttpFormDataParameters& httpFormDataParameters,
                             HttpRequestArgsPtr args);
         HttpResponsePtr put(const std::string& url,
                             const std::string& body,
@@ -48,6 +50,7 @@ namespace ix
 
         HttpResponsePtr patch(const std::string& url,
                               const HttpParameters& httpParameters,
+                              const HttpFormDataParameters& httpFormDataParameters,
                               HttpRequestArgsPtr args);
         HttpResponsePtr patch(const std::string& url,
                               const std::string& body,

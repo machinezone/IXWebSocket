@@ -1271,43 +1271,42 @@ namespace ix
 
         // Setup a callback to be fired
         // when a message or an event (open, close, ping, pong, error) is received
-        webSocket.setOnMessageCallback(
-            [&webSocket, &receivedCountPerSecs, &target, &stop, &condition, &bench](
-                const ix::WebSocketMessagePtr& msg) {
-                if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    receivedCountPerSecs++;
+        webSocket.setOnMessageCallback([&receivedCountPerSecs, &target, &stop, &condition, &bench](
+                                           const ix::WebSocketMessagePtr& msg) {
+            if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                receivedCountPerSecs++;
 
-                    target -= 1;
-                    if (target == 0)
-                    {
-                        stop = true;
-                        condition.notify_one();
+                target -= 1;
+                if (target == 0)
+                {
+                    stop = true;
+                    condition.notify_one();
 
-                        bench.report();
-                    }
+                    bench.report();
                 }
-                else if (msg->type == ix::WebSocketMessageType::Open)
-                {
-                    bench.reset();
+            }
+            else if (msg->type == ix::WebSocketMessageType::Open)
+            {
+                bench.reset();
 
-                    spdlog::info("ws_autoroute: connected");
-                    spdlog::info("Uri: {}", msg->openInfo.uri);
-                    spdlog::info("Headers:");
-                    for (auto it : msg->openInfo.headers)
-                    {
-                        spdlog::info("{}: {}", it.first, it.second);
-                    }
-                }
-                else if (msg->type == ix::WebSocketMessageType::Pong)
+                spdlog::info("ws_autoroute: connected");
+                spdlog::info("Uri: {}", msg->openInfo.uri);
+                spdlog::info("Headers:");
+                for (auto it : msg->openInfo.headers)
                 {
-                    spdlog::info("Received pong {}", msg->str);
+                    spdlog::info("{}: {}", it.first, it.second);
                 }
-                else if (msg->type == ix::WebSocketMessageType::Close)
-                {
-                    spdlog::info("ws_autoroute: connection closed");
-                }
-            });
+            }
+            else if (msg->type == ix::WebSocketMessageType::Pong)
+            {
+                spdlog::info("Received pong {}", msg->str);
+            }
+            else if (msg->type == ix::WebSocketMessageType::Close)
+            {
+                spdlog::info("ws_autoroute: connection closed");
+            }
+        });
 
         auto timer = [&receivedCountPerSecs, &stop] {
             setThreadName("Timer");
@@ -1462,7 +1461,7 @@ namespace ix
     // Useful endpoint to test HTTP post
     // https://postman-echo.com/post
     //
-    HttpParameters parsePostParameters(const std::string& data)
+    HttpParameters parseHttpParameters(const std::string& data)
     {
         HttpParameters httpParameters;
 
@@ -1487,9 +1486,51 @@ namespace ix
         return httpParameters;
     }
 
+    HttpFormDataParameters parseHttpFormDataParameters(const std::string& data)
+    {
+        HttpFormDataParameters httpFormDataParameters;
+
+        // Split by \n
+        std::string token;
+        std::stringstream tokenStream(data);
+
+        while (std::getline(tokenStream, token))
+        {
+            std::size_t pos = token.rfind('=');
+
+            // Bail out if last '.' is found
+            if (pos == std::string::npos) continue;
+
+            auto key = token.substr(0, pos);
+            auto val = token.substr(pos + 1);
+
+            spdlog::info("{}: {}", key, val);
+
+            if (val[0] == '@')
+            {
+                std::string filename = token.substr(pos + 2);
+
+                auto res = readAsString(filename);
+                bool found = res.first;
+                if (!found)
+                {
+                    spdlog::error("Cannot read content of {}", filename);
+                    continue;
+                }
+
+                val = res.second;
+            }
+
+            httpFormDataParameters[key] = val;
+        }
+
+        return httpFormDataParameters;
+    }
+
     int ws_http_client_main(const std::string& url,
                             const std::string& headersData,
                             const std::string& data,
+                            const std::string& formData,
                             bool headersOnly,
                             int connectTimeout,
                             int transferTimeout,
@@ -1521,20 +1562,21 @@ namespace ix
             return true;
         };
 
-        HttpParameters httpParameters = parsePostParameters(data);
+        HttpParameters httpParameters = parseHttpParameters(data);
+        HttpFormDataParameters httpFormDataParameters = parseHttpFormDataParameters(formData);
 
         HttpResponsePtr response;
         if (headersOnly)
         {
             response = httpClient.head(url, args);
         }
-        else if (data.empty())
+        else if (data.empty() && formData.empty())
         {
             response = httpClient.get(url, args);
         }
         else
         {
-            response = httpClient.post(url, httpParameters, args);
+            response = httpClient.post(url, httpParameters, httpFormDataParameters, args);
         }
 
         spdlog::info("");
@@ -1591,6 +1633,7 @@ namespace ix
                       const std::string& hostname,
                       bool redirect,
                       const std::string& redirectUrl,
+                      bool debug,
                       const ix::SocketTLSOptions& tlsOptions)
     {
         spdlog::info("Listening on {}:{}", hostname, port);
@@ -1601,6 +1644,11 @@ namespace ix
         if (redirect)
         {
             server.makeRedirectServer(redirectUrl);
+        }
+
+        if (debug)
+        {
+            server.makeDebugServer();
         }
 
         auto res = server.listen();
@@ -2930,6 +2978,7 @@ int main(int argc, char** argv)
     std::string path;
     std::string user;
     std::string data;
+    std::string formData;
     std::string headers;
     std::string output;
     std::string hostname("127.0.0.1");
@@ -2983,6 +3032,7 @@ int main(int argc, char** argv)
     bool version = false;
     bool verifyNone = false;
     bool disablePong = false;
+    bool debug = false;
     int port = 8008;
     int redisPort = 6379;
     int statsdPort = 8125;
@@ -3139,7 +3189,7 @@ int main(int argc, char** argv)
     httpClientApp->fallthrough();
     httpClientApp->add_option("url", url, "Connection url")->required();
     httpClientApp->add_option("-d", data, "Form data")->join();
-    httpClientApp->add_option("-F", data, "Form data")->join();
+    httpClientApp->add_option("-F", formData, "Form data")->join();
     httpClientApp->add_option("-H", headers, "Header")->join();
     httpClientApp->add_option("--output", output, "Output file");
     httpClientApp->add_flag("-I", headersOnly, "Send a HEAD request");
@@ -3147,7 +3197,7 @@ int main(int argc, char** argv)
     httpClientApp->add_option("--max-redirects", maxRedirects, "Max Redirects");
     httpClientApp->add_flag("-v", verbose, "Verbose");
     httpClientApp->add_flag("-O", save, "Save output to disk");
-    httpClientApp->add_flag("--compress", compress, "Enable gzip compression");
+    httpClientApp->add_flag("--compressed", compress, "Enable gzip compression");
     httpClientApp->add_option("--connect-timeout", connectTimeOut, "Connection timeout");
     httpClientApp->add_option("--transfer-timeout", transferTimeout, "Transfer timeout");
     addTLSOptions(httpClientApp);
@@ -3281,6 +3331,7 @@ int main(int argc, char** argv)
     httpServerApp->add_option("--host", hostname, "Hostname");
     httpServerApp->add_flag("-L", redirect, "Redirect all request to redirect_url");
     httpServerApp->add_option("--redirect_url", redirectUrl, "Url to redirect to");
+    httpServerApp->add_flag("-D", debug, "Debug server");
     addTLSOptions(httpServerApp);
 
     CLI::App* autobahnApp = app.add_subcommand("autobahn", "Test client Autobahn compliance");
@@ -3462,6 +3513,7 @@ int main(int argc, char** argv)
         ret = ix::ws_http_client_main(url,
                                       headers,
                                       data,
+                                      formData,
                                       headersOnly,
                                       connectTimeOut,
                                       transferTimeout,
@@ -3580,7 +3632,7 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("httpd"))
     {
-        ret = ix::ws_httpd_main(port, hostname, redirect, redirectUrl, tlsOptions);
+        ret = ix::ws_httpd_main(port, hostname, redirect, redirectUrl, debug, tlsOptions);
     }
     else if (app.got_subcommand("autobahn"))
     {

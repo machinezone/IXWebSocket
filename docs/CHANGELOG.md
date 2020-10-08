@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.5.0] - 2020-09-30
+
+(http client + server + ws) Add support for uploading files with ws -F foo=@filename, new -D http server option to debug incoming client requests, internal api changed for http POST, PUT and PATCH to supply an HttpFormDataParameters
+
 ## [10.4.9] - 2020-09-30
 
 (http server + utility code) Add support for doing gzip compression with libdeflate library, if available

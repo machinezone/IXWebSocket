@@ -458,10 +458,17 @@ out = httpClient.get(url, args);
 // POST request with parameters
 HttpParameters httpParameters;
 httpParameters["foo"] = "bar";
-out = httpClient.post(url, httpParameters, args);
+
+// HTTP form data can be passed in as well, for multi-part upload of files
+HttpFormDataParameters httpFormDataParameters;
+httpParameters["baz"] = "booz";
+
+out = httpClient.post(url, httpParameters, httpFormDataParameters, args);
 
 // POST request with a body
 out = httpClient.post(url, std::string("foo=bar"), args);
+
+// PUT and PATCH are available too.
 
 //
 // Result

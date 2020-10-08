@@ -38,6 +38,8 @@ namespace ix
 
         void makeRedirectServer(const std::string& redirectUrl);
 
+        void makeDebugServer();
+
     private:
         // Member variables
         OnConnectionCallback _onConnectionCallback;
