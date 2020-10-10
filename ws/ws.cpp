@@ -1540,6 +1540,7 @@ namespace ix
                             bool save,
                             const std::string& output,
                             bool compress,
+                            bool compressRequest,
                             const ix::SocketTLSOptions& tlsOptions)
     {
         HttpClient httpClient;
@@ -1553,6 +1554,7 @@ namespace ix
         args->maxRedirects = maxRedirects;
         args->verbose = verbose;
         args->compress = compress;
+        args->compressRequest = compressRequest;
         args->logger = [](const std::string& msg) { spdlog::info(msg); };
         args->onProgressCallback = [verbose](int current, int total) -> bool {
             if (verbose)
@@ -3022,6 +3024,7 @@ int main(int argc, char** argv)
     bool quiet = false;
     bool fluentd = false;
     bool compress = false;
+    bool compressRequest = false;
     bool stress = false;
     bool disableAutomaticReconnection = false;
     bool disablePerMessageDeflate = false;
@@ -3198,6 +3201,7 @@ int main(int argc, char** argv)
     httpClientApp->add_flag("-v", verbose, "Verbose");
     httpClientApp->add_flag("-O", save, "Save output to disk");
     httpClientApp->add_flag("--compressed", compress, "Enable gzip compression");
+    httpClientApp->add_flag("--compress_request", compressRequest, "Compress request with gzip");
     httpClientApp->add_option("--connect-timeout", connectTimeOut, "Connection timeout");
     httpClientApp->add_option("--transfer-timeout", transferTimeout, "Transfer timeout");
     addTLSOptions(httpClientApp);
@@ -3523,6 +3527,7 @@ int main(int argc, char** argv)
                                       save,
                                       output,
                                       compress,
+                                      compressRequest,
                                       tlsOptions);
     }
     else if (app.got_subcommand("redis_cli"))

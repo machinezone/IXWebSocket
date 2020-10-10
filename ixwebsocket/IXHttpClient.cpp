@@ -203,6 +203,13 @@ namespace ix
 
         if (verb == kPost || verb == kPut || verb == kPatch || _forceBody)
         {
+            // Set request compression header
+            if (args->compressRequest)
+            {
+                ss << "Content-Encoding: gzip"
+                   << "\r\n";
+            }
+
             ss << "Content-Length: " << body.size() << "\r\n";
 
             // Set default Content-Type if unspecified
@@ -553,23 +560,41 @@ namespace ix
         return request(url, kDel, std::string(), args);
     }
 
-    HttpResponsePtr HttpClient::post(const std::string& url,
-                                     const HttpParameters& httpParameters,
-                                     const HttpFormDataParameters& httpFormDataParameters,
-                                     HttpRequestArgsPtr args)
+    HttpResponsePtr HttpClient::request(const std::string& url,
+                                        const std::string& verb,
+                                        const HttpParameters& httpParameters,
+                                        const HttpFormDataParameters& httpFormDataParameters,
+                                        HttpRequestArgsPtr args)
     {
+        std::string body;
+
         if (httpFormDataParameters.empty())
         {
-            return request(url, kPost, serializeHttpParameters(httpParameters), args);
+            body = serializeHttpParameters(httpParameters);
         }
         else
         {
             std::string multipartBoundary = generateMultipartBoundary();
             args->multipartBoundary = multipartBoundary;
-            std::string body = serializeHttpFormDataParameters(
+            body = serializeHttpFormDataParameters(
                 multipartBoundary, httpFormDataParameters, httpParameters);
-            return request(url, kPost, body, args);
         }
+
+        if (args->compressRequest)
+        {
+            body = gzipCompress(body);
+        }
+
+        return request(url, verb, body, args);
+    }
+
+
+    HttpResponsePtr HttpClient::post(const std::string& url,
+                                     const HttpParameters& httpParameters,
+                                     const HttpFormDataParameters& httpFormDataParameters,
+                                     HttpRequestArgsPtr args)
+    {
+        return request(url, kPost, httpParameters, httpFormDataParameters, args);
     }
 
     HttpResponsePtr HttpClient::post(const std::string& url,
@@ -584,18 +609,7 @@ namespace ix
                                     const HttpFormDataParameters& httpFormDataParameters,
                                     HttpRequestArgsPtr args)
     {
-        if (httpFormDataParameters.empty())
-        {
-            return request(url, kPut, serializeHttpParameters(httpParameters), args);
-        }
-        else
-        {
-            std::string multipartBoundary = generateMultipartBoundary();
-            args->multipartBoundary = multipartBoundary;
-            std::string body = serializeHttpFormDataParameters(
-                multipartBoundary, httpFormDataParameters, httpParameters);
-            return request(url, kPut, body, args);
-        }
+        return request(url, kPut, httpParameters, httpFormDataParameters, args);
     }
 
     HttpResponsePtr HttpClient::put(const std::string& url,
@@ -610,18 +624,7 @@ namespace ix
                                       const HttpFormDataParameters& httpFormDataParameters,
                                       HttpRequestArgsPtr args)
     {
-        if (httpFormDataParameters.empty())
-        {
-            return request(url, kPatch, serializeHttpParameters(httpParameters), args);
-        }
-        else
-        {
-            std::string multipartBoundary = generateMultipartBoundary();
-            args->multipartBoundary = multipartBoundary;
-            std::string body = serializeHttpFormDataParameters(
-                multipartBoundary, httpFormDataParameters, httpParameters);
-            return request(url, kPatch, body, args);
-        }
+        return request(url, kPatch, httpParameters, httpFormDataParameters, args);
     }
 
     HttpResponsePtr HttpClient::patch(const std::string& url,

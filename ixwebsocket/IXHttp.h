@@ -84,6 +84,7 @@ namespace ix
         int maxRedirects = 5;
         bool verbose = false;
         bool compress = true;
+        bool compressRequest = false;
         Logger logger;
         OnProgressCallback onProgressCallback;
     };

@@ -61,7 +61,15 @@ namespace ix
                                 const std::string& body,
                                 HttpRequestArgsPtr args,
                                 int redirects = 0);
+
+        HttpResponsePtr request(const std::string& url,
+                                const std::string& verb,
+                                const HttpParameters& httpParameters,
+                                const HttpFormDataParameters& httpFormDataParameters,
+                                HttpRequestArgsPtr args);
+
         void setForceBody(bool value);
+
         // Async API
         HttpRequestArgsPtr createRequest(const std::string& url = std::string(),
                                          const std::string& verb = HttpClient::kGet);

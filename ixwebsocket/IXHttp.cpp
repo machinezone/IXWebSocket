@@ -7,6 +7,7 @@
 #include "IXHttp.h"
 
 #include "IXCancellationRequest.h"
+#include "IXGzipCodec.h"
 #include "IXSocket.h"
 #include <sstream>
 #include <vector>
@@ -155,6 +156,23 @@ namespace ix
                     false, std::string("Error reading request: ") + res.second, httpRequest);
             }
             body = res.second;
+        }
+
+        // If the content was compressed with gzip, decode it
+        if (headers["Content-Encoding"] == "gzip")
+        {
+#ifdef IXWEBSOCKET_USE_ZLIB
+            std::string decompressedPayload;
+            if (!gzipDecompress(body, decompressedPayload))
+            {
+                return std::make_tuple(
+                    false, std::string("Error during gzip decompression of the body"), httpRequest);
+            }
+            body = decompressedPayload;
+#else
+            std::string errorMsg("ixwebsocket was not compiled with gzip support on");
+            return std::make_tuple(false, errorMsg, httpRequest);
+#endif
         }
 
         httpRequest = std::make_shared<HttpRequest>(uri, method, httpVersion, body, headers);
