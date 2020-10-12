@@ -588,7 +588,6 @@ namespace ix
         return request(url, verb, body, args);
     }
 
-
     HttpResponsePtr HttpClient::post(const std::string& url,
                                      const HttpParameters& httpParameters,
                                      const HttpFormDataParameters& httpFormDataParameters,

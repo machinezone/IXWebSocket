@@ -1531,6 +1531,7 @@ namespace ix
                             const std::string& headersData,
                             const std::string& data,
                             const std::string& formData,
+                            const std::string& dataBinary,
                             bool headersOnly,
                             int connectTimeout,
                             int transferTimeout,
@@ -1572,9 +1573,18 @@ namespace ix
         {
             response = httpClient.head(url, args);
         }
-        else if (data.empty() && formData.empty())
+        else if (data.empty() && formData.empty() && dataBinary.empty())
         {
             response = httpClient.get(url, args);
+        }
+        else if (!dataBinary.empty())
+        {
+            std::string body = dataBinary;
+            if (compressRequest)
+            {
+                body = gzipCompress(dataBinary);
+            }
+            response = httpClient.request(url, "POST", body, args, 0);
         }
         else
         {
@@ -2981,6 +2991,7 @@ int main(int argc, char** argv)
     std::string user;
     std::string data;
     std::string formData;
+    std::string binaryData;
     std::string headers;
     std::string output;
     std::string hostname("127.0.0.1");
@@ -3193,6 +3204,7 @@ int main(int argc, char** argv)
     httpClientApp->add_option("url", url, "Connection url")->required();
     httpClientApp->add_option("-d", data, "Form data")->join();
     httpClientApp->add_option("-F", formData, "Form data")->join();
+    httpClientApp->add_option("--data-binary", binaryData, "Body binary data")->join();
     httpClientApp->add_option("-H", headers, "Header")->join();
     httpClientApp->add_option("--output", output, "Output file");
     httpClientApp->add_flag("-I", headersOnly, "Send a HEAD request");
@@ -3518,6 +3530,7 @@ int main(int argc, char** argv)
                                       headers,
                                       data,
                                       formData,
+                                      binaryData,
                                       headersOnly,
                                       connectTimeOut,
                                       transferTimeout,

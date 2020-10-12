@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.5.2] - 2020-10-12
+
+(ws curl) Add support for --data-binary option, to set the request body. When present the request will be sent with the POST verb
+
 ## [10.5.1] - 2020-10-09
 
 (http client + server + ws) Add support for compressing http client requests with gzip. --compress_request argument is used in ws to enable this. The Content-Encoding is set to gzip, and decoded on the server side if present.
