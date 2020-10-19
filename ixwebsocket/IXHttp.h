@@ -83,8 +83,10 @@ namespace ix
         bool followRedirects = true;
         int maxRedirects = 5;
         bool verbose = false;
+#ifdef IXWEBSOCKET_USE_ZLIB
         bool compress = true;
         bool compressRequest = false;
+#endif
         Logger logger;
         OnProgressCallback onProgressCallback;
     };

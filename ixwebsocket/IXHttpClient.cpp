@@ -6,7 +6,9 @@
 
 #include "IXHttpClient.h"
 
+#ifdef IXWEBSOCKET_USE_ZLIB
 #include "IXGzipCodec.h"
+#endif
 #include "IXSocketFactory.h"
 #include "IXUrlParser.h"
 #include "IXUserAgent.h"
@@ -204,11 +206,13 @@ namespace ix
         if (verb == kPost || verb == kPut || verb == kPatch || _forceBody)
         {
             // Set request compression header
+#ifdef IXWEBSOCKET_USE_ZLIB
             if (args->compressRequest)
             {
                 ss << "Content-Encoding: gzip"
                    << "\r\n";
             }
+#endif
 
             ss << "Content-Length: " << body.size() << "\r\n";
 
@@ -580,10 +584,12 @@ namespace ix
                 multipartBoundary, httpFormDataParameters, httpParameters);
         }
 
+#ifdef IXWEBSOCKET_USE_ZLIB
         if (args->compressRequest)
         {
             body = gzipCompress(body);
         }
+#endif
 
         return request(url, verb, body, args);
     }
