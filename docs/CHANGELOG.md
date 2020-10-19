@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.5.3] - 2020-10-19
+
+(http code) With zlib disabled, some code should not be reached
+
 ## [10.5.2] - 2020-10-12
 
 (ws curl) Add support for --data-binary option, to set the request body. When present the request will be sent with the POST verb
