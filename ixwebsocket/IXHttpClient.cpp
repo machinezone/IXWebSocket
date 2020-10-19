@@ -6,9 +6,7 @@
 
 #include "IXHttpClient.h"
 
-#ifdef IXWEBSOCKET_USE_ZLIB
 #include "IXGzipCodec.h"
-#endif
 #include "IXSocketFactory.h"
 #include "IXUrlParser.h"
 #include "IXUserAgent.h"
