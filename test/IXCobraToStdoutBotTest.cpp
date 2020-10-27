@@ -10,7 +10,6 @@
 #include <iostream>
 #include <ixbots/IXCobraToStdoutBot.h>
 #include <ixcobra/IXCobraConnection.h>
-#include <ixcobra/IXCobraMetricsPublisher.h>
 #include <ixcrypto/IXUuid.h>
 #include <ixredis/IXRedisServer.h>
 #include <ixsentry/IXSentryClient.h>
@@ -19,38 +18,6 @@
 #include <ixwebsocket/IXUserAgent.h>
 
 using namespace ix;
-
-namespace
-{
-    void runPublisher(const ix::CobraConfig& config, const std::string& channel)
-    {
-        ix::CobraMetricsPublisher cobraMetricsPublisher;
-        cobraMetricsPublisher.configure(config, channel);
-        cobraMetricsPublisher.setSession(uuid4());
-        cobraMetricsPublisher.enable(true);
-
-        Json::Value msg;
-        msg["fps"] = 60;
-
-        cobraMetricsPublisher.setGenericAttributes("game", "ody");
-
-        // Wait a bit
-        ix::msleep(500);
-
-        // publish some messages
-        cobraMetricsPublisher.push("sms_metric_A_id", msg); // (msg #1)
-        cobraMetricsPublisher.push("sms_metric_B_id", msg); // (msg #2)
-        ix::msleep(500);
-
-        cobraMetricsPublisher.push("sms_metric_A_id", msg); // (msg #3)
-        cobraMetricsPublisher.push("sms_metric_D_id", msg); // (msg #4)
-        ix::msleep(500);
-
-        cobraMetricsPublisher.push("sms_metric_A_id", msg); // (msg #4)
-        cobraMetricsPublisher.push("sms_metric_F_id", msg); // (msg #5)
-        ix::msleep(500);
-    }
-} // namespace
 
 TEST_CASE("Cobra_to_stdout_bot", "[cobra_bots]")
 {

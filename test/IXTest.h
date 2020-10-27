@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <ixsnake/IXAppConfig.h>
+#include <ixcobra/IXCobraConfig.h>
 #include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocketServer.h>
@@ -59,4 +60,6 @@ namespace ix
     std::string getWsScheme(bool preferTLS);
 
     std::string makeCobraEndpoint(int port, bool preferTLS);
+
+    void runPublisher(const ix::CobraConfig& config, const std::string& channel);
 } // namespace ix
