@@ -152,7 +152,7 @@ namespace
         idx = path.rfind('.');
         if (idx != std::string::npos)
         {
-            std::string filename = path.substr(idx + 1);
+            std::string filename = path.substr(0, idx);
             return filename;
         }
         else
@@ -1220,6 +1220,11 @@ namespace ix
 
         std::ofstream f;
         f.open(outputFilename);
+        if (!f.is_open())
+        {
+            spdlog::error("Cannot open {} for writing", outputFilename);
+            return 1;
+        }
         f << decompressedBytes;
         f.close();
 

@@ -102,8 +102,36 @@ namespace ix
 #endif
     }
 
+#ifdef IXWEBSOCKET_USE_DEFLATE
+    static uint32_t loadDecompressedGzipSize(const uint8_t* p)
+    {
+        return ((uint32_t) p[0] << 0) | ((uint32_t) p[1] << 8) | ((uint32_t) p[2] << 16) |
+               ((uint32_t) p[3] << 24);
+    }
+#endif
+
     bool gzipDecompress(const std::string& in, std::string& out)
     {
+#ifdef IXWEBSOCKET_USE_DEFLATE
+        struct libdeflate_decompressor* decompressor;
+        decompressor = libdeflate_alloc_decompressor();
+
+        const void* compressed_data = in.data();
+        size_t compressed_size = in.size();
+
+        // Retrieve uncompressed size from the trailer of the gziped data
+        const uint8_t* ptr = reinterpret_cast<const uint8_t*>(&in.front());
+        auto uncompressed_size = loadDecompressedGzipSize(&ptr[compressed_size - 4]);
+
+        // Use it to redimension our output buffer
+        out.resize(uncompressed_size);
+
+        libdeflate_result result = libdeflate_gzip_decompress(
+            decompressor, compressed_data, compressed_size, &out.front(), uncompressed_size, NULL);
+
+        libdeflate_free_decompressor(decompressor);
+        return result == LIBDEFLATE_SUCCESS;
+#else
         z_stream inflateState;
         memset(&inflateState, 0, sizeof(inflateState));
 
@@ -143,6 +171,7 @@ namespace ix
 
         inflateEnd(&inflateState);
         return true;
+#endif
     }
 #endif
 } // namespace ix

@@ -250,6 +250,9 @@ doc:
 change: format
 	vim ixwebsocket/IXWebSocketVersion.h docs/CHANGELOG.md
 
+change_no_format:
+	vim ixwebsocket/IXWebSocketVersion.h docs/CHANGELOG.md
+
 commit:
 	git commit -am "`sh tools/extract_latest_change.sh`"
 

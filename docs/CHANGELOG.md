@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.5.4] - 2020-10-30
+
+(ws gunzip + IXGZipCodec) Can decompress gziped data with libdeflate. ws gunzip computed output filename was incorrect (was the extension aka gz) instead of the file without the extension. Also check whether the output file is writeable.
+
 ## [10.5.3] - 2020-10-19
 
 (http code) With zlib disabled, some code should not be reached
