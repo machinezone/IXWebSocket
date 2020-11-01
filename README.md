@@ -84,6 +84,7 @@ If your company or project is using this library, feel free to open an issue or 
 - [libDiscordBot](https://github.com/tostc/libDiscordBot/tree/master), an easy to use Discord-bot framework.
 - [gwebsocket](https://github.com/norrbotten/gwebsocket), a websocket (lua) module for Garry's Mod
 - [DisCPP](https://github.com/DisCPP/DisCPP), a simple but feature rich Discord API wrapper
+- [discord.cpp](https://github.com/luccanunes/discord.cpp), a discord library for making bots
 
 ## Continuous Integration
 
