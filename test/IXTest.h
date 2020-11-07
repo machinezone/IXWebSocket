@@ -7,8 +7,8 @@
 #pragma once
 
 #include <iostream>
-#include <ixsnake/IXAppConfig.h>
 #include <ixcobra/IXCobraConfig.h>
+#include <ixsnake/IXAppConfig.h>
 #include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocketServer.h>

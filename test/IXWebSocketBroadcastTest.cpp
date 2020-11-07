@@ -47,7 +47,9 @@ namespace
         mutable std::mutex _mutex;
     };
 
-    WebSocketBroadcastChat::WebSocketBroadcastChat(const std::string& user, const std::string& session, int port)
+    WebSocketBroadcastChat::WebSocketBroadcastChat(const std::string& user,
+                                                   const std::string& session,
+                                                   int port)
         : _user(user)
         , _session(session)
         , _port(port)
@@ -156,7 +158,8 @@ namespace
         _webSocket.start();
     }
 
-    std::pair<std::string, std::string> WebSocketBroadcastChat::decodeMessage(const std::string& str)
+    std::pair<std::string, std::string> WebSocketBroadcastChat::decodeMessage(
+        const std::string& str)
     {
         std::string errMsg;
         MsgPack msg = MsgPack::parse(str, errMsg);

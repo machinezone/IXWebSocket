@@ -1273,45 +1273,56 @@ namespace ix
         std::condition_variable condition;
 
         std::atomic<bool> stop(false);
+        std::chrono::time_point<std::chrono::high_resolution_clock> start;
 
         // Setup a callback to be fired
         // when a message or an event (open, close, ping, pong, error) is received
-        webSocket.setOnMessageCallback([&receivedCountPerSecs, &target, &stop, &condition, &bench](
-                                           const ix::WebSocketMessagePtr& msg) {
-            if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                receivedCountPerSecs++;
-
-                target -= 1;
-                if (target == 0)
+        webSocket.setOnMessageCallback(
+            [&receivedCountPerSecs, &target, &stop, &condition, &bench, &start](
+                const ix::WebSocketMessagePtr& msg) {
+                if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    stop = true;
-                    condition.notify_one();
+                    receivedCountPerSecs++;
 
-                    bench.report();
+                    target -= 1;
+                    if (target == 0)
+                    {
+                        stop = true;
+                        condition.notify_one();
+
+                        bench.report();
+
+                        auto now = std::chrono::high_resolution_clock::now();
+                        auto milliseconds =
+                            std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
+                        auto duration = milliseconds.count();
+
+                        spdlog::info("AUTOROUTE IXWebSocket :: {} ms", duration);
+                    }
                 }
-            }
-            else if (msg->type == ix::WebSocketMessageType::Open)
-            {
-                bench.reset();
-
-                spdlog::info("ws_autoroute: connected");
-                spdlog::info("Uri: {}", msg->openInfo.uri);
-                spdlog::info("Headers:");
-                for (auto it : msg->openInfo.headers)
+                else if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    spdlog::info("{}: {}", it.first, it.second);
+                    bench.reset();
+
+                    spdlog::info("ws_autoroute: connected");
+                    spdlog::info("Uri: {}", msg->openInfo.uri);
+                    spdlog::info("Headers:");
+                    for (auto it : msg->openInfo.headers)
+                    {
+                        spdlog::info("{}: {}", it.first, it.second);
+                    }
+
+                    start = std::chrono::high_resolution_clock::now();
                 }
-            }
-            else if (msg->type == ix::WebSocketMessageType::Pong)
-            {
-                spdlog::info("Received pong {}", msg->str);
-            }
-            else if (msg->type == ix::WebSocketMessageType::Close)
-            {
-                spdlog::info("ws_autoroute: connection closed");
-            }
-        });
+                else if (msg->type == ix::WebSocketMessageType::Pong)
+                {
+                    spdlog::info("Received pong {}", msg->str);
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    spdlog::info("ws_autoroute: connection closed");
+                }
+            });
 
         auto timer = [&receivedCountPerSecs, &stop] {
             setThreadName("Timer");

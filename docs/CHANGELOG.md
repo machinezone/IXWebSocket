@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.5.5] - 2020-11-07
+
+(ws autoroute) Display result in compliant way (AUTOROUTE IXWebSocket :: N ms) so that result can be parsed easily
+
 ## [10.5.4] - 2020-10-30
 
 (ws gunzip + IXGZipCodec) Can decompress gziped data with libdeflate. ws gunzip computed output filename was incorrect (was the extension aka gz) instead of the file without the extension. Also check whether the output file is writeable.
