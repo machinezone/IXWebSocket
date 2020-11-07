@@ -20,9 +20,11 @@
 
 namespace ix
 {
-#ifdef IXWEBSOCKET_USE_ZLIB
     std::string gzipCompress(const std::string& str)
     {
+#ifndef IXWEBSOCKET_USE_ZLIB
+        return std::string();
+#else
 #ifdef IXWEBSOCKET_USE_DEFLATE
         int compressionLevel = 6;
         struct libdeflate_compressor* compressor;
@@ -99,7 +101,8 @@ namespace ix
         deflateEnd(&zs);
 
         return outstring;
-#endif
+#endif // IXWEBSOCKET_USE_DEFLATE
+#endif // IXWEBSOCKET_USE_ZLIB
     }
 
 #ifdef IXWEBSOCKET_USE_DEFLATE
@@ -112,6 +115,9 @@ namespace ix
 
     bool gzipDecompress(const std::string& in, std::string& out)
     {
+#ifndef IXWEBSOCKET_USE_ZLIB
+        return false;
+#else
 #ifdef IXWEBSOCKET_USE_DEFLATE
         struct libdeflate_decompressor* decompressor;
         decompressor = libdeflate_alloc_decompressor();
@@ -171,7 +177,7 @@ namespace ix
 
         inflateEnd(&inflateState);
         return true;
-#endif
+#endif // IXWEBSOCKET_USE_DEFLATE
+#endif // IXWEBSOCKET_USE_ZLIB
     }
-#endif
 } // namespace ix

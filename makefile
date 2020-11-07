@@ -28,7 +28,7 @@ brew:
 # server side ?) and I can't work-around it easily, so we're using mbedtls on
 # Linux for the SSL backend, which works great.
 ws_mbedtls_install:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_ZLIB=OFF -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; ninja install)
 
 ws:
 	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_WS=1 .. && ninja install)

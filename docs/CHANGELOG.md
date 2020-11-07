@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.5.7] - 2020-11-07
+
+(docker) build docker container with zlib disabled
+
 ## [10.5.6] - 2020-11-07
 
 (cmake) DEFLATE -> Deflate in CMake to stop warnings about casing
