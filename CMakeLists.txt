@@ -203,7 +203,7 @@ if (USE_ZLIB)
 endif()
 
 # brew install libdeflate
-find_package(DEFLATE)
+find_package(Deflate)
 if (DEFLATE_FOUND)
   include_directories(${DEFLATE_INCLUDE_DIRS})
   target_link_libraries(ixwebsocket ${DEFLATE_LIBRARIES})

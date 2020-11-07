@@ -5,7 +5,7 @@ include(FindPackageHandleStandardArgs)
 find_path(DEFLATE_INCLUDE_DIRS libdeflate.h)
 find_library(DEFLATE_LIBRARY deflate)
 
-find_package_handle_standard_args(DEFLATE
+find_package_handle_standard_args(Deflate
     FOUND_VAR
       DEFLATE_FOUND
     REQUIRED_VARS

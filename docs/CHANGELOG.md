@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [10.5.6] - 2020-11-07
+
+(cmake) DEFLATE -> Deflate in CMake to stop warnings about casing
+
 ## [10.5.5] - 2020-11-07
 
 (ws autoroute) Display result in compliant way (AUTOROUTE IXWebSocket :: N ms) so that result can be parsed easily
