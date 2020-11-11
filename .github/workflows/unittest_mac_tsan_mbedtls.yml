@@ -9,6 +9,7 @@ jobs:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v1
+    - uses: seanmiddleditch/gha-setup-ninja@master
     - name: install mbedtls
       run: brew install mbedtls
     - name: make test

@@ -110,71 +110,30 @@ format:
 test_server:
 	(cd test && npm i ws && node broadcast-server.js)
 
-# env TEST=Websocket_server make test
-# env TEST=Websocket_chat make test
-# env TEST=heartbeat make test
-build_test:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. ; ninja install)
+test:
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 ..)
+	(cd build ; ninja)
+	(cd build ; ninja test)
 
-test: build_test
-	(cd test ; python2.7 run.py -r)
-
-test_make:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; make -j 4)
-	(cd test ; python2.7 run.py -r)
-
-test_tsan:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)
-	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
-	(cd test ; python2.7 run.py -r)
-
-test_ubsan:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableUndefinedBehaviorSanitizer YES)
-	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
-	(cd test ; python2.7 run.py -r)
-
-test_asan: build_test_asan
-	(cd test ; python2.7 run.py -r)
-
-build_test_asan:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableAddressSanitizer YES)
-	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
-
-test_tsan_openssl:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)
-	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
-	(cd test ; python2.7 run.py -r)
-
-test_ubsan_openssl:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableUndefinedBehaviorSanitizer YES)
-	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
-	(cd test ; python2.7 run.py -r)
-
-test_tsan_openssl_release:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Release -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_OPEN_SSL=1 .. && xcodebuild -project ixwebsocket.xcodeproj -configuration Release -target ixwebsocket_unittest -enableThreadSanitizer YES)
-	(cd build/test ; ln -sf Release/ixwebsocket_unittest)
-	(cd test ; python2.7 run.py -r)
+test_asan:
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=address -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer")
+	(cd build ; ninja)
+	(cd build ; ninja test)
 
 test_tsan_mbedtls:
-	mkdir -p build && (cd build && cmake -GXcode -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_MBED_TLS=1 .. && xcodebuild -project ixwebsocket.xcodeproj -target ixwebsocket_unittest -enableThreadSanitizer YES)
-	(cd build/test ; ln -sf Debug/ixwebsocket_unittest)
-	(cd test ; python2.7 run.py -r)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
+	(cd build ; ninja)
+	(cd build ; ninja test)
 
-build_test_openssl:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_OPEN_SSL=1 -DUSE_TEST=1 .. ; ninja install)
+test_tsan_openssl:
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_OPENS_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
+	(cd build ; ninja)
+	(cd build ; ninja test)
 
-test_openssl: build_test_openssl
-	(cd test ; python2.7 run.py -r)
-
-build_test_mbedtls:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DUSE_TEST=1 .. ; make -j 4)
-
-test_mbedtls: build_test_mbedtls
-	(cd test ; python2.7 run.py -r)
-
-test_no_ssl:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TEST=1 .. ; make -j 4)
-	(cd test ; python2.7 run.py -r)
+test_tsan_sectransport:
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_PYTHON=1 -DUSE_TLS=1 -DUSE_OPENS_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
+	(cd build ; ninja)
+	(cd build ; ninja test)
 
 ws_test: ws
 	(cd ws ; env DEBUG=1 PATH=../ws/build:$$PATH bash test_ws.sh)

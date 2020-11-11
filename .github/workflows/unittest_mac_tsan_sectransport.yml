@@ -9,5 +9,6 @@ jobs:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v1
-    - name: make test_tsan
-      run: make test_tsan
+    - uses: seanmiddleditch/gha-setup-ninja@master
+    - name: make test_tsan_sectransport
+      run: make test_tsan_sectransport

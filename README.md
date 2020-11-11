@@ -92,18 +92,20 @@ If your company or project is using this library, feel free to open an issue or 
 
 | OS                | TLS               | Sanitizer         | Status            |
 |-------------------|-------------------|-------------------|-------------------|
-| Linux             | OpenSSL           | None              | [![Build2][1]][7] |
-| macOS             | Secure Transport  | Thread Sanitizer  | [![Build2][2]][7] |
-| macOS             | OpenSSL           | Thread Sanitizer  | [![Build2][3]][7] |
-| macOS             | MbedTLS           | Thread Sanitizer  | [![Build2][4]][7] |
-| Windows           | Disabled          | None              | [![Build2][5]][7] |
-| UWP               | Disabled          | None              | [![Build2][6]][7] |
+| Linux             | OpenSSL           | None              | [![Build2][1]][0] |
+| macOS             | Secure Transport  | Thread Sanitizer  | [![Build2][2]][0] |
+| macOS             | OpenSSL           | Thread Sanitizer  | [![Build2][3]][0] |
+| macOS             | MbedTLS           | Thread Sanitizer  | [![Build2][4]][0] |
+| Windows           | Disabled          | None              | [![Build2][5]][0] |
+| UWP               | Disabled          | None              | [![Build2][6]][0] |
+| Linux             | OpenSSL           | Address Sanitizer | [![Build2][7]][0] |
 
+[0]: https://github.com/machinezone/IXWebSocket
 [1]: https://github.com/machinezone/IXWebSocket/workflows/linux/badge.svg
 [2]: https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_sectransport/badge.svg
 [3]: https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_openssl/badge.svg
 [4]: https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_mbedtls/badge.svg
 [5]: https://github.com/machinezone/IXWebSocket/workflows/windows/badge.svg
 [6]: https://github.com/machinezone/IXWebSocket/workflows/uwp/badge.svg
-[7]: https://github.com/machinezone/IXWebSocket
+[7]: https://github.com/machinezone/IXWebSocket/workflows/linux_asan/badge.svg
 
