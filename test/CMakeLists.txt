@@ -80,6 +80,7 @@ target_include_directories(ixwebsocket_test PRIVATE
 target_link_libraries(ixwebsocket_test ixsnake)
 target_link_libraries(ixwebsocket_test ixcobra)
 target_link_libraries(ixwebsocket_test ixwebsocket)
+target_link_libraries(ixwebsocket_test ixcrypto)
 target_link_libraries(ixwebsocket_test spdlog)
 
 foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
