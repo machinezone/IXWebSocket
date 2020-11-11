@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.0.0] - 2020-11-11
+
+(openssl security fix) in the client to server connection, peer verification is not done in all cases. See https://github.com/machinezone/IXWebSocket/pull/250
+
 ## [10.5.7] - 2020-11-07
 
 (docker) build docker container with zlib disabled

@@ -506,10 +506,9 @@ namespace ix
                 }
             }
 
-            SSL_CTX_set_verify(
-                _ssl_context, SSL_VERIFY_PEER, [](int preverify, X509_STORE_CTX*) -> int {
-                    return preverify;
-                });
+            SSL_CTX_set_verify(_ssl_context,
+                               SSL_VERIFY_PEER,
+                               [](int preverify, X509_STORE_CTX*) -> int { return preverify; });
             SSL_CTX_set_verify_depth(_ssl_context, 4);
         }
         else
