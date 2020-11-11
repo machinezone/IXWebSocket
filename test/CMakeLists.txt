@@ -104,18 +104,19 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
     target_link_libraries(${TEST_TARGET_NAME} "-framework foundation" "-framework security")
   endif()
 
+  # library with the most dependencies come first
+  target_link_libraries(${TEST_TARGET_NAME} ixwebsocket_test)
+  target_link_libraries(${TEST_TARGET_NAME} ixbots)
+  target_link_libraries(${TEST_TARGET_NAME} ixsnake)
+  target_link_libraries(${TEST_TARGET_NAME} ixcobra)
+  target_link_libraries(${TEST_TARGET_NAME} ixsentry)
+
   if (JSONCPP_FOUND)
     target_include_directories(${TEST_TARGET_NAME} PRIVATE ${JSONCPP_INCLUDE_DIRS})
     target_link_libraries(${TEST_TARGET_NAME} ${JSONCPP_LIBRARIES})
   endif()
 
-  # library with the most dependencies come first
-  target_link_libraries(${TEST_TARGET_NAME} ixbots)
-  target_link_libraries(${TEST_TARGET_NAME} ixsnake)
-  target_link_libraries(${TEST_TARGET_NAME} ixcobra)
-  target_link_libraries(${TEST_TARGET_NAME} ixsentry)
   target_link_libraries(${TEST_TARGET_NAME} ixredis)
-  target_link_libraries(${TEST_TARGET_NAME} ixwebsocket_test)
   target_link_libraries(${TEST_TARGET_NAME} ixwebsocket)
   target_link_libraries(${TEST_TARGET_NAME} ixcrypto)
   target_link_libraries(${TEST_TARGET_NAME} ixcore)
