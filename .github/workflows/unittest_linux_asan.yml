@@ -1,4 +1,4 @@
-name: linux
+name: linux_asan
 on:
   push:
     paths-ignore:
