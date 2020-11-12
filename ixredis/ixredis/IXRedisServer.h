@@ -16,6 +16,7 @@
 #include <string>
 #include <thread>
 #include <utility> // pair
+#include <vector> // pair
 
 namespace ix
 {
