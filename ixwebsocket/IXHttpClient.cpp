@@ -212,7 +212,7 @@ namespace ix
     {
         data.uploadSize = data.req.size();
 
-        auto lineResult = _socket->readLine(data.isCancellationRequested);
+        auto lineResult = _socket->readLine(_isCancellationRequested);
         auto lineValid = lineResult.first;
         auto line = lineResult.second;
 
@@ -249,7 +249,7 @@ namespace ix
                                                   data.downloadSize);
         }
 
-        auto result = parseHttpHeaders(_socket, data.isCancellationRequested);
+        auto result = parseHttpHeaders(_socket, _isCancellationRequested);
         auto headersValid = result.first;
         data.headers = result.second;
 
@@ -324,7 +324,7 @@ namespace ix
             data.payload.reserve(contentLength);
 
             auto chunkResult = _socket->readBytes(
-                contentLength, args->onProgressCallback, data.isCancellationRequested);
+                contentLength, args->onProgressCallback, _isCancellationRequested);
             if (!chunkResult.first)
             {
                 data.errorMsg = "Cannot read chunk";
@@ -346,7 +346,7 @@ namespace ix
 
             while (true)
             {
-                lineResult = _socket->readLine(data.isCancellationRequested);
+                lineResult = _socket->readLine(_isCancellationRequested);
                 line = lineResult.second;
 
                 if (!lineResult.first)
@@ -377,7 +377,7 @@ namespace ix
 
                 // Read a chunk
                 auto chunkResult = _socket->readBytes(
-                    (size_t) chunkSize, args->onProgressCallback, data.isCancellationRequested);
+                    (size_t) chunkSize, args->onProgressCallback, _isCancellationRequested);
                 if (!chunkResult.first)
                 {
                     data.errorMsg = "Cannot read chunk";
@@ -393,7 +393,7 @@ namespace ix
                 data.payload += chunkResult.second;
 
                 // Read the line that terminates the chunk (\r\n)
-                lineResult = _socket->readLine(data.isCancellationRequested);
+                lineResult = _socket->readLine(_isCancellationRequested);
 
                 if (!lineResult.first)
                 {
@@ -500,10 +500,10 @@ namespace ix
         std::atomic<bool> requestInitCancellation(false);
 
         // Make a cancellation object dealing with connection timeout
-        data.isCancellationRequested =
+        _isCancellationRequested =
             makeCancellationRequestWithTimeout(args->connectTimeout, requestInitCancellation);
 
-        bool success = _socket->connect(data.host, data.port, errMsg, data.isCancellationRequested);
+        bool success = _socket->connect(data.host, data.port, errMsg, _isCancellationRequested);
         if (!success)
         {
             std::stringstream ss;
@@ -519,7 +519,7 @@ namespace ix
         }
 
         // Make a new cancellation object dealing with transfer timeout
-        data.isCancellationRequested =
+        _isCancellationRequested =
             makeCancellationRequestWithTimeout(args->transferTimeout, requestInitCancellation);
 
         if (args->verbose)
@@ -535,7 +535,7 @@ namespace ix
             log(ss.str(), args);
         }
 
-        if (!_socket->writeBytes(data.req, data.isCancellationRequested))
+        if (!_socket->writeBytes(data.req, _isCancellationRequested))
         {
             std::string errorMsg("Cannot send request");
             return std::make_shared<HttpResponse>(data.code,
@@ -598,10 +598,10 @@ namespace ix
         std::atomic<bool> requestInitCancellation(false);
 
         // Make a cancellation object dealing with connection timeout
-        data.isCancellationRequested =
+        _isCancellationRequested =
             makeCancellationRequestWithTimeout(args->connectTimeout, requestInitCancellation);
 
-        bool success = _socket->connect(data.host, data.port, errMsg, data.isCancellationRequested);
+        bool success = _socket->connect(data.host, data.port, errMsg, _isCancellationRequested);
         if (!success)
         {
             std::stringstream ss;
@@ -617,7 +617,7 @@ namespace ix
         }
 
         // Make a new cancellation object dealing with transfer timeout
-        data.isCancellationRequested =
+        _isCancellationRequested =
             makeCancellationRequestWithTimeout(args->transferTimeout, requestInitCancellation);
 
 		if (args->verbose)
@@ -634,7 +634,7 @@ namespace ix
         }
 
 		// Write header first
-        if (!_socket->writeBytes(data.req, data.isCancellationRequested))
+        if (!_socket->writeBytes(data.req, _isCancellationRequested))
         {
             std::string errorMsg("Cannot send request");
             return std::make_shared<HttpResponse>(data.code,
@@ -655,7 +655,7 @@ namespace ix
             while (body->gcount())
             {
                 auto size = buffer.size();
-                if (!_socket->writeBytes(buffer, data.isCancellationRequested))
+                if (!_socket->writeBytes(buffer, _isCancellationRequested))
                 {
                     std::string errorMsg("Cannot send request");
                     return std::make_shared<HttpResponse>(data.code,
@@ -677,6 +677,14 @@ namespace ix
         args->onProgressCallback = nullptr;
         return post_request(data, url, verb, args, redirects);
 	}
+
+     void HttpClient::cancel()
+     {
+         // Make a cancellation object dealing with connection timeout
+         _requestInitCancellation = true;
+         _isCancellationRequested =
+             makeCancellationRequestWithTimeout(0, _requestInitCancellation); 
+     }
 
     HttpResponsePtr HttpClient::get(const std::string& url, HttpRequestArgsPtr args)
     {

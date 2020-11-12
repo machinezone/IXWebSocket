@@ -60,6 +60,8 @@ namespace ix
 								size_t bufferSize,
 								int redirects = 0);
 
+        void cancel();
+
         // Async API
         HttpRequestArgsPtr createRequest(const std::string& url = std::string(),
                                          const std::string& verb = HttpClient::kGet);
@@ -106,7 +108,6 @@ namespace ix
             std::string payload;
             std::string description;
             std::string req;
-            CancellationRequest isCancellationRequested;
             int redirects = 0;
             std::string errorMsg;
             std::stringstream ss;
@@ -139,5 +140,7 @@ namespace ix
         std::mutex _mutex; // to protect accessing the _socket (only one socket per client)
 
         SocketTLSOptions _tlsOptions;
+        CancellationRequest _isCancellationRequested;
+        std::atomic<bool> _requestInitCancellation;
     };
 } // namespace ix
