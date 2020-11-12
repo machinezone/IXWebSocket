@@ -68,6 +68,11 @@ namespace ix
                            : resolveUnCancellable(errMsg, isCancellationRequested);
     }
 
+    void DNSLookup::release(struct addrinfo* addr)
+    {
+        freeaddrinfo(addr);
+    }
+
     struct addrinfo* DNSLookup::resolveUnCancellable(
         std::string& errMsg, const CancellationRequest& isCancellationRequested)
     {

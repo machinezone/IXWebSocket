@@ -31,6 +31,8 @@ namespace ix
                                  const CancellationRequest& isCancellationRequested,
                                  bool cancellable = true);
 
+        void release(struct addrinfo* addr);
+
     private:
         struct addrinfo* resolveCancellable(std::string& errMsg,
                                             const CancellationRequest& isCancellationRequested);

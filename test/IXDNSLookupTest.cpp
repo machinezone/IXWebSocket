@@ -24,6 +24,8 @@ TEST_CASE("dns", "[net]")
         res = dnsLookup->resolve(errMsg, [] { return false; });
         std::cerr << "Error message: " << errMsg << std::endl;
         REQUIRE(res != nullptr);
+
+        dnsLookup->release(res);
     }
 
     SECTION("Test resolving a non-existing hostname")
