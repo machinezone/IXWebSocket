@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.0.1] - 2020-11-11
+
+(socket) replace a std::vector with an std::array used as a tmp buffer in Socket::readBytes
+
 ## [11.0.0] - 2020-11-11
 
 (openssl security fix) in the client to server connection, peer verification is not done in all cases. See https://github.com/machinezone/IXWebSocket/pull/250

@@ -11,7 +11,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <vector>
 
 #ifdef _WIN32
 #include <BaseTsd.h>
@@ -101,10 +100,6 @@ namespace ix
     private:
         static const int kDefaultPollTimeout;
         static const int kDefaultPollNoTimeout;
-
-        // Buffer for reading from our socket. That buffer is never resized.
-        std::vector<uint8_t> _readBuffer;
-        static constexpr size_t kChunkSize = 1 << 15;
 
         SelectInterruptPtr _selectInterrupt;
     };
