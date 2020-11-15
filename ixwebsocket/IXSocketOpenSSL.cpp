@@ -86,7 +86,7 @@ namespace ix
 
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
-    std::array<std::mutex[], CRYPTO_num_locks()> openSSLMutexes;
+    std::array<std::mutex, CRYPTO_num_locks()> openSSLMutexes;
 
     SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd)
         : Socket(fd)
