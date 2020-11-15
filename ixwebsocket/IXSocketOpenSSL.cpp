@@ -86,8 +86,7 @@ namespace ix
 
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
-    std::unique_ptr<std::mutex[]> SocketOpenSSL::_openSSLMutexes =
-        ix::make_unique<std::mutex[]>(CRYPTO_num_locks());
+    std::array<std::mutex[], CRYPTO_num_locks()> openSSLMutexes;
 
     SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd)
         : Socket(fd)
@@ -129,11 +128,11 @@ namespace ix
     {
         if (mode & CRYPTO_LOCK)
         {
-            _openSSLMutexes[type].lock();
+            openSSLMutexes[type].lock();
         }
         else
         {
-            _openSSLMutexes[type].unlock();
+            openSSLMutexes[type].unlock();
         }
     }
 
