@@ -36,6 +36,7 @@
 
 #include "IXSocketFactory.h"
 #include "IXSocketTLSOptions.h"
+#include "IXUniquePtr.h"
 #include "IXUrlParser.h"
 #include "IXUtf8Validator.h"
 #include "IXWebSocketHandshake.h"
@@ -124,7 +125,7 @@ namespace ix
             std::string errorMsg;
             bool tls = protocol == "wss";
             _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions);
-            _perMessageDeflate = std::make_unique<WebSocketPerMessageDeflate>();
+            _perMessageDeflate = ix::make_unique<WebSocketPerMessageDeflate>();
 
             if (!_socket)
             {
@@ -177,7 +178,7 @@ namespace ix
         _blockingSend = true;
 
         _socket = std::move(socket);
-        _perMessageDeflate = std::make_unique<WebSocketPerMessageDeflate>();
+        _perMessageDeflate = ix::make_unique<WebSocketPerMessageDeflate>();
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,
                                               _socket,

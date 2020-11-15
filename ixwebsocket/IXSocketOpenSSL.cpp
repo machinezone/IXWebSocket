@@ -10,6 +10,7 @@
 #include "IXSocketOpenSSL.h"
 
 #include "IXSocketConnect.h"
+#include "IXUniquePtr.h"
 #include <cassert>
 #include <errno.h>
 #ifdef _WIN32
@@ -86,7 +87,7 @@ namespace ix
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
     std::unique_ptr<std::mutex[]> SocketOpenSSL::_openSSLMutexes =
-        std::make_unique<std::mutex[]>(CRYPTO_num_locks());
+        ix::make_unique<std::mutex[]>(CRYPTO_num_locks());
 
     SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd)
         : Socket(fd)

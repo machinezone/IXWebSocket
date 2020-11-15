@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.0.2] - 2020-11-15
+
+(ixwebsocket) use a C++11 compatible make_unique shim
+
 ## [11.0.1] - 2020-11-11
 
 (socket) replace a std::vector with an std::array used as a tmp buffer in Socket::readBytes

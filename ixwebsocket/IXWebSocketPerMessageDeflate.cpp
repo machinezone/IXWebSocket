@@ -48,14 +48,15 @@
 
 #include "IXWebSocketPerMessageDeflate.h"
 
+#include "IXUniquePtr.h"
 #include "IXWebSocketPerMessageDeflateCodec.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
 
 namespace ix
 {
     WebSocketPerMessageDeflate::WebSocketPerMessageDeflate()
-        : _compressor(std::make_unique<WebSocketPerMessageDeflateCompressor>())
-        , _decompressor(std::make_unique<WebSocketPerMessageDeflateDecompressor>())
+        : _compressor(ix::make_unique<WebSocketPerMessageDeflateCompressor>())
+        , _decompressor(ix::make_unique<WebSocketPerMessageDeflateDecompressor>())
     {
         ;
     }
