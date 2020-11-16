@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.0.4] - 2020-11-16
+
+(ixwebsocket) Handle EINTR return code in ix::poll and IXSelectInterrupt
+
 ## [11.0.3] - 2020-11-16
 
 (ixwebsocket) Fix #252 / regression in 11.0.2 with string comparisons
