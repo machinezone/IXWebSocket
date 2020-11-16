@@ -114,16 +114,13 @@ namespace ix
         //
         // The style from libuv is as such.
         //
-        // int ret = -1;
-        // do
-        // {
-        //     ret = ::poll(fds, nfds, timeout);
-        // }
-        // while (ret == -1 && errno == EINTR);
-        // return ret;
-        //
+        int ret = -1;
+        do
+        {
+            ret = ::poll(fds, nfds, timeout);
+        } while (ret == -1 && errno == EINTR);
 
-        return ::poll(fds, nfds, timeout);
+        return ret;
 #endif
     }
 
