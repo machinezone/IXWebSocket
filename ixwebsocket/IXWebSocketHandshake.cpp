@@ -8,10 +8,10 @@
 
 #include "IXHttp.h"
 #include "IXSocketConnect.h"
+#include "IXStrCaseCompare.h"
 #include "IXUrlParser.h"
 #include "IXUserAgent.h"
 #include "IXWebSocketHandshakeKeyGen.h"
-#include "IXStrCaseCompare.h"
 #include <algorithm>
 #include <iostream>
 #include <random>
@@ -36,7 +36,7 @@ namespace ix
 
     bool WebSocketHandshake::insensitiveStringCompare(const std::string& a, const std::string& b)
     {
-        return CaseInsensitiveLess::cmp(a, b);
+        return CaseInsensitiveLess::cmp(a, b) == 0;
     }
 
     std::string WebSocketHandshake::genRandomString(const int len)

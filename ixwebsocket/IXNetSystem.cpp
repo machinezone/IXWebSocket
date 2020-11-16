@@ -105,6 +105,24 @@ namespace ix
 
         return ret;
 #else
+        //
+        // It was reported that on Android poll can fail and return -1 with
+        // errno == EINTR, which should be a temp error and should typically
+        // be handled by retrying in a loop.
+        // Maybe we need to put all syscall / C functions in
+        // a new IXSysCalls.cpp and wrap them all.
+        //
+        // The style from libuv is as such.
+        //
+        // int ret = -1;
+        // do
+        // {
+        //     ret = ::poll(fds, nfds, timeout);
+        // }
+        // while (ret == -1 && errno == EINTR);
+        // return ret;
+        //
+
         return ::poll(fds, nfds, timeout);
 #endif
     }

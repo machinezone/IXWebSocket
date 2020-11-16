@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.0.3] - 2020-11-16
+
+(ixwebsocket) Fix #252 / regression in 11.0.2 with string comparisons
+
 ## [11.0.2] - 2020-11-15
 
 (ixwebsocket) use a C++11 compatible make_unique shim

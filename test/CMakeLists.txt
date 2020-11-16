@@ -13,7 +13,6 @@ option(USE_TLS "Add TLS support" ON)
 set (TEST_TARGET_NAMES
   IXSocketTest
   IXSocketConnectTest
-  # IXWebSocketLeakTest.cpp # commented until we have a fix for #224
   IXWebSocketServerTest
   IXWebSocketTestConnectionDisconnection
   IXUrlParserTest
@@ -28,6 +27,7 @@ set (TEST_TARGET_NAMES
   IXWebSocketBroadcastTest
   IXWebSocketPerMessageDeflateCompressorTest
   IXStreamSqlTest
+  IXStrCaseCompareTest
 )
 
 # Some unittest don't work on windows yet
@@ -46,6 +46,9 @@ endif()
 # Ping test fails intermittently, disabling them for now
 # IXWebSocketPingTest.cpp
 # IXWebSocketPingTimeoutTest.cpp
+
+# IXWebSocketLeakTest.cpp # commented until we have a fix for #224 /
+# that was was fixed but now the test does not compile
 
 # Disable tests for now that are failing or not reliable
 
