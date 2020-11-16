@@ -20,9 +20,12 @@ namespace ix
     SentryClient::SentryClient(const std::string& dsn)
         : _dsn(dsn)
         , _validDsn(false)
+#ifdef HAVE_STD_REGEX
         , _luaFrameRegex("\t([^/]+):([0-9]+): in function ['<]([^/]+)['>]")
+#endif
         , _httpClient(std::make_shared<HttpClient>(true))
     {
+#ifdef HAVE_STD_REGEX
         const std::regex dsnRegex("(http[s]?)://([^:]+):([^@]+)@([^/]+)/([0-9]+)");
         std::smatch group;
 
@@ -38,6 +41,7 @@ namespace ix
             _publicKey = group.str(2);
             _secretKey = group.str(3);
         }
+#endif
     }
 
     void SentryClient::setTLSOptions(const SocketTLSOptions& tlsOptions)
@@ -77,6 +81,7 @@ namespace ix
     {
         Json::Value frames;
 
+#ifdef HAVE_STD_REGEX
         // Split by lines
         std::string line;
         std::stringstream tokenStream(stack);
@@ -107,6 +112,7 @@ namespace ix
         }
 
         std::reverse(frames.begin(), frames.end());
+#endif
 
         return frames;
     }

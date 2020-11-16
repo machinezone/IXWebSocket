@@ -13,6 +13,7 @@
 #include "IXUniquePtr.h"
 #include <cassert>
 #include <errno.h>
+#include <vector>
 #ifdef _WIN32
 #include <Shlwapi.h>
 #else
@@ -86,7 +87,7 @@ namespace ix
 
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
-    std::array<std::mutex, CRYPTO_num_locks()> openSSLMutexes;
+    std::vector<std::unique_ptr<std::mutex>> openSSLMutexes;
 
     SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd)
         : Socket(fd)
@@ -111,6 +112,11 @@ namespace ix
 
         if (CRYPTO_get_locking_callback() == nullptr)
         {
+            openSSLMutexes.clear();
+            for (int i = 0; i < CRYPTO_num_locks(); ++i)
+            {
+                openSSLMutexes.push_back(ix::make_unique<std::mutex>());
+            }
             CRYPTO_set_locking_callback(SocketOpenSSL::openSSLLockingCallback);
         }
 #endif
@@ -128,11 +134,11 @@ namespace ix
     {
         if (mode & CRYPTO_LOCK)
         {
-            openSSLMutexes[type].lock();
+            openSSLMutexes[type]->lock();
         }
         else
         {
-            openSSLMutexes[type].unlock();
+            openSSLMutexes[type]->unlock();
         }
     }
 

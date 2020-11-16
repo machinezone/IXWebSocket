@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_MODULE_PATH}")
 
 project(ixwebsocket C CXX)
 
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 11)
 set (CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
@@ -45,6 +45,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSocketFactory.cpp
     ixwebsocket/IXSocketServer.cpp
     ixwebsocket/IXSocketTLSOptions.cpp
+    ixwebsocket/IXStrCaseCompare.cpp
     ixwebsocket/IXUdpSocket.cpp
     ixwebsocket/IXUrlParser.cpp
     ixwebsocket/IXUserAgent.cpp
@@ -82,6 +83,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSocketFactory.h
     ixwebsocket/IXSocketServer.h
     ixwebsocket/IXSocketTLSOptions.h
+    ixwebsocket/IXStrCaseCompare.h
     ixwebsocket/IXUdpSocket.h
     ixwebsocket/IXUrlParser.h
     ixwebsocket/IXUtf8Validator.h

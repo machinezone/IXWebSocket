@@ -13,6 +13,7 @@
 #include <ixcore/utils/IXCoreLogger.h>
 #include <ixcrypto/IXHMac.h>
 #include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXUniquePtr.h>
 #include <sstream>
 
 namespace snake
@@ -196,7 +197,7 @@ namespace snake
         {
             std::string filterStr = pdu["body"]["filter"];
         }
-        state->streamSql = std::make_unique<StreamSql>(filterStr);
+        state->streamSql = ix::make_unique<StreamSql>(filterStr);
         state->id = 0;
         state->onRedisSubscribeCallback = [&ws, state](const std::string& messageStr) {
             auto msg = nlohmann::json::parse(messageStr);

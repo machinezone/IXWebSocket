@@ -11,7 +11,9 @@
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <json/json.h>
 #include <memory>
+#ifdef HAVE_STD_REGEX
 #include <regex>
+#endif
 
 namespace ix
 {
@@ -62,7 +64,9 @@ namespace ix
 
         Json::FastWriter _jsonWriter;
 
+#ifdef HAVE_STD_REGEX
         std::regex _luaFrameRegex;
+#endif
 
         std::shared_ptr<HttpClient> _httpClient;
     };
