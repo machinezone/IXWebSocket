@@ -12,7 +12,6 @@
 #include "IXWebSocketOpenInfo.h"
 #include <memory>
 #include <string>
-#include <thread>
 
 namespace ix
 {

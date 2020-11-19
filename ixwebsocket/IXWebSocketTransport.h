@@ -146,7 +146,7 @@ namespace ix
 
         // Contains all messages that were fetched in the last socket read.
         // This could be a mix of control messages (Close, Ping, etc...) and
-        // data messages. That buffer
+        // data messages. That buffer is resized
         std::vector<uint8_t> _rxbuf;
 
         // Contains all messages that are waiting to be sent
