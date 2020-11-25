@@ -99,7 +99,7 @@ There are plenty of great websocket libraries out there, which might work for yo
 
 [uvweb](https://github.com/bsergean/uvweb) is a library written by the IXWebSocket author which is built on top of [uvw](https://github.com/skypjack/uvw), which is a C++ wrapper for [libuv](https://libuv.org/). It has more dependencies and does not support SSL at this point, but it can be used to open multiple connections within a single OS thread thanks to libuv.
 
-To check the performance of a websocket library, you can look at the [autobahn](https://github.com/bsergean/autobahn) project.
+To check the performance of a websocket library, you can look at the [autoroute](https://github.com/bsergean/autoroute) project.
 
 ## Continuous Integration
 
