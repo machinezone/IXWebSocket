@@ -88,6 +88,19 @@ If your company or project is using this library, feel free to open an issue or 
 - [DisCPP](https://github.com/DisCPP/DisCPP), a simple but feature rich Discord API wrapper
 - [discord.cpp](https://github.com/luccanunes/discord.cpp), a discord library for making bots
 
+## Alternative libraries
+
+There are plenty of great websocket libraries out there, which might work for you. Here are a couple of serious ones.
+
+* [websocketpp](https://github.com/zaphoyd/websocketpp) - C++
+* [beast](https://github.com/boostorg/beast) - C++
+* [libwebsockets](https://libwebsockets.org/) - C
+* [µWebSockets](https://github.com/uNetworking/uWebSockets) - C
+
+[uvweb](https://github.com/bsergean/uvweb) is a library written by the IXWebSocket author which is built on top of [uvw](https://github.com/skypjack/uvw), which is a C++ wrapper for [libuv](https://libuv.org/). It has more dependencies and does not support SSL at this point, but it can be used to open multiple connections within a single OS thread thanks to libuv.
+
+To check the performance of a websocket library, you can look at the [autobahn](https://github.com/bsergean/autobahn) project.
+
 ## Continuous Integration
 
 | OS                | TLS               | Sanitizer         | Status            |
