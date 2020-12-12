@@ -34,6 +34,12 @@ typedef unsigned long int nfds_t;
 
 namespace ix
 {
+#ifdef _WIN32
+    typedef SOCKET socket_t;
+#else
+    typedef int socket_t;
+#endif
+
     bool initNetSystem();
     bool uninitNetSystem();
 

@@ -1620,7 +1620,7 @@ namespace ix
         spdlog::info("Status: {}", response->statusCode);
         if (response->errorCode != HttpErrorCode::Ok)
         {
-            spdlog::info("error message: ", response->errorMsg);
+            spdlog::error("error message: {}", response->errorMsg);
         }
 
         if (!headersOnly && response->errorCode == HttpErrorCode::Ok)

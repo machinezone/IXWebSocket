@@ -45,7 +45,7 @@ namespace ix
     int poll(struct pollfd* fds, nfds_t nfds, int timeout)
     {
 #ifdef _WIN32
-        int maxfd = 0;
+        socket_t maxfd = 0;
         fd_set readfds, writefds, errorfds;
         FD_ZERO(&readfds);
         FD_ZERO(&writefds);

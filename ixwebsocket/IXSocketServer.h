@@ -9,6 +9,7 @@
 #include "IXConnectionState.h"
 #include "IXSelectInterrupt.h"
 #include "IXSocketTLSOptions.h"
+#include "IXNetSystem.h"
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -75,7 +76,7 @@ namespace ix
         int _addressFamily;
 
         // socket for accepting connections
-        int _serverFd;
+        socket_t _serverFd;
 
         std::atomic<bool> _stop;
 

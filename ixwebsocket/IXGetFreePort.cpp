@@ -31,7 +31,7 @@ namespace ix
 
     int getAnyFreePort()
     {
-        int sockfd;
+        socket_t sockfd;
         if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             return getAnyFreePortRandom();
