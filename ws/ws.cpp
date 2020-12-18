@@ -1367,7 +1367,8 @@ namespace ix
                             const ix::SocketTLSOptions& tlsOptions,
                             bool ipv6,
                             bool disablePerMessageDeflate,
-                            bool disablePong)
+                            bool disablePong,
+                            const std::string& httpHeaderAuthorization)
     {
         spdlog::info("Listening on {}:{}", hostname, port);
 
@@ -1393,9 +1394,9 @@ namespace ix
         }
 
         server.setOnClientMessageCallback(
-            [greetings](std::shared_ptr<ConnectionState> connectionState,
-                        WebSocket& webSocket,
-                        const WebSocketMessagePtr& msg) {
+            [greetings, httpHeaderAuthorization](std::shared_ptr<ConnectionState> connectionState,
+                                                 WebSocket& webSocket,
+                                                 const WebSocketMessagePtr& msg) {
                 auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
@@ -1407,6 +1408,19 @@ namespace ix
                     for (auto it : msg->openInfo.headers)
                     {
                         spdlog::info("{}: {}", it.first, it.second);
+                    }
+
+                    if (!httpHeaderAuthorization.empty())
+                    {
+                        auto authorization = msg->openInfo.headers["Authorization"];
+                        if (authorization != httpHeaderAuthorization)
+                        {
+                            webSocket.close(4001, "Permission denied");
+                        }
+                        else
+                        {
+                            webSocket.sendText("Authorization suceeded!");
+                        }
                     }
 
                     if (greetings)
@@ -3039,6 +3053,7 @@ int main(int argc, char** argv)
     std::string publisherRolesecret;
     std::string sendMsg("hello world");
     std::string filename;
+    std::string httpHeaderAuthorization;
     ix::SocketTLSOptions tlsOptions;
     ix::CobraConfig cobraConfig;
     ix::CobraBotConfig cobraBotConfig;
@@ -3185,6 +3200,7 @@ int main(int argc, char** argv)
     echoServerApp->fallthrough();
     echoServerApp->add_option("--port", port, "Port");
     echoServerApp->add_option("--host", hostname, "Hostname");
+    echoServerApp->add_option("--http_authorization_header", httpHeaderAuthorization, "Hostname");
     echoServerApp->add_flag("-q", quiet, "Quiet / only display warnings and errors");
     echoServerApp->add_flag("-g", greetings, "Greet");
     echoServerApp->add_flag("-6", ipv6, "IpV6");
@@ -3507,8 +3523,14 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("echo_server"))
     {
-        ret = ix::ws_echo_server_main(
-            port, greetings, hostname, tlsOptions, ipv6, disablePerMessageDeflate, disablePong);
+        ret = ix::ws_echo_server_main(port,
+                                      greetings,
+                                      hostname,
+                                      tlsOptions,
+                                      ipv6,
+                                      disablePerMessageDeflate,
+                                      disablePong,
+                                      httpHeaderAuthorization);
     }
     else if (app.got_subcommand("push_server"))
     {

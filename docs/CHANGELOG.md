@@ -2,6 +2,12 @@
 
 All changes to this project will be documented in this file.
 
+## [11.0.5] - 2020-12-17
+
+(ws) Implement simple header based websocket authorization technique to reject
+client which do not supply a certain header ("Authorization") with a special
+value (see doc).
+
 ## [11.0.4] - 2020-11-16
 
 (ixwebsocket) Handle EINTR return code in ix::poll and IXSelectInterrupt

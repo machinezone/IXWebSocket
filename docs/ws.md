@@ -195,6 +195,63 @@ Server: Python/3.7 websockets/8.0.2
 Upgrade: websocket
 ```
 
+It is possible to pass custom HTTP header when doing the connection handshake,
+the remote server might process them to implement a simple authorization
+scheme.
+
+```
+src$ ws connect -H Authorization:supersecret ws://localhost:8008
+Type Ctrl-D to exit prompt...
+[2020-12-17 22:35:08.732] [info] Authorization: supersecret
+Connecting to url: ws://localhost:8008
+> [2020-12-17 22:35:08.736] [info] ws_connect: connected
+[2020-12-17 22:35:08.736] [info] Uri: /
+[2020-12-17 22:35:08.736] [info] Headers:
+[2020-12-17 22:35:08.736] [info] Connection: Upgrade
+[2020-12-17 22:35:08.736] [info] Sec-WebSocket-Accept: 2yaTFcdwn8KL6IzSMj2u6Le7KTg=
+[2020-12-17 22:35:08.736] [info] Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_max_window_bits=15
+[2020-12-17 22:35:08.736] [info] Server: ixwebsocket/11.0.4 macos ssl/SecureTransport zlib 1.2.11
+[2020-12-17 22:35:08.736] [info] Upgrade: websocket
+[2020-12-17 22:35:08.736] [info] Received 25 bytes
+ws_connect: received message: Authorization suceeded!
+[2020-12-17 22:35:08.736] [info] Received pong ixwebsocket::heartbeat::30s::0
+hello
+> [2020-12-17 22:35:25.157] [info] Received 7 bytes
+ws_connect: received message: hello
+```
+
+If the wrong header is passed in, the server would close the connection with a custom close code (>4000, and <4999).
+
+```
+[2020-12-17 22:39:37.044] [info] Upgrade: websocket
+ws_connect: connection closed: code 4001 reason Permission denied
+```
+
+## echo server
+
+The ws echo server will respond what the client just sent him. If we use the
+simple --http_authorization_header we can enforce that client need to pass a
+special value in the Authorization header to connect.
+
+```
+$ ws echo_server --http_authorization_header supersecret
+[2020-12-17 22:35:06.192] [info] Listening on 127.0.0.1:8008
+[2020-12-17 22:35:08.735] [info] New connection
+[2020-12-17 22:35:08.735] [info] remote ip: 127.0.0.1
+[2020-12-17 22:35:08.735] [info] id: 0
+[2020-12-17 22:35:08.735] [info] Uri: /
+[2020-12-17 22:35:08.735] [info] Headers:
+[2020-12-17 22:35:08.735] [info] Authorization: supersecret
+[2020-12-17 22:35:08.735] [info] Connection: Upgrade
+[2020-12-17 22:35:08.735] [info] Host: localhost:8008
+[2020-12-17 22:35:08.735] [info] Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_max_window_bits=15
+[2020-12-17 22:35:08.735] [info] Sec-WebSocket-Key: eFF2Gf25dC7eC15Ab1135G==
+[2020-12-17 22:35:08.735] [info] Sec-WebSocket-Version: 13
+[2020-12-17 22:35:08.735] [info] Upgrade: websocket
+[2020-12-17 22:35:08.735] [info] User-Agent: ixwebsocket/11.0.4 macos ssl/SecureTransport zlib 1.2.11
+[2020-12-17 22:35:25.157] [info] Received 7 bytes
+```
+
 ## Websocket proxy
 
 ```

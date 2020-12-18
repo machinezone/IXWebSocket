@@ -7,9 +7,9 @@
 #pragma once
 
 #include "IXConnectionState.h"
+#include "IXNetSystem.h"
 #include "IXSelectInterrupt.h"
 #include "IXSocketTLSOptions.h"
-#include "IXNetSystem.h"
 #include <atomic>
 #include <condition_variable>
 #include <functional>
