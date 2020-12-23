@@ -15,7 +15,7 @@ COPY --chown=app:app . /opt
 WORKDIR /opt
 
 USER app
-RUN make ws_mbedtls_install && \
+RUN make -f makefile.dev ws_mbedtls_install && \
     sh tools/trim_repo_for_docker.sh
 
 FROM alpine:3.12 as runtime
