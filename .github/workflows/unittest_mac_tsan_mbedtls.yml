@@ -13,4 +13,4 @@ jobs:
     - name: install mbedtls
       run: brew install mbedtls
     - name: make test
-      run: make test_tsan_mbedtls
+      run: make -f makefile.dev test_tsan_mbedtls

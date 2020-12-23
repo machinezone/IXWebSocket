@@ -11,4 +11,4 @@ jobs:
     - uses: actions/checkout@v1
     - uses: seanmiddleditch/gha-setup-ninja@master
     - name: make test_asan
-      run: make test_asan
+      run: make -f makefile.dev test_asan
