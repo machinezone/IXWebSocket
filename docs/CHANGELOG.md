@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.0.7] - 2020-12-25
+
+(ws) trim ws dependencies, only depends on ixcrypto and ixcore
+
 ## [11.0.6] - 2020-12-22
 
 (build) rename makefile to makefile.dev to ease cmake BuildExternal (fix #261)

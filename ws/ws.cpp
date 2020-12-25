@@ -8,30 +8,18 @@
 // Main driver for websocket utilities
 //
 
-#include "IXBench.h"
 #include "linenoise.hpp"
-#include "nlohmann/json.hpp"
+#include <CLI11.hpp>
 #include <atomic>
 #include <chrono>
-#include <cli11/CLI11.hpp>
 #include <condition_variable>
 #include <fstream>
 #include <iostream>
-#include <ixbots/IXCobraMetricsToRedisBot.h>
-#include <ixbots/IXCobraToCobraBot.h>
-#include <ixbots/IXCobraToPythonBot.h>
-#include <ixbots/IXCobraToSentryBot.h>
-#include <ixbots/IXCobraToStatsdBot.h>
-#include <ixbots/IXCobraToStdoutBot.h>
-#include <ixcobra/IXCobraMetricsPublisher.h>
 #include <ixcore/utils/IXCoreLogger.h>
 #include <ixcrypto/IXBase64.h>
 #include <ixcrypto/IXHash.h>
 #include <ixcrypto/IXUuid.h>
-#include <ixredis/IXRedisClient.h>
-#include <ixredis/IXRedisServer.h>
-#include <ixsentry/IXSentryClient.h>
-#include <ixsnake/IXSnakeServer.h>
+#include <ixwebsocket/IXBench.h>
 #include <ixwebsocket/IXDNSLookup.h>
 #include <ixwebsocket/IXGzipCodec.h>
 #include <ixwebsocket/IXHttpClient.h>
@@ -45,9 +33,8 @@
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketProxyServer.h>
 #include <ixwebsocket/IXWebSocketServer.h>
-#include <msgpack11/msgpack11.hpp>
+#include <msgpack11.hpp>
 #include <mutex>
-#include <nlohmann/json.hpp>
 #include <queue>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
@@ -64,7 +51,6 @@
 #endif
 
 // for convenience
-using json = nlohmann::json;
 using msgpack11::MsgPack;
 
 namespace
@@ -647,27 +633,30 @@ namespace ix
 
     std::pair<std::string, std::string> WebSocketChat::decodeMessage(const std::string& str)
     {
-        auto j = json::parse(str);
+        std::string errMsg;
+        MsgPack msg = MsgPack::parse(str, errMsg);
 
-        std::string msg_user = j["user"];
-        std::string msg_text = j["text"];
+        std::string msg_user = msg["user"].string_value();
+        std::string msg_text = msg["text"].string_value();
 
         return std::pair<std::string, std::string>(msg_user, msg_text);
     }
 
     std::string WebSocketChat::encodeMessage(const std::string& text)
     {
-        json j;
-        j["user"] = _user;
-        j["text"] = text;
+        std::map<MsgPack, MsgPack> obj;
+        obj["user"] = _user;
+        obj["text"] = text;
 
-        std::string output = j.dump();
+        MsgPack msg(obj);
+
+        std::string output = msg.dump();
         return output;
     }
 
     void WebSocketChat::sendMessage(const std::string& text)
     {
-        _webSocket.sendText(encodeMessage(text));
+        _webSocket.sendBinary(encodeMessage(text));
     }
 
     int ws_chat_main(const std::string& url, const std::string& user)
@@ -693,156 +682,6 @@ namespace ix
 
         spdlog::info("");
         webSocketChat.stop();
-
-        return 0;
-    }
-
-    int ws_cobra_metrics_publish_main(const ix::CobraConfig& config,
-                                      const std::string& channel,
-                                      const std::string& path,
-                                      bool stress)
-    {
-        std::atomic<int> sentMessages(0);
-        std::atomic<int> ackedMessages(0);
-        CobraConnection::setPublishTrackerCallback(
-            [&sentMessages, &ackedMessages](bool sent, bool acked) {
-                if (sent) sentMessages++;
-                if (acked) ackedMessages++;
-            });
-
-        CobraMetricsPublisher cobraMetricsPublisher;
-        cobraMetricsPublisher.enable(true);
-        cobraMetricsPublisher.configure(config, channel);
-
-        while (!cobraMetricsPublisher.isAuthenticated())
-            ;
-
-        std::ifstream f(path);
-        std::string str((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-
-        Json::Value data;
-        Json::Reader reader;
-        if (!reader.parse(str, data)) return 1;
-
-        if (!stress)
-        {
-            auto msgId = cobraMetricsPublisher.push(channel, data);
-            spdlog::info("Sent message: {}", msgId);
-        }
-        else
-        {
-            // Stress mode to try to trigger server and client bugs
-            while (true)
-            {
-                for (int i = 0; i < 1000; ++i)
-                {
-                    cobraMetricsPublisher.push(channel, data);
-                }
-
-                cobraMetricsPublisher.suspend();
-                cobraMetricsPublisher.resume();
-
-                // FIXME: investigate why without this check we trigger a lock
-                while (!cobraMetricsPublisher.isAuthenticated())
-                    ;
-            }
-        }
-
-        // Wait a bit for the message to get a chance to be sent
-        // there isn't any ack on publish right now so it's the best we can do
-        // FIXME: this comment is a lie now
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        spdlog::info("Sent messages: {} Acked messages {}", sentMessages, ackedMessages);
-
-        return 0;
-    }
-
-    int ws_cobra_publish_main(const ix::CobraConfig& config,
-                              const std::string& channel,
-                              const std::string& path)
-    {
-        std::ifstream f(path);
-        std::string str((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-
-        Json::Value data;
-        Json::Reader reader;
-        if (!reader.parse(str, data))
-        {
-            spdlog::info("Input file is not a JSON file");
-            return 1;
-        }
-
-        ix::CobraConnection conn;
-        conn.configure(config);
-
-        // Display incoming messages
-        std::atomic<bool> authenticated(false);
-        std::atomic<bool> messageAcked(false);
-
-        conn.setEventCallback(
-            [&conn, &channel, &data, &authenticated, &messageAcked](const CobraEventPtr& event) {
-                if (event->type == ix::CobraEventType::Open)
-                {
-                    spdlog::info("Publisher connected");
-
-                    for (auto&& it : event->headers)
-                    {
-                        spdlog::info("{}: {}", it.first, it.second);
-                    }
-                }
-                else if (event->type == ix::CobraEventType::Closed)
-                {
-                    spdlog::info("Subscriber closed: {}", event->errMsg);
-                }
-                else if (event->type == ix::CobraEventType::Authenticated)
-                {
-                    spdlog::info("Publisher authenticated");
-                    authenticated = true;
-
-                    Json::Value channels;
-                    channels[0] = channel;
-                    auto msgId = conn.publish(channels, data);
-
-                    spdlog::info("Published msg {}", msgId);
-                }
-                else if (event->type == ix::CobraEventType::Subscribed)
-                {
-                    spdlog::info("Publisher: subscribed to channel {}", event->subscriptionId);
-                }
-                else if (event->type == ix::CobraEventType::UnSubscribed)
-                {
-                    spdlog::info("Publisher: unsubscribed from channel {}", event->subscriptionId);
-                }
-                else if (event->type == ix::CobraEventType::Error)
-                {
-                    spdlog::error("Publisher: error {}", event->errMsg);
-                }
-                else if (event->type == ix::CobraEventType::Published)
-                {
-                    spdlog::info("Published message id {} acked", event->msgId);
-                    messageAcked = true;
-                }
-                else if (event->type == ix::CobraEventType::Pong)
-                {
-                    spdlog::info("Received websocket pong");
-                }
-                else if (event->type == ix::CobraEventType::HandshakeError)
-                {
-                    spdlog::error("Subscriber: Handshake error: {}", event->errMsg);
-                }
-                else if (event->type == ix::CobraEventType::AuthenticationError)
-                {
-                    spdlog::error("Subscriber: Authentication error: {}", event->errMsg);
-                }
-            });
-
-        conn.connect();
-
-        while (!authenticated)
-            ;
-        while (!messageAcked)
-            ;
 
         return 0;
     }
@@ -2229,199 +2068,6 @@ namespace ix
         return 0;
     }
 
-    int ws_redis_cli_main(const std::string& hostname, int port, const std::string& password)
-    {
-        RedisClient redisClient;
-        if (!redisClient.connect(hostname, port))
-        {
-            spdlog::info("Cannot connect to redis host");
-            return 1;
-        }
-
-        if (!password.empty())
-        {
-            std::string authResponse;
-            if (!redisClient.auth(password, authResponse))
-            {
-                std::stringstream ss;
-                spdlog::info("Cannot authenticated to redis");
-                return 1;
-            }
-            spdlog::info("Auth response: {}", authResponse);
-        }
-
-        while (true)
-        {
-            // Read line
-            std::string line;
-            std::string prompt;
-            prompt += hostname;
-            prompt += ":";
-            prompt += std::to_string(port);
-            prompt += "> ";
-            auto quit = linenoise::Readline(prompt.c_str(), line);
-
-            if (quit)
-            {
-                break;
-            }
-
-            std::stringstream ss(line);
-            std::vector<std::string> args;
-            std::string arg;
-
-            while (ss.good())
-            {
-                ss >> arg;
-                args.push_back(arg);
-            }
-
-            std::string errMsg;
-            auto response = redisClient.send(args, errMsg);
-            if (!errMsg.empty())
-            {
-                spdlog::error("(error) {}", errMsg);
-            }
-            else
-            {
-                if (response.first != RespType::String)
-                {
-                    std::cout << "(" << redisClient.getRespTypeDescription(response.first) << ")"
-                              << " ";
-                }
-
-                std::cout << response.second << std::endl;
-            }
-
-            linenoise::AddHistory(line.c_str());
-        }
-
-        return 0;
-    }
-
-    int ws_redis_publish_main(const std::string& hostname,
-                              int port,
-                              const std::string& password,
-                              const std::string& channel,
-                              const std::string& message,
-                              int count)
-    {
-        RedisClient redisClient;
-        if (!redisClient.connect(hostname, port))
-        {
-            spdlog::info("Cannot connect to redis host");
-            return 1;
-        }
-
-        if (!password.empty())
-        {
-            std::string authResponse;
-            if (!redisClient.auth(password, authResponse))
-            {
-                std::stringstream ss;
-                spdlog::info("Cannot authenticated to redis");
-                return 1;
-            }
-            spdlog::info("Auth response: {}", authResponse);
-        }
-
-        std::string errMsg;
-        for (int i = 0; i < count; i++)
-        {
-            if (!redisClient.publish(channel, message, errMsg))
-            {
-                spdlog::error("Error publishing to channel {} error {}", channel, errMsg);
-                return 1;
-            }
-        }
-
-        return 0;
-    }
-
-    int ws_redis_server_main(int port, const std::string& hostname)
-    {
-        spdlog::info("Listening on {}:{}", hostname, port);
-
-        ix::RedisServer server(port, hostname);
-
-        auto res = server.listen();
-        if (!res.first)
-        {
-            spdlog::info(res.second);
-            return 1;
-        }
-
-        server.start();
-        server.wait();
-
-        return 0;
-    }
-
-    int ws_redis_subscribe_main(const std::string& hostname,
-                                int port,
-                                const std::string& password,
-                                const std::string& channel,
-                                bool verbose)
-    {
-        RedisClient redisClient;
-        if (!redisClient.connect(hostname, port))
-        {
-            spdlog::info("Cannot connect to redis host");
-            return 1;
-        }
-
-        if (!password.empty())
-        {
-            std::string authResponse;
-            if (!redisClient.auth(password, authResponse))
-            {
-                std::stringstream ss;
-                spdlog::info("Cannot authenticated to redis");
-                return 1;
-            }
-            spdlog::info("Auth response: {}", authResponse);
-        }
-
-        std::atomic<int> msgPerSeconds(0);
-        std::atomic<int> msgCount(0);
-
-        auto callback = [&msgPerSeconds, &msgCount, verbose](const std::string& message) {
-            if (verbose)
-            {
-                spdlog::info("recived: {}", message);
-            }
-
-            msgPerSeconds++;
-            msgCount++;
-        };
-
-        auto responseCallback = [](const std::string& redisResponse) {
-            spdlog::info("Redis subscribe response: {}", redisResponse);
-        };
-
-        auto timer = [&msgPerSeconds, &msgCount] {
-            while (true)
-            {
-                spdlog::info("#messages {} msg/s {}", msgCount, msgPerSeconds);
-
-                msgPerSeconds = 0;
-                auto duration = std::chrono::seconds(1);
-                std::this_thread::sleep_for(duration);
-            }
-        };
-
-        std::thread t(timer);
-
-        spdlog::info("Subscribing to {} ...", channel);
-        if (!redisClient.subscribe(channel, responseCallback, callback))
-        {
-            spdlog::info("Error subscribing to channel {}", channel);
-            return 1;
-        }
-
-        return 0;
-    }
-
     class WebSocketSender
     {
     public:
@@ -2707,132 +2353,6 @@ namespace ix
         return 0;
     }
 
-    int ws_sentry_minidump_upload(const std::string& metadataPath,
-                                  const std::string& minidump,
-                                  const std::string& project,
-                                  const std::string& key,
-                                  bool verbose)
-    {
-        SentryClient sentryClient((std::string()));
-
-        // Read minidump file from disk
-        std::string minidumpBytes = readBytes(minidump);
-
-        // Read json data
-        std::string sentryMetadata = readBytes(metadataPath);
-
-        std::atomic<bool> done(false);
-
-        sentryClient.uploadMinidump(
-            sentryMetadata,
-            minidumpBytes,
-            project,
-            key,
-            verbose,
-            [verbose, &done](const HttpResponsePtr& response) {
-                if (verbose)
-                {
-                    for (auto it : response->headers)
-                    {
-                        spdlog::info("{}: {}", it.first, it.second);
-                    }
-
-                    spdlog::info("Upload size: {}", response->uploadSize);
-                    spdlog::info("Download size: {}", response->downloadSize);
-
-                    spdlog::info("Status: {}", response->statusCode);
-                    if (response->errorCode != HttpErrorCode::Ok)
-                    {
-                        spdlog::info("error message: {}", response->errorMsg);
-                    }
-
-                    if (response->headers["Content-Type"] != "application/octet-stream")
-                    {
-                        spdlog::info("body: {}", response->body);
-                    }
-                }
-
-                if (response->statusCode != 200)
-                {
-                    spdlog::error("Error sending data to sentry: {}", response->statusCode);
-                    spdlog::error("Status: {}", response->statusCode);
-                    spdlog::error("Response: {}", response->body);
-                }
-                else
-                {
-                    spdlog::info("Event sent to sentry");
-                }
-
-                done = true;
-            });
-
-        int i = 0;
-
-        while (!done)
-        {
-            std::chrono::duration<double, std::milli> duration(10);
-            std::this_thread::sleep_for(duration);
-
-            if (i++ > 5000) break; // wait 5 seconds max
-        }
-
-        if (!done)
-        {
-            spdlog::error("Error: timing out trying to sent a crash to sentry");
-        }
-
-        return 0;
-    }
-
-    int ws_snake_main(int port,
-                      const std::string& hostname,
-                      const std::string& redisHosts,
-                      int redisPort,
-                      const std::string& redisPassword,
-                      bool verbose,
-                      const std::string& appsConfigPath,
-                      const SocketTLSOptions& socketTLSOptions,
-                      bool disablePong,
-                      const std::string& republishChannel)
-    {
-        snake::AppConfig appConfig;
-        appConfig.port = port;
-        appConfig.hostname = hostname;
-        appConfig.verbose = verbose;
-        appConfig.redisPort = redisPort;
-        appConfig.redisPassword = redisPassword;
-        appConfig.socketTLSOptions = socketTLSOptions;
-        appConfig.disablePong = disablePong;
-        appConfig.republishChannel = republishChannel;
-
-        // Parse config file
-        auto res = readAsString(appsConfigPath);
-        bool found = res.first;
-        if (!found)
-        {
-            spdlog::error("Cannot read content of {}", appsConfigPath);
-            return 1;
-        }
-
-        auto apps = nlohmann::json::parse(res.second);
-        appConfig.apps = apps["apps"];
-
-        std::string token;
-        std::stringstream tokenStream(redisHosts);
-        while (std::getline(tokenStream, token, ';'))
-        {
-            appConfig.redisHosts.push_back(token);
-        }
-
-        // Display config on the terminal for debugging
-        dumpConfig(appConfig);
-
-        snake::SnakeServer snakeServer(appConfig);
-        snakeServer.runForever();
-
-        return 0; // should never reach this
-    }
-
     int ws_transfer_main(int port,
                          const std::string& hostname,
                          const ix::SocketTLSOptions& tlsOptions)
@@ -3030,22 +2550,10 @@ int main(int argc, char** argv)
     std::string filter;
     std::string position;
     std::string message;
-    std::string password;
-    std::string prefix("ws.test.v0");
-    std::string fields;
-    std::string gauge;
     std::string timer;
-    std::string dsn;
-    std::string redisHosts("127.0.0.1");
-    std::string redisPassword;
-    std::string appsConfigPath("appsConfig.json");
     std::string configPath;
     std::string subprotocol;
     std::string remoteHost;
-    std::string minidump;
-    std::string metadata;
-    std::string project;
-    std::string key;
     std::string logfile;
     std::string moduleName;
     std::string republishChannel;
@@ -3055,8 +2563,6 @@ int main(int argc, char** argv)
     std::string filename;
     std::string httpHeaderAuthorization;
     ix::SocketTLSOptions tlsOptions;
-    ix::CobraConfig cobraConfig;
-    ix::CobraBotConfig cobraBotConfig;
     std::string ciphers;
     std::string redirectUrl;
     bool headersOnly = false;
@@ -3079,8 +2585,6 @@ int main(int argc, char** argv)
     bool disablePong = false;
     bool debug = false;
     int port = 8008;
-    int redisPort = 6379;
-    int statsdPort = 8125;
     int connectTimeOut = 60;
     int transferTimeout = 1800;
     int maxRedirects = 5;
@@ -3108,32 +2612,6 @@ int main(int argc, char** argv)
                         "A (comma/space/colon) separated list of ciphers to use for TLS");
         app->add_flag("--tls", tlsOptions.tls, "Enable TLS (server only)");
         app->add_flag("--verify_none", verifyNone, "Disable peer cert verification");
-    };
-
-    auto addCobraConfig = [&cobraConfig](CLI::App* app) {
-        app->add_option("--appkey", cobraConfig.appkey, "Appkey")->required();
-        app->add_option("--endpoint", cobraConfig.endpoint, "Endpoint")->required();
-        app->add_option("--rolename", cobraConfig.rolename, "Role name")->required();
-        app->add_option("--rolesecret", cobraConfig.rolesecret, "Role secret")->required();
-    };
-
-    auto addCobraBotConfig = [&cobraBotConfig](CLI::App* app) {
-        app->add_option("--appkey", cobraBotConfig.cobraConfig.appkey, "Appkey")->required();
-        app->add_option("--endpoint", cobraBotConfig.cobraConfig.endpoint, "Endpoint")->required();
-        app->add_option("--rolename", cobraBotConfig.cobraConfig.rolename, "Role name")->required();
-        app->add_option("--rolesecret", cobraBotConfig.cobraConfig.rolesecret, "Role secret")
-            ->required();
-        app->add_option("--channel", cobraBotConfig.channel, "Channel")->required();
-        app->add_option("--filter", cobraBotConfig.filter, "Filter");
-        app->add_option("--position", cobraBotConfig.position, "Position");
-        app->add_option("--runtime", cobraBotConfig.runtime, "Runtime");
-        app->add_option("--heartbeat", cobraBotConfig.enableHeartbeat, "Runtime");
-        app->add_option("--heartbeat_timeout", cobraBotConfig.heartBeatTimeout, "Runtime");
-        app->add_flag(
-            "--limit_received_events", cobraBotConfig.limitReceivedEvents, "Max events per minute");
-        app->add_option(
-            "--max_events_per_minute", cobraBotConfig.maxEventsPerMinute, "Max events per minute");
-        app->add_option("--batch_size", cobraBotConfig.batchSize, "Subscription batch size");
     };
 
     app.add_flag("--version", version, "Print ws version");
@@ -3250,129 +2728,6 @@ int main(int argc, char** argv)
     httpClientApp->add_option("--transfer-timeout", transferTimeout, "Transfer timeout");
     addTLSOptions(httpClientApp);
 
-    CLI::App* redisCliApp = app.add_subcommand("redis_cli", "Redis cli");
-    redisCliApp->fallthrough();
-    redisCliApp->add_option("--port", redisPort, "Port");
-    redisCliApp->add_option("--host", hostname, "Hostname");
-    redisCliApp->add_option("--password", password, "Password");
-
-    CLI::App* redisPublishApp = app.add_subcommand("redis_publish", "Redis publisher");
-    redisPublishApp->fallthrough();
-    redisPublishApp->add_option("--port", redisPort, "Port");
-    redisPublishApp->add_option("--host", hostname, "Hostname");
-    redisPublishApp->add_option("--password", password, "Password");
-    redisPublishApp->add_option("channel", channel, "Channel")->required();
-    redisPublishApp->add_option("message", message, "Message")->required();
-    redisPublishApp->add_option("-c", count, "Count");
-
-    CLI::App* redisSubscribeApp = app.add_subcommand("redis_subscribe", "Redis subscriber");
-    redisSubscribeApp->fallthrough();
-    redisSubscribeApp->add_option("--port", redisPort, "Port");
-    redisSubscribeApp->add_option("--host", hostname, "Hostname");
-    redisSubscribeApp->add_option("--password", password, "Password");
-    redisSubscribeApp->add_option("channel", channel, "Channel")->required();
-    redisSubscribeApp->add_flag("-v", verbose, "Verbose");
-    redisSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
-
-    CLI::App* cobraSubscribeApp = app.add_subcommand("cobra_subscribe", "Cobra subscriber");
-    cobraSubscribeApp->fallthrough();
-    cobraSubscribeApp->add_option("--pidfile", pidfile, "Pid file");
-    cobraSubscribeApp->add_flag("-q", quiet, "Quiet / only display stats");
-    cobraSubscribeApp->add_flag("--fluentd", fluentd, "Write fluentd prefix");
-    addTLSOptions(cobraSubscribeApp);
-    addCobraBotConfig(cobraSubscribeApp);
-
-    CLI::App* cobraPublish = app.add_subcommand("cobra_publish", "Cobra publisher");
-    cobraPublish->fallthrough();
-    cobraPublish->add_option("--channel", channel, "Channel")->required();
-    cobraPublish->add_option("--pidfile", pidfile, "Pid file");
-    cobraPublish->add_option("path", path, "Path to the file to send")
-        ->required()
-        ->check(CLI::ExistingPath);
-    addTLSOptions(cobraPublish);
-    addCobraConfig(cobraPublish);
-
-    CLI::App* cobraMetricsPublish =
-        app.add_subcommand("cobra_metrics_publish", "Cobra metrics publisher");
-    cobraMetricsPublish->fallthrough();
-    cobraMetricsPublish->add_option("--channel", channel, "Channel")->required();
-    cobraMetricsPublish->add_option("--pidfile", pidfile, "Pid file");
-    cobraMetricsPublish->add_option("path", path, "Path to the file to send")
-        ->required()
-        ->check(CLI::ExistingPath);
-    cobraMetricsPublish->add_flag("--stress", stress, "Stress mode");
-    addTLSOptions(cobraMetricsPublish);
-    addCobraConfig(cobraMetricsPublish);
-
-    CLI::App* cobra2statsd = app.add_subcommand("cobra_to_statsd", "Cobra to statsd");
-    cobra2statsd->fallthrough();
-    cobra2statsd->add_option("--host", hostname, "Statsd host");
-    cobra2statsd->add_option("--port", statsdPort, "Statsd port");
-    cobra2statsd->add_option("--prefix", prefix, "Statsd prefix");
-    cobra2statsd->add_option("--fields", fields, "Extract fields for naming the event")->join();
-    cobra2statsd->add_option("--gauge", gauge, "Value to extract, and use as a statsd gauge")
-        ->join();
-    cobra2statsd->add_option("--timer", timer, "Value to extract, and use as a statsd timer")
-        ->join();
-    cobra2statsd->add_flag("-v", verbose, "Verbose");
-    cobra2statsd->add_option("--pidfile", pidfile, "Pid file");
-    addTLSOptions(cobra2statsd);
-    addCobraBotConfig(cobra2statsd);
-
-    CLI::App* cobra2cobra = app.add_subcommand("cobra_to_cobra", "Cobra to Cobra");
-    cobra2cobra->fallthrough();
-    cobra2cobra->add_option("--republish", republishChannel, "Republish channel");
-    cobra2cobra->add_option("--publisher_rolename", publisherRolename, "Publisher Role name")
-        ->required();
-    cobra2cobra->add_option("--publisher_rolesecret", publisherRolesecret, "Publisher Role secret")
-        ->required();
-    cobra2cobra->add_flag("-q", quiet, "Quiet");
-    addTLSOptions(cobra2cobra);
-    addCobraBotConfig(cobra2cobra);
-
-    CLI::App* cobra2python = app.add_subcommand("cobra_to_python", "Cobra to python");
-    cobra2python->fallthrough();
-    cobra2python->add_option("--host", hostname, "Statsd host");
-    cobra2python->add_option("--port", statsdPort, "Statsd port");
-    cobra2python->add_option("--prefix", prefix, "Statsd prefix");
-    cobra2python->add_option("--module", moduleName, "Python module");
-    cobra2python->add_option("--pidfile", pidfile, "Pid file");
-    addTLSOptions(cobra2python);
-    addCobraBotConfig(cobra2python);
-
-    CLI::App* cobra2sentry = app.add_subcommand("cobra_to_sentry", "Cobra to sentry");
-    cobra2sentry->fallthrough();
-    cobra2sentry->add_option("--dsn", dsn, "Sentry DSN");
-    cobra2sentry->add_flag("-v", verbose, "Verbose");
-    cobra2sentry->add_option("--pidfile", pidfile, "Pid file");
-    addTLSOptions(cobra2sentry);
-    addCobraBotConfig(cobra2sentry);
-
-    CLI::App* cobra2redisApp =
-        app.add_subcommand("cobra_metrics_to_redis", "Cobra metrics to redis");
-    cobra2redisApp->fallthrough();
-    cobra2redisApp->add_option("--pidfile", pidfile, "Pid file");
-    cobra2redisApp->add_option("--hostname", hostname, "Redis hostname");
-    cobra2redisApp->add_option("--port", redisPort, "Redis port");
-    cobra2redisApp->add_flag("-v", verbose, "Verbose");
-    addTLSOptions(cobra2redisApp);
-    addCobraBotConfig(cobra2redisApp);
-
-    CLI::App* snakeApp = app.add_subcommand("snake", "Snake server");
-    snakeApp->fallthrough();
-    snakeApp->add_option("--port", port, "Connection url");
-    snakeApp->add_option("--host", hostname, "Hostname");
-    snakeApp->add_option("--pidfile", pidfile, "Pid file");
-    snakeApp->add_option("--redis_hosts", redisHosts, "Redis hosts");
-    snakeApp->add_option("--redis_port", redisPort, "Redis hosts");
-    snakeApp->add_option("--redis_password", redisPassword, "Redis password");
-    snakeApp->add_option("--apps_config_path", appsConfigPath, "Path to auth data")
-        ->check(CLI::ExistingPath);
-    snakeApp->add_option("--republish_channel", republishChannel, "Republish channel");
-    snakeApp->add_flag("-v", verbose, "Verbose");
-    snakeApp->add_flag("-d", disablePong, "Disable Pongs");
-    addTLSOptions(snakeApp);
-
     CLI::App* httpServerApp = app.add_subcommand("httpd", "HTTP server");
     httpServerApp->fallthrough();
     httpServerApp->add_option("--port", port, "Port");
@@ -3387,11 +2742,6 @@ int main(int argc, char** argv)
     autobahnApp->add_option("--url", url, "url");
     autobahnApp->add_flag("-q", quiet, "Quiet");
 
-    CLI::App* redisServerApp = app.add_subcommand("redis_server", "Redis server");
-    redisServerApp->fallthrough();
-    redisServerApp->add_option("--port", port, "Port");
-    redisServerApp->add_option("--host", hostname, "Hostname");
-
     CLI::App* proxyServerApp = app.add_subcommand("proxy_server", "Proxy server");
     proxyServerApp->fallthrough();
     proxyServerApp->add_option("--port", port, "Port");
@@ -3402,18 +2752,6 @@ int main(int argc, char** argv)
         ->check(CLI::ExistingPath);
     addGenericOptions(proxyServerApp);
     addTLSOptions(proxyServerApp);
-
-    CLI::App* minidumpApp = app.add_subcommand("upload_minidump", "Upload a minidump to sentry");
-    minidumpApp->fallthrough();
-    minidumpApp->add_option("--minidump", minidump, "Minidump path")
-        ->required()
-        ->check(CLI::ExistingPath);
-    minidumpApp->add_option("--metadata", metadata, "Metadata path")
-        ->required()
-        ->check(CLI::ExistingPath);
-    minidumpApp->add_option("--project", project, "Sentry Project")->required();
-    minidumpApp->add_option("--key", key, "Sentry Key")->required();
-    minidumpApp->add_flag("-v", verbose, "Verbose");
 
     CLI::App* dnsLookupApp = app.add_subcommand("dnslookup", "DNS lookup");
     dnsLookupApp->fallthrough();
@@ -3495,14 +2833,6 @@ int main(int argc, char** argv)
         spdlog::set_level(spdlog::level::info);
     }
 
-    // Cobra config
-    cobraConfig.webSocketPerMessageDeflateOptions = ix::WebSocketPerMessageDeflateOptions(true);
-    cobraConfig.socketTLSOptions = tlsOptions;
-
-    cobraBotConfig.cobraConfig.webSocketPerMessageDeflateOptions =
-        ix::WebSocketPerMessageDeflateOptions(true);
-    cobraBotConfig.cobraConfig.socketTLSOptions = tlsOptions;
-
     int ret = 1;
     if (app.got_subcommand("connect"))
     {
@@ -3581,111 +2911,6 @@ int main(int argc, char** argv)
                                       compressRequest,
                                       tlsOptions);
     }
-    else if (app.got_subcommand("redis_cli"))
-    {
-        ret = ix::ws_redis_cli_main(hostname, redisPort, password);
-    }
-    else if (app.got_subcommand("redis_publish"))
-    {
-        ret = ix::ws_redis_publish_main(hostname, redisPort, password, channel, message, count);
-    }
-    else if (app.got_subcommand("redis_subscribe"))
-    {
-        ret = ix::ws_redis_subscribe_main(hostname, redisPort, password, channel, verbose);
-    }
-    else if (app.got_subcommand("cobra_subscribe"))
-    {
-        int64_t sentCount = ix::cobra_to_stdout_bot(cobraBotConfig, fluentd, quiet);
-        ret = (int) sentCount;
-    }
-    else if (app.got_subcommand("cobra_publish"))
-    {
-        ret = ix::ws_cobra_publish_main(cobraConfig, channel, path);
-    }
-    else if (app.got_subcommand("cobra_metrics_publish"))
-    {
-        ret = ix::ws_cobra_metrics_publish_main(cobraConfig, channel, path, stress);
-    }
-    else if (app.got_subcommand("cobra_to_statsd"))
-    {
-        if (!timer.empty() && !gauge.empty())
-        {
-            spdlog::error("--gauge and --timer options are exclusive. "
-                          "you can only supply one");
-            ret = 1;
-        }
-        else
-        {
-            ix::StatsdClient statsdClient(hostname, statsdPort, prefix, verbose);
-
-            std::string errMsg;
-            bool initialized = statsdClient.init(errMsg);
-            if (!initialized)
-            {
-                spdlog::error(errMsg);
-                ret = 1;
-            }
-            else
-            {
-                ret = (int) ix::cobra_to_statsd_bot(
-                    cobraBotConfig, statsdClient, fields, gauge, timer, verbose);
-            }
-        }
-    }
-    else if (app.got_subcommand("cobra_to_python"))
-    {
-        ix::StatsdClient statsdClient(hostname, statsdPort, prefix, verbose);
-
-        std::string errMsg;
-        bool initialized = statsdClient.init(errMsg);
-        if (!initialized)
-        {
-            spdlog::error(errMsg);
-            ret = 1;
-        }
-        else
-        {
-            ret = (int) ix::cobra_to_python_bot(cobraBotConfig, statsdClient, moduleName);
-        }
-    }
-    else if (app.got_subcommand("cobra_to_sentry"))
-    {
-        ix::SentryClient sentryClient(dsn);
-        sentryClient.setTLSOptions(tlsOptions);
-
-        ret = (int) ix::cobra_to_sentry_bot(cobraBotConfig, sentryClient, verbose);
-    }
-    else if (app.got_subcommand("cobra_metrics_to_redis"))
-    {
-        ix::RedisClient redisClient;
-        if (!redisClient.connect(hostname, redisPort))
-        {
-            spdlog::error("Cannot connect to redis host {}:{}", redisHosts, redisPort);
-            return 1;
-        }
-        else
-        {
-            ret = (int) ix::cobra_metrics_to_redis_bot(cobraBotConfig, redisClient, verbose);
-        }
-    }
-    else if (app.got_subcommand("cobra_to_cobra"))
-    {
-        ret = (int) ix::cobra_to_cobra_bot(
-            cobraBotConfig, republishChannel, publisherRolename, publisherRolesecret);
-    }
-    else if (app.got_subcommand("snake"))
-    {
-        ret = ix::ws_snake_main(port,
-                                hostname,
-                                redisHosts,
-                                redisPort,
-                                redisPassword,
-                                verbose,
-                                appsConfigPath,
-                                tlsOptions,
-                                disablePong,
-                                republishChannel);
-    }
     else if (app.got_subcommand("httpd"))
     {
         ret = ix::ws_httpd_main(port, hostname, redirect, redirectUrl, debug, tlsOptions);
@@ -3693,10 +2918,6 @@ int main(int argc, char** argv)
     else if (app.got_subcommand("autobahn"))
     {
         ret = ix::ws_autobahn_main(url, quiet);
-    }
-    else if (app.got_subcommand("redis_server"))
-    {
-        ret = ix::ws_redis_server_main(port, hostname);
     }
     else if (app.got_subcommand("proxy_server"))
     {
@@ -3712,22 +2933,29 @@ int main(int argc, char** argv)
             }
             else
             {
-                auto jsonData = nlohmann::json::parse(res.second);
-                auto remoteUrls = jsonData["remote_urls"];
+                // Split by \n
+                std::string token;
+                std::stringstream tokenStream(res.second);
 
-                for (auto& el : remoteUrls.items())
+                while (std::getline(tokenStream, token))
                 {
-                    remoteUrlsMapping[el.key()] = el.value();
+                    std::size_t pos = token.rfind(':');
+
+                    // Bail out if last '.' is found
+                    if (pos == std::string::npos) continue;
+
+                    auto key = token.substr(0, pos);
+                    auto val = token.substr(pos + 1);
+
+                    spdlog::info("{}: {}", key, val);
+
+                    remoteUrlsMapping[key] = val;
                 }
             }
         }
 
         ret = ix::websocket_proxy_server_main(
             port, hostname, tlsOptions, remoteHost, remoteUrlsMapping, verbose);
-    }
-    else if (app.got_subcommand("upload_minidump"))
-    {
-        ret = ix::ws_sentry_minidump_upload(metadata, minidump, project, key, verbose);
     }
     else if (app.got_subcommand("dnslookup"))
     {
