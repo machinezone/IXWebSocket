@@ -10,7 +10,6 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <ixcobra/IXCobraMetricsPublisher.h>
 #include <ixcrypto/IXUuid.h>
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXWebSocket.h>
@@ -204,74 +203,5 @@ namespace ix
         scheme = "ws://";
 #endif
         return scheme;
-    }
-
-    snake::AppConfig makeSnakeServerConfig(int port, bool preferTLS)
-    {
-        snake::AppConfig appConfig;
-        appConfig.port = port;
-        appConfig.hostname = "127.0.0.1";
-        appConfig.verbose = true;
-        appConfig.redisPort = getFreePort();
-        appConfig.redisPassword = "";
-        appConfig.redisHosts.push_back("localhost"); // only one host supported now
-        appConfig.socketTLSOptions = makeServerTLSOptions(preferTLS);
-
-        std::string appsConfigPath("appsConfig.json");
-
-        // Parse config file
-        auto str = readAsString(appsConfigPath);
-        if (str.empty())
-        {
-            std::cout << "Cannot read content of " << appsConfigPath << std::endl;
-            return appConfig;
-        }
-
-        std::cout << str << std::endl;
-        auto apps = nlohmann::json::parse(str);
-        appConfig.apps = apps["apps"];
-
-        // Display config on the terminal for debugging
-        dumpConfig(appConfig);
-
-        return appConfig;
-    }
-
-    std::string makeCobraEndpoint(int port, bool preferTLS)
-    {
-        std::stringstream ss;
-        ss << getWsScheme(preferTLS) << "localhost:" << port;
-        std::string endpoint = ss.str();
-
-        return endpoint;
-    }
-
-    void runPublisher(const ix::CobraConfig& config, const std::string& channel)
-    {
-        ix::CobraMetricsPublisher cobraMetricsPublisher;
-        cobraMetricsPublisher.configure(config, channel);
-        cobraMetricsPublisher.setSession(uuid4());
-        cobraMetricsPublisher.enable(true);
-
-        Json::Value msg;
-        msg["fps"] = 60;
-
-        cobraMetricsPublisher.setGenericAttributes("game", "ody");
-
-        // Wait a bit
-        ix::msleep(500);
-
-        // publish some messages
-        cobraMetricsPublisher.push("sms_metric_A_id", msg); // (msg #1)
-        cobraMetricsPublisher.push("sms_metric_B_id", msg); // (msg #2)
-        ix::msleep(500);
-
-        cobraMetricsPublisher.push("sms_metric_A_id", msg); // (msg #3)
-        cobraMetricsPublisher.push("sms_metric_D_id", msg); // (msg #4)
-        ix::msleep(500);
-
-        cobraMetricsPublisher.push("sms_metric_A_id", msg); // (msg #4)
-        cobraMetricsPublisher.push("sms_metric_F_id", msg); // (msg #5)
-        ix::msleep(500);
     }
 } // namespace ix

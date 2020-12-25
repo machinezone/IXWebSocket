@@ -257,11 +257,6 @@ install(EXPORT ixwebsocket
 if (USE_WS OR USE_TEST)
   add_subdirectory(ixcore)
   add_subdirectory(ixcrypto)
-  add_subdirectory(ixcobra)
-  add_subdirectory(ixredis)
-  add_subdirectory(ixsnake)
-  add_subdirectory(ixsentry)
-  add_subdirectory(ixbots)
 
   include(FetchContent)
   FetchContent_Declare(spdlog

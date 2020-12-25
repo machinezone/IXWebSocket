@@ -22,11 +22,9 @@ set (TEST_TARGET_NAMES
   IXHttpTest
   IXDNSLookupTest
   IXWebSocketSubProtocolTest
-  IXSentryClientTest
   IXWebSocketChatTest
-  IXWebSocketBroadcastTest
+  # IXWebSocketBroadcastTest ## FIXME was depending on cobra / take a broadcast server from ws
   IXWebSocketPerMessageDeflateCompressorTest
-  IXStreamSqlTest
   IXStrCaseCompareTest
 )
 
@@ -35,11 +33,6 @@ set (TEST_TARGET_NAMES
 if (UNIX)
   list(APPEND TEST_TARGET_NAMES
     IXWebSocketCloseTest
-    IXCobraChatTest
-    IXCobraMetricsPublisherTest
-    IXCobraToSentryBotTest
-    IXCobraToStatsdBotTest
-    IXCobraToStdoutBotTest
   )
 endif()
 
@@ -51,22 +44,6 @@ endif()
 # that was was fixed but now the test does not compile
 
 # Disable tests for now that are failing or not reliable
-
-find_package(JsonCpp)
-if (NOT JSONCPP_FOUND)
-  set(JSONCPP_SOURCES ../third_party/jsoncpp/jsoncpp.cpp)
-endif()
-
-if (USE_PYTHON)
-  find_package(Python COMPONENTS Development)
-  if (NOT Python_FOUND)
-    message(FATAL_ERROR "Python3 not found")
-  endif()
-  message("Python_FOUND:${Python_FOUND}")
-  message("Python_VERSION:${Python_VERSION}")
-  message("Python_Development_FOUND:${Python_Development_FOUND}")
-  message("Python_LIBRARIES:${Python_LIBRARIES}")
-endif()
 
 add_library(ixwebsocket_test)
 target_sources(ixwebsocket_test PRIVATE 
@@ -80,8 +57,6 @@ target_include_directories(ixwebsocket_test PRIVATE
   ${PROJECT_SOURCE_DIR}/Catch2/single_include
   ../third_party
 )
-target_link_libraries(ixwebsocket_test ixsnake)
-target_link_libraries(ixwebsocket_test ixcobra)
 target_link_libraries(ixwebsocket_test ixwebsocket)
 target_link_libraries(ixwebsocket_test ixcrypto)
 target_link_libraries(ixwebsocket_test spdlog)
@@ -99,35 +74,17 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
 
   target_compile_definitions(${TEST_TARGET_NAME} PRIVATE SPDLOG_COMPILED_LIB=1)
 
-  if (NOT JSONCPP_FOUND)
-    target_include_directories(${TEST_TARGET_NAME} PRIVATE ../third_party/jsoncpp)
-  endif()
-
   if (APPLE AND USE_TLS)
     target_link_libraries(${TEST_TARGET_NAME} "-framework foundation" "-framework security")
   endif()
 
   # library with the most dependencies come first
   target_link_libraries(${TEST_TARGET_NAME} ixwebsocket_test)
-  target_link_libraries(${TEST_TARGET_NAME} ixbots)
-  target_link_libraries(${TEST_TARGET_NAME} ixsnake)
-  target_link_libraries(${TEST_TARGET_NAME} ixcobra)
-  target_link_libraries(${TEST_TARGET_NAME} ixsentry)
-
-  if (JSONCPP_FOUND)
-    target_include_directories(${TEST_TARGET_NAME} PRIVATE ${JSONCPP_INCLUDE_DIRS})
-    target_link_libraries(${TEST_TARGET_NAME} ${JSONCPP_LIBRARIES})
-  endif()
-
-  target_link_libraries(${TEST_TARGET_NAME} ixredis)
   target_link_libraries(${TEST_TARGET_NAME} ixwebsocket)
   target_link_libraries(${TEST_TARGET_NAME} ixcrypto)
   target_link_libraries(${TEST_TARGET_NAME} ixcore)
 
   target_link_libraries(${TEST_TARGET_NAME} spdlog)
-  if (USE_PYTHON)
-    target_link_libraries(${TEST_TARGET_NAME} ${Python_LIBRARIES})
-  endif()
 
   add_test(NAME ${TEST_TARGET_NAME}
            COMMAND ${TEST_TARGET_NAME}

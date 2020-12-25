@@ -87,12 +87,10 @@ namespace
 
     void WebSocketBroadcastChat::start()
     {
+        //
+        // Which server ??
+        //
         std::string url;
-        {
-            bool preferTLS = true;
-            url = makeCobraEndpoint(_port, preferTLS);
-        }
-
         _webSocket.setUrl(url);
 
         std::stringstream ss;
