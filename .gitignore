@@ -6,3 +6,4 @@ site/
 ws/.certs/
 ws/.srl
 ixhttpd
+makefile
