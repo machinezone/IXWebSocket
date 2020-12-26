@@ -2,7 +2,7 @@ name: linux
 on:
   push:
     paths-ignore:
-    - 'docs/**'
+    - './**'
 
 jobs:
   linux:

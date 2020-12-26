@@ -2,7 +2,7 @@ name: mac_tsan_sectransport
 on:
   push:
     paths-ignore:
-    - 'docs/**'
+    - './**'
 
 jobs:
   mac_tsan_sectransport:

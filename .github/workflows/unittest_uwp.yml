@@ -2,7 +2,7 @@ name: uwp
 on:
   push:
     paths-ignore:
-    - 'docs/**'
+    - './**'
 
 jobs:
   uwp:
