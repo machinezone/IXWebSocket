@@ -30,7 +30,6 @@ add_executable(ws
 
 # library with the most dependencies come first
 target_link_libraries(ws ixwebsocket)
-target_link_libraries(ws ixcrypto)
 target_link_libraries(ws ixcore)
 
 target_link_libraries(ws spdlog)

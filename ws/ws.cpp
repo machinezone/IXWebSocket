@@ -15,10 +15,6 @@
 #include <condition_variable>
 #include <fstream>
 #include <iostream>
-#include <ixcore/utils/IXCoreLogger.h>
-#include <ixcrypto/IXBase64.h>
-#include <ixcrypto/IXHash.h>
-#include <ixcrypto/IXUuid.h>
 #include <ixwebsocket/IXBench.h>
 #include <ixwebsocket/IXDNSLookup.h>
 #include <ixwebsocket/IXGzipCodec.h>
@@ -29,6 +25,7 @@
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXUserAgent.h>
+#include <ixwebsocket/IXUuid.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketProxyServer.h>
@@ -145,6 +142,30 @@ namespace
         {
             return path;
         }
+    }
+
+    uint64_t djb2Hash(const std::vector<uint8_t>& data)
+    {
+        uint64_t hashAddress = 5381;
+
+        for (auto&& c : data)
+        {
+            hashAddress = ((hashAddress << 5) + hashAddress) + c;
+        }
+
+        return hashAddress;
+    }
+
+    uint64_t djb2HashStr(const std::string& data)
+    {
+        uint64_t hashAddress = 5381;
+
+        for (size_t i = 0; i < data.size(); ++i)
+        {
+            hashAddress = ((hashAddress << 5) + hashAddress) + data[i];
+        }
+
+        return hashAddress;
     }
 } // namespace
 
@@ -988,7 +1009,7 @@ namespace ix
         spdlog::info("gzip input: {} size {} cksum {}",
                      filename,
                      res.second.size(),
-                     ix::djb2HashStr(res.second));
+                     djb2HashStr(res.second));
 
         std::string compressedBytes;
 
@@ -1022,7 +1043,7 @@ namespace ix
         spdlog::info("gzip output: {} size {} cksum {}",
                      outputFilename,
                      compressedBytes.size(),
-                     ix::djb2HashStr(compressedBytes));
+                     djb2HashStr(compressedBytes));
 
         return 0;
     }
@@ -1042,7 +1063,7 @@ namespace ix
         spdlog::info("gunzip input: {} size {} cksum {}",
                      filename,
                      res.second.size(),
-                     ix::djb2HashStr(res.second));
+                     djb2HashStr(res.second));
 
         std::string decompressedBytes;
 
@@ -1070,7 +1091,7 @@ namespace ix
         spdlog::info("gunzip output: {} size {} cksum {}",
                      outputFilename,
                      decompressedBytes.size(),
-                     ix::djb2HashStr(decompressedBytes));
+                     djb2HashStr(decompressedBytes));
 
         return 0;
     }
@@ -1175,7 +1196,7 @@ namespace ix
                 std::stringstream ss;
                 ss << "messages received per second: " << receivedCountPerSecs;
 
-                CoreLogger::info(ss.str());
+                spdlog::info(ss.str());
 
                 receivedCountPerSecs = 0;
 
@@ -1928,7 +1949,7 @@ namespace ix
         spdlog::info("ws_receive: Content size: {}", content.size());
 
         // Validate checksum
-        uint64_t cksum = ix::djb2Hash(content);
+        uint64_t cksum = djb2Hash(content);
         auto cksumRef = data["djb2_hash"].string_value();
 
         spdlog::info("ws_receive: Computed hash: {}", cksum);
@@ -2481,41 +2502,6 @@ int main(int argc, char** argv)
     ix::setThreadName("ws main thread");
     ix::initNetSystem();
 
-    ix::CoreLogger::LogFunc logFunc = [](const char* msg, ix::LogLevel level) {
-        switch (level)
-        {
-            case ix::LogLevel::Debug:
-            {
-                spdlog::debug(msg);
-            }
-            break;
-
-            case ix::LogLevel::Info:
-            {
-                spdlog::info(msg);
-            }
-            break;
-
-            case ix::LogLevel::Warning:
-            {
-                spdlog::warn(msg);
-            }
-            break;
-
-            case ix::LogLevel::Error:
-            {
-                spdlog::error(msg);
-            }
-            break;
-
-            case ix::LogLevel::Critical:
-            {
-                spdlog::critical(msg);
-            }
-            break;
-        }
-    };
-    ix::CoreLogger::setLogFunction(logFunc);
     spdlog::set_level(spdlog::level::debug);
 
 #ifndef _WIN32

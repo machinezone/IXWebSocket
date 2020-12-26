@@ -48,6 +48,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXStrCaseCompare.cpp
     ixwebsocket/IXUdpSocket.cpp
     ixwebsocket/IXUrlParser.cpp
+    ixwebsocket/IXUUid.cpp
     ixwebsocket/IXUserAgent.cpp
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketCloseConstants.cpp
@@ -86,6 +87,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXStrCaseCompare.h
     ixwebsocket/IXUdpSocket.h
     ixwebsocket/IXUrlParser.h
+    ixwebsocket/IXUUid.h
     ixwebsocket/IXUtf8Validator.h
     ixwebsocket/IXUserAgent.h
     ixwebsocket/IXWebSocket.h
@@ -256,7 +258,6 @@ install(EXPORT ixwebsocket
 
 if (USE_WS OR USE_TEST)
   add_subdirectory(ixcore)
-  add_subdirectory(ixcrypto)
 
   include(FetchContent)
   FetchContent_Declare(spdlog

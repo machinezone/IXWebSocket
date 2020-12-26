@@ -58,7 +58,6 @@ target_include_directories(ixwebsocket_test PRIVATE
   ../third_party
 )
 target_link_libraries(ixwebsocket_test ixwebsocket)
-target_link_libraries(ixwebsocket_test ixcrypto)
 target_link_libraries(ixwebsocket_test spdlog)
 
 foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
@@ -81,7 +80,6 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
   # library with the most dependencies come first
   target_link_libraries(${TEST_TARGET_NAME} ixwebsocket_test)
   target_link_libraries(${TEST_TARGET_NAME} ixwebsocket)
-  target_link_libraries(${TEST_TARGET_NAME} ixcrypto)
   target_link_libraries(${TEST_TARGET_NAME} ixcore)
 
   target_link_libraries(${TEST_TARGET_NAME} spdlog)

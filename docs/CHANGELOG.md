@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.0.8] - 2020-12-25
+
+(ws) trim ws dependencies no more ixcrypto and ixcore deps
+
 ## [11.0.7] - 2020-12-25
 
 (ws) trim ws dependencies, only depends on ixcrypto and ixcore
