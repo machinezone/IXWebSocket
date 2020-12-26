@@ -10,11 +10,17 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: seanmiddleditch/gha-setup-vsdevenv@master
+    - uses: seanmiddleditch/gha-setup-ninja@master
     - run: |
         mkdir build
         cd build
-        cmake -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION="10.0" -DCMAKE_CXX_COMPILER=cl.exe -DUSE_TEST=1 -DUSE_ZLIB=0 ..
-    - run: cmake --build build
+        cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION="10.0" -DCMAKE_CXX_COMPILER=cl.exe -DCMAKE_C_COMPILER=cl.exe -DUSE_TEST=1 -DUSE_ZLIB=0 ..
+    - run: |
+        cd build
+        ninja
+    - run: |
+        cd build
+        ninja test
 
 #
 #   Windows with OpenSSL is working but disabled as it takes 13 minutes (10 for openssl) to build with vcpkg
