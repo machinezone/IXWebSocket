@@ -29,6 +29,7 @@ namespace ix
 
             // Comparison should be case insensitive
             REQUIRE(httpHeaders["Foo"] == "foo");
+            REQUIRE(httpHeaders["Foo"] != "bar");
         }
 
         SECTION("2")
@@ -39,7 +40,7 @@ namespace ix
 
             headers["Upgrade"] = "webSocket";
 
-            REQUIRE(CaseInsensitiveLess::cmp(headers["upgrade"], "WebSocket") == 0);
+            REQUIRE(!CaseInsensitiveLess::cmp(headers["upGRADE"], "webSocket"));
         }
     }
 

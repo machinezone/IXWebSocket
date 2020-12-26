@@ -113,6 +113,10 @@ To check the performance of a websocket library, you can look at the [autoroute]
 | UWP               | Disabled          | None              | [![Build2][6]][0] |
 | Linux             | OpenSSL           | Address Sanitizer | [![Build2][7]][0] |
 
+* ASAN fails on Linux because of a known problem, we need a 
+* Some tests are disabled on Windows/UWP because of a pathing problem
+* TLS and ZLIB are disabled on Windows/UWP because enabling make the CI run takes a lot of time, for setting up vcpkg.
+
 [0]: https://github.com/machinezone/IXWebSocket
 [1]: https://github.com/machinezone/IXWebSocket/workflows/linux/badge.svg
 [2]: https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_sectransport/badge.svg
