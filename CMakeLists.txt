@@ -257,8 +257,6 @@ install(EXPORT ixwebsocket
         DESTINATION lib/cmake/ixwebsocket)
 
 if (USE_WS OR USE_TEST)
-  add_subdirectory(ixcore)
-
   include(FetchContent)
   FetchContent_Declare(spdlog
       GIT_REPOSITORY "https://github.com/gabime/spdlog"
