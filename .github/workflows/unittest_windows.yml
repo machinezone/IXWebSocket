@@ -17,7 +17,7 @@ jobs:
         cmake -GNinja -DUSE_WS=1 -DUSE_TEST=1 -DUSE_ZLIB=0 ..
     - run: |
         cd build
-        ninja build
+        ninja
     - run: |
         cd build
         ninja test
