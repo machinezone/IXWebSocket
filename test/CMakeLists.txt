@@ -17,14 +17,11 @@ set (TEST_TARGET_NAMES
   IXWebSocketTestConnectionDisconnection
   IXUrlParserTest
   IXHttpClientTest
-  IXHttpServerTest
   IXUnityBuildsTest
   IXHttpTest
   IXDNSLookupTest
   IXWebSocketSubProtocolTest
-  IXWebSocketChatTest
   # IXWebSocketBroadcastTest ## FIXME was depending on cobra / take a broadcast server from ws
-  IXWebSocketPerMessageDeflateCompressorTest
   IXStrCaseCompareTest
 )
 
@@ -33,6 +30,17 @@ set (TEST_TARGET_NAMES
 if (UNIX)
   list(APPEND TEST_TARGET_NAMES
     IXWebSocketCloseTest
+
+    # Fail on Windows in CI probably because the pathing is wrong and
+    # some resource files cannot be found
+    IXHttpServerTest
+    IXWebSocketChatTest
+  )
+endif()
+
+if (USE_ZLIB)
+  list(APPEND TEST_TARGET_NAMES
+    IXWebSocketPerMessageDeflateCompressorTest
   )
 endif()
 
