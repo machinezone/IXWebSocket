@@ -80,7 +80,6 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
   # library with the most dependencies come first
   target_link_libraries(${TEST_TARGET_NAME} ixwebsocket_test)
   target_link_libraries(${TEST_TARGET_NAME} ixwebsocket)
-  target_link_libraries(${TEST_TARGET_NAME} ixcore)
 
   target_link_libraries(${TEST_TARGET_NAME} spdlog)
 
