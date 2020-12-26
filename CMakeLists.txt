@@ -48,7 +48,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXStrCaseCompare.cpp
     ixwebsocket/IXUdpSocket.cpp
     ixwebsocket/IXUrlParser.cpp
-    ixwebsocket/IXUUid.cpp
+    ixwebsocket/IXUuid.cpp
     ixwebsocket/IXUserAgent.cpp
     ixwebsocket/IXWebSocket.cpp
     ixwebsocket/IXWebSocketCloseConstants.cpp
@@ -87,7 +87,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXStrCaseCompare.h
     ixwebsocket/IXUdpSocket.h
     ixwebsocket/IXUrlParser.h
-    ixwebsocket/IXUUid.h
+    ixwebsocket/IXUuid.h
     ixwebsocket/IXUtf8Validator.h
     ixwebsocket/IXUserAgent.h
     ixwebsocket/IXWebSocket.h
