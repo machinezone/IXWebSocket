@@ -13,7 +13,7 @@ jobs:
     - run: |
         mkdir build
         cd build
-        cmake -DCMAKE_CXX_COMPILER=cl.exe -DUSE_WS=1 -DUSE_TEST=1 -DUSE_ZLIB=0 ..
+        cmake -DCMAKE_UNITY_BUILD=ON -DCMAKE_CXX_COMPILER=cl.exe -DUSE_WS=1 -DUSE_TEST=1 -DUSE_ZLIB=0 ..
     - run: cmake --build build
 
 #- run: ../build/test/ixwebsocket_unittest.exe
