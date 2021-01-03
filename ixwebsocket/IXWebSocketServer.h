@@ -47,6 +47,9 @@ namespace ix
         // Get all the connected clients
         std::set<std::shared_ptr<WebSocket>> getClients();
 
+        void makeBroadcastServer();
+        int listenAndStart();
+
         const static int kDefaultHandShakeTimeoutSecs;
 
     private:

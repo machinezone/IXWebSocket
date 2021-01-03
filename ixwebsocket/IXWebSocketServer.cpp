@@ -168,4 +168,45 @@ namespace ix
         std::lock_guard<std::mutex> lock(_clientsMutex);
         return _clients.size();
     }
+
+    //
+    // Classic servers
+    //
+    void WebSocketServer::makeBroadcastServer()
+    {
+        setOnClientMessageCallback(
+            [this](std::shared_ptr<ConnectionState> connectionState,
+                   WebSocket& webSocket,
+                   const WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionState->getRemoteIp();
+                if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    for (auto&& client : getClients())
+                    {
+                        if (client.get() != &webSocket)
+                        {
+                            client->send(msg->str, msg->binary);
+
+                            do
+                            {
+                                size_t bufferedAmount = client->bufferedAmount();
+                                std::chrono::duration<double, std::milli> duration(500);
+                                std::this_thread::sleep_for(duration);
+                            } while (client->bufferedAmount() != 0);
+                        }
+                    }
+                }
+            });
+    }
+
+    int WebSocketServer::listenAndStart()
+    {
+        auto res = listen();
+        if (!res.first)
+        {
+            return 1;
+        }
+
+        start();
+    }
 } // namespace ix
