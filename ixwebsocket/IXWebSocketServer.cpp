@@ -97,9 +97,10 @@ namespace ix
         }
         else if (_onClientMessageCallback)
         {
+            WebSocket* webSocketRawPtr = webSocket.get();
             webSocket->setOnMessageCallback(
-                [this, &ws = *webSocket.get(), connectionState](const WebSocketMessagePtr& msg) {
-                    _onClientMessageCallback(connectionState, ws, msg);
+                [this, webSocketRawPtr, connectionState](const WebSocketMessagePtr& msg) {
+                    _onClientMessageCallback(connectionState, *webSocketRawPtr, msg);
                 });
         }
         else
