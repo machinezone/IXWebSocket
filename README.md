@@ -77,6 +77,8 @@ IXWebSocket is actively being developed, check out the [changelog](https://machi
 
 IXWebSocket client code is autobahn compliant beginning with the 6.0.0 version. See the current [test results](https://bsergean.github.io/autobahn/reports/clients/index.html). Some tests are still failing in the server code.
 
+Starting with the 11.0.8 release, IXWebSocket should be fully C++11 compatible.
+
 ## Users
 
 If your company or project is using this library, feel free to open an issue or PR to amend this list.
