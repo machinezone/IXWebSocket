@@ -48,6 +48,7 @@ namespace ix
         void setUrl(const std::string& url);
 
         // send extra headers in client handshake request
+        void setHandshakeTimeout(int handshakeTimeoutSecs);
         void setExtraHeaders(const WebSocketHttpHeaders& headers);
         void setPerMessageDeflateOptions(
             const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
