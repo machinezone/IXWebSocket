@@ -39,6 +39,8 @@ namespace ix
 
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
+    using millis = std::chrono::duration<double, std::milli>;
+
     class WebSocket
     {
     public:
@@ -102,6 +104,7 @@ namespace ix
         void setMaxWaitBetweenReconnectionRetries(uint32_t maxWaitBetweenReconnectionRetries);
         uint32_t getMaxWaitBetweenReconnectionRetries() const;
         const std::vector<std::string>& getSubProtocols();
+        void setReconnectionInterval(uint32_t interval);
 
     private:
         WebSocketSendInfo sendMessage(const std::string& text,
@@ -142,6 +145,8 @@ namespace ix
         // Make the sleeping in the automatic reconnection cancellable
         std::mutex _sleepMutex;
         std::condition_variable _sleepCondition;
+        millis _reconnectionInterval;
+        static const uint32_t kDefaultReconnectionInterval;
 
         std::atomic<int> _handshakeTimeoutSecs;
         static const int kDefaultHandShakeTimeoutSecs;

@@ -22,6 +22,7 @@ namespace ix
     const int WebSocket::kDefaultPingIntervalSecs(-1);
     const bool WebSocket::kDefaultEnablePong(true);
     const uint32_t WebSocket::kDefaultMaxWaitBetweenReconnectionRetries(10 * 1000); // 10s
+    const uint32_t WebSocket::kDefaultReconnectionInterval(0);
 
     WebSocket::WebSocket()
         : _onMessageCallback(OnMessageCallback())
@@ -31,6 +32,7 @@ namespace ix
         , _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs)
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
+        , _reconnectionInterval(kDefaultReconnectionInterval)
     {
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote) {
@@ -135,6 +137,12 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         return _maxWaitBetweenReconnectionRetries;
+    }
+
+    void WebSocket::setReconnectionInterval(uint32_t interval)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _reconnectionInterval = millis(interval);
     }
 
     void WebSocket::start()
@@ -261,8 +269,6 @@ namespace ix
 
     void WebSocket::checkConnection(bool firstConnectionAttempt)
     {
-        using millis = std::chrono::duration<double, std::milli>;
-
         uint32_t retries = 0;
         millis duration(0);
 
@@ -278,6 +284,12 @@ namespace ix
             {
                 // Do not attempt to reconnect
                 break;
+            }
+
+            if (!firstConnectionAttempt && _reconnectionInterval.count() > 0)
+            {
+                std::unique_lock<std::mutex> lock(_sleepMutex);
+                _sleepCondition.wait_for(lock, _reconnectionInterval);
             }
 
             firstConnectionAttempt = false;
