@@ -901,6 +901,9 @@ namespace ix
 
         auto addr = res->ai_addr;
 
+        // FIXME: this display weird addresses / we could steal libuv inet.c
+        // code which display correct results
+
         char str[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &addr, str, INET_ADDRSTRLEN);
 
