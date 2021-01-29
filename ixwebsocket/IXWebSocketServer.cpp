@@ -188,6 +188,7 @@ namespace ix
                         {
                             client->send(msg->str, msg->binary);
 
+                            // Make sure the OS send buffer is flushed before moving on
                             do
                             {
                                 size_t bufferedAmount = client->bufferedAmount();
