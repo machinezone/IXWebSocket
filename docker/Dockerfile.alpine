@@ -1,39 +1,25 @@
-FROM alpine:3.12 as build
+# Build time
+#
+# Build with
+# docker build --ssh default -t ws .
+#
+# focal == ubuntu 2020.04
+# groovy == ubuntu 2020.10
+FROM ubuntu:groovy
 
-RUN apk add --no-cache \
-    gcc g++ musl-dev linux-headers \
-    cmake mbedtls-dev make zlib-dev python3-dev ninja git
+RUN apt update
 
-RUN addgroup -S app && \
-    adduser -S -G app app && \
-    chown -R app:app /opt && \
-    chown -R app:app /usr/local
+RUN apt-get -y install g++ cmake make automake ccache libtool flex bison pkg-config git python3 jq
+RUN apt-get -y install libjemalloc-dev libssl-dev libmcrypt-dev mcrypt zlib1g lua5.1-dev uuid-dev libz-dev binutils-dev
+RUN apt-get -y install libboost-dev libboost-test-dev libboost-program-options-dev libboost-all-dev libboost-regex-dev 
+RUN apt-get -y install ninja-build
 
-# There is a bug in CMake where we cannot build from the root top folder
-# So we build from /opt
-COPY --chown=app:app . /opt
+COPY . /opt
 WORKDIR /opt
 
-USER app
-RUN make -f makefile.dev ws_mbedtls_install && \
-    sh tools/trim_repo_for_docker.sh
+RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
+RUN rm -rf build
+RUN --mount=type=ssh ./build.sh
 
-FROM alpine:3.12 as runtime
-
-RUN apk add --no-cache libstdc++ mbedtls ca-certificates python3 strace && \
-    addgroup -S app && \
-    adduser -S -G app app
-
-COPY --chown=app:app --from=build /usr/local/bin/ws /usr/local/bin/ws
-
-# COPY --chown=app:app --from=build /opt /opt
-
-RUN chmod +x /usr/local/bin/ws && \
-    ldd /usr/local/bin/ws
-
-# Now run in usermode
-USER app
-WORKDIR /home/app
-
-ENTRYPOINT ["ws"]
-EXPOSE 8008
+COPY /opt/build/ws/ws /usr/local/bin/ws
+CMD ["/usr/local/bin/ws"]

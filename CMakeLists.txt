@@ -17,7 +17,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif()
 
 if (UNIX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -gz")
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
