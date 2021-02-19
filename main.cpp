@@ -35,10 +35,12 @@ int main()
             if (msg->type == ix::WebSocketMessageType::Message)
             {
                 std::cout << "received message: " << msg->str << std::endl;
+                std::cout << "> " << std::flush;
             }
             else if (msg->type == ix::WebSocketMessageType::Open)
             {
                 std::cout << "Connection established" << std::endl;
+                std::cout << "> " << std::flush;
             }
         }
     );
@@ -49,13 +51,16 @@ int main()
     // Send a message to the server (default to TEXT mode)
     webSocket.send("hello world");
 
-    while (true)
-    {
-        std::string text;
-        std::cout << "> " << std::flush;
-        std::getline(std::cin, text);
+    // Display a prompt
+    std::cout << "> " << std::flush;
 
+    std::string text;
+    // Read text from the console and send messages in text mode.
+    // Exit with Ctrl-D on Unix or Ctrl-Z on Windows.
+    while (std::getline(std::cin, text))
+    {
         webSocket.send(text);
+        std::cout << "> " << std::flush;
     }
 
     return 0;

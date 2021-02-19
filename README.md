@@ -15,8 +15,8 @@ A bad security bug affecting users compiling with SSL enabled and OpenSSL as the
  *  Super simple standalone example. See ws folder, unittest and doc/usage.md for more.
  *
  *  On macOS
- *  $ mkdir -p build ; cd build ; cmake -DUSE_TLS=1 .. ; make -j ; make install
- *  $ clang++ --std=c++14 --stdlib=libc++ main.cpp -lixwebsocket -lz -framework Security -framework Foundation
+ *  $ mkdir -p build ; (cd build ; cmake -DUSE_TLS=1 .. ; make -j ; make install)
+ *  $ clang++ --std=c++11 --stdlib=libc++ main.cpp -lixwebsocket -lz -framework Security -framework Foundation
  *  $ ./a.out
  */
 
@@ -44,10 +44,12 @@ int main()
             if (msg->type == ix::WebSocketMessageType::Message)
             {
                 std::cout << "received message: " << msg->str << std::endl;
+                std::cout << "> " << std::flush;
             }
             else if (msg->type == ix::WebSocketMessageType::Open)
             {
                 std::cout << "Connection established" << std::endl;
+                std::cout << "> " << std::flush;
             }
         }
     );
@@ -58,13 +60,16 @@ int main()
     // Send a message to the server (default to TEXT mode)
     webSocket.send("hello world");
 
-    while (true)
-    {
-        std::string text;
-        std::cout << "> " << std::flush;
-        std::getline(std::cin, text);
+    // Display a prompt
+    std::cout << "> " << std::flush;
 
+    std::string text;
+    // Read text from the console and send messages in text mode.
+    // Exit with Ctrl-D on Unix or Ctrl-Z on Windows.
+    while (std::getline(std::cin, text))
+    {
         webSocket.send(text);
+        std::cout << "> " << std::flush;
     }
 
     return 0;
