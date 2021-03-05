@@ -191,7 +191,7 @@ if (USE_TLS)
     target_link_libraries(ixwebsocket ${MBEDTLS_LIBRARIES})
   elseif (USE_SECURE_TRANSPORT)
     message(STATUS "TLS configured to use secure transport")
-    target_link_libraries(ixwebsocket "-framework foundation" "-framework security")
+    target_link_libraries(ixwebsocket "-framework Foundation" "-framework Security")
   endif()
 endif()
 
