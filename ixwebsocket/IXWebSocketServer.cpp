@@ -175,30 +175,29 @@ namespace ix
     //
     void WebSocketServer::makeBroadcastServer()
     {
-        setOnClientMessageCallback(
-            [this](std::shared_ptr<ConnectionState> connectionState,
-                   WebSocket& webSocket,
-                   const WebSocketMessagePtr& msg) {
-                auto remoteIp = connectionState->getRemoteIp();
-                if (msg->type == ix::WebSocketMessageType::Message)
+        setOnClientMessageCallback([this](std::shared_ptr<ConnectionState> connectionState,
+                                          WebSocket& webSocket,
+                                          const WebSocketMessagePtr& msg) {
+            auto remoteIp = connectionState->getRemoteIp();
+            if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                for (auto&& client : getClients())
                 {
-                    for (auto&& client : getClients())
+                    if (client.get() != &webSocket)
                     {
-                        if (client.get() != &webSocket)
-                        {
-                            client->send(msg->str, msg->binary);
+                        client->send(msg->str, msg->binary);
 
-                            // Make sure the OS send buffer is flushed before moving on
-                            do
-                            {
-                                size_t bufferedAmount = client->bufferedAmount();
-                                std::chrono::duration<double, std::milli> duration(500);
-                                std::this_thread::sleep_for(duration);
-                            } while (client->bufferedAmount() != 0);
-                        }
+                        // Make sure the OS send buffer is flushed before moving on
+                        do
+                        {
+                            size_t bufferedAmount = client->bufferedAmount();
+                            std::chrono::duration<double, std::milli> duration(500);
+                            std::this_thread::sleep_for(duration);
+                        } while (client->bufferedAmount() != 0);
                     }
                 }
-            });
+            }
+        });
     }
 
     int WebSocketServer::listenAndStart()

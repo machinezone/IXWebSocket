@@ -263,6 +263,15 @@ webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
 uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 ```
 
+## Handshake timeout
+
+You can control how long to wait until timing out while waiting for the websocket handshake to be performed.
+
+```
+int handshakeTimeoutSecs = 1;
+setHandshakeTimeout(handshakeTimeoutSecs);
+```
+
 ## WebSocket server API
 
 ### Legacy api

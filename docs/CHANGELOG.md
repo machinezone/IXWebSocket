@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.0.9] - 2021-03-07
+
+(ixwebsocket) Expose setHandshakeTimeout method
+
 ## [11.0.8] - 2020-12-25
 
 (ws) trim ws dependencies no more ixcrypto and ixcore deps

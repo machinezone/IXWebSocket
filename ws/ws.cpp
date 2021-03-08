@@ -2378,9 +2378,9 @@ namespace ix
                             else
                             {
                                 std::string readyStateString =
-                                    readyState == ReadyState::Connecting
-                                        ? "Connecting"
-                                        : readyState == ReadyState::Closing ? "Closing" : "Closed";
+                                    readyState == ReadyState::Connecting ? "Connecting"
+                                    : readyState == ReadyState::Closing  ? "Closing"
+                                                                         : "Closed";
                                 size_t bufferedAmount = client->bufferedAmount();
 
                                 spdlog::info(
