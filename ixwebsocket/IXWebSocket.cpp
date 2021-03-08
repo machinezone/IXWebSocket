@@ -56,6 +56,11 @@ namespace ix
         _url = url;
     }
 
+    void WebSocket::setHandshakeTimeout(int handshakeTimeoutSecs)
+    {
+        _handshakeTimeoutSecs = handshakeTimeoutSecs;
+    }
+
     void WebSocket::setExtraHeaders(const WebSocketHttpHeaders& headers)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
