@@ -103,6 +103,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-level="2"><a href="#handshake-timeout" class="nav-link">Handshake timeout</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#websocket-server-api" class="nav-link">WebSocket server API</a>
               <ul class="nav flex-column">
               </ul>
@@ -329,6 +333,11 @@ Wait time(ms): 10000
 <p>The waiting time is capped by default at 10s between 2 attempts, but that value can be changed and queried.</p>
 <pre><code class="language-cpp">webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
 uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
+</code></pre>
+<h2 id="handshake-timeout">Handshake timeout</h2>
+<p>You can control how long to wait until timing out while waiting for the websocket handshake to be performed.</p>
+<pre><code>int handshakeTimeoutSecs = 1;
+setHandshakeTimeout(handshakeTimeoutSecs);
 </code></pre>
 <h2 id="websocket-server-api">WebSocket server API</h2>
 <h3 id="legacy-api">Legacy api</h3>
