@@ -16,6 +16,19 @@
 // Define our own poll on Windows, as a wrapper on top of select
 typedef unsigned long int nfds_t;
 
+// mingw does not know about poll so mock it
+#if defined(__GNUC__)
+struct pollfd {
+   int   fd;         /* file descriptor */
+   short events;     /* requested events */
+   short revents;    /* returned events */
+};
+
+#define POLLIN      0x001       /* There is data to read.  */
+#define POLLOUT     0x004       /* Writing now will not block.  */
+#define POLLERR     0x008       /* Error condition.  */
+#endif
+
 #else
 #include <arpa/inet.h>
 #include <errno.h>
