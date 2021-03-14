@@ -37,24 +37,22 @@ namespace ix
 
     void SetThreadName(DWORD dwThreadID, const char* threadName)
     {
+#ifndef __GNUC__
         THREADNAME_INFO info;
         info.dwType = 0x1000;
         info.szName = threadName;
         info.dwThreadID = dwThreadID;
         info.dwFlags = 0;
 
-#ifndef __GNUC__
         __try
         {
-#endif
             RaiseException(
                 MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*) &info);
         }
-#ifndef __GNUC__
         __except (EXCEPTION_EXECUTE_HANDLER)
-#endif
         {
         }
+#endif
     }
 #endif
 
