@@ -14,7 +14,7 @@ jobs:
     - run: |
         mkdir build
         cd build
-        cmake -GNinja -DCMAKE_CXX_COMPILER=c++ -DCMAKE_C_COMPILER=cc -DUSE_WS=1 -DUSE_TEST=1 -DUSE_ZLIB=0 ..
+        cmake -GNinja -DCMAKE_CXX_COMPILER=c++ -DCMAKE_C_COMPILER=cc -DUSE_WS=1 -DUSE_TEST=1 -DUSE_ZLIB=0 -DCMAKE_UNITY_BUILD=ON ..
     - run: |
         cd build
         ninja
