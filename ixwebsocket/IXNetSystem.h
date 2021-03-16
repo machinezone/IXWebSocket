@@ -23,17 +23,18 @@ typedef unsigned long int nfds_t;
 
 // mingw does not know about poll so mock it
 #if defined(__GNUC__)
-struct pollfd {
-   int   fd;         /* file descriptor */
-   short events;     /* requested events */
-   short revents;    /* returned events */
+struct pollfd
+{
+    int fd;        /* file descriptor */
+    short events;  /* requested events */
+    short revents; /* returned events */
 };
 
-#define POLLIN      0x001       /* There is data to read.  */
-#define POLLOUT     0x004       /* Writing now will not block.  */
-#define POLLERR     0x008       /* Error condition.  */
-#define POLLHUP     0x010       /* Hung up.  */
-#define POLLNVAL    0x020       /* Invalid polling request.  */
+#define POLLIN 0x001   /* There is data to read.  */
+#define POLLOUT 0x004  /* Writing now will not block.  */
+#define POLLERR 0x008  /* Error condition.  */
+#define POLLHUP 0x010  /* Hung up.  */
+#define POLLNVAL 0x020 /* Invalid polling request.  */
 #endif
 
 #else
@@ -54,8 +55,8 @@ struct pollfd {
 
 // mingw does not have those
 #if defined(_WIN32) && defined(__GNUC__)
-const char * inet_ntop(int af, const void * restrict src, char * restrict dst, socklen_t size);
-int inet_pton(int af, const char * restrict src, void * restrict dst);
+const char* inet_ntop(int af, const void* restrict src, char* restrict dst, socklen_t size);
+int inet_pton(int af, const char* restrict src, void* restrict dst);
 #endif
 
 namespace ix

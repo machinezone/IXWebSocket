@@ -129,7 +129,8 @@ namespace ix
             _clients.insert(webSocket);
         }
 
-        auto status = webSocket->connectToSocket(std::move(socket), _handshakeTimeoutSecs);
+        auto status = webSocket->connectToSocket(
+            std::move(socket), _handshakeTimeoutSecs, _enablePerMessageDeflate);
         if (status.success)
         {
             // Process incoming messages and execute callbacks

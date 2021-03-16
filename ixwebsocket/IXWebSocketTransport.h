@@ -83,7 +83,9 @@ namespace ix
                                          int timeoutSecs);
 
         // Server
-        WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket, int timeoutSecs);
+        WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket,
+                                            int timeoutSecs,
+                                            bool enablePerMessageDeflate);
 
         PollResult poll();
         WebSocketSendInfo sendBinary(const std::string& message,

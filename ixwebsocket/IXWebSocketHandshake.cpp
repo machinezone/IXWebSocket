@@ -241,7 +241,8 @@ namespace ix
         return WebSocketInitResult(true, status, "", headers, path);
     }
 
-    WebSocketInitResult WebSocketHandshake::serverHandshake(int timeoutSecs)
+    WebSocketInitResult WebSocketHandshake::serverHandshake(int timeoutSecs,
+                                                            bool enablePerMessageDeflate)
     {
         _requestInitCancellation = false;
 
@@ -338,7 +339,7 @@ namespace ix
         WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(header);
 
         // If the client has requested that extension,
-        if (webSocketPerMessageDeflateOptions.enabled())
+        if (webSocketPerMessageDeflateOptions.enabled() && enablePerMessageDeflate)
         {
             _enablePerMessageDeflate = true;
 

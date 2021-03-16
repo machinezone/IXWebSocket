@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.1.0] - 2021-03-16
+
+(ixwebsocket) Use LEAN_AND_MEAN Windows define to help with undefined link error when building a DLL. Support websocket server disablePerMessageDeflate option correctly.
+
 ## [11.0.9] - 2021-03-07
 
 (ixwebsocket) Expose setHandshakeTimeout method

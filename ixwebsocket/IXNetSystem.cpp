@@ -8,12 +8,12 @@
 
 // mingw does not have those
 #if defined(_WIN32) && defined(__GNUC__)
-const char * inet_ntop(int af, const void * restrict src, char * restrict dst, socklen_t size)
+const char* inet_ntop(int af, const void* restrict src, char* restrict dst, socklen_t size)
 {
     return nullptr;
 }
 
-int inet_pton(int af, const char * restrict src, void * restrict dst)
+int inet_pton(int af, const char* restrict src, void* restrict dst)
 {
     return -1;
 }

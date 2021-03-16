@@ -343,6 +343,10 @@ if (!res.first)
     return 1;
 }
 
+// Per message deflate connection is enabled by default. It can be disabled
+// which might be helpful when running on low power devices such as a Rasbery Pi
+server.disablePerMessageDeflate();
+
 // Run the server in the background. Server can be stoped by calling server.stop()
 server.start();
 
@@ -409,6 +413,10 @@ if (!res.first)
     // Error handling
     return 1;
 }
+
+// Per message deflate connection is enabled by default. It can be disabled
+// which might be helpful when running on low power devices such as a Rasbery Pi
+server.disablePerMessageDeflate();
 
 // Run the server in the background. Server can be stoped by calling server.stop()
 server.start();
