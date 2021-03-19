@@ -1639,7 +1639,10 @@ bool enableRawMode(int fd) {
 
         /* Init windows console handles only once */
         hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (hOut==INVALID_HANDLE_VALUE) goto fatal;
+        if (hOut==INVALID_HANDLE_VALUE) {
+            errno = ENOTTY;
+            return false;
+        }
     }
 
     DWORD consolemodeOut;

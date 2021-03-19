@@ -55,16 +55,18 @@ namespace
     std::pair<bool, std::vector<uint8_t>> load(const std::string& path)
     {
         std::vector<uint8_t> memblock;
-
         std::ifstream file(path);
+
         if (!file.is_open()) return std::make_pair(false, memblock);
 
         file.seekg(0, file.end);
         std::streamoff size = file.tellg();
         file.seekg(0, file.beg);
 
-        memblock.resize((size_t) size);
-        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
+        memblock.reserve((size_t) size);
+        memblock.insert(memblock.begin(),
+                        std::istream_iterator<char>(file),
+                        std::istream_iterator<char>());
 
         return std::make_pair(true, memblock);
     }
@@ -86,9 +88,10 @@ namespace
         std::streamoff size = file.tellg();
         file.seekg(0, file.beg);
 
-        memblock.resize(size);
-
-        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
+        memblock.reserve((size_t) size);
+        memblock.insert(memblock.begin(),
+                        std::istream_iterator<char>(file),
+                        std::istream_iterator<char>());
 
         std::string bytes(memblock.begin(), memblock.end());
         return bytes;

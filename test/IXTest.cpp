@@ -139,8 +139,10 @@ namespace ix
         std::streamoff size = file.tellg();
         file.seekg(0, file.beg);
 
-        memblock.resize((size_t) size);
-        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
+        memblock.reserve((size_t) size);
+        memblock.insert(memblock.begin(),
+                        std::istream_iterator<char>(file),
+                        std::istream_iterator<char>());
 
         return memblock;
     }
