@@ -1893,7 +1893,8 @@ namespace ix
 
         spdlog::info("ws_receive: Writing to disk: {}", filenameTmp);
         std::ofstream out(filenameTmp);
-        out << content;
+        std::string contentAsString(content.begin(), content.end());
+        out << contentAsString;
         out.close();
 
         spdlog::info("ws_receive: Renaming {} to {}", filenameTmp, filename);
