@@ -48,7 +48,7 @@ namespace ix
         std::set<std::shared_ptr<WebSocket>> getClients();
 
         void makeBroadcastServer();
-        int listenAndStart();
+        bool listenAndStart();
 
         const static int kDefaultHandShakeTimeoutSecs;
 

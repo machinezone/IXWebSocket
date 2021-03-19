@@ -201,15 +201,15 @@ namespace ix
         });
     }
 
-    int WebSocketServer::listenAndStart()
+    bool WebSocketServer::listenAndStart()
     {
         auto res = listen();
         if (!res.first)
         {
-            return 1;
+            return false;
         }
 
         start();
-        return 0;
+        return true;
     }
 } // namespace ix

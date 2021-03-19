@@ -2768,8 +2768,14 @@ int main(int argc, char** argv)
         ix::WebSocketServer server(port, hostname);
         server.setTLSOptions(tlsOptions);
         server.makeBroadcastServer();
-        server.listenAndStart();
-        server.wait();
+        if (!server.listenAndStart())
+        {
+            spdlog::error("Error while starting the server");
+        }
+        else
+        {
+            server.wait();
+        }
     }
     else if (app.got_subcommand("send"))
     {
