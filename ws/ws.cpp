@@ -1427,10 +1427,16 @@ namespace ix
                     filename = output;
                 }
 
-                spdlog::info("Writing to disk: {}", filename);
-                std::ofstream out(filename);
-                out.write((char*) &response->body.front(), response->body.size());
-                out.close();
+                if (filename.empty())
+                {
+                    spdlog::error("Cannot save content to disk: No output file supplied, and not filename could be extracted from the url {}", url);
+                }
+                else
+                {
+                    spdlog::info("Writing to disk: {}", filename);
+                    std::ofstream out(filename);
+                    out << response->body;
+                }
             }
             else
             {
