@@ -12,6 +12,8 @@ set (CMAKE_CXX_STANDARD 11)
 set (CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
+option (BUILD_DEMO OFF)
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
@@ -272,4 +274,9 @@ if (USE_WS OR USE_TEST)
     enable_testing()
     add_subdirectory(test)
   endif()
+endif()
+
+if (BUILD_DEMO) 
+  add_executable(demo main.cpp)
+  target_link_libraries(demo ixwebsocket) 
 endif()
