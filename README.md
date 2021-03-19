@@ -104,6 +104,7 @@ There are plenty of great websocket libraries out there, which might work for yo
 * [beast](https://github.com/boostorg/beast) - C++
 * [libwebsockets](https://libwebsockets.org/) - C
 * [µWebSockets](https://github.com/uNetworking/uWebSockets) - C
+* [wslay](https://github.com/tatsuhiro-t/wslay) - C
 
 [uvweb](https://github.com/bsergean/uvweb) is a library written by the IXWebSocket author which is built on top of [uvw](https://github.com/skypjack/uvw), which is a C++ wrapper for [libuv](https://libuv.org/). It has more dependencies and does not support SSL at this point, but it can be used to open multiple connections within a single OS thread thanks to libuv.
 
