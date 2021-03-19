@@ -2075,23 +2075,6 @@ namespace ix
         _condition.wait(lock);
     }
 
-    std::vector<uint8_t> load(const std::string& path)
-    {
-        std::vector<uint8_t> memblock;
-
-        std::ifstream file(path);
-        if (!file.is_open()) return memblock;
-
-        file.seekg(0, file.end);
-        std::streamoff size = file.tellg();
-        file.seekg(0, file.beg);
-
-        memblock.resize((size_t) size);
-        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
-
-        return memblock;
-    }
-
     void WebSocketSender::start()
     {
         _webSocket.setUrl(_url);
@@ -2185,7 +2168,8 @@ namespace ix
         std::vector<uint8_t> content;
         {
             Bench bench("ws_send: load file from disk");
-            content = load(filename);
+            auto res = load(filename);
+            content = res.second;
         }
 
         _id = uuid4();
