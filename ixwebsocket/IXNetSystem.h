@@ -55,8 +55,8 @@ struct pollfd
 
 // mingw does not have those
 #if defined(_WIN32) && defined(__GNUC__)
-const char* inet_ntop(int af, const void* restrict src, char* restrict dst, socklen_t size);
-int inet_pton(int af, const char* restrict src, void* restrict dst);
+const char* inet_ntop(int af, const void* src, char* dst, socklen_t size);
+int inet_pton(int af, const char* src, void* dst);
 #endif
 
 namespace ix
