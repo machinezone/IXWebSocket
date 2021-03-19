@@ -210,5 +210,6 @@ namespace ix
         }
 
         start();
+        return 0;
     }
 } // namespace ix
