@@ -14,7 +14,7 @@ jobs:
     - run: |
         mkdir build
         cd build
-        cmake -GNinja -DCMAKE_CXX_COMPILER=cl.exe -DCMAKE_C_COMPILER=cl.exe -DUSE_WS=1 -DUSE_TEST=1 -DUSE_ZLIB=OFF -DBUILD_SHARED_LIBS=ON ..
+        cmake -GNinja -DCMAKE_CXX_COMPILER=cl.exe -DCMAKE_C_COMPILER=cl.exe -DUSE_WS=1 -DUSE_TEST=1 -DUSE_ZLIB=OFF -DBUILD_SHARED_LIBS=OFF ..
     - run: |
         cd build
         ninja
