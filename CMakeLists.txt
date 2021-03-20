@@ -111,6 +111,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketVersion.h
 )
 
+option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" OFF)
 option(USE_TLS "Enable TLS support" FALSE)
 
 if (USE_TLS)
@@ -144,7 +145,7 @@ if (USE_TLS)
     endif()
 endif()
 
-add_library( ixwebsocket STATIC
+add_library( ixwebsocket
     ${IXWEBSOCKET_SOURCES}
     ${IXWEBSOCKET_HEADERS}
 )

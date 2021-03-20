@@ -140,9 +140,8 @@ namespace ix
         file.seekg(0, file.beg);
 
         memblock.reserve((size_t) size);
-        memblock.insert(memblock.begin(),
-                        std::istream_iterator<char>(file),
-                        std::istream_iterator<char>());
+        memblock.insert(
+            memblock.begin(), std::istream_iterator<char>(file), std::istream_iterator<char>());
 
         return memblock;
     }

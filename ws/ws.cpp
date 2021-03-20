@@ -64,9 +64,8 @@ namespace
         file.seekg(0, file.beg);
 
         memblock.reserve((size_t) size);
-        memblock.insert(memblock.begin(),
-                        std::istream_iterator<char>(file),
-                        std::istream_iterator<char>());
+        memblock.insert(
+            memblock.begin(), std::istream_iterator<char>(file), std::istream_iterator<char>());
 
         return std::make_pair(true, memblock);
     }
@@ -89,9 +88,8 @@ namespace
         file.seekg(0, file.beg);
 
         memblock.reserve((size_t) size);
-        memblock.insert(memblock.begin(),
-                        std::istream_iterator<char>(file),
-                        std::istream_iterator<char>());
+        memblock.insert(
+            memblock.begin(), std::istream_iterator<char>(file), std::istream_iterator<char>());
 
         std::string bytes(memblock.begin(), memblock.end());
         return bytes;
@@ -1429,7 +1427,9 @@ namespace ix
 
                 if (filename.empty())
                 {
-                    spdlog::error("Cannot save content to disk: No output file supplied, and not filename could be extracted from the url {}", url);
+                    spdlog::error("Cannot save content to disk: No output file supplied, and not "
+                                  "filename could be extracted from the url {}",
+                                  url);
                 }
                 else
                 {

@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.1.1] - 2021-03-20
+
+(cmake) Library can be built as a static or a dynamic library, controlled with BUILD_SHARED_LIBS. Default to static library
+
 ## [11.1.0] - 2021-03-16
 
 (ixwebsocket) Use LEAN_AND_MEAN Windows define to help with undefined link error when building a DLL. Support websocket server disablePerMessageDeflate option correctly.

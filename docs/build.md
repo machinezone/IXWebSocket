@@ -17,13 +17,13 @@ There is a unittest which can be executed by typing `make test`.
 
 Options for building:
 
+* `-DBUILD_SHARED_LIBS=ON` will build the unittest as a shared libary instead of a static library, which is the default
 * `-DUSE_ZLIB=1` will enable zlib support, required for http client + server + websocket per message deflate extension
 * `-DUSE_TLS=1` will enable TLS support
 * `-DUSE_OPEN_SSL=1` will use [openssl](https://www.openssl.org/) for the TLS support (default on Linux and Windows)
 * `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support
 * `-DUSE_WS=1` will build the ws interactive command line tool
 * `-DUSE_TEST=1` will build the unittest
-* `-DUSE_PYTHON=1` will use Python3 for cobra bots, require Python3 to be installed.
 
 If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file (not maintained much though) or rather the [github actions](https://github.com/machinezone/IXWebSocket/blob/master/.github/workflows/unittest_windows.yml) which have instructions for building dependencies.
 
