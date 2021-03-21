@@ -132,7 +132,7 @@ namespace ix
 #if defined(_WIN32) && defined(__GNUC__)
 const char* inet_ntop(int af, const void* a0, char* s, socklen_t l)
 {
-    const unsigned char *a = a0;
+    const unsigned char *a = (const unsigned char*) a0;
     int i, j, max, best;
     char buf[100];
 
@@ -190,7 +190,7 @@ static int hexval(unsigned c)
 int inet_pton(int af, const char* s, void* a0)
 {
 	uint16_t ip[8];
-	unsigned char *a = a0;
+	unsigned char *a = (unsigned char*) a0;
 	int i, j, v, d, brk=-1, need_v4=0;
 
 	if (af==AF_INET) {
@@ -241,7 +241,7 @@ int inet_pton(int af, const char* s, void* a0)
 		*a++ = ip[j]>>8;
 		*a++ = ip[j];
 	}
-	if (need_v4 && inet_pton(AF_INET, (void *)s, a-4) <= 0) return 0;
+	if (need_v4 && inet_pton(AF_INET, (const char *)s, a-4) <= 0) return 0;
 	return 1;
 }
 #endif // defined(_WIN32) && defined(__GNUC__)
