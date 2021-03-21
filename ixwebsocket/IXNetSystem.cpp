@@ -130,7 +130,7 @@ namespace ix
 // mingw does not have inet_ntop and inet_pton, which were taken as is from the musl C library.
 //
 #if defined(_WIN32) && defined(__GNUC__)
-const char* inet_ntop(int af, const void* src, char* dst, socklen_t size)
+const char* inet_ntop(int af, const void* a0, char* s, socklen_t l)
 {
     const unsigned char *a = a0;
     int i, j, max, best;
@@ -187,7 +187,7 @@ static int hexval(unsigned c)
     return -1;
 }
 
-int inet_pton(int af, const char* src, void* dst)
+int inet_pton(int af, const char* s, void* a0)
 {
 	uint16_t ip[8];
 	unsigned char *a = a0;
