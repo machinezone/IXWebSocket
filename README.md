@@ -18,6 +18,8 @@ A bad security bug affecting users compiling with SSL enabled and OpenSSL as the
  *  $ mkdir -p build ; (cd build ; cmake -DUSE_TLS=1 .. ; make -j ; make install)
  *  $ clang++ --std=c++11 --stdlib=libc++ main.cpp -lixwebsocket -lz -framework Security -framework Foundation
  *  $ ./a.out
+ *
+ *  Or use cmake -DBUILD_DEMO=ON option for other platforms
  */
 
 #include <ixwebsocket/IXNetSystem.h>

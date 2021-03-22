@@ -9,6 +9,8 @@
  *  $ mkdir -p build ; cd build ; cmake -DUSE_TLS=1 .. ; make -j ; make install
  *  $ clang++ --std=c++14 --stdlib=libc++ main.cpp -lixwebsocket -lz -framework Security -framework Foundation
  *  $ ./a.out
+ *
+ *  Or use cmake -DBUILD_DEMO=ON option for other platform
  */
 
 #include <ixwebsocket/IXNetSystem.h>
