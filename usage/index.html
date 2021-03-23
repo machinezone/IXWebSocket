@@ -330,9 +330,13 @@ Wait time(ms): 6400
 #retries: 8
 Wait time(ms): 10000
 </code></pre>
-<p>The waiting time is capped by default at 10s between 2 attempts, but that value can be changed and queried.</p>
+<p>The waiting time is capped by default at 10s between 2 attempts, but that value
+can be changed and queried. The minimum waiting time can also be set.</p>
 <pre><code class="language-cpp">webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
 uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
+
+webSocket.setMinWaitBetweenReconnectionRetries(1000); // 1000ms = 1s
+uint32_t m = webSocket.getMinWaitBetweenReconnectionRetries();
 </code></pre>
 <h2 id="handshake-timeout">Handshake timeout</h2>
 <p>You can control how long to wait until timing out while waiting for the websocket handshake to be performed.</p>
