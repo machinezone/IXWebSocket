@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.1.2] - 2021-03-22
+
+(ws) initialize maxWaitBetweenReconnectionRetries to a non zero value ; a zero value was causing spurious reconnections attempts
+
 ## [11.1.1] - 2021-03-20
 
 (cmake) Library can be built as a static or a dynamic library, controlled with BUILD_SHARED_LIBS. Default to static library

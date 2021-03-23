@@ -2487,7 +2487,7 @@ int main(int argc, char** argv)
     int delayMs = -1;
     int count = 1;
     int msgCount = 1000 * 1000;
-    uint32_t maxWaitBetweenReconnectionRetries;
+    uint32_t maxWaitBetweenReconnectionRetries = 10 * 1000; // 10 seconds
     int pingIntervalSecs = 30;
     int runCount = 1;
 
