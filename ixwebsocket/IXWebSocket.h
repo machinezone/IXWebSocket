@@ -101,6 +101,7 @@ namespace ix
         void disableAutomaticReconnection();
         bool isAutomaticReconnectionEnabled() const;
         void setMaxWaitBetweenReconnectionRetries(uint32_t maxWaitBetweenReconnectionRetries);
+        void setMinWaitBetweenReconnectionRetries(uint32_t minWaitBetweenReconnectionRetries);
         uint32_t getMaxWaitBetweenReconnectionRetries() const;
         const std::vector<std::string>& getSubProtocols();
 

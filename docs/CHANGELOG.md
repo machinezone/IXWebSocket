@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.1.3] - 2021-03-23
+
+(ixwebsocket) New option to set the min wait between reconnection attempts. Still default to 1ms. (setMinWaitBetweenReconnectionRetries).
+
 ## [11.1.2] - 2021-03-22
 
 (ws) initialize maxWaitBetweenReconnectionRetries to a non zero value ; a zero value was causing spurious reconnections attempts

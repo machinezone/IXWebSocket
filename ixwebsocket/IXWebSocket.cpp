@@ -22,12 +22,14 @@ namespace ix
     const int WebSocket::kDefaultPingIntervalSecs(-1);
     const bool WebSocket::kDefaultEnablePong(true);
     const uint32_t WebSocket::kDefaultMaxWaitBetweenReconnectionRetries(10 * 1000); // 10s
+    const uint32_t WebSocket::kDefaultMinWaitBetweenReconnectionRetries(1);         // 1 ms
 
     WebSocket::WebSocket()
         : _onMessageCallback(OnMessageCallback())
         , _stop(false)
         , _automaticReconnection(true)
         , _maxWaitBetweenReconnectionRetries(kDefaultMaxWaitBetweenReconnectionRetries)
+        , _minWaitBetweenReconnectionRetries(kDefaultMinWaitBetweenReconnectionRetries)
         , _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs)
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
@@ -136,10 +138,22 @@ namespace ix
         _maxWaitBetweenReconnectionRetries = maxWaitBetweenReconnectionRetries;
     }
 
+    void WebSocket::setMinWaitBetweenReconnectionRetries(uint32_t minWaitBetweenReconnectionRetries)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _minWaitBetweenReconnectionRetries = minWaitBetweenReconnectionRetries;
+    }
+
     uint32_t WebSocket::getMaxWaitBetweenReconnectionRetries() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         return _maxWaitBetweenReconnectionRetries;
+    }
+
+    uint32_t WebSocket::getMinWaitBetweenReconnectionRetries() const
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _minWaitBetweenReconnectionRetries;
     }
 
     void WebSocket::start()
@@ -311,8 +325,10 @@ namespace ix
 
                 if (_automaticReconnection)
                 {
-                    duration = millis(calculateRetryWaitMilliseconds(
-                        retries++, _maxWaitBetweenReconnectionRetries));
+                    duration =
+                        millis(calculateRetryWaitMilliseconds(retries++,
+                                                              _maxWaitBetweenReconnectionRetries,
+                                                              _minWaitBetweenReconnectionRetries));
 
                     connectErr.wait_time = duration.count();
                     connectErr.retries = retries;
