@@ -103,6 +103,7 @@ namespace ix
         void setMaxWaitBetweenReconnectionRetries(uint32_t maxWaitBetweenReconnectionRetries);
         void setMinWaitBetweenReconnectionRetries(uint32_t minWaitBetweenReconnectionRetries);
         uint32_t getMaxWaitBetweenReconnectionRetries() const;
+        uint32_t getMinWaitBetweenReconnectionRetries() const;
         const std::vector<std::string>& getSubProtocols();
 
     private:
@@ -141,7 +142,9 @@ namespace ix
         // Automatic reconnection
         std::atomic<bool> _automaticReconnection;
         static const uint32_t kDefaultMaxWaitBetweenReconnectionRetries;
+        static const uint32_t kDefaultMinWaitBetweenReconnectionRetries;
         uint32_t _maxWaitBetweenReconnectionRetries;
+        uint32_t _minWaitBetweenReconnectionRetries;
 
         // Make the sleeping in the automatic reconnection cancellable
         std::mutex _sleepMutex;
