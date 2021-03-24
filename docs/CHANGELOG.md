@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.2.2] - 2021-03-23
+
+(ixwebsocket) version bump
+
 ## [11.2.1] - 2021-03-23
 
 (ixwebsocket) version bump
