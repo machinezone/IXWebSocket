@@ -104,7 +104,7 @@ namespace ix
             server.sin_family = _addressFamily;
             server.sin_port = htons(_port);
 
-            if (inet_pton(_addressFamily, _host.c_str(), &server.sin_addr.s_addr) <= 0)
+            if (ix::inet_pton(_addressFamily, _host.c_str(), &server.sin_addr.s_addr) <= 0)
             {
                 std::stringstream ss;
                 ss << "SocketServer::listen() error calling inet_pton "
@@ -133,7 +133,7 @@ namespace ix
             server.sin6_family = _addressFamily;
             server.sin6_port = htons(_port);
 
-            if (inet_pton(_addressFamily, _host.c_str(), &server.sin6_addr) <= 0)
+            if (ix::inet_pton(_addressFamily, _host.c_str(), &server.sin6_addr) <= 0)
             {
                 std::stringstream ss;
                 ss << "SocketServer::listen() error calling inet_pton "
@@ -338,7 +338,7 @@ namespace ix
             if (_addressFamily == AF_INET)
             {
                 char remoteIp4[INET_ADDRSTRLEN];
-                if (inet_ntop(AF_INET, &client.sin_addr, remoteIp4, INET_ADDRSTRLEN) == nullptr)
+                if (ix::inet_ntop(AF_INET, &client.sin_addr, remoteIp4, INET_ADDRSTRLEN) == nullptr)
                 {
                     int err = Socket::getErrno();
                     std::stringstream ss;
@@ -357,7 +357,7 @@ namespace ix
             else // AF_INET6
             {
                 char remoteIp6[INET6_ADDRSTRLEN];
-                if (inet_ntop(AF_INET6, &client.sin_addr, remoteIp6, INET6_ADDRSTRLEN) == nullptr)
+                if (ix::inet_ntop(AF_INET6, &client.sin_addr, remoteIp6, INET6_ADDRSTRLEN) == nullptr)
                 {
                     int err = Socket::getErrno();
                     std::stringstream ss;

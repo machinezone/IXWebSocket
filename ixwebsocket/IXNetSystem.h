@@ -53,12 +53,6 @@ struct pollfd
 #include <unistd.h>
 #endif
 
-// mingw does not have those
-#if defined(_WIN32) && defined(__GNUC__)
-const char* inet_ntop(int af, const void* src, char* dst, socklen_t size);
-int inet_pton(int af, const char* src, void* dst);
-#endif
-
 namespace ix
 {
 #ifdef _WIN32
@@ -71,4 +65,7 @@ namespace ix
     bool uninitNetSystem();
 
     int poll(struct pollfd* fds, nfds_t nfds, int timeout);
+
+    const char* inet_ntop(int af, const void* src, char* dst, socklen_t size);
+    int inet_pton(int af, const char* src, void* dst);
 } // namespace ix

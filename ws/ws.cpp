@@ -906,7 +906,7 @@ namespace ix
         // code which display correct results
 
         char str[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &addr, str, INET_ADDRSTRLEN);
+        ix::inet_ntop(AF_INET, &addr, str, INET_ADDRSTRLEN);
 
         spdlog::info("host: {} ip: {}", hostname, str);
 
