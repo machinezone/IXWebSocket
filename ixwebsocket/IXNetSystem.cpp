@@ -129,9 +129,7 @@ namespace ix
     //
     const char* inet_ntop(int af, const void* a0, char* s, socklen_t l)
     {
-// wrapper enabled on all platforms for now
-// #if defined(_WIN32) && defined(__GNUC__)
-#if 1
+#if defined(_WIN32) && defined(__GNUC__)
         const unsigned char* a = (const unsigned char*) a0;
         int i, j, max, best;
         char buf[100];
@@ -208,9 +206,7 @@ namespace ix
     //
     int inet_pton(int af, const char* s, void* a0)
     {
-// wrapper enabled on all platforms for now
-// #if defined(_WIN32) && defined(__GNUC__)
-#if 1
+#if defined(_WIN32) && defined(__GNUC__)
         uint16_t ip[8];
         unsigned char* a = (unsigned char*) a0;
         int i, j, v, d, brk = -1, need_v4 = 0;
