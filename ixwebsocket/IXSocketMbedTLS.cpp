@@ -16,6 +16,11 @@
 #include "IXSocketConnect.h"
 #include <string.h>
 
+#ifdef _WIN32
+// For manipulating the certificate store
+#include <wincrypt.h>
+#endif
+
 namespace ix
 {
     SocketMbedTLS::SocketMbedTLS(const SocketTLSOptions& tlsOptions, int fd)

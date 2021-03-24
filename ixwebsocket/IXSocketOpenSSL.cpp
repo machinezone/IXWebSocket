@@ -25,6 +25,11 @@
 #define socketerrno errno
 
 #ifdef _WIN32
+// For manipulating the certificate store
+#include <wincrypt.h>
+#endif
+
+#ifdef _WIN32
 namespace
 {
     bool loadWindowsSystemCertificates(SSL_CTX* ssl, std::string& errorMsg)
