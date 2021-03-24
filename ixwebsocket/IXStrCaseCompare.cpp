@@ -14,7 +14,7 @@ namespace ix
     bool CaseInsensitiveLess::NocaseCompare::operator()(const unsigned char& c1,
                                                         const unsigned char& c2) const
     {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__GNUC__)
         return std::tolower(c1, std::locale()) < std::tolower(c2, std::locale());
 #else
         return std::tolower(c1) < std::tolower(c2);
