@@ -357,7 +357,8 @@ namespace ix
             else // AF_INET6
             {
                 char remoteIp6[INET6_ADDRSTRLEN];
-                if (ix::inet_ntop(AF_INET6, &client.sin_addr, remoteIp6, INET6_ADDRSTRLEN) == nullptr)
+                if (ix::inet_ntop(AF_INET6, &client.sin_addr, remoteIp6, INET6_ADDRSTRLEN) ==
+                    nullptr)
                 {
                     int err = Socket::getErrno();
                     std::stringstream ss;

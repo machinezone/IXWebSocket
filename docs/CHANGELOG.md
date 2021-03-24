@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.2.0] - 2021-03-23
+
+(ixwebsocket) correct mingw support (gcc on windows)
+
 ## [11.1.4] - 2021-03-23
 
 (ixwebsocket) add getMinWaitBetweenReconnectionRetries
