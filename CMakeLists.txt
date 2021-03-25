@@ -88,6 +88,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSocketTLSOptions.h
     ixwebsocket/IXStrCaseCompare.h
     ixwebsocket/IXUdpSocket.h
+    ixwebsocket/IXUniquePtr.h
     ixwebsocket/IXUrlParser.h
     ixwebsocket/IXUuid.h
     ixwebsocket/IXUtf8Validator.h

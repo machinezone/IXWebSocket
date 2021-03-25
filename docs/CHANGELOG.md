@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.2.4] - 2021-03-25
+
+(cmake) install IXUniquePtr.h
+
 ## [11.2.3] - 2021-03-24
 
 (ssl + windows) missing include for CertOpenStore function
