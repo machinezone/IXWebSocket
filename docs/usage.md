@@ -374,13 +374,10 @@ The webSocket reference is guaranteed to be always valid ; by design the callbac
 // Bound host name, max connections and listen backlog can also be passed in as parameters.
 ix::WebSocketServer server(port);
 
-server.setOnClientMessageCallback(std::shared_ptr<ConnectionState> connectionState,
-                                  WebSocket& webSocket,
-                                  const WebSocketMessagePtr& msg)
-{
+server.setOnClientMessageCallback([](std::shared_ptr<ix::ConnectionState> connectionState, ix::WebSocket & webSocket, const ix::WebSocketMessagePtr & msg) {
     // The ConnectionState object contains information about the connection,
     // at this point only the client ip address and the port.
-    std::cout << "Remote ip: " << connectionState->getRemoteIp();
+    std::cout << "Remote ip: " << connectionState->getRemoteIp() << std::endl;
 
     if (msg->type == ix::WebSocketMessageType::Open)
     {
@@ -398,7 +395,7 @@ server.setOnClientMessageCallback(std::shared_ptr<ConnectionState> connectionSta
         std::cout << "Headers:" << std::endl;
         for (auto it : msg->openInfo.headers)
         {
-            std::cout << it.first << ": " << it.second << std::endl;
+            std::cout << "\t" << it.first << ": " << it.second << std::endl;
         }
     }
     else if (msg->type == ix::WebSocketMessageType::Message)
@@ -407,9 +404,11 @@ server.setOnClientMessageCallback(std::shared_ptr<ConnectionState> connectionSta
         // All connected clients are available in an std::set. See the broadcast cpp example.
         // Second parameter tells whether we are sending the message in binary or text mode.
         // Here we send it in the same mode as it was received.
+        std::cout << "Received: " << msg->str << std::endl;
+
         webSocket.send(msg->str, msg->binary);
     }
-);
+});
 
 auto res = server.listen();
 if (!res.first)
