@@ -53,7 +53,7 @@ namespace ix
 #endif
     }
 
-    bool UdpSocket::init(const std::string& host, int port, std::string& errMsg, bool broadcast = false)
+    bool UdpSocket::init(const std::string& host, int port, std::string& errMsg, bool broadcast)
     {
         _sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
         if (_sockfd < 0)
