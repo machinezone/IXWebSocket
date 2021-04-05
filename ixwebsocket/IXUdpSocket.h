@@ -26,7 +26,7 @@ namespace ix
         ~UdpSocket();
 
         // Virtual methods
-        bool init(const std::string& host, int port, std::string& errMsg);
+        bool init(const std::string& host, int port, std::string& errMsg, bool broadcast = false);
         ssize_t sendto(const std::string& buffer);
         void close();
 

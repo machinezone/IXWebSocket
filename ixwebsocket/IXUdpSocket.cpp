@@ -53,13 +53,24 @@ namespace ix
 #endif
     }
 
-    bool UdpSocket::init(const std::string& host, int port, std::string& errMsg)
+    bool UdpSocket::init(const std::string& host, int port, std::string& errMsg, bool broadcast = false)
     {
         _sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
         if (_sockfd < 0)
         {
             errMsg = "Could not create socket";
             return false;
+        }
+
+        if (broadcast)
+        {
+            int broadcast = 1;
+
+            ::setsockopt(_sockfd,
+                         SOL_SOCKET,
+                         SO_BROADCAST,
+                         reinterpret_cast<const char*>(&broadcast),
+                         sizeof broadcast);
         }
 
         memset(&_server, 0, sizeof(_server));
