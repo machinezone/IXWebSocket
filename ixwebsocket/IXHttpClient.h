@@ -30,7 +30,7 @@ namespace ix
 
         HttpResponsePtr get(const std::string& url, HttpRequestArgsPtr args);
         HttpResponsePtr head(const std::string& url, HttpRequestArgsPtr args);
-        HttpResponsePtr del(const std::string& url, HttpRequestArgsPtr args);
+        HttpResponsePtr Delete(const std::string& url, HttpRequestArgsPtr args);
 
         HttpResponsePtr post(const std::string& url,
                              const HttpParameters& httpParameters,
@@ -94,7 +94,7 @@ namespace ix
         const static std::string kPost;
         const static std::string kGet;
         const static std::string kHead;
-        const static std::string kDel;
+        const static std::string kDelete;
         const static std::string kPut;
         const static std::string kPatch;
 

@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.2.5] - 2021-04-04
+
+(http client) DEL is not an HTTP method name, but DELETE is
+
 ## [11.2.4] - 2021-03-25
 
 (cmake) install IXUniquePtr.h

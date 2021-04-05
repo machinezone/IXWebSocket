@@ -20,10 +20,11 @@
 
 namespace ix
 {
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
     const std::string HttpClient::kPost = "POST";
     const std::string HttpClient::kGet = "GET";
     const std::string HttpClient::kHead = "HEAD";
-    const std::string HttpClient::kDel = "DEL";
+    const std::string HttpClient::kDelete = "DELETE";
     const std::string HttpClient::kPut = "PUT";
     const std::string HttpClient::kPatch = "PATCH";
 
@@ -557,9 +558,9 @@ namespace ix
         return request(url, kHead, std::string(), args);
     }
 
-    HttpResponsePtr HttpClient::del(const std::string& url, HttpRequestArgsPtr args)
+    HttpResponsePtr HttpClient::Delete(const std::string& url, HttpRequestArgsPtr args)
     {
-        return request(url, kDel, std::string(), args);
+        return request(url, kDelete, std::string(), args);
     }
 
     HttpResponsePtr HttpClient::request(const std::string& url,
