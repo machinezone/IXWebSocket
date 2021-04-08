@@ -191,7 +191,6 @@ namespace ix
                         // Make sure the OS send buffer is flushed before moving on
                         do
                         {
-                            size_t bufferedAmount = client->bufferedAmount();
                             std::chrono::duration<double, std::milli> duration(500);
                             std::this_thread::sleep_for(duration);
                         } while (client->bufferedAmount() != 0);
