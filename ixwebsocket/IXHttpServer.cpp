@@ -151,7 +151,11 @@ namespace ix
 
                 for (auto&& it : request->headers)
                 {
-                    headers[it.first] = it.second;
+                    //Do not replace our explicitly set server headers with client headers
+                    if(!headers.count(it.first))
+                    {
+                        headers[it.first] = it.second;
+                    }
                 }
 
                 return std::make_shared<HttpResponse>(
