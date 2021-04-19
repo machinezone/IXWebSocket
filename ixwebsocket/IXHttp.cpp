@@ -137,7 +137,7 @@ namespace ix
             {
                 contentLength = std::stoi(headers["Content-Length"]);
             }
-            catch (std::exception)
+            catch(const std::exception&)
             {
                 return std::make_tuple(
                     false, "Error parsing HTTP Header 'Content-Length'", httpRequest);

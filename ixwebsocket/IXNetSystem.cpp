@@ -192,7 +192,8 @@ namespace ix
         return ::inet_ntop(af, a0, s, l);
 #endif
     }
-
+    
+#if defined(_WIN32) && defined(__GNUC__)
     static int hexval(unsigned c)
     {
         if (c - '0' < 10) return c - '0';
@@ -200,6 +201,7 @@ namespace ix
         if (c - 'a' < 6) return c - 'a' + 10;
         return -1;
     }
+#endif
 
     //
     // mingw does not have inet_pton, which were taken as is from the musl C library.
