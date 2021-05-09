@@ -24,6 +24,7 @@ A bad security bug affecting users compiling with SSL enabled and OpenSSL as the
 
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXUserAgent.h>
 #include <iostream>
 
 int main()
@@ -34,6 +35,8 @@ int main()
     // Our websocket object
     ix::WebSocket webSocket;
 
+    // Connect to a server with encryption
+    // See https://machinezone.github.io/IXWebSocket/usage/#tls-support-and-configuration
     std::string url("wss://echo.websocket.org");
     webSocket.setUrl(url);
 
@@ -51,6 +54,12 @@ int main()
             else if (msg->type == ix::WebSocketMessageType::Open)
             {
                 std::cout << "Connection established" << std::endl;
+                std::cout << "> " << std::flush;
+            }
+            else if (msg->type == ix::WebSocketMessageType::Error)
+            {
+                // Maybe SSL is not configured properly
+                std::cout << "Connection error: " << msg->errorInfo.reason << std::endl;
                 std::cout << "> " << std::flush;
             }
         }
