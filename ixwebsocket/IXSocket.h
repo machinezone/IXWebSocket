@@ -15,20 +15,6 @@
 #ifdef _WIN32
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
-
-#undef EWOULDBLOCK
-#undef EAGAIN
-#undef EINPROGRESS
-#undef EBADF
-#undef EINVAL
-
-// map to WSA error codes
-#define EWOULDBLOCK WSAEWOULDBLOCK
-#define EAGAIN WSATRY_AGAIN
-#define EINPROGRESS WSAEINPROGRESS
-#define EBADF WSAEBADF
-#define EINVAL WSAEINVAL
-
 #endif
 
 #include "IXCancellationRequest.h"

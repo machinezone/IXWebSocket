@@ -18,6 +18,19 @@
 #include <io.h>
 #include <ws2def.h>
 
+#undef EWOULDBLOCK
+#undef EAGAIN
+#undef EINPROGRESS
+#undef EBADF
+#undef EINVAL
+
+// map to WSA error codes
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#define EAGAIN WSATRY_AGAIN
+#define EINPROGRESS WSAEINPROGRESS
+#define EBADF WSAEBADF
+#define EINVAL WSAEINVAL
+
 // Define our own poll on Windows, as a wrapper on top of select
 typedef unsigned long int nfds_t;
 
