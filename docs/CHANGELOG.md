@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.2.6] - 2021-05-18
+
+(Windows) move EINVAL (re)definition from IXSocket.h to IXNetSystem.h (fix #289)
+
 ## [11.2.5] - 2021-04-04
 
 (http client) DEL is not an HTTP method name, but DELETE is
