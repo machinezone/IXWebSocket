@@ -132,6 +132,7 @@ To check the performance of a websocket library, you can look at the [autoroute]
 | Windows           | Disabled          | None              | [![Build2][5]][0] |
 | UWP               | Disabled          | None              | [![Build2][6]][0] |
 | Linux             | OpenSSL           | Address Sanitizer | [![Build2][7]][0] |
+| Mingw             | Disabled          | None              | [![Build2][8]][0] |
 
 * ASAN fails on Linux because of a known problem, we need a 
 * Some tests are disabled on Windows/UWP because of a pathing problem
@@ -145,4 +146,5 @@ To check the performance of a websocket library, you can look at the [autoroute]
 [5]: https://github.com/machinezone/IXWebSocket/workflows/windows/badge.svg
 [6]: https://github.com/machinezone/IXWebSocket/workflows/uwp/badge.svg
 [7]: https://github.com/machinezone/IXWebSocket/workflows/linux_asan/badge.svg
+[8]: https://github.com/machinezone/IXWebSocket/workflows/unittest_windows_gcc/badge.svg
 
