@@ -204,6 +204,9 @@ namespace ix
         // Check the value of the connection field
         // Some websocket servers (Go/Gorilla?) send lowercase values for the
         // connection header, so do a case insensitive comparison
+        //
+        // See https://github.com/apache/thrift/commit/7c4bdf9914fcba6c89e0f69ae48b9675578f084a
+        //
         if (!insensitiveStringCompare(headers["connection"], "Upgrade"))
         {
             std::stringstream ss;
@@ -296,7 +299,8 @@ namespace ix
             return sendErrorResponse(400, "Missing Upgrade header");
         }
 
-        if (!insensitiveStringCompare(headers["upgrade"], "WebSocket"))
+        if (!insensitiveStringCompare(headers["upgrade"], "WebSocket") &&
+            headers["Upgrade"] != "keep-alive, Upgrade") // special case for firefox
         {
             return sendErrorResponse(400,
                                      "Invalid Upgrade header, "

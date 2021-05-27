@@ -192,7 +192,7 @@ namespace ix
         return ::inet_ntop(af, a0, s, l);
 #endif
     }
-    
+
 #if defined(_WIN32) && defined(__GNUC__)
     static int hexval(unsigned c)
     {

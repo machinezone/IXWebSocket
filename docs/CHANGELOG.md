@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.2.7] - 2021-05-27
+
+(websocket server) Handle and accept firefox browser special upgrade value (keep-alive, Upgrade)
+
 ## [11.2.6] - 2021-05-18
 
 (Windows) move EINVAL (re)definition from IXSocket.h to IXNetSystem.h (fix #289)
