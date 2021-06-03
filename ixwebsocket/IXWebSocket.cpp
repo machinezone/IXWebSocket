@@ -15,7 +15,10 @@
 #include <cmath>
 
 
-static const std::string emptyMsg;
+namespace
+{
+    const std::string emptyMsg;
+} // namespace
 
 
 namespace ix
