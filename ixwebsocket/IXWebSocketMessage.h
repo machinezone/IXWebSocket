@@ -42,6 +42,18 @@ namespace ix
         {
             ;
         }
+
+        /**
+         * @brief Deleted overload to prevent binding `str` to a temporary, which would cause
+         * undefined behavior since class members don't extend lifetime beyond the constructor call.
+         */
+        WebSocketMessage(WebSocketMessageType t,
+                         std::string&& s,
+                         size_t w,
+                         WebSocketErrorInfo e,
+                         WebSocketOpenInfo o,
+                         WebSocketCloseInfo c,
+                         bool b = false) = delete;
     };
 
     using WebSocketMessagePtr = std::unique_ptr<WebSocketMessage>;
