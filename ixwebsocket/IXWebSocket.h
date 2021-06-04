@@ -92,8 +92,8 @@ namespace ix
         ReadyState getReadyState() const;
         static std::string readyStateToString(ReadyState readyState);
 
-        const std::string& getUrl() const;
-        const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
+        const std::string getUrl() const;
+        const WebSocketPerMessageDeflateOptions getPerMessageDeflateOptions() const;
         int getPingInterval() const;
         size_t bufferedAmount() const;
 
