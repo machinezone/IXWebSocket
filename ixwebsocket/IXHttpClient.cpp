@@ -190,14 +190,14 @@ namespace ix
         }
 
         // Set a default Accept header if none is present
-        if (headers.find("Accept") == headers.end())
+        if (args->extraHeaders.find("Accept") == args->extraHeaders.end())
         {
             ss << "Accept: */*"
                << "\r\n";
         }
 
         // Set a default User agent if none is present
-        if (headers.find("User-Agent") == headers.end())
+        if (args->extraHeaders.find("User-Agent") == args->extraHeaders.end())
         {
             ss << "User-Agent: " << userAgent() << "\r\n";
         }
