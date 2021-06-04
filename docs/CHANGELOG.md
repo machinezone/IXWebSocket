@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.2.8] - 2021-06-03
+
+(websocket client + server) WebSocketMessage class tweak to fix unsafe patterns
+
 ## [11.2.7] - 2021-05-27
 
 (websocket server) Handle and accept firefox browser special upgrade value (keep-alive, Upgrade)
