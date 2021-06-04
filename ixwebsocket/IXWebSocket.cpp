@@ -15,6 +15,12 @@
 #include <cmath>
 
 
+namespace
+{
+    const std::string emptyMsg;
+} // namespace
+
+
 namespace ix
 {
     OnTrafficTrackerCallback WebSocket::_onTrafficTrackerCallback = nullptr;
@@ -38,7 +44,7 @@ namespace ix
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote) {
                 _onMessageCallback(
                     ix::make_unique<WebSocketMessage>(WebSocketMessageType::Close,
-                                                      "",
+                                                      emptyMsg,
                                                       wireSize,
                                                       WebSocketErrorInfo(),
                                                       WebSocketOpenInfo(),
@@ -217,7 +223,7 @@ namespace ix
 
         _onMessageCallback(ix::make_unique<WebSocketMessage>(
             WebSocketMessageType::Open,
-            "",
+            emptyMsg,
             0,
             WebSocketErrorInfo(),
             WebSocketOpenInfo(status.uri, status.headers, status.protocol),
@@ -251,7 +257,7 @@ namespace ix
 
         _onMessageCallback(
             ix::make_unique<WebSocketMessage>(WebSocketMessageType::Open,
-                                              "",
+                                              emptyMsg,
                                               0,
                                               WebSocketErrorInfo(),
                                               WebSocketOpenInfo(status.uri, status.headers),
@@ -338,7 +344,7 @@ namespace ix
                 connectErr.http_status = status.http_status;
 
                 _onMessageCallback(ix::make_unique<WebSocketMessage>(WebSocketMessageType::Error,
-                                                                     "",
+                                                                     emptyMsg,
                                                                      0,
                                                                      connectErr,
                                                                      WebSocketOpenInfo(),
