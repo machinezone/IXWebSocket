@@ -174,7 +174,13 @@ namespace ix
 
         // Build request string
         data.ss << verb << " " << data.path << " HTTP/1.1\r\n";
-        data.ss << "Host: " << data.host << "\r\n";
+
+        if (data.port == 80 || (tls && data.port == 433))
+        {
+            data.ss << "Host: " << data.host << "\r\n";
+        } else {
+            data.ss << "Host: " << data.host << ":" << data.port << "\r\n";
+        }
 
         if (args->compress)
         {
