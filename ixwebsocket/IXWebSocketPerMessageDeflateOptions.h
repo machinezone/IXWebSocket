@@ -39,8 +39,8 @@ namespace ix
         bool _enabled;
         bool _clientNoContextTakeover;
         bool _serverNoContextTakeover;
-        int _clientMaxWindowBits;
-        int _serverMaxWindowBits;
+        uint8_t _clientMaxWindowBits;
+        uint8_t _serverMaxWindowBits;
 
         void sanitizeClientMaxWindowBits();
     };
