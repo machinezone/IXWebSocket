@@ -85,7 +85,7 @@ namespace ix
 
             if (startsWith(token, "server_max_window_bits="))
             {
-                uint8_t x = std::stoi(token.substr(token.find_last_of("=") + 1));
+                uint8_t x = strtol(token.substr(token.find_last_of("=") + 1).c_str(), nullptr, 10);
 
                 // Sanitize values to be in the proper range [8, 15] in
                 // case a server would give us bogus values
@@ -95,7 +95,7 @@ namespace ix
 
             if (startsWith(token, "client_max_window_bits="))
             {
-                uint8_t x = std::stoi(token.substr(token.find_last_of("=") + 1));
+                uint8_t x = strtol(token.substr(token.find_last_of("=") + 1).c_str(), nullptr, 10);
 
                 // Sanitize values to be in the proper range [8, 15] in
                 // case a server would give us bogus values
