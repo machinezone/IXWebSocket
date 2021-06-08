@@ -41,8 +41,7 @@ namespace ix
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
     {
         _ws.setOnCloseCallback(
-            [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
-            {
+            [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote) {
                 _onMessageCallback(
                     ix::make_unique<WebSocketMessage>(WebSocketMessageType::Close,
                                                       emptyMsg,
@@ -385,8 +384,7 @@ namespace ix
                 [this](const std::string& msg,
                        size_t wireSize,
                        bool decompressionError,
-                       WebSocketTransport::MessageKind messageKind)
-                {
+                       WebSocketTransport::MessageKind messageKind) {
                     WebSocketMessageType webSocketMessageType;
                     switch (messageKind)
                     {

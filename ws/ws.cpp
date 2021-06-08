@@ -632,7 +632,8 @@ namespace ix
                          uint32_t maxWaitBetweenReconnectionRetries,
                          const ix::SocketTLSOptions& tlsOptions,
                          const std::string& subprotocol,
-                         int pingIntervalSecs);
+                         int pingIntervalSecs,
+                         bool decompressGzipMessages);
 
         void subscribe(const std::string& channel);
         void start();
@@ -657,6 +658,7 @@ namespace ix
         bool _binaryMode;
         std::atomic<int> _receivedBytes;
         std::atomic<int> _sentBytes;
+        bool _decompressGzipMessages;
 
         void log(const std::string& msg);
         WebSocketHttpHeaders parseHeaders(const std::string& data);
@@ -670,12 +672,14 @@ namespace ix
                                        uint32_t maxWaitBetweenReconnectionRetries,
                                        const ix::SocketTLSOptions& tlsOptions,
                                        const std::string& subprotocol,
-                                       int pingIntervalSecs)
+                                       int pingIntervalSecs,
+                                       bool decompressGzipMessages)
         : _url(url)
         , _disablePerMessageDeflate(disablePerMessageDeflate)
         , _binaryMode(binaryMode)
         , _receivedBytes(0)
         , _sentBytes(0)
+        , _decompressGzipMessages(decompressGzipMessages)
     {
         if (disableAutomaticReconnection)
         {
@@ -784,7 +788,21 @@ namespace ix
             {
                 spdlog::info("Received {} bytes", msg->wireSize);
 
-                ss << "ws_connect: received message: " << msg->str;
+                std::string payload = msg->str;
+                if (_decompressGzipMessages)
+                {
+                    std::string decompressedBytes;
+                    if (gzipDecompress(payload, decompressedBytes))
+                    {
+                        payload = decompressedBytes;
+                    }
+                    else
+                    {
+                        spdlog::error("Error decompressing: {}", payload);
+                    }
+                }
+
+                ss << "ws_connect: received message: " << payload;
                 log(ss.str());
             }
             else if (msg->type == ix::WebSocketMessageType::Error)
@@ -837,7 +855,8 @@ namespace ix
                         uint32_t maxWaitBetweenReconnectionRetries,
                         const ix::SocketTLSOptions& tlsOptions,
                         const std::string& subprotocol,
-                        int pingIntervalSecs)
+                        int pingIntervalSecs,
+                        bool decompressGzipMessages)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketConnect webSocketChat(url,
@@ -848,7 +867,8 @@ namespace ix
                                        maxWaitBetweenReconnectionRetries,
                                        tlsOptions,
                                        subprotocol,
-                                       pingIntervalSecs);
+                                       pingIntervalSecs,
+                                       decompressGzipMessages);
         webSocketChat.start();
 
         while (true)
@@ -2490,6 +2510,7 @@ int main(int argc, char** argv)
     uint32_t maxWaitBetweenReconnectionRetries = 10 * 1000; // 10 seconds
     int pingIntervalSecs = 30;
     int runCount = 1;
+    bool decompressGzipMessages = false;
 
     auto addGenericOptions = [&pidfile](CLI::App* app) {
         app->add_option("--pidfile", pidfile, "Pid file");
@@ -2552,6 +2573,7 @@ int main(int argc, char** argv)
                            "Max Wait Time between reconnection retries");
     connectApp->add_option("--ping_interval", pingIntervalSecs, "Interval between sending pings");
     connectApp->add_option("--subprotocol", subprotocol, "Subprotocol");
+    connectApp->add_flag("-g", decompressGzipMessages, "Decompress gziped messages");
     addGenericOptions(connectApp);
     addTLSOptions(connectApp);
 
@@ -2740,7 +2762,8 @@ int main(int argc, char** argv)
                                   maxWaitBetweenReconnectionRetries,
                                   tlsOptions,
                                   subprotocol,
-                                  pingIntervalSecs);
+                                  pingIntervalSecs,
+                                  decompressGzipMessages);
     }
     else if (app.got_subcommand("autoroute"))
     {

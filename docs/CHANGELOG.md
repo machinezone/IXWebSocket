@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.2.9] - 2021-06-08
+
+(ws) ws connect has a -g option to gzip decompress messages for API such as the websocket Huobi Global.
+
 ## [11.2.8] - 2021-06-03
 
 (websocket client + server) WebSocketMessage class tweak to fix unsafe patterns
