@@ -22,37 +22,37 @@ install: brew
 # Default rule does not use python as that requires first time users to have Python3 installed
 #
 brew:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; ninja install)
 
 # Docker default target. We've had problems with OpenSSL and TLS 1.3 (on the
 # server side ?) and I can't work-around it easily, so we're using mbedtls on
 # Linux for the SSL backend, which works great.
 ws_mbedtls_install:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_ZLIB=OFF -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_ZLIB=OFF -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; ninja install)
 
 ws:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. && ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. && ninja install)
 
 ws_unity:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. && ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. && ninja install)
 
 ws_install:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. -DUSE_TEST=0 && ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. -DUSE_TEST=0 && ninja install)
 
 ws_install_release:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. -DUSE_TEST=0 && ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. -DUSE_TEST=0 && ninja install)
 
 ws_openssl_install:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_OPEN_SSL=1 .. ; ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_OPEN_SSL=1 .. ; ninja install)
 
 ws_mbedtls:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j 4)
+	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j 4)
 
 ws_no_ssl:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_WS=1 .. ; make -j 4)
+	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_WS=1 .. ; make -j 4)
 
 ws_no_python:
-	mkdir -p build && (cd build ; cmake -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j4 install)
+	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j4 install)
 
 uninstall:
 	xargs rm -fv < build/install_manifest.txt
@@ -111,27 +111,27 @@ test_server:
 	(cd test && npm i ws && node broadcast-server.js)
 
 test:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 ..)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 ..)
 	(cd build ; ninja)
 	(cd build ; ninja -v test)
 
 test_asan:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=address -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer")
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=address -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer")
 	(cd build ; ninja)
 	(cd build ; ctest -V .)
 
 test_tsan_mbedtls:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
 	(cd build ; ninja)
 	(cd build ; ninja test)
 
 test_tsan_openssl:
-	mkdir -p build && (cd build ; cmake -GNinja --DCMAKE_UNITY_BUILD=ON DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPENS_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPENS_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
 	(cd build ; ninja)
 	(cd build ; ninja test)
 
 test_tsan_sectransport:
-	mkdir -p build && (cd build ; cmake -GNinja --DCMAKE_UNITY_BUILD=ON DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPENS_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPENS_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
 	(cd build ; ninja)
 	(cd build ; ninja test)
 
