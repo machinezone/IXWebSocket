@@ -12,11 +12,11 @@
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
 
         <script src="../js/jquery-1.10.2.min.js" defer></script>
         <script src="../js/bootstrap.min.js" defer></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
         <script>hljs.initHighlightingOnLoad();</script> 
     </head>
 
@@ -95,6 +95,18 @@
             
             <li class="nav-item" data-level="1"><a href="#changelog" class="nav-link">Changelog</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#11210-2021-07-27" class="nav-link">[11.2.10] - 2021-07-27</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#1129-2021-06-08" class="nav-link">[11.2.9] - 2021-06-08</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#1128-2021-06-03" class="nav-link">[11.2.8] - 2021-06-03</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#1127-2021-05-27" class="nav-link">[11.2.7] - 2021-05-27</a>
               <ul class="nav flex-column">
               </ul>
@@ -1168,6 +1180,12 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="11210-2021-07-27">[11.2.10] - 2021-07-27</h2>
+<p>(ws) bump CLI command line parsing library from 1.8 to 2.0</p>
+<h2 id="1129-2021-06-08">[11.2.9] - 2021-06-08</h2>
+<p>(ws) ws connect has a -g option to gzip decompress messages for API such as the websocket Huobi Global.</p>
+<h2 id="1128-2021-06-03">[11.2.8] - 2021-06-03</h2>
+<p>(websocket client + server) WebSocketMessage class tweak to fix unsafe patterns</p>
 <h2 id="1127-2021-05-27">[11.2.7] - 2021-05-27</h2>
 <p>(websocket server) Handle and accept firefox browser special upgrade value (keep-alive, Upgrade)</p>
 <h2 id="1126-2021-05-18">[11.2.6] - 2021-05-18</h2>
@@ -1940,16 +1958,13 @@ ws_connect: connection closed: code 1000 reason Normal closure
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
             </div>
             <div class="modal-body">
-                <p>
-                    From here you can search these documents. Enter
-                    your search terms below.
-                </p>
+                <p>From here you can search these documents. Enter your search terms below.</p>
                 <form>
                     <div class="form-group">
                         <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
                     </div>
                 </form>
-                <div id="mkdocs-search-results"></div>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
             </div>
             <div class="modal-footer">
             </div>
