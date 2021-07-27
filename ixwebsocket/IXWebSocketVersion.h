@@ -6,4 +6,4 @@
 
 #pragma once
 
-#define IX_WEBSOCKET_VERSION "11.2.9"
+#define IX_WEBSOCKET_VERSION "11.2.10"
