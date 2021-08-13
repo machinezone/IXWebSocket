@@ -3,6 +3,7 @@ on:
   push:
     paths-ignore:
     - 'docs/**'
+  pull_request:
 
 jobs:
   mac_tsan_openssl:

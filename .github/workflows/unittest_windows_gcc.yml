@@ -3,6 +3,7 @@ on:
   push:
     paths-ignore:
     - 'docs/**'
+  pull_request:
 
 jobs:
   windows:
