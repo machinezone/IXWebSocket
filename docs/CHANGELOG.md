@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.3.0] - 2021-09-20
+
+(library/cmake) Only find OpenSSL, MbedTLS, zlib if they have not already been found, make CMake install optional (#317) + Use GNUInstallDirs in cmake (#318)
+
 ## [11.2.10] - 2021-07-27
 
 (ws) bump CLI command line parsing library from 1.8 to 2.0
