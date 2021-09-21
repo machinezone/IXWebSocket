@@ -180,18 +180,23 @@ if (USE_TLS)
       # set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} /opt/local/include/openssl-1.0)
     endif()
 
-    # Use OPENSSL_ROOT_DIR CMake variable if you need to use your own openssl
-    find_package(OpenSSL REQUIRED) 
+    # This OPENSSL_FOUND check is to help find a cmake manually configured OpenSSL
+    if (NOT OPENSSL_FOUND)
+      find_package(OpenSSL REQUIRED)
+    endif()
     message(STATUS "OpenSSL: " ${OPENSSL_VERSION})
 
     add_definitions(${OPENSSL_DEFINITIONS})
-    target_include_directories(ixwebsocket PUBLIC ${OPENSSL_INCLUDE_DIR})
+    target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${OPENSSL_INCLUDE_DIR}>)
     target_link_libraries(ixwebsocket ${OPENSSL_LIBRARIES})
   elseif (USE_MBED_TLS)
     message(STATUS "TLS configured to use mbedtls")
 
-    find_package(MbedTLS REQUIRED)
-    target_include_directories(ixwebsocket PUBLIC ${MBEDTLS_INCLUDE_DIRS})
+    # This MBEDTLS_FOUND check is to help find a cmake manually configured MbedTLS
+    if (NOT MBEDTLS_FOUND)
+      find_package(MbedTLS REQUIRED)
+    endif()
+    target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${MBEDTLS_INCLUDE_DIRS}>)
     target_link_libraries(ixwebsocket ${MBEDTLS_LIBRARIES})
   elseif (USE_SECURE_TRANSPORT)
     message(STATUS "TLS configured to use secure transport")
@@ -202,9 +207,11 @@ endif()
 option(USE_ZLIB "Enable zlib support" TRUE)
 
 if (USE_ZLIB)
-  # Use ZLIB_ROOT CMake variable if you need to use your own zlib
-  find_package(ZLIB REQUIRED)
-  include_directories(${ZLIB_INCLUDE_DIRS})
+  # This ZLIB_FOUND check is to help find a cmake manually configured zlib
+  if (NOT ZLIB_FOUND)
+    find_package(ZLIB REQUIRED)
+  endif()
+  target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>)
   target_link_libraries(ixwebsocket ${ZLIB_LIBRARIES})
 
   target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_ZLIB)
@@ -251,16 +258,20 @@ target_include_directories(ixwebsocket PUBLIC
 
 set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
 
-install(TARGETS ixwebsocket
-        EXPORT ixwebsocket
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket/
-)
+option(IXWEBSOCKET_INSTALL "Install IXWebSocket" TRUE)
 
-install(EXPORT ixwebsocket
-        FILE ixwebsocket-config.cmake
-        NAMESPACE ixwebsocket::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ixwebsocket)
+if (IXWEBSOCKET_INSTALL)
+  install(TARGETS ixwebsocket
+          EXPORT ixwebsocket
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket/
+  )
+
+  install(EXPORT ixwebsocket
+          FILE ixwebsocket-config.cmake
+          NAMESPACE ixwebsocket::
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ixwebsocket)
+endif()
 
 if (USE_WS OR USE_TEST)
   include(FetchContent)
