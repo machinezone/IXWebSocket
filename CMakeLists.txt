@@ -242,23 +242,25 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(ixwebsocket PRIVATE /MP)
 endif()
 
+include(GNUInstallDirs)
+
 target_include_directories(ixwebsocket PUBLIC
   $<BUILD_INTERFACE:${IXWEBSOCKET_INCLUDE_DIRS}/>
-  $<INSTALL_INTERFACE:include/ixwebsocket>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket>
 )
 
 set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
 
 install(TARGETS ixwebsocket
         EXPORT ixwebsocket
-        ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include/ixwebsocket/
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket/
 )
 
 install(EXPORT ixwebsocket
         FILE ixwebsocket-config.cmake
         NAMESPACE ixwebsocket::
-        DESTINATION lib/cmake/ixwebsocket)
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ixwebsocket)
 
 if (USE_WS OR USE_TEST)
   include(FetchContent)
