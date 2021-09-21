@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.2.10] - 2021-07-27
+
+(ws) bump CLI command line parsing library from 1.8 to 2.0
+
 ## [11.2.9] - 2021-06-08
 
 (ws) ws connect has a -g option to gzip decompress messages for API such as the websocket Huobi Global.
