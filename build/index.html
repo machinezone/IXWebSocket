@@ -118,7 +118,7 @@ There is a unittest which can be executed by typing <code>make test</code>.</p>
 <li><code>-DBUILD_SHARED_LIBS=ON</code> will build the unittest as a shared libary instead of a static library, which is the default</li>
 <li><code>-DUSE_ZLIB=1</code> will enable zlib support, required for http client + server + websocket per message deflate extension</li>
 <li><code>-DUSE_TLS=1</code> will enable TLS support</li>
-<li><code>-DUSE_OPEN_SSL=1</code> will use <a href="https://www.openssl.org/">openssl</a> for the TLS support (default on Linux and Windows)</li>
+<li><code>-DUSE_OPEN_SSL=1</code> will use <a href="https://www.openssl.org/">openssl</a> for the TLS support (default on Linux and Windows). When using a custom version of openssl (say a prebuilt version, odd runtime problems can happens, as in #319, and special cmake trickery will be required (see this <a href="https://github.com/machinezone/IXWebSocket/issues/175#issuecomment-620231032">comment</a>)</li>
 <li><code>-DUSE_MBED_TLS=1</code> will use <a href="https://tls.mbed.org/">mbedlts</a> for the TLS support</li>
 <li><code>-DUSE_WS=1</code> will build the ws interactive command line tool</li>
 <li><code>-DUSE_TEST=1</code> will build the unittest</li>
