@@ -278,4 +278,17 @@ namespace ix
 #endif
     }
 
+    // Convert network bytes to host bytes. Copied from the ASIO library
+    uint16_t network_to_host_short(uint16_t value)
+    {
+        #if defined(_WIN32)
+          unsigned char* value_p = reinterpret_cast<unsigned char*>(&value);
+          uint16_t result = (static_cast<uint16_t>(value_p[0]) << 8)
+            | static_cast<uint16_t>(value_p[1]);
+          return result;
+        #else // defined(_WIN32)
+          return ntohs(value);
+        #endif // defined(_WIN32)
+    }
+
 } // namespace ix
