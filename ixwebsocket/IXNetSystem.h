@@ -82,5 +82,5 @@ namespace ix
     const char* inet_ntop(int af, const void* src, char* dst, socklen_t size);
     int inet_pton(int af, const char* src, void* dst);
 
-    uint16_t network_to_host_short(uint16_t value);
+    unsigned short network_to_host_short(unsigned short value);
 } // namespace ix
