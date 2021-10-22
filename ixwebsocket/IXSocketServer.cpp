@@ -351,7 +351,7 @@ namespace ix
                     continue;
                 }
 
-                remotePort = client.sin_port;
+                remotePort = ix::network_to_host_short(client.sin_port);
                 remoteIp = remoteIp4;
             }
             else // AF_INET6
@@ -371,7 +371,7 @@ namespace ix
                     continue;
                 }
 
-                remotePort = client.sin_port;
+                remotePort = ix::network_to_host_short(client.sin_port);
                 remoteIp = remoteIp6;
             }
 
