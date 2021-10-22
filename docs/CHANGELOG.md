@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.3.1] - 2021-10-22
+
+(library/cmake) Compatible with MbedTLS 3 + fix a bug on Windows where the incorrect remote port is computed (#320)
+
 ## [11.3.0] - 2021-09-20
 
 (library/cmake) Only find OpenSSL, MbedTLS, zlib if they have not already been found, make CMake install optional (#317) + Use GNUInstallDirs in cmake (#318)
