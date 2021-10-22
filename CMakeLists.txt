@@ -195,6 +195,11 @@ if (USE_TLS)
     # This MBEDTLS_FOUND check is to help find a cmake manually configured MbedTLS
     if (NOT MBEDTLS_FOUND)
       find_package(MbedTLS REQUIRED)
+      
+      if (MBEDTLS_VERSION_GREATER_THAN_3)
+        target_compile_definitions(ixwebsocket PRIVATE IXWEBSOCKET_USE_MBED_TLS_MIN_VERSION_3)
+      endif()
+      
     endif()
     target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${MBEDTLS_INCLUDE_DIRS}>)
     target_link_libraries(ixwebsocket ${MBEDTLS_LIBRARIES})
