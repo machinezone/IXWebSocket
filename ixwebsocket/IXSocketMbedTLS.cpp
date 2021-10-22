@@ -132,7 +132,11 @@ namespace ix
                 errMsg = "Cannot parse cert file '" + _tlsOptions.certFile + "'";
                 return false;
             }
+#ifdef IXWEBSOCKET_USE_MBED_TLS_MIN_VERSION_3
+            if (mbedtls_pk_parse_keyfile(&_pkey, _tlsOptions.keyFile.c_str(), "", mbedtls_ctr_drbg_random, &_ctr_drbg) < 0)
+#else
             if (mbedtls_pk_parse_keyfile(&_pkey, _tlsOptions.keyFile.c_str(), "") < 0)
+#endif
             {
                 errMsg = "Cannot parse key file '" + _tlsOptions.keyFile + "'";
                 return false;
