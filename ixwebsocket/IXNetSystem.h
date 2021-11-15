@@ -34,8 +34,8 @@
 // Define our own poll on Windows, as a wrapper on top of select
 typedef unsigned long int nfds_t;
 
-// mingw does not know about poll so mock it
-#if defined(__GNUC__)
+// pollfd is not defined by some versions of mingw64 since _WIN32_WINNT is too low
+#if _WIN32_WINNT < 0x0600
 struct pollfd
 {
     int fd;        /* file descriptor */
