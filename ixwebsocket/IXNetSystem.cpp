@@ -5,6 +5,8 @@
  */
 
 #include "IXNetSystem.h"
+#include <cstdint>
+#include <cstdio>
 
 namespace ix
 {
