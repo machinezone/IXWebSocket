@@ -60,6 +60,11 @@ namespace ix
 
         void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
 
+        int  getPort();
+        std::string getHost();
+        int getBacklog();
+        std::size_t getMaxConnections();
+        int getAddressFamily();
     protected:
         // Logging
         void logError(const std::string& str);
