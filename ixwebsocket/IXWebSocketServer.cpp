@@ -211,4 +211,19 @@ namespace ix
         start();
         return true;
     }
+
+    int WebSocketServer::getHandshakeTimeoutSecs()
+    {
+        return _handshakeTimeoutSecs;
+    }
+
+    bool WebSocketServer::isPongEnabled()
+    {
+        return _enablePong;
+    }
+
+    bool WebSocketServer::isPerMessageDeflateEnabled()
+    {
+        return _enablePerMessageDeflate;
+    }
 } // namespace ix

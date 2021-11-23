@@ -52,6 +52,9 @@ namespace ix
 
         const static int kDefaultHandShakeTimeoutSecs;
 
+        int getHandshakeTimeoutSecs();
+        bool isPongEnabled();
+        bool isPerMessageDeflateEnabled();
     private:
         // Member variables
         int _handshakeTimeoutSecs;
