@@ -385,7 +385,7 @@ namespace ix
                        size_t wireSize,
                        bool decompressionError,
                        WebSocketTransport::MessageKind messageKind) {
-                    WebSocketMessageType webSocketMessageType;
+                    WebSocketMessageType webSocketMessageType{WebSocketMessageType::Error};
                     switch (messageKind)
                     {
                         case WebSocketTransport::MessageKind::MSG_TEXT:
