@@ -84,7 +84,7 @@ TEST_CASE("socket", "[socket]")
         std::string errMsg;
         bool tls = true;
         SocketTLSOptions tlsOptions;
-        // tlsOptions.caFile = "cacert.pem";
+        tlsOptions.caFile = "cacert.pem";
         std::shared_ptr<Socket> socket = createSocket(tls, -1, errMsg, tlsOptions);
         std::string host("www.google.com");
         int port = 443;
