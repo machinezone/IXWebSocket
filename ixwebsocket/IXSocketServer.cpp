@@ -461,4 +461,29 @@ namespace ix
         // so wake up the thread responsible for that
         _conditionVariableGC.notify_one();
     }
+
+    int  SocketServer::getPort()
+    {
+        return _port;
+    }
+
+    std::string SocketServer::getHost()
+    {
+        return _host;
+    }
+
+    int SocketServer::getBacklog()
+    {
+        return _backlog;
+    }
+
+    std::size_t SocketServer::getMaxConnections()
+    {
+        return _maxConnections;
+    }
+
+    int SocketServer::getAddressFamily()
+    {
+        return _addressFamily;
+    }
 } // namespace ix

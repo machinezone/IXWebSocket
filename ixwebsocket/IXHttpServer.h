@@ -40,6 +40,7 @@ namespace ix
 
         void makeDebugServer();
 
+        int getTimeoutSecs();
     private:
         // Member variables
         OnConnectionCallback _onConnectionCallback;

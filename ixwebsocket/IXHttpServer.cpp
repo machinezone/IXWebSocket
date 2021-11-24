@@ -226,4 +226,10 @@ namespace ix
                     200, "OK", HttpErrorCode::Ok, headers, std::string("OK"));
             });
     }
+
+    int HttpServer::getTimeoutSecs()
+    {
+        return _timeoutSecs;
+    }
+
 } // namespace ix
