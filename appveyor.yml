@@ -7,11 +7,11 @@ install:
 - .\bootstrap-vcpkg.bat
 - cd %APPVEYOR_BUILD_FOLDER%
 - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-- vcpkg install zlib:x64-uwp
-- vcpkg install mbedtls:x64-uwp
+- vcpkg install zlib:x64-windows
+- vcpkg install mbedtls:x64-windows
 - mkdir build
 - cd build
-- cmake -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION="10.0" -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DUSE_WS=1 -DUSE_TEST=1 -DUSE_TLS=1 -G"NMake Makefiles" ..
+- cmake -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DUSE_WS=1 -DUSE_TEST=1 -DUSE_TLS=1 -G"NMake Makefiles" ..
 - nmake
 - cd ..
 - cd test
