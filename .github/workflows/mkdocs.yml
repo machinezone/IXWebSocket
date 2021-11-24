@@ -1,6 +1,8 @@
 name: mkdocs
 on:
   push:
+    branches:
+    - master
     paths:
     - 'docs/**'
 
@@ -8,7 +10,7 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
     - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
@@ -21,6 +23,7 @@ jobs:
         pip install pygments
     - name: Build doc
       run: |
+        git checkout master
         git clean -dfx .
         git fetch
         git pull
