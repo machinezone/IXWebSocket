@@ -193,37 +193,38 @@ namespace
 
     bool startServer(ix::WebSocketServer& server)
     {
-        server.setOnConnectionCallback([&server](std::shared_ptr<ix::WebSocket> webSocket,
-                                                 std::shared_ptr<ConnectionState> connectionState) {
-            webSocket->setOnMessageCallback(
-                [webSocket, connectionState, &server](const ix::WebSocketMessagePtr& msg) {
-                    if (msg->type == ix::WebSocketMessageType::Open)
+        server.setOnClientMessageCallback(
+            [&server](std::shared_ptr<ConnectionState> connectionState,
+                      WebSocket& webSocket,
+                      const ix::WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionState->getRemoteIp();
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    TLogger() << "New connection";
+                    TLogger() << "remote ip: " << remoteIp;
+                    TLogger() << "id: " << connectionState->getId();
+                    TLogger() << "Uri: " << msg->openInfo.uri;
+                    TLogger() << "Headers:";
+                    for (auto it : msg->openInfo.headers)
                     {
-                        TLogger() << "New connection";
-                        TLogger() << "id: " << connectionState->getId();
-                        TLogger() << "Uri: " << msg->openInfo.uri;
-                        TLogger() << "Headers:";
-                        for (auto it : msg->openInfo.headers)
+                        TLogger() << it.first << ": " << it.second;
+                    }
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    log("Closed connection");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    for (auto&& client : server.getClients())
+                    {
+                        if (client.get() != &webSocket)
                         {
-                            TLogger() << it.first << ": " << it.second;
+                            client->sendBinary(msg->str);
                         }
                     }
-                    else if (msg->type == ix::WebSocketMessageType::Close)
-                    {
-                        log("Closed connection");
-                    }
-                    else if (msg->type == ix::WebSocketMessageType::Message)
-                    {
-                        for (auto&& client : server.getClients())
-                        {
-                            if (client != webSocket)
-                            {
-                                client->sendBinary(msg->str);
-                            }
-                        }
-                    }
-                });
-        });
+                }
+            });
 
         auto res = server.listen();
         if (!res.first)
@@ -284,27 +285,27 @@ TEST_CASE("Websocket_chat", "[websocket_chat]")
         int attempts = 0;
         while (chatA.getReceivedMessagesCount() != 3 || chatB.getReceivedMessagesCount() != 3)
         {
-            REQUIRE(attempts++ < 10);
+            CHECK(attempts++ < 10);
             ix::msleep(1000);
         }
 
         chatA.stop();
         chatB.stop();
 
-        REQUIRE(chatA.getReceivedMessagesCount() == 3);
-        REQUIRE(chatB.getReceivedMessagesCount() == 3);
+        CHECK(chatA.getReceivedMessagesCount() == 3);
+        CHECK(chatB.getReceivedMessagesCount() == 3);
 
-        REQUIRE(chatB.getReceivedMessages()[0] == "from A1");
-        REQUIRE(chatB.getReceivedMessages()[1] == "from A2");
-        REQUIRE(chatB.getReceivedMessages()[2] == "from A3");
+        CHECK(chatB.getReceivedMessages()[0] == "from A1");
+        CHECK(chatB.getReceivedMessages()[1] == "from A2");
+        CHECK(chatB.getReceivedMessages()[2] == "from A3");
 
-        REQUIRE(chatA.getReceivedMessages()[0] == "from B1");
-        REQUIRE(chatA.getReceivedMessages()[1] == "from B2");
-        REQUIRE(chatA.getReceivedMessages()[2].size() == bigMessage.size());
+        CHECK(chatA.getReceivedMessages()[0] == "from B1");
+        CHECK(chatA.getReceivedMessages()[1] == "from B2");
+        CHECK(chatA.getReceivedMessages()[2].size() == bigMessage.size());
 
         // Give us 1000ms for the server to notice that clients went away
         ix::msleep(1000);
-        REQUIRE(server.getClients().size() == 0);
+        CHECK(server.getClients().size() == 0);
 
         ix::reportWebSocketTraffic();
     }

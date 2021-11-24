@@ -31,6 +31,11 @@ namespace ix
         return std::make_shared<ConnectionState>();
     }
 
+    void ConnectionState::setOnSetTerminatedCallback(const OnSetTerminatedCallback& callback)
+    {
+        _onSetTerminatedCallback = callback;
+    }
+
     bool ConnectionState::isTerminated() const
     {
         return _terminated;
@@ -39,5 +44,30 @@ namespace ix
     void ConnectionState::setTerminated()
     {
         _terminated = true;
+
+        if (_onSetTerminatedCallback)
+        {
+            _onSetTerminatedCallback();
+        }
+    }
+
+    const std::string& ConnectionState::getRemoteIp()
+    {
+        return _remoteIp;
+    }
+
+    int ConnectionState::getRemotePort()
+    {
+        return _remotePort;
+    }
+
+    void ConnectionState::setRemoteIp(const std::string& remoteIp)
+    {
+        _remoteIp = remoteIp;
+    }
+
+    void ConnectionState::setRemotePort(int remotePort)
+    {
+        _remotePort = remotePort;
     }
 } // namespace ix

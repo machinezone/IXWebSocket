@@ -1,5 +1,456 @@
 # Changelog
+
 All changes to this project will be documented in this file.
+
+## [11.3.1] - 2021-10-22
+
+(library/cmake) Compatible with MbedTLS 3 + fix a bug on Windows where the incorrect remote port is computed (#320)
+
+## [11.3.0] - 2021-09-20
+
+(library/cmake) Only find OpenSSL, MbedTLS, zlib if they have not already been found, make CMake install optional (#317) + Use GNUInstallDirs in cmake (#318)
+
+## [11.2.10] - 2021-07-27
+
+(ws) bump CLI command line parsing library from 1.8 to 2.0
+
+## [11.2.9] - 2021-06-08
+
+(ws) ws connect has a -g option to gzip decompress messages for API such as the websocket Huobi Global.
+
+## [11.2.8] - 2021-06-03
+
+(websocket client + server) WebSocketMessage class tweak to fix unsafe patterns
+
+## [11.2.7] - 2021-05-27
+
+(websocket server) Handle and accept firefox browser special upgrade value (keep-alive, Upgrade)
+
+## [11.2.6] - 2021-05-18
+
+(Windows) move EINVAL (re)definition from IXSocket.h to IXNetSystem.h (fix #289)
+
+## [11.2.5] - 2021-04-04
+
+(http client) DEL is not an HTTP method name, but DELETE is
+
+## [11.2.4] - 2021-03-25
+
+(cmake) install IXUniquePtr.h
+
+## [11.2.3] - 2021-03-24
+
+(ssl + windows) missing include for CertOpenStore function
+
+## [11.2.2] - 2021-03-23
+
+(ixwebsocket) version bump
+
+## [11.2.1] - 2021-03-23
+
+(ixwebsocket) version bump
+
+## [11.2.0] - 2021-03-23
+
+(ixwebsocket) correct mingw support (gcc on windows)
+
+## [11.1.4] - 2021-03-23
+
+(ixwebsocket) add getMinWaitBetweenReconnectionRetries
+
+## [11.1.3] - 2021-03-23
+
+(ixwebsocket) New option to set the min wait between reconnection attempts. Still default to 1ms. (setMinWaitBetweenReconnectionRetries).
+
+## [11.1.2] - 2021-03-22
+
+(ws) initialize maxWaitBetweenReconnectionRetries to a non zero value ; a zero value was causing spurious reconnections attempts
+
+## [11.1.1] - 2021-03-20
+
+(cmake) Library can be built as a static or a dynamic library, controlled with BUILD_SHARED_LIBS. Default to static library
+
+## [11.1.0] - 2021-03-16
+
+(ixwebsocket) Use LEAN_AND_MEAN Windows define to help with undefined link error when building a DLL. Support websocket server disablePerMessageDeflate option correctly.
+
+## [11.0.9] - 2021-03-07
+
+(ixwebsocket) Expose setHandshakeTimeout method
+
+## [11.0.8] - 2020-12-25
+
+(ws) trim ws dependencies no more ixcrypto and ixcore deps
+
+## [11.0.7] - 2020-12-25
+
+(ws) trim ws dependencies, only depends on ixcrypto and ixcore
+
+## [11.0.6] - 2020-12-22
+
+(build) rename makefile to makefile.dev to ease cmake BuildExternal (fix #261)
+
+## [11.0.5] - 2020-12-17
+
+(ws) Implement simple header based websocket authorization technique to reject
+client which do not supply a certain header ("Authorization") with a special
+value (see doc).
+
+## [11.0.4] - 2020-11-16
+
+(ixwebsocket) Handle EINTR return code in ix::poll and IXSelectInterrupt
+
+## [11.0.3] - 2020-11-16
+
+(ixwebsocket) Fix #252 / regression in 11.0.2 with string comparisons
+
+## [11.0.2] - 2020-11-15
+
+(ixwebsocket) use a C++11 compatible make_unique shim
+
+## [11.0.1] - 2020-11-11
+
+(socket) replace a std::vector with an std::array used as a tmp buffer in Socket::readBytes
+
+## [11.0.0] - 2020-11-11
+
+(openssl security fix) in the client to server connection, peer verification is not done in all cases. See https://github.com/machinezone/IXWebSocket/pull/250
+
+## [10.5.7] - 2020-11-07
+
+(docker) build docker container with zlib disabled
+
+## [10.5.6] - 2020-11-07
+
+(cmake) DEFLATE -> Deflate in CMake to stop warnings about casing
+
+## [10.5.5] - 2020-11-07
+
+(ws autoroute) Display result in compliant way (AUTOROUTE IXWebSocket :: N ms) so that result can be parsed easily
+
+## [10.5.4] - 2020-10-30
+
+(ws gunzip + IXGZipCodec) Can decompress gziped data with libdeflate. ws gunzip computed output filename was incorrect (was the extension aka gz) instead of the file without the extension. Also check whether the output file is writeable.
+
+## [10.5.3] - 2020-10-19
+
+(http code) With zlib disabled, some code should not be reached
+
+## [10.5.2] - 2020-10-12
+
+(ws curl) Add support for --data-binary option, to set the request body. When present the request will be sent with the POST verb
+
+## [10.5.1] - 2020-10-09
+
+(http client + server + ws) Add support for compressing http client requests with gzip. --compress_request argument is used in ws to enable this. The Content-Encoding is set to gzip, and decoded on the server side if present.
+
+## [10.5.0] - 2020-09-30
+
+(http client + server + ws) Add support for uploading files with ws -F foo=@filename, new -D http server option to debug incoming client requests, internal api changed for http POST, PUT and PATCH to supply an HttpFormDataParameters
+
+## [10.4.9] - 2020-09-30
+
+(http server + utility code) Add support for doing gzip compression with libdeflate library, if available
+
+## [10.4.8] - 2020-09-30
+
+(cmake) Stop using FetchContent cmake module to retrieve jsoncpp third party dependency
+
+## [10.4.7] - 2020-09-28
+
+(ws) add gzip and gunzip ws sub commands
+
+## [10.4.6] - 2020-09-26
+
+(cmake) use FetchContent cmake module to retrieve jsoncpp third party dependency
+
+## [10.4.5] - 2020-09-26
+
+(cmake) use FetchContent cmake module to retrieve spdlog third party dependency
+
+## [10.4.4] - 2020-09-22
+
+(cobra connection) retrieve cobra server connection id from the cobra handshake message and display it in ws clients, metrics publisher and bots
+
+## [10.4.3] - 2020-09-22
+
+(cobra 2 cobra) specify as an HTTP header which channel we will republish to
+
+## [10.4.2] - 2020-09-18
+
+(cobra bots) change an error log to a warning log when reconnecting because no messages were received for a minute
+
+## [10.4.1] - 2020-09-18
+
+(cobra connection and bots) set an HTTP header when connecting to help with debugging bots
+
+## [10.4.0] - 2020-09-12
+
+(http server) read body request when the Content-Length is specified + set timeout to read the request to 30 seconds max by default, and make it configurable as a constructor parameter
+
+## [10.3.5] - 2020-09-09
+
+(ws) autoroute command exit on its own once all messages have been received
+
+## [10.3.4] - 2020-09-04
+
+(docker) ws docker file installs strace
+
+## [10.3.3] - 2020-09-02
+
+(ws) echo_client command renamed to autoroute. Command exit once the server close the connection. push_server commands exit once N messages have been sent.
+
+## [10.3.2] - 2020-08-31
+
+(ws + cobra bots) add a cobra_to_cobra ws subcommand to subscribe to a channel and republish received events to a different channel
+
+## [10.3.1] - 2020-08-28
+
+(socket servers) merge the ConnectionInfo class with the ConnectionState one, which simplify all the server apis
+
+## [10.3.0] - 2020-08-26
+
+(ws) set the main thread name, to help with debugging in XCode, gdb, lldb etc...
+
+## [10.2.9] - 2020-08-19
+
+(ws) cobra to python bot / take a module python name as argument foo.bar.baz instead of a path foo/bar/baz.py
+
+## [10.2.8] - 2020-08-19
+
+(ws) on Linux with mbedtls, when the system ca certs are specified (the default) pick up sensible OS supplied paths (tested with CentOS and Alpine)
+
+## [10.2.7] - 2020-08-18
+
+(ws push_server) on the server side, stop sending and close the connection when the remote end has disconnected
+
+## [10.2.6] - 2020-08-17
+
+(ixwebsocket) replace std::unique_ptr<unsigned char[]> with std::array for some fixed arrays (which are in C++11)
+
+## [10.2.5] - 2020-08-15
+
+(ws) merge all ws_*.cpp files into a single one to speedup compilation
+
+## [10.2.4] - 2020-08-15
+
+(socket server) in the loop accepting connections, call select without a timeout on unix to avoid busy looping, and only wake up when a new connection happens
+
+## [10.2.3] - 2020-08-15
+
+(socket server) instead of busy looping with a sleep, only wake up the GC thread when a new thread will have to be joined, (we know that thanks to the ConnectionState OnSetTerminated callback
+
+## [10.2.2] - 2020-08-15
+
+(socket server) add a callback to the ConnectionState to be invoked when the connection is terminated. This will be used by the SocketServer in the future to know on time that the associated connection thread can be terminated.
+
+## [10.2.1] - 2020-08-15
+
+(socket server) do not create a select interrupt object everytime when polling for notifications while waiting for new connections, instead use a persistent one which is a member variable
+
+## [10.2.0] - 2020-08-14
+
+(ixwebsocket client) handle HTTP redirects
+
+## [10.2.0] - 2020-08-13
+
+(ws) upgrade to latest version of nlohmann json (3.9.1 from 3.2.0)
+
+## [10.1.9] - 2020-08-13
+
+(websocket proxy server) add ability to map different hosts to different websocket servers, using a json config file
+
+## [10.1.8] - 2020-08-12
+
+(ws) on macOS, with OpenSSL or MbedTLS, use /etc/ssl/cert.pem as the system certs
+
+## [10.1.7] - 2020-08-11
+
+(ws) -q option imply info log level, not warning log level
+
+## [10.1.6] - 2020-08-06
+
+(websocket server) Handle programmer error when the server callback is not registered properly (fix #227)
+
+## [10.1.5] - 2020-08-02
+
+(ws) Add a new ws sub-command, push_server. This command runs a server which sends many messages in a loop to a websocket client. We can receive above 200,000 messages per second (cf #235).
+
+## [10.1.4] - 2020-08-02
+
+(ws) Add a new ws sub-command, echo_client. This command sends a message to an echo server, and send back to a server whatever message it does receive. When connecting to a local ws echo_server, on my MacBook Pro 2015 I can send/receive around 30,000 messages per second. (cf #235)
+
+## [10.1.3] - 2020-08-02
+
+(ws) ws echo_server. Add a -q option to only enable warning and error log levels. This is useful for bench-marking so that we do not print a lot of things on the console. (cf #235)
+
+## [10.1.2] - 2020-07-31
+
+(build) make using zlib optional, with the caveat that some http and websocket features are not available when zlib is absent
+
+## [10.1.1] - 2020-07-29
+
+(websocket client) onProgressCallback not called for short messages on a websocket (fix #233)
+
+## [10.1.0] - 2020-07-29
+
+(websocket client) heartbeat is not sent at the requested frequency (fix #232)
+
+## [10.0.3] - 2020-07-28
+
+compiler warning fixes
+
+## [10.0.2] - 2020-07-28
+
+(ixcobra) CobraConnection: unsubscribe from all subscriptions when disconnecting
+
+## [10.0.1] - 2020-07-27
+
+(socket utility) move ix::getFreePort to ixwebsocket library
+
+## [10.0.0] - 2020-07-25
+
+(ixwebsocket server) change legacy api with 2 nested callbacks, so that the first api takes a weak_ptr<WebSocket> as its first argument
+
+## [9.10.7] - 2020-07-25
+
+(ixwebsocket) add WebSocketProxyServer, from ws. Still need to make the interface better.
+
+## [9.10.6] - 2020-07-24
+
+(ws) port broadcast_server sub-command to the new server API
+
+## [9.10.5] - 2020-07-24
+
+(unittest) port most unittests to the new server API
+
+## [9.10.3] - 2020-07-24
+
+(ws) port ws transfer to the new server API
+
+## [9.10.2] - 2020-07-24
+
+(websocket client) reset WebSocketTransport onClose callback in the WebSocket destructor
+
+## [9.10.1] - 2020-07-24
+
+(websocket server) reset client websocket callback when the connection is closed
+
+## [9.10.0] - 2020-07-23
+
+(websocket server) add a new simpler API to handle client connections / that API does not trigger a memory leak while the previous one did
+
+## [9.9.3] - 2020-07-17
+
+(build) merge platform specific files which were used to have different implementations for setting a thread name into a single file, to make it easier to include every source files and build the ixwebsocket library (fix #226)
+
+## [9.9.2] - 2020-07-10
+
+(socket server) bump default max connection count from 32 to 128
+
+## [9.9.1] - 2020-07-10
+
+(snake) implement super simple stream sql expression support in snake server
+
+## [9.9.0] - 2020-07-08
+
+(socket+websocket+http+redis+snake servers) expose the remote ip and remote port when a new connection is made
+
+## [9.8.6] - 2020-07-06
+
+(cmake) change the way zlib and openssl are searched
+
+## [9.8.5] - 2020-07-06
+
+(cobra python bots) remove the test which stop the bot when events do not follow cobra metrics system schema with an id and a device entry
+
+## [9.8.4] - 2020-06-26
+
+(cobra bots) remove bots which is not required now that we can use Python extensions
+
+## [9.8.3] - 2020-06-25
+
+(cmake) new python code is optional and enabled at cmake time with -DUSE_PYTHON=1
+
+## [9.8.2] - 2020-06-24
+
+(cobra bots) new cobra metrics bot to send data to statsd using Python for processing the message
+
+## [9.8.1] - 2020-06-19
+
+(cobra metrics to statsd bot) fps slow frame info : do not include os name
+
+## [9.8.0] - 2020-06-19
+
+(cobra metrics to statsd bot) send info about memory warnings
+
+## [9.7.9] - 2020-06-18
+
+(http client) fix deadlock when following redirects
+
+## [9.7.8] - 2020-06-18
+
+(cobra metrics to statsd bot) send info about net requests
+
+## [9.7.7] - 2020-06-17
+
+(cobra client and bots) add batch_size subscription option for retrieving multiple messages at once
+
+## [9.7.6] - 2020-06-15
+
+(websocket) WebSocketServer is not a final class, so that users can extend it (fix #215)
+
+## [9.7.5] - 2020-06-15
+
+(cobra bots) minor aesthetic change, in how we display http headers with a : then space as key value separator instead of :: with no space
+
+## [9.7.4] - 2020-06-11
+
+(cobra metrics to statsd bot) change from a statsd type of gauge to a timing one
+
+## [9.7.3] - 2020-06-11
+
+(redis cobra bots) capture most used devices in a zset
+
+## [9.7.2] - 2020-06-11
+
+(ws) add bare bone redis-cli like sub-command, with command line editing powered by libnoise
+
+## [9.7.1] - 2020-06-11
+
+(redis cobra bots) ws cobra metrics to redis / hostname invalid parsing
+
+## [9.7.0] - 2020-06-11
+
+(redis cobra bots) xadd with maxlen + fix bug in xadd client implementation and ws cobra metrics to redis command argument parsing
+
+## [9.6.9] - 2020-06-10
+
+(redis cobra bots) update the cobra to redis bot to use the bot framework, and change it to report fps metrics into redis streams.
+
+## [9.6.6] - 2020-06-04
+
+(statsd cobra bots) statsd improvement: prefix does not need a dot as a suffix, message size can be larger than 256 bytes, error handling was invalid, use core logger for logging instead of std::cerr
+
+## [9.6.5] - 2020-05-29
+
+(http server) support gzip compression
+
+## [9.6.4] - 2020-05-20
+
+(compiler fix) support clang 5 and earlier (contributed by @LunarWatcher)
+
+## [9.6.3] - 2020-05-18
+
+(cmake) revert CMake changes to fix #203 and be able to use an external OpenSSL
+
+## [9.6.2] - 2020-05-17
+
+(cmake) make install cmake files optional to not conflict with vcpkg
+
+## [9.6.1] - 2020-05-17
+
+(windows + tls) mbedtls is the default windows tls backend + add ability to load system certificates with mbdetls on windows
 
 ## [9.6.0] - 2020-05-12
 

@@ -16,39 +16,39 @@ using namespace ix;
 
 bool startServer(ix::WebSocketServer& server, std::string& subProtocols)
 {
-    server.setOnConnectionCallback(
-        [&server, &subProtocols](std::shared_ptr<ix::WebSocket> webSocket,
-                                 std::shared_ptr<ConnectionState> connectionState) {
-            webSocket->setOnMessageCallback([webSocket, connectionState, &server, &subProtocols](
-                                                const ix::WebSocketMessagePtr& msg) {
-                if (msg->type == ix::WebSocketMessageType::Open)
+    server.setOnClientMessageCallback(
+        [&server, &subProtocols](std::shared_ptr<ConnectionState> connectionState,
+                                 WebSocket& webSocket,
+                                 const ix::WebSocketMessagePtr& msg) {
+            auto remoteIp = connectionState->getRemoteIp();
+            if (msg->type == ix::WebSocketMessageType::Open)
+            {
+                TLogger() << "New connection";
+                TLogger() << "remote ip: " << remoteIp;
+                TLogger() << "id: " << connectionState->getId();
+                TLogger() << "Uri: " << msg->openInfo.uri;
+                TLogger() << "Headers:";
+                for (auto it : msg->openInfo.headers)
                 {
-                    TLogger() << "New connection";
-                    TLogger() << "id: " << connectionState->getId();
-                    TLogger() << "Uri: " << msg->openInfo.uri;
-                    TLogger() << "Headers:";
-                    for (auto it : msg->openInfo.headers)
-                    {
-                        TLogger() << it.first << ": " << it.second;
-                    }
+                    TLogger() << it.first << ": " << it.second;
+                }
 
-                    subProtocols = msg->openInfo.headers["Sec-WebSocket-Protocol"];
-                }
-                else if (msg->type == ix::WebSocketMessageType::Close)
+                subProtocols = msg->openInfo.headers["Sec-WebSocket-Protocol"];
+            }
+            else if (msg->type == ix::WebSocketMessageType::Close)
+            {
+                log("Closed connection");
+            }
+            else if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                for (auto&& client : server.getClients())
                 {
-                    log("Closed connection");
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    for (auto&& client : server.getClients())
+                    if (client.get() != &webSocket)
                     {
-                        if (client != webSocket)
-                        {
-                            client->sendBinary(msg->str);
-                        }
+                        client->sendBinary(msg->str);
                     }
                 }
-            });
+            }
         });
 
     auto res = server.listen();

@@ -19,13 +19,6 @@ Subcommands:
   broadcast_server            Broadcasting server
   ping                        Ping pong
   curl                        HTTP Client
-  redis_publish               Redis publisher
-  redis_subscribe             Redis subscriber
-  cobra_subscribe             Cobra subscriber
-  cobra_publish               Cobra publisher
-  cobra_to_statsd             Cobra to statsd
-  cobra_to_sentry             Cobra to sentry
-  snake                       Snake server
   httpd                       HTTP server
 ```
 
@@ -195,6 +188,63 @@ Server: Python/3.7 websockets/8.0.2
 Upgrade: websocket
 ```
 
+It is possible to pass custom HTTP header when doing the connection handshake,
+the remote server might process them to implement a simple authorization
+scheme.
+
+```
+src$ ws connect -H Authorization:supersecret ws://localhost:8008
+Type Ctrl-D to exit prompt...
+[2020-12-17 22:35:08.732] [info] Authorization: supersecret
+Connecting to url: ws://localhost:8008
+> [2020-12-17 22:35:08.736] [info] ws_connect: connected
+[2020-12-17 22:35:08.736] [info] Uri: /
+[2020-12-17 22:35:08.736] [info] Headers:
+[2020-12-17 22:35:08.736] [info] Connection: Upgrade
+[2020-12-17 22:35:08.736] [info] Sec-WebSocket-Accept: 2yaTFcdwn8KL6IzSMj2u6Le7KTg=
+[2020-12-17 22:35:08.736] [info] Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_max_window_bits=15
+[2020-12-17 22:35:08.736] [info] Server: ixwebsocket/11.0.4 macos ssl/SecureTransport zlib 1.2.11
+[2020-12-17 22:35:08.736] [info] Upgrade: websocket
+[2020-12-17 22:35:08.736] [info] Received 25 bytes
+ws_connect: received message: Authorization suceeded!
+[2020-12-17 22:35:08.736] [info] Received pong ixwebsocket::heartbeat::30s::0
+hello
+> [2020-12-17 22:35:25.157] [info] Received 7 bytes
+ws_connect: received message: hello
+```
+
+If the wrong header is passed in, the server would close the connection with a custom close code (>4000, and <4999).
+
+```
+[2020-12-17 22:39:37.044] [info] Upgrade: websocket
+ws_connect: connection closed: code 4001 reason Permission denied
+```
+
+## echo server
+
+The ws echo server will respond what the client just sent him. If we use the
+simple --http_authorization_header we can enforce that client need to pass a
+special value in the Authorization header to connect.
+
+```
+$ ws echo_server --http_authorization_header supersecret
+[2020-12-17 22:35:06.192] [info] Listening on 127.0.0.1:8008
+[2020-12-17 22:35:08.735] [info] New connection
+[2020-12-17 22:35:08.735] [info] remote ip: 127.0.0.1
+[2020-12-17 22:35:08.735] [info] id: 0
+[2020-12-17 22:35:08.735] [info] Uri: /
+[2020-12-17 22:35:08.735] [info] Headers:
+[2020-12-17 22:35:08.735] [info] Authorization: supersecret
+[2020-12-17 22:35:08.735] [info] Connection: Upgrade
+[2020-12-17 22:35:08.735] [info] Host: localhost:8008
+[2020-12-17 22:35:08.735] [info] Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_max_window_bits=15
+[2020-12-17 22:35:08.735] [info] Sec-WebSocket-Key: eFF2Gf25dC7eC15Ab1135G==
+[2020-12-17 22:35:08.735] [info] Sec-WebSocket-Version: 13
+[2020-12-17 22:35:08.735] [info] Upgrade: websocket
+[2020-12-17 22:35:08.735] [info] User-Agent: ixwebsocket/11.0.4 macos ssl/SecureTransport zlib 1.2.11
+[2020-12-17 22:35:25.157] [info] Received 7 bytes
+```
+
 ## Websocket proxy
 
 ```
@@ -203,6 +253,20 @@ Listening on 127.0.0.1:8008
 ```
 
 If you connect to ws://127.0.0.1:8008, the proxy will connect to ws://127.0.0.1:9000 and pass all traffic to this server.
+
+You can also use a more complex setup if you want to redirect to different websocket servers based on the hostname your client is trying to connect to. If you have multiple CNAME aliases that point to the same server.
+
+A JSON config file is used to express that mapping ; here connecting to echo.jeanserge.com will proxy the client to ws://localhost:8008 on the local machine (which actually runs ws echo_server), while connecting to bavarde.jeanserge.com will proxy the client to ws://localhost:5678 where a cobra python server is running. As a side note you will need a wildcard SSL certificate if you want to have SSL enabled on that machine.
+
+```
+echo.jeanserge.com=ws://localhost:8008
+bavarde.jeanserge.com=ws://localhost:5678
+```
+The --config_path option is required to instruct ws proxy_server to read that file.
+
+```
+ws proxy_server --config_path proxyConfig.json --port 8765
+```
 
 ## File transfer
 
@@ -242,128 +306,3 @@ Options:
   --connect-timeout INT       Connection timeout
   --transfer-timeout INT      Transfer timeout
 ```
-
-## Cobra client and server
-
-[cobra](https://github.com/machinezone/cobra) is a real time messenging server. ws has several sub-command to interact with cobra. There is also a minimal cobra compatible server named snake available.
-
-Below are examples on running a snake server and clients with TLS enabled (the server only works with the OpenSSL and the Mbed TLS backend for now).
-
-First, generate certificates.
-
-```
-$ cd /path/to/IXWebSocket
-$ cd ixsnake/ixsnake
-$ bash ../../ws/generate_certs.sh
-Generating RSA private key, 2048 bit long modulus
-.....+++
-.................+++
-e is 65537 (0x10001)
-generated ./.certs/trusted-ca-key.pem
-generated ./.certs/trusted-ca-crt.pem
-Generating RSA private key, 2048 bit long modulus
-..+++
-.......................................+++
-e is 65537 (0x10001)
-generated ./.certs/trusted-server-key.pem
-Signature ok
-subject=/O=machinezone/O=IXWebSocket/CN=trusted-server
-Getting CA Private Key
-generated ./.certs/trusted-server-crt.pem
-Generating RSA private key, 2048 bit long modulus
-...................................+++
-..................................................+++
-e is 65537 (0x10001)
-generated ./.certs/trusted-client-key.pem
-Signature ok
-subject=/O=machinezone/O=IXWebSocket/CN=trusted-client
-Getting CA Private Key
-generated ./.certs/trusted-client-crt.pem
-Generating RSA private key, 2048 bit long modulus
-..............+++
-.......................................+++
-e is 65537 (0x10001)
-generated ./.certs/untrusted-ca-key.pem
-generated ./.certs/untrusted-ca-crt.pem
-Generating RSA private key, 2048 bit long modulus
-..........+++
-................................................+++
-e is 65537 (0x10001)
-generated ./.certs/untrusted-client-key.pem
-Signature ok
-subject=/O=machinezone/O=IXWebSocket/CN=untrusted-client
-Getting CA Private Key
-generated ./.certs/untrusted-client-crt.pem
-Generating RSA private key, 2048 bit long modulus
-.....................................................................................+++
-...........+++
-e is 65537 (0x10001)
-generated ./.certs/selfsigned-client-key.pem
-Signature ok
-subject=/O=machinezone/O=IXWebSocket/CN=selfsigned-client
-Getting Private key
-generated ./.certs/selfsigned-client-crt.pem
-```
-
-Now run the snake server.
-
-```
-$ export certs=.certs
-$ ws snake --tls --port 8765 --cert-file ${certs}/trusted-server-crt.pem --key-file ${certs}/trusted-server-key.pem --ca-file ${certs}/trusted-ca-crt.pem
-{
-  "apps": {
-    "FC2F10139A2BAc53BB72D9db967b024f": {
-      "roles": {
-        "_sub": {
-          "secret": "66B1dA3ED5fA074EB5AE84Dd8CE3b5ba"
-        },
-        "_pub": {
-          "secret": "1c04DB8fFe76A4EeFE3E318C72d771db"
-        }
-      }
-    }
-  }
-}
-
-redis host: 127.0.0.1
-redis password:
-redis port: 6379
-```
-
-As a new connection comes in, such output should be printed
-
-```
-[2019-12-19 20:27:19.724] [info] New connection
-id: 0
-Uri: /v2?appkey=_health
-Headers:
-Connection: Upgrade
-Host: 127.0.0.1:8765
-Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_max_window_bits=15
-Sec-WebSocket-Key: d747B0fE61Db73f7Eh47c0==
-Sec-WebSocket-Protocol: json
-Sec-WebSocket-Version: 13
-Upgrade: websocket
-User-Agent: ixwebsocket/7.5.8 macos ssl/OpenSSL OpenSSL 1.0.2q  20 Nov 2018 zlib 1.2.11
-```
-
-To connect and publish a message, do:
-
-```
-$ export certs=.certs
-$ cd /path/to/ws/folder
-$ ls cobraMetricsSample.json
-cobraMetricsSample.json
-$ ws cobra_publish --endpoint wss://127.0.0.1:8765 --appkey FC2F10139A2BAc53BB72D9db967b024f --rolename _pub --rolesecret 1c04DB8fFe76A4EeFE3E318C72d771db --channel foo --cert-file ${certs}/trusted-client-crt.pem --key-file ${certs}/trusted-client-key.pem --ca-file ${certs}/trusted-ca-crt.pem cobraMetricsSample.json
-[2019-12-19 20:46:42.656] [info] Publisher connected
-[2019-12-19 20:46:42.657] [info] Connection: Upgrade
-[2019-12-19 20:46:42.657] [info] Sec-WebSocket-Accept: rs99IFThoBrhSg+k8G4ixH9yaq4=
-[2019-12-19 20:46:42.657] [info] Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15; client_max_window_bits=15
-[2019-12-19 20:46:42.657] [info] Server: ixwebsocket/7.5.8 macos ssl/OpenSSL OpenSSL 1.0.2q  20 Nov 2018 zlib 1.2.11
-[2019-12-19 20:46:42.657] [info] Upgrade: websocket
-[2019-12-19 20:46:42.658] [info] Publisher authenticated
-[2019-12-19 20:46:42.658] [info] Published msg 3
-[2019-12-19 20:46:42.659] [info] Published message id 3 acked
-```
-
-To use OpenSSL on macOS, compile with `make ws_openssl`. First you will have to install OpenSSL libraries, which can be done with Homebrew. Use `make ws_mbedtls` accordingly to use MbedTLS.

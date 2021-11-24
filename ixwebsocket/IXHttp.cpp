@@ -7,6 +7,7 @@
 #include "IXHttp.h"
 
 #include "IXCancellationRequest.h"
+#include "IXGzipCodec.h"
 #include "IXSocket.h"
 #include <sstream>
 #include <vector>
@@ -93,13 +94,11 @@ namespace ix
     }
 
     std::tuple<bool, std::string, HttpRequestPtr> Http::parseRequest(
-        std::unique_ptr<Socket>& socket)
+        std::unique_ptr<Socket>& socket, int timeoutSecs)
     {
         HttpRequestPtr httpRequest;
 
         std::atomic<bool> requestInitCancellation(false);
-
-        int timeoutSecs = 5; // FIXME
 
         auto isCancellationRequested =
             makeCancellationRequestWithTimeout(timeoutSecs, requestInitCancellation);
@@ -130,7 +129,53 @@ namespace ix
             return std::make_tuple(false, "Error parsing HTTP headers", httpRequest);
         }
 
-        httpRequest = std::make_shared<HttpRequest>(uri, method, httpVersion, headers);
+        std::string body;
+        if (headers.find("Content-Length") != headers.end())
+        {
+            int contentLength = 0;
+            try
+            {
+                contentLength = std::stoi(headers["Content-Length"]);
+            }
+            catch (const std::exception&)
+            {
+                return std::make_tuple(
+                    false, "Error parsing HTTP Header 'Content-Length'", httpRequest);
+            }
+
+            if (contentLength < 0)
+            {
+                return std::make_tuple(
+                    false, "Error: 'Content-Length' should be a positive integer", httpRequest);
+            }
+
+            auto res = socket->readBytes(contentLength, nullptr, isCancellationRequested);
+            if (!res.first)
+            {
+                return std::make_tuple(
+                    false, std::string("Error reading request: ") + res.second, httpRequest);
+            }
+            body = res.second;
+        }
+
+        // If the content was compressed with gzip, decode it
+        if (headers["Content-Encoding"] == "gzip")
+        {
+#ifdef IXWEBSOCKET_USE_ZLIB
+            std::string decompressedPayload;
+            if (!gzipDecompress(body, decompressedPayload))
+            {
+                return std::make_tuple(
+                    false, std::string("Error during gzip decompression of the body"), httpRequest);
+            }
+            body = decompressedPayload;
+#else
+            std::string errorMsg("ixwebsocket was not compiled with gzip support on");
+            return std::make_tuple(false, errorMsg, httpRequest);
+#endif
+        }
+
+        httpRequest = std::make_shared<HttpRequest>(uri, method, httpVersion, body, headers);
         return std::make_tuple(true, "", httpRequest);
     }
 
@@ -151,7 +196,7 @@ namespace ix
 
         // Write headers
         ss.str("");
-        ss << "Content-Length: " << response->payload.size() << "\r\n";
+        ss << "Content-Length: " << response->body.size() << "\r\n";
         for (auto&& it : response->headers)
         {
             ss << it.first << ": " << it.second << "\r\n";
@@ -163,6 +208,6 @@ namespace ix
             return false;
         }
 
-        return response->payload.empty() ? true : socket->writeBytes(response->payload, nullptr);
+        return response->body.empty() ? true : socket->writeBytes(response->body, nullptr);
     }
 } // namespace ix

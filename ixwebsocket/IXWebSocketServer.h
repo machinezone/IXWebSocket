@@ -19,11 +19,14 @@
 
 namespace ix
 {
-    class WebSocketServer final : public SocketServer
+    class WebSocketServer : public SocketServer
     {
     public:
         using OnConnectionCallback =
-            std::function<void(std::shared_ptr<WebSocket>, std::shared_ptr<ConnectionState>)>;
+            std::function<void(std::weak_ptr<WebSocket>, std::shared_ptr<ConnectionState>)>;
+
+        using OnClientMessageCallback = std::function<void(
+            std::shared_ptr<ConnectionState>, WebSocket&, const WebSocketMessagePtr&)>;
 
         WebSocketServer(int port = SocketServer::kDefaultPort,
                         const std::string& host = SocketServer::kDefaultHost,
@@ -39,12 +42,19 @@ namespace ix
         void disablePerMessageDeflate();
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
+        void setOnClientMessageCallback(const OnClientMessageCallback& callback);
 
         // Get all the connected clients
         std::set<std::shared_ptr<WebSocket>> getClients();
 
+        void makeBroadcastServer();
+        bool listenAndStart();
+
         const static int kDefaultHandShakeTimeoutSecs;
 
+        int getHandshakeTimeoutSecs();
+        bool isPongEnabled();
+        bool isPerMessageDeflateEnabled();
     private:
         // Member variables
         int _handshakeTimeoutSecs;
@@ -52,6 +62,7 @@ namespace ix
         bool _enablePerMessageDeflate;
 
         OnConnectionCallback _onConnectionCallback;
+        OnClientMessageCallback _onClientMessageCallback;
 
         std::mutex _clientsMutex;
         std::set<std::shared_ptr<WebSocket>> _clients;
@@ -60,7 +71,7 @@ namespace ix
 
         // Methods
         virtual void handleConnection(std::unique_ptr<Socket> socket,
-                                      std::shared_ptr<ConnectionState> connectionState) final;
+                                      std::shared_ptr<ConnectionState> connectionState);
         virtual size_t getConnectedClientsCount() final;
     };
 } // namespace ix

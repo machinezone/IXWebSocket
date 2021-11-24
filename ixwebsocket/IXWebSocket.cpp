@@ -8,10 +8,17 @@
 
 #include "IXExponentialBackoff.h"
 #include "IXSetThreadName.h"
+#include "IXUniquePtr.h"
 #include "IXUtf8Validator.h"
 #include "IXWebSocketHandshake.h"
 #include <cassert>
 #include <cmath>
+
+
+namespace
+{
+    const std::string emptyMsg;
+} // namespace
 
 
 namespace ix
@@ -21,12 +28,14 @@ namespace ix
     const int WebSocket::kDefaultPingIntervalSecs(-1);
     const bool WebSocket::kDefaultEnablePong(true);
     const uint32_t WebSocket::kDefaultMaxWaitBetweenReconnectionRetries(10 * 1000); // 10s
+    const uint32_t WebSocket::kDefaultMinWaitBetweenReconnectionRetries(1);         // 1 ms
 
     WebSocket::WebSocket()
         : _onMessageCallback(OnMessageCallback())
         , _stop(false)
         , _automaticReconnection(true)
         , _maxWaitBetweenReconnectionRetries(kDefaultMaxWaitBetweenReconnectionRetries)
+        , _minWaitBetweenReconnectionRetries(kDefaultMinWaitBetweenReconnectionRetries)
         , _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs)
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
@@ -34,18 +43,19 @@ namespace ix
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote) {
                 _onMessageCallback(
-                    std::make_unique<WebSocketMessage>(WebSocketMessageType::Close,
-                                                       "",
-                                                       wireSize,
-                                                       WebSocketErrorInfo(),
-                                                       WebSocketOpenInfo(),
-                                                       WebSocketCloseInfo(code, reason, remote)));
+                    ix::make_unique<WebSocketMessage>(WebSocketMessageType::Close,
+                                                      emptyMsg,
+                                                      wireSize,
+                                                      WebSocketErrorInfo(),
+                                                      WebSocketOpenInfo(),
+                                                      WebSocketCloseInfo(code, reason, remote)));
             });
     }
 
     WebSocket::~WebSocket()
     {
         stop();
+        _ws.setOnCloseCallback(nullptr);
     }
 
     void WebSocket::setUrl(const std::string& url)
@@ -53,13 +63,19 @@ namespace ix
         std::lock_guard<std::mutex> lock(_configMutex);
         _url = url;
     }
+
+    void WebSocket::setHandshakeTimeout(int handshakeTimeoutSecs)
+    {
+        _handshakeTimeoutSecs = handshakeTimeoutSecs;
+    }
+
     void WebSocket::setExtraHeaders(const WebSocketHttpHeaders& headers)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         _extraHeaders = headers;
     }
 
-    const std::string& WebSocket::getUrl() const
+    const std::string WebSocket::getUrl() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         return _url;
@@ -78,7 +94,7 @@ namespace ix
         _socketTLSOptions = socketTLSOptions;
     }
 
-    const WebSocketPerMessageDeflateOptions& WebSocket::getPerMessageDeflateOptions() const
+    const WebSocketPerMessageDeflateOptions WebSocket::getPerMessageDeflateOptions() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         return _perMessageDeflateOptions;
@@ -128,10 +144,22 @@ namespace ix
         _maxWaitBetweenReconnectionRetries = maxWaitBetweenReconnectionRetries;
     }
 
+    void WebSocket::setMinWaitBetweenReconnectionRetries(uint32_t minWaitBetweenReconnectionRetries)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _minWaitBetweenReconnectionRetries = minWaitBetweenReconnectionRetries;
+    }
+
     uint32_t WebSocket::getMaxWaitBetweenReconnectionRetries() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         return _maxWaitBetweenReconnectionRetries;
+    }
+
+    uint32_t WebSocket::getMinWaitBetweenReconnectionRetries() const
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _minWaitBetweenReconnectionRetries;
     }
 
     void WebSocket::start()
@@ -193,9 +221,9 @@ namespace ix
             return status;
         }
 
-        _onMessageCallback(std::make_unique<WebSocketMessage>(
+        _onMessageCallback(ix::make_unique<WebSocketMessage>(
             WebSocketMessageType::Open,
-            "",
+            emptyMsg,
             0,
             WebSocketErrorInfo(),
             WebSocketOpenInfo(status.uri, status.headers, status.protocol),
@@ -210,7 +238,9 @@ namespace ix
         return status;
     }
 
-    WebSocketInitResult WebSocket::connectToSocket(std::unique_ptr<Socket> socket, int timeoutSecs)
+    WebSocketInitResult WebSocket::connectToSocket(std::unique_ptr<Socket> socket,
+                                                   int timeoutSecs,
+                                                   bool enablePerMessageDeflate)
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
@@ -218,19 +248,20 @@ namespace ix
                 _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs);
         }
 
-        WebSocketInitResult status = _ws.connectToSocket(std::move(socket), timeoutSecs);
+        WebSocketInitResult status =
+            _ws.connectToSocket(std::move(socket), timeoutSecs, enablePerMessageDeflate);
         if (!status.success)
         {
             return status;
         }
 
         _onMessageCallback(
-            std::make_unique<WebSocketMessage>(WebSocketMessageType::Open,
-                                               "",
-                                               0,
-                                               WebSocketErrorInfo(),
-                                               WebSocketOpenInfo(status.uri, status.headers),
-                                               WebSocketCloseInfo()));
+            ix::make_unique<WebSocketMessage>(WebSocketMessageType::Open,
+                                              emptyMsg,
+                                              0,
+                                              WebSocketErrorInfo(),
+                                              WebSocketOpenInfo(status.uri, status.headers),
+                                              WebSocketCloseInfo()));
 
         if (_pingIntervalSecs > 0)
         {
@@ -300,8 +331,10 @@ namespace ix
 
                 if (_automaticReconnection)
                 {
-                    duration = millis(calculateRetryWaitMilliseconds(
-                        retries++, _maxWaitBetweenReconnectionRetries));
+                    duration =
+                        millis(calculateRetryWaitMilliseconds(retries++,
+                                                              _maxWaitBetweenReconnectionRetries,
+                                                              _minWaitBetweenReconnectionRetries));
 
                     connectErr.wait_time = duration.count();
                     connectErr.retries = retries;
@@ -310,12 +343,12 @@ namespace ix
                 connectErr.reason = status.errorStr;
                 connectErr.http_status = status.http_status;
 
-                _onMessageCallback(std::make_unique<WebSocketMessage>(WebSocketMessageType::Error,
-                                                                      "",
-                                                                      0,
-                                                                      connectErr,
-                                                                      WebSocketOpenInfo(),
-                                                                      WebSocketCloseInfo()));
+                _onMessageCallback(ix::make_unique<WebSocketMessage>(WebSocketMessageType::Error,
+                                                                     emptyMsg,
+                                                                     0,
+                                                                     connectErr,
+                                                                     WebSocketOpenInfo(),
+                                                                     WebSocketCloseInfo()));
             }
         }
     }
@@ -352,7 +385,7 @@ namespace ix
                        size_t wireSize,
                        bool decompressionError,
                        WebSocketTransport::MessageKind messageKind) {
-                    WebSocketMessageType webSocketMessageType;
+                    WebSocketMessageType webSocketMessageType{WebSocketMessageType::Error};
                     switch (messageKind)
                     {
                         case WebSocketTransport::MessageKind::MSG_TEXT:
@@ -386,13 +419,13 @@ namespace ix
 
                     bool binary = messageKind == WebSocketTransport::MessageKind::MSG_BINARY;
 
-                    _onMessageCallback(std::make_unique<WebSocketMessage>(webSocketMessageType,
-                                                                          msg,
-                                                                          wireSize,
-                                                                          webSocketErrorInfo,
-                                                                          WebSocketOpenInfo(),
-                                                                          WebSocketCloseInfo(),
-                                                                          binary));
+                    _onMessageCallback(ix::make_unique<WebSocketMessage>(webSocketMessageType,
+                                                                         msg,
+                                                                         wireSize,
+                                                                         webSocketErrorInfo,
+                                                                         WebSocketOpenInfo(),
+                                                                         WebSocketCloseInfo(),
+                                                                         binary));
 
                     WebSocket::invokeTrafficTrackerCallback(wireSize, true);
                 });
@@ -402,6 +435,11 @@ namespace ix
     void WebSocket::setOnMessageCallback(const OnMessageCallback& callback)
     {
         _onMessageCallback = callback;
+    }
+
+    bool WebSocket::isOnMessageCallbackRegistered() const
+    {
+        return _onMessageCallback != nullptr;
     }
 
     void WebSocket::setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback)

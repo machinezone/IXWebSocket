@@ -58,6 +58,7 @@ namespace ix
         void enablePerMessageDeflate();
         void disablePerMessageDeflate();
         void addSubProtocol(const std::string& subProtocol);
+        void setHandshakeTimeout(int handshakeTimeoutSecs);
 
         // Run asynchronously, by calling start and stop.
         void start();
@@ -84,14 +85,15 @@ namespace ix
                    const std::string& reason = WebSocketCloseConstants::kNormalClosureMessage);
 
         void setOnMessageCallback(const OnMessageCallback& callback);
+        bool isOnMessageCallbackRegistered() const;
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
         static void resetTrafficTrackerCallback();
 
         ReadyState getReadyState() const;
         static std::string readyStateToString(ReadyState readyState);
 
-        const std::string& getUrl() const;
-        const WebSocketPerMessageDeflateOptions& getPerMessageDeflateOptions() const;
+        const std::string getUrl() const;
+        const WebSocketPerMessageDeflateOptions getPerMessageDeflateOptions() const;
         int getPingInterval() const;
         size_t bufferedAmount() const;
 
@@ -99,7 +101,9 @@ namespace ix
         void disableAutomaticReconnection();
         bool isAutomaticReconnectionEnabled() const;
         void setMaxWaitBetweenReconnectionRetries(uint32_t maxWaitBetweenReconnectionRetries);
+        void setMinWaitBetweenReconnectionRetries(uint32_t minWaitBetweenReconnectionRetries);
         uint32_t getMaxWaitBetweenReconnectionRetries() const;
+        uint32_t getMinWaitBetweenReconnectionRetries() const;
         const std::vector<std::string>& getSubProtocols();
 
     private:
@@ -113,7 +117,9 @@ namespace ix
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
         // Server
-        WebSocketInitResult connectToSocket(std::unique_ptr<Socket>, int timeoutSecs);
+        WebSocketInitResult connectToSocket(std::unique_ptr<Socket>,
+                                            int timeoutSecs,
+                                            bool enablePerMessageDeflate);
 
         WebSocketTransport _ws;
 
@@ -136,7 +142,9 @@ namespace ix
         // Automatic reconnection
         std::atomic<bool> _automaticReconnection;
         static const uint32_t kDefaultMaxWaitBetweenReconnectionRetries;
+        static const uint32_t kDefaultMinWaitBetweenReconnectionRetries;
         uint32_t _maxWaitBetweenReconnectionRetries;
+        uint32_t _minWaitBetweenReconnectionRetries;
 
         // Make the sleeping in the automatic reconnection cancellable
         std::mutex _sleepMutex;

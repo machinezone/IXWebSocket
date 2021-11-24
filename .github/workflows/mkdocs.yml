@@ -21,5 +21,7 @@ jobs:
         pip install pygments
     - name: Build doc
       run: |
+        git clean -dfx .
+        git fetch
         git pull
         mkdocs gh-deploy

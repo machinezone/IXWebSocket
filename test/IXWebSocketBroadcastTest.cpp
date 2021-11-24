@@ -18,10 +18,10 @@ using namespace ix;
 
 namespace
 {
-    class WebSocketChat
+    class WebSocketBroadcastChat
     {
     public:
-        WebSocketChat(const std::string& user, const std::string& session, int port);
+        WebSocketBroadcastChat(const std::string& user, const std::string& session, int port);
 
         void subscribe(const std::string& channel);
         void start();
@@ -47,7 +47,9 @@ namespace
         mutable std::mutex _mutex;
     };
 
-    WebSocketChat::WebSocketChat(const std::string& user, const std::string& session, int port)
+    WebSocketBroadcastChat::WebSocketBroadcastChat(const std::string& user,
+                                                   const std::string& session,
+                                                   int port)
         : _user(user)
         , _session(session)
         , _port(port)
@@ -55,42 +57,40 @@ namespace
         _webSocket.setTLSOptions(makeClientTLSOptions());
     }
 
-    size_t WebSocketChat::getReceivedMessagesCount() const
+    size_t WebSocketBroadcastChat::getReceivedMessagesCount() const
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return _receivedMessages.size();
     }
 
-    const std::vector<std::string>& WebSocketChat::getReceivedMessages() const
+    const std::vector<std::string>& WebSocketBroadcastChat::getReceivedMessages() const
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return _receivedMessages;
     }
 
-    void WebSocketChat::appendMessage(const std::string& message)
+    void WebSocketBroadcastChat::appendMessage(const std::string& message)
     {
         std::lock_guard<std::mutex> lock(_mutex);
         _receivedMessages.push_back(message);
     }
 
-    bool WebSocketChat::isReady() const
+    bool WebSocketBroadcastChat::isReady() const
     {
         return _webSocket.getReadyState() == ix::ReadyState::Open;
     }
 
-    void WebSocketChat::stop()
+    void WebSocketBroadcastChat::stop()
     {
         _webSocket.stop();
     }
 
-    void WebSocketChat::start()
+    void WebSocketBroadcastChat::start()
     {
+        //
+        // Which server ??
+        //
         std::string url;
-        {
-            bool preferTLS = true;
-            url = makeCobraEndpoint(_port, preferTLS);
-        }
-
         _webSocket.setUrl(url);
 
         std::stringstream ss;
@@ -156,7 +156,8 @@ namespace
         _webSocket.start();
     }
 
-    std::pair<std::string, std::string> WebSocketChat::decodeMessage(const std::string& str)
+    std::pair<std::string, std::string> WebSocketBroadcastChat::decodeMessage(
+        const std::string& str)
     {
         std::string errMsg;
         MsgPack msg = MsgPack::parse(str, errMsg);
@@ -167,7 +168,7 @@ namespace
         return std::pair<std::string, std::string>(msg_user, msg_text);
     }
 
-    std::string WebSocketChat::encodeMessage(const std::string& text)
+    std::string WebSocketBroadcastChat::encodeMessage(const std::string& text)
     {
         std::map<MsgPack, MsgPack> obj;
         obj["user"] = _user;
@@ -179,7 +180,7 @@ namespace
         return output;
     }
 
-    void WebSocketChat::sendMessage(const std::string& text)
+    void WebSocketBroadcastChat::sendMessage(const std::string& text)
     {
         _webSocket.sendBinary(encodeMessage(text));
     }
@@ -189,15 +190,17 @@ namespace
         bool preferTLS = true;
         server.setTLSOptions(makeServerTLSOptions(preferTLS));
 
-        server.setOnConnectionCallback([&server, &connectionId](
-                                           std::shared_ptr<ix::WebSocket> webSocket,
-                                           std::shared_ptr<ConnectionState> connectionState) {
-            webSocket->setOnMessageCallback([webSocket, connectionState, &connectionId, &server](
-                                                const ix::WebSocketMessagePtr& msg) {
+        server.setOnClientMessageCallback(
+            [&server, &connectionId](std::shared_ptr<ConnectionState> connectionState,
+                                     WebSocket& webSocket,
+                                     const ix::WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionState->getRemoteIp();
+
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     TLogger() << "New connection";
                     connectionState->computeId();
+                    TLogger() << "remote ip: " << remoteIp;
                     TLogger() << "id: " << connectionState->getId();
                     TLogger() << "Uri: " << msg->openInfo.uri;
                     TLogger() << "Headers:";
@@ -216,14 +219,13 @@ namespace
                 {
                     for (auto&& client : server.getClients())
                     {
-                        if (client != webSocket)
+                        if (client.get() != &webSocket)
                         {
                             client->send(msg->str, msg->binary);
                         }
                     }
                 }
             });
-        });
 
         auto res = server.listen();
         if (!res.first)
@@ -247,11 +249,11 @@ TEST_CASE("Websocket_broadcast_server", "[websocket_server]")
         REQUIRE(startServer(server, connectionId));
 
         std::string session = ix::generateSessionId();
-        std::vector<std::shared_ptr<WebSocketChat>> chatClients;
+        std::vector<std::shared_ptr<WebSocketBroadcastChat>> chatClients;
         for (int i = 0; i < 10; ++i)
         {
             std::string user("user_" + std::to_string(i));
-            chatClients.push_back(std::make_shared<WebSocketChat>(user, session, port));
+            chatClients.push_back(std::make_shared<WebSocketBroadcastChat>(user, session, port));
             chatClients[i]->start();
             ix::msleep(50);
         }

@@ -6,9 +6,11 @@
 
 #include "IXHttpServer.h"
 
+#include "IXGzipCodec.h"
 #include "IXNetSystem.h"
 #include "IXSocketConnect.h"
 #include "IXUserAgent.h"
+#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -42,10 +44,17 @@ namespace
 
 namespace ix
 {
-    HttpServer::HttpServer(
-        int port, const std::string& host, int backlog, size_t maxConnections, int addressFamily)
+    const int HttpServer::kDefaultTimeoutSecs(30);
+
+    HttpServer::HttpServer(int port,
+                           const std::string& host,
+                           int backlog,
+                           size_t maxConnections,
+                           int addressFamily,
+                           int timeoutSecs)
         : SocketServer(port, host, backlog, maxConnections, addressFamily)
         , _connectedClientsCount(0)
+        , _timeoutSecs(timeoutSecs)
     {
         setDefaultConnectionCallback();
     }
@@ -74,7 +83,7 @@ namespace ix
     {
         _connectedClientsCount++;
 
-        auto ret = Http::parseRequest(socket);
+        auto ret = Http::parseRequest(socket, _timeoutSecs);
         // FIXME: handle errors in parseRequest
 
         if (std::get<0>(ret))
@@ -99,7 +108,7 @@ namespace ix
     {
         setOnConnectionCallback(
             [this](HttpRequestPtr request,
-                   std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
+                   std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr {
                 std::string uri(request->uri);
                 if (uri.empty() || uri == "/")
                 {
@@ -120,9 +129,19 @@ namespace ix
 
                 std::string content = res.second;
 
+#ifdef IXWEBSOCKET_USE_ZLIB
+                std::string acceptEncoding = request->headers["Accept-encoding"];
+                if (acceptEncoding == "*" || acceptEncoding.find("gzip") != std::string::npos)
+                {
+                    content = gzipCompress(content);
+                    headers["Content-Encoding"] = "gzip";
+                }
+#endif
+
                 // Log request
                 std::stringstream ss;
-                ss << request->method << " " << request->headers["User-Agent"] << " "
+                ss << connectionState->getRemoteIp() << ":" << connectionState->getRemotePort()
+                   << " " << request->method << " " << request->headers["User-Agent"] << " "
                    << request->uri << " " << content.size();
                 logInfo(ss.str());
 
@@ -148,13 +167,14 @@ namespace ix
         setOnConnectionCallback(
             [this,
              redirectUrl](HttpRequestPtr request,
-                          std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr {
+                          std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr {
                 WebSocketHttpHeaders headers;
                 headers["Server"] = userAgent();
 
                 // Log request
                 std::stringstream ss;
-                ss << request->method << " " << request->headers["User-Agent"] << " "
+                ss << connectionState->getRemoteIp() << ":" << connectionState->getRemotePort()
+                   << " " << request->method << " " << request->headers["User-Agent"] << " "
                    << request->uri;
                 logInfo(ss.str());
 
@@ -170,4 +190,46 @@ namespace ix
                     301, "OK", HttpErrorCode::Ok, headers, std::string());
             });
     }
+
+    //
+    // Display the client parameter and body on the console
+    //
+    void HttpServer::makeDebugServer()
+    {
+        setOnConnectionCallback(
+            [this](HttpRequestPtr request,
+                   std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr {
+                WebSocketHttpHeaders headers;
+                headers["Server"] = userAgent();
+
+                // Log request
+                std::stringstream ss;
+                ss << connectionState->getRemoteIp() << ":" << connectionState->getRemotePort()
+                   << " " << request->method << " " << request->headers["User-Agent"] << " "
+                   << request->uri;
+                logInfo(ss.str());
+
+                logInfo("== Headers == ");
+                for (auto&& it : request->headers)
+                {
+                    std::ostringstream oss;
+                    oss << it.first << ": " << it.second;
+                    logInfo(oss.str());
+                }
+                logInfo("");
+
+                logInfo("== Body == ");
+                logInfo(request->body);
+                logInfo("");
+
+                return std::make_shared<HttpResponse>(
+                    200, "OK", HttpErrorCode::Ok, headers, std::string("OK"));
+            });
+    }
+
+    int HttpServer::getTimeoutSecs()
+    {
+        return _timeoutSecs;
+    }
+
 } // namespace ix

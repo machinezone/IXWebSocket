@@ -30,10 +30,11 @@ namespace ix
 
         HttpResponsePtr get(const std::string& url, HttpRequestArgsPtr args);
         HttpResponsePtr head(const std::string& url, HttpRequestArgsPtr args);
-        HttpResponsePtr del(const std::string& url, HttpRequestArgsPtr args);
+        HttpResponsePtr Delete(const std::string& url, HttpRequestArgsPtr args);
 
         HttpResponsePtr post(const std::string& url,
                              const HttpParameters& httpParameters,
+                             const HttpFormDataParameters& httpFormDataParameters,
                              HttpRequestArgsPtr args);
         HttpResponsePtr post(const std::string& url,
                              const std::string& body,
@@ -41,6 +42,7 @@ namespace ix
 
         HttpResponsePtr put(const std::string& url,
                             const HttpParameters& httpParameters,
+                            const HttpFormDataParameters& httpFormDataParameters,
                             HttpRequestArgsPtr args);
         HttpResponsePtr put(const std::string& url,
                             const std::string& body,
@@ -48,6 +50,7 @@ namespace ix
 
         HttpResponsePtr patch(const std::string& url,
                               const HttpParameters& httpParameters,
+                              const HttpFormDataParameters& httpFormDataParameters,
                               HttpRequestArgsPtr args);
         HttpResponsePtr patch(const std::string& url,
                               const std::string& body,
@@ -58,7 +61,15 @@ namespace ix
                                 const std::string& body,
                                 HttpRequestArgsPtr args,
                                 int redirects = 0);
+
+        HttpResponsePtr request(const std::string& url,
+                                const std::string& verb,
+                                const HttpParameters& httpParameters,
+                                const HttpFormDataParameters& httpFormDataParameters,
+                                HttpRequestArgsPtr args);
+
         void setForceBody(bool value);
+
         // Async API
         HttpRequestArgsPtr createRequest(const std::string& url = std::string(),
                                          const std::string& verb = HttpClient::kGet);
@@ -83,14 +94,12 @@ namespace ix
         const static std::string kPost;
         const static std::string kGet;
         const static std::string kHead;
-        const static std::string kDel;
+        const static std::string kDelete;
         const static std::string kPut;
         const static std::string kPatch;
 
     private:
         void log(const std::string& msg, HttpRequestArgsPtr args);
-
-        bool gzipInflate(const std::string& in, std::string& out);
 
         // Async API background thread runner
         void run();
@@ -103,7 +112,9 @@ namespace ix
         std::thread _thread;
 
         std::unique_ptr<Socket> _socket;
-        std::mutex _mutex; // to protect accessing the _socket (only one socket per client)
+        std::recursive_mutex _mutex; // to protect accessing the _socket (only one socket per
+                                     // client) the mutex needs to be recursive as this function
+                                     // might be called recursively to follow HTTP redirections
 
         SocketTLSOptions _tlsOptions;
 

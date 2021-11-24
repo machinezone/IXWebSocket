@@ -2,71 +2,45 @@
 # Author: Benjamin Sergeant
 # Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
 #
-cmake_minimum_required (VERSION 3.4.1)
+cmake_minimum_required (VERSION 3.14)
 project (ixwebsocket_unittest)
 
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 11)
 
-if (MAC)
-  set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../third_party/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
-  find_package(Sanitizers)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
-  set(CMAKE_LD_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
-  option(USE_TLS "Add TLS support" ON)
-endif()
-
-include_directories(
-  ${PROJECT_SOURCE_DIR}/Catch2/single_include
-  ../third_party
-  ../third_party/msgpack11
-  ../third_party/spdlog/include
-  ../ws
-)
-
-add_definitions(-DSPDLOG_COMPILED_LIB=1)
-
-find_package(JsonCpp)
-if (NOT JSONCPP_FOUND)
-  include_directories(../third_party/jsoncpp)
-  set(JSONCPP_SOURCES ../third_party/jsoncpp/jsoncpp.cpp)
-endif()
+option(USE_TLS "Add TLS support" ON)
 
 # Shared sources
-set (SOURCES
-  ${JSONCPP_SOURCES}
-
-  test_runner.cpp
-  IXTest.cpp
-  IXGetFreePort.cpp
-  ../third_party/msgpack11/msgpack11.cpp
-
-  IXSocketTest.cpp
-  IXSocketConnectTest.cpp
-  IXWebSocketServerTest.cpp
-  IXWebSocketTestConnectionDisconnection.cpp
-  IXUrlParserTest.cpp
-  IXWebSocketServerTest.cpp
-  IXHttpClientTest.cpp
-  IXHttpServerTest.cpp
-  IXUnityBuildsTest.cpp
-  IXHttpTest.cpp
-  IXDNSLookupTest.cpp
-  IXWebSocketSubProtocolTest.cpp
-  IXSentryClientTest.cpp
-  IXWebSocketChatTest.cpp
-  IXWebSocketBroadcastTest.cpp
+set (TEST_TARGET_NAMES
+  IXSocketTest
+  IXSocketConnectTest
+  IXWebSocketServerTest
+  IXWebSocketTestConnectionDisconnection
+  IXUrlParserTest
+  IXHttpClientTest
+  IXUnityBuildsTest
+  IXHttpTest
+  IXDNSLookupTest
+  IXWebSocketSubProtocolTest
+  # IXWebSocketBroadcastTest ## FIXME was depending on cobra / take a broadcast server from ws
+  IXStrCaseCompareTest
 )
 
 # Some unittest don't work on windows yet
 # Windows without TLS does not have hmac yet
 if (UNIX)
-  list(APPEND SOURCES
-    IXWebSocketCloseTest.cpp
-    IXCobraChatTest.cpp
-    IXCobraMetricsPublisherTest.cpp
-    IXCobraToSentryBotTest.cpp
-    IXCobraToStatsdBotTest.cpp
-    IXCobraToStdoutBotTest.cpp
+  list(APPEND TEST_TARGET_NAMES
+    IXWebSocketCloseTest
+
+    # Fail on Windows in CI probably because the pathing is wrong and
+    # some resource files cannot be found
+    IXHttpServerTest
+    IXWebSocketChatTest
+  )
+endif()
+
+if (USE_ZLIB)
+  list(APPEND TEST_TARGET_NAMES
+    IXWebSocketPerMessageDeflateCompressorTest
   )
 endif()
 
@@ -74,32 +48,51 @@ endif()
 # IXWebSocketPingTest.cpp
 # IXWebSocketPingTimeoutTest.cpp
 
+# IXWebSocketLeakTest.cpp # commented until we have a fix for #224 /
+# that was was fixed but now the test does not compile
+
 # Disable tests for now that are failing or not reliable
 
-add_executable(ixwebsocket_unittest ${SOURCES})
+add_library(ixwebsocket_test)
+target_sources(ixwebsocket_test PRIVATE 
+    ${JSONCPP_SOURCES}
+    test_runner.cpp
+    IXTest.cpp
+    ../third_party/msgpack11/msgpack11.cpp
+)
+target_compile_definitions(ixwebsocket_test PRIVATE ${TEST_PROGRAMS_DEFINITIONS})
+target_include_directories(ixwebsocket_test PRIVATE
+  ${PROJECT_SOURCE_DIR}/Catch2/single_include
+  ../third_party
+)
+target_link_libraries(ixwebsocket_test ixwebsocket)
+target_link_libraries(ixwebsocket_test spdlog)
 
-if (MAC)
-  add_sanitizers(ixwebsocket_unittest)
-endif()
+foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
+  add_executable(${TEST_TARGET_NAME}
+    ${TEST_TARGET_NAME}.cpp
+  )
 
-if (APPLE AND USE_TLS)
-  target_link_libraries(ixwebsocket_unittest "-framework foundation" "-framework security")
-endif()
+  target_include_directories(${TEST_TARGET_NAME} PRIVATE
+    ${PROJECT_SOURCE_DIR}/Catch2/single_include
+    ../third_party
+    ../third_party/msgpack11
+  )
 
-if (JSONCPP_FOUND)
-  target_include_directories(ixwebsocket_unittest PUBLIC ${JSONCPP_INCLUDE_DIRS})
-  target_link_libraries(ixwebsocket_unittest ${JSONCPP_LIBRARIES})
-endif()
+  target_compile_definitions(${TEST_TARGET_NAME} PRIVATE SPDLOG_COMPILED_LIB=1)
 
-# library with the most dependencies come first
-target_link_libraries(ixwebsocket_unittest ixbots)
-target_link_libraries(ixwebsocket_unittest ixsnake)
-target_link_libraries(ixwebsocket_unittest ixcobra)
-target_link_libraries(ixwebsocket_unittest ixsentry)
-target_link_libraries(ixwebsocket_unittest ixwebsocket)
-target_link_libraries(ixwebsocket_unittest ixcrypto)
-target_link_libraries(ixwebsocket_unittest ixcore)
+  if (APPLE AND USE_TLS)
+    target_link_libraries(${TEST_TARGET_NAME} "-framework foundation" "-framework security")
+  endif()
 
-target_link_libraries(ixwebsocket_unittest spdlog)
+  # library with the most dependencies come first
+  target_link_libraries(${TEST_TARGET_NAME} ixwebsocket_test)
+  target_link_libraries(${TEST_TARGET_NAME} ixwebsocket)
 
-install(TARGETS ixwebsocket_unittest DESTINATION bin)
+  target_link_libraries(${TEST_TARGET_NAME} spdlog)
+
+  add_test(NAME ${TEST_TARGET_NAME}
+           COMMAND ${TEST_TARGET_NAME}
+           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+endforeach()

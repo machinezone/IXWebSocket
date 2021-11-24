@@ -17,13 +17,15 @@ There is a unittest which can be executed by typing `make test`.
 
 Options for building:
 
+* `-DBUILD_SHARED_LIBS=ON` will build the unittest as a shared libary instead of a static library, which is the default
+* `-DUSE_ZLIB=1` will enable zlib support, required for http client + server + websocket per message deflate extension
 * `-DUSE_TLS=1` will enable TLS support
-* `-DUSE_OPEN_SSL=1` will use [openssl](https://www.openssl.org/) for the TLS support (default on Linux and Windows)
+* `-DUSE_OPEN_SSL=1` will use [openssl](https://www.openssl.org/) for the TLS support (default on Linux and Windows). When using a custom version of openssl (say a prebuilt version, odd runtime problems can happens, as in #319, and special cmake trickery will be required (see this [comment](https://github.com/machinezone/IXWebSocket/issues/175#issuecomment-620231032))
 * `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support
 * `-DUSE_WS=1` will build the ws interactive command line tool
 * `-DUSE_TEST=1` will build the unittest
 
-If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file (not maintained much though) or rather the [github actions](https://github.com/machinezone/IXWebSocket/blob/master/.github/workflows/ccpp.yml#L40) which have instructions for building dependencies.
+If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file (not maintained much though) or rather the [github actions](https://github.com/machinezone/IXWebSocket/blob/master/.github/workflows/unittest_windows.yml) which have instructions for building dependencies.
 
 It is also possible to externally include the project, so that everything is fetched over the wire when you build like so:
 
@@ -41,6 +43,19 @@ It is possible to get IXWebSocket through Microsoft [vcpkg](https://github.com/m
 
 ```
 vcpkg install ixwebsocket
+```
+To use the installed package within a cmake project, use the following:
+```cmake
+ set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "") # this is super important in order for cmake to include the vcpkg search/lib paths!
+
+ # find library and its headers
+ find_path(IXWEBSOCKET_INCLUDE_DIR ixwebsocket/IXWebSocket.h)
+ find_library(IXWEBSOCKET_LIBRARY ixwebsocket)
+ # include headers
+ include_directories(${IXWEBSOCKET_INCLUDE_DIR})
+ # ...
+ target_link_libraries(${PROJECT_NAME} ... ${IXWEBSOCKET_LIBRARY}) # Cmake will automatically fail the generation if the lib was not found, i.e is set to NOTFOUNS
+
 ```
 
 ### Conan

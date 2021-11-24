@@ -7,6 +7,8 @@
 #pragma once
 
 #include "IXConnectionState.h"
+#include "IXNetSystem.h"
+#include "IXSelectInterrupt.h"
 #include "IXSocketTLSOptions.h"
 #include <atomic>
 #include <condition_variable>
@@ -58,6 +60,11 @@ namespace ix
 
         void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
 
+        int  getPort();
+        std::string getHost();
+        int getBacklog();
+        std::size_t getMaxConnections();
+        int getAddressFamily();
     protected:
         // Logging
         void logError(const std::string& str);
@@ -74,7 +81,7 @@ namespace ix
         int _addressFamily;
 
         // socket for accepting connections
-        int _serverFd;
+        socket_t _serverFd;
 
         std::atomic<bool> _stop;
 
@@ -83,6 +90,7 @@ namespace ix
         // background thread to wait for incoming connections
         std::thread _thread;
         void run();
+        void onSetTerminatedCallback();
 
         // background thread to cleanup (join) terminated threads
         std::atomic<bool> _stopGc;
@@ -110,5 +118,13 @@ namespace ix
         size_t getConnectionsThreadsCount();
 
         SocketTLSOptions _socketTLSOptions;
+
+        // to wake up from select
+        SelectInterruptPtr _acceptSelectInterrupt;
+
+        // used by the gc thread, to know that a thread needs to be garbage collected
+        // as a connection
+        std::condition_variable _conditionVariableGC;
+        std::mutex _conditionVariableMutexGC;
     };
 } // namespace ix

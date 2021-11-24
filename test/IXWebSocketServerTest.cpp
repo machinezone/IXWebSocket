@@ -33,15 +33,17 @@ namespace ix
         };
         server.setConnectionStateFactory(factory);
 
-        server.setOnConnectionCallback([&server, &connectionId](
-                                           std::shared_ptr<ix::WebSocket> webSocket,
-                                           std::shared_ptr<ConnectionState> connectionState) {
-            webSocket->setOnMessageCallback([webSocket, connectionState, &connectionId, &server](
-                                                const ix::WebSocketMessagePtr& msg) {
+        server.setOnClientMessageCallback(
+            [&server, &connectionId](std::shared_ptr<ConnectionState> connectionState,
+                                     WebSocket& webSocket,
+                                     const ix::WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionState->getRemoteIp();
+
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     TLogger() << "New connection";
                     connectionState->computeId();
+                    TLogger() << "remote ip: " << remoteIp;
                     TLogger() << "id: " << connectionState->getId();
                     TLogger() << "Uri: " << msg->openInfo.uri;
                     TLogger() << "Headers:";
@@ -60,14 +62,13 @@ namespace ix
                 {
                     for (auto&& client : server.getClients())
                     {
-                        if (client != webSocket)
+                        if (client.get() != &webSocket)
                         {
                             client->send(msg->str, msg->binary);
                         }
                     }
                 }
             });
-        });
 
         auto res = server.listen();
         if (!res.first)

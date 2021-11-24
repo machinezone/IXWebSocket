@@ -39,7 +39,7 @@ namespace ix
         std::string description;
         HttpErrorCode errorCode;
         WebSocketHttpHeaders headers;
-        std::string payload;
+        std::string body;
         std::string errorMsg;
         uint64_t uploadSize;
         uint64_t downloadSize;
@@ -48,7 +48,7 @@ namespace ix
                      const std::string& des = std::string(),
                      const HttpErrorCode& c = HttpErrorCode::Ok,
                      const WebSocketHttpHeaders& h = WebSocketHttpHeaders(),
-                     const std::string& p = std::string(),
+                     const std::string& b = std::string(),
                      const std::string& e = std::string(),
                      uint64_t u = 0,
                      uint64_t d = 0)
@@ -56,7 +56,7 @@ namespace ix
             , description(des)
             , errorCode(c)
             , headers(h)
-            , payload(p)
+            , body(b)
             , errorMsg(e)
             , uploadSize(u)
             , downloadSize(d)
@@ -84,6 +84,7 @@ namespace ix
         int maxRedirects = 5;
         bool verbose = false;
         bool compress = true;
+        bool compressRequest = false;
         Logger logger;
         OnProgressCallback onProgressCallback;
     };
@@ -95,15 +96,18 @@ namespace ix
         std::string uri;
         std::string method;
         std::string version;
+        std::string body;
         WebSocketHttpHeaders headers;
 
         HttpRequest(const std::string& u,
                     const std::string& m,
                     const std::string& v,
+                    const std::string& b,
                     const WebSocketHttpHeaders& h = WebSocketHttpHeaders())
             : uri(u)
             , method(m)
             , version(v)
+            , body(b)
             , headers(h)
         {
         }
@@ -115,7 +119,7 @@ namespace ix
     {
     public:
         static std::tuple<bool, std::string, HttpRequestPtr> parseRequest(
-            std::unique_ptr<Socket>& socket);
+            std::unique_ptr<Socket>& socket, int timeoutSecs);
         static bool sendResponse(HttpResponsePtr response, std::unique_ptr<Socket>& socket);
 
         static std::pair<std::string, int> parseStatusLine(const std::string& line);

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <memory>
 #include <stdint.h>
 #include <string>
 
@@ -23,5 +24,11 @@ namespace ix
         virtual bool clear();
         virtual uint64_t read();
         virtual int getFd() const;
+
+        // Used as special codes for pipe communication
+        static const uint64_t kSendRequest;
+        static const uint64_t kCloseRequest;
     };
+
+    using SelectInterruptPtr = std::unique_ptr<SelectInterrupt>;
 } // namespace ix

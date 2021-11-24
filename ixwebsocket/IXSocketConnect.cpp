@@ -10,6 +10,7 @@
 #include "IXNetSystem.h"
 #include "IXSelectInterrupt.h"
 #include "IXSocket.h"
+#include "IXUniquePtr.h"
 #include <fcntl.h>
 #include <string.h>
 #include <sys/types.h>
@@ -34,7 +35,7 @@ namespace ix
     {
         errMsg = "no error";
 
-        int fd = socket(address->ai_family, address->ai_socktype, address->ai_protocol);
+        socket_t fd = socket(address->ai_family, address->ai_socktype, address->ai_protocol);
         if (fd < 0)
         {
             errMsg = "Cannot create a socket";
@@ -65,7 +66,7 @@ namespace ix
 
             int timeoutMs = 10;
             bool readyToRead = false;
-            auto selectInterrupt = std::make_unique<SelectInterrupt>();
+            auto selectInterrupt = ix::make_unique<SelectInterrupt>();
             PollResultType pollResult = Socket::poll(readyToRead, timeoutMs, fd, selectInterrupt);
 
             if (pollResult == PollResultType::Timeout)

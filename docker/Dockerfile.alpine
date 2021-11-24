@@ -1,8 +1,8 @@
-FROM alpine:3.11 as build
+FROM alpine:3.12 as build
 
 RUN apk add --no-cache \
     gcc g++ musl-dev linux-headers \
-    cmake mbedtls-dev make zlib-dev ninja
+    cmake mbedtls-dev make zlib-dev python3-dev ninja git
 
 RUN addgroup -S app && \
     adduser -S -G app app && \
@@ -15,12 +15,12 @@ COPY --chown=app:app . /opt
 WORKDIR /opt
 
 USER app
-RUN make ws_mbedtls_install && \
+RUN make -f makefile.dev ws_mbedtls_install && \
     sh tools/trim_repo_for_docker.sh
 
-FROM alpine:3.11 as runtime
+FROM alpine:3.12 as runtime
 
-RUN apk add --no-cache libstdc++ mbedtls ca-certificates && \
+RUN apk add --no-cache libstdc++ mbedtls ca-certificates python3 strace && \
     addgroup -S app && \
     adduser -S -G app app
 

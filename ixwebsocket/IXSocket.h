@@ -11,35 +11,18 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <vector>
 
 #ifdef _WIN32
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
-
-#undef EWOULDBLOCK
-#undef EAGAIN
-#undef EINPROGRESS
-#undef EBADF
-#undef EINVAL
-
-// map to WSA error codes
-#define EWOULDBLOCK WSAEWOULDBLOCK
-#define EAGAIN WSATRY_AGAIN
-#define EINPROGRESS WSAEINPROGRESS
-#define EBADF WSAEBADF
-#define EINVAL WSAEINVAL
-
 #endif
 
 #include "IXCancellationRequest.h"
 #include "IXProgressCallback.h"
+#include "IXSelectInterrupt.h"
 
 namespace ix
 {
-    class SelectInterrupt;
-    using SelectInterruptPtr = std::unique_ptr<SelectInterrupt>;
-
     enum class PollResultType
     {
         ReadyForRead = 0,
@@ -96,11 +79,6 @@ namespace ix
                                    int sockfd,
                                    const SelectInterruptPtr& selectInterrupt);
 
-
-        // Used as special codes for pipe communication
-        static const uint64_t kSendRequest;
-        static const uint64_t kCloseRequest;
-
     protected:
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;
@@ -108,10 +86,6 @@ namespace ix
     private:
         static const int kDefaultPollTimeout;
         static const int kDefaultPollNoTimeout;
-
-        // Buffer for reading from our socket. That buffer is never resized.
-        std::vector<uint8_t> _readBuffer;
-        static constexpr size_t kChunkSize = 1 << 15;
 
         SelectInterruptPtr _selectInterrupt;
     };

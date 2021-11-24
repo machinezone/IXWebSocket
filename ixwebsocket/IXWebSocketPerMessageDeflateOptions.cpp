@@ -14,12 +14,12 @@ namespace ix
 {
     /// Default values as defined in the RFC
     const uint8_t WebSocketPerMessageDeflateOptions::kDefaultServerMaxWindowBits = 15;
-    static const int minServerMaxWindowBits = 8;
-    static const int maxServerMaxWindowBits = 15;
+    static const uint8_t minServerMaxWindowBits = 8;
+    static const uint8_t maxServerMaxWindowBits = 15;
 
     const uint8_t WebSocketPerMessageDeflateOptions::kDefaultClientMaxWindowBits = 15;
-    static const int minClientMaxWindowBits = 8;
-    static const int maxClientMaxWindowBits = 15;
+    static const uint8_t minClientMaxWindowBits = 8;
+    static const uint8_t maxClientMaxWindowBits = 15;
 
     WebSocketPerMessageDeflateOptions::WebSocketPerMessageDeflateOptions(
         bool enabled,
@@ -61,6 +61,7 @@ namespace ix
         _clientMaxWindowBits = kDefaultClientMaxWindowBits;
         _serverMaxWindowBits = kDefaultServerMaxWindowBits;
 
+#ifdef IXWEBSOCKET_USE_ZLIB
         // Split by ;
         std::string token;
         std::stringstream tokenStream(extension);
@@ -84,11 +85,7 @@ namespace ix
 
             if (startsWith(token, "server_max_window_bits="))
             {
-                std::string val = token.substr(token.find_last_of("=") + 1);
-                std::stringstream ss;
-                ss << val;
-                int x;
-                ss >> x;
+                uint8_t x = strtol(token.substr(token.find_last_of("=") + 1).c_str(), nullptr, 10);
 
                 // Sanitize values to be in the proper range [8, 15] in
                 // case a server would give us bogus values
@@ -98,11 +95,7 @@ namespace ix
 
             if (startsWith(token, "client_max_window_bits="))
             {
-                std::string val = token.substr(token.find_last_of("=") + 1);
-                std::stringstream ss;
-                ss << val;
-                int x;
-                ss >> x;
+                uint8_t x = strtol(token.substr(token.find_last_of("=") + 1).c_str(), nullptr, 10);
 
                 // Sanitize values to be in the proper range [8, 15] in
                 // case a server would give us bogus values
@@ -112,6 +105,7 @@ namespace ix
                 sanitizeClientMaxWindowBits();
             }
         }
+#endif
     }
 
     void WebSocketPerMessageDeflateOptions::sanitizeClientMaxWindowBits()
@@ -126,6 +120,7 @@ namespace ix
 
     std::string WebSocketPerMessageDeflateOptions::generateHeader()
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         std::stringstream ss;
         ss << "Sec-WebSocket-Extensions: permessage-deflate";
 
@@ -138,11 +133,18 @@ namespace ix
         ss << "\r\n";
 
         return ss.str();
+#else
+        return std::string();
+#endif
     }
 
     bool WebSocketPerMessageDeflateOptions::enabled() const
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         return _enabled;
+#else
+        return false;
+#endif
     }
 
     bool WebSocketPerMessageDeflateOptions::getClientNoContextTakeover() const

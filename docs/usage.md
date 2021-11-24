@@ -67,9 +67,28 @@ webSocket.stop()
 
 ### Sending messages
 
-`websocket.send("foo")` will send a message.
+`WebSocketSendInfo result = websocket.send("foo")` will send a message.
 
-If the connection was closed and sending failed, the return value will be set to false.
+If the connection was closed, sending will fail, and the success field of the result object  will be set to false. There could also be a compression error in which case the compressError field will be set to true. The payloadSize field and wireSize fields will tell you respectively how much bytes the message weight, and how many bytes were sent on the wire (potentially compressed + counting the message header (a few bytes).
+
+There is an optional progress callback that can be passed in as the second argument. If a message is large it will be fragmented into chunks which will be sent independantly. Everytime the we can write a fragment into the OS network cache, the callback will be invoked. If a user wants to cancel a slow send, false should be returned from within the callback.
+
+Here is an example code snippet copied from the ws send sub-command. Each fragment weights 32K, so the total integer is the wireSize divided by 32K. As an example if you are sending 32M of data, uncompressed, total will be 1000. current will be set to 0 for the first fragment, then 1, 2 etc...
+
+```
+auto result =
+    _webSocket.sendBinary(serializedMsg, [this, throttle](int current, int total) -> bool {
+        spdlog::info("ws_send: Step {} out of {}", current + 1, total);
+
+        if (throttle)
+        {
+            std::chrono::duration<double, std::milli> duration(10);
+            std::this_thread::sleep_for(duration);
+        }
+
+        return _connected;
+    });
+```
 
 ### ReadyState
 
@@ -237,14 +256,31 @@ Wait time(ms): 6400
 Wait time(ms): 10000
 ```
 
-The waiting time is capped by default at 10s between 2 attempts, but that value can be changed and queried.
+The waiting time is capped by default at 10s between 2 attempts, but that value
+can be changed and queried. The minimum waiting time can also be set.
 
 ```cpp
 webSocket.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
 uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
+
+webSocket.setMinWaitBetweenReconnectionRetries(1000); // 1000ms = 1s
+uint32_t m = webSocket.getMinWaitBetweenReconnectionRetries();
+```
+
+## Handshake timeout
+
+You can control how long to wait until timing out while waiting for the websocket handshake to be performed.
+
+```
+int handshakeTimeoutSecs = 1;
+setHandshakeTimeout(handshakeTimeoutSecs);
 ```
 
 ## WebSocket server API
+
+### Legacy api
+
+This api was actually changed to take a weak_ptr<WebSocket> as the first argument to setOnConnectionCallback ; previously it would take a shared_ptr<WebSocket> which was creating cycles and then memory leaks problems.
 
 ```cpp
 #include <ixwebsocket/IXWebSocketServer.h>
@@ -256,38 +292,48 @@ uint32_t m = webSocket.getMaxWaitBetweenReconnectionRetries();
 ix::WebSocketServer server(port);
 
 server.setOnConnectionCallback(
-    [&server](std::shared_ptr<WebSocket> webSocket,
+    [&server](std::weak_ptr<WebSocket> webSocket,
               std::shared_ptr<ConnectionState> connectionState)
     {
-        webSocket->setOnMessageCallback(
-            [webSocket, connectionState, &server](const ix::WebSocketMessagePtr msg)
-            {
-                if (msg->type == ix::WebSocketMessageType::Open)
+        std::cout << "Remote ip: " << connectionState->remoteIp << std::endl;
+
+        auto ws = webSocket.lock();
+        if (ws)
+        {
+            ws->setOnMessageCallback(
+                [webSocket, connectionState, &server](const ix::WebSocketMessagePtr msg)
                 {
-                    std::cerr << "New connection" << std::endl;
-
-                    // A connection state object is available, and has a default id
-                    // You can subclass ConnectionState and pass an alternate factory
-                    // to override it. It is useful if you want to store custom
-                    // attributes per connection (authenticated bool flag, attributes, etc...)
-                    std::cerr << "id: " << connectionState->getId() << std::endl;
-
-                    // The uri the client did connect to.
-                    std::cerr << "Uri: " << msg->openInfo.uri << std::endl;
-
-                    std::cerr << "Headers:" << std::endl;
-                    for (auto it : msg->openInfo.headers)
+                    if (msg->type == ix::WebSocketMessageType::Open)
                     {
-                        std::cerr << it.first << ": " << it.second << std::endl;
+                        std::cout << "New connection" << std::endl;
+
+                        // A connection state object is available, and has a default id
+                        // You can subclass ConnectionState and pass an alternate factory
+                        // to override it. It is useful if you want to store custom
+                        // attributes per connection (authenticated bool flag, attributes, etc...)
+                        std::cout << "id: " << connectionState->getId() << std::endl;
+
+                        // The uri the client did connect to.
+                        std::cout << "Uri: " << msg->openInfo.uri << std::endl;
+
+                        std::cout << "Headers:" << std::endl;
+                        for (auto it : msg->openInfo.headers)
+                        {
+                            std::cout << it.first << ": " << it.second << std::endl;
+                        }
                     }
-                }
-                else if (msg->type == ix::WebSocketMessageType::Message)
-                {
-                    // For an echo server, we just send back to the client whatever was received by the server
-                    // All connected clients are available in an std::set. See the broadcast cpp example.
-                    // Second parameter tells whether we are sending the message in binary or text mode.
-                    // Here we send it in the same mode as it was received.
-                    webSocket->send(msg->str, msg->binary);
+                    else if (msg->type == ix::WebSocketMessageType::Message)
+                    {
+                        // For an echo server, we just send back to the client whatever was received by the server
+                        // All connected clients are available in an std::set. See the broadcast cpp example.
+                        // Second parameter tells whether we are sending the message in binary or text mode.
+                        // Here we send it in the same mode as it was received.
+                        auto ws = webSocket.lock();
+                        if (ws)
+                        {
+                            ws->send(msg->str, msg->binary);
+                        }
+                    }
                 }
             }
         );
@@ -300,6 +346,80 @@ if (!res.first)
     // Error handling
     return 1;
 }
+
+// Per message deflate connection is enabled by default. It can be disabled
+// which might be helpful when running on low power devices such as a Rasbery Pi
+server.disablePerMessageDeflate();
+
+// Run the server in the background. Server can be stoped by calling server.stop()
+server.start();
+
+// Block until server.stop() is called.
+server.wait();
+
+```
+
+### New api
+
+The new API does not require to use 2 nested callbacks, which is a bit annoying. The real fix is that there was a memory leak due to a shared_ptr cycle, due to passing down a shared_ptr<WebSocket> down to the callbacks.
+
+The webSocket reference is guaranteed to be always valid ; by design the callback will never be invoked with a null webSocket object.
+
+```cpp
+#include <ixwebsocket/IXWebSocketServer.h>
+
+...
+
+// Run a server on localhost at a given port.
+// Bound host name, max connections and listen backlog can also be passed in as parameters.
+ix::WebSocketServer server(port);
+
+server.setOnClientMessageCallback([](std::shared_ptr<ix::ConnectionState> connectionState, ix::WebSocket & webSocket, const ix::WebSocketMessagePtr & msg) {
+    // The ConnectionState object contains information about the connection,
+    // at this point only the client ip address and the port.
+    std::cout << "Remote ip: " << connectionState->getRemoteIp() << std::endl;
+
+    if (msg->type == ix::WebSocketMessageType::Open)
+    {
+        std::cout << "New connection" << std::endl;
+
+        // A connection state object is available, and has a default id
+        // You can subclass ConnectionState and pass an alternate factory
+        // to override it. It is useful if you want to store custom
+        // attributes per connection (authenticated bool flag, attributes, etc...)
+        std::cout << "id: " << connectionState->getId() << std::endl;
+
+        // The uri the client did connect to.
+        std::cout << "Uri: " << msg->openInfo.uri << std::endl;
+
+        std::cout << "Headers:" << std::endl;
+        for (auto it : msg->openInfo.headers)
+        {
+            std::cout << "\t" << it.first << ": " << it.second << std::endl;
+        }
+    }
+    else if (msg->type == ix::WebSocketMessageType::Message)
+    {
+        // For an echo server, we just send back to the client whatever was received by the server
+        // All connected clients are available in an std::set. See the broadcast cpp example.
+        // Second parameter tells whether we are sending the message in binary or text mode.
+        // Here we send it in the same mode as it was received.
+        std::cout << "Received: " << msg->str << std::endl;
+
+        webSocket.send(msg->str, msg->binary);
+    }
+});
+
+auto res = server.listen();
+if (!res.first)
+{
+    // Error handling
+    return 1;
+}
+
+// Per message deflate connection is enabled by default. It can be disabled
+// which might be helpful when running on low power devices such as a Rasbery Pi
+server.disablePerMessageDeflate();
 
 // Run the server in the background. Server can be stoped by calling server.stop()
 server.start();
@@ -358,10 +478,17 @@ out = httpClient.get(url, args);
 // POST request with parameters
 HttpParameters httpParameters;
 httpParameters["foo"] = "bar";
-out = httpClient.post(url, httpParameters, args);
+
+// HTTP form data can be passed in as well, for multi-part upload of files
+HttpFormDataParameters httpFormDataParameters;
+httpParameters["baz"] = "booz";
+
+out = httpClient.post(url, httpParameters, httpFormDataParameters, args);
 
 // POST request with a body
 out = httpClient.post(url, std::string("foo=bar"), args);
+
+// PUT and PATCH are available too.
 
 //
 // Result
@@ -369,7 +496,7 @@ out = httpClient.post(url, std::string("foo=bar"), args);
 auto statusCode = response->statusCode; // Can be HttpErrorCode::Ok, HttpErrorCode::UrlMalformed, etc...
 auto errorCode = response->errorCode; // 200, 404, etc...
 auto responseHeaders = response->headers; // All the headers in a special case-insensitive unordered_map of (string, string)
-auto payload = response->payload; // All the bytes from the response as an std::string
+auto body = response->body; // All the bytes from the response as an std::string
 auto errorMsg = response->errorMsg; // Descriptive error message in case of failure
 auto uploadSize = response->uploadSize; // Byte count of uploaded data
 auto downloadSize = response->downloadSize; // Byte count of downloaded data
@@ -391,6 +518,8 @@ bool ok = httpClient.performRequest(args, [](const HttpResponsePtr& response)
 
 // ok will be false if your httpClient is not async
 ```
+
+See this [issue](https://github.com/machinezone/IXWebSocket/issues/209) for links about uploading files with HTTP multipart.
 
 ## HTTP server API
 
@@ -415,11 +544,13 @@ If you want to handle how requests are processed, implement the setOnConnectionC
 ```cpp
 setOnConnectionCallback(
     [this](HttpRequestPtr request,
-           std::shared_ptr<ConnectionState> /*connectionState*/) -> HttpResponsePtr
+           std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr
     {
         // Build a string for the response
         std::stringstream ss;
-        ss << request->method
+        ss << connectionState->getRemoteIp();
+           << " "
+           << request->method
            << " "
            << request->uri;
 

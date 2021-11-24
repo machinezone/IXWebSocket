@@ -83,7 +83,9 @@ namespace ix
                                          int timeoutSecs);
 
         // Server
-        WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket, int timeoutSecs);
+        WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket,
+                                            int timeoutSecs,
+                                            bool enablePerMessageDeflate);
 
         PollResult poll();
         WebSocketSendInfo sendBinary(const std::string& message,
@@ -146,7 +148,7 @@ namespace ix
 
         // Contains all messages that were fetched in the last socket read.
         // This could be a mix of control messages (Close, Ping, etc...) and
-        // data messages. That buffer
+        // data messages. That buffer is resized
         std::vector<uint8_t> _rxbuf;
 
         // Contains all messages that are waiting to be sent
@@ -178,11 +180,11 @@ namespace ix
         std::atomic<ReadyState> _readyState;
 
         OnCloseCallback _onCloseCallback;
-        uint16_t _closeCode;
         std::string _closeReason;
-        size_t _closeWireSize;
-        bool _closeRemote;
-        mutable std::mutex _closeDataMutex;
+        mutable std::mutex _closeReasonMutex;
+        std::atomic<uint16_t> _closeCode;
+        std::atomic<size_t> _closeWireSize;
+        std::atomic<bool> _closeRemote;
 
         // Data used for Per Message Deflate compression (with zlib)
         WebSocketPerMessageDeflatePtr _perMessageDeflate;
@@ -239,16 +241,15 @@ namespace ix
         bool sendOnSocket();
         bool receiveFromSocket();
 
+        template<class T>
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
-                                   const std::string& message,
+                                   const T& message,
                                    bool compress,
                                    const OnProgressCallback& onProgressCallback = nullptr);
 
-        bool sendFragment(wsheader_type::opcode_type type,
-                          bool fin,
-                          std::string::const_iterator begin,
-                          std::string::const_iterator end,
-                          bool compress);
+        template<class Iterator>
+        bool sendFragment(
+            wsheader_type::opcode_type type, bool fin, Iterator begin, Iterator end, bool compress);
 
         void emitMessage(MessageKind messageKind,
                          const std::string& message,
@@ -256,9 +257,11 @@ namespace ix
                          const OnMessageCallback& onMessageCallback);
 
         bool isSendBufferEmpty() const;
+
+        template<class Iterator>
         void appendToSendBuffer(const std::vector<uint8_t>& header,
-                                std::string::const_iterator begin,
-                                std::string::const_iterator end,
+                                Iterator begin,
+                                Iterator end,
                                 uint64_t message_size,
                                 uint8_t masking_key[4]);
 
@@ -266,5 +269,8 @@ namespace ix
         void unmaskReceiveBuffer(const wsheader_type& ws);
 
         std::string getMergedChunks() const;
+
+        void setCloseReason(const std::string& reason);
+        const std::string& getCloseReason() const;
     };
 } // namespace ix

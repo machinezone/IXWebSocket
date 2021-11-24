@@ -61,7 +61,6 @@ namespace ix
 
         static std::once_flag _openSSLInitFlag;
         static std::atomic<bool> _openSSLInitializationSuccessful;
-        static std::unique_ptr<std::mutex[]> _openSSLMutexes;
     };
 
 } // namespace ix

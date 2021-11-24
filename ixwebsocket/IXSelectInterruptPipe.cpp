@@ -5,8 +5,10 @@
  */
 
 //
-// On macOS we use UNIX pipes to wake up select.
+// On UNIX we use pipes to wake up select. There is no way to do that
+// on Windows so this file is compiled out on Windows.
 //
+#ifndef _WIN32
 
 #include "IXSelectInterruptPipe.h"
 
@@ -115,8 +117,14 @@ namespace ix
         int fd = _fildes[kPipeWriteIndex];
         if (fd == -1) return false;
 
+        ssize_t ret = -1;
+        do
+        {
+            ret = ::write(fd, &value, sizeof(value));
+        } while (ret == -1 && errno == EINTR);
+
         // we should write 8 bytes for an uint64_t
-        return write(fd, &value, sizeof(value)) == 8;
+        return ret == 8;
     }
 
     // TODO: return max uint64_t for errors ?
@@ -127,7 +135,12 @@ namespace ix
         int fd = _fildes[kPipeReadIndex];
 
         uint64_t value = 0;
-        ::read(fd, &value, sizeof(value));
+
+        ssize_t ret = -1;
+        do
+        {
+            ret = ::read(fd, &value, sizeof(value));
+        } while (ret == -1 && errno == EINTR);
 
         return value;
     }
@@ -144,3 +157,5 @@ namespace ix
         return _fildes[kPipeReadIndex];
     }
 } // namespace ix
+
+#endif // !_WIN32

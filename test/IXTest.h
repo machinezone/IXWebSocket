@@ -6,9 +6,8 @@
 
 #pragma once
 
-#include "IXGetFreePort.h"
 #include <iostream>
-#include <ixsnake/IXAppConfig.h>
+#include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocketServer.h>
 #include <mutex>
@@ -51,12 +50,8 @@ namespace ix
 
     bool startWebSocketEchoServer(ix::WebSocketServer& server);
 
-    snake::AppConfig makeSnakeServerConfig(int port, bool preferTLS);
-
     SocketTLSOptions makeClientTLSOptions();
     SocketTLSOptions makeServerTLSOptions(bool preferTLS);
     std::string getHttpScheme();
     std::string getWsScheme(bool preferTLS);
-
-    std::string makeCobraEndpoint(int port, bool preferTLS);
 } // namespace ix

@@ -8,6 +8,7 @@
 
 #include "IXNetSystem.h"
 #include "IXSelectInterrupt.h"
+#include "IXSelectInterruptFactory.h"
 #include "IXSetThreadName.h"
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
@@ -22,7 +23,7 @@ namespace ix
     const int SocketServer::kDefaultPort(8080);
     const std::string SocketServer::kDefaultHost("127.0.0.1");
     const int SocketServer::kDefaultTcpBacklog(5);
-    const size_t SocketServer::kDefaultMaxConnections(32);
+    const size_t SocketServer::kDefaultMaxConnections(128);
     const int SocketServer::kDefaultAddressFamily(AF_INET);
 
     SocketServer::SocketServer(
@@ -36,6 +37,7 @@ namespace ix
         , _stop(false)
         , _stopGc(false)
         , _connectionStateFactory(&ConnectionState::createConnectionState)
+        , _acceptSelectInterrupt(createSelectInterrupt())
     {
     }
 
@@ -58,6 +60,16 @@ namespace ix
 
     std::pair<bool, std::string> SocketServer::listen()
     {
+        std::string acceptSelectInterruptInitErrorMsg;
+        if (!_acceptSelectInterrupt->init(acceptSelectInterruptInitErrorMsg))
+        {
+            std::stringstream ss;
+            ss << "SocketServer::listen() error in SelectInterrupt::init: "
+               << acceptSelectInterruptInitErrorMsg;
+
+            return std::make_pair(false, ss.str());
+        }
+
         if (_addressFamily != AF_INET && _addressFamily != AF_INET6)
         {
             std::string errMsg("SocketServer::listen() AF_INET and AF_INET6 are currently "
@@ -92,7 +104,7 @@ namespace ix
             server.sin_family = _addressFamily;
             server.sin_port = htons(_port);
 
-            if (inet_pton(_addressFamily, _host.c_str(), &server.sin_addr.s_addr) <= 0)
+            if (ix::inet_pton(_addressFamily, _host.c_str(), &server.sin_addr.s_addr) <= 0)
             {
                 std::stringstream ss;
                 ss << "SocketServer::listen() error calling inet_pton "
@@ -121,7 +133,7 @@ namespace ix
             server.sin6_family = _addressFamily;
             server.sin6_port = htons(_port);
 
-            if (inet_pton(_addressFamily, _host.c_str(), &server.sin6_addr) <= 0)
+            if (ix::inet_pton(_addressFamily, _host.c_str(), &server.sin6_addr) <= 0)
             {
                 std::stringstream ss;
                 ss << "SocketServer::listen() error calling inet_pton "
@@ -193,6 +205,12 @@ namespace ix
         if (_thread.joinable())
         {
             _stop = true;
+            // Wake up select
+            if (!_acceptSelectInterrupt->notify(SelectInterrupt::kCloseRequest))
+            {
+                logError("SocketServer::stop: Cannot wake up from select");
+            }
+
             _thread.join();
             _stop = false;
         }
@@ -201,6 +219,7 @@ namespace ix
         if (_gcThread.joinable())
         {
             _stopGc = true;
+            _conditionVariableGC.notify_one();
             _gcThread.join();
             _stopGc = false;
         }
@@ -249,18 +268,22 @@ namespace ix
         // Set the socket to non blocking mode, so that accept calls are not blocking
         SocketConnect::configure(_serverFd);
 
-        setThreadName("SocketServer::listen");
+        setThreadName("SocketServer::accept");
 
         for (;;)
         {
             if (_stop) return;
 
             // Use poll to check whether a new connection is in progress
-            int timeoutMs = 10;
+            int timeoutMs = -1;
+#ifdef _WIN32
+            // select cannot be interrupted on Windows so we need to pass a small timeout
+            timeoutMs = 10;
+#endif
+
             bool readyToRead = true;
-            auto selectInterrupt = std::make_unique<SelectInterrupt>();
             PollResultType pollResult =
-                Socket::poll(readyToRead, timeoutMs, _serverFd, selectInterrupt);
+                Socket::poll(readyToRead, timeoutMs, _serverFd, _acceptSelectInterrupt);
 
             if (pollResult == PollResultType::Error)
             {
@@ -276,6 +299,7 @@ namespace ix
             }
 
             // Accept a connection.
+            // FIXME: Is this working for ipv6 ?
             struct sockaddr_in client; // client address information
             int clientFd;              // socket connected to client
             socklen_t addressLen = sizeof(client);
@@ -307,11 +331,58 @@ namespace ix
                 continue;
             }
 
+            // Retrieve connection info, the ip address of the remote peer/client)
+            std::string remoteIp;
+            int remotePort;
+
+            if (_addressFamily == AF_INET)
+            {
+                char remoteIp4[INET_ADDRSTRLEN];
+                if (ix::inet_ntop(AF_INET, &client.sin_addr, remoteIp4, INET_ADDRSTRLEN) == nullptr)
+                {
+                    int err = Socket::getErrno();
+                    std::stringstream ss;
+                    ss << "SocketServer::run() error calling inet_ntop (ipv4): " << err << ", "
+                       << strerror(err);
+                    logError(ss.str());
+
+                    Socket::closeSocket(clientFd);
+
+                    continue;
+                }
+
+                remotePort = ix::network_to_host_short(client.sin_port);
+                remoteIp = remoteIp4;
+            }
+            else // AF_INET6
+            {
+                char remoteIp6[INET6_ADDRSTRLEN];
+                if (ix::inet_ntop(AF_INET6, &client.sin_addr, remoteIp6, INET6_ADDRSTRLEN) ==
+                    nullptr)
+                {
+                    int err = Socket::getErrno();
+                    std::stringstream ss;
+                    ss << "SocketServer::run() error calling inet_ntop (ipv6): " << err << ", "
+                       << strerror(err);
+                    logError(ss.str());
+
+                    Socket::closeSocket(clientFd);
+
+                    continue;
+                }
+
+                remotePort = ix::network_to_host_short(client.sin_port);
+                remoteIp = remoteIp6;
+            }
+
             std::shared_ptr<ConnectionState> connectionState;
             if (_connectionStateFactory)
             {
                 connectionState = _connectionStateFactory();
             }
+            connectionState->setOnSetTerminatedCallback([this] { onSetTerminatedCallback(); });
+            connectionState->setRemoteIp(remoteIp);
+            connectionState->setRemotePort(remotePort);
 
             if (_stop) return;
 
@@ -368,13 +439,51 @@ namespace ix
                 break;
             }
 
-            // Sleep a little bit then keep cleaning up
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            // Unless we are stopping the server, wait for a connection
+            // to be terminated to run the threads GC, instead of busy waiting
+            // with a sleep
+            if (!_stopGc)
+            {
+                std::unique_lock<std::mutex> lock(_conditionVariableMutexGC);
+                _conditionVariableGC.wait(lock);
+            }
         }
     }
 
     void SocketServer::setTLSOptions(const SocketTLSOptions& socketTLSOptions)
     {
         _socketTLSOptions = socketTLSOptions;
+    }
+
+    void SocketServer::onSetTerminatedCallback()
+    {
+        // a connection got terminated, we can run the connection thread GC,
+        // so wake up the thread responsible for that
+        _conditionVariableGC.notify_one();
+    }
+
+    int  SocketServer::getPort()
+    {
+        return _port;
+    }
+
+    std::string SocketServer::getHost()
+    {
+        return _host;
+    }
+
+    int SocketServer::getBacklog()
+    {
+        return _backlog;
+    }
+
+    std::size_t SocketServer::getMaxConnections()
+    {
+        return _maxConnections;
+    }
+
+    int SocketServer::getAddressFamily()
+    {
+        return _addressFamily;
     }
 } // namespace ix

@@ -10,7 +10,7 @@ import websockets
 async def echo(websocket, path):
     while True:
         msg = await websocket.recv()
-        print(f'Received {len(msg)} bytes')
+        # print(f'Received {len(msg)} bytes')
         await websocket.send(msg)
 
 host = os.getenv('BIND_HOST', 'localhost')

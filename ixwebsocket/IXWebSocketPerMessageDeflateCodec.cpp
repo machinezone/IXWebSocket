@@ -16,8 +16,6 @@ namespace
     // is treated as a char* and the null termination (\x00) makes it
     // look like an empty string.
     const std::string kEmptyUncompressedBlock = std::string("\x00\x00\xff\xff", 4);
-
-    const int kBufferSize = 1 << 14;
 } // namespace
 
 namespace ix
@@ -26,23 +24,27 @@ namespace ix
     // Compressor
     //
     WebSocketPerMessageDeflateCompressor::WebSocketPerMessageDeflateCompressor()
-        : _compressBufferSize(kBufferSize)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         memset(&_deflateState, 0, sizeof(_deflateState));
 
         _deflateState.zalloc = Z_NULL;
         _deflateState.zfree = Z_NULL;
         _deflateState.opaque = Z_NULL;
+#endif
     }
 
     WebSocketPerMessageDeflateCompressor::~WebSocketPerMessageDeflateCompressor()
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         deflateEnd(&_deflateState);
+#endif
     }
 
     bool WebSocketPerMessageDeflateCompressor::init(uint8_t deflateBits,
                                                     bool clientNoContextTakeOver)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         int ret = deflateInit2(&_deflateState,
                                Z_DEFAULT_COMPRESSION,
                                Z_DEFLATED,
@@ -52,22 +54,52 @@ namespace ix
 
         if (ret != Z_OK) return false;
 
-        _compressBuffer = std::make_unique<unsigned char[]>(_compressBufferSize);
-
         _flush = (clientNoContextTakeOver) ? Z_FULL_FLUSH : Z_SYNC_FLUSH;
 
         return true;
+#else
+        return false;
+#endif
     }
 
-    bool WebSocketPerMessageDeflateCompressor::endsWith(const std::string& value,
-                                                        const std::string& ending)
+    template<typename T>
+    bool WebSocketPerMessageDeflateCompressor::endsWithEmptyUnCompressedBlock(const T& value)
     {
-        if (ending.size() > value.size()) return false;
-        return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+        if (kEmptyUncompressedBlock.size() > value.size()) return false;
+        auto N = value.size();
+        return value[N - 1] == kEmptyUncompressedBlock[3] &&
+               value[N - 2] == kEmptyUncompressedBlock[2] &&
+               value[N - 3] == kEmptyUncompressedBlock[1] &&
+               value[N - 4] == kEmptyUncompressedBlock[0];
     }
 
     bool WebSocketPerMessageDeflateCompressor::compress(const std::string& in, std::string& out)
     {
+        return compressData(in, out);
+    }
+
+    bool WebSocketPerMessageDeflateCompressor::compress(const std::string& in,
+                                                        std::vector<uint8_t>& out)
+    {
+        return compressData(in, out);
+    }
+
+    bool WebSocketPerMessageDeflateCompressor::compress(const std::vector<uint8_t>& in,
+                                                        std::string& out)
+    {
+        return compressData(in, out);
+    }
+
+    bool WebSocketPerMessageDeflateCompressor::compress(const std::vector<uint8_t>& in,
+                                                        std::vector<uint8_t>& out)
+    {
+        return compressData(in, out);
+    }
+
+    template<typename T, typename S>
+    bool WebSocketPerMessageDeflateCompressor::compressData(const T& in, S& out)
+    {
+#ifdef IXWEBSOCKET_USE_ZLIB
         //
         // 7.2.1.  Compression
         //
@@ -96,7 +128,8 @@ namespace ix
             // The normal buffer size should be 6 but
             // we remove the 4 octets from the tail (#4)
             uint8_t buf[2] = {0x02, 0x00};
-            out.append((char*) (buf), 2);
+            out.push_back(buf[0]);
+            out.push_back(buf[1]);
 
             return true;
         }
@@ -107,30 +140,33 @@ namespace ix
         do
         {
             // Output to local buffer
-            _deflateState.avail_out = (uInt) _compressBufferSize;
-            _deflateState.next_out = _compressBuffer.get();
+            _deflateState.avail_out = (uInt) _compressBuffer.size();
+            _deflateState.next_out = &_compressBuffer.front();
 
             deflate(&_deflateState, _flush);
 
-            output = _compressBufferSize - _deflateState.avail_out;
+            output = _compressBuffer.size() - _deflateState.avail_out;
 
-            out.append((char*) (_compressBuffer.get()), output);
+            out.insert(out.end(), _compressBuffer.begin(), _compressBuffer.begin() + output);
         } while (_deflateState.avail_out == 0);
 
-        if (endsWith(out, kEmptyUncompressedBlock))
+        if (endsWithEmptyUnCompressedBlock(out))
         {
             out.resize(out.size() - 4);
         }
 
         return true;
+#else
+        return false;
+#endif
     }
 
     //
     // Decompressor
     //
     WebSocketPerMessageDeflateDecompressor::WebSocketPerMessageDeflateDecompressor()
-        : _compressBufferSize(kBufferSize)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         memset(&_inflateState, 0, sizeof(_inflateState));
 
         _inflateState.zalloc = Z_NULL;
@@ -138,29 +174,35 @@ namespace ix
         _inflateState.opaque = Z_NULL;
         _inflateState.avail_in = 0;
         _inflateState.next_in = Z_NULL;
+#endif
     }
 
     WebSocketPerMessageDeflateDecompressor::~WebSocketPerMessageDeflateDecompressor()
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         inflateEnd(&_inflateState);
+#endif
     }
 
     bool WebSocketPerMessageDeflateDecompressor::init(uint8_t inflateBits,
                                                       bool clientNoContextTakeOver)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         int ret = inflateInit2(&_inflateState, -1 * inflateBits);
 
         if (ret != Z_OK) return false;
 
-        _compressBuffer = std::make_unique<unsigned char[]>(_compressBufferSize);
-
         _flush = (clientNoContextTakeOver) ? Z_FULL_FLUSH : Z_SYNC_FLUSH;
 
         return true;
+#else
+        return false;
+#endif
     }
 
     bool WebSocketPerMessageDeflateDecompressor::decompress(const std::string& in, std::string& out)
     {
+#ifdef IXWEBSOCKET_USE_ZLIB
         //
         // 7.2.2.  Decompression
         //
@@ -182,8 +224,8 @@ namespace ix
 
         do
         {
-            _inflateState.avail_out = (uInt) _compressBufferSize;
-            _inflateState.next_out = _compressBuffer.get();
+            _inflateState.avail_out = (uInt) _compressBuffer.size();
+            _inflateState.next_out = &_compressBuffer.front();
 
             int ret = inflate(&_inflateState, Z_SYNC_FLUSH);
 
@@ -192,10 +234,13 @@ namespace ix
                 return false; // zlib error
             }
 
-            out.append(reinterpret_cast<char*>(_compressBuffer.get()),
-                       _compressBufferSize - _inflateState.avail_out);
+            out.append(reinterpret_cast<char*>(&_compressBuffer.front()),
+                       _compressBuffer.size() - _inflateState.avail_out);
         } while (_inflateState.avail_out == 0);
 
         return true;
+#else
+        return false;
+#endif
     }
 } // namespace ix

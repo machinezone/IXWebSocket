@@ -71,13 +71,46 @@ namespace ix
         _onConnectionCallback = callback;
     }
 
+    void WebSocketServer::setOnClientMessageCallback(const OnClientMessageCallback& callback)
+    {
+        _onClientMessageCallback = callback;
+    }
+
     void WebSocketServer::handleConnection(std::unique_ptr<Socket> socket,
                                            std::shared_ptr<ConnectionState> connectionState)
     {
         setThreadName("WebSocketServer::" + connectionState->getId());
 
         auto webSocket = std::make_shared<WebSocket>();
-        _onConnectionCallback(webSocket, connectionState);
+        if (_onConnectionCallback)
+        {
+            _onConnectionCallback(webSocket, connectionState);
+
+            if (!webSocket->isOnMessageCallbackRegistered())
+            {
+                logError("WebSocketServer Application developer error: Server callback improperly "
+                         "registerered.");
+                logError("Missing call to setOnMessageCallback inside setOnConnectionCallback.");
+                connectionState->setTerminated();
+                return;
+            }
+        }
+        else if (_onClientMessageCallback)
+        {
+            WebSocket* webSocketRawPtr = webSocket.get();
+            webSocket->setOnMessageCallback(
+                [this, webSocketRawPtr, connectionState](const WebSocketMessagePtr& msg) {
+                    _onClientMessageCallback(connectionState, *webSocketRawPtr, msg);
+                });
+        }
+        else
+        {
+            logError(
+                "WebSocketServer Application developer error: No server callback is registerered.");
+            logError("Missing call to setOnConnectionCallback or setOnClientMessageCallback.");
+            connectionState->setTerminated();
+            return;
+        }
 
         webSocket->disableAutomaticReconnection();
 
@@ -96,7 +129,8 @@ namespace ix
             _clients.insert(webSocket);
         }
 
-        auto status = webSocket->connectToSocket(std::move(socket), _handshakeTimeoutSecs);
+        auto status = webSocket->connectToSocket(
+            std::move(socket), _handshakeTimeoutSecs, _enablePerMessageDeflate);
         if (status.success)
         {
             // Process incoming messages and execute callbacks
@@ -110,6 +144,8 @@ namespace ix
                << " error: " << status.errorStr;
             logError(ss.str());
         }
+
+        webSocket->setOnMessageCallback(nullptr);
 
         // Remove this client from our client set
         {
@@ -133,5 +169,61 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_clientsMutex);
         return _clients.size();
+    }
+
+    //
+    // Classic servers
+    //
+    void WebSocketServer::makeBroadcastServer()
+    {
+        setOnClientMessageCallback([this](std::shared_ptr<ConnectionState> connectionState,
+                                          WebSocket& webSocket,
+                                          const WebSocketMessagePtr& msg) {
+            auto remoteIp = connectionState->getRemoteIp();
+            if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                for (auto&& client : getClients())
+                {
+                    if (client.get() != &webSocket)
+                    {
+                        client->send(msg->str, msg->binary);
+
+                        // Make sure the OS send buffer is flushed before moving on
+                        do
+                        {
+                            std::chrono::duration<double, std::milli> duration(500);
+                            std::this_thread::sleep_for(duration);
+                        } while (client->bufferedAmount() != 0);
+                    }
+                }
+            }
+        });
+    }
+
+    bool WebSocketServer::listenAndStart()
+    {
+        auto res = listen();
+        if (!res.first)
+        {
+            return false;
+        }
+
+        start();
+        return true;
+    }
+
+    int WebSocketServer::getHandshakeTimeoutSecs()
+    {
+        return _handshakeTimeoutSecs;
+    }
+
+    bool WebSocketServer::isPongEnabled()
+    {
+        return _enablePong;
+    }
+
+    bool WebSocketServer::isPerMessageDeflateEnabled()
+    {
+        return _enablePerMessageDeflate;
     }
 } // namespace ix

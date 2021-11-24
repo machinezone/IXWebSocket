@@ -11,6 +11,7 @@
 #include "IXSelectInterruptFactory.h"
 #include "IXSocketConnect.h"
 #include <algorithm>
+#include <array>
 #include <assert.h>
 #include <fcntl.h>
 #include <stdint.h>
@@ -18,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <vector>
 
 #ifdef min
 #undef min
@@ -27,9 +29,6 @@ namespace ix
 {
     const int Socket::kDefaultPollNoTimeout = -1; // No poll timeout by default
     const int Socket::kDefaultPollTimeout = kDefaultPollNoTimeout;
-    const uint64_t Socket::kSendRequest = 1;
-    const uint64_t Socket::kCloseRequest = 2;
-    constexpr size_t Socket::kChunkSize;
 
     Socket::Socket(int fd)
         : _sockfd(fd)
@@ -96,11 +95,11 @@ namespace ix
         {
             uint64_t value = selectInterrupt->read();
 
-            if (value == kSendRequest)
+            if (value == SelectInterrupt::kSendRequest)
             {
                 pollResult = PollResultType::SendRequest;
             }
-            else if (value == kCloseRequest)
+            else if (value == SelectInterrupt::kCloseRequest)
             {
                 pollResult = PollResultType::CloseRequest;
             }
@@ -366,10 +365,7 @@ namespace ix
         const OnProgressCallback& onProgressCallback,
         const CancellationRequest& isCancellationRequested)
     {
-        if (_readBuffer.empty())
-        {
-            _readBuffer.resize(kChunkSize);
-        }
+        std::array<uint8_t, 1 << 14> readBuffer;
 
         std::vector<uint8_t> output;
         while (output.size() != length)
@@ -380,12 +376,12 @@ namespace ix
                 return std::make_pair(false, errorMsg);
             }
 
-            size_t size = std::min(kChunkSize, length - output.size());
-            ssize_t ret = recv((char*) &_readBuffer[0], size);
+            size_t size = std::min(readBuffer.size(), length - output.size());
+            ssize_t ret = recv((char*) &readBuffer[0], size);
 
             if (ret > 0)
             {
-                output.insert(output.end(), _readBuffer.begin(), _readBuffer.begin() + ret);
+                output.insert(output.end(), readBuffer.begin(), readBuffer.begin() + ret);
             }
             else if (ret <= 0 && !Socket::isWaitNeeded())
             {

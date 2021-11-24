@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <iostream>
 #include <ixwebsocket/IXNetSystem.h>
+#include <ixwebsocket/IXUuid.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <mutex>
 #include <random>
@@ -84,36 +85,37 @@ namespace ix
 
     bool startWebSocketEchoServer(ix::WebSocketServer& server)
     {
-        server.setOnConnectionCallback([&server](std::shared_ptr<ix::WebSocket> webSocket,
-                                                 std::shared_ptr<ConnectionState> connectionState) {
-            webSocket->setOnMessageCallback(
-                [webSocket, connectionState, &server](const ix::WebSocketMessagePtr& msg) {
-                    if (msg->type == ix::WebSocketMessageType::Open)
+        server.setOnClientMessageCallback(
+            [&server](std::shared_ptr<ConnectionState> connectionState,
+                      WebSocket& webSocket,
+                      const ix::WebSocketMessagePtr& msg) {
+                auto remoteIp = connectionState->getRemoteIp();
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    TLogger() << "New connection";
+                    TLogger() << "Remote ip: " << remoteIp;
+                    TLogger() << "Uri: " << msg->openInfo.uri;
+                    TLogger() << "Headers:";
+                    for (auto it : msg->openInfo.headers)
                     {
-                        TLogger() << "New connection";
-                        TLogger() << "Uri: " << msg->openInfo.uri;
-                        TLogger() << "Headers:";
-                        for (auto it : msg->openInfo.headers)
+                        TLogger() << it.first << ": " << it.second;
+                    }
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    TLogger() << "Closed connection";
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    for (auto&& client : server.getClients())
+                    {
+                        if (client.get() != &webSocket)
                         {
-                            TLogger() << it.first << ": " << it.second;
+                            client->send(msg->str, msg->binary);
                         }
                     }
-                    else if (msg->type == ix::WebSocketMessageType::Close)
-                    {
-                        TLogger() << "Closed connection";
-                    }
-                    else if (msg->type == ix::WebSocketMessageType::Message)
-                    {
-                        for (auto&& client : server.getClients())
-                        {
-                            if (client != webSocket)
-                            {
-                                client->send(msg->str, msg->binary);
-                            }
-                        }
-                    }
-                });
-        });
+                }
+            });
 
         auto res = server.listen();
         if (!res.first)
@@ -137,8 +139,9 @@ namespace ix
         std::streamoff size = file.tellg();
         file.seekg(0, file.beg);
 
-        memblock.resize((size_t) size);
-        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
+        memblock.reserve((size_t) size);
+        memblock.insert(
+            memblock.begin(), std::istream_iterator<char>(file), std::istream_iterator<char>());
 
         return memblock;
     }
@@ -201,45 +204,5 @@ namespace ix
         scheme = "ws://";
 #endif
         return scheme;
-    }
-
-    snake::AppConfig makeSnakeServerConfig(int port, bool preferTLS)
-    {
-        snake::AppConfig appConfig;
-        appConfig.port = port;
-        appConfig.hostname = "127.0.0.1";
-        appConfig.verbose = true;
-        appConfig.redisPort = getFreePort();
-        appConfig.redisPassword = "";
-        appConfig.redisHosts.push_back("localhost"); // only one host supported now
-        appConfig.socketTLSOptions = makeServerTLSOptions(preferTLS);
-
-        std::string appsConfigPath("appsConfig.json");
-
-        // Parse config file
-        auto str = readAsString(appsConfigPath);
-        if (str.empty())
-        {
-            std::cout << "Cannot read content of " << appsConfigPath << std::endl;
-            return appConfig;
-        }
-
-        std::cout << str << std::endl;
-        auto apps = nlohmann::json::parse(str);
-        appConfig.apps = apps["apps"];
-
-        // Display config on the terminal for debugging
-        dumpConfig(appConfig);
-
-        return appConfig;
-    }
-
-    std::string makeCobraEndpoint(int port, bool preferTLS)
-    {
-        std::stringstream ss;
-        ss << getWsScheme(preferTLS) << "localhost:" << port;
-        std::string endpoint = ss.str();
-
-        return endpoint;
     }
 } // namespace ix

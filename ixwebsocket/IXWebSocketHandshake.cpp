@@ -8,6 +8,7 @@
 
 #include "IXHttp.h"
 #include "IXSocketConnect.h"
+#include "IXStrCaseCompare.h"
 #include "IXUrlParser.h"
 #include "IXUserAgent.h"
 #include "IXWebSocketHandshakeKeyGen.h"
@@ -35,9 +36,7 @@ namespace ix
 
     bool WebSocketHandshake::insensitiveStringCompare(const std::string& a, const std::string& b)
     {
-        return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](char a, char b) {
-            return tolower(a) == tolower(b);
-        });
+        return CaseInsensitiveLess::cmp(a, b) == 0;
     }
 
     std::string WebSocketHandshake::genRandomString(const int len)
@@ -170,17 +169,8 @@ namespace ix
         {
             std::stringstream ss;
             ss << "Expecting HTTP/1.1, got " << httpVersion << ". "
-               << "Rejecting connection to " << host << ":" << port << ", status: " << status
+               << "Rejecting connection to " << url << ", status: " << status
                << ", HTTP Status line: " << line;
-            return WebSocketInitResult(false, status, ss.str());
-        }
-
-        // We want an 101 HTTP status
-        if (status != 101)
-        {
-            std::stringstream ss;
-            ss << "Expecting status 101 (Switching Protocol), got " << status
-               << " status connecting to " << host << ":" << port << ", HTTP Status line: " << line;
             return WebSocketInitResult(false, status, ss.str());
         }
 
@@ -193,6 +183,17 @@ namespace ix
             return WebSocketInitResult(false, status, "Error parsing HTTP headers");
         }
 
+        // We want an 101 HTTP status for websocket, otherwise it could be
+        // a redirection (like 301)
+        if (status != 101)
+        {
+            std::stringstream ss;
+            ss << "Expecting status 101 (Switching Protocol), got " << status
+               << " status connecting to " << url << ", HTTP Status line: " << line;
+
+            return WebSocketInitResult(false, status, ss.str(), headers, path);
+        }
+
         // Check the presence of the connection field
         if (headers.find("connection") == headers.end())
         {
@@ -203,6 +204,9 @@ namespace ix
         // Check the value of the connection field
         // Some websocket servers (Go/Gorilla?) send lowercase values for the
         // connection header, so do a case insensitive comparison
+        //
+        // See https://github.com/apache/thrift/commit/7c4bdf9914fcba6c89e0f69ae48b9675578f084a
+        //
         if (!insensitiveStringCompare(headers["connection"], "Upgrade"))
         {
             std::stringstream ss;
@@ -240,7 +244,8 @@ namespace ix
         return WebSocketInitResult(true, status, "", headers, path);
     }
 
-    WebSocketInitResult WebSocketHandshake::serverHandshake(int timeoutSecs)
+    WebSocketInitResult WebSocketHandshake::serverHandshake(int timeoutSecs,
+                                                            bool enablePerMessageDeflate)
     {
         _requestInitCancellation = false;
 
@@ -294,7 +299,8 @@ namespace ix
             return sendErrorResponse(400, "Missing Upgrade header");
         }
 
-        if (!insensitiveStringCompare(headers["upgrade"], "WebSocket"))
+        if (!insensitiveStringCompare(headers["upgrade"], "WebSocket") &&
+            headers["Upgrade"] != "keep-alive, Upgrade") // special case for firefox
         {
             return sendErrorResponse(400,
                                      "Invalid Upgrade header, "
@@ -337,7 +343,7 @@ namespace ix
         WebSocketPerMessageDeflateOptions webSocketPerMessageDeflateOptions(header);
 
         // If the client has requested that extension,
-        if (webSocketPerMessageDeflateOptions.enabled())
+        if (webSocketPerMessageDeflateOptions.enabled() && enablePerMessageDeflate)
         {
             _enablePerMessageDeflate = true;
 

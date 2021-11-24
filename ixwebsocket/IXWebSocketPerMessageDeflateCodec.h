@@ -6,9 +6,12 @@
 
 #pragma once
 
+#ifdef IXWEBSOCKET_USE_ZLIB
 #include "zlib.h"
-#include <memory>
+#endif
+#include <array>
 #include <string>
+#include <vector>
 
 namespace ix
 {
@@ -20,14 +23,22 @@ namespace ix
 
         bool init(uint8_t deflateBits, bool clientNoContextTakeOver);
         bool compress(const std::string& in, std::string& out);
+        bool compress(const std::string& in, std::vector<uint8_t>& out);
+        bool compress(const std::vector<uint8_t>& in, std::string& out);
+        bool compress(const std::vector<uint8_t>& in, std::vector<uint8_t>& out);
 
     private:
-        static bool endsWith(const std::string& value, const std::string& ending);
+        template<typename T, typename S>
+        bool compressData(const T& in, S& out);
+        template<typename T>
+        bool endsWithEmptyUnCompressedBlock(const T& value);
 
         int _flush;
-        size_t _compressBufferSize;
-        std::unique_ptr<unsigned char[]> _compressBuffer;
+        std::array<unsigned char, 1 << 14> _compressBuffer;
+
+#ifdef IXWEBSOCKET_USE_ZLIB
         z_stream _deflateState;
+#endif
     };
 
     class WebSocketPerMessageDeflateDecompressor
@@ -41,9 +52,11 @@ namespace ix
 
     private:
         int _flush;
-        size_t _compressBufferSize;
-        std::unique_ptr<unsigned char[]> _compressBuffer;
+        std::array<unsigned char, 1 << 14> _compressBuffer;
+
+#ifdef IXWEBSOCKET_USE_ZLIB
         z_stream _inflateState;
+#endif
     };
 
 } // namespace ix

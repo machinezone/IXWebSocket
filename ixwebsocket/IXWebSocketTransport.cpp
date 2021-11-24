@@ -36,6 +36,7 @@
 
 #include "IXSocketFactory.h"
 #include "IXSocketTLSOptions.h"
+#include "IXUniquePtr.h"
 #include "IXUrlParser.h"
 #include "IXUtf8Validator.h"
 #include "IXWebSocketHandshake.h"
@@ -65,7 +66,6 @@ namespace ix
         , _receivedMessageCompressed(false)
         , _readyState(ReadyState::CLOSED)
         , _closeCode(WebSocketCloseConstants::kInternalErrorCode)
-        , _closeReason(WebSocketCloseConstants::kInternalErrorMessage)
         , _closeWireSize(0)
         , _closeRemote(false)
         , _enablePerMessageDeflate(false)
@@ -77,6 +77,7 @@ namespace ix
         , _pingCount(0)
         , _lastSendPingTimePoint(std::chrono::steady_clock::now())
     {
+        setCloseReason(WebSocketCloseConstants::kInternalErrorMessage);
         _readbuf.resize(kChunkSize);
     }
 
@@ -107,42 +108,69 @@ namespace ix
 
         std::string protocol, host, path, query;
         int port;
+        std::string remoteUrl(url);
 
-        if (!UrlParser::parse(url, protocol, host, path, query, port))
+        WebSocketInitResult result;
+        const int maxRedirections = 10;
+
+        for (int i = 0; i < maxRedirections; ++i)
         {
-            std::stringstream ss;
-            ss << "Could not parse url: '" << url << "'";
-            return WebSocketInitResult(false, 0, ss.str());
+            if (!UrlParser::parse(remoteUrl, protocol, host, path, query, port))
+            {
+                std::stringstream ss;
+                ss << "Could not parse url: '" << url << "'";
+                return WebSocketInitResult(false, 0, ss.str());
+            }
+
+            std::string errorMsg;
+            bool tls = protocol == "wss";
+            _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions);
+            _perMessageDeflate = ix::make_unique<WebSocketPerMessageDeflate>();
+
+            if (!_socket)
+            {
+                return WebSocketInitResult(false, 0, errorMsg);
+            }
+
+            WebSocketHandshake webSocketHandshake(_requestInitCancellation,
+                                                  _socket,
+                                                  _perMessageDeflate,
+                                                  _perMessageDeflateOptions,
+                                                  _enablePerMessageDeflate);
+
+            result = webSocketHandshake.clientHandshake(
+                remoteUrl, headers, host, path, port, timeoutSecs);
+
+            if (result.http_status >= 300 && result.http_status < 400)
+            {
+                auto it = result.headers.find("Location");
+                if (it == result.headers.end())
+                {
+                    std::stringstream ss;
+                    ss << "Missing Location Header for HTTP Redirect response. "
+                       << "Rejecting connection to " << url << ", status: " << result.http_status;
+                    result.errorStr = ss.str();
+                    break;
+                }
+
+                remoteUrl = it->second;
+                continue;
+            }
+
+            if (result.success)
+            {
+                setReadyState(ReadyState::OPEN);
+            }
+            return result;
         }
 
-        std::string errorMsg;
-        bool tls = protocol == "wss";
-        _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions);
-        _perMessageDeflate = std::make_unique<WebSocketPerMessageDeflate>();
-
-        if (!_socket)
-        {
-            return WebSocketInitResult(false, 0, errorMsg);
-        }
-
-        WebSocketHandshake webSocketHandshake(_requestInitCancellation,
-                                              _socket,
-                                              _perMessageDeflate,
-                                              _perMessageDeflateOptions,
-                                              _enablePerMessageDeflate);
-
-        auto result =
-            webSocketHandshake.clientHandshake(url, headers, host, path, port, timeoutSecs);
-        if (result.success)
-        {
-            setReadyState(ReadyState::OPEN);
-        }
         return result;
     }
 
     // Server
     WebSocketInitResult WebSocketTransport::connectToSocket(std::unique_ptr<Socket> socket,
-                                                            int timeoutSecs)
+                                                            int timeoutSecs,
+                                                            bool enablePerMessageDeflate)
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
@@ -151,7 +179,7 @@ namespace ix
         _blockingSend = true;
 
         _socket = std::move(socket);
-        _perMessageDeflate = std::make_unique<WebSocketPerMessageDeflate>();
+        _perMessageDeflate = ix::make_unique<WebSocketPerMessageDeflate>();
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,
                                               _socket,
@@ -159,7 +187,7 @@ namespace ix
                                               _perMessageDeflateOptions,
                                               _enablePerMessageDeflate);
 
-        auto result = webSocketHandshake.serverHandshake(timeoutSecs);
+        auto result = webSocketHandshake.serverHandshake(timeoutSecs, enablePerMessageDeflate);
         if (result.success)
         {
             setReadyState(ReadyState::OPEN);
@@ -179,10 +207,12 @@ namespace ix
 
         if (readyState == ReadyState::CLOSED)
         {
-            std::lock_guard<std::mutex> lock(_closeDataMutex);
-            _onCloseCallback(_closeCode, _closeReason, _closeWireSize, _closeRemote);
+            if (_onCloseCallback)
+            {
+                _onCloseCallback(_closeCode, getCloseReason(), _closeWireSize, _closeRemote);
+            }
+            setCloseReason(WebSocketCloseConstants::kInternalErrorMessage);
             _closeCode = WebSocketCloseConstants::kInternalErrorCode;
-            _closeReason = WebSocketCloseConstants::kInternalErrorMessage;
             _closeWireSize = 0;
             _closeRemote = false;
         }
@@ -261,9 +291,10 @@ namespace ix
         {
             // compute lasting delay to wait for next ping / timeout, if at least one set
             auto now = std::chrono::steady_clock::now();
-            lastingTimeoutDelayInMs = (int) std::chrono::duration_cast<std::chrono::milliseconds>(
+            int timeSinceLastPingMs = (int) std::chrono::duration_cast<std::chrono::milliseconds>(
                                           now - _lastSendPingTimePoint)
                                           .count();
+            lastingTimeoutDelayInMs = (1000 * _pingIntervalSecs) - timeSinceLastPingMs;
         }
 
 #ifdef _WIN32
@@ -326,9 +357,10 @@ namespace ix
         return _txbuf.empty();
     }
 
+    template<class Iterator>
     void WebSocketTransport::appendToSendBuffer(const std::vector<uint8_t>& header,
-                                                std::string::const_iterator begin,
-                                                std::string::const_iterator end,
+                                                Iterator begin,
+                                                Iterator end,
                                                 uint64_t message_size,
                                                 uint8_t masking_key[4])
     {
@@ -629,7 +661,7 @@ namespace ix
                     // send back the CLOSE frame
                     sendCloseFrame(code, reason);
 
-                    wakeUpFromPoll(Socket::kCloseRequest);
+                    wakeUpFromPoll(SelectInterrupt::kCloseRequest);
 
                     bool remote = true;
                     closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
@@ -638,11 +670,7 @@ namespace ix
                 {
                     // we got the CLOSE frame answer from our close, so we can close the connection
                     // if the code/reason are the same
-                    bool identicalReason;
-                    {
-                        std::lock_guard<std::mutex> lock(_closeDataMutex);
-                        identicalReason = _closeCode == code && _closeReason == reason;
-                    }
+                    bool identicalReason = _closeCode == code && getCloseReason() == reason;
 
                     if (identicalReason)
                     {
@@ -750,8 +778,9 @@ namespace ix
         return static_cast<unsigned>(seconds);
     }
 
+    template<class T>
     WebSocketSendInfo WebSocketTransport::sendData(wsheader_type::opcode_type type,
-                                                   const std::string& message,
+                                                   const T& message,
                                                    bool compress,
                                                    const OnProgressCallback& onProgressCallback)
     {
@@ -764,8 +793,8 @@ namespace ix
         size_t wireSize = message.size();
         bool compressionError = false;
 
-        std::string::const_iterator message_begin = message.begin();
-        std::string::const_iterator message_end = message.end();
+        auto message_begin = message.cbegin();
+        auto message_end = message.cend();
 
         if (compress)
         {
@@ -780,8 +809,8 @@ namespace ix
             compressionError = false;
             wireSize = _compressedMessage.size();
 
-            message_begin = _compressedMessage.begin();
-            message_end = _compressedMessage.end();
+            message_begin = _compressedMessage.cbegin();
+            message_end = _compressedMessage.cend();
         }
 
         {
@@ -795,6 +824,11 @@ namespace ix
         if (wireSize < kChunkSize)
         {
             success = sendFragment(type, true, message_begin, message_end, compress);
+
+            if (onProgressCallback)
+            {
+                onProgressCallback(0, 1);
+            }
         }
         else
         {
@@ -847,7 +881,7 @@ namespace ix
         // Request to flush the send buffer on the background thread if it isn't empty
         if (!isSendBufferEmpty())
         {
-            wakeUpFromPoll(Socket::kSendRequest);
+            wakeUpFromPoll(SelectInterrupt::kSendRequest);
 
             // FIXME: we should have a timeout when sending large messages: see #131
             if (_blockingSend && !flushSendBuffer())
@@ -859,10 +893,11 @@ namespace ix
         return WebSocketSendInfo(success, compressionError, payloadSize, wireSize);
     }
 
+    template<class Iterator>
     bool WebSocketTransport::sendFragment(wsheader_type::opcode_type type,
                                           bool fin,
-                                          std::string::const_iterator message_begin,
-                                          std::string::const_iterator message_end,
+                                          Iterator message_begin,
+                                          Iterator message_end,
                                           bool compress)
     {
         uint64_t message_size = static_cast<uint64_t>(message_end - message_begin);
@@ -1055,7 +1090,7 @@ namespace ix
         else
         {
             // no close code/reason set
-            sendData(wsheader_type::CLOSE, "", compress);
+            sendData(wsheader_type::CLOSE, std::string(""), compress);
         }
     }
 
@@ -1078,13 +1113,10 @@ namespace ix
     {
         closeSocket();
 
-        {
-            std::lock_guard<std::mutex> lock(_closeDataMutex);
-            _closeCode = code;
-            _closeReason = reason;
-            _closeWireSize = closeWireSize;
-            _closeRemote = remote;
-        }
+        setCloseReason(reason);
+        _closeCode = code;
+        _closeWireSize = closeWireSize;
+        _closeRemote = remote;
 
         setReadyState(ReadyState::CLOSED);
         _requestInitCancellation = false;
@@ -1104,13 +1136,11 @@ namespace ix
             closeWireSize = reason.size();
         }
 
-        {
-            std::lock_guard<std::mutex> lock(_closeDataMutex);
-            _closeCode = code;
-            _closeReason = reason;
-            _closeWireSize = closeWireSize;
-            _closeRemote = remote;
-        }
+        setCloseReason(reason);
+        _closeCode = code;
+        _closeWireSize = closeWireSize;
+        _closeRemote = remote;
+
         {
             std::lock_guard<std::mutex> lock(_closingTimePointMutex);
             _closingTimePoint = std::chrono::steady_clock::now();
@@ -1120,7 +1150,7 @@ namespace ix
         sendCloseFrame(code, reason);
 
         // wake up the poll, but do not close yet
-        wakeUpFromPoll(Socket::kSendRequest);
+        wakeUpFromPoll(SelectInterrupt::kSendRequest);
     }
 
     size_t WebSocketTransport::bufferedAmount() const
@@ -1155,4 +1185,15 @@ namespace ix
         return true;
     }
 
+    void WebSocketTransport::setCloseReason(const std::string& reason)
+    {
+        std::lock_guard<std::mutex> lock(_closeReasonMutex);
+        _closeReason = reason;
+    }
+
+    const std::string& WebSocketTransport::getCloseReason() const
+    {
+        std::lock_guard<std::mutex> lock(_closeReasonMutex);
+        return _closeReason;
+    }
 } // namespace ix

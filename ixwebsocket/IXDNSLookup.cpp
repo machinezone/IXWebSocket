@@ -24,6 +24,12 @@
 #include <string.h>
 #include <thread>
 
+// mingw build quirks
+#if defined(_WIN32) && defined(__GNUC__)
+#define AI_NUMERICSERV NI_NUMERICSERV
+#define AI_ADDRCONFIG LUP_ADDRCONFIG
+#endif
+
 namespace ix
 {
     const int64_t DNSLookup::kDefaultWait = 1; // ms
@@ -66,6 +72,11 @@ namespace ix
     {
         return cancellable ? resolveCancellable(errMsg, isCancellationRequested)
                            : resolveUnCancellable(errMsg, isCancellationRequested);
+    }
+
+    void DNSLookup::release(struct addrinfo* addr)
+    {
+        freeaddrinfo(addr);
     }
 
     struct addrinfo* DNSLookup::resolveUnCancellable(
