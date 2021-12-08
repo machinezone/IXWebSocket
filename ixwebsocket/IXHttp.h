@@ -8,6 +8,7 @@
 
 #include "IXProgressCallback.h"
 #include "IXWebSocketHttpHeaders.h"
+#include <atomic>
 #include <tuple>
 #include <unordered_map>
 
@@ -30,6 +31,7 @@ namespace ix
         TooManyRedirects = 12,
         ChunkReadError = 13,
         CannotReadBody = 14,
+        Cancelled = 15,
         Invalid = 100
     };
 
@@ -87,6 +89,7 @@ namespace ix
         bool compressRequest = false;
         Logger logger;
         OnProgressCallback onProgressCallback;
+        std::atomic<bool> cancel;
     };
 
     using HttpRequestArgsPtr = std::shared_ptr<HttpRequestArgs>;

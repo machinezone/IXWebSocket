@@ -221,4 +221,57 @@ TEST_CASE("http_client", "[http]")
         REQUIRE(statusCode1 == 200);
         REQUIRE(statusCode2 == 200);
     }
+
+    SECTION("Async API, cancel")
+    {
+        bool async = true;
+        HttpClient httpClient(async);
+        WebSocketHttpHeaders headers;
+
+        SocketTLSOptions tlsOptions;
+        tlsOptions.caFile = "cacert.pem";
+        httpClient.setTLSOptions(tlsOptions);
+
+        std::string url("http://httpbin.org/delay/10");
+        auto args = httpClient.createRequest(url);
+
+        args->extraHeaders = headers;
+        args->connectTimeout = 60;
+        args->transferTimeout = 60;
+        args->followRedirects = true;
+        args->maxRedirects = 10;
+        args->verbose = true;
+        args->compress = true;
+        args->logger = [](const std::string& msg) { std::cout << msg; };
+        args->onProgressCallback = [](int current, int total) -> bool {
+            std::cerr << "\r"
+                      << "Downloaded " << current << " bytes out of " << total;
+            return true;
+        };
+
+        std::atomic<bool> requestCompleted(false);
+        std::atomic<HttpErrorCode> errorCode(HttpErrorCode::Invalid);
+
+        httpClient.performRequest(
+            args, [&requestCompleted, &errorCode](const HttpResponsePtr& response) {
+                errorCode = response->errorCode;
+                requestCompleted = true;
+            });
+
+        // cancel immediately
+        args->cancel = true;
+
+        int wait = 0;
+        while (wait < 5000)
+        {
+            if (requestCompleted) break;
+
+            std::chrono::duration<double, std::milli> duration(10);
+            std::this_thread::sleep_for(duration);
+            wait += 10;
+        }
+
+        std::cerr << "Done" << std::endl;
+        REQUIRE(errorCode == HttpErrorCode::Cancelled);
+    }
 }
