@@ -141,9 +141,9 @@ webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
         {
             std::stringstream ss;
             ss << "Error: "         << msg->errorInfo.reason      << std::endl;
-            ss << "#retries: "      << msg->eventInfo.retries     << std::endl;
-            ss << "Wait time(ms): " << msg->eventInfo.wait_time   << std::endl;
-            ss << "HTTP Status: "   << msg->eventInfo.http_status << std::endl;
+            ss << "#retries: "      << msg->errorInfo.retries     << std::endl;
+            ss << "Wait time(ms): " << msg->errorInfo.wait_time   << std::endl;
+            ss << "HTTP Status: "   << msg->errorInfo.http_status << std::endl;
             std::cout << ss.str() << std::endl;
         }
     }
