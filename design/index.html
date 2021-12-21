@@ -128,13 +128,6 @@
 <p>The library has an interactive tool which is handy for testing compatibility ith other libraries. We have tested our client against Python, Erlang, Node.js, and C++ websocket server libraries.</p>
 <p>The unittest tries to be comprehensive, and has been running on multiple platforms, with different sanitizers such as a thread sanitizer to catch data races or the undefined behavior sanitizer.</p>
 <p>The regression test is running after each commit on github actions for multiple configurations.</p>
-<ul>
-<li>Linux</li>
-<li>macOS with thread sanitizer</li>
-<li>macOS, with OpenSSL, with thread sanitizer</li>
-<li>macOS, with MbedTLS, with thread sanitizer</li>
-<li>Windows, with MbedTLS (the unittest is not run yet)</li>
-</ul>
 <h2 id="limitations">Limitations</h2>
 <ul>
 <li>On some configuration (mostly Android) certificate validation needs to be setup so that SocketTLSOptions.caFile point to a pem file, such as the one distributed by Firefox. Unless that setup is done connecting to a wss endpoint will display an error. With mbedtls the message will contain <code>error in handshake : X509 - Certificate verification failed, e.g. CRL, CA or signature check failed</code>.</li>

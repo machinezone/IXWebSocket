@@ -249,9 +249,9 @@ webSocket.stop()
         {
             std::stringstream ss;
             ss &lt;&lt; &quot;Error: &quot;         &lt;&lt; msg-&gt;errorInfo.reason      &lt;&lt; std::endl;
-            ss &lt;&lt; &quot;#retries: &quot;      &lt;&lt; msg-&gt;eventInfo.retries     &lt;&lt; std::endl;
-            ss &lt;&lt; &quot;Wait time(ms): &quot; &lt;&lt; msg-&gt;eventInfo.wait_time   &lt;&lt; std::endl;
-            ss &lt;&lt; &quot;HTTP Status: &quot;   &lt;&lt; msg-&gt;eventInfo.http_status &lt;&lt; std::endl;
+            ss &lt;&lt; &quot;#retries: &quot;      &lt;&lt; msg-&gt;errorInfo.retries     &lt;&lt; std::endl;
+            ss &lt;&lt; &quot;Wait time(ms): &quot; &lt;&lt; msg-&gt;errorInfo.wait_time   &lt;&lt; std::endl;
+            ss &lt;&lt; &quot;HTTP Status: &quot;   &lt;&lt; msg-&gt;errorInfo.http_status &lt;&lt; std::endl;
             std::cout &lt;&lt; ss.str() &lt;&lt; std::endl;
         }
     }

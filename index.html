@@ -93,17 +93,12 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="2"><a href="#introduction" class="nav-link">Introduction</a>
+            <li class="nav-item" data-level="2"><a href="#hello-world" class="nav-link">Hello world</a>
               <ul class="nav flex-column">
               </ul>
             </li>
             
-            <li class="nav-item" data-level="2"><a href="#example-code" class="nav-link">Example code</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            
-            <li class="nav-item" data-level="2"><a href="#why-another-library" class="nav-link">Why another library?</a>
+            <li class="nav-item" data-level="2"><a href="#users" class="nav-link">Users</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -113,7 +108,7 @@
               </ul>
             </li>
             
-            <li class="nav-item" data-level="2"><a href="#contributing" class="nav-link">Contributing</a>
+            <li class="nav-item" data-level="2"><a href="#continuous-integration" class="nav-link">Continuous Integration</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -122,51 +117,103 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h2 id="introduction">Introduction</h2>
-<p><a href="https://en.wikipedia.org/wiki/WebSocket"><em>WebSocket</em></a> is a computer communications protocol, providing full-duplex and bi-directionnal communication channels over a single TCP connection. <em>IXWebSocket</em> is a C++ library for client and server Websocket communication, and for client and server HTTP communication. <em>TLS</em> aka <em>SSL</em> is supported. The code is derived from <a href="https://github.com/dhbaird/easywsclient">easywsclient</a> and from the <a href="https://github.com/satori-com/satori-rtm-sdk-c">Satori C SDK</a>. It has been tested on the following platforms.</p>
-<ul>
-<li>macOS</li>
-<li>iOS</li>
-<li>Linux</li>
-<li>Android</li>
-<li>Windows</li>
-<li>FreeBSD</li>
-</ul>
-<h2 id="example-code">Example code</h2>
-<pre><code class="language-c++">// Required on Windows
-ix::initNetSystem();
+<h2 id="hello-world">Hello world</h2>
+<p>IXWebSocket is a C++ library for WebSocket client and server development. It has minimal dependencies (no boost), is very simple to use and support everything you'll likely need for websocket dev (SSL, deflate compression, compiles on most platforms, etc...). HTTP client and server code is also available, but it hasn't received as much testing.</p>
+<p>It is been used on big mobile video game titles sending and receiving tons of messages since 2017 (iOS and Android). It was tested on macOS, iOS, Linux, Android, Windows and FreeBSD. Note that the MinGW compiler is not supported at this point. Two important design goals are simplicity and correctness.</p>
+<p>A bad security bug affecting users compiling with SSL enabled and OpenSSL as the backend was just fixed in newly released version 11.0.0. Please upgrade ! (more details in the <a href="PR">https://github.com/machinezone/IXWebSocket/pull/250</a>.</p>
+<pre><code class="language-cpp">/*
+ *  main.cpp
+ *  Author: Benjamin Sergeant
+ *  Copyright (c) 2020 Machine Zone, Inc. All rights reserved.
+ *
+ *  Super simple standalone example. See ws folder, unittest and doc/usage.md for more.
+ *
+ *  On macOS
+ *  $ mkdir -p build ; (cd build ; cmake -DUSE_TLS=1 .. ; make -j ; make install)
+ *  $ clang++ --std=c++11 --stdlib=libc++ main.cpp -lixwebsocket -lz -framework Security -framework Foundation
+ *  $ ./a.out
+ *
+ *  Or use cmake -DBUILD_DEMO=ON option for other platforms
+ */
 
-// Our websocket object
-ix::WebSocket webSocket;
+#include &lt;ixwebsocket/IXNetSystem.h&gt;
+#include &lt;ixwebsocket/IXWebSocket.h&gt;
+#include &lt;ixwebsocket/IXUserAgent.h&gt;
+#include &lt;iostream&gt;
 
-std::string url(&quot;ws://localhost:8080/&quot;);
-webSocket.setUrl(url);
+int main()
+{
+    // Required on Windows
+    ix::initNetSystem();
 
-// Setup a callback to be fired when a message or an event (open, close, error) is received
-webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
-    {
-        if (msg-&gt;type == ix::WebSocketMessageType::Message)
+    // Our websocket object
+    ix::WebSocket webSocket;
+
+    // Connect to a server with encryption
+    // See https://machinezone.github.io/IXWebSocket/usage/#tls-support-and-configuration
+    std::string url(&quot;wss://echo.websocket.org&quot;);
+    webSocket.setUrl(url);
+
+    std::cout &lt;&lt; &quot;Connecting to &quot; &lt;&lt; url &lt;&lt; &quot;...&quot; &lt;&lt; std::endl;
+
+    // Setup a callback to be fired (in a background thread, watch out for race conditions !)
+    // when a message or an event (open, close, error) is received
+    webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
         {
-            std::cout &lt;&lt; msg-&gt;str &lt;&lt; std::endl;
+            if (msg-&gt;type == ix::WebSocketMessageType::Message)
+            {
+                std::cout &lt;&lt; &quot;received message: &quot; &lt;&lt; msg-&gt;str &lt;&lt; std::endl;
+                std::cout &lt;&lt; &quot;&gt; &quot; &lt;&lt; std::flush;
+            }
+            else if (msg-&gt;type == ix::WebSocketMessageType::Open)
+            {
+                std::cout &lt;&lt; &quot;Connection established&quot; &lt;&lt; std::endl;
+                std::cout &lt;&lt; &quot;&gt; &quot; &lt;&lt; std::flush;
+            }
+            else if (msg-&gt;type == ix::WebSocketMessageType::Error)
+            {
+                // Maybe SSL is not configured properly
+                std::cout &lt;&lt; &quot;Connection error: &quot; &lt;&lt; msg-&gt;errorInfo.reason &lt;&lt; std::endl;
+                std::cout &lt;&lt; &quot;&gt; &quot; &lt;&lt; std::flush;
+            }
         }
+    );
+
+    // Now that our callback is setup, we can start our background thread and receive messages
+    webSocket.start();
+
+    // Send a message to the server (default to TEXT mode)
+    webSocket.send(&quot;hello world&quot;);
+
+    // Display a prompt
+    std::cout &lt;&lt; &quot;&gt; &quot; &lt;&lt; std::flush;
+
+    std::string text;
+    // Read text from the console and send messages in text mode.
+    // Exit with Ctrl-D on Unix or Ctrl-Z on Windows.
+    while (std::getline(std::cin, text))
+    {
+        webSocket.send(text);
+        std::cout &lt;&lt; &quot;&gt; &quot; &lt;&lt; std::flush;
     }
-);
 
-// Now that our callback is setup, we can start our background thread and receive messages
-webSocket.start();
-
-// Send a message to the server (default to TEXT mode)
-webSocket.send(&quot;hello world&quot;);
+    return 0;
+}
 </code></pre>
-<h2 id="why-another-library">Why another library?</h2>
-<p>There are 2 main reasons that explain why IXWebSocket got written. First, we needed a C++ cross-platform client library, which should have few dependencies. What looked like the most solid one, <a href="https://github.com/zaphoyd/websocketpp">websocketpp</a> did depend on boost and this was not an option for us. Secondly, there were other available libraries with fewer dependencies (C ones), but they required calling an explicit poll routine periodically to know if a client had received data from a server, which was not elegant.</p>
-<p>We started by solving those 2 problems, then we added server websocket code, then an HTTP client, and finally a very simple HTTP server. IXWebSocket comes with a command line utility named ws which is quite handy, and is now packaged with alpine linux. You can install it with <code>apk add ws</code>.</p>
+<p>Interested? Go read the <a href="https://machinezone.github.io/IXWebSocket/">docs</a>! If things don't work as expected, please create an issue on GitHub, or even better a pull request if you know how to fix your problem.</p>
+<p>IXWebSocket is actively being developed, check out the <a href="https://machinezone.github.io/IXWebSocket/CHANGELOG/">changelog</a> to know what's cooking. If you are looking for a real time messaging service (the chat-like 'server' your websocket code will talk to) with many features such as history, backed by Redis, look at <a href="https://github.com/machinezone/cobra">cobra</a>.</p>
+<p>IXWebSocket client code is autobahn compliant beginning with the 6.0.0 version. See the current <a href="https://bsergean.github.io/autobahn/reports/clients/index.html">test results</a>. Some tests are still failing in the server code.</p>
+<p>Starting with the 11.0.8 release, IXWebSocket should be fully C++11 compatible.</p>
+<h2 id="users">Users</h2>
+<p>If your company or project is using this library, feel free to open an issue or PR to amend this list.</p>
 <ul>
-<li>Few dependencies (only zlib)</li>
-<li>Simple to use ; uses std::string and std::function callbacks.</li>
-<li>Complete support of the websocket protocol, and basic http support.</li>
-<li>Client and Server</li>
-<li>TLS support</li>
+<li><a href="https://www.mz.com">Machine Zone</a></li>
+<li><a href="https://gitlab.com/HCInk/tokio">Tokio</a>, a discord library focused on audio playback with node bindings.</li>
+<li><a href="https://github.com/tostc/libDiscordBot/tree/master">libDiscordBot</a>, an easy to use Discord-bot framework.</li>
+<li><a href="https://github.com/norrbotten/gwebsocket">gwebsocket</a>, a websocket (lua) module for Garry's Mod</li>
+<li><a href="https://github.com/DisCPP/DisCPP">DisCPP</a>, a simple but feature rich Discord API wrapper</li>
+<li><a href="https://github.com/luccanunes/discord.cpp">discord.cpp</a>, a discord library for making bots</li>
+<li><a href="http://teleportconnect.com/">Teleport</a>, Teleport is your own personal remote robot avatar</li>
 </ul>
 <h2 id="alternative-libraries">Alternative libraries</h2>
 <p>There are plenty of great websocket libraries out there, which might work for you. Here are a couple of serious ones.</p>
@@ -175,9 +222,76 @@ webSocket.send(&quot;hello world&quot;);
 <li><a href="https://github.com/boostorg/beast">beast</a> - C++</li>
 <li><a href="https://libwebsockets.org/">libwebsockets</a> - C</li>
 <li><a href="https://github.com/uNetworking/uWebSockets">µWebSockets</a> - C</li>
+<li><a href="https://github.com/tatsuhiro-t/wslay">wslay</a> - C</li>
 </ul>
-<h2 id="contributing">Contributing</h2>
-<p>IXWebSocket is developed on <a href="https://github.com/machinezone/IXWebSocket">GitHub</a>. We'd love to hear about how you use it; opening up an issue on GitHub is ok for that. If things don't work as expected, please create an issue on GitHub, or even better a pull request if you know how to fix your problem.</p></div>
+<p><a href="https://github.com/bsergean/uvweb">uvweb</a> is a library written by the IXWebSocket author which is built on top of <a href="https://github.com/skypjack/uvw">uvw</a>, which is a C++ wrapper for <a href="https://libuv.org/">libuv</a>. It has more dependencies and does not support SSL at this point, but it can be used to open multiple connections within a single OS thread thanks to libuv.</p>
+<p>To check the performance of a websocket library, you can look at the <a href="https://github.com/bsergean/autoroute">autoroute</a> project.</p>
+<h2 id="continuous-integration">Continuous Integration</h2>
+<table>
+<thead>
+<tr>
+<th>OS</th>
+<th>TLS</th>
+<th>Sanitizer</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux</td>
+<td>OpenSSL</td>
+<td>None</td>
+<td><a href="https://github.com/machinezone/IXWebSocket"><img alt="Build2" src="https://github.com/machinezone/IXWebSocket/workflows/linux/badge.svg" /></a></td>
+</tr>
+<tr>
+<td>macOS</td>
+<td>Secure Transport</td>
+<td>Thread Sanitizer</td>
+<td><a href="https://github.com/machinezone/IXWebSocket"><img alt="Build2" src="https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_sectransport/badge.svg" /></a></td>
+</tr>
+<tr>
+<td>macOS</td>
+<td>OpenSSL</td>
+<td>Thread Sanitizer</td>
+<td><a href="https://github.com/machinezone/IXWebSocket"><img alt="Build2" src="https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_openssl/badge.svg" /></a></td>
+</tr>
+<tr>
+<td>macOS</td>
+<td>MbedTLS</td>
+<td>Thread Sanitizer</td>
+<td><a href="https://github.com/machinezone/IXWebSocket"><img alt="Build2" src="https://github.com/machinezone/IXWebSocket/workflows/mac_tsan_mbedtls/badge.svg" /></a></td>
+</tr>
+<tr>
+<td>Windows</td>
+<td>Disabled</td>
+<td>None</td>
+<td><a href="https://github.com/machinezone/IXWebSocket"><img alt="Build2" src="https://github.com/machinezone/IXWebSocket/workflows/windows/badge.svg" /></a></td>
+</tr>
+<tr>
+<td>UWP</td>
+<td>Disabled</td>
+<td>None</td>
+<td><a href="https://github.com/machinezone/IXWebSocket"><img alt="Build2" src="https://github.com/machinezone/IXWebSocket/workflows/uwp/badge.svg" /></a></td>
+</tr>
+<tr>
+<td>Linux</td>
+<td>OpenSSL</td>
+<td>Address Sanitizer</td>
+<td><a href="https://github.com/machinezone/IXWebSocket"><img alt="Build2" src="https://github.com/machinezone/IXWebSocket/workflows/linux_asan/badge.svg" /></a></td>
+</tr>
+<tr>
+<td>Mingw</td>
+<td>Disabled</td>
+<td>None</td>
+<td><a href="https://github.com/machinezone/IXWebSocket"><img alt="Build2" src="https://github.com/machinezone/IXWebSocket/workflows/unittest_windows_gcc/badge.svg" /></a></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>ASAN fails on Linux because of a known problem, we need a </li>
+<li>Some tests are disabled on Windows/UWP because of a pathing problem</li>
+<li>TLS and ZLIB are disabled on Windows/UWP because enabling make the CI run takes a lot of time, for setting up vcpkg.</li>
+</ul></div>
             </div>
         </div>
 
@@ -258,5 +372,5 @@ webSocket.send(&quot;hello world&quot;);
 
 <!--
 MkDocs version : 1.2.3
-Build Date UTC : 2021-11-24 16:45:35.312497+00:00
+Build Date UTC : 2021-12-21 06:59:43.758298+00:00
 -->
