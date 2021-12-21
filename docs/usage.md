@@ -517,6 +517,9 @@ bool ok = httpClient.performRequest(args, [](const HttpResponsePtr& response)
 );
 
 // ok will be false if your httpClient is not async
+
+// A request in progress can be cancelled by setting the cancel flag. It does nothing if the request already completed.
+args->cancel = true;
 ```
 
 See this [issue](https://github.com/machinezone/IXWebSocket/issues/209) for links about uploading files with HTTP multipart.
