@@ -10,7 +10,7 @@
 #if defined(__linux__) || defined(__APPLE__)
 #include "IXSelectInterruptPipe.h"
 #else
-#include "IXSelectInterrupt.h"
+#include "IXSelectInterruptEvent.h"
 #endif
 
 namespace ix
@@ -20,7 +20,7 @@ namespace ix
 #if defined(__linux__) || defined(__APPLE__)
         return ix::make_unique<SelectInterruptPipe>();
 #else
-        return ix::make_unique<SelectInterrupt>();
+        return ix::make_unique<SelectInterruptEvent>();
 #endif
     }
 } // namespace ix

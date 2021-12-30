@@ -47,6 +47,8 @@ namespace ix
                                 int sockfd,
                                 const SelectInterruptPtr& selectInterrupt)
     {
+        PollResultType pollResult = PollResultType::ReadyForRead;
+
         //
         // We used to use ::select to poll but on Android 9 we get large fds out of
         // ::connect which crash in FD_SET as they are larger than FD_SETSIZE. Switching
@@ -68,9 +70,11 @@ namespace ix
 
         // File descriptor used to interrupt select when needed
         int interruptFd = -1;
+        void* interruptEvent = nullptr;
         if (selectInterrupt)
         {
             interruptFd = selectInterrupt->getFd();
+            interruptEvent = selectInterrupt->getEvent();
 
             if (interruptFd != -1)
             {
@@ -78,11 +82,22 @@ namespace ix
                 fds[1].fd = interruptFd;
                 fds[1].events = POLLIN;
             }
+            else if (interruptEvent == nullptr)
+            {
+                // Emulation mode: SelectInterrupt neither supports file descriptors nor events
+
+                // Check the selectInterrupt for requests before doing the poll().
+                pollResult = readSelectInterruptRequest(selectInterrupt);
+                if (pollResult != PollResultType::ReadyForRead)
+                {
+                    return pollResult;
+                }
+            }
         }
 
-        int ret = ix::poll(fds, nfds, timeoutMs);
+        void* event = interruptEvent; // ix::poll will set event to nullptr if it wasn't signaled
+        int ret = ix::poll(fds, nfds, timeoutMs, &event);
 
-        PollResultType pollResult = PollResultType::ReadyForRead;
         if (ret < 0)
         {
             pollResult = PollResultType::Error;
@@ -90,19 +105,17 @@ namespace ix
         else if (ret == 0)
         {
             pollResult = PollResultType::Timeout;
-        }
-        else if (interruptFd != -1 && fds[1].revents & POLLIN)
-        {
-            uint64_t value = selectInterrupt->read();
+            if (selectInterrupt && interruptFd == -1 && interruptEvent == nullptr)
+            {
+                // Emulation mode: SelectInterrupt neither supports fd nor events
 
-            if (value == SelectInterrupt::kSendRequest)
-            {
-                pollResult = PollResultType::SendRequest;
+                // Check the selectInterrupt for requests
+                pollResult = readSelectInterruptRequest(selectInterrupt);
             }
-            else if (value == SelectInterrupt::kCloseRequest)
-            {
-                pollResult = PollResultType::CloseRequest;
-            }
+        }
+        else if ((interruptFd != -1 && fds[1].revents & POLLIN) || (interruptEvent != nullptr && event != nullptr))
+        {
+            pollResult = readSelectInterruptRequest(selectInterrupt);
         }
         else if (sockfd != -1 && readyToRead && fds[0].revents & POLLIN)
         {
@@ -143,6 +156,22 @@ namespace ix
         return pollResult;
     }
 
+    PollResultType Socket::readSelectInterruptRequest(const SelectInterruptPtr& selectInterrupt)
+    {
+        uint64_t value = selectInterrupt->read();
+
+        if (value == SelectInterrupt::kSendRequest)
+        {
+            return PollResultType::SendRequest;
+        }
+        else if (value == SelectInterrupt::kCloseRequest)
+        {
+            return PollResultType::CloseRequest;
+        }
+
+        return PollResultType::ReadyForRead;
+    }
+
     PollResultType Socket::isReadyToRead(int timeoutMs)
     {
         if (_sockfd == -1)
@@ -169,6 +198,11 @@ namespace ix
     bool Socket::wakeUpFromPoll(uint64_t wakeUpCode)
     {
         return _selectInterrupt->notify(wakeUpCode);
+    }
+
+    bool Socket::isWakeUpFromPollSupported()
+    {
+        return _selectInterrupt->getFd() != -1 || _selectInterrupt->getEvent() != nullptr;
     }
 
     bool Socket::accept(std::string& errMsg)

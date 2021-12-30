@@ -45,4 +45,9 @@ namespace ix
     {
         return -1;
     }
+
+    void* SelectInterrupt::getEvent() const
+    {
+        return nullptr;
+    }
 } // namespace ix

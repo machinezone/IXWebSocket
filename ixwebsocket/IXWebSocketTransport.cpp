@@ -297,13 +297,11 @@ namespace ix
             lastingTimeoutDelayInMs = (1000 * _pingIntervalSecs) - timeSinceLastPingMs;
         }
 
-#ifdef _WIN32
-        // Windows does not have select interrupt capabilities, so wait with a small timeout
-        if (lastingTimeoutDelayInMs <= 0)
+        // The platform may not have select interrupt capabilities, so wait with a small timeout
+        if (lastingTimeoutDelayInMs <= 0 && !_socket->isWakeUpFromPollSupported())
         {
             lastingTimeoutDelayInMs = 20;
         }
-#endif
 
         // If we are requesting a cancellation, pass in a positive and small timeout
         // to never poll forever without a timeout.
