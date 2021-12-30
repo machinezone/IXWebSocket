@@ -65,17 +65,10 @@ namespace ix
         std::lock_guard<std::mutex> lock(_valuesMutex);
         _values.clear();
 #ifdef _WIN32
-        // signal the event if there is still data in the queue
-        if (_values.size() > 0)
-            ResetEvent(_event);
+        ResetEvent(_event);
 #endif
         return true;
     }
-
-    /*int SelectInterruptEvent::getFd() const
-    {
-        return -1;
-    }*/
 
     void* SelectInterruptEvent::getEvent() const
     {
