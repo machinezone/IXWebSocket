@@ -3,8 +3,10 @@
  */
 
 //
-// On Windows we use Events to wake up select. And on any other platform
-// other than Unix we emulate by using a timeout (see )
+// On Windows we use a Windows Event to wake up ix::poll() (WSAWaitForMultipleEvents).
+// And on any other platform that doesn't support pipe file descriptors we
+// emulate the interrupt event by using a short timeout with ix::poll() and
+// read from the SelectInterrupt. (see Socket::poll() "Emulation mode")
 //
 #include "IXSelectInterruptEvent.h"
 
