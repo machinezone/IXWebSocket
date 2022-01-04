@@ -127,9 +127,9 @@ namespace ix
 
                     // mapping
                     long networkEvents = 0;
-                    if (fd->events & (POLLIN                           )) networkEvents |= FD_READ  | FD_ACCEPT;
-                    if (fd->events & (POLLOUT | POLLWRNORM | POLLWRBAND)) networkEvents |= FD_WRITE | FD_CONNECT;
-                    if (fd->events & (POLLPRI | POLLRDBAND             )) networkEvents |= FD_OOB;
+                    if (fd->events & (POLLIN                               )) networkEvents |= FD_READ  | FD_ACCEPT;
+                    if (fd->events & (POLLOUT /*| POLLWRNORM | POLLWRBAND*/)) networkEvents |= FD_WRITE | FD_CONNECT;
+                    //if (fd->events & (POLLPRI | POLLRDBAND               )) networkEvents |= FD_OOB;
 
                     if (WSAEventSelect(fd->fd, handle, networkEvents) != 0)
                     {
