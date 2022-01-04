@@ -84,7 +84,8 @@ namespace ix
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;
 
-        static PollResultType readSelectInterruptRequest(const SelectInterruptPtr& selectInterrupt);
+        static bool readSelectInterruptRequest(const SelectInterruptPtr& selectInterrupt,
+                                               PollResultType* pollResult);
 
     private:
         static const int kDefaultPollTimeout;

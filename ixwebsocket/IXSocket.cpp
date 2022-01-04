@@ -87,8 +87,7 @@ namespace ix
                 // Emulation mode: SelectInterrupt neither supports file descriptors nor events
 
                 // Check the selectInterrupt for requests before doing the poll().
-                pollResult = readSelectInterruptRequest(selectInterrupt);
-                if (pollResult != PollResultType::ReadyForRead)
+                if (readSelectInterruptRequest(selectInterrupt, &pollResult))
                 {
                     return pollResult;
                 }
@@ -110,12 +109,13 @@ namespace ix
                 // Emulation mode: SelectInterrupt neither supports fd nor events
 
                 // Check the selectInterrupt for requests
-                pollResult = readSelectInterruptRequest(selectInterrupt);
+                readSelectInterruptRequest(selectInterrupt, &pollResult);
             }
         }
         else if ((interruptFd != -1 && fds[1].revents & POLLIN) || (interruptEvent != nullptr && event != nullptr))
         {
-            pollResult = readSelectInterruptRequest(selectInterrupt);
+            // The InterruptEvent was signaled
+            readSelectInterruptRequest(selectInterrupt, &pollResult);
         }
         else if (sockfd != -1 && readyToRead && fds[0].revents & POLLIN)
         {
@@ -156,20 +156,23 @@ namespace ix
         return pollResult;
     }
 
-    PollResultType Socket::readSelectInterruptRequest(const SelectInterruptPtr& selectInterrupt)
+    bool Socket::readSelectInterruptRequest(const SelectInterruptPtr& selectInterrupt,
+                                            PollResultType* pollResult)
     {
         uint64_t value = selectInterrupt->read();
 
         if (value == SelectInterrupt::kSendRequest)
         {
-            return PollResultType::SendRequest;
+            *pollResult = PollResultType::SendRequest;
+            return true;
         }
         else if (value == SelectInterrupt::kCloseRequest)
         {
-            return PollResultType::CloseRequest;
+            *pollResult = PollResultType::CloseRequest;
+            return true;
         }
 
-        return PollResultType::ReadyForRead;
+        return false;
     }
 
     PollResultType Socket::isReadyToRead(int timeoutMs)
