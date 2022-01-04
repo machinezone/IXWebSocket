@@ -17,6 +17,7 @@
 #include <basetsd.h>
 #include <io.h>
 #include <ws2def.h>
+#include <cerrno>
 
 #undef EWOULDBLOCK
 #undef EAGAIN
