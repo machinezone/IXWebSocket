@@ -7,6 +7,9 @@
 #include "IXNetSystem.h"
 #include <cstdint>
 #include <cstdio>
+#ifdef _WIN32
+#include <vector>
+#endif
 
 namespace ix
 {
@@ -37,6 +40,51 @@ namespace ix
 #endif
     }
 
+#ifdef _WIN32
+    struct WSAEvent
+    {
+    public:
+        WSAEvent(struct pollfd* fd)
+            : _fd(fd)
+        {
+            _event = WSACreateEvent();
+        }
+
+        WSAEvent(WSAEvent&& source) noexcept
+        {
+            _event = source._event;
+            source._event = WSA_INVALID_EVENT; // invalidate the event in the source
+            _fd = source._fd;
+        }
+
+        ~WSAEvent()
+        {
+            if (_event != WSA_INVALID_EVENT)
+            {
+                // We must deselect the networkevents from the socket event. Otherwise the
+                // socket will report states that aren't there.
+                if (_fd != nullptr && _fd->fd != -1)
+                    WSAEventSelect(_fd->fd, _event, 0);
+                WSACloseEvent(_event);
+            }
+        }
+
+        operator HANDLE()
+        {
+            return _event;
+        }
+
+        operator struct pollfd*()
+        {
+            return _fd;
+        }
+
+    private:
+        HANDLE _event;
+        struct pollfd* _fd;
+    };
+#endif
+
     //
     // That function could 'return WSAPoll(pfd, nfds, timeout);'
     // but WSAPoll is said to have weird behaviors on the internet
@@ -44,69 +92,180 @@ namespace ix
     //
     // So we make it a select wrapper
     //
-    int poll(struct pollfd* fds, nfds_t nfds, int timeout)
+    // UPDATE: WSAPoll was fixed in Windows 10 Version 2004
+    //
+    // The optional "event" is set to nullptr if it wasn't signaled.
+    int poll(struct pollfd* fds, nfds_t nfds, int timeout, void** event)
     {
 #ifdef _WIN32
-        socket_t maxfd = 0;
-        fd_set readfds, writefds, errorfds;
-        FD_ZERO(&readfds);
-        FD_ZERO(&writefds);
-        FD_ZERO(&errorfds);
 
-        for (nfds_t i = 0; i < nfds; ++i)
+        if (event && *event)
         {
-            struct pollfd* fd = &fds[i];
+            HANDLE interruptEvent = reinterpret_cast<HANDLE>(*event);
+            *event = nullptr; // the event wasn't signaled yet
 
-            if (fd->fd > maxfd)
+            if (nfds < 0 || nfds >= MAXIMUM_WAIT_OBJECTS - 1)
             {
-                maxfd = fd->fd;
+                WSASetLastError(WSAEINVAL);
+                return SOCKET_ERROR;
             }
-            if ((fd->events & POLLIN))
+
+            std::vector<WSAEvent> socketEvents;
+            std::vector<HANDLE> handles;
+            // put the interrupt event as first element, making it highest priority
+            handles.push_back(interruptEvent);
+
+            // create the WSAEvents for the sockets
+            for (nfds_t i = 0; i < nfds; ++i)
             {
-                FD_SET(fd->fd, &readfds);
+                struct pollfd* fd = &fds[i];
+                fd->revents = 0;
+                if (fd->fd >= 0)
+                {
+                    // create WSAEvent and add it to the vectors
+                    socketEvents.push_back(std::move(WSAEvent(fd)));
+                    HANDLE handle = socketEvents.back();
+                    if (handle == WSA_INVALID_EVENT)
+                    {
+                        WSASetLastError(WSAENOBUFS);
+                        return SOCKET_ERROR;
+                    }
+                    handles.push_back(handle);
+
+                    // mapping
+                    long networkEvents = 0;
+                    if (fd->events & (POLLIN                               )) networkEvents |= FD_READ  | FD_ACCEPT;
+                    if (fd->events & (POLLOUT /*| POLLWRNORM | POLLWRBAND*/)) networkEvents |= FD_WRITE | FD_CONNECT;
+                    //if (fd->events & (POLLPRI | POLLRDBAND               )) networkEvents |= FD_OOB;
+
+                    if (WSAEventSelect(fd->fd, handle, networkEvents) != 0)
+                    {
+                        fd->revents = POLLNVAL;
+                        socketEvents.pop_back();
+                        handles.pop_back();
+                    }
+                }
             }
-            if ((fd->events & POLLOUT))
+
+            DWORD n = WSAWaitForMultipleEvents(handles.size(), handles.data(), FALSE, timeout != -1 ? static_cast<DWORD>(timeout) : WSA_INFINITE, FALSE);
+
+            if (n == WSA_WAIT_FAILED) return SOCKET_ERROR;
+            if (n == WSA_WAIT_TIMEOUT) return 0;
+            if (n == WSA_WAIT_EVENT_0)
             {
-                FD_SET(fd->fd, &writefds);
+                // the interrupt event was signaled
+                *event = reinterpret_cast<void*>(interruptEvent);
+                return 1;
             }
-            if ((fd->events & POLLERR))
+
+            int handleIndex = n - WSA_WAIT_EVENT_0;
+            int socketIndex = handleIndex - 1;
+
+            WSANETWORKEVENTS netEvents;
+            int count = 0;
+            // WSAWaitForMultipleEvents returns the index of the first signaled event. And to emulate WSAPoll()
+            // all the signaled events must be processed.
+            while (socketIndex < socketEvents.size())
             {
-                FD_SET(fd->fd, &errorfds);
+                struct pollfd* fd = socketEvents[socketIndex];
+
+                memset(&netEvents, 0, sizeof(netEvents));
+                if (WSAEnumNetworkEvents(fd->fd, socketEvents[socketIndex], &netEvents) != 0)
+                {
+                    fd->revents = POLLERR;
+                }
+                else if (netEvents.lNetworkEvents != 0)
+                {
+                    // mapping
+                    if (netEvents.lNetworkEvents & (FD_READ  | FD_ACCEPT | FD_OOB)) fd->revents |= POLLIN;
+                    if (netEvents.lNetworkEvents & (FD_WRITE | FD_CONNECT        )) fd->revents |= POLLOUT;
+
+                    for (int i = 0; i < FD_MAX_EVENTS; ++i)
+                    {
+                        if (netEvents.iErrorCode[i] != 0)
+                        {
+                            fd->revents |= POLLERR;
+                            break;
+                        }
+                    }
+
+                    if (fd->revents != 0)
+                    {
+                        // only signaled sockets count
+                        count++;
+                    }
+                }
+                socketIndex++;
             }
+
+            return count;
         }
-
-        struct timeval tv;
-        tv.tv_sec = timeout / 1000;
-        tv.tv_usec = (timeout % 1000) * 1000;
-
-        int ret = select(maxfd + 1, &readfds, &writefds, &errorfds, timeout != -1 ? &tv : NULL);
-
-        if (ret < 0)
+        else
         {
+            if (event && *event) *event = nullptr;
+
+            socket_t maxfd = 0;
+            fd_set readfds, writefds, errorfds;
+            FD_ZERO(&readfds);
+            FD_ZERO(&writefds);
+            FD_ZERO(&errorfds);
+
+            for (nfds_t i = 0; i < nfds; ++i)
+            {
+                struct pollfd* fd = &fds[i];
+
+                if (fd->fd > maxfd)
+                {
+                    maxfd = fd->fd;
+                }
+                if ((fd->events & POLLIN))
+                {
+                    FD_SET(fd->fd, &readfds);
+                }
+                if ((fd->events & POLLOUT))
+                {
+                    FD_SET(fd->fd, &writefds);
+                }
+                if ((fd->events & POLLERR))
+                {
+                    FD_SET(fd->fd, &errorfds);
+                }
+            }
+
+            struct timeval tv;
+            tv.tv_sec = timeout / 1000;
+            tv.tv_usec = (timeout % 1000) * 1000;
+
+            int ret = select(maxfd + 1, &readfds, &writefds, &errorfds, timeout != -1 ? &tv : NULL);
+
+            if (ret < 0)
+            {
+                return ret;
+            }
+
+            for (nfds_t i = 0; i < nfds; ++i)
+            {
+                struct pollfd* fd = &fds[i];
+                fd->revents = 0;
+
+                if (FD_ISSET(fd->fd, &readfds))
+                {
+                    fd->revents |= POLLIN;
+                }
+                if (FD_ISSET(fd->fd, &writefds))
+                {
+                    fd->revents |= POLLOUT;
+                }
+                if (FD_ISSET(fd->fd, &errorfds))
+                {
+                    fd->revents |= POLLERR;
+                }
+            }
             return ret;
         }
-
-        for (nfds_t i = 0; i < nfds; ++i)
-        {
-            struct pollfd* fd = &fds[i];
-            fd->revents = 0;
-
-            if (FD_ISSET(fd->fd, &readfds))
-            {
-                fd->revents |= POLLIN;
-            }
-            if (FD_ISSET(fd->fd, &writefds))
-            {
-                fd->revents |= POLLOUT;
-            }
-            if (FD_ISSET(fd->fd, &errorfds))
-            {
-                fd->revents |= POLLERR;
-            }
-        }
-
-        return ret;
 #else
+        if (event && *event) *event = nullptr;
+
         //
         // It was reported that on Android poll can fail and return -1 with
         // errno == EINTR, which should be a temp error and should typically

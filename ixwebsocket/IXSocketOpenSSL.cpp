@@ -15,7 +15,7 @@
 #include <errno.h>
 #include <vector>
 #ifdef _WIN32
-#include <Shlwapi.h>
+#include <shlwapi.h>
 #else
 #include <fnmatch.h>
 #endif

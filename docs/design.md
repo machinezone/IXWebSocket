@@ -30,12 +30,6 @@ The unittest tries to be comprehensive, and has been running on multiple platfor
 
 The regression test is running after each commit on github actions for multiple configurations.
 
-* Linux
-* macOS with thread sanitizer
-* macOS, with OpenSSL, with thread sanitizer
-* macOS, with MbedTLS, with thread sanitizer
-* Windows, with MbedTLS (the unittest is not run yet)
-
 ## Limitations
 
 * On some configuration (mostly Android) certificate validation needs to be setup so that SocketTLSOptions.caFile point to a pem file, such as the one distributed by Firefox. Unless that setup is done connecting to a wss endpoint will display an error. With mbedtls the message will contain `error in handshake : X509 - Certificate verification failed, e.g. CRL, CA or signature check failed`.

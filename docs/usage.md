@@ -141,9 +141,9 @@ webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
         {
             std::stringstream ss;
             ss << "Error: "         << msg->errorInfo.reason      << std::endl;
-            ss << "#retries: "      << msg->eventInfo.retries     << std::endl;
-            ss << "Wait time(ms): " << msg->eventInfo.wait_time   << std::endl;
-            ss << "HTTP Status: "   << msg->eventInfo.http_status << std::endl;
+            ss << "#retries: "      << msg->errorInfo.retries     << std::endl;
+            ss << "Wait time(ms): " << msg->errorInfo.wait_time   << std::endl;
+            ss << "HTTP Status: "   << msg->errorInfo.http_status << std::endl;
             std::cout << ss.str() << std::endl;
         }
     }
@@ -517,6 +517,9 @@ bool ok = httpClient.performRequest(args, [](const HttpResponsePtr& response)
 );
 
 // ok will be false if your httpClient is not async
+
+// A request in progress can be cancelled by setting the cancel flag. It does nothing if the request already completed.
+args->cancel = true;
 ```
 
 See this [issue](https://github.com/machinezone/IXWebSocket/issues/209) for links about uploading files with HTTP multipart.
