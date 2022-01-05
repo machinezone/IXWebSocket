@@ -183,7 +183,12 @@ namespace ix
                             break;
                         }
                     }
-                    count++;
+
+                    if (fd->revents != 0)
+                    {
+                        // only signaled sockets count
+                        count++;
+                    }
                 }
                 socketIndex++;
             }
