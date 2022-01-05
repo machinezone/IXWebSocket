@@ -127,8 +127,8 @@ namespace ix
         if (_clientNoContextTakeover) ss << "; client_no_context_takeover";
         if (_serverNoContextTakeover) ss << "; server_no_context_takeover";
 
-        ss << "; server_max_window_bits=" << _serverMaxWindowBits;
-        ss << "; client_max_window_bits=" << _clientMaxWindowBits;
+        ss << "; server_max_window_bits=" << static_cast<int>(_serverMaxWindowBits);
+        ss << "; client_max_window_bits=" << static_cast<int>(_clientMaxWindowBits);
 
         ss << "\r\n";
 

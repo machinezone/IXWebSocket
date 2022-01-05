@@ -24,6 +24,7 @@ namespace ix
         virtual bool clear();
         virtual uint64_t read();
         virtual int getFd() const;
+        virtual void* getEvent() const;
 
         // Used as special codes for pipe communication
         static const uint64_t kSendRequest;

@@ -1,6 +1,8 @@
 name: mkdocs
 on:
   push:
+    branches:
+    - master
     paths:
     - 'docs/**'
 
@@ -21,6 +23,7 @@ jobs:
         pip install pygments
     - name: Build doc
       run: |
+        git checkout master
         git clean -dfx .
         git fetch
         git pull

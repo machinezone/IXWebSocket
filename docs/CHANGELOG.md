@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.3.2] - 2021-11-24
+
+(server) Add getters for basic Servers properties (like port, host, etc...) (#327) + fix one compiler warning
+
 ## [11.3.1] - 2021-10-22
 
 (library/cmake) Compatible with MbedTLS 3 + fix a bug on Windows where the incorrect remote port is computed (#320)

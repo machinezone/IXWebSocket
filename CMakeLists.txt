@@ -41,6 +41,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSelectInterrupt.cpp
     ixwebsocket/IXSelectInterruptFactory.cpp
     ixwebsocket/IXSelectInterruptPipe.cpp
+    ixwebsocket/IXSelectInterruptEvent.cpp
     ixwebsocket/IXSetThreadName.cpp
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketConnect.cpp
@@ -80,6 +81,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSelectInterrupt.h
     ixwebsocket/IXSelectInterruptFactory.h
     ixwebsocket/IXSelectInterruptPipe.h
+    ixwebsocket/IXSelectInterruptEvent.h
     ixwebsocket/IXSetThreadName.h
     ixwebsocket/IXSocket.h
     ixwebsocket/IXSocketConnect.h
@@ -148,10 +150,29 @@ if (USE_TLS)
     endif()
 endif()
 
-add_library( ixwebsocket
-    ${IXWEBSOCKET_SOURCES}
-    ${IXWEBSOCKET_HEADERS}
-)
+if(BUILD_SHARED_LIBS)
+    # Building shared library
+    
+    if(MSVC)
+        # Workaround for some projects
+        set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    endif()
+
+    add_library( ixwebsocket SHARED
+        ${IXWEBSOCKET_SOURCES}
+        ${IXWEBSOCKET_HEADERS}
+    )
+    
+    # Set library version
+    set_target_properties(ixwebsocket PROPERTIES VERSION 11.3.2)
+
+else()
+    # Static library
+    add_library( ixwebsocket
+        ${IXWEBSOCKET_SOURCES}
+        ${IXWEBSOCKET_HEADERS}
+    )
+endif()
 
 if (USE_TLS)
     target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_TLS)

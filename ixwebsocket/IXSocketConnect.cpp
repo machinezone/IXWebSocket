@@ -20,6 +20,7 @@
 #include <linux/in.h>
 #include <linux/tcp.h>
 #endif
+#include <ixwebsocket/IXSelectInterruptFactory.h>
 
 namespace ix
 {
@@ -66,7 +67,7 @@ namespace ix
 
             int timeoutMs = 10;
             bool readyToRead = false;
-            auto selectInterrupt = ix::make_unique<SelectInterrupt>();
+            SelectInterruptPtr selectInterrupt = ix::createSelectInterrupt();
             PollResultType pollResult = Socket::poll(readyToRead, timeoutMs, fd, selectInterrupt);
 
             if (pollResult == PollResultType::Timeout)

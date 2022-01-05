@@ -7,20 +7,20 @@
 #include "IXSelectInterruptFactory.h"
 
 #include "IXUniquePtr.h"
-#if defined(__linux__) || defined(__APPLE__)
-#include "IXSelectInterruptPipe.h"
+#if _WIN32
+#include "IXSelectInterruptEvent.h"
 #else
-#include "IXSelectInterrupt.h"
+#include "IXSelectInterruptPipe.h"
 #endif
 
 namespace ix
 {
     SelectInterruptPtr createSelectInterrupt()
     {
-#if defined(__linux__) || defined(__APPLE__)
-        return ix::make_unique<SelectInterruptPipe>();
+#ifdef _WIN32
+        return ix::make_unique<SelectInterruptEvent>();
 #else
-        return ix::make_unique<SelectInterrupt>();
+        return ix::make_unique<SelectInterruptPipe>();
 #endif
     }
 } // namespace ix
