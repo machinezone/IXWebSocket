@@ -59,7 +59,14 @@ namespace ix
 
         ~WSAEvent()
         {
-            if (_event != WSA_INVALID_EVENT) WSACloseEvent(_event);
+            if (_event != WSA_INVALID_EVENT)
+            {
+                // We must deselect the networkevents from the socket event. Otherwise the
+                // socket will report states that aren't there.
+                if (_fd != nullptr && _fd->fd != -1)
+                    WSAEventSelect(_fd->fd, _event, 0);
+                WSACloseEvent(_event);
+            }
         }
 
         operator HANDLE()
@@ -166,10 +173,8 @@ namespace ix
                 if (WSAEnumNetworkEvents(fd->fd, socketEvents[socketIndex], &netEvents) != 0)
                 {
                     fd->revents = POLLERR;
-                    return SOCKET_ERROR;
                 }
-
-                if (netEvents.lNetworkEvents != 0)
+                else if (netEvents.lNetworkEvents != 0)
                 {
                     // mapping
                     if (netEvents.lNetworkEvents & (FD_READ  | FD_ACCEPT | FD_OOB)) fd->revents |= POLLIN;
