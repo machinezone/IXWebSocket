@@ -78,7 +78,7 @@ namespace ix
     bool initNetSystem();
     bool uninitNetSystem();
 
-    int poll(struct pollfd* fds, nfds_t nfds, int timeout);
+    int poll(struct pollfd* fds, nfds_t nfds, int timeout, void** event);
 
     const char* inet_ntop(int af, const void* src, char* dst, socklen_t size);
     int inet_pton(int af, const char* src, void* dst);

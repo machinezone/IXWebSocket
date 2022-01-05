@@ -43,6 +43,7 @@ namespace ix
         // Functions to check whether there is activity on the socket
         PollResultType poll(int timeoutMs = kDefaultPollTimeout);
         bool wakeUpFromPoll(uint64_t wakeUpCode);
+        bool isWakeUpFromPollSupported();
 
         PollResultType isReadyToWrite(int timeoutMs);
         PollResultType isReadyToRead(int timeoutMs);
@@ -82,6 +83,9 @@ namespace ix
     protected:
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;
+
+        static bool readSelectInterruptRequest(const SelectInterruptPtr& selectInterrupt,
+                                               PollResultType* pollResult);
 
     private:
         static const int kDefaultPollTimeout;
