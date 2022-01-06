@@ -12,6 +12,7 @@
 #include <array>
 #include <string>
 #include <vector>
+#include "IXWebSocketSendData.h"
 
 namespace ix
 {
@@ -22,6 +23,7 @@ namespace ix
         ~WebSocketPerMessageDeflateCompressor();
 
         bool init(uint8_t deflateBits, bool clientNoContextTakeOver);
+        bool compress(const IXWebSocketSendData& in, std::string& out);
         bool compress(const std::string& in, std::string& out);
         bool compress(const std::string& in, std::vector<uint8_t>& out);
         bool compress(const std::vector<uint8_t>& in, std::string& out);

@@ -110,6 +110,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketPerMessageDeflateCodec.h
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.h
     ixwebsocket/IXWebSocketProxyServer.h
+    ixwebsocket/IXWebSocketSendData.h
     ixwebsocket/IXWebSocketSendInfo.h
     ixwebsocket/IXWebSocketServer.h
     ixwebsocket/IXWebSocketTransport.h

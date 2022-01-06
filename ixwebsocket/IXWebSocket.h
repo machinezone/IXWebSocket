@@ -17,6 +17,7 @@
 #include "IXWebSocketMessage.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketSendInfo.h"
+#include "IXWebSocketSendData.h"
 #include "IXWebSocketTransport.h"
 #include <atomic>
 #include <condition_variable>
@@ -75,8 +76,16 @@ namespace ix
         WebSocketSendInfo send(const std::string& data,
                                bool binary = false,
                                const OnProgressCallback& onProgressCallback = nullptr);
-        WebSocketSendInfo sendBinary(const std::string& text,
+        WebSocketSendInfo sendBinary(const std::string& data,
                                      const OnProgressCallback& onProgressCallback = nullptr);
+        WebSocketSendInfo sendBinary(const IXWebSocketSendData& data,
+                                     const OnProgressCallback& onProgressCallback = nullptr);
+        // does not check for valid UTF-8 characters. Caller must check that.
+        WebSocketSendInfo sendUtf8Text(const std::string& text,
+                                       const OnProgressCallback& onProgressCallback = nullptr);
+        // does not check for valid UTF-8 characters. Caller must check that.
+        WebSocketSendInfo sendUtf8Text(const IXWebSocketSendData& text,
+                                       const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo sendText(const std::string& text,
                                    const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo ping(const std::string& text);
@@ -107,7 +116,7 @@ namespace ix
         const std::vector<std::string>& getSubProtocols();
 
     private:
-        WebSocketSendInfo sendMessage(const std::string& text,
+        WebSocketSendInfo sendMessage(const IXWebSocketSendData& message,
                                       SendMessageKind sendMessageKind,
                                       const OnProgressCallback& callback = nullptr);
 

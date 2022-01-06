@@ -78,6 +78,12 @@ namespace ix
         return compressData(in, out);
     }
 
+    bool WebSocketPerMessageDeflateCompressor::compress(const IXWebSocketSendData& in,
+                                                        std::string& out)
+    {
+        return compressData(in, out);
+    }
+
     bool WebSocketPerMessageDeflateCompressor::compress(const std::string& in,
                                                         std::vector<uint8_t>& out)
     {
