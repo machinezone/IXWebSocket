@@ -285,6 +285,8 @@ target_include_directories(ixwebsocket PUBLIC
 
 set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
 
+add_library(ixwebsocket::ixwebsocket ALIAS ixwebsocket)
+
 option(IXWEBSOCKET_INSTALL "Install IXWebSocket" TRUE)
 
 if (IXWEBSOCKET_INSTALL)
