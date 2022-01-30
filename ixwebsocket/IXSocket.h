@@ -69,6 +69,7 @@ namespace ix
         std::pair<bool, std::string> readLine(const CancellationRequest& isCancellationRequested);
         std::pair<bool, std::string> readBytes(size_t length,
                                                const OnProgressCallback& onProgressCallback,
+                                               const OnChunkCallback& onChunkCallback,
                                                const CancellationRequest& isCancellationRequested);
 
         static int getErrno();

@@ -400,12 +400,14 @@ namespace ix
     std::pair<bool, std::string> Socket::readBytes(
         size_t length,
         const OnProgressCallback& onProgressCallback,
+        const OnChunkCallback& onChunkCallback,
         const CancellationRequest& isCancellationRequested)
     {
         std::array<uint8_t, 1 << 14> readBuffer;
-
         std::vector<uint8_t> output;
-        while (output.size() != length)
+        size_t bytesRead = 0;
+
+        while (bytesRead != length)
         {
             if (isCancellationRequested && isCancellationRequested())
             {
@@ -413,12 +415,21 @@ namespace ix
                 return std::make_pair(false, errorMsg);
             }
 
-            size_t size = std::min(readBuffer.size(), length - output.size());
+            size_t size = std::min(readBuffer.size(), length - bytesRead);
             ssize_t ret = recv((char*) &readBuffer[0], size);
 
             if (ret > 0)
             {
-                output.insert(output.end(), readBuffer.begin(), readBuffer.begin() + ret);
+                if (onChunkCallback)
+                {
+                    std::string chunk(readBuffer.begin(), readBuffer.begin() + ret);
+                    onChunkCallback(chunk);
+                }
+                else
+                {
+                    output.insert(output.end(), readBuffer.begin(), readBuffer.begin() + ret);
+                }
+                bytesRead += ret;
             }
             else if (ret <= 0 && !Socket::isWaitNeeded())
             {
@@ -426,7 +437,7 @@ namespace ix
                 return std::make_pair(false, errorMsg);
             }
 
-            if (onProgressCallback) onProgressCallback((int) output.size(), (int) length);
+            if (onProgressCallback) onProgressCallback((int) bytesRead, (int) length);
 
             // Wait with a 1ms timeout until the socket is ready to read.
             // This way we are not busy looping
