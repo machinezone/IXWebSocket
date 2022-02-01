@@ -19,6 +19,7 @@
 #include "IXWebSocketPerMessageDeflate.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
 #include "IXWebSocketSendInfo.h"
+#include "IXWebSocketSendData.h"
 #include <atomic>
 #include <functional>
 #include <list>
@@ -88,11 +89,11 @@ namespace ix
                                             bool enablePerMessageDeflate);
 
         PollResult poll();
-        WebSocketSendInfo sendBinary(const std::string& message,
+        WebSocketSendInfo sendBinary(const IXWebSocketSendData& message,
                                      const OnProgressCallback& onProgressCallback);
-        WebSocketSendInfo sendText(const std::string& message,
+        WebSocketSendInfo sendText(const IXWebSocketSendData& message,
                                    const OnProgressCallback& onProgressCallback);
-        WebSocketSendInfo sendPing(const std::string& message);
+        WebSocketSendInfo sendPing(const IXWebSocketSendData& message);
 
         void close(uint16_t code = WebSocketCloseConstants::kNormalClosureCode,
                    const std::string& reason = WebSocketCloseConstants::kNormalClosureMessage,
@@ -241,9 +242,8 @@ namespace ix
         bool sendOnSocket();
         bool receiveFromSocket();
 
-        template<class T>
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
-                                   const T& message,
+                                   const IXWebSocketSendData& message,
                                    bool compress,
                                    const OnProgressCallback& onProgressCallback = nullptr);
 

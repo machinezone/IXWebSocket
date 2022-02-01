@@ -467,10 +467,28 @@ namespace ix
         return (binary) ? sendBinary(data, onProgressCallback) : sendText(data, onProgressCallback);
     }
 
-    WebSocketSendInfo WebSocket::sendBinary(const std::string& text,
+    WebSocketSendInfo WebSocket::sendBinary(const std::string& data,
                                             const OnProgressCallback& onProgressCallback)
     {
-        return sendMessage(text, SendMessageKind::Binary, onProgressCallback);
+        return sendMessage(data, SendMessageKind::Binary, onProgressCallback);
+    }
+
+    WebSocketSendInfo WebSocket::sendBinary(const IXWebSocketSendData& data,
+                                            const OnProgressCallback& onProgressCallback)
+    {
+        return sendMessage(data, SendMessageKind::Binary, onProgressCallback);
+    }
+
+    WebSocketSendInfo WebSocket::sendUtf8Text(const std::string& text,
+                                              const OnProgressCallback& onProgressCallback)
+    {
+        return sendMessage(text, SendMessageKind::Text, onProgressCallback);
+    }
+
+    WebSocketSendInfo WebSocket::sendUtf8Text(const IXWebSocketSendData& text,
+                                              const OnProgressCallback& onProgressCallback)
+    {
+        return sendMessage(text, SendMessageKind::Text, onProgressCallback);
     }
 
     WebSocketSendInfo WebSocket::sendText(const std::string& text,
@@ -494,7 +512,7 @@ namespace ix
         return sendMessage(text, SendMessageKind::Ping);
     }
 
-    WebSocketSendInfo WebSocket::sendMessage(const std::string& text,
+    WebSocketSendInfo WebSocket::sendMessage(const IXWebSocketSendData& message,
                                              SendMessageKind sendMessageKind,
                                              const OnProgressCallback& onProgressCallback)
     {
@@ -516,19 +534,19 @@ namespace ix
         {
             case SendMessageKind::Text:
             {
-                webSocketSendInfo = _ws.sendText(text, onProgressCallback);
+                webSocketSendInfo = _ws.sendText(message, onProgressCallback);
             }
             break;
 
             case SendMessageKind::Binary:
             {
-                webSocketSendInfo = _ws.sendBinary(text, onProgressCallback);
+                webSocketSendInfo = _ws.sendBinary(message, onProgressCallback);
             }
             break;
 
             case SendMessageKind::Ping:
             {
-                webSocketSendInfo = _ws.sendPing(text);
+                webSocketSendInfo = _ws.sendPing(message);
             }
             break;
         }

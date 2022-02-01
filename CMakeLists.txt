@@ -110,6 +110,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketPerMessageDeflateCodec.h
     ixwebsocket/IXWebSocketPerMessageDeflateOptions.h
     ixwebsocket/IXWebSocketProxyServer.h
+    ixwebsocket/IXWebSocketSendData.h
     ixwebsocket/IXWebSocketSendInfo.h
     ixwebsocket/IXWebSocketServer.h
     ixwebsocket/IXWebSocketTransport.h
@@ -209,7 +210,7 @@ if (USE_TLS)
 
     add_definitions(${OPENSSL_DEFINITIONS})
     target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${OPENSSL_INCLUDE_DIR}>)
-    target_link_libraries(ixwebsocket ${OPENSSL_LIBRARIES})
+    target_link_libraries(ixwebsocket PRIVATE ${OPENSSL_LIBRARIES})
   elseif (USE_MBED_TLS)
     message(STATUS "TLS configured to use mbedtls")
 
@@ -223,10 +224,10 @@ if (USE_TLS)
       
     endif()
     target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${MBEDTLS_INCLUDE_DIRS}>)
-    target_link_libraries(ixwebsocket ${MBEDTLS_LIBRARIES})
+    target_link_libraries(ixwebsocket PRIVATE ${MBEDTLS_LIBRARIES})
   elseif (USE_SECURE_TRANSPORT)
     message(STATUS "TLS configured to use secure transport")
-    target_link_libraries(ixwebsocket "-framework Foundation" "-framework Security")
+    target_link_libraries(ixwebsocket PRIVATE "-framework Foundation" "-framework Security")
   endif()
 endif()
 
@@ -238,7 +239,7 @@ if (USE_ZLIB)
     find_package(ZLIB REQUIRED)
   endif()
   target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>)
-  target_link_libraries(ixwebsocket ${ZLIB_LIBRARIES})
+  target_link_libraries(ixwebsocket PRIVATE ZLIB::ZLIB)
 
   target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_ZLIB)
 endif()
@@ -247,22 +248,23 @@ endif()
 find_package(Deflate)
 if (DEFLATE_FOUND)
   include_directories(${DEFLATE_INCLUDE_DIRS})
-  target_link_libraries(ixwebsocket ${DEFLATE_LIBRARIES})
+  target_link_libraries(ixwebsocket PRIVATE ${DEFLATE_LIBRARIES})
   target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_DEFLATE)
 endif()
 
 if (WIN32)
-  target_link_libraries(ixwebsocket wsock32 ws2_32 shlwapi)
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  target_link_libraries(ixwebsocket PRIVATE wsock32 ws2_32 shlwapi)
+  target_compile_definitions(ixwebsocket PRIVATE _CRT_SECURE_NO_WARNINGS)
 
   if (USE_TLS)
-    target_link_libraries(ixwebsocket Crypt32)
+    target_link_libraries(ixwebsocket PRIVATE Crypt32)
   endif()
 endif()
 
 if (UNIX)
+  set(THREADS_PREFER_PTHREAD_FLAG TRUE)
   find_package(Threads)
-  target_link_libraries(ixwebsocket ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(ixwebsocket PRIVATE Threads::Threads)
 endif()
 
 
@@ -283,6 +285,8 @@ target_include_directories(ixwebsocket PUBLIC
 )
 
 set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
+
+add_library(ixwebsocket::ixwebsocket ALIAS ixwebsocket)
 
 option(IXWEBSOCKET_INSTALL "Install IXWebSocket" TRUE)
 
