@@ -86,7 +86,8 @@ namespace ix
         // Server
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket,
                                             int timeoutSecs,
-                                            bool enablePerMessageDeflate);
+                                            bool enablePerMessageDeflate,
+                                            std::vector<std::string>& subProtocols);
 
         PollResult poll();
         WebSocketSendInfo sendBinary(const IXWebSocketSendData& message,

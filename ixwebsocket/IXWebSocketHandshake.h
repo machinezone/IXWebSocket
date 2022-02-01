@@ -35,7 +35,9 @@ namespace ix
                                             int port,
                                             int timeoutSecs);
 
-        WebSocketInitResult serverHandshake(int timeoutSecs, bool enablePerMessageDeflate);
+        WebSocketInitResult serverHandshake(int timeoutSecs,
+                                            bool enablePerMessageDeflate,
+                                            std::vector<std::string>& subProtocols);
 
     private:
         std::string genRandomString(const int len);

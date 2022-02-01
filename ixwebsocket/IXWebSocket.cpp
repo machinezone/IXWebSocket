@@ -249,7 +249,7 @@ namespace ix
         }
 
         WebSocketInitResult status =
-            _ws.connectToSocket(std::move(socket), timeoutSecs, enablePerMessageDeflate);
+            _ws.connectToSocket(std::move(socket), timeoutSecs, enablePerMessageDeflate, _subProtocols);
         if (!status.success)
         {
             return status;
