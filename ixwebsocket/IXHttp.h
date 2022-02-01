@@ -89,6 +89,7 @@ namespace ix
         bool compressRequest = false;
         Logger logger;
         OnProgressCallback onProgressCallback;
+        OnChunkCallback onChunkCallback;
         std::atomic<bool> cancel;
     };
 

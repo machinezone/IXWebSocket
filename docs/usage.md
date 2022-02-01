@@ -520,11 +520,21 @@ bool async = true;
 HttpClient httpClient(async);
 auto args = httpClient.createRequest(url, HttpClient::kGet);
 
+// If you define a chunk callback it will be called repeteadly with the
+// incoming data. This allows to process data on the go or write it to disk
+// instead of accumulating the data in memory.
+args.onChunkCallback = [](const std::string& data)
+{
+    // process data
+};
+
 // Push the request to a queue,
 bool ok = httpClient.performRequest(args, [](const HttpResponsePtr& response)
     {
         // This callback execute in a background thread. Make sure you uses appropriate protection such as mutex
         auto statusCode = response->statusCode; // acess results
+
+        // response->body is empty if onChunkCallback was used
     }
 );
 

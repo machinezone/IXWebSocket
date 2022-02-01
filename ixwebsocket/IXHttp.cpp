@@ -149,7 +149,7 @@ namespace ix
                     false, "Error: 'Content-Length' should be a positive integer", httpRequest);
             }
 
-            auto res = socket->readBytes(contentLength, nullptr, isCancellationRequested);
+            auto res = socket->readBytes(contentLength, nullptr, nullptr, isCancellationRequested);
             if (!res.first)
             {
                 return std::make_tuple(

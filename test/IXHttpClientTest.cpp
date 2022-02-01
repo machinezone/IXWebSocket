@@ -5,6 +5,7 @@
  */
 
 #include "catch.hpp"
+#include <cstdint>
 #include <iostream>
 #include <ixwebsocket/IXHttpClient.h>
 
@@ -273,5 +274,72 @@ TEST_CASE("http_client", "[http]")
 
         std::cerr << "Done" << std::endl;
         REQUIRE(errorCode == HttpErrorCode::Cancelled);
+    }
+
+    SECTION("Async API, streaming transfer")
+    {
+        bool async = true;
+        HttpClient httpClient(async);
+        WebSocketHttpHeaders headers;
+
+        SocketTLSOptions tlsOptions;
+        tlsOptions.caFile = "cacert.pem";
+        httpClient.setTLSOptions(tlsOptions);
+
+        std::string url("http://speedtest.belwue.net/random-100M");
+        auto args = httpClient.createRequest(url);
+
+        args->extraHeaders = headers;
+        args->connectTimeout = 60;
+        args->transferTimeout = 120;
+        args->followRedirects = true;
+        args->maxRedirects = 10;
+        args->verbose = true;
+        args->compress = false;
+        args->logger = [](const std::string& msg) { std::cout << msg; };
+        args->onProgressCallback = [](int current, int total) -> bool {
+            std::cerr << "\r"
+                      << "Downloaded " << current << " bytes out of " << total;
+            return true;
+        };
+
+        // compute Adler-32 checksum of received data
+        uint32_t a = 1, b = 0;
+        args->onChunkCallback = [&](const std::string& data) {
+            for (const char c: data)
+            {
+                a = (a + (unsigned char)c) % 65521;
+                b = (b + a) % 65521;
+            }
+        };
+
+        std::atomic<bool> requestCompleted(false);
+        std::atomic<HttpErrorCode> errorCode(HttpErrorCode::Invalid);
+        std::atomic<int> statusCode(0);
+
+        httpClient.performRequest(
+            args, [&](const HttpResponsePtr& response) {
+                errorCode = response->errorCode;
+                statusCode = response->statusCode;
+                requestCompleted = true;
+            });
+
+        int wait = 0;
+        while (wait < 120000)
+        {
+            if (requestCompleted) break;
+
+            std::chrono::duration<double, std::milli> duration(10);
+            std::this_thread::sleep_for(duration);
+            wait += 10;
+        }
+
+        std::cerr << "Done" << std::endl;
+        REQUIRE(errorCode == HttpErrorCode::Ok);
+        REQUIRE(statusCode == 200);
+
+        // compare checksum with a known good value
+        uint32_t checksum = (b << 16) | a;
+        REQUIRE(checksum == 1440194471);
     }
 }
