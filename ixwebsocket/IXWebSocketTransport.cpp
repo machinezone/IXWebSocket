@@ -776,9 +776,8 @@ namespace ix
         return static_cast<unsigned>(seconds);
     }
 
-    template<class T>
     WebSocketSendInfo WebSocketTransport::sendData(wsheader_type::opcode_type type,
-                                                   const T& message,
+                                                   const IXWebSocketSendData& message,
                                                    bool compress,
                                                    const OnProgressCallback& onProgressCallback)
     {
@@ -807,8 +806,9 @@ namespace ix
             compressionError = false;
             wireSize = _compressedMessage.size();
 
-            message_begin = _compressedMessage.cbegin();
-            message_end = _compressedMessage.cend();
+            IXWebSocketSendData compressedSendData(_compressedMessage);
+            message_begin = compressedSendData.cbegin();
+            message_end = compressedSendData.cend();
         }
 
         {
@@ -840,8 +840,8 @@ namespace ix
             //
             auto steps = wireSize / kChunkSize;
 
-            std::string::const_iterator begin = message_begin;
-            std::string::const_iterator end = message_end;
+            auto begin = message_begin;
+            auto end = message_end;
 
             for (uint64_t i = 0; i < steps; ++i)
             {
@@ -980,7 +980,7 @@ namespace ix
         return sendOnSocket();
     }
 
-    WebSocketSendInfo WebSocketTransport::sendPing(const std::string& message)
+    WebSocketSendInfo WebSocketTransport::sendPing(const IXWebSocketSendData& message)
     {
         bool compress = false;
         WebSocketSendInfo info = sendData(wsheader_type::PING, message, compress);
@@ -994,7 +994,7 @@ namespace ix
         return info;
     }
 
-    WebSocketSendInfo WebSocketTransport::sendBinary(const std::string& message,
+    WebSocketSendInfo WebSocketTransport::sendBinary(const IXWebSocketSendData& message,
                                                      const OnProgressCallback& onProgressCallback)
 
     {
@@ -1002,7 +1002,7 @@ namespace ix
             wsheader_type::BINARY_FRAME, message, _enablePerMessageDeflate, onProgressCallback);
     }
 
-    WebSocketSendInfo WebSocketTransport::sendText(const std::string& message,
+    WebSocketSendInfo WebSocketTransport::sendText(const IXWebSocketSendData& message,
                                                    const OnProgressCallback& onProgressCallback)
 
     {

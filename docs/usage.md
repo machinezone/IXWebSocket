@@ -90,6 +90,18 @@ auto result =
     });
 ```
 
+The `send()` and `sendText()` methods check that the string contains only valid UTF-8 characters. If you know that the string is a valid UTF-8 string you can skip that step and use the `sendUtf8Text` method instead.
+
+With the IXWebSocketSendData overloads of `sendUtf8Text` and `sendBinary` it is possible to not only send std::string but also `std::vector<char>`, `std::vector<uint8_t>` and `char*`.
+
+```
+std::vector<uint8_t> data({1, 2, 3, 4});
+auto result = webSocket.sendBinary(data);
+
+const char* text = "Hello World!";
+result = webSocket.sendUtf8Text(IXWebSocketSendData(text, strlen(text)));
+```
+
 ### ReadyState
 
 `getReadyState()` returns the state of the connection. There are 4 possible states.

@@ -78,6 +78,11 @@ namespace ix
                _decompressor->init(inflateBits, clientNoContextTakeover);
     }
 
+    bool WebSocketPerMessageDeflate::compress(const IXWebSocketSendData& in, std::string& out)
+    {
+        return _compressor->compress(in, out);
+    }
+
     bool WebSocketPerMessageDeflate::compress(const std::string& in, std::string& out)
     {
         return _compressor->compress(in, out);

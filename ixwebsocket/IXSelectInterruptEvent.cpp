@@ -8,6 +8,7 @@
 // emulate the interrupt event by using a short timeout with ix::poll() and
 // read from the SelectInterrupt. (see Socket::poll() "Emulation mode")
 //
+#include <algorithm>
 #include "IXSelectInterruptEvent.h"
 
 namespace ix

@@ -2,6 +2,17 @@
 
 All changes to this project will be documented in this file.
 
+## [11.4.0] - 2022-01-05
+
+(Windows) Use wsa select event, which should lead to a much better behavior on Windows in general, and also when sending large payloads (#342)
+Fix "HTTP/1.1 400 Illegal character CNTL=0xf" caused by serverMaxWindowBits/clientMaxWindowBits being uint8_t (signed char). (#341)
+Export symbols into .def files
+Export symbols into .def files  on MSVC (#339)
+Include <cerrno> to provide standard error constants (#338)
+Improved compatibility - fix mingw crossbuild (#337)
+Allow to cancel asynchronous HTTP requests (#332)
+Fix errors in example code. (#336)
+
 ## [11.3.2] - 2021-11-24
 
 (server) Add getters for basic Servers properties (like port, host, etc...) (#327) + fix one compiler warning
