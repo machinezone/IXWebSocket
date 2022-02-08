@@ -91,10 +91,6 @@ namespace ix
                 return -1;
             }
         }
-
-        Socket::closeSocket(fd);
-        errMsg = "connect timed out after 60 seconds";
-        return -1;
     }
 
     int SocketConnect::connect(const std::string& hostname,
