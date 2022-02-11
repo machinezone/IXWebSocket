@@ -12,7 +12,9 @@
 
 #ifdef _WIN32
 #include <basetsd.h>
+#ifdef _MSC_VER
 typedef SSIZE_T ssize_t;
+#endif
 #endif
 
 #include "IXNetSystem.h"
