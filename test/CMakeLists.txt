@@ -23,6 +23,7 @@ set (TEST_TARGET_NAMES
   IXWebSocketSubProtocolTest
   # IXWebSocketBroadcastTest ## FIXME was depending on cobra / take a broadcast server from ws
   IXStrCaseCompareTest
+  IXExponentialBackoffTest
 )
 
 # Some unittest don't work on windows yet
