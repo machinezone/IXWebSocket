@@ -176,7 +176,7 @@ namespace ix
         ss << "Host: " << host << "\r\n";
 
 #ifdef IXWEBSOCKET_USE_ZLIB
-        if (args->compress)
+        if (args->compress && !args->onChunkCallback)
         {
             ss << "Accept-Encoding: gzip"
                << "\r\n";
@@ -406,10 +406,10 @@ namespace ix
             ss << headers["Content-Length"];
             ss >> contentLength;
 
-            payload.reserve(contentLength);
-
-            auto chunkResult = _socket->readBytes(
-                contentLength, args->onProgressCallback, isCancellationRequested);
+            auto chunkResult = _socket->readBytes(contentLength,
+                                                  args->onProgressCallback,
+                                                  args->onChunkCallback,
+                                                  isCancellationRequested);
             if (!chunkResult.first)
             {
                 auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
@@ -423,7 +423,12 @@ namespace ix
                                                       uploadSize,
                                                       downloadSize);
             }
-            payload += chunkResult.second;
+
+            if (!args->onChunkCallback)
+            {
+                payload.reserve(contentLength);
+                payload += chunkResult.second;
+            }
         }
         else if (headers.find("Transfer-Encoding") != headers.end() &&
                  headers["Transfer-Encoding"] == "chunked")
@@ -460,11 +465,11 @@ namespace ix
                     log(oss.str(), args);
                 }
 
-                payload.reserve(payload.size() + (size_t) chunkSize);
-
                 // Read a chunk
-                auto chunkResult = _socket->readBytes(
-                    (size_t) chunkSize, args->onProgressCallback, isCancellationRequested);
+                auto chunkResult = _socket->readBytes((size_t) chunkSize,
+                                                      args->onProgressCallback,
+                                                      args->onChunkCallback,
+                                                      isCancellationRequested);
                 if (!chunkResult.first)
                 {
                     auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
@@ -478,7 +483,12 @@ namespace ix
                                                           uploadSize,
                                                           downloadSize);
                 }
-                payload += chunkResult.second;
+
+                if (!args->onChunkCallback)
+                {
+                    payload.reserve(payload.size() + (size_t) chunkSize);
+                    payload += chunkResult.second;
+                }
 
                 // Read the line that terminates the chunk (\r\n)
                 lineResult = _socket->readLine(isCancellationRequested);

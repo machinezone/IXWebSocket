@@ -14,7 +14,9 @@
 
 #ifdef _WIN32
 #include <basetsd.h>
+#ifdef _MSC_VER
 typedef SSIZE_T ssize_t;
+#endif
 #endif
 
 #include "IXCancellationRequest.h"
@@ -69,6 +71,7 @@ namespace ix
         std::pair<bool, std::string> readLine(const CancellationRequest& isCancellationRequested);
         std::pair<bool, std::string> readBytes(size_t length,
                                                const OnProgressCallback& onProgressCallback,
+                                               const OnChunkCallback& onChunkCallback,
                                                const CancellationRequest& isCancellationRequested);
 
         static int getErrno();

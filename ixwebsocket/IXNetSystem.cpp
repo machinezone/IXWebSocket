@@ -8,6 +8,12 @@
 #include <cstdint>
 #include <cstdio>
 #ifdef _WIN32
+#ifndef EAFNOSUPPORT
+  #define EAFNOSUPPORT 102
+#endif
+#ifndef ENOSPC
+  #define ENOSPC 28
+#endif
 #include <vector>
 #endif
 
