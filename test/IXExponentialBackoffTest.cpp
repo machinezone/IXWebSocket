@@ -29,7 +29,10 @@ namespace ix
             REQUIRE(calculateRetryWaitMilliseconds(20, 10000, 100) == 10000);
             REQUIRE(calculateRetryWaitMilliseconds(25, 10000, 100) == 10000);
             
-            // FIXME bug when retrycount > 25
+            // Things get special after 26 retries
+            REQUIRE(calculateRetryWaitMilliseconds(26, 10000, 100) == 10000);
+            REQUIRE(calculateRetryWaitMilliseconds(27, 10000, 100) == 10000);
+            REQUIRE(calculateRetryWaitMilliseconds(27, 10000, 100) == 10000);
         }
     }
 
