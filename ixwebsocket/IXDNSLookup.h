@@ -11,6 +11,7 @@
 #pragma once
 
 #include "IXCancellationRequest.h"
+#include "IXWebsocketExport.h"
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -54,7 +55,7 @@ namespace ix
         std::string _hostname;
         int _port;
         int64_t _wait;
-        const static int64_t kDefaultWait;
+        IXWEBSOCKET_EXPORT const static int64_t kDefaultWait;
 
         struct addrinfo* _res;
         std::mutex _resMutex;
