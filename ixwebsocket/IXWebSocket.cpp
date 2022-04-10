@@ -240,7 +240,8 @@ namespace ix
 
     WebSocketInitResult WebSocket::connectToSocket(std::unique_ptr<Socket> socket,
                                                    int timeoutSecs,
-                                                   bool enablePerMessageDeflate)
+                                                   bool enablePerMessageDeflate,
+                                                   HttpRequestPtr request)
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
@@ -249,7 +250,7 @@ namespace ix
         }
 
         WebSocketInitResult status =
-            _ws.connectToSocket(std::move(socket), timeoutSecs, enablePerMessageDeflate);
+            _ws.connectToSocket(std::move(socket), timeoutSecs, enablePerMessageDeflate, request);
         if (!status.success)
         {
             return status;

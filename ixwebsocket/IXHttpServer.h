@@ -7,7 +7,7 @@
 #pragma once
 
 #include "IXHttp.h"
-#include "IXSocketServer.h"
+#include "IXWebSocketServer.h"
 #include "IXWebSocket.h"
 #include "IXWebsocketExport.h"
 #include <functional>
@@ -20,7 +20,7 @@
 
 namespace ix
 {
-    class HttpServer final : public SocketServer
+    class HttpServer final : public WebSocketServer
     {
     public:
         using OnConnectionCallback =
@@ -31,9 +31,8 @@ namespace ix
                    int backlog = SocketServer::kDefaultTcpBacklog,
                    size_t maxConnections = SocketServer::kDefaultMaxConnections,
                    int addressFamily = SocketServer::kDefaultAddressFamily,
-                   int timeoutSecs = HttpServer::kDefaultTimeoutSecs);
-        virtual ~HttpServer();
-        virtual void stop() final;
+                   int timeoutSecs = HttpServer::kDefaultTimeoutSecs,
+                   int handshakeTimeoutSecs = WebSocketServer::kDefaultHandShakeTimeoutSecs);
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
 
@@ -45,7 +44,6 @@ namespace ix
     private:
         // Member variables
         OnConnectionCallback _onConnectionCallback;
-        std::atomic<int> _connectedClientsCount;
 
         IXWEBSOCKET_EXPORT const static int kDefaultTimeoutSecs;
         int _timeoutSecs;
@@ -53,7 +51,6 @@ namespace ix
         // Methods
         virtual void handleConnection(std::unique_ptr<Socket>,
                                       std::shared_ptr<ConnectionState> connectionState) final;
-        virtual size_t getConnectedClientsCount() final;
 
         void setDefaultConnectionCallback();
     };

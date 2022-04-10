@@ -51,26 +51,12 @@ namespace ix
                            int backlog,
                            size_t maxConnections,
                            int addressFamily,
-                           int timeoutSecs)
-        : SocketServer(port, host, backlog, maxConnections, addressFamily)
-        , _connectedClientsCount(0)
+                           int timeoutSecs,
+                           int handshakeTimeoutSecs)
+        : WebSocketServer(port, host, backlog, maxConnections, handshakeTimeoutSecs, addressFamily)
         , _timeoutSecs(timeoutSecs)
     {
         setDefaultConnectionCallback();
-    }
-
-    HttpServer::~HttpServer()
-    {
-        stop();
-    }
-
-    void HttpServer::stop()
-    {
-        stopAcceptingConnections();
-
-        // FIXME: cancelling / closing active clients ...
-
-        SocketServer::stop();
     }
 
     void HttpServer::setOnConnectionCallback(const OnConnectionCallback& callback)
@@ -81,27 +67,23 @@ namespace ix
     void HttpServer::handleConnection(std::unique_ptr<Socket> socket,
                                       std::shared_ptr<ConnectionState> connectionState)
     {
-        _connectedClientsCount++;
-
         auto ret = Http::parseRequest(socket, _timeoutSecs);
         // FIXME: handle errors in parseRequest
 
         if (std::get<0>(ret))
         {
-            auto response = _onConnectionCallback(std::get<2>(ret), connectionState);
-            if (!Http::sendResponse(response, socket))
-            {
-                logError("Cannot send response");
+            auto request = std::get<2>(ret);
+            std::shared_ptr<ix::HttpResponse> response;
+            if (request->headers["Upgrade"] == "websocket") {
+                WebSocketServer::handleUpgrade(std::move(socket), connectionState, request);
+            } else {
+                auto response = _onConnectionCallback(request, connectionState);
+                if (!Http::sendResponse(response, socket)) {
+                    logError("Cannot send response");
+                }
             }
         }
         connectionState->setTerminated();
-
-        _connectedClientsCount--;
-    }
-
-    size_t HttpServer::getConnectedClientsCount()
-    {
-        return _connectedClientsCount;
     }
 
     void HttpServer::setDefaultConnectionCallback()
