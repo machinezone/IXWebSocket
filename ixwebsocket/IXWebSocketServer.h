@@ -77,6 +77,6 @@ namespace ix
     protected:
         void handleUpgrade(std::unique_ptr<Socket> socket,
                                       std::shared_ptr<ConnectionState> connectionState,
-                                      HttpRequestPtr request);
+                                      HttpRequestPtr request = nullptr);
     };
 } // namespace ix
