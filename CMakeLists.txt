@@ -239,11 +239,14 @@ endif()
 option(USE_ZLIB "Enable zlib support" TRUE)
 
 if (USE_ZLIB)
-  # This ZLIB_FOUND check is to help find a cmake manually configured zlib
-  if (NOT ZLIB_FOUND)
-    find_package(ZLIB REQUIRED)
-  endif()
-  target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>)
+  # We use to check if (NOT ZLIB_FOUND) before calling find_package but it is recommended not to.
+  # Instead, the user only needs to define the "input variables" ZLIB_INCLUDE_DIR and either ZLIB_LIBRARY
+  # or both ZLIB_LIBRARY_RELEASE and ZLIB_LIBRARY_DEBUG
+  find_package(ZLIB REQUIRED)
+
+  include(CMakeFindDependencyMacro)
+  find_dependency(ZLIB)
+
   target_link_libraries(ixwebsocket PRIVATE ZLIB::ZLIB)
 
   target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_ZLIB)
