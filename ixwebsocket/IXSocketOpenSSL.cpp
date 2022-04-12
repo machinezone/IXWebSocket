@@ -339,12 +339,12 @@ namespace ix
         {
             int cn_pos = X509_NAME_get_index_by_NID(
                 X509_get_subject_name((X509*) server_cert), NID_commonName, -1);
-            if (cn_pos)
+            if (cn_pos >= 0)
             {
                 X509_NAME_ENTRY* cn_entry =
                     X509_NAME_get_entry(X509_get_subject_name((X509*) server_cert), cn_pos);
 
-                if (cn_entry)
+                if (cn_entry != nullptr)
                 {
                     ASN1_STRING* cn_asn1 = X509_NAME_ENTRY_get_data(cn_entry);
                     char* cn = (char*) ASN1_STRING_data(cn_asn1);

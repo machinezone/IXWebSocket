@@ -8,6 +8,7 @@
 
 #include "IXSocketServer.h"
 #include "IXWebSocket.h"
+#include "IXWebsocketExport.h"
 #include <condition_variable>
 #include <functional>
 #include <memory>
@@ -50,7 +51,7 @@ namespace ix
         void makeBroadcastServer();
         bool listenAndStart();
 
-        const static int kDefaultHandShakeTimeoutSecs;
+        IXWEBSOCKET_EXPORT const static int kDefaultHandShakeTimeoutSecs;
 
         int getHandshakeTimeoutSecs();
         bool isPongEnabled();
@@ -67,7 +68,7 @@ namespace ix
         std::mutex _clientsMutex;
         std::set<std::shared_ptr<WebSocket>> _clients;
 
-        const static bool kDefaultEnablePong;
+        IXWEBSOCKET_EXPORT const static bool kDefaultEnablePong;
 
         // Methods
         virtual void handleConnection(std::unique_ptr<Socket> socket,
