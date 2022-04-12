@@ -9,7 +9,6 @@
 #include "IXHttp.h"
 #include "IXSocketServer.h"
 #include "IXWebSocket.h"
-#include "IXWebsocketExport.h"
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -47,7 +46,7 @@ namespace ix
         OnConnectionCallback _onConnectionCallback;
         std::atomic<int> _connectedClientsCount;
 
-        IXWEBSOCKET_EXPORT const static int kDefaultTimeoutSecs;
+        const static int kDefaultTimeoutSecs;
         int _timeoutSecs;
 
         // Methods

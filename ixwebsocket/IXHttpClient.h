@@ -10,7 +10,6 @@
 #include "IXSocket.h"
 #include "IXSocketTLSOptions.h"
 #include "IXWebSocketHttpHeaders.h"
-#include "IXWebsocketExport.h"
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
@@ -92,12 +91,12 @@ namespace ix
 
         std::string urlEncode(const std::string& value);
 
-        IXWEBSOCKET_EXPORT const static std::string kPost;
-        IXWEBSOCKET_EXPORT const static std::string kGet;
-        IXWEBSOCKET_EXPORT const static std::string kHead;
-        IXWEBSOCKET_EXPORT const static std::string kDelete;
-        IXWEBSOCKET_EXPORT const static std::string kPut;
-        IXWEBSOCKET_EXPORT const static std::string kPatch;
+        const static std::string kPost;
+        const static std::string kGet;
+        const static std::string kHead;
+        const static std::string kDelete;
+        const static std::string kPut;
+        const static std::string kPatch;
 
     private:
         void log(const std::string& msg, HttpRequestArgsPtr args);

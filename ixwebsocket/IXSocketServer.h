@@ -10,7 +10,6 @@
 #include "IXNetSystem.h"
 #include "IXSelectInterrupt.h"
 #include "IXSocketTLSOptions.h"
-#include "IXWebsocketExport.h"
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -49,11 +48,11 @@ namespace ix
         // that inherits from ConnectionState but has its own methods.
         void setConnectionStateFactory(const ConnectionStateFactory& connectionStateFactory);
 
-        IXWEBSOCKET_EXPORT const static int kDefaultPort;
-        IXWEBSOCKET_EXPORT const static std::string kDefaultHost;
-        IXWEBSOCKET_EXPORT const static int kDefaultTcpBacklog;
-        IXWEBSOCKET_EXPORT const static size_t kDefaultMaxConnections;
-        IXWEBSOCKET_EXPORT const static int kDefaultAddressFamily;
+        const static int kDefaultPort;
+        const static std::string kDefaultHost;
+        const static int kDefaultTcpBacklog;
+        const static size_t kDefaultMaxConnections;
+        const static int kDefaultAddressFamily;
 
         void start();
         std::pair<bool, std::string> listen();
