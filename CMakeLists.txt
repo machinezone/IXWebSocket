@@ -99,7 +99,6 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketCloseConstants.h
     ixwebsocket/IXWebSocketCloseInfo.h
     ixwebsocket/IXWebSocketErrorInfo.h
-    ixwebsocket/IXWebsocketExport.h
     ixwebsocket/IXWebSocketHandshake.h
     ixwebsocket/IXWebSocketHandshakeKeyGen.h
     ixwebsocket/IXWebSocketHttpHeaders.h
@@ -174,10 +173,6 @@ else()
         ${IXWEBSOCKET_SOURCES}
         ${IXWEBSOCKET_HEADERS}
     )
-
-   if( MSVC )
-        target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_STATIC_DEFINE)
-    endif()
 endif()
 
 if (USE_TLS)
@@ -291,7 +286,6 @@ if (IXWEBSOCKET_INSTALL)
   install(TARGETS ixwebsocket
           EXPORT ixwebsocket
           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
           PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket/
   )
 
