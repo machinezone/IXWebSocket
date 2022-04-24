@@ -95,6 +95,10 @@
             
             <li class="nav-item" data-level="1"><a href="#changelog" class="nav-link">Changelog</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#1141-2022-04-23" class="nav-link">[11.4.1] - 2022-04-23</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#1140-2022-01-05" class="nav-link">[11.4.0] - 2022-01-05</a>
               <ul class="nav flex-column">
               </ul>
@@ -1196,6 +1200,8 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All changes to this project will be documented in this file.</p>
+<h2 id="1141-2022-04-23">[11.4.1] - 2022-04-23</h2>
+<p>vckpg + cmake fix, to handle zlib as a dependency better</p>
 <h2 id="1140-2022-01-05">[11.4.0] - 2022-01-05</h2>
 <p>(Windows) Use wsa select event, which should lead to a much better behavior on Windows in general, and also when sending large payloads (#342)
 Fix "HTTP/1.1 400 Illegal character CNTL=0xf" caused by serverMaxWindowBits/clientMaxWindowBits being uint8_t (signed char). (#341)
