@@ -234,11 +234,7 @@ endif()
 option(USE_ZLIB "Enable zlib support" TRUE)
 
 if (USE_ZLIB)
-  # This ZLIB_FOUND check is to help find a cmake manually configured zlib
-  if (NOT ZLIB_FOUND)
-    find_package(ZLIB REQUIRED)
-  endif()
-  target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>)
+  find_package(ZLIB REQUIRED)
   target_link_libraries(ixwebsocket PRIVATE ZLIB::ZLIB)
 
   target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_ZLIB)
@@ -289,10 +285,14 @@ if (IXWEBSOCKET_INSTALL)
           PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket/
   )
 
+  configure_file("${CMAKE_CURRENT_LIST_DIR}/ixwebsocket-config.cmake.in" "${CMAKE_BINARY_DIR}/ixwebsocket-config.cmake" @ONLY)
+  install(FILES "${CMAKE_BINARY_DIR}/ixwebsocket-config.cmake" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ixwebsocket")
+  
   install(EXPORT ixwebsocket
-          FILE ixwebsocket-config.cmake
+          FILE ixwebsocket-targets.cmake
           NAMESPACE ixwebsocket::
-          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ixwebsocket)
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ixwebsocket
+  )
 endif()
 
 if (USE_WS OR USE_TEST)
