@@ -2,7 +2,7 @@
 
 include(CMakeFindDependencyMacro)
 
-if（@USE_ZLIB@）
+if (@USE_ZLIB@)
   find_dependency(ZLIB)
 endif()
 
