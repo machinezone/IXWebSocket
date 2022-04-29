@@ -66,6 +66,7 @@ set( IXWEBSOCKET_SOURCES
 )
 
 set( IXWEBSOCKET_HEADERS
+    ixwebsocket/IXBase64.h
     ixwebsocket/IXBench.h
     ixwebsocket/IXCancellationRequest.h
     ixwebsocket/IXConnectionState.h
