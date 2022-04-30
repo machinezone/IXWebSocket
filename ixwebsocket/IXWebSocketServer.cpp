@@ -79,7 +79,7 @@ namespace ix
     void WebSocketServer::handleConnection(std::unique_ptr<Socket> socket,
                                            std::shared_ptr<ConnectionState> connectionState)
     {
-        setThreadName("WebSocketServer::" + connectionState->getId());
+        setThreadName("Srv:ws:" + connectionState->getId());
 
         auto webSocket = std::make_shared<WebSocket>();
         if (_onConnectionCallback)
