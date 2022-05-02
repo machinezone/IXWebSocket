@@ -755,7 +755,7 @@ namespace ix
             // 1.1.0, but it does not. To be on the safe side, the manual test
             // below is enabled for all versions prior to 1.1.0.)
             X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
-            X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0);
+            X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
 #endif
             handshakeSuccessful = openSSLClientHandshake(host, errMsg, isCancellationRequested);
         }
