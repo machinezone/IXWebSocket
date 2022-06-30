@@ -77,24 +77,6 @@ namespace
         return std::make_pair(res.first, std::string(vec.begin(), vec.end()));
     }
 
-    // Assume the file exists
-    std::string readBytes(const std::string& path)
-    {
-        std::vector<uint8_t> memblock;
-        std::ifstream file(path);
-
-        file.seekg(0, file.end);
-        std::streamoff size = file.tellg();
-        file.seekg(0, file.beg);
-
-        memblock.reserve((size_t) size);
-        memblock.insert(
-            memblock.begin(), std::istream_iterator<char>(file), std::istream_iterator<char>());
-
-        std::string bytes(memblock.begin(), memblock.end());
-        return bytes;
-    }
-
     std::string truncate(const std::string& str, size_t n)
     {
         if (str.size() < n)
@@ -105,12 +87,6 @@ namespace
         {
             return str.substr(0, n) + "...";
         }
-    }
-
-    bool fileExists(const std::string& fileName)
-    {
-        std::ifstream infile(fileName);
-        return infile.good();
     }
 
     std::string extractFilename(const std::string& path)
@@ -2486,10 +2462,8 @@ int main(int argc, char** argv)
     bool verbose = false;
     bool save = false;
     bool quiet = false;
-    bool fluentd = false;
     bool compress = false;
     bool compressRequest = false;
-    bool stress = false;
     bool disableAutomaticReconnection = false;
     bool disablePerMessageDeflate = false;
     bool greetings = false;
@@ -2505,7 +2479,6 @@ int main(int argc, char** argv)
     int transferTimeout = 1800;
     int maxRedirects = 5;
     int delayMs = -1;
-    int count = 1;
     int msgCount = 1000 * 1000;
     uint32_t maxWaitBetweenReconnectionRetries = 10 * 1000; // 10 seconds
     int pingIntervalSecs = 30;

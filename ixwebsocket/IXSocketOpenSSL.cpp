@@ -301,7 +301,11 @@ namespace ix
     }
 
     bool SocketOpenSSL::openSSLCheckServerCert(SSL* ssl,
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
                                                const std::string& hostname,
+#else
+                                               const std::string& /* hostname */,
+#endif
                                                std::string& errMsg)
     {
         X509* server_cert = SSL_get_peer_certificate(ssl);
