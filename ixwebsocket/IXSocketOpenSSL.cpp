@@ -394,6 +394,11 @@ namespace ix
             int connect_result = SSL_connect(_ssl_connection);
             if (connect_result == 1)
             {
+                if (_tlsOptions.disable_hostname_validation)
+                {
+                    return true;
+                }
+
                 return openSSLCheckServerCert(_ssl_connection, host, errMsg);
             }
             int reason = SSL_get_error(_ssl_connection, connect_result);
@@ -758,8 +763,11 @@ namespace ix
             // (The docs say that this should work from 1.0.2, and is the default from
             // 1.1.0, but it does not. To be on the safe side, the manual test
             // below is enabled for all versions prior to 1.1.0.)
-            X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
-            X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
+            if (!_tlsOptions.disable_hostname_validation)
+            {
+                X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
+                X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
+            }
 #endif
             handshakeSuccessful = openSSLClientHandshake(host, errMsg, isCancellationRequested);
         }
