@@ -54,7 +54,7 @@ To use the installed package within a cmake project, use the following:
  # include headers
  include_directories(${IXWEBSOCKET_INCLUDE_DIR})
  # ...
- target_link_libraries(${PROJECT_NAME} ... ${IXWEBSOCKET_LIBRARY}) # Cmake will automatically fail the generation if the lib was not found, i.e is set to NOTFOUNS
+ target_link_libraries(${PROJECT_NAME} ... ${IXWEBSOCKET_LIBRARY}) # Cmake will automatically fail the generation if the lib was not found, i.e is set to NOTFOUND
 
 ```
 
