@@ -2502,6 +2502,7 @@ int main(int argc, char** argv)
                         "A (comma/space/colon) separated list of ciphers to use for TLS");
         app->add_flag("--tls", tlsOptions.tls, "Enable TLS (server only)");
         app->add_flag("--verify_none", verifyNone, "Disable peer cert verification");
+        app->add_flag("--disable-hostname-validation", tlsOptions.disable_hostname_validation, "Disable validation of certificates' hostnames");
     };
 
     app.add_flag("--version", version, "Print ws version");
