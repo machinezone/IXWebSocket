@@ -7,7 +7,9 @@
 #include "catch.hpp"
 #include <cstdint>
 #include <iostream>
+#include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXHttpClient.h>
+#include <ixwebsocket/IXHttpServer.h>
 
 using namespace ix;
 
@@ -122,12 +124,8 @@ TEST_CASE("http_client", "[http]")
 
             std::string url("https://localhost:" + std::to_string(port));
             auto args = httpClient.createRequest(url);
-
-            args->connectTimeout = 60;
-            args->transferTimeout = 60;
-            args->followRedirects = false;
-            args->verbose = true;
-            args->compress = true;
+            args->connectTimeout = 10;
+            args->transferTimeout = 10;
 
             auto response = httpClient.get(url, args);
 
