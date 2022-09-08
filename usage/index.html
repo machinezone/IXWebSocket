@@ -360,7 +360,9 @@ setHandshakeTimeout(handshakeTimeoutSecs);
 
 // Run a server on localhost at a given port.
 // Bound host name, max connections and listen backlog can also be passed in as parameters.
-ix::WebSocketServer server(port);
+int port = 8008;
+std::string host(&quot;127.0.0.1&quot;); // If you need this server to be accessible on a different machine, use &quot;0.0.0.0&quot;
+ix::WebSocketServer server(port, host);
 
 server.setOnConnectionCallback(
     [&amp;server](std::weak_ptr&lt;WebSocket&gt; webSocket,
@@ -438,7 +440,9 @@ server.wait();
 
 // Run a server on localhost at a given port.
 // Bound host name, max connections and listen backlog can also be passed in as parameters.
-ix::WebSocketServer server(port);
+int port = 8008;
+std::string host(&quot;127.0.0.1&quot;); // If you need this server to be accessible on a different machine, use &quot;0.0.0.0&quot;
+ix::WebSocketServer server(port, host);
 
 server.setOnClientMessageCallback([](std::shared_ptr&lt;ix::ConnectionState&gt; connectionState, ix::WebSocket &amp; webSocket, const ix::WebSocketMessagePtr &amp; msg) {
     // The ConnectionState object contains information about the connection,
