@@ -35,6 +35,7 @@ int main()
 
     // Connect to a server with encryption
     // See https://machinezone.github.io/IXWebSocket/usage/#tls-support-and-configuration
+    //     https://github.com/machinezone/IXWebSocket/issues/386#issuecomment-1105235227 (self signed certificates)
     std::string url("wss://echo.websocket.org");
     webSocket.setUrl(url);
 

@@ -2,6 +2,16 @@
 
 All changes to this project will be documented in this file.
 
+## [11.4.3] - 2022-05-13
+
+Set shorter thread names
+BoringSSL fix with SNI
+Websocket computed header is valid Base64
+
+## [11.4.1] - 2022-04-23
+
+vckpg + cmake fix, to handle zlib as a dependency better
+
 ## [11.4.0] - 2022-01-05
 
 (Windows) Use wsa select event, which should lead to a much better behavior on Windows in general, and also when sending large payloads (#342)

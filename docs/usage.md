@@ -301,7 +301,9 @@ This api was actually changed to take a weak_ptr<WebSocket> as the first argumen
 
 // Run a server on localhost at a given port.
 // Bound host name, max connections and listen backlog can also be passed in as parameters.
-ix::WebSocketServer server(port);
+int port = 8008;
+std::string host("127.0.0.1"); // If you need this server to be accessible on a different machine, use "0.0.0.0"
+ix::WebSocketServer server(port, host);
 
 server.setOnConnectionCallback(
     [&server](std::weak_ptr<WebSocket> webSocket,
@@ -384,7 +386,9 @@ The webSocket reference is guaranteed to be always valid ; by design the callbac
 
 // Run a server on localhost at a given port.
 // Bound host name, max connections and listen backlog can also be passed in as parameters.
-ix::WebSocketServer server(port);
+int port = 8008;
+std::string host("127.0.0.1"); // If you need this server to be accessible on a different machine, use "0.0.0.0"
+ix::WebSocketServer server(port, host);
 
 server.setOnClientMessageCallback([](std::shared_ptr<ix::ConnectionState> connectionState, ix::WebSocket & webSocket, const ix::WebSocketMessagePtr & msg) {
     // The ConnectionState object contains information about the connection,

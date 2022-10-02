@@ -268,7 +268,10 @@ namespace ix
         // Set the socket to non blocking mode, so that accept calls are not blocking
         SocketConnect::configure(_serverFd);
 
-        setThreadName("SocketServer::accept");
+        // Use a cryptic name to stay within the 16 bytes limit thread name limitation
+        // $ echo Srv:gc:64000 | wc -c
+        // 13
+        setThreadName("Srv:ac:" + std::to_string(_port));
 
         for (;;)
         {
@@ -425,7 +428,10 @@ namespace ix
 
     void SocketServer::runGC()
     {
-        setThreadName("SocketServer::GC");
+        // Use a cryptic name to stay within the 16 bytes limit thread name limitation
+        // $ echo Srv:gc:64000 | wc -c
+        // 13
+        setThreadName("Srv:gc:" + std::to_string(_port));
 
         for (;;)
         {

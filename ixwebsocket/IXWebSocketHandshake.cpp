@@ -6,6 +6,7 @@
 
 #include "IXWebSocketHandshake.h"
 
+#include "IXBase64.h"
 #include "IXHttp.h"
 #include "IXSocketConnect.h"
 #include "IXStrCaseCompare.h"
@@ -16,7 +17,6 @@
 #include <iostream>
 #include <random>
 #include <sstream>
-
 
 namespace ix
 {
@@ -106,15 +106,10 @@ namespace ix
             return WebSocketInitResult(false, 0, ss.str());
         }
 
-        //
-        // Generate a random 24 bytes string which looks like it is base64 encoded
-        // y3JJHMbDL1EzLkh9GBhXDw==
-        // 0cb3Vd9HkbpVVumoS3Noka==
+        // Generate a random 16 bytes string and base64 encode it.
         //
         // See https://stackoverflow.com/questions/18265128/what-is-sec-websocket-key-for
-        //
-        std::string secWebSocketKey = genRandomString(22);
-        secWebSocketKey += "==";
+        std::string secWebSocketKey = macaron::Base64::Encode(genRandomString(16));
 
         std::stringstream ss;
         ss << "GET " << path << " HTTP/1.1\r\n";

@@ -88,7 +88,7 @@ namespace ix
                                            std::shared_ptr<ConnectionState> connectionState,
                                            HttpRequestPtr request)
     {
-        setThreadName("WebSocketServer::" + connectionState->getId());
+        setThreadName("Srv:ws:" + connectionState->getId());
 
         auto webSocket = std::make_shared<WebSocket>();
         if (_onConnectionCallback)
