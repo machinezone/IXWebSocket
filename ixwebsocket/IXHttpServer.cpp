@@ -40,6 +40,29 @@ namespace
         auto vec = res.second;
         return std::make_pair(res.first, std::string(vec.begin(), vec.end()));
     }
+
+    std::string response_head_file(const std::string& file_name){
+
+        if (std::string::npos != file_name.find(".html") || std::string::npos != file_name.find(".htm"))
+            return "text/html";
+        else if (std::string::npos != file_name.find(".css"))
+            return "text/css";
+        else if (std::string::npos != file_name.find(".js") || std::string::npos != file_name.find(".mjs"))
+            return "application/x-javascript";
+        else if (std::string::npos != file_name.find(".ico"))
+            return "image/x-icon";
+        else if (std::string::npos != file_name.find(".png"))
+            return "image/png";
+        else if (std::string::npos != file_name.find(".jpg") || std::string::npos != file_name.find(".jpeg"))
+            return "image/jpeg";
+        else if (std::string::npos != file_name.find(".gif"))
+            return "image/gif";
+        else if (std::string::npos != file_name.find(".svg"))
+            return "image/svg+xml";
+        else
+            return "application/octet-stream";
+    }
+
 } // namespace
 
 namespace ix
@@ -117,6 +140,7 @@ namespace ix
 
                 WebSocketHttpHeaders headers;
                 headers["Server"] = userAgent();
+                headers["Content-Type"] = response_head_file(uri);
 
                 std::string path("." + uri);
                 auto res = readAsString(path);
