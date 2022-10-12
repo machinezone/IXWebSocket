@@ -205,7 +205,9 @@ namespace ix
                 _sslContext, SocketAppleSSL::readFromSocket, SocketAppleSSL::writeToSocket);
             SSLSetConnection(_sslContext, (SSLConnectionRef)(long) _sockfd);
             SSLSetProtocolVersionMin(_sslContext, kTLSProtocol12);
-            SSLSetPeerDomainName(_sslContext, host.c_str(), host.size());
+
+            if (!_tlsOptions.disable_hostname_validation)
+                SSLSetPeerDomainName(_sslContext, host.c_str(), host.size());
 
             if (_tlsOptions.isPeerVerifyDisabled())
             {

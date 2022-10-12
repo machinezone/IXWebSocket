@@ -48,7 +48,7 @@ namespace ix
         mbedtls_pk_init(&_pkey);
     }
 
-    bool SocketMbedTLS::loadSystemCertificates(std::string& errorMsg)
+    bool SocketMbedTLS::loadSystemCertificates(std::string& /* errorMsg */)
     {
 #ifdef _WIN32
         DWORD flags = CERT_STORE_READONLY_FLAG | CERT_STORE_OPEN_EXISTING_FLAG |
@@ -195,10 +195,13 @@ namespace ix
             return false;
         }
 
-        if (!host.empty() && mbedtls_ssl_set_hostname(&_ssl, host.c_str()) != 0)
+        if (!_tlsOptions.disable_hostname_validation)
         {
-            errMsg = "SNI setup failed";
-            return false;
+            if (!host.empty() && mbedtls_ssl_set_hostname(&_ssl, host.c_str()) != 0)
+            {
+                errMsg = "SNI setup failed";
+                return false;
+            }
         }
 
         return true;

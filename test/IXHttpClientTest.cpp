@@ -7,7 +7,9 @@
 #include "catch.hpp"
 #include <cstdint>
 #include <iostream>
+#include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXHttpClient.h>
+#include <ixwebsocket/IXHttpServer.h>
 
 using namespace ix;
 
@@ -92,6 +94,52 @@ TEST_CASE("http_client", "[http]")
 
         REQUIRE(response->errorCode == HttpErrorCode::Ok);
         REQUIRE(response->statusCode == 200);
+    }
+#endif
+
+#if defined(IXWEBSOCKET_USE_TLS) && !defined(IXWEBSOCKET_USE_SECURE_TRANSPORT)
+    SECTION("Disable hostname validation")
+    {
+        static auto test_cert_with_wrong_name = [](bool validate_hostname)
+        {
+            int port = getFreePort();
+            ix::HttpServer server(port, "127.0.0.1");
+
+            SocketTLSOptions tlsOptionsServer;
+            tlsOptionsServer.tls = true;
+            tlsOptionsServer.caFile = "NONE";
+            tlsOptionsServer.certFile = "./.certs/wrong-name-server-crt.pem";
+            tlsOptionsServer.keyFile = "./.certs/wrong-name-server-key.pem";
+            server.setTLSOptions(tlsOptionsServer);
+
+            auto res = server.listen();
+            REQUIRE(res.first);
+            server.start();
+
+            HttpClient httpClient;
+            SocketTLSOptions tlsOptionsClient;
+            tlsOptionsClient.caFile = "./.certs/trusted-ca-crt.pem";
+            tlsOptionsClient.disable_hostname_validation = validate_hostname;
+            httpClient.setTLSOptions(tlsOptionsClient);
+
+            std::string url("https://localhost:" + std::to_string(port));
+            auto args = httpClient.createRequest(url);
+            args->connectTimeout = 10;
+            args->transferTimeout = 10;
+
+            auto response = httpClient.get(url, args);
+
+            std::cerr << "Status: " << response->statusCode << std::endl;
+            std::cerr << "Error code: " << (int) response->errorCode << std::endl;
+            std::cerr << "Error message: " << response->errorMsg << std::endl;
+
+            server.stop();
+            return std::make_tuple(response->errorCode, response->statusCode);
+        };
+
+        REQUIRE(test_cert_with_wrong_name(false) ==
+                std::make_tuple(HttpErrorCode::CannotConnect, 0));
+        REQUIRE(test_cert_with_wrong_name(true) == std::make_tuple(HttpErrorCode::Ok, 404));
     }
 #endif
 
