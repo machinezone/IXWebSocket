@@ -7,12 +7,12 @@
 #pragma once
 
 #include "IXCancellationRequest.h"
+#include "IXHttp.h"
 #include "IXSocket.h"
 #include "IXWebSocketHttpHeaders.h"
 #include "IXWebSocketInitResult.h"
 #include "IXWebSocketPerMessageDeflate.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
-#include "IXHttp.h"
 #include <atomic>
 #include <chrono>
 #include <memory>
@@ -36,7 +36,9 @@ namespace ix
                                             int port,
                                             int timeoutSecs);
 
-        WebSocketInitResult serverHandshake(int timeoutSecs, bool enablePerMessageDeflate, HttpRequestPtr request = nullptr);
+        WebSocketInitResult serverHandshake(int timeoutSecs,
+                                            bool enablePerMessageDeflate,
+                                            HttpRequestPtr request = nullptr);
 
     private:
         std::string genRandomString(const int len);

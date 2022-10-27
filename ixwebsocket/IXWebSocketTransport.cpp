@@ -188,7 +188,8 @@ namespace ix
                                               _perMessageDeflateOptions,
                                               _enablePerMessageDeflate);
 
-        auto result = webSocketHandshake.serverHandshake(timeoutSecs, enablePerMessageDeflate, request);
+        auto result =
+            webSocketHandshake.serverHandshake(timeoutSecs, enablePerMessageDeflate, request);
         if (result.success)
         {
             setReadyState(ReadyState::OPEN);

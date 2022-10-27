@@ -7,8 +7,8 @@
 #pragma once
 
 #include "IXHttp.h"
-#include "IXWebSocketServer.h"
 #include "IXWebSocket.h"
+#include "IXWebSocketServer.h"
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -40,6 +40,7 @@ namespace ix
         void makeDebugServer();
 
         int getTimeoutSecs();
+
     private:
         // Member variables
         OnConnectionCallback _onConnectionCallback;

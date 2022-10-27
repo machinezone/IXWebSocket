@@ -18,8 +18,8 @@
 #include "IXWebSocketHttpHeaders.h"
 #include "IXWebSocketPerMessageDeflate.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
-#include "IXWebSocketSendInfo.h"
 #include "IXWebSocketSendData.h"
+#include "IXWebSocketSendInfo.h"
 #include <atomic>
 #include <functional>
 #include <list>

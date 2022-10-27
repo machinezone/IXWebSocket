@@ -16,8 +16,8 @@
 #include "IXWebSocketHttpHeaders.h"
 #include "IXWebSocketMessage.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
-#include "IXWebSocketSendInfo.h"
 #include "IXWebSocketSendData.h"
+#include "IXWebSocketSendInfo.h"
 #include "IXWebSocketTransport.h"
 #include <atomic>
 #include <condition_variable>

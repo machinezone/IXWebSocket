@@ -74,11 +74,15 @@ namespace ix
         {
             auto request = std::get<2>(ret);
             std::shared_ptr<ix::HttpResponse> response;
-            if (request->headers["Upgrade"] == "websocket") {
+            if (request->headers["Upgrade"] == "websocket")
+            {
                 WebSocketServer::handleUpgrade(std::move(socket), connectionState, request);
-            } else {
+            }
+            else
+            {
                 auto response = _onConnectionCallback(request, connectionState);
-                if (!Http::sendResponse(response, socket)) {
+                if (!Http::sendResponse(response, socket))
+                {
                     logError("Cannot send response");
                 }
             }
@@ -90,7 +94,8 @@ namespace ix
     {
         setOnConnectionCallback(
             [this](HttpRequestPtr request,
-                   std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr {
+                   std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr
+            {
                 std::string uri(request->uri);
                 if (uri.empty() || uri == "/")
                 {
@@ -147,9 +152,9 @@ namespace ix
         // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
         //
         setOnConnectionCallback(
-            [this,
-             redirectUrl](HttpRequestPtr request,
-                          std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr {
+            [this, redirectUrl](HttpRequestPtr request,
+                                std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr
+            {
                 WebSocketHttpHeaders headers;
                 headers["Server"] = userAgent();
 
@@ -180,7 +185,8 @@ namespace ix
     {
         setOnConnectionCallback(
             [this](HttpRequestPtr request,
-                   std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr {
+                   std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr
+            {
                 WebSocketHttpHeaders headers;
                 headers["Server"] = userAgent();
 
