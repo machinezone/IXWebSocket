@@ -55,6 +55,7 @@ namespace ix
         int getHandshakeTimeoutSecs();
         bool isPongEnabled();
         bool isPerMessageDeflateEnabled();
+
     private:
         // Member variables
         int _handshakeTimeoutSecs;
@@ -73,5 +74,10 @@ namespace ix
         virtual void handleConnection(std::unique_ptr<Socket> socket,
                                       std::shared_ptr<ConnectionState> connectionState);
         virtual size_t getConnectedClientsCount() final;
+
+    protected:
+        void handleUpgrade(std::unique_ptr<Socket> socket,
+                           std::shared_ptr<ConnectionState> connectionState,
+                           HttpRequestPtr request = nullptr);
     };
 } // namespace ix

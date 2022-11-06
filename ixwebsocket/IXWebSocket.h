@@ -16,8 +16,8 @@
 #include "IXWebSocketHttpHeaders.h"
 #include "IXWebSocketMessage.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
-#include "IXWebSocketSendInfo.h"
 #include "IXWebSocketSendData.h"
+#include "IXWebSocketSendInfo.h"
 #include "IXWebSocketTransport.h"
 #include <atomic>
 #include <condition_variable>
@@ -128,7 +128,8 @@ namespace ix
         // Server
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket>,
                                             int timeoutSecs,
-                                            bool enablePerMessageDeflate);
+                                            bool enablePerMessageDeflate,
+                                            HttpRequestPtr request = nullptr);
 
         WebSocketTransport _ws;
 

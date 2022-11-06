@@ -18,8 +18,8 @@
 #include "IXWebSocketHttpHeaders.h"
 #include "IXWebSocketPerMessageDeflate.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
-#include "IXWebSocketSendInfo.h"
 #include "IXWebSocketSendData.h"
+#include "IXWebSocketSendInfo.h"
 #include <atomic>
 #include <functional>
 #include <list>
@@ -86,7 +86,8 @@ namespace ix
         // Server
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket,
                                             int timeoutSecs,
-                                            bool enablePerMessageDeflate);
+                                            bool enablePerMessageDeflate,
+                                            HttpRequestPtr request = nullptr);
 
         PollResult poll();
         WebSocketSendInfo sendBinary(const IXWebSocketSendData& message,

@@ -240,28 +240,42 @@ namespace ix
     }
 
     WebSocketInitResult WebSocketHandshake::serverHandshake(int timeoutSecs,
-                                                            bool enablePerMessageDeflate)
+                                                            bool enablePerMessageDeflate,
+                                                            HttpRequestPtr request)
     {
         _requestInitCancellation = false;
 
         auto isCancellationRequested =
             makeCancellationRequestWithTimeout(timeoutSecs, _requestInitCancellation);
 
-        // Read first line
-        auto lineResult = _socket->readLine(isCancellationRequested);
-        auto lineValid = lineResult.first;
-        auto line = lineResult.second;
+        std::string method;
+        std::string uri;
+        std::string httpVersion;
 
-        if (!lineValid)
+        if (request)
         {
-            return sendErrorResponse(400, "Error reading HTTP request line");
+            method = request->method;
+            uri = request->uri;
+            httpVersion = request->version;
         }
+        else
+        {
+            // Read first line
+            auto lineResult = _socket->readLine(isCancellationRequested);
+            auto lineValid = lineResult.first;
+            auto line = lineResult.second;
 
-        // Validate request line (GET /foo HTTP/1.1\r\n)
-        auto requestLine = Http::parseRequestLine(line);
-        auto method = std::get<0>(requestLine);
-        auto uri = std::get<1>(requestLine);
-        auto httpVersion = std::get<2>(requestLine);
+            if (!lineValid)
+            {
+                return sendErrorResponse(400, "Error reading HTTP request line");
+            }
+
+            // Validate request line (GET /foo HTTP/1.1\r\n)
+            auto requestLine = Http::parseRequestLine(line);
+            method = std::get<0>(requestLine);
+            uri = std::get<1>(requestLine);
+            httpVersion = std::get<2>(requestLine);
+        }
 
         if (method != "GET")
         {
@@ -274,14 +288,22 @@ namespace ix
                                      "Invalid HTTP version, need HTTP/1.1, got: " + httpVersion);
         }
 
-        // Retrieve and validate HTTP headers
-        auto result = parseHttpHeaders(_socket, isCancellationRequested);
-        auto headersValid = result.first;
-        auto headers = result.second;
-
-        if (!headersValid)
+        WebSocketHttpHeaders headers;
+        if (request)
         {
-            return sendErrorResponse(400, "Error parsing HTTP headers");
+            headers = request->headers;
+        }
+        else
+        {
+            // Retrieve and validate HTTP headers
+            auto result = parseHttpHeaders(_socket, isCancellationRequested);
+            auto headersValid = result.first;
+            headers = result.second;
+
+            if (!headersValid)
+            {
+                return sendErrorResponse(400, "Error parsing HTTP headers");
+            }
         }
 
         if (headers.find("sec-websocket-key") == headers.end())

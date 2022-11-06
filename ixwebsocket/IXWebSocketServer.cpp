@@ -79,6 +79,15 @@ namespace ix
     void WebSocketServer::handleConnection(std::unique_ptr<Socket> socket,
                                            std::shared_ptr<ConnectionState> connectionState)
     {
+        handleUpgrade(std::move(socket), connectionState);
+
+        connectionState->setTerminated();
+    }
+
+    void WebSocketServer::handleUpgrade(std::unique_ptr<Socket> socket,
+                                        std::shared_ptr<ConnectionState> connectionState,
+                                        HttpRequestPtr request)
+    {
         setThreadName("Srv:ws:" + connectionState->getId());
 
         auto webSocket = std::make_shared<WebSocket>();
@@ -89,7 +98,7 @@ namespace ix
             if (!webSocket->isOnMessageCallbackRegistered())
             {
                 logError("WebSocketServer Application developer error: Server callback improperly "
-                         "registerered.");
+                         "registered.");
                 logError("Missing call to setOnMessageCallback inside setOnConnectionCallback.");
                 connectionState->setTerminated();
                 return;
@@ -99,9 +108,8 @@ namespace ix
         {
             WebSocket* webSocketRawPtr = webSocket.get();
             webSocket->setOnMessageCallback(
-                [this, webSocketRawPtr, connectionState](const WebSocketMessagePtr& msg) {
-                    _onClientMessageCallback(connectionState, *webSocketRawPtr, msg);
-                });
+                [this, webSocketRawPtr, connectionState](const WebSocketMessagePtr& msg)
+                { _onClientMessageCallback(connectionState, *webSocketRawPtr, msg); });
         }
         else
         {
@@ -130,7 +138,7 @@ namespace ix
         }
 
         auto status = webSocket->connectToSocket(
-            std::move(socket), _handshakeTimeoutSecs, _enablePerMessageDeflate);
+            std::move(socket), _handshakeTimeoutSecs, _enablePerMessageDeflate, request);
         if (status.success)
         {
             // Process incoming messages and execute callbacks
@@ -155,8 +163,6 @@ namespace ix
                 logError("Cannot delete client");
             }
         }
-
-        connectionState->setTerminated();
     }
 
     std::set<std::shared_ptr<WebSocket>> WebSocketServer::getClients()
@@ -176,28 +182,30 @@ namespace ix
     //
     void WebSocketServer::makeBroadcastServer()
     {
-        setOnClientMessageCallback([this](std::shared_ptr<ConnectionState> connectionState,
-                                          WebSocket& webSocket,
-                                          const WebSocketMessagePtr& msg) {
-            auto remoteIp = connectionState->getRemoteIp();
-            if (msg->type == ix::WebSocketMessageType::Message)
+        setOnClientMessageCallback(
+            [this](std::shared_ptr<ConnectionState> connectionState,
+                   WebSocket& webSocket,
+                   const WebSocketMessagePtr& msg)
             {
-                for (auto&& client : getClients())
+                auto remoteIp = connectionState->getRemoteIp();
+                if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    if (client.get() != &webSocket)
+                    for (auto&& client : getClients())
                     {
-                        client->send(msg->str, msg->binary);
-
-                        // Make sure the OS send buffer is flushed before moving on
-                        do
+                        if (client.get() != &webSocket)
                         {
-                            std::chrono::duration<double, std::milli> duration(500);
-                            std::this_thread::sleep_for(duration);
-                        } while (client->bufferedAmount() != 0);
+                            client->send(msg->str, msg->binary);
+
+                            // Make sure the OS send buffer is flushed before moving on
+                            do
+                            {
+                                std::chrono::duration<double, std::milli> duration(500);
+                                std::this_thread::sleep_for(duration);
+                            } while (client->bufferedAmount() != 0);
+                        }
                     }
                 }
-            }
-        });
+            });
     }
 
     bool WebSocketServer::listenAndStart()

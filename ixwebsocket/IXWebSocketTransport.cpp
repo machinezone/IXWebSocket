@@ -170,7 +170,8 @@ namespace ix
     // Server
     WebSocketInitResult WebSocketTransport::connectToSocket(std::unique_ptr<Socket> socket,
                                                             int timeoutSecs,
-                                                            bool enablePerMessageDeflate)
+                                                            bool enablePerMessageDeflate,
+                                                            HttpRequestPtr request)
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
@@ -187,7 +188,8 @@ namespace ix
                                               _perMessageDeflateOptions,
                                               _enablePerMessageDeflate);
 
-        auto result = webSocketHandshake.serverHandshake(timeoutSecs, enablePerMessageDeflate);
+        auto result =
+            webSocketHandshake.serverHandshake(timeoutSecs, enablePerMessageDeflate, request);
         if (result.success)
         {
             setReadyState(ReadyState::OPEN);

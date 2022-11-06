@@ -41,7 +41,8 @@ namespace ix
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
     {
         _ws.setOnCloseCallback(
-            [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote) {
+            [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
+            {
                 _onMessageCallback(
                     ix::make_unique<WebSocketMessage>(WebSocketMessageType::Close,
                                                       emptyMsg,
@@ -240,7 +241,8 @@ namespace ix
 
     WebSocketInitResult WebSocket::connectToSocket(std::unique_ptr<Socket> socket,
                                                    int timeoutSecs,
-                                                   bool enablePerMessageDeflate)
+                                                   bool enablePerMessageDeflate,
+                                                   HttpRequestPtr request)
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
@@ -249,7 +251,7 @@ namespace ix
         }
 
         WebSocketInitResult status =
-            _ws.connectToSocket(std::move(socket), timeoutSecs, enablePerMessageDeflate);
+            _ws.connectToSocket(std::move(socket), timeoutSecs, enablePerMessageDeflate, request);
         if (!status.success)
         {
             return status;
@@ -384,8 +386,9 @@ namespace ix
                 [this](const std::string& msg,
                        size_t wireSize,
                        bool decompressionError,
-                       WebSocketTransport::MessageKind messageKind) {
-                    WebSocketMessageType webSocketMessageType{WebSocketMessageType::Error};
+                       WebSocketTransport::MessageKind messageKind)
+                {
+                    WebSocketMessageType webSocketMessageType {WebSocketMessageType::Error};
                     switch (messageKind)
                     {
                         case WebSocketTransport::MessageKind::MSG_TEXT:
