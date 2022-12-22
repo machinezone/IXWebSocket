@@ -251,7 +251,7 @@ if (WIN32)
   endif()
 endif()
 
-if(UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE)
   set(THREADS_PREFER_PTHREAD_FLAG TRUE)
   find_package(Threads)
   target_link_libraries(ixwebsocket PRIVATE Threads::Threads)
