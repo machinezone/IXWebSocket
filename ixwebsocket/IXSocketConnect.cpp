@@ -102,7 +102,7 @@ namespace ix
         // First do DNS resolution
         //
         auto dnsLookup = std::make_shared<DNSLookup>(hostname, port);
-        struct addrinfo* res = dnsLookup->resolve(errMsg, isCancellationRequested);
+        auto res = dnsLookup->resolve(errMsg, isCancellationRequested);
         if (res == nullptr)
         {
             return -1;
@@ -112,7 +112,7 @@ namespace ix
 
         // iterate through the records to find a working peer
         struct addrinfo* address;
-        for (address = res; address != nullptr; address = address->ai_next)
+        for (address = res.get(); address != nullptr; address = address->ai_next)
         {
             //
             // Second try to connect to the remote host
@@ -124,7 +124,6 @@ namespace ix
             }
         }
 
-        freeaddrinfo(res);
         return sockfd;
     }
 
