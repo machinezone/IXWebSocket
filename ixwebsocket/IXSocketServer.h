@@ -126,5 +126,6 @@ namespace ix
         // as a connection
         std::condition_variable _conditionVariableGC;
         std::mutex _conditionVariableMutexGC;
+        bool _canContinueGC{ false };
     };
 } // namespace ix

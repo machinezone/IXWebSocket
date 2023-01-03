@@ -219,6 +219,10 @@ namespace ix
         if (_gcThread.joinable())
         {
             _stopGc = true;
+            {
+                std::lock_guard<std::mutex> lock{ _conditionVariableMutexGC };
+                _canContinueGC = true;
+            }
             _conditionVariableGC.notify_one();
             _gcThread.join();
             _stopGc = false;
@@ -451,7 +455,10 @@ namespace ix
             if (!_stopGc)
             {
                 std::unique_lock<std::mutex> lock(_conditionVariableMutexGC);
-                _conditionVariableGC.wait(lock);
+                if(!_canContinueGC) {
+                    _conditionVariableGC.wait(lock, [this]{ return _canContinueGC; });
+                }
+                _canContinueGC = false;
             }
         }
     }
@@ -465,6 +472,10 @@ namespace ix
     {
         // a connection got terminated, we can run the connection thread GC,
         // so wake up the thread responsible for that
+        {
+            std::lock_guard<std::mutex> lock{ _conditionVariableMutexGC };
+            _canContinueGC = true;
+        }
         _conditionVariableGC.notify_one();
     }
 
