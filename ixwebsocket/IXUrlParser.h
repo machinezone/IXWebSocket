@@ -19,5 +19,13 @@ namespace ix
                           std::string& path,
                           std::string& query,
                           int& port);
+
+        static bool parse(const std::string& url,
+                          std::string& protocol,
+                          std::string& host,
+                          std::string& path,
+                          std::string& query,
+                          int& port,
+                          bool& isProtocolDefaultPort);
     };
 } // namespace ix

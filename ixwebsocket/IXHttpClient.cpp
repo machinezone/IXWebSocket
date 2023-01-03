@@ -139,8 +139,9 @@ namespace ix
 
         std::string protocol, host, path, query;
         int port;
+        bool isProtocolDefaultPort;
 
-        if (!UrlParser::parse(url, protocol, host, path, query, port))
+        if (!UrlParser::parse(url, protocol, host, path, query, port, isProtocolDefaultPort))
         {
             std::stringstream ss;
             ss << "Cannot parse url: " << url;
@@ -173,7 +174,12 @@ namespace ix
         // Build request string
         std::stringstream ss;
         ss << verb << " " << path << " HTTP/1.1\r\n";
-        ss << "Host: " << host << "\r\n";
+        ss << "Host: " << host;
+        if (!isProtocolDefaultPort)
+        {
+            ss << ":" << port;
+        }
+        ss << "\r\n";
 
 #ifdef IXWEBSOCKET_USE_ZLIB
         if (args->compress && !args->onChunkCallback)
