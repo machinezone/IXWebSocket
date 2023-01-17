@@ -33,9 +33,6 @@ namespace ix
         // whether tls is enabled, used for server code
         bool tls = false;
 
-        // whether to skip validating the peer's hostname against the certificate presented
-        bool disable_hostname_validation = false;
-
         bool hasCertAndKey() const;
 
         bool isUsingSystemDefaults() const;

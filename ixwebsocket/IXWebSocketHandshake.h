@@ -7,7 +7,6 @@
 #pragma once
 
 #include "IXCancellationRequest.h"
-#include "IXHttp.h"
 #include "IXSocket.h"
 #include "IXWebSocketHttpHeaders.h"
 #include "IXWebSocketInitResult.h"
@@ -36,11 +35,11 @@ namespace ix
                                             int port,
                                             int timeoutSecs);
 
-        WebSocketInitResult serverHandshake(int timeoutSecs,
-                                            bool enablePerMessageDeflate,
-                                            HttpRequestPtr request = nullptr);
-
+        WebSocketInitResult serverHandshake(int timeoutSecs, bool enablePerMessageDeflate);
+        void setProxySettings(ProxySetup &proxy_setup);
     private:
+        ProxySetup _proxy_setup;
+
         std::string genRandomString(const int len);
 
         // Parse HTTP headers

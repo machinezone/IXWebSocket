@@ -11,9 +11,7 @@
 #include "IXUniquePtr.h"
 #include "IXUtf8Validator.h"
 #include "IXWebSocketHandshake.h"
-#include <cassert>
-#include <cmath>
-
+#include "proxysocket.h"
 
 namespace
 {
@@ -41,8 +39,7 @@ namespace ix
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
     {
         _ws.setOnCloseCallback(
-            [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
-            {
+            [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote) {
                 _onMessageCallback(
                     ix::make_unique<WebSocketMessage>(WebSocketMessageType::Close,
                                                       emptyMsg,
@@ -51,6 +48,7 @@ namespace ix
                                                       WebSocketOpenInfo(),
                                                       WebSocketCloseInfo(code, reason, remote)));
             });
+        proxysocket_initialize();
     }
 
     WebSocket::~WebSocket()
@@ -64,6 +62,7 @@ namespace ix
         std::lock_guard<std::mutex> lock(_configMutex);
         _url = url;
     }
+
 
     void WebSocket::setHandshakeTimeout(int handshakeTimeoutSecs)
     {
@@ -95,7 +94,7 @@ namespace ix
         _socketTLSOptions = socketTLSOptions;
     }
 
-    const WebSocketPerMessageDeflateOptions WebSocket::getPerMessageDeflateOptions() const
+    WebSocketPerMessageDeflateOptions WebSocket::getPerMessageDeflateOptions() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         return _perMessageDeflateOptions;
@@ -124,6 +123,7 @@ namespace ix
         std::lock_guard<std::mutex> lock(_configMutex);
         _enablePong = false;
     }
+
 
     void WebSocket::enablePerMessageDeflate()
     {
@@ -205,7 +205,7 @@ namespace ix
             // 'json,msgpack'
             //
             int i = 0;
-            for (auto subProtocol : subProtocols)
+            for (const auto& subProtocol : subProtocols)
             {
                 if (i++ != 0)
                 {
@@ -215,6 +215,8 @@ namespace ix
             }
             headers["Sec-WebSocket-Protocol"] = subProtocolsHeader;
         }
+
+        _ws.setProxySettings(_proxy_setup);
 
         WebSocketInitResult status = _ws.connectToUrl(_url, headers, timeoutSecs);
         if (!status.success)
@@ -241,8 +243,7 @@ namespace ix
 
     WebSocketInitResult WebSocket::connectToSocket(std::unique_ptr<Socket> socket,
                                                    int timeoutSecs,
-                                                   bool enablePerMessageDeflate,
-                                                   HttpRequestPtr request)
+                                                   bool enablePerMessageDeflate)
     {
         {
             std::lock_guard<std::mutex> lock(_configMutex);
@@ -251,7 +252,7 @@ namespace ix
         }
 
         WebSocketInitResult status =
-            _ws.connectToSocket(std::move(socket), timeoutSecs, enablePerMessageDeflate, request);
+            _ws.connectToSocket(std::move(socket), timeoutSecs, enablePerMessageDeflate);
         if (!status.success)
         {
             return status;
@@ -386,9 +387,8 @@ namespace ix
                 [this](const std::string& msg,
                        size_t wireSize,
                        bool decompressionError,
-                       WebSocketTransport::MessageKind messageKind)
-                {
-                    WebSocketMessageType webSocketMessageType {WebSocketMessageType::Error};
+                       WebSocketTransport::MessageKind messageKind) {
+                    WebSocketMessageType webSocketMessageType{WebSocketMessageType::Error};
                     switch (messageKind)
                     {
                         case WebSocketTransport::MessageKind::MSG_TEXT:
@@ -614,4 +614,11 @@ namespace ix
         std::lock_guard<std::mutex> lock(_configMutex);
         return _subProtocols;
     }
+    void WebSocket::setProxySettings(ProxySetup &proxy_setup)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _proxy_setup = proxy_setup;
+    }
+
+
 } // namespace ix

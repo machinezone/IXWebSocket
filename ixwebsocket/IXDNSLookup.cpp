@@ -23,7 +23,6 @@
 #include <chrono>
 #include <string.h>
 #include <thread>
-#include <utility>
 
 // mingw build quirks
 #if defined(_WIN32) && defined(__GNUC__)
@@ -45,7 +44,7 @@ namespace ix
         ;
     }
 
-    DNSLookup::AddrInfoPtr DNSLookup::getAddrInfo(const std::string& hostname,
+    struct addrinfo* DNSLookup::getAddrInfo(const std::string& hostname,
                                             int port,
                                             std::string& errMsg)
     {
@@ -64,10 +63,10 @@ namespace ix
             errMsg = gai_strerror(getaddrinfo_result);
             res = nullptr;
         }
-        return AddrInfoPtr{ res, freeaddrinfo };
+        return res;
     }
 
-    DNSLookup::AddrInfoPtr DNSLookup::resolve(std::string& errMsg,
+    struct addrinfo* DNSLookup::resolve(std::string& errMsg,
                                         const CancellationRequest& isCancellationRequested,
                                         bool cancellable)
     {
@@ -75,7 +74,12 @@ namespace ix
                            : resolveUnCancellable(errMsg, isCancellationRequested);
     }
 
-    DNSLookup::AddrInfoPtr DNSLookup::resolveUnCancellable(
+    void DNSLookup::release(struct addrinfo* addr)
+    {
+        freeaddrinfo(addr);
+    }
+
+    struct addrinfo* DNSLookup::resolveUnCancellable(
         std::string& errMsg, const CancellationRequest& isCancellationRequested)
     {
         errMsg = "no error";
@@ -90,7 +94,7 @@ namespace ix
         return getAddrInfo(_hostname, _port, errMsg);
     }
 
-    DNSLookup::AddrInfoPtr DNSLookup::resolveCancellable(
+    struct addrinfo* DNSLookup::resolveCancellable(
         std::string& errMsg, const CancellationRequest& isCancellationRequested)
     {
         errMsg = "no error";
@@ -153,7 +157,7 @@ namespace ix
         // gone, so we use temporary variables (res) or we pass in by copy everything that
         // getAddrInfo needs to work.
         std::string errMsg;
-        auto res = getAddrInfo(hostname, port, errMsg);
+        struct addrinfo* res = getAddrInfo(hostname, port, errMsg);
 
         if (auto lock = self.lock())
         {
@@ -177,13 +181,13 @@ namespace ix
         return _errMsg;
     }
 
-    void DNSLookup::setRes(DNSLookup::AddrInfoPtr addr)
+    void DNSLookup::setRes(struct addrinfo* addr)
     {
         std::lock_guard<std::mutex> lock(_resMutex);
-        _res = std::move(addr);
+        _res = addr;
     }
 
-    DNSLookup::AddrInfoPtr DNSLookup::getRes()
+    struct addrinfo* DNSLookup::getRes()
     {
         std::lock_guard<std::mutex> lock(_resMutex);
         return _res;

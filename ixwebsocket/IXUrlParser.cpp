@@ -374,6 +374,7 @@ namespace ix
             }
         }
 
+
         if (path.empty())
         {
             path = "/";

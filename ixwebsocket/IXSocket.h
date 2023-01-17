@@ -22,6 +22,7 @@ typedef SSIZE_T ssize_t;
 #include "IXCancellationRequest.h"
 #include "IXProgressCallback.h"
 #include "IXSelectInterrupt.h"
+#include "proxysocteksetting.h"
 
 namespace ix
 {
@@ -83,6 +84,8 @@ namespace ix
                                    int sockfd,
                                    const SelectInterruptPtr& selectInterrupt);
 
+        void setProxySettings(ProxySetup &proxy_setup);
+
     protected:
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;
@@ -90,10 +93,11 @@ namespace ix
         static bool readSelectInterruptRequest(const SelectInterruptPtr& selectInterrupt,
                                                PollResultType* pollResult);
 
+        ProxySetup _proxy_setup;
+
     private:
         static const int kDefaultPollTimeout;
         static const int kDefaultPollNoTimeout;
-
         SelectInterruptPtr _selectInterrupt;
     };
 } // namespace ix

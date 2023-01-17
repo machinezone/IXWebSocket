@@ -16,20 +16,34 @@
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
+#include <ixwebsocket/proxysocteksetting.h>
 #include <iostream>
 
 int main()
 {
     // Required on Windows
-    ix::initNetSystem();
+    //ix::initNetSystem();
 
     // Our websocket object
     ix::WebSocket webSocket;
+    ix::SocketTLSOptions tr;
+    tr.tls = true;
+    tr.caFile = "NONE";
+   webSocket.setTLSOptions(tr);
+    std::string  url("wss://ws.postman-echo.com/raw");
 
-    // Connect to a server with encryption
-    // See https://machinezone.github.io/IXWebSocket/usage/#tls-support-and-configuration
-    std::string url("wss://echo.websocket.org");
+    ProxySetup setup_params;
+    ProxyConnectionType proxy_con_type_choice = ProxyConnectionType::connection_web;
+
+    std::string proxytype("WEB");
+    std::string proxyhost("proxy.emea.etn.com");
+    setup_params.setProxyHost(proxyhost);
+    setup_params.setProxyPort(8080);
+    setup_params.setProxyType(proxy_con_type_choice);
+
+    webSocket.setProxySettings(std::ref(setup_params));
     webSocket.setUrl(url);
+
 
     std::cout << ix::userAgent() << std::endl;
     std::cout << "Connecting to " << url << "..." << std::endl;

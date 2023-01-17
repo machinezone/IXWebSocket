@@ -157,7 +157,6 @@ namespace ix
         bool tls = protocol == "https";
         std::string errorMsg;
         _socket = createSocket(tls, -1, errorMsg, _tlsOptions);
-
         if (!_socket)
         {
             return std::make_shared<HttpResponse>(code,
@@ -246,6 +245,8 @@ namespace ix
         auto isCancellationRequested = [&]() {
             return cancelled() || _stop;
         };
+       // _socket->setProxyPort(_proxyport);
+        //_socket->setProxyHost(std::ref(_proxyhost));
 
         bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
         if (!success)

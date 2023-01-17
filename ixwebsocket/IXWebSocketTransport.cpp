@@ -42,13 +42,10 @@
 #include "IXWebSocketHandshake.h"
 #include "IXWebSocketHttpHeaders.h"
 #include <chrono>
-#include <cstdarg>
 #include <cstdlib>
 #include <sstream>
-#include <stdlib.h>
-#include <string.h>
+#include <cstring>
 #include <string>
-#include <thread>
 #include <vector>
 
 
@@ -106,7 +103,7 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
-        std::string protocol, host, path, query;
+        std::string protocol, path, query, host;
         int port;
         std::string remoteUrl(url);
 
@@ -137,6 +134,8 @@ namespace ix
                                                   _perMessageDeflate,
                                                   _perMessageDeflateOptions,
                                                   _enablePerMessageDeflate);
+
+            webSocketHandshake.setProxySettings(std::ref(_proxy_setup));
 
             result = webSocketHandshake.clientHandshake(
                 remoteUrl, headers, host, path, port, timeoutSecs);
@@ -170,8 +169,7 @@ namespace ix
     // Server
     WebSocketInitResult WebSocketTransport::connectToSocket(std::unique_ptr<Socket> socket,
                                                             int timeoutSecs,
-                                                            bool enablePerMessageDeflate,
-                                                            HttpRequestPtr request)
+                                                            bool enablePerMessageDeflate)
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
@@ -188,8 +186,7 @@ namespace ix
                                               _perMessageDeflateOptions,
                                               _enablePerMessageDeflate);
 
-        auto result =
-            webSocketHandshake.serverHandshake(timeoutSecs, enablePerMessageDeflate, request);
+        auto result = webSocketHandshake.serverHandshake(timeoutSecs, enablePerMessageDeflate);
         if (result.success)
         {
             setReadyState(ReadyState::OPEN);
@@ -362,7 +359,7 @@ namespace ix
                                                 Iterator begin,
                                                 Iterator end,
                                                 uint64_t message_size,
-                                                uint8_t masking_key[4])
+                                                const uint8_t masking_key[4])
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);
 
@@ -416,7 +413,7 @@ namespace ix
     {
         while (true)
         {
-            wsheader_type ws;
+            wsheader_type ws{};
             if (_rxbuf.size() < 2) break;                /* Need at least 2 */
             const uint8_t* data = (uint8_t*) &_rxbuf[0]; // peek, but don't consume
             ws.fin = (data[0] & 0x80) == 0x80;
@@ -900,7 +897,7 @@ namespace ix
                                           Iterator message_end,
                                           bool compress)
     {
-        uint64_t message_size = static_cast<uint64_t>(message_end - message_begin);
+        auto message_size = static_cast<uint64_t>(message_end - message_begin);
 
         unsigned x = getRandomUnsigned();
         uint8_t masking_key[4] = {};
@@ -1016,7 +1013,7 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);
 
-        while (_txbuf.size())
+        while (!_txbuf.empty())
         {
             ssize_t ret = 0;
             {
@@ -1196,4 +1193,9 @@ namespace ix
         std::lock_guard<std::mutex> lock(_closeReasonMutex);
         return _closeReason;
     }
+    void WebSocketTransport::setProxySettings(ProxySetup &proxy_setup)
+    {
+        _proxy_setup = proxy_setup;
+    }
+
 } // namespace ix

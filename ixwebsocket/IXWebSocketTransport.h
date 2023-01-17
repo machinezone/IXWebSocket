@@ -18,8 +18,8 @@
 #include "IXWebSocketHttpHeaders.h"
 #include "IXWebSocketPerMessageDeflate.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
-#include "IXWebSocketSendData.h"
 #include "IXWebSocketSendInfo.h"
+#include "IXWebSocketSendData.h"
 #include <atomic>
 #include <functional>
 #include <list>
@@ -78,6 +78,7 @@ namespace ix
                        bool enablePong,
                        int pingIntervalSecs);
 
+
         // Client
         WebSocketInitResult connectToUrl(const std::string& url,
                                          const WebSocketHttpHeaders& headers,
@@ -86,8 +87,7 @@ namespace ix
         // Server
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket,
                                             int timeoutSecs,
-                                            bool enablePerMessageDeflate,
-                                            HttpRequestPtr request = nullptr);
+                                            bool enablePerMessageDeflate);
 
         PollResult poll();
         WebSocketSendInfo sendBinary(const IXWebSocketSendData& message,
@@ -112,8 +112,15 @@ namespace ix
         // internal
         WebSocketSendInfo sendHeartBeat();
 
+        void setProxySettings(ProxySetup &proxy_setup);
+
+
     private:
+        //// add params for network (see connect function
+        /// to know which)
+
         std::string _url;
+        ProxySetup _proxy_setup;
 
         struct wsheader_type
         {
@@ -264,9 +271,9 @@ namespace ix
                                 Iterator begin,
                                 Iterator end,
                                 uint64_t message_size,
-                                uint8_t masking_key[4]);
+                                const uint8_t masking_key[4]);
 
-        unsigned getRandomUnsigned();
+        static unsigned getRandomUnsigned();
         void unmaskReceiveBuffer(const wsheader_type& ws);
 
         std::string getMergedChunks() const;

@@ -8,12 +8,12 @@
 
 #include "IXDNSLookup.h"
 #include "IXNetSystem.h"
-#include "IXSelectInterrupt.h"
 #include "IXSocket.h"
 #include "IXUniquePtr.h"
 #include <fcntl.h>
-#include <string.h>
-#include <sys/types.h>
+#include <cstring>
+#include <memory>
+#include "proxysocket.h"
 
 // Android needs extra headers for TCP_NODELAY and IPPROTO_TCP
 #ifdef ANDROID
@@ -21,9 +21,15 @@
 #include <linux/tcp.h>
 #endif
 #include <ixwebsocket/IXSelectInterruptFactory.h>
+#include <iostream>
 
 namespace ix
 {
+
+        void logger(__attribute__((unused)) int level, const char* message, __attribute__((unused)) void* userdata)
+            {
+                std::cerr << "Log from proxysocket: " << message << std::endl;
+            }
     //
     // This function can be cancelled every 50 ms
     // This is important so that we don't block the main UI thread when shutting down a
@@ -43,7 +49,7 @@ namespace ix
             return -1;
         }
 
-        // Set the socket to non blocking mode, so that slow responses cannot
+        // Set the socket to non-blocking mode, so that slow responses cannot
         // block us for too long
         SocketConnect::configure(fd);
 
@@ -96,32 +102,40 @@ namespace ix
     int SocketConnect::connect(const std::string& hostname,
                                int port,
                                std::string& errMsg,
-                               const CancellationRequest& isCancellationRequested)
+                               const CancellationRequest& isCancellationRequested, const ProxySetup &proxy_settings)
     {
+        int sockfd;
+        if (proxy_settings.get_proxy_type()==0){
         //
         // First do DNS resolution
         //
-        auto dnsLookup = std::make_shared<DNSLookup>(hostname, port);
-        auto res = dnsLookup->resolve(errMsg, isCancellationRequested);
-        if (res == nullptr)
-        {
-            return -1;
-        }
-
-        int sockfd = -1;
-
-        // iterate through the records to find a working peer
-        struct addrinfo* address;
-        for (address = res.get(); address != nullptr; address = address->ai_next)
-        {
-            //
-            // Second try to connect to the remote host
-            //
-            sockfd = connectToAddress(address, errMsg, isCancellationRequested);
-            if (sockfd != -1)
+            auto dnsLookup = std::make_shared<DNSLookup>(hostname, port);
+            struct addrinfo* res = dnsLookup->resolve(errMsg, isCancellationRequested);
+            if (res == nullptr)
             {
-                break;
+                return -1;
             }
+
+            sockfd = -1;
+
+            // iterate through the records to find a working peer
+            struct addrinfo* address;
+            for (address = res; address != nullptr; address = address->ai_next)
+            {
+                //
+                // Second try to connect to the remote host
+                //
+                sockfd = connectToAddress(address, errMsg, isCancellationRequested);
+                if (sockfd != -1)
+                {
+                    break;
+                }
+            }
+
+            freeaddrinfo(res);
+        }
+        else{
+            sockfd = connectToAddressViaProxy(hostname, port, errMsg, proxy_settings);
         }
 
         return sockfd;
@@ -148,4 +162,27 @@ namespace ix
         setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, (void*) &value, sizeof(value));
 #endif
     }
+    int SocketConnect::connectToAddressViaProxy(const std::string& host,
+                                                int port,
+                                                std::string& errMsg, const ProxySetup &proxy_settings)
+    {
+        char* errorMsg;
+
+        auto proxyConfig = ix::make_unique<proxysocketconfig>(proxysocketconfig_create(proxy_settings.get_proxy_type(), proxy_settings.get_proxy_host().c_str(),
+                                                                                          proxy_settings.get_proxy_port(), proxy_settings.get_proxy_user().c_str(),
+                                                                                          proxy_settings.get_proxy_pass().c_str()));
+        proxysocketconfig_set_logging(*proxyConfig, logger, nullptr);
+        int fd = proxysocket_connect(*proxyConfig, host.c_str(), port, &errorMsg);
+
+        if (fd == -1)
+        {
+            errMsg = errorMsg;
+            return -1;
+        }
+
+        SocketConnect::configure(fd);
+
+        return fd;
+    }
+
 } // namespace ix

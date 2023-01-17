@@ -1,0 +1,8 @@
+/home/ivddorrka/proxy_ghs/IXWebSocket/cmake-build-debug/CMakeFiles/ixwebsocket.dir
+/home/ivddorrka/proxy_ghs/IXWebSocket/cmake-build-debug/CMakeFiles/demo.dir
+/home/ivddorrka/proxy_ghs/IXWebSocket/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/ivddorrka/proxy_ghs/IXWebSocket/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/ivddorrka/proxy_ghs/IXWebSocket/cmake-build-debug/CMakeFiles/list_install_components.dir
+/home/ivddorrka/proxy_ghs/IXWebSocket/cmake-build-debug/CMakeFiles/install.dir
+/home/ivddorrka/proxy_ghs/IXWebSocket/cmake-build-debug/CMakeFiles/install/local.dir
+/home/ivddorrka/proxy_ghs/IXWebSocket/cmake-build-debug/CMakeFiles/install/strip.dir

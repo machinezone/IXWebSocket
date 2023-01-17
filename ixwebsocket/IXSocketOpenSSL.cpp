@@ -11,8 +11,8 @@
 
 #include "IXSocketConnect.h"
 #include "IXUniquePtr.h"
-#include <cassert>
-#include <errno.h>
+#include <cerrno>
+#include <utility>
 #include <vector>
 #ifdef _WIN32
 #include <shlwapi.h>
@@ -94,11 +94,11 @@ namespace ix
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
     std::vector<std::unique_ptr<std::mutex>> openSSLMutexes;
 
-    SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd)
+    SocketOpenSSL::SocketOpenSSL(SocketTLSOptions  tlsOptions, int fd)
         : Socket(fd)
         , _ssl_connection(nullptr)
         , _ssl_context(nullptr)
-        , _tlsOptions(tlsOptions)
+        , _tlsOptions(std::move(tlsOptions))
     {
         std::call_once(_openSSLInitFlag, &SocketOpenSSL::openSSLInitialize, this);
     }
@@ -228,7 +228,7 @@ namespace ix
         return ctx;
     }
 
-    bool SocketOpenSSL::openSSLAddCARootsFromString(const std::string roots)
+    bool SocketOpenSSL::openSSLAddCARootsFromString(const std::string& roots)
     {
         // Create certificate store
         X509_STORE* certificate_store = SSL_CTX_get_cert_store(_ssl_context);
@@ -301,11 +301,7 @@ namespace ix
     }
 
     bool SocketOpenSSL::openSSLCheckServerCert(SSL* ssl,
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-                                               const std::string& hostname,
-#else
-                                               const std::string& /* hostname */,
-#endif
+                                               [[maybe_unused]] const std::string& hostname,
                                                std::string& errMsg)
     {
         X509* server_cert = SSL_get_peer_certificate(ssl);
@@ -394,11 +390,6 @@ namespace ix
             int connect_result = SSL_connect(_ssl_connection);
             if (connect_result == 1)
             {
-                if (_tlsOptions.disable_hostname_validation)
-                {
-                    return true;
-                }
-
                 return openSSLCheckServerCert(_ssl_connection, host, errMsg);
             }
             int reason = SSL_get_error(_ssl_connection, connect_result);
@@ -731,7 +722,7 @@ namespace ix
                 return false;
             }
 
-            _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
+            _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested, _proxy_setup);
             if (_sockfd == -1) return false;
 
             _ssl_context = openSSLCreateContext(errMsg);
@@ -763,11 +754,8 @@ namespace ix
             // (The docs say that this should work from 1.0.2, and is the default from
             // 1.1.0, but it does not. To be on the safe side, the manual test
             // below is enabled for all versions prior to 1.1.0.)
-            if (!_tlsOptions.disable_hostname_validation)
-            {
-                X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
-                X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
-            }
+            X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
+            X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
 #endif
             handshakeSuccessful = openSSLClientHandshake(host, errMsg, isCancellationRequested);
         }
@@ -856,6 +844,13 @@ namespace ix
         }
     }
 
+//    bool SocketOpenSSL::connect(const std::string& host,
+//                                int port,
+//                                std::string& errMsg,
+//                                const CancellationRequest& isCancellationRequested)
+//    {
+//        return Socket::connect(host, port, errMsg, isCancellationRequested);
+//    }
 } // namespace ix
 
 #endif // IXWEBSOCKET_USE_OPEN_SSL

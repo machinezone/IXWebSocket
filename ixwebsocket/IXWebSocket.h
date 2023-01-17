@@ -16,8 +16,8 @@
 #include "IXWebSocketHttpHeaders.h"
 #include "IXWebSocketMessage.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
-#include "IXWebSocketSendData.h"
 #include "IXWebSocketSendInfo.h"
+#include "IXWebSocketSendData.h"
 #include "IXWebSocketTransport.h"
 #include <atomic>
 #include <condition_variable>
@@ -47,6 +47,7 @@ namespace ix
         ~WebSocket();
 
         void setUrl(const std::string& url);
+        void setProxySettings(ProxySetup &proxy_setup);
 
         // send extra headers in client handshake request
         void setExtraHeaders(const WebSocketHttpHeaders& headers);
@@ -102,7 +103,7 @@ namespace ix
         static std::string readyStateToString(ReadyState readyState);
 
         const std::string getUrl() const;
-        const WebSocketPerMessageDeflateOptions getPerMessageDeflateOptions() const;
+        WebSocketPerMessageDeflateOptions getPerMessageDeflateOptions() const;
         int getPingInterval() const;
         size_t bufferedAmount() const;
 
@@ -128,12 +129,14 @@ namespace ix
         // Server
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket>,
                                             int timeoutSecs,
-                                            bool enablePerMessageDeflate,
-                                            HttpRequestPtr request = nullptr);
+                                            bool enablePerMessageDeflate);
 
         WebSocketTransport _ws;
 
         std::string _url;
+        ProxySetup _proxy_setup;
+
+
         WebSocketHttpHeaders _extraHeaders;
 
         WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;

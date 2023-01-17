@@ -12,12 +12,8 @@
 #include "IXSocketConnect.h"
 #include <algorithm>
 #include <array>
-#include <assert.h>
-#include <fcntl.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 #include <sys/types.h>
 #include <vector>
 
@@ -218,7 +214,12 @@ namespace ix
         return true;
     }
 
-    bool Socket::connect(const std::string& host,
+    void Socket::setProxySettings(ProxySetup &proxy_setup){
+        std::lock_guard<std::mutex> lock(_socketMutex);
+        _proxy_setup = proxy_setup;
+    }
+
+    bool Socket:: connect(const std::string& host,
                          int port,
                          std::string& errMsg,
                          const CancellationRequest& isCancellationRequested)
@@ -227,7 +228,9 @@ namespace ix
 
         if (!_selectInterrupt->clear()) return false;
 
-        _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
+
+        _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested, std::ref(_proxy_setup));
+
         return _sockfd != -1;
     }
 

@@ -7,8 +7,8 @@
 #include "IXSocketFactory.h"
 
 #include "IXUniquePtr.h"
-#ifdef IXWEBSOCKET_USE_TLS
 
+#ifdef IXWEBSOCKET_USE_TLS
 #ifdef IXWEBSOCKET_USE_MBED_TLS
 #include "IXSocketMbedTLS.h"
 #elif defined(IXWEBSOCKET_USE_OPEN_SSL)

@@ -24,21 +24,22 @@ namespace ix
     class DNSLookup : public std::enable_shared_from_this<DNSLookup>
     {
     public:
-        using AddrInfoPtr = std::shared_ptr<addrinfo>;
         DNSLookup(const std::string& hostname, int port, int64_t wait = DNSLookup::kDefaultWait);
         ~DNSLookup() = default;
 
-        AddrInfoPtr resolve(std::string& errMsg,
+        struct addrinfo* resolve(std::string& errMsg,
                                  const CancellationRequest& isCancellationRequested,
                                  bool cancellable = true);
 
+        void release(struct addrinfo* addr);
+
     private:
-        AddrInfoPtr resolveCancellable(std::string& errMsg,
+        struct addrinfo* resolveCancellable(std::string& errMsg,
                                             const CancellationRequest& isCancellationRequested);
-        AddrInfoPtr resolveUnCancellable(std::string& errMsg,
+        struct addrinfo* resolveUnCancellable(std::string& errMsg,
                                               const CancellationRequest& isCancellationRequested);
 
-        AddrInfoPtr getAddrInfo(const std::string& hostname,
+        static struct addrinfo* getAddrInfo(const std::string& hostname,
                                             int port,
                                             std::string& errMsg);
 
@@ -47,15 +48,15 @@ namespace ix
         void setErrMsg(const std::string& errMsg);
         const std::string& getErrMsg();
 
-        void setRes(AddrInfoPtr addr);
-        AddrInfoPtr getRes();
+        void setRes(struct addrinfo* addr);
+        struct addrinfo* getRes();
 
         std::string _hostname;
         int _port;
         int64_t _wait;
         const static int64_t kDefaultWait;
 
-        AddrInfoPtr _res;
+        struct addrinfo* _res;
         std::mutex _resMutex;
 
         std::string _errMsg;

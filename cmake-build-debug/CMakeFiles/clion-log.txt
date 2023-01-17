@@ -1,0 +1,6 @@
+/opt/clion-2022.2.1/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/opt/clion-2022.2.1/bin/ninja/linux/ninja -G Ninja -S /home/ivddorrka/proxy_ghs/IXWebSocket -B /home/ivddorrka/proxy_ghs/IXWebSocket/cmake-build-debug
+-- TLS configured to use openssl
+-- OpenSSL: 1.1.1f
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/ivddorrka/proxy_ghs/IXWebSocket/cmake-build-debug
