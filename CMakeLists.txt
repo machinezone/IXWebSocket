@@ -12,7 +12,7 @@ set (CMAKE_CXX_STANDARD 11)
 set (CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
-option (BUILD_DEMO OFF)
+#option (BUILD_DEMO OFF)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -63,7 +63,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXWebSocketProxyServer.cpp
     ixwebsocket/IXWebSocketServer.cpp
     ixwebsocket/IXWebSocketTransport.cpp
-    ixwebsocket/proxysocteksetting.cpp
+        ixwebsocket/ProxySoctekSetting.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
@@ -117,7 +117,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketServer.h
     ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/IXWebSocketVersion.h
-    ixwebsocket/proxysocteksetting.h
+        ixwebsocket/ProxySoctekSetting.h
 )
 
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" OFF)
@@ -314,10 +314,10 @@ if (USE_WS OR USE_TEST)
   endif()
 endif()
 
-if (BUILD_DEMO)
+#if (BUILD_DEMO)
 
-    add_executable(demo main.cpp)
-    target_link_libraries(demo ixwebsocket)
-    target_link_libraries(demo libproxysocket.a)
+add_executable(demo main.cpp)
+target_link_libraries(demo ixwebsocket)
+target_link_libraries(demo libproxysocket.a)
 
-endif()
+#endif()

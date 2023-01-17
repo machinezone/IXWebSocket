@@ -36,7 +36,7 @@ namespace ix
                                             int timeoutSecs);
 
         WebSocketInitResult serverHandshake(int timeoutSecs, bool enablePerMessageDeflate);
-        void setProxySettings(ProxySetup &proxy_setup);
+        void setProxySettings(const ProxySetup &proxy_setup);
     private:
         ProxySetup _proxy_setup;
 

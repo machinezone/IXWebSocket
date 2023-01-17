@@ -13,11 +13,10 @@
  *  Or use cmake -DBUILD_DEMO=ON option for other platform
  */
 
-#include <ixwebsocket/IXNetSystem.h>
-#include <ixwebsocket/IXWebSocket.h>
-#include <ixwebsocket/IXUserAgent.h>
-#include <ixwebsocket/proxysocteksetting.h>
 #include <iostream>
+#include <ixwebsocket/IXUserAgent.h>
+#include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/ProxySoctekSetting.h>
 
 int main()
 {

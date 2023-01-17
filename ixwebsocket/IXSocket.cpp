@@ -214,7 +214,7 @@ namespace ix
         return true;
     }
 
-    void Socket::setProxySettings(ProxySetup &proxy_setup){
+    void Socket::setProxySettings(const ProxySetup &proxy_setup){
         std::lock_guard<std::mutex> lock(_socketMutex);
         _proxy_setup = proxy_setup;
     }
@@ -229,7 +229,7 @@ namespace ix
         if (!_selectInterrupt->clear()) return false;
 
 
-        _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested, std::ref(_proxy_setup));
+        _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested, _proxy_setup);
 
         return _sockfd != -1;
     }

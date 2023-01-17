@@ -112,7 +112,7 @@ namespace ix
         // internal
         WebSocketSendInfo sendHeartBeat();
 
-        void setProxySettings(ProxySetup &proxy_setup);
+        void setProxySettings(const ProxySetup &proxy_setup);
 
 
     private:

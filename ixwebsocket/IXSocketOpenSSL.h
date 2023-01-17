@@ -46,8 +46,8 @@ namespace ix
         bool openSSLClientHandshake(const std::string& hostname,
                                     std::string& errMsg,
                                     const CancellationRequest& isCancellationRequested);
-        static bool openSSLCheckServerCert(SSL* ssl, const std::string& hostname, std::string& errMsg);
-        static bool checkHost(const std::string& host, const char* pattern);
+        bool openSSLCheckServerCert(SSL* ssl, const std::string& hostname, std::string& errMsg);
+        bool checkHost(const std::string& host, const char* pattern);
         bool handleTLSOptions(std::string& errMsg);
         bool openSSLServerHandshake(std::string& errMsg);
 

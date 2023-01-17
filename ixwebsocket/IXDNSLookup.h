@@ -1,3 +1,4 @@
+
 /*
  *  IXDNSLookup.h
  *  Author: Benjamin Sergeant
@@ -24,39 +25,38 @@ namespace ix
     class DNSLookup : public std::enable_shared_from_this<DNSLookup>
     {
     public:
+        using AddrInfoPtr = std::shared_ptr<addrinfo>;
         DNSLookup(const std::string& hostname, int port, int64_t wait = DNSLookup::kDefaultWait);
         ~DNSLookup() = default;
 
-        struct addrinfo* resolve(std::string& errMsg,
-                                 const CancellationRequest& isCancellationRequested,
-                                 bool cancellable = true);
-
-        void release(struct addrinfo* addr);
+        AddrInfoPtr resolve(std::string& errMsg,
+                            const CancellationRequest& isCancellationRequested,
+                            bool cancellable = true);
 
     private:
-        struct addrinfo* resolveCancellable(std::string& errMsg,
-                                            const CancellationRequest& isCancellationRequested);
-        struct addrinfo* resolveUnCancellable(std::string& errMsg,
-                                              const CancellationRequest& isCancellationRequested);
+        AddrInfoPtr resolveCancellable(std::string& errMsg,
+                                       const CancellationRequest& isCancellationRequested);
+        AddrInfoPtr resolveUnCancellable(std::string& errMsg,
+                                         const CancellationRequest& isCancellationRequested);
 
-        static struct addrinfo* getAddrInfo(const std::string& hostname,
-                                            int port,
-                                            std::string& errMsg);
+        AddrInfoPtr getAddrInfo(const std::string& hostname,
+                                int port,
+                                std::string& errMsg);
 
         void run(std::weak_ptr<DNSLookup> self, std::string hostname, int port); // thread runner
 
         void setErrMsg(const std::string& errMsg);
         const std::string& getErrMsg();
 
-        void setRes(struct addrinfo* addr);
-        struct addrinfo* getRes();
+        void setRes(AddrInfoPtr addr);
+        AddrInfoPtr getRes();
 
         std::string _hostname;
         int _port;
         int64_t _wait;
         const static int64_t kDefaultWait;
 
-        struct addrinfo* _res;
+        AddrInfoPtr _res;
         std::mutex _resMutex;
 
         std::string _errMsg;

@@ -105,12 +105,12 @@ namespace ix
                                const CancellationRequest& isCancellationRequested, const ProxySetup &proxy_settings)
     {
         int sockfd;
-        if (proxy_settings.get_proxy_type()==0){
+        if (proxy_settings.get_proxy_type()==static_cast<int>(ProxyConnectionType::connection_none)){
         //
         // First do DNS resolution
         //
             auto dnsLookup = std::make_shared<DNSLookup>(hostname, port);
-            struct addrinfo* res = dnsLookup->resolve(errMsg, isCancellationRequested);
+            auto res = dnsLookup->resolve(errMsg, isCancellationRequested);
             if (res == nullptr)
             {
                 return -1;
@@ -120,7 +120,7 @@ namespace ix
 
             // iterate through the records to find a working peer
             struct addrinfo* address;
-            for (address = res; address != nullptr; address = address->ai_next)
+            for (address = res.get(); address != nullptr; address = address->ai_next)
             {
                 //
                 // Second try to connect to the remote host
@@ -132,7 +132,6 @@ namespace ix
                 }
             }
 
-            freeaddrinfo(res);
         }
         else{
             sockfd = connectToAddressViaProxy(hostname, port, errMsg, proxy_settings);
@@ -168,18 +167,26 @@ namespace ix
     {
         char* errorMsg;
 
-        auto proxyConfig = ix::make_unique<proxysocketconfig>(proxysocketconfig_create(proxy_settings.get_proxy_type(), proxy_settings.get_proxy_host().c_str(),
-                                                                                          proxy_settings.get_proxy_port(), proxy_settings.get_proxy_user().c_str(),
-                                                                                          proxy_settings.get_proxy_pass().c_str()));
-        proxysocketconfig_set_logging(*proxyConfig, logger, nullptr);
-        int fd = proxysocket_connect(*proxyConfig, host.c_str(), port, &errorMsg);
+
+//        auto proxyConfig = ix::make_unique<proxysocketconfig>(proxysocketconfig_create(proxy_settings.get_proxy_type(), proxy_settings.get_proxy_host().c_str(),
+//                                                                                          proxy_settings.get_proxy_port(), proxy_settings.get_proxy_user().c_str(),
+//                                                                                          proxy_settings.get_proxy_pass().c_str()), [] (proxysocketconfig_struct* obj){proxysocketconfig_free(obj);});
+
+//        std::unique_ptr<proxysocketconfig_struct, decltype(&proxysocketconfig_free)> proxyConfig(proxysocketconfig_create(proxy_settings.get_proxy_type(), proxy_settings.get_proxy_host().c_str(),
+//                                                                                                                         proxy_settings.get_proxy_port(), proxy_settings.get_proxy_user().c_str(),
+//                                                                                                                         proxy_settings.get_proxy_pass().c_str()), &proxysocketconfig_free);
+        auto proxyConfig = proxysocketconfig_create(proxy_settings.get_proxy_type(), proxy_settings.get_proxy_host().c_str(),
+                                      proxy_settings.get_proxy_port(), proxy_settings.get_proxy_user().c_str(),
+                                      proxy_settings.get_proxy_pass().c_str());
+        proxysocketconfig_set_logging(proxyConfig, logger, nullptr);
+        int fd = proxysocket_connect(proxyConfig, host.c_str(), port, &errorMsg);
 
         if (fd == -1)
         {
             errMsg = errorMsg;
             return -1;
         }
-
+        proxysocketconfig_free(proxyConfig);
         SocketConnect::configure(fd);
 
         return fd;

@@ -7,10 +7,7 @@
 #pragma once
 
 #include "IXCancellationRequest.h"
-#ifndef proxysocteksettings_h
-    #include "proxysocteksetting.h"
-#endif
-
+#include "ProxySoctekSetting.h"
 #include <string>
 
 struct addrinfo;

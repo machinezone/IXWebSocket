@@ -10,7 +10,6 @@
 #include "IXHttp.h"
 #include "IXSocketConnect.h"
 #include "IXStrCaseCompare.h"
-#include "IXUrlParser.h"
 #include "IXUserAgent.h"
 #include "IXWebSocketHandshakeKeyGen.h"
 #include <algorithm>
@@ -99,9 +98,7 @@ namespace ix
 
         std::string errMsg;
 
-        _socket->setProxySettings(std::ref(_proxy_setup));
-
-
+        _socket->setProxySettings(_proxy_setup);
 
         bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
         if (!success)
@@ -365,7 +362,7 @@ namespace ix
 
         return WebSocketInitResult(true, 200, "", headers, uri);
     }
-    void WebSocketHandshake::setProxySettings(ProxySetup &proxy_setup)
+    void WebSocketHandshake::setProxySettings(const ProxySetup &proxy_setup)
     {
         _proxy_setup = proxy_setup;
     }

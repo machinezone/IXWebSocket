@@ -135,7 +135,7 @@ namespace ix
                                                   _perMessageDeflateOptions,
                                                   _enablePerMessageDeflate);
 
-            webSocketHandshake.setProxySettings(std::ref(_proxy_setup));
+            webSocketHandshake.setProxySettings(_proxy_setup);
 
             result = webSocketHandshake.clientHandshake(
                 remoteUrl, headers, host, path, port, timeoutSecs);
@@ -1193,7 +1193,7 @@ namespace ix
         std::lock_guard<std::mutex> lock(_closeReasonMutex);
         return _closeReason;
     }
-    void WebSocketTransport::setProxySettings(ProxySetup &proxy_setup)
+    void WebSocketTransport::setProxySettings(const ProxySetup &proxy_setup)
     {
         _proxy_setup = proxy_setup;
     }
