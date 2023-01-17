@@ -8,3 +8,7 @@ ws/.srl
 ixhttpd
 makefile
 a.out
+lib*.a
+.idea/
+.vscode/
+cmake-build-debug/
