@@ -109,8 +109,12 @@ namespace ix
         void dispatch(PollResult pollResult, const OnMessageCallback& onMessageCallback);
         size_t bufferedAmount() const;
 
+        // set ping heartbeat message
+        void setPingMessage(const std::string& message, SendMessageKind pingType);
+
         // internal
-        WebSocketSendInfo sendHeartBeat();
+        // send any type of ping packet, not only 'ping' type
+        WebSocketSendInfo sendHeartBeat(SendMessageKind pingType);
 
     private:
         std::string _url;
@@ -215,7 +219,10 @@ namespace ix
         std::atomic<bool> _pongReceived;
 
         static const int kDefaultPingIntervalSecs;
-        static const std::string kPingMessage;
+
+        bool _setCustomMessage;
+        std::string _kPingMessage;
+        SendMessageKind _pingType;
         std::atomic<uint64_t> _pingCount;
 
         // We record when ping are being sent so that we can know when to send the next one

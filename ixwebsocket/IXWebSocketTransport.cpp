@@ -54,7 +54,6 @@
 
 namespace ix
 {
-    const std::string WebSocketTransport::kPingMessage("ixwebsocket::heartbeat");
     const int WebSocketTransport::kDefaultPingIntervalSecs(-1);
     const bool WebSocketTransport::kDefaultEnablePong(true);
     const int WebSocketTransport::kClosingMaximumWaitingDelayInMs(300);
@@ -73,6 +72,9 @@ namespace ix
         , _closingTimePoint(std::chrono::steady_clock::now())
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
+        , _setCustomMessage(false)
+        , _kPingMessage("ixwebsocket::heartbeat")
+        , _pingType(SendMessageKind::Ping)
         , _pongReceived(false)
         , _pingCount(0)
         , _lastSendPingTimePoint(std::chrono::steady_clock::now())
@@ -250,13 +252,51 @@ namespace ix
         return now - _lastSendPingTimePoint > std::chrono::seconds(_pingIntervalSecs);
     }
 
-    WebSocketSendInfo WebSocketTransport::sendHeartBeat()
+    void WebSocketTransport::setPingMessage(const std::string& message, SendMessageKind pingType)
+    {
+        _setCustomMessage = true;
+        _kPingMessage = message;
+        _pingType = pingType;
+    }
+
+    WebSocketSendInfo WebSocketTransport::sendHeartBeat(SendMessageKind pingMessage)
     {
         _pongReceived = false;
         std::stringstream ss;
-        ss << kPingMessage << "::" << _pingIntervalSecs << "s"
-           << "::" << _pingCount++;
-        return sendPing(ss.str());
+
+        ss << _kPingMessage;
+        if (!_setCustomMessage)
+        {
+            ss << "::" << _pingIntervalSecs << "s"
+               << "::" << _pingCount++;
+        }
+        if (pingMessage == SendMessageKind::Ping)
+        {
+            return sendPing(ss.str());
+        }
+        else if (pingMessage == SendMessageKind::Binary)
+        {
+            WebSocketSendInfo info = sendBinary(ss.str(), nullptr);
+            if (info.success)
+            {
+                std::lock_guard<std::mutex> lck(_lastSendPingTimePointMutex);
+                _lastSendPingTimePoint = std::chrono::steady_clock::now();
+            }
+            return info;
+        }
+        else if (pingMessage == SendMessageKind::Text)
+        {
+            WebSocketSendInfo info = sendText(ss.str(), nullptr);
+            if (info.success)
+            {
+                std::lock_guard<std::mutex> lck(_lastSendPingTimePointMutex);
+                _lastSendPingTimePoint = std::chrono::steady_clock::now();
+            }
+            return info;
+        }
+
+        // unknow type ping message
+        return {};
     }
 
     bool WebSocketTransport::closingDelayExceeded()
@@ -272,7 +312,9 @@ namespace ix
         {
             if (pingIntervalExceeded())
             {
-                if (!_pongReceived)
+                // If it is not a 'ping' message of ping type, there is no need to judge whether
+                // pong will receive it
+                if (_pingType == SendMessageKind::Ping && !_pongReceived)
                 {
                     // ping response (PONG) exceeds the maximum delay, close the connection
                     close(WebSocketCloseConstants::kInternalErrorCode,
@@ -280,7 +322,7 @@ namespace ix
                 }
                 else
                 {
-                    sendHeartBeat();
+                    sendHeartBeat(_pingType);
                 }
             }
         }
