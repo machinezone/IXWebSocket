@@ -106,7 +106,7 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         _pingMessage = sendMessage;
-        _ws.setPingMessage(_pingMessage,pingType);
+        _ws.setPingMessage(_pingMessage, pingType);
     }
     const std::string WebSocket::getPingMessage() const
     {
@@ -518,7 +518,7 @@ namespace ix
         return sendMessage(text, SendMessageKind::Text, onProgressCallback);
     }
 
-    WebSocketSendInfo WebSocket::ping(const std::string& text,SendMessageKind pingType)
+    WebSocketSendInfo WebSocket::ping(const std::string& text, SendMessageKind pingType)
     {
         // Standard limit ping message size
         constexpr size_t pingMaxPayloadSize = 125;

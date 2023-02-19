@@ -90,7 +90,7 @@ namespace ix
                                        const OnProgressCallback& onProgressCallback = nullptr);
         WebSocketSendInfo sendText(const std::string& text,
                                    const OnProgressCallback& onProgressCallback = nullptr);
-        WebSocketSendInfo ping(const std::string& text,SendMessageKind pingType);
+        WebSocketSendInfo ping(const std::string& text,SendMessageKind pingType = SendMessageKind::Ping);
 
         void close(uint16_t code = WebSocketCloseConstants::kNormalClosureCode,
                    const std::string& reason = WebSocketCloseConstants::kNormalClosureMessage);
