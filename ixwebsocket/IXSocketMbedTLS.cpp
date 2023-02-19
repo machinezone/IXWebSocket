@@ -14,6 +14,7 @@
 #include "IXNetSystem.h"
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
+#include <cstdint>
 #include <string.h>
 
 #ifdef _WIN32

@@ -45,7 +45,6 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <sstream>
-#include <stdlib.h>
 #include <string.h>
 #include <string>
 #include <thread>

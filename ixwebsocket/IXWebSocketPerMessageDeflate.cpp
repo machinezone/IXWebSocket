@@ -46,6 +46,8 @@
  *
  */
 
+#include <cstdint>
+
 #include "IXWebSocketPerMessageDeflate.h"
 
 #include "IXUniquePtr.h"

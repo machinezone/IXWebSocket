@@ -7,9 +7,9 @@
 #pragma once
 
 #include <atomic>
+#include <cstdint>
 #include <functional>
 #include <memory>
-#include <stdint.h>
 #include <string>
 
 namespace ix

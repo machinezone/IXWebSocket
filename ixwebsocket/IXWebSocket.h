@@ -21,6 +21,7 @@
 #include "IXWebSocketTransport.h"
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
 #include <mutex>
 #include <string>
 #include <thread>
