@@ -39,6 +39,7 @@ namespace ix
         , _handshakeTimeoutSecs(kDefaultHandShakeTimeoutSecs)
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
+        , _pingType(SendMessageKind::Ping)
     {
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
@@ -101,6 +102,17 @@ namespace ix
         return _perMessageDeflateOptions;
     }
 
+    void WebSocket::setPingMessage(const std::string& sendMessage, SendMessageKind pingType)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _pingMessage = sendMessage;
+        _ws.setPingMessage(_pingMessage, pingType);
+    }
+    const std::string WebSocket::getPingMessage() const
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _pingMessage;
+    }
     void WebSocket::setPingInterval(int pingIntervalSecs)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
@@ -233,7 +245,7 @@ namespace ix
         if (_pingIntervalSecs > 0)
         {
             // Send a heart beat right away
-            _ws.sendHeartBeat();
+            _ws.sendHeartBeat(_pingType);
         }
 
         return status;
@@ -268,7 +280,7 @@ namespace ix
         if (_pingIntervalSecs > 0)
         {
             // Send a heart beat right away
-            _ws.sendHeartBeat();
+            _ws.sendHeartBeat(_pingType);
         }
 
         return status;
@@ -506,13 +518,13 @@ namespace ix
         return sendMessage(text, SendMessageKind::Text, onProgressCallback);
     }
 
-    WebSocketSendInfo WebSocket::ping(const std::string& text)
+    WebSocketSendInfo WebSocket::ping(const std::string& text, SendMessageKind pingType)
     {
         // Standard limit ping message size
         constexpr size_t pingMaxPayloadSize = 125;
         if (text.size() > pingMaxPayloadSize) return WebSocketSendInfo(false);
 
-        return sendMessage(text, SendMessageKind::Ping);
+        return sendMessage(text, pingType);
     }
 
     WebSocketSendInfo WebSocket::sendMessage(const IXWebSocketSendData& message,
