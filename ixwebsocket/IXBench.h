@@ -6,7 +6,7 @@
 #pragma once
 
 #include <chrono>
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 
 namespace ix

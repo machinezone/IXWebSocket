@@ -16,6 +16,7 @@
 
 #include "IXUuid.h"
 
+#include <cstdint>
 #include <iomanip>
 #include <random>
 #include <sstream>

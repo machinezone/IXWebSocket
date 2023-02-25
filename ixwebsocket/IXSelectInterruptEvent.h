@@ -5,8 +5,8 @@
 #pragma once
 
 #include "IXSelectInterrupt.h"
+#include <cstdint>
 #include <mutex>
-#include <stdint.h>
 #include <string>
 #include <deque>
 #ifdef _WIN32

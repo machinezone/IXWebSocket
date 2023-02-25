@@ -13,6 +13,7 @@
 #include "IXWebSocketHandshake.h"
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 
 
 namespace

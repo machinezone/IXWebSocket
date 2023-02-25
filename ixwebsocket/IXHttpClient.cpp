@@ -12,6 +12,7 @@
 #include "IXUserAgent.h"
 #include "IXWebSocketHttpHeaders.h"
 #include <assert.h>
+#include <cstdint>
 #include <cstring>
 #include <iomanip>
 #include <random>

@@ -10,6 +10,7 @@
 #include "zlib.h"
 #endif
 #include <array>
+#include <cstdint>
 #include <string>
 #include <vector>
 #include "IXWebSocketSendData.h"

@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
-#include <stdint.h>
 #include <string>
 
 namespace ix

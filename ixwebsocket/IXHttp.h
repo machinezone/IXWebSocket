@@ -9,6 +9,7 @@
 #include "IXProgressCallback.h"
 #include "IXWebSocketHttpHeaders.h"
 #include <atomic>
+#include <cstdint>
 #include <tuple>
 #include <unordered_map>
 

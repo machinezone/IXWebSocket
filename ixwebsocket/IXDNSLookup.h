@@ -12,6 +12,7 @@
 
 #include "IXCancellationRequest.h"
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <set>

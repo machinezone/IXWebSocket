@@ -10,6 +10,7 @@
 #include "IXNetSystem.h"
 #include "IXSocketConnect.h"
 #include "IXUserAgent.h"
+#include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <sstream>

@@ -21,6 +21,7 @@
 #include "IXWebSocketSendData.h"
 #include "IXWebSocketSendInfo.h"
 #include <atomic>
+#include <cstdint>
 #include <functional>
 #include <list>
 #include <memory>
