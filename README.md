@@ -149,4 +149,3 @@ To check the performance of a websocket library, you can look at the [autoroute]
 [7]: https://github.com/machinezone/IXWebSocket/workflows/linux_asan/badge.svg
 [8]: https://github.com/machinezone/IXWebSocket/workflows/unittest_windows_gcc/badge.svg
 
-
