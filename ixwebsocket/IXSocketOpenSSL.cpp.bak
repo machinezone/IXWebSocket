@@ -814,7 +814,7 @@ namespace ix
                X509_VERIFY_PARAM_set1_host(param, NULL, 0);
                X509_VERIFY_PARAM_set1_ip_asc(param, host.c_str());
             }
-            else if (!_tlsOptions.disable_hostname_validation)
+            else
             {
                SSL_set1_host(_ssl_connection, host.c_str());
                // Both CN-ID and partial wildcards are deprecated
