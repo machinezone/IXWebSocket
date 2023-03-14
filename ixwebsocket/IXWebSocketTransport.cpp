@@ -700,6 +700,7 @@ namespace ix
                 if (_readyState != ReadyState::CLOSING)
                 {
                     // send back the CLOSE frame
+                    setReadyState(ReadyState::CLOSING);
                     sendCloseFrame(code, reason);
 
                     wakeUpFromPoll(SelectInterrupt::kCloseRequest);
@@ -1072,7 +1073,10 @@ namespace ix
             else if (ret <= 0)
             {
                 closeSocket();
-                setReadyState(ReadyState::CLOSED);
+                if (_readyState != ReadyState::CLOSING)
+                {
+                    setReadyState(ReadyState::CLOSED);
+                }
                 return false;
             }
             else
