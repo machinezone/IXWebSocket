@@ -24,14 +24,13 @@ set (TEST_TARGET_NAMES
   # IXWebSocketBroadcastTest ## FIXME was depending on cobra / take a broadcast server from ws
   IXStrCaseCompareTest
   IXExponentialBackoffTest
+  IXWebSocketCloseTest
 )
 
 # Some unittest don't work on windows yet
 # Windows without TLS does not have hmac yet
 if (UNIX)
   list(APPEND TEST_TARGET_NAMES
-    IXWebSocketCloseTest
-
     # Fail on Windows in CI probably because the pathing is wrong and
     # some resource files cannot be found
     IXHttpServerTest
