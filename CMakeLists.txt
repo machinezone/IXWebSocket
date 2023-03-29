@@ -287,7 +287,7 @@ if (IXWEBSOCKET_INSTALL)
           PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket/
   )
 
-  configure_file("${CMAKE_CURRENT_LIST_DIR}/ixwebsocket-config.cmake.in" "${CMAKE_BINARY_DIR}/ixwebsocket-config.cmake" @ONLY)
+  configure_file("${CMAKE_CURRENT_LIST_DIR}/ixwebsocket-config.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/ixwebsocket-config.cmake" @ONLY)
   install(FILES "${CMAKE_BINARY_DIR}/ixwebsocket-config.cmake" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ixwebsocket")
   
   install(EXPORT ixwebsocket
