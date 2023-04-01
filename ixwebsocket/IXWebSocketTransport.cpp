@@ -71,10 +71,10 @@ namespace ix
         , _closingTimePoint(std::chrono::steady_clock::now())
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
+        , _pongReceived(false)
         , _setCustomMessage(false)
         , _kPingMessage("ixwebsocket::heartbeat")
         , _pingType(SendMessageKind::Ping)
-        , _pongReceived(false)
         , _pingCount(0)
         , _lastSendPingTimePoint(std::chrono::steady_clock::now())
     {
