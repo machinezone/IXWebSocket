@@ -140,7 +140,7 @@ namespace ix
                                                   _enablePerMessageDeflate);
 
             result = webSocketHandshake.clientHandshake(
-                remoteUrl, headers, host, path, port, timeoutSecs);
+                remoteUrl, headers, protocol, host, path, port, timeoutSecs);
 
             if (result.http_status >= 300 && result.http_status < 400)
             {
