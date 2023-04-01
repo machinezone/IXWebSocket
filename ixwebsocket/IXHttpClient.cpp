@@ -209,6 +209,12 @@ namespace ix
             ss << "User-Agent: " << userAgent() << "\r\n";
         }
 
+        // Set an origin header if missing
+        if (args->extraHeaders.find("Origin") == args->extraHeaders.end())
+        {
+            ss << "Origin: " << protocol << "://" << host << ":" << port << "\r\n";
+        }
+
         if (verb == kPost || verb == kPut || verb == kPatch || _forceBody)
         {
             // Set request compression header

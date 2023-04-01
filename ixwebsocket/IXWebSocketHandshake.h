@@ -31,6 +31,7 @@ namespace ix
 
         WebSocketInitResult clientHandshake(const std::string& url,
                                             const WebSocketHttpHeaders& extraHeaders,
+                                            const std::string& protocol,
                                             const std::string& host,
                                             const std::string& path,
                                             int port,

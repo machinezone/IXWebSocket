@@ -87,6 +87,7 @@ namespace ix
     WebSocketInitResult WebSocketHandshake::clientHandshake(
         const std::string& url,
         const WebSocketHttpHeaders& extraHeaders,
+        const std::string& protocol,
         const std::string& host,
         const std::string& path,
         int port,
@@ -123,6 +124,12 @@ namespace ix
         if (extraHeaders.find("User-Agent") == extraHeaders.end())
         {
             ss << "User-Agent: " << userAgent() << "\r\n";
+        }
+
+        // Set an origin header if missing
+        if (extraHeaders.find("Origin") == extraHeaders.end())
+        {
+            ss << "Origin: " << protocol << "://" << host << ":" << port << "\r\n";
         }
 
         for (auto& it : extraHeaders)
