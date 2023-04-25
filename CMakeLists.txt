@@ -136,6 +136,7 @@ if (USE_TLS)
     else() # default to OpenSSL on all other platforms
       if (NOT USE_MBED_TLS) # Unless mbedtls is requested
         set(USE_OPEN_SSL ON)
+        set(requires "openssl")
       endif()
     endif()
 
@@ -167,7 +168,8 @@ if(BUILD_SHARED_LIBS)
     )
     
     # Set library version
-    set_target_properties(ixwebsocket PROPERTIES VERSION 11.3.2)
+    set(version 11.3.2)
+    set_target_properties(ixwebsocket PROPERTIES VERSION ${version})
 
 else()
     # Static library
@@ -290,6 +292,10 @@ if (IXWEBSOCKET_INSTALL)
   configure_file("${CMAKE_CURRENT_LIST_DIR}/ixwebsocket-config.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/ixwebsocket-config.cmake" @ONLY)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ixwebsocket-config.cmake" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ixwebsocket")
   
+  set(prefix ${CMAKE_INSTALL_PREFIX})
+  configure_file("${CMAKE_CURRENT_LIST_DIR}/ixwebsocket.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/ixwebsocket.pc" @ONLY)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ixwebsocket.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+
   install(EXPORT ixwebsocket
           FILE ixwebsocket-targets.cmake
           NAMESPACE ixwebsocket::
