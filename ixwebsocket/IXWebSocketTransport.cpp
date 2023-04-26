@@ -458,8 +458,9 @@ namespace ix
         while (true)
         {
             wsheader_type ws;
-            if (_rxbuf.size() < 2) break;                /* Need at least 2 */
-            const uint8_t* data = (uint8_t*) &_rxbuf[0]; // peek, but don't consume
+            size_t rxbufsize = _rxbuf.size();
+            if (rxbufsize < 2) break;                /* Need at least 2 */
+            const std::deque<uint8_t>& data = _rxbuf; // peek, but don't consume
             ws.fin = (data[0] & 0x80) == 0x80;
             ws.rsv1 = (data[0] & 0x40) == 0x40;
             ws.rsv2 = (data[0] & 0x20) == 0x20;
@@ -469,13 +470,13 @@ namespace ix
             ws.N0 = (data[1] & 0x7f);
             ws.header_size =
                 2 + (ws.N0 == 126 ? 2 : 0) + (ws.N0 == 127 ? 8 : 0) + (ws.mask ? 4 : 0);
-            if (_rxbuf.size() < ws.header_size) break; /* Need: ws.header_size - _rxbuf.size() */
+            if (rxbufsize < ws.header_size) break; /* Need: ws.header_size - rxbufsize */
 
             if ((ws.rsv1 && !_enablePerMessageDeflate) || ws.rsv2 || ws.rsv3)
             {
                 close(WebSocketCloseConstants::kProtocolErrorCode,
                       WebSocketCloseConstants::kProtocolErrorReservedBitUsed,
-                      _rxbuf.size());
+                      rxbufsize);
                 return;
             }
 
@@ -539,9 +540,9 @@ namespace ix
                 return;
             }
 
-            if (_rxbuf.size() < ws.header_size + ws.N)
+            if (rxbufsize < ws.header_size + ws.N)
             {
-                return; /* Need: ws.header_size+ws.N - _rxbuf.size() */
+                return; /* Need: ws.header_size+ws.N - rxbufsize */
             }
 
             if (!ws.fin && (ws.opcode == wsheader_type::PING || ws.opcode == wsheader_type::PONG ||
@@ -706,7 +707,7 @@ namespace ix
                     wakeUpFromPoll(SelectInterrupt::kCloseRequest);
 
                     bool remote = true;
-                    closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
+                    closeSocketAndSwitchToClosedState(code, reason, rxbufsize, remote);
                 }
                 else
                 {
@@ -717,7 +718,7 @@ namespace ix
                     if (identicalReason)
                     {
                         bool remote = false;
-                        closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
+                        closeSocketAndSwitchToClosedState(code, reason, rxbufsize, remote);
                     }
                 }
             }
@@ -726,7 +727,7 @@ namespace ix
                 // Unexpected frame type
                 close(WebSocketCloseConstants::kProtocolErrorCode,
                       WebSocketCloseConstants::kProtocolErrorMessage,
-                      _rxbuf.size());
+                      rxbufsize);
             }
 
             // Erase the message that has been processed from the input/read buffer

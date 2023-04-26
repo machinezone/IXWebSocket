@@ -28,6 +28,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <deque>
 
 namespace ix
 {
@@ -156,7 +157,7 @@ namespace ix
         // Contains all messages that were fetched in the last socket read.
         // This could be a mix of control messages (Close, Ping, etc...) and
         // data messages. That buffer is resized
-        std::vector<uint8_t> _rxbuf;
+        std::deque<uint8_t> _rxbuf;
 
         // Contains all messages that are waiting to be sent
         std::vector<uint8_t> _txbuf;
