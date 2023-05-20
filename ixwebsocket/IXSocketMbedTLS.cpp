@@ -49,7 +49,7 @@ namespace ix
         mbedtls_pk_init(&_pkey);
     }
 
-    bool SocketMbedTLS::loadSystemCertificates(std::string& /* errorMsg */)
+    bool SocketMbedTLS::loadSystemCertificates(std::string& errorMsg)
     {
 #ifdef _WIN32
         DWORD flags = CERT_STORE_READONLY_FLAG | CERT_STORE_OPEN_EXISTING_FLAG |
