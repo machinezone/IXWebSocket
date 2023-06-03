@@ -16,7 +16,7 @@ set (TEST_TARGET_NAMES
   IXWebSocketServerTest
   IXWebSocketTestConnectionDisconnection
   IXUrlParserTest
-  IXHttpClientTest
+  # IXHttpClientTest ## FIXME httpbin.org does not seem normal
   IXUnityBuildsTest
   IXHttpTest
   IXDNSLookupTest
