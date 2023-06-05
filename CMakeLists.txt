@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.4.1...3.17.2)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_MODULE_PATH}")
 
-project(ixwebsocket C CXX)
+project(ixwebsocket LANGUAGES C CXX VERSION 11.4.3)
 
 set (CMAKE_CXX_STANDARD 11)
 set (CXX_STANDARD_REQUIRED ON)
@@ -166,10 +166,9 @@ if(BUILD_SHARED_LIBS)
         ${IXWEBSOCKET_SOURCES}
         ${IXWEBSOCKET_HEADERS}
     )
-    
+
     # Set library version
-    set(version 11.3.2)
-    set_target_properties(ixwebsocket PROPERTIES VERSION ${version})
+    set_target_properties(ixwebsocket PROPERTIES VERSION ${CMAKE_PROJECT_VERSION})
 
 else()
     # Static library
