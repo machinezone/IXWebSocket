@@ -2,6 +2,8 @@
 
 All changes to this project will be documented in this file.
 
+## [11.4.4] - 2023-06-05
+
 ## [11.4.3] - 2022-05-13
 
 Set shorter thread names
