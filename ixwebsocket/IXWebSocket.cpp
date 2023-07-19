@@ -41,6 +41,7 @@ namespace ix
         , _enablePong(kDefaultEnablePong)
         , _pingIntervalSecs(kDefaultPingIntervalSecs)
         , _pingType(SendMessageKind::Ping)
+        , _autoThreadName(true)
     {
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
@@ -370,7 +371,10 @@ namespace ix
 
     void WebSocket::run()
     {
-        setThreadName(getUrl());
+        if (_autoThreadName)
+        {
+            setThreadName(getUrl());
+        }
 
         bool firstConnectionAttempt = true;
 
@@ -626,5 +630,10 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         return _subProtocols;
+    }
+
+    void WebSocket::setAutoThreadName(bool enabled)
+    {
+        _autoThreadName = enabled;
     }
 } // namespace ix

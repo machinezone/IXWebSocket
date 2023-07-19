@@ -91,6 +91,9 @@ namespace ix
         setThreadName("Srv:ws:" + connectionState->getId());
 
         auto webSocket = std::make_shared<WebSocket>();
+
+        webSocket->setAutoThreadName(false);
+
         if (_onConnectionCallback)
         {
             _onConnectionCallback(webSocket, connectionState);
