@@ -119,6 +119,8 @@ namespace ix
         uint32_t getMinWaitBetweenReconnectionRetries() const;
         const std::vector<std::string>& getSubProtocols();
 
+        void setAutoThreadName(bool enabled);
+
     private:
         WebSocketSendInfo sendMessage(const IXWebSocketSendData& message,
                                       SendMessageKind sendMessageKind,
@@ -181,6 +183,9 @@ namespace ix
 
         // Subprotocols
         std::vector<std::string> _subProtocols;
+
+        // enable or disable auto set thread name
+        bool _autoThreadName;
 
         friend class WebSocketServer;
     };
