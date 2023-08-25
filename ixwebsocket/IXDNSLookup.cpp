@@ -27,8 +27,12 @@
 
 // mingw build quirks
 #if defined(_WIN32) && defined(__GNUC__)
+#ifndef AI_NUMERICSERV
 #define AI_NUMERICSERV NI_NUMERICSERV
+#endif
+#ifndef AI_ADDRCONFIG
 #define AI_ADDRCONFIG LUP_ADDRCONFIG
+#endif
 #endif
 
 namespace ix

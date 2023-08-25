@@ -69,7 +69,7 @@ namespace ix
             {
                 // We must deselect the networkevents from the socket event. Otherwise the
                 // socket will report states that aren't there.
-                if (_fd != nullptr && _fd->fd != -1)
+                if (_fd != nullptr && (int)_fd->fd != -1)
                     WSAEventSelect(_fd->fd, _event, 0);
                 WSACloseEvent(_event);
             }
@@ -171,7 +171,7 @@ namespace ix
             int count = 0;
             // WSAWaitForMultipleEvents returns the index of the first signaled event. And to emulate WSAPoll()
             // all the signaled events must be processed.
-            while (socketIndex < socketEvents.size())
+            while (socketIndex < (int)socketEvents.size())
             {
                 struct pollfd* fd = socketEvents[socketIndex];
 
@@ -345,7 +345,7 @@ namespace ix
                     buf[best] = buf[best + 1] = ':';
                     memmove(buf + best + 2, buf + best + max, i - best - max + 1);
                 }
-                if (strlen(buf) < l)
+                if (strlen(buf) < (size_t)l)
                 {
                     strcpy(s, buf);
                     return s;
