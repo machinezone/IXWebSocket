@@ -148,6 +148,7 @@ namespace ix
                     content = gzipCompress(content);
                     headers["Content-Encoding"] = "gzip";
                 }
+                headers["Accept-Encoding"] = "gzip";
 #endif
 
                 // Log request
@@ -160,11 +161,6 @@ namespace ix
                 // FIXME: check extensions to set the content type
                 // headers["Content-Type"] = "application/octet-stream";
                 headers["Accept-Ranges"] = "none";
-
-                for (auto&& it : request->headers)
-                {
-                    headers[it.first] = it.second;
-                }
 
                 return std::make_shared<HttpResponse>(
                     200, "OK", HttpErrorCode::Ok, headers, content);
