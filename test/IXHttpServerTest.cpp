@@ -60,6 +60,7 @@ TEST_CASE("http server", "[httpd]")
         REQUIRE(response->errorCode == HttpErrorCode::Ok);
         REQUIRE(response->statusCode == 200);
         REQUIRE(response->headers["Accept-Encoding"] == "gzip");
+        REQUIRE(response->headers["Content-Encoding"] == "gzip");
 
         server.stop();
     }
