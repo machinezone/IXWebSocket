@@ -1174,7 +1174,22 @@ namespace ix
     {
         _requestInitCancellation = true;
 
-        if (_readyState == ReadyState::CLOSING || _readyState == ReadyState::CLOSED) return;
+        if (_readyState == ReadyState::CLOSING || _readyState == ReadyState::CLOSED)
+        {
+            // Wake up the socket polling thread, as
+            // Socket::isReadyToRead() might be still waiting the
+            // interrupt event to happen.
+            bool wakeUpPoll = false;
+            {
+              std::lock_guard<std::mutex> lock(_socketMutex);
+              wakeUpPoll = (_socket && _socket->isWakeUpFromPollSupported());
+            }
+            if (wakeUpPoll)
+            {
+                wakeUpFromPoll(SelectInterrupt::kCloseRequest);
+            }
+            return;
+        }
 
         if (closeWireSize == 0)
         {
