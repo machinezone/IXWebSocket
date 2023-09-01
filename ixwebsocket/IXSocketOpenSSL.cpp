@@ -49,7 +49,7 @@ namespace
         X509_STORE* opensslStore = SSL_CTX_get_cert_store(ssl);
 
         int certificateCount = 0;
-        while (certificateIterator = CertEnumCertificatesInStore(systemStore, certificateIterator))
+        while ((certificateIterator = CertEnumCertificatesInStore(systemStore, certificateIterator)))
         {
             X509* x509 = d2i_X509(NULL,
                                   (const unsigned char**) &certificateIterator->pbCertEncoded,
