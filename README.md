@@ -134,7 +134,6 @@ To check the performance of a websocket library, you can look at the [autoroute]
 | Windows           | Disabled          | None              | [![Build2][5]][0] |
 | UWP               | Disabled          | None              | [![Build2][6]][0] |
 | Linux             | OpenSSL           | Address Sanitizer | [![Build2][7]][0] |
-| Mingw             | Disabled          | None              | [![Build2][8]][0] |
 
 * Some tests are disabled on Windows/UWP because of a pathing problem
 * TLS and ZLIB are disabled on Windows/UWP because enabling make the CI run takes a lot of time, for setting up vcpkg.
@@ -147,5 +146,4 @@ To check the performance of a websocket library, you can look at the [autoroute]
 [5]: https://github.com/machinezone/IXWebSocket/workflows/windows/badge.svg
 [6]: https://github.com/machinezone/IXWebSocket/workflows/uwp/badge.svg
 [7]: https://github.com/machinezone/IXWebSocket/workflows/linux_asan/badge.svg
-[8]: https://github.com/machinezone/IXWebSocket/workflows/windows_gcc/badge.svg
 
