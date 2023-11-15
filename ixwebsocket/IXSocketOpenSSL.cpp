@@ -26,6 +26,7 @@
 
 #ifdef _WIN32
 // For manipulating the certificate store
+#include <windows.h>
 #include <wincrypt.h>
 #endif
 
@@ -293,10 +294,16 @@ namespace ix
      */
     bool SocketOpenSSL::checkHost(const std::string& host, const char* pattern)
     {
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+        return true;
+#else
+
 #ifdef _WIN32
         return PathMatchSpecA(host.c_str(), pattern);
 #else
         return fnmatch(pattern, host.c_str(), 0) != FNM_NOMATCH;
+#endif
+
 #endif
     }
 
