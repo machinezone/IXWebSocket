@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: seanmiddleditch/gha-setup-ninja@master
-    - uses: bsergean/setup-mingw@d79ce40
+    - uses: bsergean/setup-mingw@d79ce405bac9edef3a1726ef00554a56f0bafe66
     - run: |
         mkdir build
         cd build
