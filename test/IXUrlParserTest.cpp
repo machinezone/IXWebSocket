@@ -86,7 +86,7 @@ namespace ix
 
         SECTION("wss://google.com/?arg=value")
         {
-            std::string url = "wss://google.com?arg=value&arg2=value2";
+            std::string url = "wss://google.com/?arg=value&arg2=value2";
             std::string protocol, host, path, query;
             int port;
             bool res;
