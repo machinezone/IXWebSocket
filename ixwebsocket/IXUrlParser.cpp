@@ -180,7 +180,7 @@ namespace
                 bHasUserName = true;
                 break;
             }
-            else if (*LocalString == '/')
+            else if (*LocalString == '/' || *LocalString == '?')
             {
                 // end of <host>:<port> specification
                 bHasUserName = false;
@@ -242,7 +242,7 @@ namespace
                 LocalString++;
                 break;
             }
-            else if (!bHasBracket && (*LocalString == ':' || *LocalString == '/'))
+            else if (!bHasBracket && (*LocalString == ':' || *LocalString == '/' || *LocalString == '?'))
             {
                 // port number is specified
                 break;
@@ -280,12 +280,14 @@ namespace
         }
 
         // skip '/'
-        if (*CurrentString != '/')
+        if (*CurrentString != '/' && *CurrentString != '?')
         {
             return clParseURL(LUrlParserError_NoSlash);
         }
 
-        CurrentString++;
+        if (*CurrentString != '?') {
+            CurrentString++;
+        }
 
         // parse the path
         LocalString = CurrentString;
