@@ -34,7 +34,7 @@ namespace ix
                                         std::string& errMsg,
                                         const CancellationRequest& isCancellationRequested)
     {
-        errMsg = "no error";
+        errMsg = "unknown error";
 
         socket_t fd = socket(address->ai_family, address->ai_socktype, address->ai_protocol);
         if (fd < 0)

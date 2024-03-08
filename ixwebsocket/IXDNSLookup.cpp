@@ -82,7 +82,7 @@ namespace ix
     DNSLookup::AddrInfoPtr DNSLookup::resolveUnCancellable(
         std::string& errMsg, const CancellationRequest& isCancellationRequested)
     {
-        errMsg = "no error";
+        errMsg = "unknown error";
 
         // Maybe a cancellation request got in before the background thread terminated ?
         if (isCancellationRequested())
@@ -97,12 +97,13 @@ namespace ix
     DNSLookup::AddrInfoPtr DNSLookup::resolveCancellable(
         std::string& errMsg, const CancellationRequest& isCancellationRequested)
     {
-        errMsg = "no error";
+        errMsg = "unknown error";
 
         // Can only be called once, otherwise we would have to manage a pool
         // of background thread which is overkill for our usage.
         if (_done)
         {
+            errMsg = "programming error";
             return nullptr; // programming error, create a second DNSLookup instance
                             // if you need a second lookup.
         }
@@ -156,7 +157,7 @@ namespace ix
         // We don't want to read or write into members variables of an object that could be
         // gone, so we use temporary variables (res) or we pass in by copy everything that
         // getAddrInfo needs to work.
-        std::string errMsg;
+        std::string errMsg = "unknown error";
         auto res = getAddrInfo(hostname, port, errMsg);
 
         if (auto lock = self.lock())
