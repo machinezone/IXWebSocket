@@ -292,6 +292,8 @@ namespace ix
     /**
      * Check whether a hostname matches a pattern
      */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
     bool SocketOpenSSL::checkHost(const std::string& host, const char* pattern)
     {
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
@@ -306,6 +308,7 @@ namespace ix
 
 #endif
     }
+#pragma GCC diagnostic pop
 
     bool SocketOpenSSL::openSSLCheckServerCert(SSL* ssl,
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
