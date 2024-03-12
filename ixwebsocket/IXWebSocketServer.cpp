@@ -19,17 +19,20 @@ namespace ix
 {
     const int WebSocketServer::kDefaultHandShakeTimeoutSecs(3); // 3 seconds
     const bool WebSocketServer::kDefaultEnablePong(true);
+    const int WebSocketServer::kPingIntervalSeconds(-1); // disable heartbeat
 
     WebSocketServer::WebSocketServer(int port,
                                      const std::string& host,
                                      int backlog,
                                      size_t maxConnections,
                                      int handshakeTimeoutSecs,
-                                     int addressFamily)
+                                     int addressFamily,
+                                     int pingIntervalSeconds)
         : SocketServer(port, host, backlog, maxConnections, addressFamily)
         , _handshakeTimeoutSecs(handshakeTimeoutSecs)
         , _enablePong(kDefaultEnablePong)
         , _enablePerMessageDeflate(true)
+        , _pingIntervalSeconds(pingIntervalSeconds)
     {
     }
 
@@ -93,6 +96,7 @@ namespace ix
         auto webSocket = std::make_shared<WebSocket>();
 
         webSocket->setAutoThreadName(false);
+        webSocket->setPingInterval(_pingIntervalSeconds);
 
         if (_onConnectionCallback)
         {
