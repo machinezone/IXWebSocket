@@ -445,6 +445,17 @@ server.wait();
 
 ```
 
+### Heartbeat
+
+You can configure an optional heartbeat / keep-alive for the WebSocket server. The heartbeat interval can be adjusted or disabled when constructing the `WebSocketServer`. Setting the interval to `-1` disables the heartbeat feature; this is the default setting. The parameter you set will be applied to every `WebSocket` object that the server creates.
+
+To enable the heartbeat feature on a `WebSocketServer`:
+
+```cpp
+int pingIntervalSeconds = -1; // Disable heartbeat
+ix::WebSocketServer server(port, host, backlog, maxConnections, handshakeTimeoutSecs, addressFamily, pingIntervalSeconds);
+```
+
 ## HTTP client API
 
 ```cpp
