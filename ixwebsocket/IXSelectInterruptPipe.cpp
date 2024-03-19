@@ -34,8 +34,12 @@ namespace ix
 
     SelectInterruptPipe::~SelectInterruptPipe()
     {
-        ::close(_fildes[kPipeReadIndex]);
-        ::close(_fildes[kPipeWriteIndex]);
+        if (-1 != _fildes[kPipeReadIndex]) {
+            ::close(_fildes[kPipeReadIndex]);
+        }
+        if (-1 != _fildes[kPipeWriteIndex]) {
+            ::close(_fildes[kPipeWriteIndex]);
+        }
         _fildes[kPipeReadIndex] = -1;
         _fildes[kPipeWriteIndex] = -1;
     }
