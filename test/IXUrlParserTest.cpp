@@ -84,6 +84,40 @@ namespace ix
             REQUIRE(port == 443); // default port for wss
         }
 
+        SECTION("wss://google.com/?arg=value")
+        {
+            std::string url = "wss://google.com/?arg=value&arg2=value2";
+            std::string protocol, host, path, query;
+            int port;
+            bool res;
+
+            res = UrlParser::parse(url, protocol, host, path, query, port);
+
+            REQUIRE(res);
+            REQUIRE(protocol == "wss");
+            REQUIRE(host == "google.com");
+            REQUIRE(path == "/?arg=value&arg2=value2");
+            REQUIRE(query == "arg=value&arg2=value2");
+            REQUIRE(port == 443); // default port for wss
+        }
+
+        SECTION("wss://google.com?arg=value")
+        {
+            std::string url = "wss://google.com?arg=value&arg2=value2";
+            std::string protocol, host, path, query;
+            int port;
+            bool res;
+
+            res = UrlParser::parse(url, protocol, host, path, query, port);
+
+            REQUIRE(res);
+            REQUIRE(protocol == "wss");
+            REQUIRE(host == "google.com");
+            REQUIRE(path == "/?arg=value&arg2=value2");
+            REQUIRE(query == "arg=value&arg2=value2");
+            REQUIRE(port == 443); // default port for wss
+        }
+
         SECTION("real test")
         {
             std::string url =
