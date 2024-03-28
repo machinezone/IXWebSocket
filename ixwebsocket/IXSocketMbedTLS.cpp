@@ -352,6 +352,11 @@ namespace ix
                 return res;
             }
 
+            if (res == 0)
+            {
+                errno = ECONNRESET;
+            }
+
             if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
             {
                 errno = EWOULDBLOCK;

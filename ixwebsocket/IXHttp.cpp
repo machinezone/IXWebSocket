@@ -133,16 +133,20 @@ namespace ix
         if (headers.find("Content-Length") != headers.end())
         {
             int contentLength = 0;
-            try
             {
-                contentLength = std::stoi(headers["Content-Length"]);
+                const char* p = headers["Content-Length"].c_str();
+                char* p_end{};
+                errno = 0;
+                long val = std::strtol(p, &p_end, 10);
+                if (p_end == p            // invalid argument
+                    || errno == ERANGE    // out of range
+                    || val < std::numeric_limits<int>::min()
+                    || val > std::numeric_limits<int>::max()) {
+                    return std::make_tuple(
+                        false, "Error parsing HTTP Header 'Content-Length'", httpRequest);
+                }
+                contentLength = val;
             }
-            catch (const std::exception&)
-            {
-                return std::make_tuple(
-                    false, "Error parsing HTTP Header 'Content-Length'", httpRequest);
-            }
-
             if (contentLength < 0)
             {
                 return std::make_tuple(
