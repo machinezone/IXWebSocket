@@ -168,8 +168,7 @@ if(BUILD_SHARED_LIBS)
     )
 
     # Set library version
-    set_target_properties(ixwebsocket PROPERTIES VERSION ${CMAKE_PROJECT_VERSION})
-
+    set_target_properties(ixwebsocket PROPERTIES VERSION ${PROJECT_VERSION})
 else()
     # Static library
     add_library( ixwebsocket
