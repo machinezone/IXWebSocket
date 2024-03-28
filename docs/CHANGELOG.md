@@ -2,6 +2,10 @@
 
 All changes to this project will be documented in this file.
 
+## [11.4.5] - 2024-06-05
+
+New changes are documented in the Release page in the GitHub repository.
+
 ## [11.4.4] - 2023-06-05
 
 ## [11.4.3] - 2022-05-13
