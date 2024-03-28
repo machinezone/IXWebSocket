@@ -209,7 +209,7 @@ namespace ix
 
         WebSocketHttpHeaders headers(_extraHeaders);
         std::string subProtocolsHeader;
-        auto subProtocols = getSubProtocols();
+        const auto &subProtocols = getSubProtocols();
         if (!subProtocols.empty())
         {
             //
@@ -219,7 +219,7 @@ namespace ix
             // 'json,msgpack'
             //
             int i = 0;
-            for (auto subProtocol : subProtocols)
+            for (const auto & subProtocol : subProtocols)
             {
                 if (i++ != 0)
                 {
