@@ -35,6 +35,12 @@
 #endif
 #endif
 
+#ifdef __APPLE__
+#ifndef AI_NUMERICSERV
+#define AI_NUMERICSERV 0
+#endif
+#endif
+
 namespace ix
 {
     const int64_t DNSLookup::kDefaultWait = 1; // ms
