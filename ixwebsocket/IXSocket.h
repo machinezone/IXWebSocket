@@ -13,6 +13,10 @@
 #include <mutex>
 #include <string>
 
+#ifdef __APPLE__
+#include <sys/types.h>
+#endif
+
 #ifdef _WIN32
 #include <basetsd.h>
 #ifdef _MSC_VER
