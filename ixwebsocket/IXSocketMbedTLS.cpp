@@ -47,12 +47,13 @@ namespace ix
         mbedtls_x509_crt_init(&_cacert);
         mbedtls_x509_crt_init(&_cert);
         mbedtls_pk_init(&_pkey);
-        // Initialize the PSA Crypto API if requested.
+        // Initialize the PSA Crypto API if required by the version of Mbed TLS (3.6.0).
         // This allows the X.509/TLS libraries to use PSA for crypto operations.
         // See: https://github.com/Mbed-TLS/mbedtls/blob/development/docs/use-psa-crypto.md
-        #if defined(IXWEBSOCKET_MBEDTLS_USE_PSA_CRYPTO)
-        psa_crypto_init();
-        #endif
+        if (MBEDTLS_VERSION_MAJOR >= 3 && MBEDTLS_VERSION_MINOR >= 6 && MBEDTLS_VERSION_PATCH >= 0)
+        {
+            psa_crypto_init();
+        }
     }
 
     bool SocketMbedTLS::loadSystemCertificates(std::string& errorMsg)
