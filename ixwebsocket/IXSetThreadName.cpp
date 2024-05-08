@@ -15,6 +15,10 @@
 #include <pthread_np.h>
 #endif
 
+#ifdef __APPLE__
+#include <AvailabilityMacros.h>
+#endif
+
 // Windows
 #ifdef _WIN32
 #include <windows.h>
@@ -58,7 +62,7 @@ namespace ix
 
     void setThreadName(const std::string& name)
     {
-#if defined(__APPLE__)
+#if defined(__APPLE__) && (MAC_OS_X_VERSION_MIN_REQUIRED >= 1060)
         //
         // Apple reserves 16 bytes for its thread names
         // Notice that the Apple version of pthread_setname_np
