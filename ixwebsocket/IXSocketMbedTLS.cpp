@@ -321,6 +321,11 @@ namespace ix
         mbedtls_entropy_free(&_entropy);
         mbedtls_x509_crt_free(&_cacert);
         mbedtls_x509_crt_free(&_cert);
+        mbedtls_pk_free(&_pkey);
+        if (MBEDTLS_VERSION_MAJOR >= 3 && MBEDTLS_VERSION_MINOR >= 6 && MBEDTLS_VERSION_PATCH >= 0)
+        {
+            mbedtls_psa_crypto_free();
+        }
 
         Socket::close();
     }
