@@ -95,4 +95,19 @@ TEST_CASE("socket", "[socket]")
         testSocket(host, port, request, socket, expectedStatus, timeoutSecs);
     }
 #endif
+
+TEST_CASE("isValidIpAddress") {
+    // Valid IPv4 addresses
+    CHECK(isValidIpAddress("127.0.0.1"));
+    CHECK(isValidIpAddress("192.168.0.1"));
+    CHECK(isValidIpAddress("10.0.0.1"));
+    CHECK(isValidIpAddress("172.16.0.1"));
+
+    // Invalid IPv4 addresses
+    CHECK(!isValidIpAddress("256.0.0.1"));
+    CHECK(!isValidIpAddress("1.2.3.4.5"));
+    CHECK(!isValidIpAddress("192.168.0."));
+    CHECK(!isValidIpAddress("192.168.0.-1"));
+    CHECK(!isValidIpAddress("192.168.0.256"));
+}
 }
