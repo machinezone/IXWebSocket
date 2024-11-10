@@ -27,8 +27,7 @@ It is been used on big mobile video game titles sending and receiving tons of me
 #include <ixwebsocket/IXUserAgent.h>
 #include <iostream>
 
-int main()
-{
+int main() {
     // Required on Windows
     ix::initNetSystem();
 
@@ -37,34 +36,36 @@ int main()
 
     // Connect to a server with encryption
     // See https://machinezone.github.io/IXWebSocket/usage/#tls-support-and-configuration
-    //     https://github.com/machinezone/IXWebSocket/issues/386#issuecomment-1105235227 (self signed certificates)
+    //     https://github.com/machinezone/IXWebSocket/issues/386#issuecomment-1105235227 (self
+    //     signed certificates)
     std::string url("wss://echo.websocket.org");
     webSocket.setUrl(url);
 
+    // Set TLS options (if needed)
+    ix::SocketTLSOptions tlsOptions{};
+
+    // Disables CA verification for demonstration purposes. Use cautiously!
+    tlsOptions.caFile = "NONE"; // No CA file used
+
+    webSocket.setTLSOptions(tlsOptions);
+
     std::cout << "Connecting to " << url << "..." << std::endl;
 
-    // Setup a callback to be fired (in a background thread, watch out for race conditions !)
-    // when a message or an event (open, close, error) is received
-    webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
-        {
-            if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                std::cout << "received message: " << msg->str << std::endl;
-                std::cout << "> " << std::flush;
-            }
-            else if (msg->type == ix::WebSocketMessageType::Open)
-            {
-                std::cout << "Connection established" << std::endl;
-                std::cout << "> " << std::flush;
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error)
-            {
-                // Maybe SSL is not configured properly
-                std::cout << "Connection error: " << msg->errorInfo.reason << std::endl;
-                std::cout << "> " << std::flush;
-            }
+    // Setup a callback to be fired when a message or an event (open, close, error) is received
+    // This all happens in a background thread, so watch out for race conditions!
+    webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg) {
+        if (msg->type == ix::WebSocketMessageType::Message) {
+            std::cout << "Received message: " << msg->str << std::endl;
+            std::cout << "> " << std::flush;
+        } else if (msg->type == ix::WebSocketMessageType::Open) {
+            std::cout << "Connection established!" << std::endl;
+            std::cout << "> " << std::flush;
+        } else if (msg->type == ix::WebSocketMessageType::Error) {
+            // Maybe SSL is not configured properly
+            std::cout << "Connection error: " << msg->errorInfo.reason << std::endl;
+            std::cout << "> " << std::flush;
         }
-    );
+    });
 
     // Now that our callback is setup, we can start our background thread and receive messages
     webSocket.start();
@@ -75,14 +76,22 @@ int main()
     // Display a prompt
     std::cout << "> " << std::flush;
 
-    std::string text;
+    std::string input{};
+
     // Read text from the console and send messages in text mode.
-    // Exit with Ctrl-D on Unix or Ctrl-Z on Windows.
-    while (std::getline(std::cin, text))
-    {
-        webSocket.send(text);
-        std::cout << "> " << std::flush;
+    while (getline(std::cin, input)) {
+        if (input == "quit") {
+            std::cout << "Closing connection!" << std::endl;
+            break;
+        }
+
+        webSocket.send(input);
     }
+
+    // Ensure proper termination and cleanup
+    webSocket.stop();
+
+    ix::uninitNetSystem();
 
     return 0;
 }
