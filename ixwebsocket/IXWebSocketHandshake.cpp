@@ -114,7 +114,10 @@ namespace ix
 
         std::stringstream ss;
         ss << "GET " << path << " HTTP/1.1\r\n";
-        ss << "Host: " << host << ":" << port << "\r\n";
+        if (extraHeaders.find("Host") == extraHeaders.end())
+        {
+            ss << "Host: " << host << ":" << port << "\r\n";
+        }
         ss << "Upgrade: websocket\r\n";
         ss << "Connection: Upgrade\r\n";
         ss << "Sec-WebSocket-Version: 13\r\n";
