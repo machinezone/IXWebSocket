@@ -8,7 +8,7 @@ project (ws)
 
 # There's -Weverything too for clang
 if (NOT WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -Wshadow -Wunused -pedantic")
 endif()
 
 set (CMAKE_CXX_STANDARD 11)

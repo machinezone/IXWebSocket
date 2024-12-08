@@ -97,7 +97,6 @@ namespace ix
         if (std::get<0>(ret))
         {
             auto request = std::get<2>(ret);
-            std::shared_ptr<ix::HttpResponse> response;
             if (request->headers["Upgrade"] == "websocket")
             {
                 WebSocketServer::handleUpgrade(std::move(socket), connectionState, request);

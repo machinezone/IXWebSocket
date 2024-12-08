@@ -264,14 +264,14 @@ namespace ix
         if (!success)
         {
             auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotConnect;
-            std::stringstream ss;
-            ss << "Cannot connect to url: " << url << " / error : " << errMsg;
+            std::stringstream errSs;
+            errSs << "Cannot connect to url: " << url << " / error : " << errMsg;
             return std::make_shared<HttpResponse>(code,
                                                   description,
                                                   errorCode,
                                                   headers,
                                                   payload,
-                                                  ss.str(),
+                                                  errSs.str(),
                                                   uploadSize,
                                                   downloadSize);
         }
@@ -281,27 +281,27 @@ namespace ix
 
         if (args->verbose)
         {
-            std::stringstream ss;
-            ss << "Sending " << verb << " request "
+            std::stringstream verboseSs;
+            verboseSs << "Sending " << verb << " request "
                << "to " << host << ":" << port << std::endl
                << "request size: " << req.size() << " bytes" << std::endl
                << "=============" << std::endl
                << req << "=============" << std::endl
                << std::endl;
 
-            log(ss.str(), args);
+            log(verboseSs.str(), args);
         }
 
         if (!_socket->writeBytes(req, isCancellationRequested))
         {
             auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::SendError;
-            std::string errorMsg("Cannot send request");
+            std::string msg("Cannot send request");
             return std::make_shared<HttpResponse>(code,
                                                   description,
                                                   errorCode,
                                                   headers,
                                                   payload,
-                                                  errorMsg,
+                                                  msg,
                                                   uploadSize,
                                                   downloadSize);
         }
@@ -315,33 +315,33 @@ namespace ix
         if (!lineValid)
         {
             auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotReadStatusLine;
-            std::string errorMsg("Cannot retrieve status line");
+            std::string msg("Cannot retrieve status line");
             return std::make_shared<HttpResponse>(code,
                                                   description,
                                                   errorCode,
                                                   headers,
                                                   payload,
-                                                  errorMsg,
+                                                  msg,
                                                   uploadSize,
                                                   downloadSize);
         }
 
         if (args->verbose)
         {
-            std::stringstream ss;
-            ss << "Status line " << line;
-            log(ss.str(), args);
+            std::stringstream verboseSs;
+            verboseSs << "Status line " << line;
+            log(verboseSs.str(), args);
         }
 
         if (sscanf(line.c_str(), "HTTP/1.1 %d", &code) != 1)
         {
-            std::string errorMsg("Cannot parse response code from status line");
+            std::string msg("Cannot parse response code from status line");
             return std::make_shared<HttpResponse>(code,
                                                   description,
                                                   HttpErrorCode::MissingStatus,
                                                   headers,
                                                   payload,
-                                                  errorMsg,
+                                                  msg,
                                                   uploadSize,
                                                   downloadSize);
         }
@@ -353,13 +353,13 @@ namespace ix
         if (!headersValid)
         {
             auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::HeaderParsingError;
-            std::string errorMsg("Cannot parse http headers");
+            std::string msg("Cannot parse http headers");
             return std::make_shared<HttpResponse>(code,
                                                   description,
                                                   errorCode,
                                                   headers,
                                                   payload,
-                                                  errorMsg,
+                                                  msg,
                                                   uploadSize,
                                                   downloadSize);
         }
@@ -369,27 +369,27 @@ namespace ix
         {
             if (headers.find("Location") == headers.end())
             {
-                std::string errorMsg("Missing location header for redirect");
+                std::string msg("Missing location header for redirect");
                 return std::make_shared<HttpResponse>(code,
                                                       description,
                                                       HttpErrorCode::MissingLocation,
                                                       headers,
                                                       payload,
-                                                      errorMsg,
+                                                      msg,
                                                       uploadSize,
                                                       downloadSize);
             }
 
             if (redirects >= args->maxRedirects)
             {
-                std::stringstream ss;
-                ss << "Too many redirects: " << redirects;
+                std::stringstream maxRedirectSs;
+                maxRedirectSs << "Too many redirects: " << redirects;
                 return std::make_shared<HttpResponse>(code,
                                                       description,
                                                       HttpErrorCode::TooManyRedirects,
                                                       headers,
                                                       payload,
-                                                      ss.str(),
+                                                      maxRedirectSs.str(),
                                                       uploadSize,
                                                       downloadSize);
             }
@@ -446,7 +446,7 @@ namespace ix
         else if (headers.find("Transfer-Encoding") != headers.end() &&
                  headers["Transfer-Encoding"] == "chunked")
         {
-            std::stringstream ss;
+            std::stringstream chunkSizeSs;
 
             while (true)
             {
@@ -467,9 +467,9 @@ namespace ix
                 }
 
                 uint64_t chunkSize;
-                ss.str("");
-                ss << std::hex << line;
-                ss >> chunkSize;
+                chunkSizeSs.str("");
+                chunkSizeSs << std::hex << line;
+                chunkSizeSs >> chunkSize;
 
                 if (args->verbose)
                 {
@@ -485,11 +485,11 @@ namespace ix
                                                       isCancellationRequested);
                 if (!chunkResult.first)
                 {
-                    auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
+                    auto errCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
                     errorMsg = "Cannot read chunk";
                     return std::make_shared<HttpResponse>(code,
                                                           description,
-                                                          errorCode,
+                                                          errCode,
                                                           headers,
                                                           payload,
                                                           errorMsg,
@@ -508,10 +508,10 @@ namespace ix
 
                 if (!lineResult.first)
                 {
-                    auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
+                    auto errCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
                     return std::make_shared<HttpResponse>(code,
                                                           description,
-                                                          errorCode,
+                                                          errCode,
                                                           headers,
                                                           payload,
                                                           errorMsg,
@@ -528,13 +528,13 @@ namespace ix
         }
         else
         {
-            std::string errorMsg("Cannot read http body");
+            std::string msg("Cannot read http body");
             return std::make_shared<HttpResponse>(code,
                                                   description,
                                                   HttpErrorCode::CannotReadBody,
                                                   headers,
                                                   payload,
-                                                  errorMsg,
+                                                  msg,
                                                   uploadSize,
                                                   downloadSize);
         }
@@ -548,25 +548,25 @@ namespace ix
             std::string decompressedPayload;
             if (!gzipDecompress(payload, decompressedPayload))
             {
-                std::string errorMsg("Error decompressing payload");
+                std::string msg("Error decompressing payload");
                 return std::make_shared<HttpResponse>(code,
                                                       description,
                                                       HttpErrorCode::Gzip,
                                                       headers,
                                                       payload,
-                                                      errorMsg,
+                                                      msg,
                                                       uploadSize,
                                                       downloadSize);
             }
             payload = decompressedPayload;
 #else
-            std::string errorMsg("ixwebsocket was not compiled with gzip support on");
+            std::string msg("ixwebsocket was not compiled with gzip support on");
             return std::make_shared<HttpResponse>(code,
                                                   description,
                                                   HttpErrorCode::Gzip,
                                                   headers,
                                                   payload,
-                                                  errorMsg,
+                                                  msg,
                                                   uploadSize,
                                                   downloadSize);
 #endif
