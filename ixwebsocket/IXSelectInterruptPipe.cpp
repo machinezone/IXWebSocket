@@ -138,6 +138,9 @@ namespace ix
 
         int fd = _fildes[kPipeReadIndex];
 
+        // A weird state has been reached (consider reporting to the error log?)
+        if (-1 == fd) return std::numeric_limits<uint64_t>::max();
+
         uint64_t value = 0;
 
         ssize_t ret = -1;
