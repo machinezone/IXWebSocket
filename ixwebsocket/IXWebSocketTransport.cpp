@@ -200,11 +200,14 @@ namespace ix
 
     WebSocketTransport::ReadyState WebSocketTransport::getReadyState() const
     {
+        std::lock_guard<std::mutex> lock(_setReadyStateMutex);
         return _readyState;
     }
 
     void WebSocketTransport::setReadyState(ReadyState readyState)
     {
+        std::lock_guard<std::mutex> lock(_setReadyStateMutex);
+
         // No state change, return
         if (_readyState == readyState) return;
 
