@@ -205,6 +205,12 @@ namespace ix
 
     void WebSocketTransport::setReadyState(ReadyState readyState)
     {
+        // Lock the _setReadyStateMutex for the duration of this
+        // method. This ensures that only a single thread runs the
+        // logic below avoiding concurrent execution of the
+        // close callback my multiple threads at the same time.
+        std::lock_guard<std::mutex> lock(_setReadyStateMutex);
+
         // No state change, return
         if (_readyState == readyState) return;
 

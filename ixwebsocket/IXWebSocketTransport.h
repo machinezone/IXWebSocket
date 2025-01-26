@@ -185,6 +185,8 @@ namespace ix
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)
         std::atomic<ReadyState> _readyState;
+        // Mutex to serialize setReadyState() execution.
+        std::mutex _setReadyStateMutex;
 
         OnCloseCallback _onCloseCallback;
         std::string _closeReason;
