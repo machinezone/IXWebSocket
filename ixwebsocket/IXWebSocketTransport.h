@@ -186,7 +186,7 @@ namespace ix
         // Hold the state of the connection (OPEN, CLOSED, etc...)
         ReadyState _readyState;
         // Mutex to prevent racing in setReadyState()
-        mutable std::mutex _setReadyStateMutex;
+        mutable std::recursive_mutex _readyStateMutex;
 
         OnCloseCallback _onCloseCallback;
         std::string _closeReason;

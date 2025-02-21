@@ -200,13 +200,13 @@ namespace ix
 
     WebSocketTransport::ReadyState WebSocketTransport::getReadyState() const
     {
-        std::lock_guard<std::mutex> lock(_setReadyStateMutex);
+        std::lock_guard<std::recursive_mutex> lock(_readyStateMutex);
         return _readyState;
     }
 
     void WebSocketTransport::setReadyState(ReadyState readyState)
     {
-        std::lock_guard<std::mutex> lock(_setReadyStateMutex);
+        std::lock_guard<std::recursive_mutex> lock(_readyStateMutex);
 
         // No state change, return
         if (_readyState == readyState) return;
@@ -310,7 +310,7 @@ namespace ix
 
     WebSocketTransport::PollResult WebSocketTransport::poll()
     {
-        if (_readyState == ReadyState::OPEN)
+        if (getReadyState() == ReadyState::OPEN)
         {
             if (pingIntervalExceeded())
             {
@@ -331,7 +331,7 @@ namespace ix
 
         // No timeout if state is not OPEN, otherwise computed
         // pingIntervalOrTimeoutGCD (equals to -1 if no ping and no ping timeout are set)
-        int lastingTimeoutDelayInMs = (_readyState != ReadyState::OPEN) ? 0 : _pingIntervalSecs;
+        int lastingTimeoutDelayInMs = (getReadyState() != ReadyState::OPEN) ? 0 : _pingIntervalSecs;
 
         if (_pingIntervalSecs > 0)
         {
@@ -384,7 +384,7 @@ namespace ix
             closeSocket();
         }
 
-        if (_readyState == ReadyState::CLOSING && closingDelayExceeded())
+        if (getReadyState() == ReadyState::CLOSING && closingDelayExceeded())
         {
             _rxbuf.clear();
             // close code and reason were set when calling close()
@@ -700,7 +700,7 @@ namespace ix
                 }
 
                 // We receive a CLOSE frame from remote and are NOT the ones who triggered the close
-                if (_readyState != ReadyState::CLOSING)
+                if (getReadyState() != ReadyState::CLOSING)
                 {
                     // send back the CLOSE frame
                     setReadyState(ReadyState::CLOSING);
@@ -742,15 +742,17 @@ namespace ix
         {
             _rxbuf.clear();
 
+            ReadyState rs = getReadyState();
+
             // if we previously closed the connection (CLOSING state), then set state to CLOSED
             // (code/reason were set before)
-            if (_readyState == ReadyState::CLOSING)
+            if (rs == ReadyState::CLOSING)
             {
                 closeSocket();
                 setReadyState(ReadyState::CLOSED);
             }
             // if we weren't closing, then close using abnormal close code and message
-            else if (_readyState != ReadyState::CLOSED)
+            else if (rs != ReadyState::CLOSED)
             {
                 closeSocketAndSwitchToClosedState(WebSocketCloseConstants::kAbnormalCloseCode,
                                                   WebSocketCloseConstants::kAbnormalCloseMessage,
@@ -828,7 +830,8 @@ namespace ix
                                                    bool compress,
                                                    const OnProgressCallback& onProgressCallback)
     {
-        if (_readyState != ReadyState::OPEN && _readyState != ReadyState::CLOSING)
+        ReadyState rs = getReadyState();
+        if (rs != ReadyState::OPEN && rs != ReadyState::CLOSING)
         {
             return WebSocketSendInfo(false);
         }
@@ -1076,7 +1079,7 @@ namespace ix
             else if (ret <= 0)
             {
                 closeSocket();
-                if (_readyState != ReadyState::CLOSING)
+                if (getReadyState() != ReadyState::CLOSING)
                 {
                     setReadyState(ReadyState::CLOSED);
                 }
@@ -1177,7 +1180,8 @@ namespace ix
     {
         _requestInitCancellation = true;
 
-        if (_readyState == ReadyState::CLOSING || _readyState == ReadyState::CLOSED)
+        ReadyState rs = getReadyState();
+        if (rs == ReadyState::CLOSING || rs == ReadyState::CLOSED)
         {
             // Wake up the socket polling thread, as
             // Socket::isReadyToRead() might be still waiting the
