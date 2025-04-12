@@ -204,16 +204,17 @@ namespace ix
         }
 
         // Set a default User agent if none is present
-        if (args->extraHeaders.find("User-Agent") == args->extraHeaders.end())
+        /*if (args->extraHeaders.find("User-Agent") == args->extraHeaders.end())
         {
             ss << "User-Agent: " << userAgent() << "\r\n";
-        }
+        }*/
 
-        // Set an origin header if missing
-        if (args->extraHeaders.find("Origin") == args->extraHeaders.end())
+        // Set an 
+        //  header if missing
+        /*if (args->extraHeaders.find("Origin") == args->extraHeaders.end())
         {
             ss << "Origin: " << protocol << "://" << host << ":" << port << "\r\n";
-        }
+        }*/
 
         if (verb == kPost || verb == kPut || verb == kPatch || _forceBody)
         {

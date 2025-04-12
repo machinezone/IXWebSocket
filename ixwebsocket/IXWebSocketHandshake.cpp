@@ -124,16 +124,16 @@ namespace ix
         ss << "Sec-WebSocket-Key: " << secWebSocketKey << "\r\n";
 
         // User-Agent can be customized by users
-        if (extraHeaders.find("User-Agent") == extraHeaders.end())
-        {
-            ss << "User-Agent: " << userAgent() << "\r\n";
-        }
+        //if (extraHeaders.find("User-Agent") == extraHeaders.end())
+        //{
+        //    ss << "User-Agent: " << userAgent() << "\r\n";
+        //}
 
-        // Set an origin header if missing
-        if (extraHeaders.find("Origin") == extraHeaders.end())
-        {
-            ss << "Origin: " << protocol << "://" << host << ":" << port << "\r\n";
-        }
+        //// Set an origin header if missing
+        //if (extraHeaders.find("Origin") == extraHeaders.end())
+        //{
+        //    ss << "Origin: " << protocol << "://" << host << ":" << port << "\r\n";
+        //}
 
         for (auto& it : extraHeaders)
         {
