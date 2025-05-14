@@ -158,6 +158,10 @@ namespace ix
         // data messages. That buffer is resized
         std::vector<uint8_t> _rxbuf;
 
+        // If set to a positive value, only read bytes from the socket until
+        // _rxbuf has reached this size to avoid unnecessary erase churn.
+        uint64_t _rxbufWanted = 0;
+
         // Contains all messages that are waiting to be sent
         std::vector<uint8_t> _txbuf;
         mutable std::mutex _txbufMutex;

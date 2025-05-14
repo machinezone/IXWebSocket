@@ -547,8 +547,11 @@ namespace ix
 
             if (_rxbuf.size() < ws.header_size + ws.N)
             {
+                _rxbufWanted = ws.header_size + ws.N;
                 return; /* Need: ws.header_size+ws.N - _rxbuf.size() */
             }
+
+            _rxbufWanted = 0;
 
             if (!ws.fin && (ws.opcode == wsheader_type::PING || ws.opcode == wsheader_type::PONG ||
                             ws.opcode == wsheader_type::CLOSE))
@@ -1098,6 +1101,18 @@ namespace ix
     {
         while (true)
         {
+            // If _rxbufWanted isn't set, don't attempt to read more than kChunkSize
+            // into _rxbuf. If a client is sending frames faster than they can be
+            // processed this would otherwise bloat _rxbuf and further introduce
+            // unnecessary processing overhead due to .erase() in dispatch().
+            //
+            // Further, not reading everything from the socket will eventually
+            // result in back pressure for the client.
+            if (_rxbufWanted == 0 && _rxbuf.size() >= kChunkSize) break;
+
+            // There's also no point in reading more bytes than needed.
+            if (_rxbufWanted > 0 && _rxbuf.size() >= _rxbufWanted) break;
+
             ssize_t ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
 
             if (ret < 0 && Socket::isWaitNeeded())
