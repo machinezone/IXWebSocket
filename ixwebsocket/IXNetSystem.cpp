@@ -140,7 +140,7 @@ namespace ix
 
                     // mapping
                     long networkEvents = 0;
-                    if (fd->events & (POLLIN                               )) networkEvents |= FD_READ  | FD_ACCEPT;
+                    if (fd->events & (POLLIN                               )) networkEvents |= FD_READ  | FD_ACCEPT | FD_CLOSE;
                     if (fd->events & (POLLOUT /*| POLLWRNORM | POLLWRBAND*/)) networkEvents |= FD_WRITE | FD_CONNECT;
                     //if (fd->events & (POLLPRI | POLLRDBAND               )) networkEvents |= FD_OOB;
 
@@ -183,8 +183,9 @@ namespace ix
                 else if (netEvents.lNetworkEvents != 0)
                 {
                     // mapping
-                    if (netEvents.lNetworkEvents & (FD_READ  | FD_ACCEPT | FD_OOB)) fd->revents |= POLLIN;
-                    if (netEvents.lNetworkEvents & (FD_WRITE | FD_CONNECT        )) fd->revents |= POLLOUT;
+                    if (netEvents.lNetworkEvents & (FD_READ  | FD_ACCEPT | FD_OOB | FD_CLOSE)) fd->revents |= POLLIN;
+                    if (netEvents.lNetworkEvents & (FD_WRITE | FD_CONNECT                   )) fd->revents |= POLLOUT;
+                    if (netEvents.lNetworkEvents & (FD_CLOSE                                )) fd->revents |= POLLHUP;
 
                     for (int i = 0; i < FD_MAX_EVENTS; ++i)
                     {
