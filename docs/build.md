@@ -1,11 +1,37 @@
 ## Build
 
+### Building static libraries
+
+A static library can be build using:
+```
+mkdir build #make a build dir so that you can build out of tree
+cd build
+cmake -DUSE_TLS=1 ..
+make -j
+```
+There are also two build scripts in the `tools` folder for creating static libraries for android and iOS/macOS respectively.<br>
+Arguments can be changed in the script files.
+
+Android:
+```
+mkdir build
+cd build
+./../tools/build_android.sh
+make -j
+```
+macOS & iOS:
+```
+mkdir build
+cd build
+./../tools/build_ios.sh
+```
+
 ### CMake
 
 CMakefiles for the library and the examples are available. This library has few dependencies, so it is possible to just add the source files into your project. Otherwise the usual way will suffice.
 
 ```
-mkdir build # make a build dir so that you can build out of tree.
+mkdir build
 cd build
 cmake -DUSE_TLS=1 ..
 make -j

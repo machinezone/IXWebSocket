@@ -15,7 +15,13 @@
 # -DANDROID_NATIVE_API_LEVEL=23
 # -DANDROID_TOOLCHAIN=clang
 # jvmArgs :
-# 
+#
+# To use a specific version of openSSL, add the arguments:
+# -DOPENSSL_VERSION="[version]"
+# -DOPENSSL_FOUND=1
+# -DOPENSSL_INCLUDE_DIR=[include path]
+# -DOPENSSL_LIBRARIES="[lib path]/libssl.a;[lib path]/libcrypto.a"
+#
 
 CMAKE_TOOLCHAIN_FILE=/tools/android/android-ndk-r20-darwin/build/cmake/android.toolchain.cmake
 ANDROID_HOME=/tools/android/android-sdk-darwin
@@ -33,4 +39,4 @@ ${CMAKE} \
     -G'Unix Makefiles' \
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
     -DCMAKE_MAKE_PROGRAM=make \
-    -DUSE_WS=1
+    -DUSE_TLS=1
