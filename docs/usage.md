@@ -37,7 +37,8 @@ webSocket.setUrl(url);
 // to make sure that load balancers do not kill an idle connection.
 webSocket.setPingInterval(45);
 
-// Per message deflate connection is enabled by default. You can tweak its parameters or disable it
+// Per message deflate connection is not enabled by default. You can tweak its parameters, enable or disable it with
+webSocket.enablePerMessageDeflate();
 webSocket.disablePerMessageDeflate();
 
 // Setup a callback to be fired when a message or an event (open, close, error) is received
