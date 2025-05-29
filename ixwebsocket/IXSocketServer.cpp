@@ -101,6 +101,7 @@ namespace ix
         if (_addressFamily == AF_INET)
         {
             struct sockaddr_in server;
+            memset(&server, '\0', sizeof(server));
             server.sin_family = _addressFamily;
             server.sin_port = htons(_port);
 
@@ -130,6 +131,7 @@ namespace ix
         else // AF_INET6
         {
             struct sockaddr_in6 server;
+            memset(&server, '\0', sizeof(server));
             server.sin6_family = _addressFamily;
             server.sin6_port = htons(_port);
 
