@@ -1071,7 +1071,7 @@ namespace ix
         {
             ssize_t ret = 0;
             {
-                std::lock_guard<std::mutex> lock(_socketMutex);
+                std::lock_guard<std::mutex> socketLock(_socketMutex);
                 ret = _socket->send((char*) &_txbuf[0], _txbuf.size());
             }
 
