@@ -310,7 +310,7 @@ namespace ix
         uint32_t retries = 0;
         millis duration(0);
 
-        // Try to connect perpertually
+        // Try to connect perpetually
         while (true)
         {
             if (isConnected() || isClosing() || _stop)
