@@ -16,18 +16,24 @@
 #include <vector>
 #ifdef _WIN32
 #include <shlwapi.h>
+//To avoid the problem with X509_NAME collision between macro in wincrypt.h and x509v3.h
+//It has to be undef before x509v3.h and after wincrypt.h
+#undef X509_NAME
 #else
 #include <fnmatch.h>
 #endif
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
 #include <openssl/x509v3.h>
-#endif
+
 #define socketerrno errno
 
 #ifdef _WIN32
 // For manipulating the certificate store
 #include <windows.h>
 #include <wincrypt.h>
+// To avoid the problem with X509_NAME collision between macro in wincrypt.h and x509v3.h
+// It has to be undef before x509v3.h and after wincrypt.h
+#undef X509_NAME
 #endif
 
 #ifdef _WIN32
@@ -78,6 +84,43 @@ namespace
 
         return true;
     }
+    
+    bool isValidIpAddress(const std::string& s) 
+    { 
+        std::vector<int> v;
+        int n = s.size();
+        int start = 0, end = 0;
+        while (end < n) 
+        {
+            while (end < n && s[end] != '.') 
+            {
+                ++end;
+            }
+            if (start == end) {
+                return false;
+            }
+            int val = 0;
+            for (int i = start; i < end; ++i) 
+            {
+                if (s[i] < '0' || s[i] > '9') 
+                {
+                    return false;
+                }
+                val = val * 10 + (s[i] - '0');
+            }
+            if (val < 0 || val > 255) {
+                return false;
+            }
+            v.push_back(val);
+            start = ++end;
+        }
+        if (v.size() != 4) 
+        {
+            return false;
+        }
+        return true;
+    }
+
 } // namespace
 #endif
 
@@ -765,10 +808,25 @@ namespace ix
             // (The docs say that this should work from 1.0.2, and is the default from
             // 1.1.0, but it does not. To be on the safe side, the manual test
             // below is enabled for all versions prior to 1.1.0.)
-            if (!_tlsOptions.disable_hostname_validation)
+            if (isValidIpAddress(host))
             {
-                X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
-                X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
+               // We are connecting to an IP address.  let OpenSSL validate the
+               // IP address in SAN
+               X509_VERIFY_PARAM *param = SSL_get0_param(_ssl_connection);
+               X509_VERIFY_PARAM_set1_host(param, NULL, 0);
+               X509_VERIFY_PARAM_set1_ip_asc(param, host.c_str());
+            }
+            else if (!_tlsOptions.disable_hostname_validation)
+            {
+               SSL_set1_host(_ssl_connection, host.c_str());
+               // Both CN-ID and partial wildcards are deprecated
+               // Optionally, reject all wildcards via:
+               //     X509_CHECK_FLAG_NO_WILDCARDS
+               // See X509_check_host(3).
+               //
+               SSL_set_hostflags(_ssl_connection,
+                   X509_CHECK_FLAG_NEVER_CHECK_SUBJECT |
+                   X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
             }
 #endif
             handshakeSuccessful = openSSLClientHandshake(host, errMsg, isCancellationRequested);
