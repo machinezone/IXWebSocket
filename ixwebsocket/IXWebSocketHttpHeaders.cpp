@@ -12,6 +12,23 @@
 
 namespace ix
 {
+     static inline void ltrim(std::string& s) {
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+            return !std::isspace(ch);
+            }));
+    }
+
+    static inline void rtrim(std::string& s) {
+        s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+            return !std::isspace(ch);
+            }).base(), s.end());
+    }
+
+    static inline void trim(std::string& s) {
+        ltrim(s);
+        rtrim(s);
+    }
+
     std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(
         std::unique_ptr<Socket>& socket, const CancellationRequest& isCancellationRequested)
     {
@@ -62,10 +79,18 @@ namespace ix
                     start++;
                 }
 
-                std::string name(lineStr.substr(0, colon));
-                std::string value(lineStr.substr(start, lineStr.size() - start - 2));
-
-                headers[name] = value;
+                int nSize = std::min((size_t)1024, lineStr.size());
+                if (colon <= nSize)
+                {
+                    std::string name(lineStr.substr(0, colon));
+                    std::string value;
+                    if (start < nSize)
+                    {
+                        value = lineStr.substr(start);
+                        trim(value);
+                    }
+                    headers[name] = value;
+                }
             }
         }
 
