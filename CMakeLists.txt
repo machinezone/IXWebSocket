@@ -4,6 +4,9 @@
 #
 
 cmake_minimum_required(VERSION 3.4.1...3.17.2)
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif()
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_MODULE_PATH}")
 
 project(ixwebsocket LANGUAGES C CXX VERSION 11.4.6)
