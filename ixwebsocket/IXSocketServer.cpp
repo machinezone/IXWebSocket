@@ -308,13 +308,12 @@ namespace ix
             }
 
             // Accept a connection.
-            // FIXME: Is this working for ipv6 ?
-            struct sockaddr_in client; // client address information
-            int clientFd;              // socket connected to client
-            socklen_t addressLen = sizeof(client);
-            memset(&client, 0, sizeof(client));
+            sockaddr_storage clientStorage; // client address information (v4 or v6)
+            int clientFd;                   // socket connected to client
+            socklen_t addressLen = sizeof(clientStorage);
+            memset(&clientStorage, 0, sizeof(clientStorage));
 
-            if ((clientFd = accept(_serverFd, (struct sockaddr*) &client, &addressLen)) < 0)
+            if ((clientFd = accept(_serverFd, (struct sockaddr*) &clientStorage, &addressLen)) < 0)
             {
                 if (!Socket::isWaitNeeded())
                 {
@@ -346,8 +345,10 @@ namespace ix
 
             if (_addressFamily == AF_INET)
             {
+                auto* client = reinterpret_cast<sockaddr_in*>(&clientStorage);
+
                 char remoteIp4[INET_ADDRSTRLEN];
-                if (ix::inet_ntop(AF_INET, &client.sin_addr, remoteIp4, INET_ADDRSTRLEN) == nullptr)
+                if (ix::inet_ntop(AF_INET, &client->sin_addr, remoteIp4, INET_ADDRSTRLEN) == nullptr)
                 {
                     int err = Socket::getErrno();
                     std::stringstream ss;
@@ -360,13 +361,15 @@ namespace ix
                     continue;
                 }
 
-                remotePort = ix::network_to_host_short(client.sin_port);
+                remotePort = ix::network_to_host_short(client->sin_port);
                 remoteIp = remoteIp4;
             }
             else // AF_INET6
             {
+                auto* client = reinterpret_cast<sockaddr_in6*>(&clientStorage);
+
                 char remoteIp6[INET6_ADDRSTRLEN];
-                if (ix::inet_ntop(AF_INET6, &client.sin_addr, remoteIp6, INET6_ADDRSTRLEN) ==
+                if (ix::inet_ntop(AF_INET6, &client->sin6_addr, remoteIp6, INET6_ADDRSTRLEN) ==
                     nullptr)
                 {
                     int err = Socket::getErrno();
@@ -380,7 +383,7 @@ namespace ix
                     continue;
                 }
 
-                remotePort = ix::network_to_host_short(client.sin_port);
+                remotePort = ix::network_to_host_short(client->sin6_port);
                 remoteIp = remoteIp6;
             }
 
