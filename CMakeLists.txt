@@ -125,16 +125,16 @@ option(USE_TLS "Enable TLS support" FALSE)
 if (USE_TLS)
     # default to securetranport on Apple if nothing is configured
     if (APPLE)
-      if (NOT USE_MBED_TLS AND NOT USE_OPEN_SSL) # unless we want something else
+      if (NOT USE_MBED_TLS AND NOT USE_OPEN_SSL AND NOT USE_LIBRE_SSL) # unless we want something else
         set(USE_SECURE_TRANSPORT ON)
       endif()
     # default to mbedtls on windows if nothing is configured
     elseif (WIN32)
-      if (NOT USE_OPEN_SSL) # unless we want something else
+      if (NOT USE_OPEN_SSL AND NOT USE_LIBRE_SSL) # unless we want something else
         set(USE_MBED_TLS ON)
       endif()
     else() # default to OpenSSL on all other platforms
-      if (NOT USE_MBED_TLS) # Unless mbedtls is requested
+      if (NOT USE_MBED_TLS AND NOT USE_LIBRE_SSL) # Unless mbedtls or libressl is requested
         set(USE_OPEN_SSL ON)
         set(requires "openssl")
       endif()
@@ -146,7 +146,7 @@ if (USE_TLS)
     elseif (USE_SECURE_TRANSPORT)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketAppleSSL.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketAppleSSL.cpp)
-    elseif (USE_OPEN_SSL)
+    elseif (USE_OPEN_SSL OR USE_LIBRE_SSL)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketOpenSSL.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketOpenSSL.cpp)
     else()
@@ -183,6 +183,8 @@ if (USE_TLS)
         target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_MBED_TLS)
     elseif (USE_OPEN_SSL)
         target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_OPEN_SSL)
+    elseif (USE_LIBRE_SSL)
+        target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_LIBRE_SSL)
     elseif (USE_SECURE_TRANSPORT)
         target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_SECURE_TRANSPORT)
     else()
@@ -227,6 +229,16 @@ if (USE_TLS)
     endif()
     target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${MBEDTLS_INCLUDE_DIRS}>)
     target_link_libraries(ixwebsocket PRIVATE ${MBEDTLS_LIBRARIES})
+  elseif (USE_LIBRE_SSL)
+    message(STATUS "TLS configured to use libressl")
+
+    if (NOT LIBRESSL_FOUND)
+      find_package(LibreSSL REQUIRED)
+    endif()
+    message(STATUS "LibreSSL: " ${LIBRESSL_VERSION})
+
+    target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${LIBRESSL_INCLUDE_DIR}>)
+    target_link_libraries(ixwebsocket PRIVATE ${LIBRESSL_LIBRARIES})
   elseif (USE_SECURE_TRANSPORT)
     message(STATUS "TLS configured to use secure transport")
     target_link_libraries(ixwebsocket PRIVATE "-framework Foundation" "-framework Security")

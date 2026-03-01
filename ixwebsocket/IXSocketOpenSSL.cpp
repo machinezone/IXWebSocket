@@ -5,7 +5,7 @@
  *
  *  Adapted from Satori SDK OpenSSL code.
  */
-#ifdef IXWEBSOCKET_USE_OPEN_SSL
+#if defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)
 
 #include "IXSocketOpenSSL.h"
 
@@ -860,4 +860,4 @@ namespace ix
 
 } // namespace ix
 
-#endif // IXWEBSOCKET_USE_OPEN_SSL
+#endif // defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)

@@ -3,7 +3,7 @@
  *  Author: Benjamin Sergeant, Matt DeBoer
  *  Copyright (c) 2017-2020 Machine Zone, Inc. All rights reserved.
  */
-#ifdef IXWEBSOCKET_USE_OPEN_SSL
+#if defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)
 
 #pragma once
 
@@ -65,4 +65,4 @@ namespace ix
 
 } // namespace ix
 
-#endif // IXWEBSOCKET_USE_OPEN_SSL
+#endif // defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)

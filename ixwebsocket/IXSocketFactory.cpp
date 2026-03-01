@@ -11,7 +11,7 @@
 
 #ifdef IXWEBSOCKET_USE_MBED_TLS
 #include "IXSocketMbedTLS.h"
-#elif defined(IXWEBSOCKET_USE_OPEN_SSL)
+#elif defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)
 #include "IXSocketOpenSSL.h"
 #elif __APPLE__
 #include "IXSocketAppleSSL.h"
@@ -43,7 +43,7 @@ namespace ix
 #ifdef IXWEBSOCKET_USE_TLS
 #if defined(IXWEBSOCKET_USE_MBED_TLS)
             socket = ix::make_unique<SocketMbedTLS>(tlsOptions, fd);
-#elif defined(IXWEBSOCKET_USE_OPEN_SSL)
+#elif defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)
             socket = ix::make_unique<SocketOpenSSL>(tlsOptions, fd);
 #elif defined(__APPLE__)
             socket = ix::make_unique<SocketAppleSSL>(tlsOptions, fd);
