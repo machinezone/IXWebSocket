@@ -247,7 +247,7 @@ if (WIN32)
   target_compile_definitions(ixwebsocket PRIVATE _CRT_SECURE_NO_WARNINGS)
 
   if (USE_TLS)
-    target_link_libraries(ixwebsocket PRIVATE Crypt32)
+    target_link_libraries(ixwebsocket PRIVATE crypt32)
   endif()
 endif()
 
