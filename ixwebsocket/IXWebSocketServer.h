@@ -34,7 +34,8 @@ namespace ix
                         size_t maxConnections = SocketServer::kDefaultMaxConnections,
                         int handshakeTimeoutSecs = WebSocketServer::kDefaultHandShakeTimeoutSecs,
                         int addressFamily = SocketServer::kDefaultAddressFamily,
-                        int pingIntervalSeconds = WebSocketServer::kPingIntervalSeconds);
+                        int pingIntervalSeconds = WebSocketServer::kPingIntervalSeconds,
+                        int sendTimeoutSeconds = WebSocketServer::kSendTimeoutSeconds);
         virtual ~WebSocketServer();
         virtual void stop() final;
 
@@ -63,6 +64,7 @@ namespace ix
         bool _enablePong;
         bool _enablePerMessageDeflate;
         int _pingIntervalSeconds;
+        int _sendTimeoutSeconds;
 
         OnConnectionCallback _onConnectionCallback;
         OnClientMessageCallback _onClientMessageCallback;
@@ -72,6 +74,7 @@ namespace ix
 
         const static bool kDefaultEnablePong;
         const static int kPingIntervalSeconds;
+        const static int kSendTimeoutSeconds;
 
         // Methods
         virtual void handleConnection(std::unique_ptr<Socket> socket,
