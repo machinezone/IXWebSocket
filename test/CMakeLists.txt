@@ -27,6 +27,7 @@ set (TEST_TARGET_NAMES
   IXWebSocketCloseTest
   IXWebSocketHostTest
   IXWebSocketIPv6Test
+  IXWebSocketSendTimeoutTest
 )
 
 # Some unittest don't work on windows yet

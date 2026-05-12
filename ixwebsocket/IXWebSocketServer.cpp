@@ -20,6 +20,7 @@ namespace ix
     const int WebSocketServer::kDefaultHandShakeTimeoutSecs(3); // 3 seconds
     const bool WebSocketServer::kDefaultEnablePong(true);
     const int WebSocketServer::kPingIntervalSeconds(-1); // disable heartbeat
+    const int WebSocketServer::kSendTimeoutSeconds(-1);
 
     WebSocketServer::WebSocketServer(int port,
                                      const std::string& host,
@@ -27,12 +28,14 @@ namespace ix
                                      size_t maxConnections,
                                      int handshakeTimeoutSecs,
                                      int addressFamily,
-                                     int pingIntervalSeconds)
+                                     int pingIntervalSeconds,
+                                     int sendTimeoutSeconds)
         : SocketServer(port, host, backlog, maxConnections, addressFamily)
         , _handshakeTimeoutSecs(handshakeTimeoutSecs)
         , _enablePong(kDefaultEnablePong)
         , _enablePerMessageDeflate(true)
         , _pingIntervalSeconds(pingIntervalSeconds)
+        , _sendTimeoutSeconds(sendTimeoutSeconds)
     {
     }
 
@@ -144,8 +147,11 @@ namespace ix
             _clients.insert(webSocket);
         }
 
-        auto status = webSocket->connectToSocket(
-            std::move(socket), _handshakeTimeoutSecs, _enablePerMessageDeflate, request);
+        auto status = webSocket->connectToSocket(std::move(socket),
+                                                 _handshakeTimeoutSecs,
+                                                 _enablePerMessageDeflate,
+                                                 request,
+                                                 _sendTimeoutSeconds);
         if (status.success)
         {
             // Process incoming messages and execute callbacks

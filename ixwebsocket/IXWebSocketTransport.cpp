@@ -61,6 +61,7 @@ namespace ix
     WebSocketTransport::WebSocketTransport()
         : _useMask(true)
         , _blockingSend(false)
+        , _sendTimeoutSecs(-1)
         , _receivedMessageCompressed(false)
         , _readyState(ReadyState::CLOSED)
         , _closeCode(WebSocketCloseConstants::kInternalErrorCode)
@@ -172,13 +173,15 @@ namespace ix
     WebSocketInitResult WebSocketTransport::connectToSocket(std::unique_ptr<Socket> socket,
                                                             int timeoutSecs,
                                                             bool enablePerMessageDeflate,
-                                                            HttpRequestPtr request)
+                                                            HttpRequestPtr request,
+                                                            int sendTimeoutSecs)
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
         // Server should not mask the data it sends to the client
         _useMask = false;
         _blockingSend = true;
+        _sendTimeoutSecs = sendTimeoutSecs;
 
         _socket = std::move(socket);
         _perMessageDeflate = ix::make_unique<WebSocketPerMessageDeflate>();
@@ -1242,6 +1245,23 @@ namespace ix
 
     bool WebSocketTransport::flushSendBuffer()
     {
+        auto start = std::chrono::steady_clock::now();
+
+        // timeoutMs tracks how long to wait before forcefully
+        // closing the socket when sending runs into a timeout.
+        std::chrono::seconds timeoutSecs(0);
+        if (_sendTimeoutSecs > 0)
+        {
+            timeoutSecs = std::chrono::seconds(_sendTimeoutSecs);
+        }
+        else if (_pingIntervalSecs > 0)
+        {
+            // If a pingInterval is set, use it as a timeout because if we cannot
+            // send out any data for pingInterval seconds, we may as well disconnet
+            // the client.
+            timeoutSecs = std::chrono::seconds(_pingIntervalSecs);
+        }
+
         while (!isSendBufferEmpty() && !_requestInitCancellation)
         {
             // Wait with a 10ms timeout until the socket is ready to write.
@@ -1258,6 +1278,20 @@ namespace ix
             {
                 if (!sendOnSocket())
                 {
+                    return false;
+                }
+            }
+            else if (result == PollResultType::Timeout && timeoutSecs.count() > 0)
+            {
+                auto now = std::chrono::steady_clock::now();
+                // Timeout error and exceeded the allocated timeout: Treat
+                // as abnormal close and use "Send Timeout" for the reason.
+                if (now > start + timeoutSecs)
+                {
+                    closeSocketAndSwitchToClosedState(WebSocketCloseConstants::kAbnormalCloseCode,
+                                                      WebSocketCloseConstants::kSendTimeoutMessage,
+                                                      0,
+                                                      false);
                     return false;
                 }
             }

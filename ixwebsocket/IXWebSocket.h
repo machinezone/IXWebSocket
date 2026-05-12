@@ -135,7 +135,8 @@ namespace ix
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket>,
                                             int timeoutSecs,
                                             bool enablePerMessageDeflate,
-                                            HttpRequestPtr request = nullptr);
+                                            HttpRequestPtr request = nullptr,
+                                            int sendTimeoutSecs = -1);
 
         WebSocketTransport _ws;
 
