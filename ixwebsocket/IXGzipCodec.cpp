@@ -19,6 +19,7 @@ namespace ix
     std::string gzipCompress(const std::string& str)
     {
 #ifndef IXWEBSOCKET_USE_ZLIB
+        (void) str;
         return std::string();
 #else
         z_stream zs; // z_stream is zlib's control structure
@@ -74,6 +75,8 @@ namespace ix
     bool gzipDecompress(const std::string& in, std::string& out)
     {
 #ifndef IXWEBSOCKET_USE_ZLIB
+        (void) in;
+        (void) out;
         return false;
 #else
         z_stream inflateState;

@@ -25,6 +25,7 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #include "IXCancellationRequest.h"
+#include "IXNetSystem.h"
 #include "IXProgressCallback.h"
 #include "IXSelectInterrupt.h"
 
@@ -81,11 +82,11 @@ namespace ix
 
         static int getErrno();
         static bool isWaitNeeded();
-        static void closeSocket(int fd);
+        static void closeSocket(socket_t fd);
 
         static PollResultType poll(bool readyToRead,
                                    int timeoutMs,
-                                   int sockfd,
+                                   socket_t sockfd,
                                    const SelectInterruptPtr& selectInterrupt);
 
     protected:

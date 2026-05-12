@@ -153,7 +153,7 @@ namespace ix
                 }
             }
 
-            DWORD n = WSAWaitForMultipleEvents(handles.size(), handles.data(), FALSE, timeout != -1 ? static_cast<DWORD>(timeout) : WSA_INFINITE, FALSE);
+            DWORD n = WSAWaitForMultipleEvents(static_cast<DWORD>(handles.size()), handles.data(), FALSE, timeout != -1 ? static_cast<DWORD>(timeout) : WSA_INFINITE, FALSE);
 
             if (n == WSA_WAIT_FAILED) return SOCKET_ERROR;
             if (n == WSA_WAIT_TIMEOUT) return 0;
@@ -243,7 +243,7 @@ namespace ix
             tv.tv_sec = timeout / 1000;
             tv.tv_usec = (timeout % 1000) * 1000;
 
-            int ret = select(maxfd + 1, &readfds, &writefds, &errorfds, timeout != -1 ? &tv : NULL);
+            int ret = select(static_cast<int>(maxfd + 1), &readfds, &writefds, &errorfds, timeout != -1 ? &tv : NULL);
 
             if (ret < 0)
             {
