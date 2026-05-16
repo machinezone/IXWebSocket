@@ -406,6 +406,8 @@ namespace ix
                        bool decompressionError,
                        WebSocketTransport::MessageKind messageKind)
                 {
+                    if (!isConnected()) return;
+                    
                     WebSocketMessageType webSocketMessageType {WebSocketMessageType::Error};
                     switch (messageKind)
                     {
