@@ -64,6 +64,8 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXWebSocketProxyServer.cpp
     ixwebsocket/IXWebSocketServer.cpp
     ixwebsocket/IXWebSocketTransport.cpp
+    ixwebsocket/IXProxyOptions.cpp
+    ixwebsocket/IXProxySocket.cpp
 )
 
 set( IXWEBSOCKET_HEADERS
@@ -117,6 +119,8 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketServer.h
     ixwebsocket/IXWebSocketTransport.h
     ixwebsocket/IXWebSocketVersion.h
+    ixwebsocket/IXProxyOptions.h
+    ixwebsocket/IXProxySocket.h
 )
 
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" OFF)

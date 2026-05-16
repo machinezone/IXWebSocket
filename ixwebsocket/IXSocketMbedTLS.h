@@ -21,7 +21,7 @@
 
 namespace ix
 {
-    class SocketMbedTLS final : public Socket
+    class SocketMbedTLS : public Socket
     {
     public:
         SocketMbedTLS(const SocketTLSOptions& tlsOptions, int fd = -1);
@@ -32,13 +32,13 @@ namespace ix
         virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg,
-                             const CancellationRequest& isCancellationRequested) final;
+                             const CancellationRequest& isCancellationRequested);
         virtual void close() final;
 
         virtual ssize_t send(char* buffer, size_t length) final;
         virtual ssize_t recv(void* buffer, size_t length) final;
 
-    private:
+    protected:
         mbedtls_ssl_context _ssl;
         mbedtls_ssl_config _conf;
         mbedtls_entropy_context _entropy;
