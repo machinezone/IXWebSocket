@@ -31,7 +31,7 @@ TEST_CASE("SendTimeout")
         REQUIRE(res.first);
 
         server->setOnConnectionCallback(
-            [](std::weak_ptr<WebSocket> wws, std::shared_ptr<ConnectionState> cs) -> void
+            [](std::weak_ptr<WebSocket> wws, std::shared_ptr<ConnectionState> /*cs*/) -> void
             {
                 TLogger() << "Client connected!";
                 auto ws = wws.lock();
