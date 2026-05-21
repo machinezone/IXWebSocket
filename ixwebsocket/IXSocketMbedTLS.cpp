@@ -42,18 +42,18 @@ namespace ix
 
         mbedtls_ssl_init(&_ssl);
         mbedtls_ssl_config_init(&_conf);
+#if MBEDTLS_VERSION_MAJOR < 4
         mbedtls_ctr_drbg_init(&_ctr_drbg);
         mbedtls_entropy_init(&_entropy);
+#endif
         mbedtls_x509_crt_init(&_cacert);
         mbedtls_x509_crt_init(&_cert);
         mbedtls_pk_init(&_pkey);
-        // Initialize the PSA Crypto API if required by the version of Mbed TLS (3.6.0).
-        // This allows the X.509/TLS libraries to use PSA for crypto operations.
+        // Initialize the PSA Crypto API for mbedTLS 3.6+ and all 4.x releases.
         // See: https://github.com/Mbed-TLS/mbedtls/blob/development/docs/use-psa-crypto.md
-        if (MBEDTLS_VERSION_MAJOR >= 3 && MBEDTLS_VERSION_MINOR >= 6 && MBEDTLS_VERSION_PATCH >= 0)
-        {
-            psa_crypto_init();
-        }
+#if MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6)
+        psa_crypto_init();
+#endif
     }
 
     bool SocketMbedTLS::loadSystemCertificates(std::string& errorMsg)
@@ -112,6 +112,7 @@ namespace ix
 
         const char* pers = "IXSocketMbedTLS";
 
+#if MBEDTLS_VERSION_MAJOR < 4
         if (mbedtls_ctr_drbg_seed(&_ctr_drbg,
                                   mbedtls_entropy_func,
                                   &_entropy,
@@ -121,6 +122,7 @@ namespace ix
             errMsg = "Setting entropy seed failed";
             return false;
         }
+#endif
 
         if (mbedtls_ssl_config_defaults(&_conf,
                                         (isClient) ? MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER,
@@ -131,7 +133,9 @@ namespace ix
             return false;
         }
 
+#if MBEDTLS_VERSION_MAJOR < 4
         mbedtls_ssl_conf_rng(&_conf, mbedtls_ctr_drbg_random, &_ctr_drbg);
+#endif
 
         if (_tlsOptions.hasCertAndKey())
         {
@@ -140,7 +144,7 @@ namespace ix
                 errMsg = "Cannot parse cert file '" + _tlsOptions.certFile + "'";
                 return false;
             }
-#ifdef IXWEBSOCKET_USE_MBED_TLS_MIN_VERSION_3
+#if MBEDTLS_VERSION_MAJOR == 3
             if (mbedtls_pk_parse_keyfile(&_pkey, _tlsOptions.keyFile.c_str(), "", mbedtls_ctr_drbg_random, &_ctr_drbg) < 0)
 #else
             if (mbedtls_pk_parse_keyfile(&_pkey, _tlsOptions.keyFile.c_str(), "") < 0)
@@ -317,15 +321,16 @@ namespace ix
 
         mbedtls_ssl_free(&_ssl);
         mbedtls_ssl_config_free(&_conf);
+#if MBEDTLS_VERSION_MAJOR < 4
         mbedtls_ctr_drbg_free(&_ctr_drbg);
         mbedtls_entropy_free(&_entropy);
+#endif
         mbedtls_x509_crt_free(&_cacert);
         mbedtls_x509_crt_free(&_cert);
         mbedtls_pk_free(&_pkey);
-        if (MBEDTLS_VERSION_MAJOR >= 3 && MBEDTLS_VERSION_MINOR >= 6 && MBEDTLS_VERSION_PATCH >= 0)
-        {
-            mbedtls_psa_crypto_free();
-        }
+#if MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6)
+        mbedtls_psa_crypto_free();
+#endif
 
         Socket::close();
     }
