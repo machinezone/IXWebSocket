@@ -13,6 +13,7 @@
 #include "IXCancellationRequest.h"
 #include "IXProgressCallback.h"
 #include "IXSocketTLSOptions.h"
+#include "IXProxyOptions.h"
 #include "IXWebSocketCloseConstants.h"
 #include "IXWebSocketHandshake.h"
 #include "IXWebSocketHttpHeaders.h"
@@ -77,7 +78,8 @@ namespace ix
         void configure(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
                        const SocketTLSOptions& socketTLSOptions,
                        bool enablePong,
-                       int pingIntervalSecs);
+                       int pingIntervalSecs,
+                       const ProxyOptions& proxyOptions = {});
 
         // Client
         WebSocketInitResult connectToUrl(const std::string& url,
@@ -216,6 +218,7 @@ namespace ix
 
         // Used to control TLS connection behavior
         SocketTLSOptions _socketTLSOptions;
+        ProxyOptions _proxyOptions;
 
         // Used to cancel dns lookup + socket connect + http upgrade
         std::atomic<bool> _requestInitCancellation;
