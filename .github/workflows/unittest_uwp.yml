@@ -3,7 +3,9 @@ on:
   push:
     paths-ignore:
     - 'docs/**'
+    branches: [ master ]   # CI on PRs targeting master
   pull_request:
+    branches: [ master ]   # CI on PRs targeting master
 
 jobs:
   uwp:
