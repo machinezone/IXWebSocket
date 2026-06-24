@@ -95,6 +95,7 @@ namespace ix
                << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
 
             Socket::closeSocket(_serverFd);
+            _serverFd = -1;
             return std::make_pair(false, ss.str());
         }
 
@@ -113,6 +114,7 @@ namespace ix
                    << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
+                _serverFd = -1;
                 return std::make_pair(false, ss.str());
             }
 
@@ -125,6 +127,7 @@ namespace ix
                    << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
+                _serverFd = -1;
                 return std::make_pair(false, ss.str());
             }
         }
@@ -143,6 +146,7 @@ namespace ix
                    << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
+                _serverFd = -1;
                 return std::make_pair(false, ss.str());
             }
 
@@ -155,6 +159,7 @@ namespace ix
                    << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
+                _serverFd = -1;
                 return std::make_pair(false, ss.str());
             }
         }
@@ -169,6 +174,7 @@ namespace ix
                << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
 
             Socket::closeSocket(_serverFd);
+            _serverFd = -1;
             return std::make_pair(false, ss.str());
         }
 
@@ -231,7 +237,16 @@ namespace ix
         }
 
         _conditionVariable.notify_one();
-        Socket::closeSocket(_serverFd);
+
+        // stop() runs again from ~WebSocketServer() and ~SocketServer(), so
+        // close the listening fd exactly once: a second close of the stale
+        // number would destroy whatever descriptor another thread has since
+        // opened with it.
+        if (_serverFd != -1)
+        {
+            Socket::closeSocket(_serverFd);
+            _serverFd = -1;
+        }
     }
 
     void SocketServer::setConnectionStateFactory(
