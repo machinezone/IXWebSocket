@@ -618,7 +618,7 @@ namespace ix
                     // the internal buffer which is slow and can let the internal OS
                     // receive buffer fill out.
                     //
-                    _chunks.emplace_back(frameData);
+                    _chunks.emplace_back(std::move(frameData));
 
                     if (ws.fin)
                     {
