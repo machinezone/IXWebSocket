@@ -9,6 +9,7 @@
 
 #include "IXSocketOpenSSL.h"
 
+#include "IXNetSystem.h"
 #include "IXSocketConnect.h"
 #include "IXUniquePtr.h"
 #include <cassert>
@@ -768,7 +769,21 @@ namespace ix
             if (!_tlsOptions.disable_hostname_validation)
             {
                 X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
-                X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
+
+                // When the host is an IP address (literal IPv4 or IPv6), it must be
+                // validated against the certificate's iPAddress SAN entries rather
+                // than the dNSName ones. X509_VERIFY_PARAM_set1_host only checks
+                // dNSName / CN, so it would always fail for IP literals.
+                struct in6_addr addr;
+                if (ix::inet_pton(AF_INET, host.c_str(), &addr) == 1 ||
+                    ix::inet_pton(AF_INET6, host.c_str(), &addr) == 1)
+                {
+                    X509_VERIFY_PARAM_set1_ip_asc(param, host.c_str());
+                }
+                else
+                {
+                    X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
+                }
             }
 #endif
             handshakeSuccessful = openSSLClientHandshake(host, errMsg, isCancellationRequested);
