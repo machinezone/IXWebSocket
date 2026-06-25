@@ -9,9 +9,12 @@
 
 #include "IXSocket.h"
 #include "IXSocketTLSOptions.h"
+#include <mbedtls/version.h>
+#if MBEDTLS_VERSION_MAJOR < 4
 #include <mbedtls/ctr_drbg.h>
-#include <mbedtls/debug.h>
 #include <mbedtls/entropy.h>
+#endif
+#include <mbedtls/debug.h>
 #include <mbedtls/error.h>
 #include <mbedtls/net_sockets.h>
 #include <mbedtls/platform.h>
@@ -41,8 +44,10 @@ namespace ix
     private:
         mbedtls_ssl_context _ssl;
         mbedtls_ssl_config _conf;
+#if MBEDTLS_VERSION_MAJOR < 4
         mbedtls_entropy_context _entropy;
         mbedtls_ctr_drbg_context _ctr_drbg;
+#endif
         mbedtls_x509_crt _cacert;
         mbedtls_x509_crt _cert;
         mbedtls_pk_context _pkey;

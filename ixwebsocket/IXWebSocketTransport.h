@@ -88,7 +88,8 @@ namespace ix
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket,
                                             int timeoutSecs,
                                             bool enablePerMessageDeflate,
-                                            HttpRequestPtr request = nullptr);
+                                            HttpRequestPtr request = nullptr,
+                                            int sendTimeoutSecs = -1);
 
         PollResult poll();
         WebSocketSendInfo sendBinary(const IXWebSocketSendData& message,
@@ -149,6 +150,12 @@ namespace ix
         // Tells whether we should flush the send buffer before
         // saying that a send is complete. This is the mode for server code.
         std::atomic<bool> _blockingSend;
+
+        // A configurable timeout for how long flushSendBuffer() may block
+        // before forcefully closing the client socket with a "Send timeout"
+        // message. This is useful when a client doesn't read from its socket
+        // and the server stalls on trying to send more data.
+        int _sendTimeoutSecs = -1;
 
         // Buffer for reading from our socket. That buffer is never resized.
         std::vector<uint8_t> _readbuf;
