@@ -5,7 +5,7 @@
  */
 
 #include "IXTest.h"
-#include "catch.hpp"
+#include <catch2/catch_test_macros.hpp>
 #include "msgpack11.hpp"
 #include <iostream>
 #include <ixwebsocket/IXSocket.h>

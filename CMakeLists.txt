@@ -335,6 +335,13 @@ if (USE_WS OR USE_TEST)
     add_subdirectory(ws)
   endif()
   if (USE_TEST)
+    FetchContent_Declare(Catch2
+      GIT_REPOSITORY "https://github.com/catchorg/Catch2"
+      GIT_TAG "v3.15.1"
+      GIT_SHALLOW 1)
+    
+    FetchContent_MakeAvailable(Catch2)
+
     enable_testing()
     add_subdirectory(test)
   endif()

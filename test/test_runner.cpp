@@ -4,8 +4,7 @@
  *  Copyright (c) 2018 Machine Zone. All rights reserved.
  */
 
-#define CATCH_CONFIG_RUNNER
-#include "catch.hpp"
+#include <catch2/catch_session.hpp>
 #include <ixwebsocket/IXNetSystem.h>
 #include <spdlog/spdlog.h>
 

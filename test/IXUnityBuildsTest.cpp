@@ -4,7 +4,7 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
-#include "catch.hpp"
+#include <catch2/catch_test_macros.hpp>
 #include <ixwebsocket/IXCancellationRequest.h>
 #include <ixwebsocket/IXConnectionState.h>
 #include <ixwebsocket/IXDNSLookup.h>
