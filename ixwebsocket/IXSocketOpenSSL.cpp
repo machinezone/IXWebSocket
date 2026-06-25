@@ -291,6 +291,8 @@ namespace ix
     bool SocketOpenSSL::checkHost(const std::string& host, const char* pattern)
     {
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
+        (void)host;
+        (void)pattern;
         return true;
 #else
 
