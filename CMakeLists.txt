@@ -321,7 +321,7 @@ if (USE_WS OR USE_TEST)
 
   FetchContent_Declare(msgpack11
       GIT_REPOSITORY "https://github.com/ar90n/msgpack11"
-      GIT_TAG "5d051ec8409c96280dcb09f2d2d2f3102b3cc674"
+      GIT_TAG "892264112b52b75b37cb1f83c41abfb5aff765af"
       GIT_SHALLOW 1)
 
   FetchContent_Declare(spdlog
