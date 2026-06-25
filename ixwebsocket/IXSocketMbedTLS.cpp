@@ -98,6 +98,7 @@ namespace ix
 
         return true;
 #else
+        (void)errorMsg;
         // On macOS we can query the system cert location from the keychain
         // On Linux we could try to fetch some local files based on the distribution
         // On Android we could use JNI to get to the system certs
@@ -110,9 +111,8 @@ namespace ix
         initMBedTLS();
         std::lock_guard<std::mutex> lock(_mutex);
 
-        const char* pers = "IXSocketMbedTLS";
-
 #if MBEDTLS_VERSION_MAJOR < 4
+        const char* pers = "IXSocketMbedTLS";
         if (mbedtls_ctr_drbg_seed(&_ctr_drbg,
                                   mbedtls_entropy_func,
                                   &_entropy,
