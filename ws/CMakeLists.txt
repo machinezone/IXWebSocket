@@ -26,7 +26,7 @@ FetchContent_Declare(cli11
     GIT_SHALLOW 1)
 FetchContent_Declare(cpp_linenoise
     GIT_REPOSITORY "https://github.com/yhirose/cpp-linenoise"
-    GIT_TAG "5d2183e931eff05bc0d419a5eb84040a1d0af2c1"
+    GIT_TAG "67be78f385ff552a21d6f2d0b71fac64d9298384"
     GIT_SHALLOW 1)
 FetchContent_MakeAvailable(cli11 cpp_linenoise)
 # Mark linenoise includes as system headers to suppress third-party warnings
