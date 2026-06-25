@@ -61,14 +61,44 @@ namespace ix
     {
         struct addrinfo hints;
         memset(&hints, 0, sizeof(hints));
-        hints.ai_flags = AI_ADDRCONFIG | AI_NUMERICSERV;
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
+        hints.ai_flags = AI_NUMERICSERV;
+
+        // When the hostname is a numeric IP literal there is no name to resolve.
+        // Setting AI_NUMERICHOST short-circuits getaddrinfo and, importantly, lets
+        // us avoid AI_ADDRCONFIG: on glibc that flag enumerates the configured
+        // interfaces through a netlink socket (__check_pf), a path that can abort
+        // the whole process inside getaddrinfo (issue #560, reproduced with
+        // "127.0.0.1") and that also fails to resolve loopback when the machine is
+        // offline (issue #524).
+        struct in6_addr dummy;
+        bool numericHost = ix::inet_pton(AF_INET, hostname.c_str(), &dummy) == 1 ||
+                           ix::inet_pton(AF_INET6, hostname.c_str(), &dummy) == 1;
+        if (numericHost)
+        {
+            hints.ai_flags |= AI_NUMERICHOST;
+        }
+        else
+        {
+            hints.ai_flags |= AI_ADDRCONFIG;
+        }
 
         std::string sport = std::to_string(port);
 
-        struct addrinfo* res;
+        struct addrinfo* res = nullptr;
         int getaddrinfo_result = getaddrinfo(hostname.c_str(), sport.c_str(), &hints, &res);
+
+        // AI_ADDRCONFIG only returns addresses for families that have a configured,
+        // non-loopback interface, so a host that resolves to loopback (e.g.
+        // "localhost") fails to resolve when there is no network. Retry once
+        // without the flag before giving up (issue #524).
+        if (getaddrinfo_result != 0 && !numericHost)
+        {
+            hints.ai_flags &= ~AI_ADDRCONFIG;
+            getaddrinfo_result = getaddrinfo(hostname.c_str(), sport.c_str(), &hints, &res);
+        }
+
         if (getaddrinfo_result)
         {
             errMsg = gai_strerror(getaddrinfo_result);
