@@ -36,7 +36,7 @@ namespace ix
 
         static int getErrno();
         static bool isWaitNeeded();
-        static void closeSocket(int fd);
+        static void closeSocket(socket_t fd);
 
     private:
         std::atomic<int> _sockfd;

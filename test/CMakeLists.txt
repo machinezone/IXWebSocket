@@ -61,25 +61,17 @@ target_sources(ixwebsocket_test PRIVATE
     ${JSONCPP_SOURCES}
     test_runner.cpp
     IXTest.cpp
-    ../third_party/msgpack11/msgpack11.cpp
 )
 target_compile_definitions(ixwebsocket_test PRIVATE ${TEST_PROGRAMS_DEFINITIONS})
-target_include_directories(ixwebsocket_test PRIVATE
-  ${PROJECT_SOURCE_DIR}/Catch2/single_include
-  ../third_party
-)
+
+target_link_libraries(ixwebsocket_test Catch2)
 target_link_libraries(ixwebsocket_test ixwebsocket)
 target_link_libraries(ixwebsocket_test spdlog)
+target_link_libraries(ixwebsocket_test msgpack11)
 
 foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
   add_executable(${TEST_TARGET_NAME}
     ${TEST_TARGET_NAME}.cpp
-  )
-
-  target_include_directories(${TEST_TARGET_NAME} PRIVATE
-    ${PROJECT_SOURCE_DIR}/Catch2/single_include
-    ../third_party
-    ../third_party/msgpack11
   )
 
   target_compile_definitions(${TEST_TARGET_NAME} PRIVATE SPDLOG_COMPILED_LIB=1)
@@ -92,7 +84,9 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
   target_link_libraries(${TEST_TARGET_NAME} ixwebsocket_test)
   target_link_libraries(${TEST_TARGET_NAME} ixwebsocket)
 
+  target_link_libraries(${TEST_TARGET_NAME} Catch2)
   target_link_libraries(${TEST_TARGET_NAME} spdlog)
+  target_link_libraries(${TEST_TARGET_NAME} msgpack11)
 
   add_test(NAME ${TEST_TARGET_NAME}
            COMMAND ${TEST_TARGET_NAME}

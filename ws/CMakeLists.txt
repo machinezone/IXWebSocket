@@ -15,22 +15,40 @@ set (CMAKE_CXX_STANDARD 11)
 
 option(USE_TLS "Add TLS support" ON)
 
-include_directories(ws .)
-include_directories(ws ..)
-include_directories(ws ../third_party/cpp-linenoise)
-include_directories(ws ../third_party/cli11)
-include_directories(ws ../third_party/msgpack11)
-
 include(FetchContent)
 
+set(CLI11_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(CLI11_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(CLI11_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(cli11
+    GIT_REPOSITORY "https://github.com/CLIUtils/CLI11"
+    GIT_TAG "v2.6.2"
+    GIT_SHALLOW 1)
+FetchContent_Declare(cpp_linenoise
+    GIT_REPOSITORY "https://github.com/yhirose/cpp-linenoise"
+    GIT_TAG "67be78f385ff552a21d6f2d0b71fac64d9298384"
+    GIT_SHALLOW 1)
+FetchContent_MakeAvailable(cli11 cpp_linenoise)
+# Mark linenoise includes as system headers to suppress third-party warnings
+set_target_properties(linenoise PROPERTIES
+    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
+    "$<TARGET_PROPERTY:linenoise,INTERFACE_INCLUDE_DIRECTORIES>")
+
+include_directories(ws .)
+include_directories(ws ..)
+
 add_executable(ws
-  ../third_party/msgpack11/msgpack11.cpp
-  ../third_party/cpp-linenoise/linenoise.cpp
   ws.cpp)
 
 # library with the most dependencies come first
 target_link_libraries(ws ixwebsocket)
 
 target_link_libraries(ws spdlog)
+
+target_link_libraries(ws msgpack11)
+
+target_link_libraries(ws CLI11::CLI11)
+
+target_link_libraries(ws linenoise)
 
 install(TARGETS ws RUNTIME DESTINATION bin)

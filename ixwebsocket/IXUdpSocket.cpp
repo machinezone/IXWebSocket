@@ -56,7 +56,7 @@ namespace ix
         return false;
     }
 
-    void UdpSocket::closeSocket(int fd)
+    void UdpSocket::closeSocket(socket_t fd)
     {
 #ifdef _WIN32
         closesocket(fd);
@@ -67,7 +67,7 @@ namespace ix
 
     bool UdpSocket::init(const std::string& host, int port, std::string& errMsg)
     {
-        _sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        _sockfd = static_cast<int>(socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP));
         if (_sockfd < 0)
         {
             errMsg = "Could not create socket";
@@ -110,7 +110,7 @@ namespace ix
     ssize_t UdpSocket::sendto(const std::string& buffer)
     {
         return (ssize_t)::sendto(
-            _sockfd, buffer.data(), buffer.size(), 0, (struct sockaddr*) &_server, sizeof(_server));
+            _sockfd, buffer.data(), static_cast<int>(buffer.size()), 0, (struct sockaddr*) &_server, sizeof(_server));
     }
 
     ssize_t UdpSocket::recvfrom(char* buffer, size_t length)
@@ -121,6 +121,6 @@ namespace ix
         socklen_t addressLen = (socklen_t) sizeof(_server);
 #endif
         return (ssize_t)::recvfrom(
-            _sockfd, buffer, length, 0, (struct sockaddr*) &_server, &addressLen);
+            _sockfd, buffer, static_cast<int>(length), 0, (struct sockaddr*) &_server, &addressLen);
     }
 } // namespace ix

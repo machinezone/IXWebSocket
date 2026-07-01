@@ -315,17 +315,33 @@ endif()
 
 if (USE_WS OR USE_TEST)
   include(FetchContent)
+
+  set(MSGPACK11_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+  set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+
+  FetchContent_Declare(msgpack11
+      GIT_REPOSITORY "https://github.com/ar90n/msgpack11"
+      GIT_TAG "892264112b52b75b37cb1f83c41abfb5aff765af"
+      GIT_SHALLOW 1)
+
   FetchContent_Declare(spdlog
       GIT_REPOSITORY "https://github.com/gabime/spdlog"
       GIT_TAG "v1.17.0"
       GIT_SHALLOW 1) 
 
-  FetchContent_MakeAvailable(spdlog)
+  FetchContent_MakeAvailable(spdlog msgpack11)
 
   if (USE_WS)
     add_subdirectory(ws)
   endif()
   if (USE_TEST)
+    FetchContent_Declare(Catch2
+      GIT_REPOSITORY "https://github.com/catchorg/Catch2"
+      GIT_TAG "v3.15.1"
+      GIT_SHALLOW 1)
+    
+    FetchContent_MakeAvailable(Catch2)
+
     enable_testing()
     add_subdirectory(test)
   endif()

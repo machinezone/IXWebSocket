@@ -36,10 +36,10 @@ namespace ix
         template<typename T>
         bool endsWithEmptyUnCompressedBlock(const T& value);
 
+#ifdef IXWEBSOCKET_USE_ZLIB
         int _flush;
         std::array<unsigned char, 1 << 14> _compressBuffer;
 
-#ifdef IXWEBSOCKET_USE_ZLIB
         z_stream _deflateState;
 #endif
     };
@@ -54,10 +54,10 @@ namespace ix
         bool decompress(const std::string& in, std::string& out);
 
     private:
+#ifdef IXWEBSOCKET_USE_ZLIB
         int _flush;
         std::array<unsigned char, 1 << 14> _compressBuffer;
 
-#ifdef IXWEBSOCKET_USE_ZLIB
         z_stream _inflateState;
 #endif
     };

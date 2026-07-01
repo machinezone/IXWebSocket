@@ -331,7 +331,7 @@ namespace ix
             socklen_t addressLen = sizeof(client);
             memset(&client, 0, sizeof(client));
 
-            if ((clientFd = accept(_serverFd, (struct sockaddr*) &client, &addressLen)) < 0)
+            if ((clientFd = static_cast<int>(accept(_serverFd, (struct sockaddr*) &client, &addressLen))) < 0)
             {
                 if (!Socket::isWaitNeeded())
                 {

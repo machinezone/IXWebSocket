@@ -1,5 +1,5 @@
 #include "IXTest.h"
-#include "catch.hpp"
+#include <catch2/catch_test_macros.hpp>
 #include "ixwebsocket/IXWebSocketMessageType.h"
 #include <ixwebsocket/IXUrlParser.h>
 #include <ixwebsocket/IXWebSocket.h>

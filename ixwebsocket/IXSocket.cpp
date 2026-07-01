@@ -43,7 +43,7 @@ namespace ix
 
     PollResultType Socket::poll(bool readyToRead,
                                 int timeoutMs,
-                                int sockfd,
+                                socket_t sockfd,
                                 const SelectInterruptPtr& selectInterrupt)
     {
         PollResultType pollResult = PollResultType::ReadyForRead;
@@ -247,7 +247,11 @@ namespace ix
         flags = MSG_NOSIGNAL;
 #endif
 
+#ifdef _WIN32
+        return ::send(_sockfd, buffer, static_cast<int>(length), flags);
+#else
         return ::send(_sockfd, buffer, length, flags);
+#endif
     }
 
     ssize_t Socket::send(const std::string& buffer)
@@ -262,7 +266,11 @@ namespace ix
         flags = MSG_NOSIGNAL;
 #endif
 
+#ifdef _WIN32
+        return ::recv(_sockfd, (char*) buffer, static_cast<int>(length), flags);
+#else
         return ::recv(_sockfd, (char*) buffer, length, flags);
+#endif
     }
 
     int Socket::getErrno()
@@ -290,7 +298,7 @@ namespace ix
         return false;
     }
 
-    void Socket::closeSocket(int fd)
+    void Socket::closeSocket(socket_t fd)
     {
 #ifdef _WIN32
         closesocket(fd);
