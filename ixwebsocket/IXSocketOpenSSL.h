@@ -19,7 +19,7 @@
 
 namespace ix
 {
-    class SocketOpenSSL final : public Socket
+    class SocketOpenSSL : public Socket
     {
     public:
         SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd = -1);
@@ -30,13 +30,13 @@ namespace ix
         virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg,
-                             const CancellationRequest& isCancellationRequested) final;
+                             const CancellationRequest& isCancellationRequested);
         virtual void close() final;
 
         virtual ssize_t send(char* buffer, size_t length) final;
         virtual ssize_t recv(void* buffer, size_t length) final;
 
-    private:
+    protected:
         void openSSLInitialize();
         std::string getSSLError(int ret);
         SSL_CTX* openSSLCreateContext(std::string& errMsg);
