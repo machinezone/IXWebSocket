@@ -818,7 +818,7 @@ namespace ix
         Socket::close();
     }
 
-    ssize_t SocketOpenSSL::send(char* buf, size_t nbyte)
+    std::ptrdiff_t SocketOpenSSL::send(char* buf, size_t nbyte)
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
@@ -828,7 +828,7 @@ namespace ix
         }
 
         ERR_clear_error();
-        ssize_t write_result = SSL_write(_ssl_connection, buf, (int) nbyte);
+        std::ptrdiff_t write_result = SSL_write(_ssl_connection, buf, (int) nbyte);
         int reason = SSL_get_error(_ssl_connection, (int) write_result);
 
         if (reason == SSL_ERROR_NONE)
@@ -846,7 +846,7 @@ namespace ix
         }
     }
 
-    ssize_t SocketOpenSSL::recv(void* buf, size_t nbyte)
+    std::ptrdiff_t SocketOpenSSL::recv(void* buf, size_t nbyte)
     {
         while (true)
         {
@@ -858,7 +858,7 @@ namespace ix
             }
 
             ERR_clear_error();
-            ssize_t read_result = SSL_read(_ssl_connection, buf, (int) nbyte);
+            std::ptrdiff_t read_result = SSL_read(_ssl_connection, buf, (int) nbyte);
 
             if (read_result > 0)
             {

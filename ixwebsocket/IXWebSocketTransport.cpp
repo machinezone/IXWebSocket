@@ -1072,7 +1072,7 @@ namespace ix
 
         while (_txbuf.size())
         {
-            ssize_t ret = 0;
+            std::ptrdiff_t ret = 0;
             {
                 std::lock_guard<std::mutex> lock(_socketMutex);
                 ret = _socket->send((char*) &_txbuf[0], _txbuf.size());
@@ -1116,7 +1116,7 @@ namespace ix
             // There's also no point in reading more bytes than needed.
             if (_rxbufWanted > 0 && _rxbuf.size() >= _rxbufWanted) break;
 
-            ssize_t ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
+            std::ptrdiff_t ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
 
             if (ret < 0 && Socket::isWaitNeeded())
             {

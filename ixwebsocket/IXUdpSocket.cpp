@@ -107,20 +107,20 @@ namespace ix
         return true;
     }
 
-    ssize_t UdpSocket::sendto(const std::string& buffer)
+    std::ptrdiff_t UdpSocket::sendto(const std::string& buffer)
     {
-        return (ssize_t)::sendto(
+        return (std::ptrdiff_t)::sendto(
             _sockfd, buffer.data(), static_cast<int>(buffer.size()), 0, (struct sockaddr*) &_server, sizeof(_server));
     }
 
-    ssize_t UdpSocket::recvfrom(char* buffer, size_t length)
+    std::ptrdiff_t UdpSocket::recvfrom(char* buffer, size_t length)
     {
 #ifdef _WIN32
         int addressLen = (int) sizeof(_server);
 #else
         socklen_t addressLen = (socklen_t) sizeof(_server);
 #endif
-        return (ssize_t)::recvfrom(
+        return (std::ptrdiff_t)::recvfrom(
             _sockfd, buffer, static_cast<int>(length), 0, (struct sockaddr*) &_server, &addressLen);
     }
 } // namespace ix

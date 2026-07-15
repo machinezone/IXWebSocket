@@ -7,22 +7,12 @@
 #pragma once
 
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
-
-#ifdef __APPLE__
-#include <sys/types.h>
-#endif
-
-#ifdef _WIN32
-#include <basetsd.h>
-#ifdef _MSC_VER
-typedef SSIZE_T ssize_t;
-#endif
-#endif
 
 #include "IXCancellationRequest.h"
 #include "IXNetSystem.h"
@@ -65,9 +55,9 @@ namespace ix
                              const CancellationRequest& isCancellationRequested);
         virtual void close();
 
-        virtual ssize_t send(char* buffer, size_t length);
-        ssize_t send(const std::string& buffer);
-        virtual ssize_t recv(void* buffer, size_t length);
+        virtual std::ptrdiff_t send(char* buffer, size_t length);
+        std::ptrdiff_t send(const std::string& buffer);
+        virtual std::ptrdiff_t recv(void* buffer, size_t length);
 
         // Blocking and cancellable versions, working with socket that can be set
         // to non blocking mode. Used during HTTP upgrade.
