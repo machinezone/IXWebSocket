@@ -195,4 +195,59 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         REQUIRE(connectionId == "foobarConnectionId");
         REQUIRE(server.getClients().size() == 0);
     }
+
+#if defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_MBED_TLS)
+    SECTION("TLS server: a failed TLS handshake is reported through the log callback")
+    {
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+        server.setTLSOptions(makeServerTLSOptions(true));
+
+        std::mutex logMutex;
+        std::vector<std::string> errors;
+        server.setLogCallback([&logMutex, &errors](LogLevel level, const std::string& msg) {
+            std::lock_guard<std::mutex> lock(logMutex);
+            if (level == LogLevel::Error)
+            {
+                errors.push_back(msg);
+            }
+        });
+
+        std::string connectionId;
+        REQUIRE(startServer(server, connectionId));
+
+        // Talk plaintext HTTP to the TLS endpoint: this cannot be a valid
+        // ClientHello, so the server fails the connection during the TLS
+        // handshake, before any WebSocket exists.
+        std::string errMsg;
+        bool tls = false;
+        SocketTLSOptions tlsOptions;
+        std::shared_ptr<Socket> socket = createSocket(tls, -1, errMsg, tlsOptions);
+        std::string host("127.0.0.1");
+        auto isCancellationRequested = []() -> bool { return false; };
+        bool success = socket->connect(host, port, errMsg, isCancellationRequested);
+        REQUIRE(success);
+
+        socket->writeBytes("GET / HTTP/1.1\r\n\r\n", isCancellationRequested);
+
+        bool logged = false;
+        for (int i = 0; i < 100 && !logged; ++i)
+        {
+            ix::msleep(100);
+            std::lock_guard<std::mutex> lock(logMutex);
+            logged = !errors.empty();
+        }
+        REQUIRE(logged);
+
+        {
+            std::lock_guard<std::mutex> lock(logMutex);
+            TLogger() << "server error log: " << errors[0];
+            REQUIRE(errors[0].find("tls accept failed") != std::string::npos);
+            REQUIRE(errors[0].find("127.0.0.1") != std::string::npos);
+        }
+
+        server.stop();
+        REQUIRE(server.getClients().size() == 0);
+    }
+#endif
 }
