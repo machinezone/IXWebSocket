@@ -46,15 +46,31 @@ namespace ix
         stop();
     }
 
+    void SocketServer::setLogCallback(const LogCallback& callback)
+    {
+        std::lock_guard<std::mutex> lock(_logMutex);
+        _logCallback = callback;
+    }
+
     void SocketServer::logError(const std::string& str)
     {
         std::lock_guard<std::mutex> lock(_logMutex);
+        if (_logCallback)
+        {
+            _logCallback(LogLevel::Error, str);
+            return;
+        }
         fprintf(stderr, "%s\n", str.c_str());
     }
 
     void SocketServer::logInfo(const std::string& str)
     {
         std::lock_guard<std::mutex> lock(_logMutex);
+        if (_logCallback)
+        {
+            _logCallback(LogLevel::Info, str);
+            return;
+        }
         fprintf(stdout, "%s\n", str.c_str());
     }
 
@@ -421,7 +437,8 @@ namespace ix
 
             if (socket == nullptr)
             {
-                logError("SocketServer::run() cannot create socket: " + errorMsg);
+                logError("SocketServer::run() cannot create socket for client " + remoteIp + ":" +
+                         std::to_string(remotePort) + ": " + errorMsg);
                 Socket::closeSocket(clientFd);
                 continue;
             }
@@ -431,7 +448,8 @@ namespace ix
 
             if (!socket->accept(errorMsg))
             {
-                logError("SocketServer::run() tls accept failed: " + errorMsg);
+                logError("SocketServer::run() tls accept failed for client " + remoteIp + ":" +
+                         std::to_string(remotePort) + ": " + errorMsg);
                 Socket::closeSocket(clientFd);
                 continue;
             }
