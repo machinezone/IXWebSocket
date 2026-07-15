@@ -76,7 +76,7 @@ namespace ix
 
         size_t requested_sz = *len;
 
-        ssize_t status = read(fd, data, requested_sz);
+        std::ptrdiff_t status = read(fd, data, requested_sz);
 
         if (status > 0)
         {
@@ -123,7 +123,7 @@ namespace ix
         assert(len != nullptr);
 
         size_t to_write_sz = *len;
-        ssize_t status = write(fd, data, to_write_sz);
+        std::ptrdiff_t status = write(fd, data, to_write_sz);
 
         if (status > 0)
         {
@@ -251,7 +251,7 @@ namespace ix
         Socket::close();
     }
 
-    ssize_t SocketAppleSSL::send(char* buf, size_t nbyte)
+    std::ptrdiff_t SocketAppleSSL::send(char* buf, size_t nbyte)
     {
         OSStatus status = errSSLWouldBlock;
         while (status == errSSLWouldBlock)
@@ -260,7 +260,7 @@ namespace ix
             std::lock_guard<std::mutex> lock(_mutex);
             status = SSLWrite(_sslContext, buf, nbyte, &processed);
 
-            if (processed > 0) return (ssize_t) processed;
+            if (processed > 0) return (std::ptrdiff_t) processed;
 
             // The connection was reset, inform the caller that this
             // Socket should close
@@ -281,7 +281,7 @@ namespace ix
     }
 
     // No wait support
-    ssize_t SocketAppleSSL::recv(void* buf, size_t nbyte)
+    std::ptrdiff_t SocketAppleSSL::recv(void* buf, size_t nbyte)
     {
         OSStatus status = errSSLWouldBlock;
         while (status == errSSLWouldBlock)
@@ -290,7 +290,7 @@ namespace ix
             std::lock_guard<std::mutex> lock(_mutex);
             status = SSLRead(_sslContext, buf, nbyte, &processed);
 
-            if (processed > 0) return (ssize_t) processed;
+            if (processed > 0) return (std::ptrdiff_t) processed;
 
             // The connection was reset, inform the caller that this
             // Socket should close

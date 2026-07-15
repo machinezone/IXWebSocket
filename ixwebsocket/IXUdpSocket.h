@@ -7,15 +7,9 @@
 #pragma once
 
 #include <atomic>
+#include <cstddef>
 #include <memory>
 #include <string>
-
-#ifdef _WIN32
-#include <basetsd.h>
-#ifdef _MSC_VER
-typedef SSIZE_T ssize_t;
-#endif
-#endif
 
 #include "IXNetSystem.h"
 
@@ -29,8 +23,8 @@ namespace ix
 
         // Virtual methods
         bool init(const std::string& host, int port, std::string& errMsg);
-        ssize_t sendto(const std::string& buffer);
-        ssize_t recvfrom(char* buffer, size_t length);
+        std::ptrdiff_t sendto(const std::string& buffer);
+        std::ptrdiff_t recvfrom(char* buffer, size_t length);
 
         void close();
 

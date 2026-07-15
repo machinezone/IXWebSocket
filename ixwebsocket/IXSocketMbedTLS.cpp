@@ -335,11 +335,11 @@ namespace ix
         Socket::close();
     }
 
-    ssize_t SocketMbedTLS::send(char* buf, size_t nbyte)
+    std::ptrdiff_t SocketMbedTLS::send(char* buf, size_t nbyte)
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        ssize_t res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
+        std::ptrdiff_t res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
 
         if (res > 0)
         {
@@ -356,13 +356,13 @@ namespace ix
         }
     }
 
-    ssize_t SocketMbedTLS::recv(void* buf, size_t nbyte)
+    std::ptrdiff_t SocketMbedTLS::recv(void* buf, size_t nbyte)
     {
         while (true)
         {
             std::lock_guard<std::mutex> lock(_mutex);
 
-            ssize_t res = mbedtls_ssl_read(&_ssl, (unsigned char*) buf, (int) nbyte);
+            std::ptrdiff_t res = mbedtls_ssl_read(&_ssl, (unsigned char*) buf, (int) nbyte);
 
             if (res > 0)
             {
