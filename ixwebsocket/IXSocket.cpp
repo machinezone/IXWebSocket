@@ -286,6 +286,17 @@ namespace ix
         return err;
     }
 
+    void Socket::setErrno(int err)
+    {
+#ifdef _WIN32
+        // getErrno() reads WSAGetLastError() on Windows, the CRT errno is
+        // invisible to it
+        WSASetLastError(err);
+#else
+        errno = err;
+#endif
+    }
+
     bool Socket::isWaitNeeded()
     {
         int err = getErrno();

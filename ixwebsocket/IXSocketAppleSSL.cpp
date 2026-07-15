@@ -267,13 +267,13 @@ namespace ix
             if (status == errSSLClosedGraceful || status == errSSLClosedNoNotify ||
                 status == errSSLClosedAbort)
             {
-                errno = ECONNRESET;
+                Socket::setErrno(ECONNRESET);
                 return -1;
             }
 
             if (status == errSSLWouldBlock)
             {
-                errno = EWOULDBLOCK;
+                Socket::setErrno(EWOULDBLOCK);
                 return -1;
             }
         }
@@ -297,13 +297,13 @@ namespace ix
             if (status == errSSLClosedGraceful || status == errSSLClosedNoNotify ||
                 status == errSSLClosedAbort)
             {
-                errno = ECONNRESET;
+                Socket::setErrno(ECONNRESET);
                 return -1;
             }
 
             if (status == errSSLWouldBlock)
             {
-                errno = EWOULDBLOCK;
+                Socket::setErrno(EWOULDBLOCK);
                 return -1;
             }
         }

@@ -81,6 +81,7 @@ namespace ix
                                                const CancellationRequest& isCancellationRequested);
 
         static int getErrno();
+        static void setErrno(int err);
         static bool isWaitNeeded();
         static void closeSocket(socket_t fd);
 
