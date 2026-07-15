@@ -837,7 +837,7 @@ namespace ix
         }
         else if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
         {
-            errno = EWOULDBLOCK;
+            Socket::setErrno(EWOULDBLOCK);
             return -1;
         }
         else
@@ -869,7 +869,7 @@ namespace ix
 
             if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
             {
-                errno = EWOULDBLOCK;
+                Socket::setErrno(EWOULDBLOCK);
             }
             return -1;
         }
