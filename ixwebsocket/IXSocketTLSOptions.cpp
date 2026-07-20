@@ -49,6 +49,11 @@ namespace ix
         return true;
     }
 
+    bool SocketTLSOptions::hasAdditionalOptions() const
+    {
+        return additional_openssl_ctx_options != 0;
+    }
+
     bool SocketTLSOptions::hasCertAndKey() const
     {
         return !certFile.empty() && !keyFile.empty();
