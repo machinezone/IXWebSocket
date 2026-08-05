@@ -36,7 +36,9 @@ namespace ix
 
     bool WebSocketHandshake::insensitiveStringCompare(const std::string& a, const std::string& b)
     {
-        return CaseInsensitiveLess::cmp(a, b) == 0;
+        // Equivalence under the case-insensitive strict weak ordering: neither
+        // string sorts below the other. (cmp(a, b) == 0 only checked a >= b.)
+        return !CaseInsensitiveLess::cmp(a, b) && !CaseInsensitiveLess::cmp(b, a);
     }
 
     std::string WebSocketHandshake::genRandomString(const int len)

@@ -121,7 +121,7 @@ namespace ix
         int fd = _fildes[kPipeWriteIndex];
         if (fd == -1) return false;
 
-        ssize_t ret = -1;
+        std::ptrdiff_t ret = -1;
         do
         {
             ret = ::write(fd, &value, sizeof(value));
@@ -139,7 +139,7 @@ namespace ix
 
         uint64_t value = 0;
 
-        ssize_t readret = -1;
+        std::ptrdiff_t readret = -1;
         do
         {
             readret = ::read(fd, &value, sizeof(value));

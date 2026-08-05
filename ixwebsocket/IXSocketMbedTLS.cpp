@@ -98,6 +98,7 @@ namespace ix
 
         return true;
 #else
+        (void)errorMsg;
         // On macOS we can query the system cert location from the keychain
         // On Linux we could try to fetch some local files based on the distribution
         // On Android we could use JNI to get to the system certs
@@ -110,9 +111,8 @@ namespace ix
         initMBedTLS();
         std::lock_guard<std::mutex> lock(_mutex);
 
-        const char* pers = "IXSocketMbedTLS";
-
 #if MBEDTLS_VERSION_MAJOR < 4
+        const char* pers = "IXSocketMbedTLS";
         if (mbedtls_ctr_drbg_seed(&_ctr_drbg,
                                   mbedtls_entropy_func,
                                   &_entropy,
@@ -335,11 +335,11 @@ namespace ix
         Socket::close();
     }
 
-    ssize_t SocketMbedTLS::send(char* buf, size_t nbyte)
+    std::ptrdiff_t SocketMbedTLS::send(char* buf, size_t nbyte)
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        ssize_t res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
+        std::ptrdiff_t res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
 
         if (res > 0)
         {
@@ -347,7 +347,7 @@ namespace ix
         }
         else if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
         {
-            errno = EWOULDBLOCK;
+            Socket::setErrno(EWOULDBLOCK);
             return -1;
         }
         else
@@ -356,27 +356,43 @@ namespace ix
         }
     }
 
-    ssize_t SocketMbedTLS::recv(void* buf, size_t nbyte)
+    std::ptrdiff_t SocketMbedTLS::recv(void* buf, size_t nbyte)
     {
         while (true)
         {
             std::lock_guard<std::mutex> lock(_mutex);
 
-            ssize_t res = mbedtls_ssl_read(&_ssl, (unsigned char*) buf, (int) nbyte);
+            std::ptrdiff_t res = mbedtls_ssl_read(&_ssl, (unsigned char*) buf, (int) nbyte);
 
             if (res > 0)
             {
                 return res;
             }
 
+            // TLS 1.3 (mbedtls 3.6+): the server can send post-handshake messages
+            // (NewSessionTicket, early data) which surface as non-fatal "read again"
+            // return codes. Retry the read instead of treating them as errors.
+#if defined(MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET)
+            if (res == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET)
+            {
+                continue;
+            }
+#endif
+#if defined(MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA)
+            if (res == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA)
+            {
+                continue;
+            }
+#endif
+
             if (res == 0)
             {
-                errno = ECONNRESET;
+                Socket::setErrno(ECONNRESET);
             }
 
             if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                errno = EWOULDBLOCK;
+                Socket::setErrno(EWOULDBLOCK);
             }
             return -1;
         }

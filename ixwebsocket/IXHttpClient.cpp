@@ -414,7 +414,7 @@ namespace ix
         // Parse response:
         if (headers.find("Content-Length") != headers.end())
         {
-            ssize_t contentLength = -1;
+            std::ptrdiff_t contentLength = -1;
             ss.str("");
             ss << headers["Content-Length"];
             ss >> contentLength;

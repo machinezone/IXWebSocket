@@ -111,10 +111,6 @@ deploy: docker docker_push
 run:
 	docker run --cap-add sys_ptrace --entrypoint=sh -it bsergean/ws:build
 
-# this is helpful to remove trailing whitespaces
-trail:
-	sh third_party/remote_trailing_whitespaces.sh
-
 format:
 	clang-format -i `find test ixwebsocket ws -name '*.cpp' -o -name '*.h'`
 

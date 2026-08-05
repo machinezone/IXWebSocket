@@ -25,10 +25,22 @@ namespace ix
 {
     class Socket;
 
+    enum class LogLevel
+    {
+        Info,
+        Error
+    };
+
     class SocketServer
     {
     public:
         using ConnectionStateFactory = std::function<std::shared_ptr<ConnectionState>()>;
+
+        // Application-provided sink for server log messages. When set, messages
+        // that would otherwise be written to stderr/stdout (such as TLS accept
+        // failures happening before a connection is established) are delivered
+        // to the callback instead.
+        using LogCallback = std::function<void(LogLevel level, const std::string& message)>;
 
         // Each connection is handled by its own worker thread.
         // We use a list as we only care about remove and append operations.
@@ -47,6 +59,8 @@ namespace ix
         // this method allows user to change the factory by returning an object
         // that inherits from ConnectionState but has its own methods.
         void setConnectionStateFactory(const ConnectionStateFactory& connectionStateFactory);
+
+        void setLogCallback(const LogCallback& callback);
 
         const static int kDefaultPort;
         const static std::string kDefaultHost;
@@ -86,6 +100,7 @@ namespace ix
         std::atomic<bool> _stop;
 
         std::mutex _logMutex;
+        LogCallback _logCallback; // protected by _logMutex
 
         // background thread to wait for incoming connections
         std::thread _thread;

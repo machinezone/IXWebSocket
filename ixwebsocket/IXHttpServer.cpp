@@ -9,6 +9,7 @@
 #include "IXGzipCodec.h"
 #include "IXNetSystem.h"
 #include "IXSocketConnect.h"
+#include "IXStrCaseCompare.h"
 #include "IXUserAgent.h"
 #include <cstdint>
 #include <cstring>
@@ -98,7 +99,11 @@ namespace ix
         {
             auto request = std::get<2>(ret);
             std::shared_ptr<ix::HttpResponse> response;
-            if (request->headers["Upgrade"] == "websocket")
+            // The Upgrade header value is case-insensitive (RFC 6455 4.2.1);
+            // e.g. Chrome's remote-debugging proxy sends "Upgrade: WebSocket".
+            const std::string& upgradeHeader = request->headers["Upgrade"];
+            if (!CaseInsensitiveLess::cmp(upgradeHeader, "websocket") &&
+                !CaseInsensitiveLess::cmp("websocket", upgradeHeader))
             {
                 WebSocketServer::handleUpgrade(std::move(socket), connectionState, request);
             }

@@ -9,6 +9,7 @@
 
 #include "IXSocketOpenSSL.h"
 
+#include "IXNetSystem.h"
 #include "IXSocketConnect.h"
 #include "IXUniquePtr.h"
 #include <cassert>
@@ -290,6 +291,8 @@ namespace ix
     bool SocketOpenSSL::checkHost(const std::string& host, const char* pattern)
     {
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
+        (void)host;
+        (void)pattern;
         return true;
 #else
 
@@ -768,7 +771,21 @@ namespace ix
             if (!_tlsOptions.disable_hostname_validation)
             {
                 X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
-                X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
+
+                // When the host is an IP address (literal IPv4 or IPv6), it must be
+                // validated against the certificate's iPAddress SAN entries rather
+                // than the dNSName ones. X509_VERIFY_PARAM_set1_host only checks
+                // dNSName / CN, so it would always fail for IP literals.
+                struct in6_addr addr;
+                if (ix::inet_pton(AF_INET, host.c_str(), &addr) == 1 ||
+                    ix::inet_pton(AF_INET6, host.c_str(), &addr) == 1)
+                {
+                    X509_VERIFY_PARAM_set1_ip_asc(param, host.c_str());
+                }
+                else
+                {
+                    X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
+                }
             }
 #endif
             handshakeSuccessful = openSSLClientHandshake(host, errMsg, isCancellationRequested);
@@ -801,7 +818,7 @@ namespace ix
         Socket::close();
     }
 
-    ssize_t SocketOpenSSL::send(char* buf, size_t nbyte)
+    std::ptrdiff_t SocketOpenSSL::send(char* buf, size_t nbyte)
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
@@ -811,7 +828,7 @@ namespace ix
         }
 
         ERR_clear_error();
-        ssize_t write_result = SSL_write(_ssl_connection, buf, (int) nbyte);
+        std::ptrdiff_t write_result = SSL_write(_ssl_connection, buf, (int) nbyte);
         int reason = SSL_get_error(_ssl_connection, (int) write_result);
 
         if (reason == SSL_ERROR_NONE)
@@ -820,7 +837,7 @@ namespace ix
         }
         else if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
         {
-            errno = EWOULDBLOCK;
+            Socket::setErrno(EWOULDBLOCK);
             return -1;
         }
         else
@@ -829,7 +846,7 @@ namespace ix
         }
     }
 
-    ssize_t SocketOpenSSL::recv(void* buf, size_t nbyte)
+    std::ptrdiff_t SocketOpenSSL::recv(void* buf, size_t nbyte)
     {
         while (true)
         {
@@ -841,7 +858,7 @@ namespace ix
             }
 
             ERR_clear_error();
-            ssize_t read_result = SSL_read(_ssl_connection, buf, (int) nbyte);
+            std::ptrdiff_t read_result = SSL_read(_ssl_connection, buf, (int) nbyte);
 
             if (read_result > 0)
             {
@@ -852,7 +869,7 @@ namespace ix
 
             if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
             {
-                errno = EWOULDBLOCK;
+                Socket::setErrno(EWOULDBLOCK);
             }
             return -1;
         }

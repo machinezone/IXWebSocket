@@ -18,6 +18,10 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
 #include <ws2tcpip.h>
 #include <winsock2.h>
 #include <basetsd.h>
@@ -30,6 +34,7 @@
 #undef EINPROGRESS
 #undef EBADF
 #undef EINVAL
+#undef ECONNRESET
 
 // map to WSA error codes
 #define EWOULDBLOCK WSAEWOULDBLOCK
@@ -37,6 +42,7 @@
 #define EINPROGRESS WSAEINPROGRESS
 #define EBADF WSAEBADF
 #define EINVAL WSAEINVAL
+#define ECONNRESET WSAECONNRESET
 
 // Define our own poll on Windows, as a wrapper on top of select
 typedef unsigned long int nfds_t;

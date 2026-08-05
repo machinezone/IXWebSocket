@@ -58,6 +58,8 @@ namespace ix
 
         return true;
 #else
+        (void) deflateBits;
+        (void) clientNoContextTakeOver;
         return false;
 #endif
     }
@@ -163,6 +165,8 @@ namespace ix
 
         return true;
 #else
+        (void) in;
+        (void) out;
         return false;
 #endif
     }
@@ -202,6 +206,8 @@ namespace ix
 
         return true;
 #else
+        (void) inflateBits;
+        (void) clientNoContextTakeOver;
         return false;
 #endif
     }
@@ -246,6 +252,8 @@ namespace ix
 
         return true;
 #else
+        (void) in;
+        (void) out;
         return false;
 #endif
     }

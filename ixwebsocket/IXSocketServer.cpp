@@ -46,15 +46,31 @@ namespace ix
         stop();
     }
 
+    void SocketServer::setLogCallback(const LogCallback& callback)
+    {
+        std::lock_guard<std::mutex> lock(_logMutex);
+        _logCallback = callback;
+    }
+
     void SocketServer::logError(const std::string& str)
     {
         std::lock_guard<std::mutex> lock(_logMutex);
+        if (_logCallback)
+        {
+            _logCallback(LogLevel::Error, str);
+            return;
+        }
         fprintf(stderr, "%s\n", str.c_str());
     }
 
     void SocketServer::logInfo(const std::string& str)
     {
         std::lock_guard<std::mutex> lock(_logMutex);
+        if (_logCallback)
+        {
+            _logCallback(LogLevel::Info, str);
+            return;
+        }
         fprintf(stdout, "%s\n", str.c_str());
     }
 
@@ -95,6 +111,7 @@ namespace ix
                << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
 
             Socket::closeSocket(_serverFd);
+            _serverFd = -1;
             return std::make_pair(false, ss.str());
         }
 
@@ -113,6 +130,7 @@ namespace ix
                    << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
+                _serverFd = -1;
                 return std::make_pair(false, ss.str());
             }
 
@@ -125,6 +143,7 @@ namespace ix
                    << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
+                _serverFd = -1;
                 return std::make_pair(false, ss.str());
             }
         }
@@ -143,6 +162,7 @@ namespace ix
                    << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
+                _serverFd = -1;
                 return std::make_pair(false, ss.str());
             }
 
@@ -155,6 +175,7 @@ namespace ix
                    << strerror(Socket::getErrno());
 
                 Socket::closeSocket(_serverFd);
+                _serverFd = -1;
                 return std::make_pair(false, ss.str());
             }
         }
@@ -169,6 +190,7 @@ namespace ix
                << "at address " << _host << ":" << _port << " : " << strerror(Socket::getErrno());
 
             Socket::closeSocket(_serverFd);
+            _serverFd = -1;
             return std::make_pair(false, ss.str());
         }
 
@@ -231,7 +253,16 @@ namespace ix
         }
 
         _conditionVariable.notify_one();
-        Socket::closeSocket(_serverFd);
+
+        // stop() runs again from ~WebSocketServer() and ~SocketServer(), so
+        // close the listening fd exactly once: a second close of the stale
+        // number would destroy whatever descriptor another thread has since
+        // opened with it.
+        if (_serverFd != -1)
+        {
+            Socket::closeSocket(_serverFd);
+            _serverFd = -1;
+        }
     }
 
     void SocketServer::setConnectionStateFactory(
@@ -316,7 +347,7 @@ namespace ix
             socklen_t addressLen = sizeof(client);
             memset(&client, 0, sizeof(client));
 
-            if ((clientFd = accept(_serverFd, (struct sockaddr*) &client, &addressLen)) < 0)
+            if ((clientFd = static_cast<int>(accept(_serverFd, (struct sockaddr*) &client, &addressLen))) < 0)
             {
                 if (!Socket::isWaitNeeded())
                 {
@@ -406,7 +437,8 @@ namespace ix
 
             if (socket == nullptr)
             {
-                logError("SocketServer::run() cannot create socket: " + errorMsg);
+                logError("SocketServer::run() cannot create socket for client " + remoteIp + ":" +
+                         std::to_string(remotePort) + ": " + errorMsg);
                 Socket::closeSocket(clientFd);
                 continue;
             }
@@ -416,7 +448,8 @@ namespace ix
 
             if (!socket->accept(errorMsg))
             {
-                logError("SocketServer::run() tls accept failed: " + errorMsg);
+                logError("SocketServer::run() tls accept failed for client " + remoteIp + ":" +
+                         std::to_string(remotePort) + ": " + errorMsg);
                 Socket::closeSocket(clientFd);
                 continue;
             }

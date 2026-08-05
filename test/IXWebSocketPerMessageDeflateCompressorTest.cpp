@@ -7,7 +7,7 @@
  */
 
 #include "IXTest.h"
-#include "catch.hpp"
+#include <catch2/catch_test_macros.hpp>
 #include <iostream>
 #include <ixwebsocket/IXWebSocketPerMessageDeflateCodec.h>
 #include <string.h>

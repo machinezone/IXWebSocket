@@ -457,6 +457,25 @@ int pingIntervalSeconds = 45;
 ix::WebSocketServer server(port, host, backlog, maxConnections, handshakeTimeoutSecs, addressFamily, pingIntervalSeconds);
 ```
 
+### Server log callback
+
+By default the server writes internal errors to stderr (and some info messages to stdout). Errors that happen before a connection is fully established — for example a failed TLS handshake when a client presents a bad certificate — cannot be reported through `setOnClientMessageCallback`, since no WebSocket object exists yet at that point.
+
+To capture those messages in your application logs, set a log callback. It applies to `WebSocketServer` as well as `HttpServer`. When a callback is set, messages are delivered to it instead of being written to stderr/stdout.
+
+```cpp
+server.setLogCallback([](ix::LogLevel level, const std::string& msg) {
+    if (level == ix::LogLevel::Error)
+    {
+        myLogger.error(msg);
+    }
+    else
+    {
+        myLogger.info(msg);
+    }
+});
+```
+
 ## HTTP client API
 
 ```cpp

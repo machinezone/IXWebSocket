@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.4.1...3.17.2)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_MODULE_PATH}")
 
-project(ixwebsocket LANGUAGES C CXX VERSION 11.4.6)
+project(ixwebsocket LANGUAGES C CXX VERSION 12.0.1)
 
 set (CMAKE_CXX_STANDARD 11)
 set (CXX_STANDARD_REQUIRED ON)
@@ -282,8 +282,8 @@ endif()
 include(GNUInstallDirs)
 
 target_include_directories(ixwebsocket PUBLIC
-  $<BUILD_INTERFACE:${IXWEBSOCKET_INCLUDE_DIRS}/>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket>
+  $<BUILD_INTERFACE:${IXWEBSOCKET_INCLUDE_DIRS}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
@@ -315,17 +315,33 @@ endif()
 
 if (USE_WS OR USE_TEST)
   include(FetchContent)
+
+  set(MSGPACK11_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+  set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+
+  FetchContent_Declare(msgpack11
+      GIT_REPOSITORY "https://github.com/ar90n/msgpack11"
+      GIT_TAG "892264112b52b75b37cb1f83c41abfb5aff765af"
+      GIT_SHALLOW 1)
+
   FetchContent_Declare(spdlog
       GIT_REPOSITORY "https://github.com/gabime/spdlog"
-      GIT_TAG "v1.8.0"
+      GIT_TAG "v1.17.0"
       GIT_SHALLOW 1) 
 
-  FetchContent_MakeAvailable(spdlog)
+  FetchContent_MakeAvailable(spdlog msgpack11)
 
   if (USE_WS)
     add_subdirectory(ws)
   endif()
   if (USE_TEST)
+    FetchContent_Declare(Catch2
+      GIT_REPOSITORY "https://github.com/catchorg/Catch2"
+      GIT_TAG "v3.15.1"
+      GIT_SHALLOW 1)
+    
+    FetchContent_MakeAvailable(Catch2)
+
     enable_testing()
     add_subdirectory(test)
   endif()

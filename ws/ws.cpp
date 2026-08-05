@@ -9,7 +9,7 @@
 //
 
 #include "linenoise.hpp"
-#include <CLI11.hpp>
+#include <CLI/CLI.hpp>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
