@@ -318,6 +318,16 @@ namespace ix
 #endif
     }
 
+    bool Socket::setCloseOnExec(socket_t fd)
+    {
+#ifdef _WIN32
+        // Not implemented on Windows.
+        return false;
+#else
+        return ::fcntl(fd, F_SETFD, FD_CLOEXEC) == 0;
+#endif
+    }
+
     bool Socket::init(std::string& errorMsg)
     {
         return _selectInterrupt->init(errorMsg);

@@ -74,7 +74,13 @@ namespace ix
 
         void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
 
-        int  getPort();
+        // Set FD_CLOEXEC on server and client file descriptors.
+        void setCloseOnExec()
+        {
+            _closeOnExec = true;
+        }
+
+        int getPort();
         std::string getHost();
         int getBacklog();
         std::size_t getMaxConnections();
@@ -93,6 +99,7 @@ namespace ix
         int _backlog;
         size_t _maxConnections;
         int _addressFamily;
+        bool _closeOnExec = false;
 
         // socket for accepting connections
         socket_t _serverFd;
