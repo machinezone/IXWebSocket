@@ -74,6 +74,7 @@ namespace ix
         static void setErrno(int err);
         static bool isWaitNeeded();
         static void closeSocket(socket_t fd);
+        static bool setCloseOnExec(socket_t fd);
 
         static PollResultType poll(bool readyToRead,
                                    int timeoutMs,

@@ -102,6 +102,20 @@ namespace ix
             return std::make_pair(false, ss.str());
         }
 
+        if (_closeOnExec)
+        {
+            if (!Socket::setCloseOnExec(_serverFd))
+            {
+                std::stringstream ss;
+                ss << "SocketServer::listen() error setting close on exec: "
+                   << strerror(Socket::getErrno());
+
+                Socket::closeSocket(_serverFd);
+                _serverFd = -1;
+                return std::make_pair(false, ss.str());
+            }
+        }
+
         // Make that socket reusable. (allow restarting this server at will)
         int enable = 1;
         if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, (char*) &enable, sizeof(enable)) < 0)
@@ -371,6 +385,22 @@ namespace ix
                 Socket::closeSocket(clientFd);
 
                 continue;
+            }
+
+            if (_closeOnExec)
+            {
+                if (!Socket::setCloseOnExec(clientFd))
+                {
+                    int err = Socket::getErrno();
+                    std::stringstream ss;
+                    ss << "SocketServer::run() error setting close on exec: " << err << ", "
+                       << strerror(err);
+                    logError(ss.str());
+
+                    Socket::closeSocket(clientFd);
+
+                    continue;
+                }
             }
 
             // Retrieve connection info, the ip address of the remote peer/client)
