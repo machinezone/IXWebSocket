@@ -197,7 +197,7 @@ webSocket.stop()
 <p>Here is an example code snippet copied from the ws send sub-command. Each fragment weights 32K, so the total integer is the wireSize divided by 32K. As an example if you are sending 32M of data, uncompressed, total will be 1000. current will be set to 0 for the first fragment, then 1, 2 etc...</p>
 <pre><code>auto result =
     _webSocket.sendBinary(serializedMsg, [this, throttle](int current, int total) -&gt; bool {
-        spdlog::info(&quot;ws_send: Step {} out of {}&quot;, current + 1, total);
+        ix::logInfo(&quot;ws_send: Step {} out of {}&quot;, current + 1, total);
 
         if (throttle)
         {
