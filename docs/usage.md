@@ -79,7 +79,7 @@ Here is an example code snippet copied from the ws send sub-command. Each fragme
 ```
 auto result =
     _webSocket.sendBinary(serializedMsg, [this, throttle](int current, int total) -> bool {
-        spdlog::info("ws_send: Step {} out of {}", current + 1, total);
+        ix::logInfo("ws_send: Step {} out of {}", current + 1, total);
 
         if (throttle)
         {

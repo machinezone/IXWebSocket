@@ -6,12 +6,12 @@
 
 #pragma once
 
+#include <common/IXLog.h>
 #include <iostream>
 #include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
 #include <ixwebsocket/IXWebSocketServer.h>
 #include <mutex>
-#include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -38,7 +38,7 @@ namespace ix
 
             std::stringstream ss;
             ss << obj;
-            spdlog::info(ss.str());
+            logInfo(ss.str());
             return *this;
         }
 

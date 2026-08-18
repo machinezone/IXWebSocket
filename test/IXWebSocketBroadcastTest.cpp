@@ -5,15 +5,14 @@
  */
 
 #include "IXTest.h"
-#include <catch2/catch_test_macros.hpp>
-#include "msgpack11.hpp"
+#include <catch_amalgamated.hpp>
+#include <common/IXPdu.h>
 #include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXWebSocketServer.h>
 
-using msgpack11::MsgPack;
 using namespace ix;
 
 namespace
@@ -159,25 +158,23 @@ namespace
     std::pair<std::string, std::string> WebSocketBroadcastChat::decodeMessage(
         const std::string& str)
     {
-        std::string errMsg;
-        MsgPack msg = MsgPack::parse(str, errMsg);
+        Pdu pdu;
+        if (!parsePdu(str, pdu))
+        {
+            return std::pair<std::string, std::string>(std::string(), std::string());
+        }
 
-        std::string msg_user = msg["user"].string_value();
-        std::string msg_text = msg["text"].string_value();
-
-        return std::pair<std::string, std::string>(msg_user, msg_text);
+        return std::pair<std::string, std::string>(getPduField(pdu, "user"),
+                                                   getPduField(pdu, "text"));
     }
 
     std::string WebSocketBroadcastChat::encodeMessage(const std::string& text)
     {
-        std::map<MsgPack, MsgPack> obj;
-        obj["user"] = _user;
-        obj["text"] = text;
+        Pdu pdu;
+        pdu["user"] = _user;
+        pdu["text"] = text;
 
-        MsgPack msg(obj);
-
-        std::string output = msg.dump();
-        return output;
+        return serializePdu(pdu);
     }
 
     void WebSocketBroadcastChat::sendMessage(const std::string& text)

@@ -56,8 +56,19 @@ endif()
 
 # Disable tests for now that are failing or not reliable
 
+# Catch2 is vendored as an amalgamated source file in third_party, so that
+# nothing needs to be downloaded at configure time. It is built as its own
+# target, with unity builds disabled (the file is large enough as it is) and
+# included as a system header so that its warnings do not show up in our build.
+add_library(Catch2 STATIC ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/catch_amalgamated.cpp)
+target_include_directories(Catch2 SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../third_party)
+target_compile_features(Catch2 PUBLIC cxx_std_14)
+# We supply our own main, in test_runner.cpp
+target_compile_definitions(Catch2 PRIVATE CATCH_AMALGAMATED_CUSTOM_MAIN)
+set_target_properties(Catch2 PROPERTIES UNITY_BUILD OFF)
+
 add_library(ixwebsocket_test)
-target_sources(ixwebsocket_test PRIVATE 
+target_sources(ixwebsocket_test PRIVATE
     ${JSONCPP_SOURCES}
     test_runner.cpp
     IXTest.cpp
@@ -66,15 +77,11 @@ target_compile_definitions(ixwebsocket_test PRIVATE ${TEST_PROGRAMS_DEFINITIONS}
 
 target_link_libraries(ixwebsocket_test Catch2)
 target_link_libraries(ixwebsocket_test ixwebsocket)
-target_link_libraries(ixwebsocket_test spdlog)
-target_link_libraries(ixwebsocket_test msgpack11)
 
 foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
   add_executable(${TEST_TARGET_NAME}
     ${TEST_TARGET_NAME}.cpp
   )
-
-  target_compile_definitions(${TEST_TARGET_NAME} PRIVATE SPDLOG_COMPILED_LIB=1)
 
   if (APPLE AND USE_TLS)
     target_link_libraries(${TEST_TARGET_NAME} "-framework foundation" "-framework security")
@@ -85,8 +92,6 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
   target_link_libraries(${TEST_TARGET_NAME} ixwebsocket)
 
   target_link_libraries(${TEST_TARGET_NAME} Catch2)
-  target_link_libraries(${TEST_TARGET_NAME} spdlog)
-  target_link_libraries(${TEST_TARGET_NAME} msgpack11)
 
   add_test(NAME ${TEST_TARGET_NAME}
            COMMAND ${TEST_TARGET_NAME}

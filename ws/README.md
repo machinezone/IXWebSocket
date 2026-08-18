@@ -37,6 +37,11 @@ ws receive ws://localhost:8080
 ws send ws://localhost:8080 /file/to/path
 ```
 
+The sender, the receiver and the chat mode exchange messages in a simple text
+format (one `<name> <hex encoded value>` field per line, see `common/IXPdu.h`),
+which replaced the msgpack based one used up to version 12.0.1. A ws built from
+this revision cannot talk to an older one.
+
 ## curl
 
 ```
