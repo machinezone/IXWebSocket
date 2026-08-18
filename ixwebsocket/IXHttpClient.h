@@ -7,6 +7,7 @@
 #pragma once
 
 #include "IXHttp.h"
+#include "IXProxyOptions.h"
 #include "IXSocket.h"
 #include "IXSocketTLSOptions.h"
 #include "IXWebSocketHttpHeaders.h"
@@ -80,6 +81,9 @@ namespace ix
         // TLS
         void setTLSOptions(const SocketTLSOptions& tlsOptions);
 
+        // Proxy
+        void setProxyOptions(const ProxyOptions& proxyOptions);
+
         std::string serializeHttpParameters(const HttpParameters& httpParameters);
 
         std::string serializeHttpFormDataParameters(
@@ -117,6 +121,7 @@ namespace ix
                                      // might be called recursively to follow HTTP redirections
 
         SocketTLSOptions _tlsOptions;
+        ProxyOptions _proxyOptions;
 
         bool _forceBody;
     };

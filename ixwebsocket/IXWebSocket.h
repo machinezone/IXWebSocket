@@ -11,6 +11,7 @@
 
 #include "IXProgressCallback.h"
 #include "IXSocketTLSOptions.h"
+#include "IXProxyOptions.h"
 #include "IXWebSocketCloseConstants.h"
 #include "IXWebSocketErrorInfo.h"
 #include "IXWebSocketHttpHeaders.h"
@@ -54,6 +55,7 @@ namespace ix
         void setPerMessageDeflateOptions(
             const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
+        void setProxyOptions(const ProxyOptions& proxyOptions);
         void setPingMessage(const std::string& sendMessage,
                             SendMessageKind pingType = SendMessageKind::Ping);
         void setPingInterval(int pingIntervalSecs);
@@ -146,6 +148,7 @@ namespace ix
         WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
 
         SocketTLSOptions _socketTLSOptions;
+        ProxyOptions _proxyOptions;
 
         mutable std::mutex _configMutex; // protect all config variables access
 
