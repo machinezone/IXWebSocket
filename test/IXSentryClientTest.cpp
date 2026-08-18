@@ -6,7 +6,7 @@
  *  (cd .. ; make) && ../build/test/ixwebsocket_unittest sentry
  */
 
-#include <catch2/catch_test_macros.hpp>
+#include <catch_amalgamated.hpp>
 #include <iostream>
 #include <ixsentry/IXSentryClient.h>
 #include <string.h>
