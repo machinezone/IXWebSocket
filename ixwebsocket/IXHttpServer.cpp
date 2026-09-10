@@ -43,19 +43,54 @@ namespace
         return std::make_pair(res.first, std::string(vec.begin(), vec.end()));
     }
 
-    std::string response_head_file(const std::string& file_name){
+    // Normalize a URI by resolving . and .. segments so that the resulting
+    // path never escapes the document root.  Attempts to traverse above /
+    // (e.g. GET /../secret) are silently clamped rather than rejected so that
+    // the caller receives a predictable 404 instead of a server error.
+    std::string sanitizeUri(const std::string& uri)
+    {
+        std::vector<std::string> parts;
+        std::string token;
+        std::istringstream stream(uri);
 
-        if (std::string::npos != file_name.find(".html") || std::string::npos != file_name.find(".htm"))
+        while (std::getline(stream, token, '/'))
+        {
+            if (token == "..")
+            {
+                if (!parts.empty()) parts.pop_back();
+                // else: silently ignore attempts to escape above root
+            }
+            else if (!token.empty() && token != ".")
+            {
+                parts.push_back(token);
+            }
+        }
+
+        std::string sanitized;
+        for (const auto& part : parts)
+        {
+            sanitized += "/" + part;
+        }
+
+        return sanitized.empty() ? "/" : sanitized;
+    }
+
+    std::string response_head_file(const std::string& file_name)
+    {
+        if (std::string::npos != file_name.find(".html") ||
+            std::string::npos != file_name.find(".htm"))
             return "text/html";
         else if (std::string::npos != file_name.find(".css"))
             return "text/css";
-        else if (std::string::npos != file_name.find(".js") || std::string::npos != file_name.find(".mjs"))
+        else if (std::string::npos != file_name.find(".js") ||
+                 std::string::npos != file_name.find(".mjs"))
             return "application/x-javascript";
         else if (std::string::npos != file_name.find(".ico"))
             return "image/x-icon";
         else if (std::string::npos != file_name.find(".png"))
             return "image/png";
-        else if (std::string::npos != file_name.find(".jpg") || std::string::npos != file_name.find(".jpeg"))
+        else if (std::string::npos != file_name.find(".jpg") ||
+                 std::string::npos != file_name.find(".jpeg"))
             return "image/jpeg";
         else if (std::string::npos != file_name.find(".gif"))
             return "image/gif";
@@ -125,7 +160,7 @@ namespace ix
             [this](HttpRequestPtr request,
                    std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr
             {
-                std::string uri(request->uri);
+                std::string uri(sanitizeUri(request->uri));
                 if (uri.empty() || uri == "/")
                 {
                     uri = "/index.html";
