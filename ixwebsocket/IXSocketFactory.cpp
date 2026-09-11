@@ -6,6 +6,7 @@
 
 #include "IXSocketFactory.h"
 
+#include "IXProxySocket.h"
 #include "IXUniquePtr.h"
 #ifdef IXWEBSOCKET_USE_TLS
 
@@ -28,30 +29,57 @@ namespace ix
     std::unique_ptr<Socket> createSocket(bool tls,
                                          int fd,
                                          std::string& errorMsg,
-                                         const SocketTLSOptions& tlsOptions)
+                                         const SocketTLSOptions& tlsOptions,
+                                         bool proxy,
+                                         const ProxyOptions& proxyOptions)
     {
         (void) tlsOptions;
         errorMsg.clear();
         std::unique_ptr<Socket> socket;
 
-        if (!tls)
+        if (!proxy)
         {
-            socket = ix::make_unique<Socket>(fd);
+            if (!tls)
+            {
+                socket = ix::make_unique<Socket>(fd);
+            }
+            else
+            {
+#ifdef IXWEBSOCKET_USE_TLS
+#if defined(IXWEBSOCKET_USE_MBED_TLS)
+                socket = ix::make_unique<SocketMbedTLS>(tlsOptions, fd);
+#elif defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)
+                socket = ix::make_unique<SocketOpenSSL>(tlsOptions, fd);
+#elif defined(__APPLE__)
+                socket = ix::make_unique<SocketAppleSSL>(tlsOptions, fd);
+#endif
+#else
+                errorMsg = "TLS support is not enabled on this platform.";
+                return nullptr;
+#endif
+            }
         }
         else
         {
+            if (!tls)
+            {
+                socket = ix::make_unique<ProxySocket<Socket>>(proxyOptions,fd);
+            }
+            else
+            {
 #ifdef IXWEBSOCKET_USE_TLS
 #if defined(IXWEBSOCKET_USE_MBED_TLS)
-            socket = ix::make_unique<SocketMbedTLS>(tlsOptions, fd);
+                socket = ix::make_unique<ProxySocket<SocketMbedTLS>>(proxyOptions, tlsOptions, fd);
 #elif defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)
-            socket = ix::make_unique<SocketOpenSSL>(tlsOptions, fd);
+                socket = ix::make_unique<ProxySocket<SocketOpenSSL>>(proxyOptions, tlsOptions, fd);
 #elif defined(__APPLE__)
-            socket = ix::make_unique<SocketAppleSSL>(tlsOptions, fd);
+                socket = ix::make_unique<ProxySocket<SocketAppleSSL>>(proxyOptions, tlsOptions, fd);
 #endif
 #else
-            errorMsg = "TLS support is not enabled on this platform.";
-            return nullptr;
+                errorMsg = "TLS support is not enabled on this platform.";
+                return nullptr;
 #endif
+            }
         }
 
         if (!socket->init(errorMsg))

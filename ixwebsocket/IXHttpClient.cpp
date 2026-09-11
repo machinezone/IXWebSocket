@@ -53,6 +53,11 @@ namespace ix
         _tlsOptions = tlsOptions;
     }
 
+    void HttpClient::setProxyOptions(const ProxyOptions& proxyOptions)
+    {
+        _proxyOptions = proxyOptions;
+    }
+
     void HttpClient::setForceBody(bool value)
     {
         _forceBody = value;
@@ -158,7 +163,9 @@ namespace ix
 
         bool tls = protocol == "https";
         std::string errorMsg;
-        _socket = createSocket(tls, -1, errorMsg, _tlsOptions);
+
+        bool proxy = !_proxyOptions.host.empty();
+        _socket = createSocket(tls, -1, errorMsg, _tlsOptions, proxy, _proxyOptions);
 
         if (!_socket)
         {
