@@ -98,6 +98,12 @@ namespace ix
         _socketTLSOptions = socketTLSOptions;
     }
 
+    void WebSocket::setProxyOptions(const ProxyOptions& proxyOptions) 
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _proxyOptions = proxyOptions;
+    }
+
     const WebSocketPerMessageDeflateOptions WebSocket::getPerMessageDeflateOptions() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
@@ -213,7 +219,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(
-                _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs);
+                _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs, _proxyOptions);
         }
 
         WebSocketHttpHeaders headers(_extraHeaders);
@@ -271,7 +277,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(
-                _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs);
+                _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs, _proxyOptions);
         }
 
         WebSocketInitResult status = _ws.connectToSocket(
