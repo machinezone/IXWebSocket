@@ -36,6 +36,11 @@ namespace ix
         // whether to skip validating the peer's hostname against the certificate presented
         bool disable_hostname_validation = false;
 
+        // additional OpenSSL CTX options to set when calling SSL_CTX_set_options during the handshake
+        uint64_t additional_openssl_ctx_options = 0;
+
+        bool hasAdditionalOptions() const;
+
         bool hasCertAndKey() const;
 
         bool isUsingSystemDefaults() const;

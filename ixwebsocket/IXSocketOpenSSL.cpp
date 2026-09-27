@@ -561,6 +561,11 @@ namespace ix
             return false;
         }
 
+        if (_tlsOptions.hasAdditionalOptions())
+        {
+            SSL_CTX_set_options(_ssl_context, _tlsOptions.additional_openssl_ctx_options);
+        }
+
         return true;
     }
 
@@ -598,7 +603,7 @@ namespace ix
                         SSL_CTX_set_mode(_ssl_context, SSL_MODE_ENABLE_PARTIAL_WRITE);
                         SSL_CTX_set_mode(_ssl_context, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
                         SSL_CTX_set_options(_ssl_context,
-                                            SSL_OP_ALL | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+                                            SSL_OP_ALL | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | _tlsOptions.additional_openssl_ctx_options);
                     }
                 }
             }
