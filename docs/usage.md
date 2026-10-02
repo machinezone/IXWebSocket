@@ -4,7 +4,7 @@ The [*ws*](https://github.com/machinezone/IXWebSocket/tree/master/ws) folder cou
 
 ## Windows note
 
-To use the network system on Windows, you need to initialize it once with *WSAStartup()* and clean it up with *WSACleanup()*. We have helpers for that which you can use, see below. This init would typically take place in your main function.
+To use the network system on Windows, you need to initialize it once with *WSAStartup()* and clean it up with *WSACleanup()*. We have helpers for that which you can use, see below. This init would typically take place in your main function. On every platform, *ix::uninitNetSystem()* also releases process-global TLS state (mbedTLS PSA crypto, with mbedTLS >= 3.6), so call it only after all sockets are closed.
 
 ```cpp
 #include <ixwebsocket/IXNetSystem.h>

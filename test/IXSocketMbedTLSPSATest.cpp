@@ -7,18 +7,17 @@
 
 #ifdef IXWEBSOCKET_USE_MBED_TLS
 
+#include <catch_amalgamated.hpp>
+#include <ixwebsocket/IXNetSystem.h>
 #include <mbedtls/version.h>
+
+using namespace ix;
 
 #if MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6)
 
-#include "IXTest.h"
-#include <catch_amalgamated.hpp>
 #include <iostream>
-#include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXSocketMbedTLS.h>
 #include <psa/crypto.h>
-
-using namespace ix;
 
 namespace
 {
@@ -82,6 +81,13 @@ TEST_CASE("uninitNetSystem releases PSA state and allows re-init", "[socket_mbed
     REQUIRE(psaStateWorks());
 }
 
-#endif // MBEDTLS_VERSION_MAJOR >= 3.6
+#else // mbedTLS < 3.6
+
+TEST_CASE("SocketMbedTLS PSA lifetime (not applicable below mbedTLS 3.6)", "[socket_mbedtls]")
+{
+    SUCCEED("mbedTLS < 3.6 has no PSA state to release");
+}
+
+#endif // mbedTLS >= 3.6
 
 #endif // IXWEBSOCKET_USE_MBED_TLS
