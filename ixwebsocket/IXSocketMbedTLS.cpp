@@ -40,15 +40,19 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        mbedtls_ssl_init(&_ssl);
-        mbedtls_ssl_config_init(&_conf);
+        if (!_mbedtlsInitialized)
+        {
+            _mbedtlsInitialized = true;
+            mbedtls_ssl_init(&_ssl);
+            mbedtls_ssl_config_init(&_conf);
 #if MBEDTLS_VERSION_MAJOR < 4
-        mbedtls_ctr_drbg_init(&_ctr_drbg);
-        mbedtls_entropy_init(&_entropy);
+            mbedtls_ctr_drbg_init(&_ctr_drbg);
+            mbedtls_entropy_init(&_entropy);
 #endif
-        mbedtls_x509_crt_init(&_cacert);
-        mbedtls_x509_crt_init(&_cert);
-        mbedtls_pk_init(&_pkey);
+            mbedtls_x509_crt_init(&_cacert);
+            mbedtls_x509_crt_init(&_cert);
+            mbedtls_pk_init(&_pkey);
+        }
         // Initialize the PSA Crypto API for mbedTLS 3.6+ and all 4.x releases.
         // See: https://github.com/Mbed-TLS/mbedtls/blob/development/docs/use-psa-crypto.md
 #if MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6)
@@ -110,6 +114,15 @@ namespace ix
     {
         initMBedTLS();
         std::lock_guard<std::mutex> lock(_mutex);
+
+#if MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6)
+        psa_status_t status = psa_crypto_init();
+        if (status != PSA_SUCCESS)
+        {
+            errMsg = "PSA crypto init failed: " + std::to_string((int) status);
+            return false;
+        }
+#endif
 
 #if MBEDTLS_VERSION_MAJOR < 4
         const char* pers = "IXSocketMbedTLS";
@@ -328,9 +341,9 @@ namespace ix
         mbedtls_x509_crt_free(&_cacert);
         mbedtls_x509_crt_free(&_cert);
         mbedtls_pk_free(&_pkey);
-#if MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6)
-        mbedtls_psa_crypto_free();
-#endif
+        _mbedtlsInitialized = false;
+        // PSA crypto state is process-global; it is released in ix::uninitNetSystem(),
+        // not per socket.
 
         Socket::close();
     }
