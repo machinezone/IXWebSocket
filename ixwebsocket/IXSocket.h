@@ -43,7 +43,6 @@ namespace ix
         bool wakeUpFromPoll(uint64_t wakeUpCode);
         bool isWakeUpFromPollSupported();
 
-        PollResultType isReadyToWrite(int timeoutMs);
         PollResultType isReadyToRead(int timeoutMs);
 
         // Virtual methods
@@ -58,6 +57,7 @@ namespace ix
         virtual std::ptrdiff_t send(char* buffer, size_t length);
         std::ptrdiff_t send(const std::string& buffer);
         virtual std::ptrdiff_t recv(void* buffer, size_t length);
+        virtual PollResultType isReadyToWrite(int timeoutMs);
 
         // Blocking and cancellable versions, working with socket that can be set
         // to non blocking mode. Used during HTTP upgrade.

@@ -24,6 +24,9 @@
 namespace ix
 {
     class Socket;
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+    class SocketNetworkListener;
+#endif
 
     enum class LogLevel
     {
@@ -103,6 +106,10 @@ namespace ix
 
         // socket for accepting connections
         socket_t _serverFd;
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+        std::unique_ptr<SocketNetworkListener> _networkListener;
+        void runNetwork();
+#endif
 
         std::atomic<bool> _stop;
 

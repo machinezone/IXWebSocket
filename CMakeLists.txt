@@ -121,11 +121,24 @@ set( IXWEBSOCKET_HEADERS
 
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" OFF)
 option(USE_TLS "Enable TLS support" FALSE)
+option(USE_NETWORK_FRAMEWORK "Use Apple's Network.framework TLS backend (macOS 10.15+)" OFF)
+if (USE_NETWORK_FRAMEWORK)
+    if (NOT APPLE OR NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        message(FATAL_ERROR "Network.framework backend currently supports macOS only")
+    endif()
+    if (USE_OPEN_SSL OR USE_LIBRE_SSL OR USE_MBED_TLS OR USE_SECURE_TRANSPORT)
+        message(FATAL_ERROR "USE_NETWORK_FRAMEWORK cannot be combined with another TLS backend")
+    endif()
+    if (CMAKE_OSX_DEPLOYMENT_TARGET AND CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 10.15)
+        message(FATAL_ERROR "Network.framework backend requires macOS 10.15 or later")
+    endif()
+    set(USE_TLS ON)
+endif()
 
 if (USE_TLS)
     # default to securetranport on Apple if nothing is configured
     if (APPLE)
-      if (NOT USE_MBED_TLS AND NOT USE_OPEN_SSL AND NOT USE_LIBRE_SSL) # unless we want something else
+      if (NOT USE_MBED_TLS AND NOT USE_OPEN_SSL AND NOT USE_LIBRE_SSL AND NOT USE_NETWORK_FRAMEWORK) # unless we want something else
         set(USE_SECURE_TRANSPORT ON)
       endif()
     # default to mbedtls on windows if nothing is configured
@@ -140,7 +153,10 @@ if (USE_TLS)
       endif()
     endif()
 
-    if (USE_MBED_TLS)
+    if (USE_NETWORK_FRAMEWORK)
+        list(APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketNetwork.h)
+        list(APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketNetwork.cpp)
+    elseif (USE_MBED_TLS)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketMbedTLS.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketMbedTLS.cpp)
     elseif (USE_SECURE_TRANSPORT)
@@ -182,7 +198,9 @@ endif()
 
 if (USE_TLS)
     target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_TLS)
-    if (USE_MBED_TLS)
+    if (USE_NETWORK_FRAMEWORK)
+        target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_NETWORK_FRAMEWORK)
+    elseif (USE_MBED_TLS)
         target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_MBED_TLS)
     elseif (USE_OPEN_SSL)
         target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_OPEN_SSL)
@@ -196,7 +214,11 @@ if (USE_TLS)
 endif()
 
 if (USE_TLS)
-  if (USE_OPEN_SSL)
+  if (USE_NETWORK_FRAMEWORK)
+    message(STATUS "TLS configured to use Network.framework")
+    target_compile_options(ixwebsocket PRIVATE -fblocks)
+    target_link_libraries(ixwebsocket PRIVATE "-framework Network" "-framework Security" "-framework CoreFoundation")
+  elseif (USE_OPEN_SSL)
     message(STATUS "TLS configured to use openssl")
 
     # Help finding Homebrew's OpenSSL on macOS
