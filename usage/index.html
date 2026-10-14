@@ -134,7 +134,7 @@
 <h1 id="examples">Examples</h1>
 <p>The <a href="https://github.com/machinezone/IXWebSocket/tree/master/ws"><em>ws</em></a> folder countains many interactive programs for chat, <a href="https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_send.cpp">file transfers</a>, <a href="https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_http_client.cpp">curl like</a> http clients, demonstrating client and server usage.</p>
 <h2 id="windows-note">Windows note</h2>
-<p>To use the network system on Windows, you need to initialize it once with <em>WSAStartup()</em> and clean it up with <em>WSACleanup()</em>. We have helpers for that which you can use, see below. This init would typically take place in your main function.</p>
+<p>To use the network system on Windows, you need to initialize it once with <em>WSAStartup()</em> and clean it up with <em>WSACleanup()</em>. We have helpers for that which you can use, see below. This init would typically take place in your main function. On every platform, <em>ix::uninitNetSystem()</em> also releases process-global TLS state (mbedTLS PSA crypto, with mbedTLS &gt;= 3.6), so call it only after all sockets are closed.</p>
 <pre><code class="language-cpp">#include &lt;ixwebsocket/IXNetSystem.h&gt;
 
 int main()
