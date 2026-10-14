@@ -13,6 +13,9 @@
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
 #include "IXSocketFactory.h"
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+#include "IXSocketNetwork.h"
+#endif
 #include <assert.h>
 #include <sstream>
 #include <stdio.h>
@@ -93,6 +96,17 @@ namespace ix
             return std::make_pair(false, errMsg);
         }
 
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+        if (_socketTLSOptions.tls)
+        {
+            _networkListener.reset(new SocketNetworkListener());
+            std::string error;
+            bool success = _networkListener->listen(
+                _host, _port, _addressFamily, _maxConnections, _socketTLSOptions, error);
+            if (!success) _networkListener.reset();
+            return std::make_pair(success, error);
+        }
+#endif
         // Get a socket for accepting connections.
         if ((_serverFd = socket(_addressFamily, SOCK_STREAM, 0)) < 0)
         {
@@ -253,12 +267,15 @@ namespace ix
             _stop = false;
         }
 
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+        if (_networkListener) _networkListener->stop();
+#endif
         // Join all threads and make sure that all connections are terminated
         if (_gcThread.joinable())
         {
             _stopGc = true;
             {
-                std::lock_guard<std::mutex> lock{ _conditionVariableMutexGC };
+                std::lock_guard<std::mutex> lock {_conditionVariableMutexGC};
                 _canContinueGC = true;
             }
             _conditionVariableGC.notify_one();
@@ -316,6 +333,13 @@ namespace ix
 
     void SocketServer::run()
     {
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+        if (_networkListener)
+        {
+            runNetwork();
+            return;
+        }
+#endif
         // Set the socket to non blocking mode, so that accept calls are not blocking
         SocketConnect::configure(_serverFd);
 
@@ -361,7 +385,8 @@ namespace ix
             socklen_t addressLen = sizeof(client);
             memset(&client, 0, sizeof(client));
 
-            if ((clientFd = static_cast<int>(accept(_serverFd, (struct sockaddr*) &client, &addressLen))) < 0)
+            if ((clientFd = static_cast<int>(
+                     accept(_serverFd, (struct sockaddr*) &client, &addressLen))) < 0)
             {
                 if (!Socket::isWaitNeeded())
                 {
@@ -411,7 +436,8 @@ namespace ix
             {
                 char remoteIp4[INET_ADDRSTRLEN];
                 auto* client4 = reinterpret_cast<struct sockaddr_in*>(&client);
-                if (ix::inet_ntop(AF_INET, &client4->sin_addr, remoteIp4, INET_ADDRSTRLEN) == nullptr)
+                if (ix::inet_ntop(AF_INET, &client4->sin_addr, remoteIp4, INET_ADDRSTRLEN) ==
+                    nullptr)
                 {
                     int err = Socket::getErrno();
                     std::stringstream ss;
@@ -493,6 +519,53 @@ namespace ix
         }
     }
 
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+    void SocketServer::runNetwork()
+    {
+        setThreadName("Srv:ac:" + std::to_string(_port));
+        while (!_stop)
+        {
+            auto result =
+                Socket::poll(true, 100, _networkListener->getFd(), _acceptSelectInterrupt);
+            if (result != PollResultType::ReadyForRead || _stop) continue;
+            auto listenerError = _networkListener->getError();
+            if (!listenerError.empty())
+            {
+                logError("SocketServer::run() listener failed: " + listenerError);
+                return;
+            }
+            std::string remoteIp;
+            int remotePort = 0;
+            auto socket = _networkListener->take(remoteIp, remotePort);
+            if (!socket) continue;
+            if (getConnectedClientsCount() >= _maxConnections)
+            {
+                logError("SocketServer::run() reached max connections = " +
+                         std::to_string(_maxConnections));
+                continue;
+            }
+            std::string error;
+            if (!socket->init(error) || !socket->accept(error, [this] { return _stop.load(); }))
+            {
+                logError("SocketServer::run() tls accept failed for client " + remoteIp + ":" +
+                         std::to_string(remotePort) + ": " + error);
+                continue;
+            }
+            auto connectionState = _connectionStateFactory();
+            connectionState->setOnSetTerminatedCallback([this] { onSetTerminatedCallback(); });
+            connectionState->setRemoteIp(remoteIp);
+            connectionState->setRemotePort(remotePort);
+            if (_stop) return;
+            std::unique_ptr<Socket> accepted(std::move(socket));
+            std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
+            _connectionsThreads.push_back(std::make_pair(
+                connectionState,
+                std::thread(
+                    &SocketServer::handleConnection, this, std::move(accepted), connectionState)));
+        }
+    }
+#endif
+
     size_t SocketServer::getConnectionsThreadsCount()
     {
         std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
@@ -524,8 +597,9 @@ namespace ix
             if (!_stopGc)
             {
                 std::unique_lock<std::mutex> lock(_conditionVariableMutexGC);
-                if(!_canContinueGC) {
-                    _conditionVariableGC.wait(lock, [this]{ return _canContinueGC; });
+                if (!_canContinueGC)
+                {
+                    _conditionVariableGC.wait(lock, [this] { return _canContinueGC; });
                 }
                 _canContinueGC = false;
             }
@@ -542,13 +616,13 @@ namespace ix
         // a connection got terminated, we can run the connection thread GC,
         // so wake up the thread responsible for that
         {
-            std::lock_guard<std::mutex> lock{ _conditionVariableMutexGC };
+            std::lock_guard<std::mutex> lock {_conditionVariableMutexGC};
             _canContinueGC = true;
         }
         _conditionVariableGC.notify_one();
     }
 
-    int  SocketServer::getPort()
+    int SocketServer::getPort()
     {
         return _port;
     }

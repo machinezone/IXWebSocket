@@ -661,3 +661,32 @@ For a server, specifying `caFile` implies that:
 1. It must be signed by one of the trusted roots in the file
 
 By default, a destination's hostname is always validated against the certificate that it presents. To accept certificates with any hostname, set `ix::SocketTLSOptions::disable_hostname_validation` to `true`.
+
+### Network.framework backend on macOS
+
+Build with `USE_NETWORK_FRAMEWORK=ON` to use native TLS for `wss://` and `https://`
+clients and TLS-enabled WebSocket/HTTP servers. Network.framework handles connection
+setup, DNS, and TCP. Application HTTP and WebSocket handling stays in IXWebSocket.
+TLS 1.2 is the minimum; TLS 1.3 is negotiated when supported by the peer.
+
+The existing `SocketTLSOptions` fields apply:
+
+- `certFile` and `keyFile` accept a PEM certificate chain (leaf first) and matching,
+  unencrypted PEM private key. Both are required for a TLS server and optional for a
+  client presenting a certificate. Credentials are imported in memory, without
+  installing them in a keychain.
+- `caFile = "SYSTEM"` uses Apple's trust evaluation and configured system trust.
+  A PEM CA file or in-memory PEM bundle instead restricts trust to those anchors.
+- `caFile = "NONE"` disables peer verification. On a server this also disables the
+  requirement for a client certificate. Other CA settings require client
+  authentication, matching the existing server options.
+- `disable_hostname_validation` skips the client's hostname check while retaining
+  certificate trust evaluation. IP literals are checked against IP SAN entries.
+- Custom `ciphers` strings are currently rejected; leave `ciphers` at `DEFAULT`.
+
+The native server uses a Network.framework listener. `createSocket` cannot adopt an
+existing BSD descriptor for TLS with this backend. The listener requires a numeric
+bind address and uses the framework's TCP listen queue rather than the BSD backlog
+setting. Pending connections are bounded by `maxConnections`. Server TLS handshakes
+have a ten-second limit and are interrupted when the server stops. Client connection
+timeouts use the caller's cancellation callback, including HTTP/WebSocket timeouts.

@@ -61,6 +61,15 @@ ws_openssl_install:
 ws_mbedtls:
 	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 $(MBEDTLS_CMAKE_PREFIX) .. ; ninja)
 
+# Replace any cached TLS backend selection in the standard build directory.
+.PHONY: ws_network_framework test_network_framework
+ws_network_framework:
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=ON -DUSE_NETWORK_FRAMEWORK=ON -DUSE_OPEN_SSL=OFF -DUSE_LIBRE_SSL=OFF -DUSE_MBED_TLS=OFF -DUSE_SECURE_TRANSPORT=OFF -DUSE_WS=ON -DUSE_TEST=ON
+	cmake --build build --parallel
+
+test_network_framework: ws_network_framework
+	ctest --test-dir build -R '^IXSocketNetworkTest$$' --output-on-failure
+
 ws_no_ssl:
 	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_WS=1 .. ; ninja)
 

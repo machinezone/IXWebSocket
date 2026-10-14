@@ -84,7 +84,12 @@ TEST_CASE("socket", "[socket]")
         std::string errMsg;
         bool tls = true;
         SocketTLSOptions tlsOptions;
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+        // Exercise native system trust; the vendored CA bundle dates from 2014.
+        tlsOptions.caFile = "SYSTEM";
+#else
         tlsOptions.caFile = "cacert.pem";
+#endif
         std::shared_ptr<Socket> socket = createSocket(tls, -1, errMsg, tlsOptions);
         std::string host("www.google.com");
         int port = 443;

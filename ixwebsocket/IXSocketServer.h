@@ -24,6 +24,9 @@
 namespace ix
 {
     class Socket;
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+    class SocketNetworkListener;
+#endif
 
     enum class LogLevel
     {
@@ -85,6 +88,7 @@ namespace ix
         int getBacklog();
         std::size_t getMaxConnections();
         int getAddressFamily();
+
     protected:
         // Logging
         void logError(const std::string& str);
@@ -103,6 +107,10 @@ namespace ix
 
         // socket for accepting connections
         socket_t _serverFd;
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+        std::unique_ptr<SocketNetworkListener> _networkListener;
+        void runNetwork();
+#endif
 
         std::atomic<bool> _stop;
 
@@ -148,6 +156,6 @@ namespace ix
         // as a connection
         std::condition_variable _conditionVariableGC;
         std::mutex _conditionVariableMutexGC;
-        bool _canContinueGC{ false };
+        bool _canContinueGC {false};
     };
 } // namespace ix

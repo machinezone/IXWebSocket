@@ -47,6 +47,7 @@ Options for building:
 * `-DUSE_ZLIB=1` will enable zlib support, required for http client + server + websocket per message deflate extension
 * `-DUSE_TLS=1` will enable TLS support
 * `-DUSE_OPEN_SSL=1` will use [openssl](https://www.openssl.org/) for the TLS support (default on Linux and Windows). When using a custom version of openssl (say a prebuilt version, odd runtime problems can happens, as in #319, and special cmake trickery will be required (see this [comment](https://github.com/machinezone/IXWebSocket/issues/175#issuecomment-620231032))
+* `-DUSE_NETWORK_FRAMEWORK=ON` enables the experimental native macOS TLS backend and also enables `USE_TLS`. It requires macOS 10.15 or later and links Apple's Network, Security, and CoreFoundation frameworks, with no OpenSSL library dependency. It cannot be combined with another TLS backend; the make target below overrides cached backend selections. Client and server TLS, including mutual TLS, are supported. The existing Apple backend remains the default.
 * `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support
 * `-DUSE_WS=1` will build the ws interactive command line tool
 * `-DUSE_TEST=1` will build the unittest
@@ -117,3 +118,28 @@ app@ca2340eb9106:~$ ws --help
 ws is a websocket tool
 ...
 ```
+
+### Native macOS TLS with Network.framework
+
+The developer makefile builds the library, `ws`, and tests in `build`:
+
+```sh
+make -f makefile.dev ws_network_framework
+make -f makefile.dev test_network_framework
+```
+
+Or invoke CMake directly:
+
+```sh
+cmake -S . -B build -DUSE_NETWORK_FRAMEWORK=ON \
+  -DUSE_OPEN_SSL=OFF -DUSE_LIBRE_SSL=OFF -DUSE_MBED_TLS=OFF -DUSE_SECURE_TRANSPORT=OFF
+cmake --build build
+```
+
+To build the native backend's integration tests, add `-DUSE_TEST=ON`, then run
+`ctest --test-dir build -R IXSocketNetworkTest --output-on-failure`.
+The tests use the `openssl` command-line tool only to generate temporary credentials
+inside the build directory. The library itself does not link OpenSSL. Tests never
+modify the system keychain.
+
+This backend currently targets macOS; iOS, tvOS, and watchOS builds are not enabled.
