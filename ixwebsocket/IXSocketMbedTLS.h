@@ -54,6 +54,7 @@ namespace ix
 
         std::mutex _mutex;
         SocketTLSOptions _tlsOptions;
+        bool _mbedtlsInitialized = false;
 
         bool init(const std::string& host, bool isClient, std::string& errMsg);
         void initMBedTLS();

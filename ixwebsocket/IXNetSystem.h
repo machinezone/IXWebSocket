@@ -88,6 +88,7 @@ namespace ix
 #endif
 
     bool initNetSystem();
+    // Also releases process-global TLS (PSA) state; call only after all sockets are closed.
     bool uninitNetSystem();
 
     int poll(struct pollfd* fds, nfds_t nfds, int timeout, void** event);

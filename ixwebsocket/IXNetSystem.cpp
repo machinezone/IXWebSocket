@@ -7,6 +7,12 @@
 #include "IXNetSystem.h"
 #include <cstdint>
 #include <cstdio>
+#ifdef IXWEBSOCKET_USE_MBED_TLS
+#include <mbedtls/version.h>
+#if MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6)
+#include <psa/crypto.h>
+#endif
+#endif
 #ifdef _WIN32
 #ifndef EAFNOSUPPORT
   #define EAFNOSUPPORT 102
@@ -38,6 +44,9 @@ namespace ix
 
     bool uninitNetSystem()
     {
+#if defined(IXWEBSOCKET_USE_MBED_TLS) && (MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6))
+        mbedtls_psa_crypto_free();
+#endif
 #ifdef _WIN32
         int err = WSACleanup();
         return err == 0;
