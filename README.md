@@ -112,6 +112,8 @@ If your company or project is using this library, feel free to open an issue or 
 - [Candy](https://github.com/lanthora/candy), A WebSocket and TUN based VPN for Linux 
 - [ITGmania](https://github.com/itgmania/itgmania), a cross platform Dance Dance Revolution-like emulator.
 
+- [Radio](https://query.farm/products/extensions/radio/), a DuckDB extension using IXWebSocket for WebSocket messaging from SQL.
+
 ## Alternative libraries
 
 There are plenty of great websocket libraries out there, which might work for you. Here are a couple of serious ones.
