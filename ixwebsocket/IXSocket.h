@@ -6,6 +6,10 @@
 
 #pragma once
 
+#include "IXCancellationRequest.h"
+#include "IXNetSystem.h"
+#include "IXProgressCallback.h"
+#include "IXSelectInterrupt.h"
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -13,11 +17,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-
-#include "IXCancellationRequest.h"
-#include "IXNetSystem.h"
-#include "IXProgressCallback.h"
-#include "IXSelectInterrupt.h"
 
 namespace ix
 {

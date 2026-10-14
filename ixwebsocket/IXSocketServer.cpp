@@ -101,12 +101,8 @@ namespace ix
         {
             _networkListener.reset(new SocketNetworkListener());
             std::string error;
-            bool success = _networkListener->listen(_host,
-                                                    _port,
-                                                    _addressFamily,
-                                                    _maxConnections,
-                                                    _socketTLSOptions,
-                                                    error);
+            bool success = _networkListener->listen(
+                _host, _port, _addressFamily, _maxConnections, _socketTLSOptions, error);
             if (!success) _networkListener.reset();
             return std::make_pair(success, error);
         }
@@ -279,7 +275,7 @@ namespace ix
         {
             _stopGc = true;
             {
-                std::lock_guard<std::mutex> lock{ _conditionVariableMutexGC };
+                std::lock_guard<std::mutex> lock {_conditionVariableMutexGC};
                 _canContinueGC = true;
             }
             _conditionVariableGC.notify_one();
@@ -389,7 +385,8 @@ namespace ix
             socklen_t addressLen = sizeof(client);
             memset(&client, 0, sizeof(client));
 
-            if ((clientFd = static_cast<int>(accept(_serverFd, (struct sockaddr*) &client, &addressLen))) < 0)
+            if ((clientFd = static_cast<int>(
+                     accept(_serverFd, (struct sockaddr*) &client, &addressLen))) < 0)
             {
                 if (!Socket::isWaitNeeded())
                 {
@@ -439,7 +436,8 @@ namespace ix
             {
                 char remoteIp4[INET_ADDRSTRLEN];
                 auto* client4 = reinterpret_cast<struct sockaddr_in*>(&client);
-                if (ix::inet_ntop(AF_INET, &client4->sin_addr, remoteIp4, INET_ADDRSTRLEN) == nullptr)
+                if (ix::inet_ntop(AF_INET, &client4->sin_addr, remoteIp4, INET_ADDRSTRLEN) ==
+                    nullptr)
                 {
                     int err = Socket::getErrno();
                     std::stringstream ss;
@@ -527,7 +525,8 @@ namespace ix
         setThreadName("Srv:ac:" + std::to_string(_port));
         while (!_stop)
         {
-            auto result = Socket::poll(true, 100, _networkListener->getFd(), _acceptSelectInterrupt);
+            auto result =
+                Socket::poll(true, 100, _networkListener->getFd(), _acceptSelectInterrupt);
             if (result != PollResultType::ReadyForRead || _stop) continue;
             auto listenerError = _networkListener->getError();
             if (!listenerError.empty())
@@ -598,8 +597,9 @@ namespace ix
             if (!_stopGc)
             {
                 std::unique_lock<std::mutex> lock(_conditionVariableMutexGC);
-                if(!_canContinueGC) {
-                    _conditionVariableGC.wait(lock, [this]{ return _canContinueGC; });
+                if (!_canContinueGC)
+                {
+                    _conditionVariableGC.wait(lock, [this] { return _canContinueGC; });
                 }
                 _canContinueGC = false;
             }
@@ -616,13 +616,13 @@ namespace ix
         // a connection got terminated, we can run the connection thread GC,
         // so wake up the thread responsible for that
         {
-            std::lock_guard<std::mutex> lock{ _conditionVariableMutexGC };
+            std::lock_guard<std::mutex> lock {_conditionVariableMutexGC};
             _canContinueGC = true;
         }
         _conditionVariableGC.notify_one();
     }
 
-    int  SocketServer::getPort()
+    int SocketServer::getPort()
     {
         return _port;
     }

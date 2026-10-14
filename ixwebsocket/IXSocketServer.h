@@ -88,6 +88,7 @@ namespace ix
         int getBacklog();
         std::size_t getMaxConnections();
         int getAddressFamily();
+
     protected:
         // Logging
         void logError(const std::string& str);
@@ -155,6 +156,6 @@ namespace ix
         // as a connection
         std::condition_variable _conditionVariableGC;
         std::mutex _conditionVariableMutexGC;
-        bool _canContinueGC{ false };
+        bool _canContinueGC {false};
     };
 } // namespace ix

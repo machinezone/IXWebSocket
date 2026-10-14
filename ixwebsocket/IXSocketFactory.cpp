@@ -50,7 +50,8 @@ namespace ix
 #elif defined(IXWEBSOCKET_USE_NETWORK_FRAMEWORK)
             if (fd != -1)
             {
-                errorMsg = "Network.framework requires a native listener; BSD sockets cannot be adopted";
+                errorMsg =
+                    "Network.framework requires a native listener; BSD sockets cannot be adopted";
                 return nullptr;
             }
             socket = ix::make_unique<SocketNetwork>(tlsOptions);
