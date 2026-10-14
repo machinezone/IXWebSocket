@@ -140,6 +140,7 @@ There is a unittest which can be executed by typing <code>make test</code>.</p>
 <li><code>-DUSE_ZLIB=1</code> will enable zlib support, required for http client + server + websocket per message deflate extension</li>
 <li><code>-DUSE_TLS=1</code> will enable TLS support</li>
 <li><code>-DUSE_OPEN_SSL=1</code> will use <a href="https://www.openssl.org/">openssl</a> for the TLS support (default on Linux and Windows). When using a custom version of openssl (say a prebuilt version, odd runtime problems can happens, as in #319, and special cmake trickery will be required (see this <a href="https://github.com/machinezone/IXWebSocket/issues/175#issuecomment-620231032">comment</a>)</li>
+<li><code>-DUSE_NETWORK_FRAMEWORK=ON</code> enables the experimental native macOS TLS backend and also enables <code>USE_TLS</code>. It requires macOS 10.15 or later and links Apple's Network, Security, and CoreFoundation frameworks, with no OpenSSL library dependency. It cannot be combined with another TLS backend; the make target below overrides cached backend selections. Client and server TLS, including mutual TLS, are supported. The existing Apple backend remains the default.</li>
 <li><code>-DUSE_MBED_TLS=1</code> will use <a href="https://tls.mbed.org/">mbedlts</a> for the TLS support</li>
 <li><code>-DUSE_WS=1</code> will build the ws interactive command line tool</li>
 <li><code>-DUSE_TEST=1</code> will build the unittest</li>
@@ -190,7 +191,23 @@ $ docker exec -it ixwebsocket_ws_1 bash
 app@ca2340eb9106:~$ ws --help
 ws is a websocket tool
 ...
-</code></pre></div>
+</code></pre>
+<h3 id="native-macos-tls-with-networkframework">Native macOS TLS with Network.framework</h3>
+<p>The developer makefile builds the library, <code>ws</code>, and tests in <code>build</code>:</p>
+<pre><code class="language-sh">make -f makefile.dev ws_network_framework
+make -f makefile.dev test_network_framework
+</code></pre>
+<p>Or invoke CMake directly:</p>
+<pre><code class="language-sh">cmake -S . -B build -DUSE_NETWORK_FRAMEWORK=ON \
+  -DUSE_OPEN_SSL=OFF -DUSE_LIBRE_SSL=OFF -DUSE_MBED_TLS=OFF -DUSE_SECURE_TRANSPORT=OFF
+cmake --build build
+</code></pre>
+<p>To build the native backend's integration tests, add <code>-DUSE_TEST=ON</code>, then run
+<code>ctest --test-dir build -R IXSocketNetworkTest --output-on-failure</code>.
+The tests use the <code>openssl</code> command-line tool only to generate temporary credentials
+inside the build directory. The library itself does not link OpenSSL. Tests never
+modify the system keychain.</p>
+<p>This backend currently targets macOS; iOS, tvOS, and watchOS builds are not enabled.</p></div>
             </div>
         </div>
 

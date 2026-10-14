@@ -681,7 +681,33 @@ server.wait();
 <p>For a server, specifying <code>caFile</code> implies that:
 1. You require clients to present a certificate
 1. It must be signed by one of the trusted roots in the file</p>
-<p>By default, a destination's hostname is always validated against the certificate that it presents. To accept certificates with any hostname, set <code>ix::SocketTLSOptions::disable_hostname_validation</code> to <code>true</code>.</p></div>
+<p>By default, a destination's hostname is always validated against the certificate that it presents. To accept certificates with any hostname, set <code>ix::SocketTLSOptions::disable_hostname_validation</code> to <code>true</code>.</p>
+<h3 id="networkframework-backend-on-macos">Network.framework backend on macOS</h3>
+<p>Build with <code>USE_NETWORK_FRAMEWORK=ON</code> to use native TLS for <code>wss://</code> and <code>https://</code>
+clients and TLS-enabled WebSocket/HTTP servers. Network.framework handles connection
+setup, DNS, and TCP. Application HTTP and WebSocket handling stays in IXWebSocket.
+TLS 1.2 is the minimum; TLS 1.3 is negotiated when supported by the peer.</p>
+<p>The existing <code>SocketTLSOptions</code> fields apply:</p>
+<ul>
+<li><code>certFile</code> and <code>keyFile</code> accept a PEM certificate chain (leaf first) and matching,
+  unencrypted PEM private key. Both are required for a TLS server and optional for a
+  client presenting a certificate. Credentials are imported in memory, without
+  installing them in a keychain.</li>
+<li><code>caFile = "SYSTEM"</code> uses Apple's trust evaluation and configured system trust.
+  A PEM CA file or in-memory PEM bundle instead restricts trust to those anchors.</li>
+<li><code>caFile = "NONE"</code> disables peer verification. On a server this also disables the
+  requirement for a client certificate. Other CA settings require client
+  authentication, matching the existing server options.</li>
+<li><code>disable_hostname_validation</code> skips the client's hostname check while retaining
+  certificate trust evaluation. IP literals are checked against IP SAN entries.</li>
+<li>Custom <code>ciphers</code> strings are currently rejected; leave <code>ciphers</code> at <code>DEFAULT</code>.</li>
+</ul>
+<p>The native server uses a Network.framework listener. <code>createSocket</code> cannot adopt an
+existing BSD descriptor for TLS with this backend. The listener requires a numeric
+bind address and uses the framework's TCP listen queue rather than the BSD backlog
+setting. Pending connections are bounded by <code>maxConnections</code>. Server TLS handshakes
+have a ten-second limit and are interrupted when the server stops. Client connection
+timeouts use the caller's cancellation callback, including HTTP/WebSocket timeouts.</p></div>
             </div>
         </div>
 
