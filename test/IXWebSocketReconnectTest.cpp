@@ -252,6 +252,8 @@ TEST_CASE("Reconnect discards queued output", "[websocket][reconnect]")
 
 TEST_CASE("Reconnect waits for an interrupted send", "[websocket][reconnect]")
 {
+    const bool stopFromProgressCallback = GENERATE(false, true);
+    CAPTURE(stopFromProgressCallback);
     std::promise<std::string> received;
     auto wire = received.get_future();
     ReconnectTestServer server(
@@ -297,27 +299,23 @@ TEST_CASE("Reconnect waits for an interrupted send", "[websocket][reconnect]")
         FAIL("Initial connection failed");
     }
 
+    auto onProgress = [&](int step, int)
+    {
+        if (step == 0)
+        {
+            {
+                std::unique_lock<std::mutex> lock(mutex);
+                paused = true;
+                changed.notify_all();
+                changed.wait_for(lock, std::chrono::seconds(5), [&] { return release; });
+            }
+            if (stopFromProgressCallback) client.stop();
+        }
+        return true;
+    };
     bool sendSucceeded = true;
     std::thread sender(
-        [&]
-        {
-            sendSucceeded = client
-                                .sendBinary(std::string(65536, 'x'),
-                                            [&](int step, int)
-                                            {
-                                                if (step == 0)
-                                                {
-                                                    std::unique_lock<std::mutex> lock(mutex);
-                                                    paused = true;
-                                                    changed.notify_all();
-                                                    changed.wait_for(lock,
-                                                                     std::chrono::seconds(5),
-                                                                     [&] { return release; });
-                                                }
-                                                return true;
-                                            })
-                                .success;
-        });
+        [&] { sendSucceeded = client.sendBinary(std::string(65536, 'x'), onProgress).success; });
     bool interrupted;
     bool reconnectedWhilePaused;
     {
@@ -330,6 +328,7 @@ TEST_CASE("Reconnect waits for an interrupted send", "[websocket][reconnect]")
         changed.notify_all();
     }
     sender.join();
+    if (stopFromProgressCallback) client.start();
     bool reconnected;
     {
         std::unique_lock<std::mutex> lock(mutex);

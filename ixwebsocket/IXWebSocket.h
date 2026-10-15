@@ -129,6 +129,7 @@ namespace ix
         bool isConnected() const;
         bool isClosing() const;
         void checkConnection(bool firstConnectionAttempt);
+        bool waitForWriteLock(std::unique_lock<std::mutex>& lock);
         static void invokeTrafficTrackerCallback(size_t size, bool incoming);
 
         // Server
