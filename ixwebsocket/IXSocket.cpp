@@ -217,6 +217,16 @@ namespace ix
         return true;
     }
 
+    bool Socket::accept(std::string& errMsg, const CancellationRequest& isCancellationRequested)
+    {
+        if (isCancellationRequested && isCancellationRequested())
+        {
+            errMsg = "Cancellation requested";
+            return false;
+        }
+        return accept(errMsg);
+    }
+
     bool Socket::connect(const std::string& host,
                          int port,
                          std::string& errMsg,

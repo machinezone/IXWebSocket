@@ -68,7 +68,7 @@ ws_network_framework:
 	cmake --build build --parallel
 
 test_network_framework: ws_network_framework
-	ctest --test-dir build -R '^IXSocketNetworkTest$$' --output-on-failure
+	ctest --test-dir build -R '^IXSocket(Network|TLSServer)Test$$' --output-on-failure
 
 ws_no_ssl:
 	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_WS=1 .. ; ninja)
@@ -144,7 +144,7 @@ test_tsan_mbedtls:
 	(cd build ; ninja test)
 
 test_tsan_openssl:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPENS_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPEN_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
 	(cd build ; ninja)
 	(cd build ; ninja test)
 

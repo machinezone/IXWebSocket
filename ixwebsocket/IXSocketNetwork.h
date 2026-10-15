@@ -22,7 +22,7 @@ namespace ix
                      std::string& error,
                      const CancellationRequest& cancelled) override;
         bool accept(std::string& error) override;
-        bool accept(std::string& error, const CancellationRequest& cancelled);
+        bool accept(std::string& error, const CancellationRequest& cancelled) override;
         void close() override;
         std::ptrdiff_t send(char* buffer, size_t length) override;
         std::ptrdiff_t recv(void* buffer, size_t length) override;

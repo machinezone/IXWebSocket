@@ -120,6 +120,11 @@ namespace ix
         // background thread to wait for incoming connections
         std::thread _thread;
         void run();
+        void startConnection(std::unique_ptr<Socket> socket,
+                             const std::string& remoteIp,
+                             int remotePort);
+        void acceptConnection(std::unique_ptr<Socket> socket,
+                              std::shared_ptr<ConnectionState> connectionState);
         void onSetTerminatedCallback();
 
         // background thread to cleanup (join) terminated threads

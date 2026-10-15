@@ -17,6 +17,7 @@
 #include "IXSocketNetwork.h"
 #endif
 #include <assert.h>
+#include <chrono>
 #include <sstream>
 #include <stdio.h>
 #include <string.h>
@@ -264,7 +265,6 @@ namespace ix
             }
 
             _thread.join();
-            _stop = false;
         }
 
 #ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
@@ -294,6 +294,7 @@ namespace ix
             Socket::closeSocket(_serverFd);
             _serverFd = -1;
         }
+        _stop = false;
     }
 
     void SocketServer::setConnectionStateFactory(
@@ -400,7 +401,8 @@ namespace ix
                 continue;
             }
 
-            if (getConnectedClientsCount() >= _maxConnections)
+            if (getConnectedClientsCount() >= _maxConnections ||
+                getConnectionsThreadsCount() >= _maxConnections)
             {
                 std::stringstream ss;
                 ss << "SocketServer::run() reached max connections = " << _maxConnections << ". "
@@ -475,17 +477,6 @@ namespace ix
                 remoteIp = remoteIp6;
             }
 
-            std::shared_ptr<ConnectionState> connectionState;
-            if (_connectionStateFactory)
-            {
-                connectionState = _connectionStateFactory();
-            }
-            connectionState->setOnSetTerminatedCallback([this] { onSetTerminatedCallback(); });
-            connectionState->setRemoteIp(remoteIp);
-            connectionState->setRemotePort(remotePort);
-
-            if (_stop) return;
-
             // create socket
             std::string errorMsg;
             bool tls = _socketTLSOptions.tls;
@@ -502,20 +493,7 @@ namespace ix
             // Set the socket to non blocking mode + other tweaks
             SocketConnect::configure(clientFd);
 
-            if (!socket->accept(errorMsg))
-            {
-                logError("SocketServer::run() tls accept failed for client " + remoteIp + ":" +
-                         std::to_string(remotePort) + ": " + errorMsg);
-                Socket::closeSocket(clientFd);
-                continue;
-            }
-
-            // Launch the handleConnection work asynchronously in its own thread.
-            std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
-            _connectionsThreads.push_back(std::make_pair(
-                connectionState,
-                std::thread(
-                    &SocketServer::handleConnection, this, std::move(socket), connectionState)));
+            startConnection(std::move(socket), remoteIp, remotePort);
         }
     }
 
@@ -538,33 +516,67 @@ namespace ix
             int remotePort = 0;
             auto socket = _networkListener->take(remoteIp, remotePort);
             if (!socket) continue;
-            if (getConnectedClientsCount() >= _maxConnections)
+            if (getConnectedClientsCount() >= _maxConnections ||
+                getConnectionsThreadsCount() >= _maxConnections)
             {
                 logError("SocketServer::run() reached max connections = " +
                          std::to_string(_maxConnections));
                 continue;
             }
             std::string error;
-            if (!socket->init(error) || !socket->accept(error, [this] { return _stop.load(); }))
+            if (!socket->init(error))
             {
                 logError("SocketServer::run() tls accept failed for client " + remoteIp + ":" +
                          std::to_string(remotePort) + ": " + error);
                 continue;
             }
-            auto connectionState = _connectionStateFactory();
-            connectionState->setOnSetTerminatedCallback([this] { onSetTerminatedCallback(); });
-            connectionState->setRemoteIp(remoteIp);
-            connectionState->setRemotePort(remotePort);
-            if (_stop) return;
-            std::unique_ptr<Socket> accepted(std::move(socket));
-            std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
-            _connectionsThreads.push_back(std::make_pair(
-                connectionState,
-                std::thread(
-                    &SocketServer::handleConnection, this, std::move(accepted), connectionState)));
+            startConnection(std::move(socket), remoteIp, remotePort);
         }
     }
 #endif
+
+    void SocketServer::startConnection(std::unique_ptr<Socket> socket,
+                                       const std::string& remoteIp,
+                                       int remotePort)
+    {
+        if (_stop) return;
+        auto connectionState = _connectionStateFactory();
+        connectionState->setOnSetTerminatedCallback([this] { onSetTerminatedCallback(); });
+        connectionState->setRemoteIp(remoteIp);
+        connectionState->setRemotePort(remotePort);
+
+        std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
+        if (_stop) return;
+        _connectionsThreads.push_back(std::make_pair(
+            connectionState,
+            std::thread(
+                &SocketServer::acceptConnection, this, std::move(socket), connectionState)));
+    }
+
+    void SocketServer::acceptConnection(std::unique_ptr<Socket> socket,
+                                        std::shared_ptr<ConnectionState> connectionState)
+    {
+        setThreadName("Srv:tls:" + std::to_string(_port));
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+        auto cancelled = [this, deadline]
+        { return _stop || std::chrono::steady_clock::now() >= deadline; };
+        std::string error;
+        bool accepted = socket->accept(error, cancelled);
+        if (!accepted || _stop)
+        {
+            if (!_stop)
+            {
+                if (cancelled()) error = "TLS handshake timed out";
+                logError("SocketServer::run() tls accept failed for client " +
+                         connectionState->getRemoteIp() + ":" +
+                         std::to_string(connectionState->getRemotePort()) + ": " + error);
+            }
+            socket.reset();
+            connectionState->setTerminated();
+            return;
+        }
+        handleConnection(std::move(socket), connectionState);
+    }
 
     size_t SocketServer::getConnectionsThreadsCount()
     {

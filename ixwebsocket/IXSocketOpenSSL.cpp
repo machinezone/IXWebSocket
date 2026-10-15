@@ -426,10 +426,16 @@ namespace ix
         }
     }
 
-    bool SocketOpenSSL::openSSLServerHandshake(std::string& errMsg)
+    bool SocketOpenSSL::openSSLServerHandshake(std::string& errMsg,
+                                               const CancellationRequest& isCancellationRequested)
     {
         while (true)
         {
+            if (isCancellationRequested && isCancellationRequested())
+            {
+                errMsg = "Cancellation requested";
+                return false;
+            }
             if (_ssl_connection == nullptr || _ssl_context == nullptr)
             {
                 return false;
@@ -446,7 +452,9 @@ namespace ix
             bool rc = false;
             if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
             {
-                rc = true;
+                auto ready = reason == SSL_ERROR_WANT_READ ? isReadyToRead(10) : isReadyToWrite(10);
+                rc = ready != PollResultType::Error;
+                if (!rc) errMsg = "Socket error during TLS handshake";
             }
             else
             {
@@ -565,6 +573,12 @@ namespace ix
     }
 
     bool SocketOpenSSL::accept(std::string& errMsg)
+    {
+        return accept(errMsg, CancellationRequest());
+    }
+
+    bool SocketOpenSSL::accept(std::string& errMsg,
+                               const CancellationRequest& isCancellationRequested)
     {
         bool handshakeSuccessful = false;
         {
@@ -709,7 +723,7 @@ namespace ix
 
             SSL_set_fd(_ssl_connection, _sockfd);
 
-            handshakeSuccessful = openSSLServerHandshake(errMsg);
+            handshakeSuccessful = openSSLServerHandshake(errMsg, isCancellationRequested);
         }
 
         if (!handshakeSuccessful)
