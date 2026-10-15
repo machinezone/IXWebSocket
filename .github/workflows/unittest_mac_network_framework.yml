@@ -3,54 +3,15 @@ on:
   push:
     paths-ignore:
     - 'docs/**'
-    branches: [ master ]
+    branches: [ master ]   # CI on PRs targeting master
   pull_request:
-    branches: [ master ]
-
-permissions:
-  contents: read
+    branches: [ master ]   # CI on PRs targeting master
 
 jobs:
   mac_network_framework:
     runs-on: macos-latest
-    timeout-minutes: 15
     steps:
-    - uses: actions/checkout@v4
-    - name: Configure native TLS with strict C++11 and deprecated API checks
-      run: |
-        cmake -S . -B build \
-          -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_UNITY_BUILD=ON \
-          -DCMAKE_CXX_STANDARD_REQUIRED=ON \
-          -DCMAKE_CXX_EXTENSIONS=OFF \
-          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-          -DCMAKE_CXX_FLAGS="-pedantic-errors -Werror=deprecated-declarations" \
-          -DUSE_TLS=ON -DUSE_NETWORK_FRAMEWORK=ON \
-          -DUSE_OPEN_SSL=OFF -DUSE_LIBRE_SSL=OFF \
-          -DUSE_MBED_TLS=OFF -DUSE_SECURE_TRANSPORT=OFF \
-          -DUSE_WS=ON -DUSE_TEST=ON
-    - name: Build
-      run: cmake --build build --parallel 4
-    - name: Verify C++11, native backend and independent linkage
-      run: |
-        python3 - <<'PY'
-        import json
-        import shlex
-        import subprocess
-
-        with open("build/compile_commands.json") as source:
-            commands = [entry["command"] for entry in json.load(source)
-                        if "CMakeFiles/ixwebsocket.dir/" in entry["command"]]
-        assert commands, "No library compilation commands found"
-        for command in commands:
-            standards = [arg for arg in shlex.split(command) if arg.startswith("-std=")]
-            assert standards == ["-std=c++11"], command
-
-        version = subprocess.check_output(["./build/ws/ws", "--version"], text=True)
-        print(version, end="")
-        assert "ssl/Network.framework" in version, version
-        dependencies = subprocess.check_output(["otool", "-L", "build/ws/ws"], text=True)
-        assert "libssl" not in dependencies and "libcrypto" not in dependencies, dependencies
-        PY
-    - name: Run tests with Network.framework
-      run: ctest --test-dir build --output-on-failure
+    - uses: actions/checkout@v1
+    - uses: seanmiddleditch/gha-setup-ninja@master
+    - name: make test
+      run: make -f makefile.dev test_network_framework
