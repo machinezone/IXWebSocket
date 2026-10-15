@@ -210,6 +210,8 @@ namespace ix
 
     WebSocketInitResult WebSocket::connect(int timeoutSecs)
     {
+        // Finish any in-flight send before discarding the previous connection's state.
+        std::unique_lock<std::mutex> writeLock(_writeMutex);
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(
@@ -240,6 +242,7 @@ namespace ix
         }
 
         WebSocketInitResult status = _ws.connectToUrl(_url, headers, timeoutSecs);
+        writeLock.unlock();
         if (!status.success)
         {
             return status;
@@ -268,6 +271,7 @@ namespace ix
                                                    HttpRequestPtr request,
                                                    int sendTimeoutSecs)
     {
+        std::unique_lock<std::mutex> writeLock(_writeMutex);
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(
@@ -276,6 +280,7 @@ namespace ix
 
         WebSocketInitResult status = _ws.connectToSocket(
             std::move(socket), timeoutSecs, enablePerMessageDeflate, request, sendTimeoutSecs);
+        writeLock.unlock();
         if (!status.success)
         {
             return status;

@@ -15,6 +15,7 @@ set (TEST_TARGET_NAMES
   IXSocketConnectTest
   IXWebSocketServerTest
   IXWebSocketTestConnectionDisconnection
+  IXWebSocketReconnectTest
   IXUrlParserTest
   # IXHttpClientTest ## FIXME httpbin.org does not seem normal
   IXUnityBuildsTest
@@ -105,6 +106,8 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 endforeach()
+
+set_tests_properties(IXWebSocketReconnectTest PROPERTIES TIMEOUT 30)
 
 if (USE_NETWORK_FRAMEWORK)
   # Only the test credential generator needs the openssl command-line tool.
