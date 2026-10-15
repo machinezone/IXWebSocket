@@ -146,7 +146,7 @@ test_tsan_mbedtls:
 test_tsan_openssl:
 	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPEN_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
 	(cd build ; ninja)
-	(cd build ; ninja test)
+	ctest --test-dir build --output-on-failure
 
 test_tsan_sectransport:
 	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPENS_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")

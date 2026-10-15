@@ -3,7 +3,6 @@
  *  Copyright (c) 2026 Machine Zone, Inc. All rights reserved.
  */
 
-#include <atomic>
 #include <catch_amalgamated.hpp>
 #include <chrono>
 #include <condition_variable>
@@ -37,7 +36,14 @@ namespace
             server.setLogCallback(
                 [this](ix::LogLevel, const std::string& message)
                 {
-                    if (message.find("TLS handshake timed out") != std::string::npos) ++timeouts;
+                    if (message.find("TLS handshake timed out") != std::string::npos)
+                    {
+                        {
+                            std::lock_guard<std::mutex> lock(_mutex);
+                            ++_timeouts;
+                        }
+                        _changed.notify_all();
+                    }
                 });
             server.setConnectionStateFactory(
                 [this]
@@ -77,6 +83,13 @@ namespace
                 lock, std::chrono::seconds(3), [this, count] { return _accepted >= count; });
         }
 
+        bool waitForTimeout()
+        {
+            std::unique_lock<std::mutex> lock(_mutex);
+            return _changed.wait_for(
+                lock, std::chrono::seconds(3), [this] { return _timeouts == 1; });
+        }
+
         void connectIdlePeer(ix::Socket& peer)
         {
             std::string error;
@@ -107,9 +120,9 @@ namespace
         std::mutex _mutex;
         std::condition_variable _changed;
         unsigned _accepted = 0;
+        unsigned _timeouts = 0;
 
     public:
-        std::atomic<unsigned> timeouts {0};
         ix::HttpServer server;
     };
 } // namespace
@@ -170,5 +183,5 @@ TEST_CASE("Idle TLS handshakes time out", "[tls][server]")
     char byte;
     CHECK_FALSE(peer.readByte(&byte, [deadline] { return Clock::now() >= deadline; }));
     CHECK(Clock::now() - start < std::chrono::seconds(11));
-    CHECK(fixture.timeouts == 1);
+    CHECK(fixture.waitForTimeout());
 }
