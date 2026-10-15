@@ -279,6 +279,7 @@ namespace ix
                          const OnMessageCallback& onMessageCallback);
 
         bool isSendBufferEmpty() const;
+        void resetConnectionState();
 
         template<class Iterator>
         void appendToSendBuffer(const std::vector<uint8_t>& header,

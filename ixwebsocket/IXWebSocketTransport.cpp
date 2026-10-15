@@ -106,6 +106,7 @@ namespace ix
                                                          const WebSocketHttpHeaders& headers,
                                                          int timeoutSecs)
     {
+        resetConnectionState();
         std::lock_guard<std::mutex> lock(_socketMutex);
 
         std::string protocol, host, path, query;
@@ -176,6 +177,7 @@ namespace ix
                                                             HttpRequestPtr request,
                                                             int sendTimeoutSecs)
     {
+        resetConnectionState();
         std::lock_guard<std::mutex> lock(_socketMutex);
 
         // Server should not mask the data it sends to the client
@@ -399,6 +401,19 @@ namespace ix
         }
 
         return PollResult::Succeeded;
+    }
+
+    void WebSocketTransport::resetConnectionState()
+    {
+        // Frames and fragments belong to one connection and cannot be replayed on another.
+        // Take this lock before _socketMutex, matching sendOnSocket()'s lock order.
+        std::lock_guard<std::mutex> lock(_txbufMutex);
+        _txbuf.clear();
+        _rxbuf.clear();
+        _rxbufWanted = 0;
+        _chunks.clear();
+        _fragmentedMessageKind = MessageKind::MSG_TEXT;
+        _receivedMessageCompressed = false;
     }
 
     bool WebSocketTransport::isSendBufferEmpty() const
