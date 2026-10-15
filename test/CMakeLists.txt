@@ -19,6 +19,7 @@ set (TEST_TARGET_NAMES
   # IXHttpClientTest ## FIXME httpbin.org does not seem normal
   IXUnityBuildsTest
   IXHttpTest
+  IXWebSocketHttpHeadersTest
   IXDNSLookupTest
   IXWebSocketSubProtocolTest
   # IXWebSocketBroadcastTest ## FIXME was depending on cobra / take a broadcast server from ws
