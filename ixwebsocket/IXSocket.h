@@ -57,6 +57,8 @@ namespace ix
         std::ptrdiff_t send(const std::string& buffer);
         virtual std::ptrdiff_t recv(void* buffer, size_t length);
         virtual PollResultType isReadyToWrite(int timeoutMs);
+        virtual bool accept(std::string& errMsg,
+                            const CancellationRequest& isCancellationRequested);
 
         // Blocking and cancellable versions, working with socket that can be set
         // to non blocking mode. Used during HTTP upgrade.

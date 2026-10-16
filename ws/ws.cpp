@@ -2860,6 +2860,7 @@ int main(int argc, char** argv)
     else if (version)
     {
         std::cout << "ws " << ix::userAgent() << std::endl;
+        ret = 0;
     }
     else
     {

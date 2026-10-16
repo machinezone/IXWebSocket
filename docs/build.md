@@ -128,6 +128,10 @@ make -f makefile.dev ws_network_framework
 make -f makefile.dev test_network_framework
 ```
 
+The test target runs the full suite and verifies C++11 compilation, native TLS
+selection, and absence of OpenSSL linkage. Builds treat deprecated API warnings
+as errors.
+
 Or invoke CMake directly:
 
 ```sh

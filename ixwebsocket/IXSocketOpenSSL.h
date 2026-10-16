@@ -26,6 +26,8 @@ namespace ix
         ~SocketOpenSSL();
 
         virtual bool accept(std::string& errMsg) final;
+        bool accept(std::string& errMsg,
+                    const CancellationRequest& isCancellationRequested) override;
 
         virtual bool connect(const std::string& host,
                              int port,
@@ -47,7 +49,8 @@ namespace ix
         bool openSSLCheckServerCert(SSL* ssl, const std::string& hostname, std::string& errMsg);
         bool checkHost(const std::string& host, const char* pattern);
         bool handleTLSOptions(std::string& errMsg);
-        bool openSSLServerHandshake(std::string& errMsg);
+        bool openSSLServerHandshake(std::string& errMsg,
+                                    const CancellationRequest& isCancellationRequested);
 
         // Required for OpenSSL < 1.1
         static void openSSLLockingCallback(int mode, int type, const char* /*file*/, int /*line*/);

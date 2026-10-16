@@ -234,6 +234,12 @@ namespace ix
 
     bool SocketMbedTLS::accept(std::string& errMsg)
     {
+        return accept(errMsg, CancellationRequest());
+    }
+
+    bool SocketMbedTLS::accept(std::string& errMsg,
+                               const CancellationRequest& isCancellationRequested)
+    {
         bool isClient = false;
         bool initialized = init(std::string(), isClient, errMsg);
         if (!initialized)
@@ -247,8 +253,27 @@ namespace ix
         int res;
         do
         {
-            std::lock_guard<std::mutex> lock(_mutex);
-            res = mbedtls_ssl_handshake(&_ssl);
+            if (isCancellationRequested && isCancellationRequested())
+            {
+                errMsg = "Cancellation requested";
+                close();
+                return false;
+            }
+            {
+                std::lock_guard<std::mutex> lock(_mutex);
+                res = mbedtls_ssl_handshake(&_ssl);
+            }
+            if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
+            {
+                auto ready =
+                    res == MBEDTLS_ERR_SSL_WANT_READ ? isReadyToRead(10) : isReadyToWrite(10);
+                if (ready == PollResultType::Error)
+                {
+                    errMsg = "Socket error during TLS handshake";
+                    close();
+                    return false;
+                }
+            }
         } while (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE);
 
         if (res != 0)

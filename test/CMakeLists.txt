@@ -109,21 +109,30 @@ endforeach()
 
 set_tests_properties(IXWebSocketReconnectTest PROPERTIES TIMEOUT 30)
 
-if (USE_NETWORK_FRAMEWORK)
+if (USE_NETWORK_FRAMEWORK OR (UNIX AND USE_TLS AND (USE_OPEN_SSL OR USE_LIBRE_SSL OR USE_MBED_TLS)))
   # Only the test credential generator needs the openssl command-line tool.
-  find_program(NETWORK_TEST_OPENSSL openssl)
-  if (NOT NETWORK_TEST_OPENSSL)
-    message(FATAL_ERROR "Network.framework tests need the openssl CLI to generate test credentials")
+  find_program(TLS_TEST_OPENSSL openssl)
+  if (NOT TLS_TEST_OPENSSL)
+    message(FATAL_ERROR "TLS server tests need the openssl CLI to generate test credentials")
   endif()
-  set(NETWORK_TEST_CERTS "${CMAKE_CURRENT_BINARY_DIR}/network-certs")
-  add_custom_command(OUTPUT "${NETWORK_TEST_CERTS}/ready"
-    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/generate_network_certs.sh" "${NETWORK_TEST_OPENSSL}" "${NETWORK_TEST_CERTS}"
+  set(TLS_TEST_CERTS "${CMAKE_CURRENT_BINARY_DIR}/network-certs")
+  add_custom_command(OUTPUT "${TLS_TEST_CERTS}/ready"
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/generate_network_certs.sh" "${TLS_TEST_OPENSSL}" "${TLS_TEST_CERTS}"
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/generate_network_certs.sh"
     VERBATIM)
-  add_custom_target(network_test_certs DEPENDS "${NETWORK_TEST_CERTS}/ready")
+  add_custom_target(tls_test_certs DEPENDS "${TLS_TEST_CERTS}/ready")
+  add_executable(IXSocketTLSServerTest IXSocketTLSServerTest.cpp)
+  add_dependencies(IXSocketTLSServerTest tls_test_certs)
+  target_compile_definitions(IXSocketTLSServerTest PRIVATE IX_TLS_SERVER_TEST_CERTS="${TLS_TEST_CERTS}")
+  target_link_libraries(IXSocketTLSServerTest ixwebsocket_test ixwebsocket Catch2)
+  add_test(NAME IXSocketTLSServerTest COMMAND IXSocketTLSServerTest)
+  set_tests_properties(IXSocketTLSServerTest PROPERTIES TIMEOUT 30)
+endif()
+
+if (USE_NETWORK_FRAMEWORK)
   add_executable(IXSocketNetworkTest IXSocketNetworkTest.cpp)
-  add_dependencies(IXSocketNetworkTest network_test_certs)
-  target_compile_definitions(IXSocketNetworkTest PRIVATE IX_NETWORK_TEST_CERTS="${NETWORK_TEST_CERTS}")
+  add_dependencies(IXSocketNetworkTest tls_test_certs)
+  target_compile_definitions(IXSocketNetworkTest PRIVATE IX_NETWORK_TEST_CERTS="${TLS_TEST_CERTS}")
   target_link_libraries(IXSocketNetworkTest ixwebsocket_test ixwebsocket Catch2)
   add_test(NAME IXSocketNetworkTest COMMAND IXSocketNetworkTest)
   set_tests_properties(IXSocketNetworkTest PROPERTIES TIMEOUT 45)

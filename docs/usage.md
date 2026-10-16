@@ -291,6 +291,8 @@ setHandshakeTimeout(handshakeTimeoutSecs);
 
 ## WebSocket server API
 
+TLS handshakes run in individual connection workers, so an idle peer does not block other clients from connecting. Server TLS handshakes have a 10-second timeout and are cancelled when the server stops. The maximum connection limit includes clients whose TLS handshake is still pending.
+
 ### Legacy api
 
 This api was actually changed to take a weak_ptr<WebSocket> as the first argument to setOnConnectionCallback ; previously it would take a shared_ptr<WebSocket> which was creating cycles and then memory leaks problems.
