@@ -197,6 +197,9 @@ ws is a websocket tool
 <pre><code class="language-sh">make -f makefile.dev ws_network_framework
 make -f makefile.dev test_network_framework
 </code></pre>
+<p>The test target runs the full suite and verifies C++11 compilation, native TLS
+selection, and absence of OpenSSL linkage. Builds treat deprecated API warnings
+as errors.</p>
 <p>Or invoke CMake directly:</p>
 <pre><code class="language-sh">cmake -S . -B build -DUSE_NETWORK_FRAMEWORK=ON \
   -DUSE_OPEN_SSL=OFF -DUSE_LIBRE_SSL=OFF -DUSE_MBED_TLS=OFF -DUSE_SECURE_TRANSPORT=OFF

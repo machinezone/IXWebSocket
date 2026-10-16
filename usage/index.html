@@ -354,6 +354,7 @@ uint32_t m = webSocket.getMinWaitBetweenReconnectionRetries();
 setHandshakeTimeout(handshakeTimeoutSecs);
 </code></pre>
 <h2 id="websocket-server-api">WebSocket server API</h2>
+<p>TLS handshakes run in individual connection workers, so an idle peer does not block other clients from connecting. Server TLS handshakes have a 10-second timeout and are cancelled when the server stops. The maximum connection limit includes clients whose TLS handshake is still pending.</p>
 <h3 id="legacy-api">Legacy api</h3>
 <p>This api was actually changed to take a weak_ptr<WebSocket> as the first argument to setOnConnectionCallback ; previously it would take a shared_ptr<WebSocket> which was creating cycles and then memory leaks problems.</p>
 <pre><code class="language-cpp">#include &lt;ixwebsocket/IXWebSocketServer.h&gt;
