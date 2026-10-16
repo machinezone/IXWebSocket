@@ -15,13 +15,6 @@ using namespace ix;
 
 namespace
 {
-    const std::string WEBSOCKET_DOT_ORG_URL("wss://echo.websocket.org");
-    const std::string GOOGLE_URL("wss://google.com");
-    const std::string UNKNOWN_URL("wss://asdcasdcaasdcasdcasdcasdcasdcasdcasassdd.com");
-} // namespace
-
-namespace
-{
     class IXWebSocketTestConnectionDisconnection
     {
     public:
@@ -46,10 +39,6 @@ namespace
     void IXWebSocketTestConnectionDisconnection::start(const std::string& url)
     {
         _webSocket.setUrl(url);
-
-        SocketTLSOptions tlsOptions;
-        tlsOptions.caFile = "cacert.pem";
-        _webSocket.setTLSOptions(tlsOptions);
 
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
@@ -114,11 +103,11 @@ TEST_CASE("websocket_connections", "[websocket]")
     {
         IXWebSocketTestConnectionDisconnection test;
 
-        test.start(GOOGLE_URL);
+        test.start("ws://127.0.0.1:" + std::to_string(getFreePort()) + "/");
         ix::msleep(1000);
         test.stop();
 
-        test.start(UNKNOWN_URL);
+        test.start("ws:///");
         ix::msleep(1000);
         test.stop();
     }
@@ -126,13 +115,16 @@ TEST_CASE("websocket_connections", "[websocket]")
     SECTION("Try to connect and disconnect with different timing, not enough time to succesfully "
             "connect")
     {
+        ix::WebSocketServer server(getFreePort(), "127.0.0.1");
+        REQUIRE(startWebSocketEchoServer(server));
+        const std::string url("ws://127.0.0.1:" + std::to_string(server.getPort()) + "/");
         IXWebSocketTestConnectionDisconnection test;
         log(std::string("50 Runs"));
 
         for (int i = 0; i < 50; ++i)
         {
             log(std::string("Run: ") + std::to_string(i));
-            test.start(WEBSOCKET_DOT_ORG_URL);
+            test.start(url);
 
             log(std::string("Sleeping"));
             ix::msleep(i);
@@ -147,13 +139,16 @@ TEST_CASE("websocket_connections", "[websocket]")
     SECTION("Try to connect and disconnect with different timing, from not enough time to "
             "successfull connect")
     {
+        ix::WebSocketServer server(getFreePort(), "127.0.0.1");
+        REQUIRE(startWebSocketEchoServer(server));
+        const std::string url("ws://127.0.0.1:" + std::to_string(server.getPort()) + "/");
         IXWebSocketTestConnectionDisconnection test;
         log(std::string("20 Runs"));
 
         for (int i = 0; i < 20; ++i)
         {
             log(std::string("Run: ") + std::to_string(i));
-            test.start(WEBSOCKET_DOT_ORG_URL);
+            test.start(url);
 
             log(std::string("Sleeping"));
             ix::msleep(i * 50);

@@ -26,11 +26,10 @@ TEST_CASE("socket_connect", "[net]")
         REQUIRE(fd != -1);
     }
 
-    SECTION("Test connecting to a non-existing hostname")
+    SECTION("Test connecting to an invalid IPv6 literal")
     {
         std::string errMsg;
-        std::string hostname("12313lhjlkjhopiupoijlkasdckljqwehrlkqjwehraospidcuaposidcasdc");
-        int fd = SocketConnect::connect(hostname, 80, errMsg, [] { return false; });
+        int fd = SocketConnect::connect("::invalid", 80, errMsg, [] { return false; });
         std::cerr << "Error message: " << errMsg << std::endl;
         REQUIRE(fd == -1);
     }
