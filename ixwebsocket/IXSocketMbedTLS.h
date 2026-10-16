@@ -21,6 +21,7 @@
 #include <mbedtls/x509.h>
 #include <mbedtls/x509_crt.h>
 #include <mutex>
+#include <vector>
 
 namespace ix
 {
@@ -44,6 +45,7 @@ namespace ix
         virtual std::ptrdiff_t recv(void* buffer, size_t length) final;
 
     private:
+        friend struct SocketMbedTLSWriteTestAccess;
         mbedtls_ssl_context _ssl;
         mbedtls_ssl_config _conf;
 #if MBEDTLS_VERSION_MAJOR < 4
@@ -54,6 +56,7 @@ namespace ix
         mbedtls_x509_crt _cert;
         mbedtls_pk_context _pkey;
 
+        std::vector<unsigned char> _sendBuffer;
         std::mutex _mutex;
         SocketTLSOptions _tlsOptions;
         bool _mbedtlsInitialized = false;

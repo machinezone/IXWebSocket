@@ -52,6 +52,7 @@ endif()
 if (USE_TLS AND USE_MBED_TLS)
   list(APPEND TEST_TARGET_NAMES
     IXSocketMbedTLSPSATest
+    IXSocketMbedTLSWriteTest
   )
 endif()
 
@@ -85,6 +86,10 @@ target_compile_definitions(ixwebsocket_test PRIVATE ${TEST_PROGRAMS_DEFINITIONS}
 
 target_link_libraries(ixwebsocket_test Catch2)
 target_link_libraries(ixwebsocket_test ixwebsocket)
+if (WIN32 AND USE_TLS AND USE_MBED_TLS)
+  # Required by Mbed TLS builds that use the Windows CNG entropy source.
+  target_link_libraries(ixwebsocket_test bcrypt)
+endif()
 
 foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
   add_executable(${TEST_TARGET_NAME}

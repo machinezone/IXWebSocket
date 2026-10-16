@@ -52,6 +52,11 @@ Options for building:
 * `-DUSE_WS=1` will build the ws interactive command line tool
 * `-DUSE_TEST=1` will build the unittest
 
+The default CTest suite uses loopback servers and in-memory TLS sessions; it does
+not require Internet access. TLS server tests generate a local CA and verify the
+client connection against it. The legacy external HTTP client tests in
+`test/IXHttpClientTest.cpp` are not part of the default suite.
+
 If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file (not maintained much though) or rather the [github actions](https://github.com/machinezone/IXWebSocket/blob/master/.github/workflows/unittest_windows.yml) which have instructions for building dependencies.
 
 It is also possible to externally include the project, so that everything is fetched over the wire when you build like so:
