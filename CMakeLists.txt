@@ -196,6 +196,9 @@ else()
     )
 endif()
 
+set(IXWEBSOCKET_PRIVATE_LIBS "")
+include(CheckAtomic)
+
 if (USE_TLS)
     target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_TLS)
     if (USE_NETWORK_FRAMEWORK)
