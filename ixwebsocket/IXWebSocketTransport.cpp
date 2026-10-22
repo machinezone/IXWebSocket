@@ -479,7 +479,8 @@ namespace ix
     void WebSocketTransport::dispatch(WebSocketTransport::PollResult pollResult,
                                       const OnMessageCallback& onMessageCallback)
     {
-        while (true)
+        // Keep processing the close handshake while CLOSING, but stop once CLOSED.
+        while (_readyState != ReadyState::CLOSED)
         {
             wsheader_type ws;
             if (_rxbuf.size() < 2) break;                /* Need at least 2 */
@@ -808,6 +809,9 @@ namespace ix
                                          bool compressedMessage,
                                          const OnMessageCallback& onMessageCallback)
     {
+        // A previous frame or callback may have started closing the connection.
+        if (_readyState != ReadyState::OPEN) return;
+
         size_t wireSize = message.size();
 
         // When the RSV1 bit is 1 it means the message is compressed
