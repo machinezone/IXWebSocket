@@ -145,6 +145,10 @@ There is a unittest which can be executed by typing <code>make test</code>.</p>
 <li><code>-DUSE_WS=1</code> will build the ws interactive command line tool</li>
 <li><code>-DUSE_TEST=1</code> will build the unittest</li>
 </ul>
+<p>The default CTest suite uses loopback servers and in-memory TLS sessions; it does
+not require Internet access. TLS server tests generate a local CA and verify the
+client connection against it. The legacy external HTTP client tests in
+<code>test/IXHttpClientTest.cpp</code> are not part of the default suite.</p>
 <p>If you are on Windows, look at the <a href="https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml">appveyor</a> file (not maintained much though) or rather the <a href="https://github.com/machinezone/IXWebSocket/blob/master/.github/workflows/unittest_windows.yml">github actions</a> which have instructions for building dependencies.</p>
 <p>It is also possible to externally include the project, so that everything is fetched over the wire when you build like so:</p>
 <pre><code>    ExternalProject_Add(
