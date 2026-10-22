@@ -27,6 +27,7 @@ set (TEST_TARGET_NAMES
   IXStrCaseCompareTest
   IXExponentialBackoffTest
   IXWebSocketCloseTest
+  IXWebSocketDispatchTest
   IXWebSocketHostTest
   IXWebSocketIPv6Test
   IXWebSocketSendTimeoutTest
@@ -112,7 +113,7 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
 
 endforeach()
 
-set_tests_properties(IXWebSocketReconnectTest PROPERTIES TIMEOUT 30)
+set_tests_properties(IXWebSocketReconnectTest IXWebSocketDispatchTest PROPERTIES TIMEOUT 30)
 
 if (USE_NETWORK_FRAMEWORK OR (UNIX AND USE_TLS AND (USE_OPEN_SSL OR USE_LIBRE_SSL OR USE_MBED_TLS)))
   # Only the test credential generator needs the openssl command-line tool.
