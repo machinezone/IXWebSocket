@@ -119,6 +119,7 @@ namespace ix
         WebSocketSendInfo sendHeartBeat(SendMessageKind pingType);
 
     private:
+        friend struct WebSocketTransportTestAccess;
         std::string _url;
 
         struct wsheader_type
@@ -171,6 +172,9 @@ namespace ix
 
         // Contains all messages that are waiting to be sent
         std::vector<uint8_t> _txbuf;
+        // Retries must keep the same address, contents and length. New frames go into _txbuf.
+        std::vector<uint8_t> _txbufPending;
+        size_t _txbufPendingOffset = 0;
         mutable std::mutex _txbufMutex;
 
         // Hold fragments for multi-fragments messages in a list. We support receiving very large

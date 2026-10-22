@@ -59,8 +59,13 @@ TEST_CASE("http server", "[httpd]")
 
         REQUIRE(response->errorCode == HttpErrorCode::Ok);
         REQUIRE(response->statusCode == 200);
+#ifdef IXWEBSOCKET_USE_ZLIB
         REQUIRE(response->headers["Accept-Encoding"] == "gzip");
         REQUIRE(response->headers["Content-Encoding"] == "gzip");
+#else
+        REQUIRE(response->headers["Accept-Encoding"].empty());
+        REQUIRE(response->headers["Content-Encoding"].empty());
+#endif
 
         server.stop();
     }
@@ -121,7 +126,8 @@ TEST_CASE("http server redirection", "[httpd_redirect]")
     {
         int port = getFreePort();
         ix::HttpServer server(port, "127.0.0.1");
-        server.makeRedirectServer("http://example.com");
+        const std::string targetUrl("http://127.0.0.1:1/not-followed");
+        server.makeRedirectServer(targetUrl);
 
         auto res = server.listen();
         REQUIRE(res.first);
@@ -163,16 +169,29 @@ TEST_CASE("http server redirection", "[httpd_redirect]")
 
         REQUIRE(response->errorCode == HttpErrorCode::Ok);
         REQUIRE(response->statusCode == 301);
-        REQUIRE(response->headers["Location"] == "http://example.com");
+        REQUIRE(response->headers["Location"] == targetUrl);
 
         server.stop();
     }
 
     SECTION("Connect to a local HTTP server, with redirection enabled, but we do follow redirects")
     {
+        ix::HttpServer target(getFreePort(), "127.0.0.1");
+        const std::string expectedBody("local redirect target");
+        target.setOnConnectionCallback(
+            [expectedBody](HttpRequestPtr request, std::shared_ptr<ConnectionState>) -> HttpResponsePtr {
+                if (request->uri != "/redirect-target")
+                    return std::make_shared<HttpResponse>(404, "NOT FOUND");
+                return std::make_shared<HttpResponse>(
+                    200, "OK", HttpErrorCode::Ok, WebSocketHttpHeaders(), expectedBody);
+            });
+        REQUIRE(target.listen().first);
+        target.start();
+
         int port = getFreePort();
         ix::HttpServer server(port, "127.0.0.1");
-        server.makeRedirectServer("http://www.google.com");
+        server.makeRedirectServer("http://127.0.0.1:" + std::to_string(target.getPort()) +
+                                  "/redirect-target");
 
         auto res = server.listen();
         REQUIRE(res.first);
@@ -214,7 +233,9 @@ TEST_CASE("http server redirection", "[httpd_redirect]")
 
         REQUIRE(response->errorCode == HttpErrorCode::Ok);
         REQUIRE(response->statusCode == 200);
+        REQUIRE(response->body == expectedBody);
 
         server.stop();
+        target.stop();
     }
 }

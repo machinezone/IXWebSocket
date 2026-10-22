@@ -377,21 +377,25 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        std::ptrdiff_t res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
-
-        if (res > 0)
+        if (nbyte != 0 && buf == nullptr)
         {
-            return res;
+            Socket::setErrno(EINVAL);
+            return -1;
         }
-        else if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
+        const int res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
+        if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
         {
             Socket::setErrno(EWOULDBLOCK);
             return -1;
         }
-        else
+
+        if (res < 0)
         {
+            // A previous retry may have left the socket's wait status set.
+            Socket::setErrno(EIO);
             return -1;
         }
+        return res;
     }
 
     std::ptrdiff_t SocketMbedTLS::recv(void* buf, size_t nbyte)

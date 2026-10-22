@@ -39,6 +39,7 @@ namespace ix
         virtual std::ptrdiff_t recv(void* buffer, size_t length) final;
 
     private:
+        friend struct SocketOpenSSLWriteTestAccess;
         void openSSLInitialize();
         std::string getSSLError(int ret);
         SSL_CTX* openSSLCreateContext(std::string& errMsg);
