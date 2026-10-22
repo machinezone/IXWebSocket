@@ -41,6 +41,12 @@ make install # will install to /usr/local on Unix, on macOS it is a good idea to
 Headers and a static library will be installed to the target dir.
 There is a unittest which can be executed by typing `make test`.
 
+CMake checks whether 64-bit atomics need `libatomic` and links it when required,
+including for consumers of the installed static library. Cross-compilation uses
+a compile-and-link check without running target executables. On Linux with GCC
+multilib installed, `make -f makefile.dev test_atomic_32` builds and runs the
+32-bit installed-consumer checks.
+
 Options for building:
 
 * `-DBUILD_SHARED_LIBS=ON` will build the unittest as a shared libary instead of a static library, which is the default

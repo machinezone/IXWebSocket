@@ -7,5 +7,6 @@ Name: ixwebsocket
 Description: websocket and http client and server library, with TLS support and very few dependencies
 Version: @CMAKE_PROJECT_VERSION@
 Libs: -L${libdir} -lixwebsocket
+Libs.private: @IXWEBSOCKET_PRIVATE_LIBS@
 Cflags: -I${includedir}
 Requires: @requires@

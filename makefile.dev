@@ -134,6 +134,17 @@ test:
 	(cd build ; ninja)
 	(cd build ; ninja -v test)
 
+.PHONY: test_atomic_32
+test_atomic_32:
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_UNITY_BUILD=ON -DCMAKE_C_FLAGS="-m32 -march=i486" -DCMAKE_CXX_FLAGS="-m32 -march=i486" -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY -DUSE_TLS=OFF -DUSE_NETWORK_FRAMEWORK=OFF -DUSE_ZLIB=OFF -DUSE_TEST=OFF -DUSE_WS=OFF -DCMAKE_INSTALL_PREFIX="$(CURDIR)/build/atomic-install" -DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build --parallel
+	cmake --install build
+	cmake -S test/cmake/atomic -B build/atomic-consumer -DCMAKE_CXX_FLAGS="-m32 -march=i486" -DCMAKE_PREFIX_PATH="$(CURDIR)/build/atomic-install"
+	cmake --build build/atomic-consumer --parallel
+	./build/atomic-consumer/atomic_consumer
+	$(CXX) -std=c++11 -m32 -march=i486 test/cmake/atomic/main.cpp -o build/atomic-pkg-consumer $$(PKG_CONFIG_PATH="$(CURDIR)/build/atomic-install/lib/pkgconfig" pkg-config --cflags --libs --static ixwebsocket)
+	./build/atomic-pkg-consumer
+
 test_asan:
 	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=address -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer")
 	(cd build ; ninja)
