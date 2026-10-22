@@ -26,7 +26,8 @@ TEST_CASE("dns", "[net]")
 
     SECTION("Test resolving a non-existing hostname")
     {
-        auto dnsLookup = std::make_shared<DNSLookup>("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 80);
+        // Use a reserved name and a trailing dot to avoid DNS search-domain expansion.
+        auto dnsLookup = std::make_shared<DNSLookup>("ixwebsocket-test.invalid.", 80);
 
         std::string errMsg;
         auto res = dnsLookup->resolve(errMsg, [] { return false; });

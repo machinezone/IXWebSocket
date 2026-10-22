@@ -29,7 +29,8 @@ TEST_CASE("socket_connect", "[net]")
     SECTION("Test connecting to a non-existing hostname")
     {
         std::string errMsg;
-        std::string hostname("12313lhjlkjhopiupoijlkasdckljqwehrlkqjwehraospidcuaposidcasdc");
+        // Use a reserved name and a trailing dot to avoid DNS search-domain expansion.
+        std::string hostname("ixwebsocket-test.invalid.");
         int fd = SocketConnect::connect(hostname, 80, errMsg, [] { return false; });
         std::cerr << "Error message: " << errMsg << std::endl;
         REQUIRE(fd == -1);
