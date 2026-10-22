@@ -143,6 +143,7 @@ namespace ix
 
         for (auto& it : extraHeaders)
         {
+            if (it.second.empty()) continue;
             ss << it.first << ": " << it.second << "\r\n";
         }
 
