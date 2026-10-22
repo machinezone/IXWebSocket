@@ -31,6 +31,7 @@ set (TEST_TARGET_NAMES
   IXWebSocketHostTest
   IXWebSocketIPv6Test
   IXWebSocketSendTimeoutTest
+  IXWebSocketSendBufferTest
 )
 
 # Some unittest don't work on windows yet
@@ -55,6 +56,10 @@ if (USE_TLS AND USE_MBED_TLS)
     IXSocketMbedTLSPSATest
     IXSocketMbedTLSWriteTest
   )
+endif()
+
+if (USE_TLS AND (USE_OPEN_SSL OR USE_LIBRE_SSL))
+  list(APPEND TEST_TARGET_NAMES IXSocketOpenSSLWriteTest)
 endif()
 
 # Ping test fails intermittently, disabling them for now

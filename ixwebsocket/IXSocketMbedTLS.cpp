@@ -14,7 +14,6 @@
 #include "IXNetSystem.h"
 #include "IXSocket.h"
 #include "IXSocketConnect.h"
-#include <algorithm>
 #include <cstdint>
 #include <string.h>
 
@@ -368,7 +367,6 @@ namespace ix
         mbedtls_x509_crt_free(&_cert);
         mbedtls_pk_free(&_pkey);
         _mbedtlsInitialized = false;
-        _sendBuffer.clear();
         // PSA crypto state is process-global; it is released in ix::uninitNetSystem(),
         // not per socket.
 
@@ -384,29 +382,13 @@ namespace ix
             Socket::setErrno(EINVAL);
             return -1;
         }
-        if (_sendBuffer.empty())
-        {
-            if (nbyte == 0) return 0;
-            // Retain at most one TLS record, not the caller's growing send queue.
-            const size_t size = (std::min)(nbyte, size_t(16384));
-            _sendBuffer.assign(buf, buf + size);
-        }
-        else if (nbyte < _sendBuffer.size())
-        {
-            Socket::setErrno(EINVAL);
-            return -1;
-        }
-
-        // WANT_READ/WRITE must be retried with the same pointer and length.
-        // The caller may append to or reallocate its queue between calls.
-        const int res = mbedtls_ssl_write(&_ssl, _sendBuffer.data(), _sendBuffer.size());
+        const int res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
         if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
         {
             Socket::setErrno(EWOULDBLOCK);
             return -1;
         }
 
-        _sendBuffer.clear();
         if (res < 0)
         {
             // A previous retry may have left the socket's wait status set.

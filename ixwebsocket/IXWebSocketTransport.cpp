@@ -409,6 +409,8 @@ namespace ix
         // Take this lock before _socketMutex, matching sendOnSocket()'s lock order.
         std::lock_guard<std::mutex> lock(_txbufMutex);
         _txbuf.clear();
+        _txbufPending.clear();
+        _txbufPendingOffset = 0;
         _rxbuf.clear();
         _rxbufWanted = 0;
         _chunks.clear();
@@ -419,7 +421,7 @@ namespace ix
     bool WebSocketTransport::isSendBufferEmpty() const
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);
-        return _txbuf.empty();
+        return _txbuf.empty() && _txbufPending.empty();
     }
 
     template<class Iterator>
@@ -1089,12 +1091,18 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);
 
-        while (_txbuf.size())
+        while (!_txbufPending.empty() || !_txbuf.empty())
         {
+            if (_txbufPending.empty())
+            {
+                // Detach the batch without copying; appending frames cannot change a retry.
+                _txbufPending.swap(_txbuf);
+            }
             std::ptrdiff_t ret = 0;
             {
                 std::lock_guard<std::mutex> lock(_socketMutex);
-                ret = _socket->send((char*) &_txbuf[0], _txbuf.size());
+                ret = _socket->send((char*) _txbufPending.data() + _txbufPendingOffset,
+                                    _txbufPending.size() - _txbufPendingOffset);
             }
 
             if (ret < 0 && Socket::isWaitNeeded())
@@ -1103,6 +1111,9 @@ namespace ix
             }
             else if (ret <= 0)
             {
+                _txbuf.clear();
+                _txbufPending.clear();
+                _txbufPendingOffset = 0;
                 closeSocket();
                 if (_readyState != ReadyState::CLOSING)
                 {
@@ -1112,7 +1123,12 @@ namespace ix
             }
             else
             {
-                _txbuf.erase(_txbuf.begin(), _txbuf.begin() + ret);
+                _txbufPendingOffset += static_cast<size_t>(ret);
+                if (_txbufPendingOffset == _txbufPending.size())
+                {
+                    _txbufPending.clear();
+                    _txbufPendingOffset = 0;
+                }
             }
         }
 
@@ -1259,7 +1275,7 @@ namespace ix
     size_t WebSocketTransport::bufferedAmount() const
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);
-        return _txbuf.size();
+        return _txbuf.size() + _txbufPending.size() - _txbufPendingOffset;
     }
 
     bool WebSocketTransport::flushSendBuffer()

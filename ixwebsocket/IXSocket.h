@@ -53,6 +53,8 @@ namespace ix
                              const CancellationRequest& isCancellationRequested);
         virtual void close();
 
+        // Keep the buffer and length unchanged across would-block retries.
+        // Advance the input only after a positive return value.
         virtual std::ptrdiff_t send(char* buffer, size_t length);
         std::ptrdiff_t send(const std::string& buffer);
         virtual std::ptrdiff_t recv(void* buffer, size_t length);

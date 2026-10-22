@@ -856,6 +856,7 @@ namespace ix
         }
         else
         {
+            Socket::setErrno(EIO);
             return -1;
         }
     }
