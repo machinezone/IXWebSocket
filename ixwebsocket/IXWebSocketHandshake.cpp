@@ -63,7 +63,9 @@ namespace ix
         return s;
     }
 
-    WebSocketInitResult WebSocketHandshake::sendErrorResponse(int code, const std::string& reason)
+    WebSocketInitResult WebSocketHandshake::sendErrorResponse(int code,
+                                                              const std::string& reason,
+                                                              const std::string& extraHeaders)
     {
         std::stringstream ss;
         ss << "HTTP/1.1 ";
@@ -72,6 +74,8 @@ namespace ix
         ss << reason;
         ss << "\r\n";
         ss << "Server: " << userAgent() << "\r\n";
+        ss << extraHeaders;
+        ss << "\r\n";
 
         // Socket write can only be cancelled through a timeout here, not manually.
         static std::atomic<bool> requestInitCancellation(false);
@@ -354,10 +358,12 @@ namespace ix
 
             if (version != 13)
             {
-                return sendErrorResponse(400,
+                // Tell the client which version is supported (RFC 6455 section 4.2.2)
+                return sendErrorResponse(426,
                                          "Invalid Sec-WebSocket-Version, "
                                          "need 13, got " +
-                                             ss.str());
+                                             ss.str(),
+                                         "Sec-WebSocket-Version: 13\r\n");
             }
         }
 
