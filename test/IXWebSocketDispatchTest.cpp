@@ -9,6 +9,7 @@
 #include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketServer.h>
+#include <ixwebsocket/IXWebSocketServer.h>
 #include <ixwebsocket/IXWebSocketTransport.h>
 #include <thread>
 #include <vector>
@@ -77,9 +78,11 @@ namespace
                 {
                     const auto deadline =
                         std::chrono::steady_clock::now() + std::chrono::seconds(3);
-                    _sent = rawSocket->writeBytes(
-                        _frames,
-                        [deadline] { return std::chrono::steady_clock::now() >= deadline; });
+                    _sent =
+                        _frames.empty() ||
+                        rawSocket->writeBytes(
+                            _frames,
+                            [deadline] { return std::chrono::steady_clock::now() >= deadline; });
                 }
             }
             state->setTerminated();
@@ -192,4 +195,129 @@ TEST_CASE("Invalid text closes without delivering later buffered frames",
     CHECK(callbacks == 0);
     CHECK(closes == 1);
     CHECK(client.getReadyState() == Transport::ReadyState::CLOSED);
+}
+
+TEST_CASE("Poll errors close the transport after buffered frames are dispatched",
+          "[websocket][close][poll]")
+{
+    const int buffered = GENERATE(0, 1, 2);
+    CAPTURE(buffered);
+    std::string frames;
+    if (buffered != 0) frames = frame(0x81, "before");
+    if (buffered == 2) frames += frame(0x88, std::string("\x03\xe8", 2) + "done");
+    DispatchTestServer server(frames);
+    Transport client;
+    server.bufferFrames(client);
+    std::vector<std::string> events;
+    client.setOnCloseCallback(
+        [&](uint16_t code, const std::string& reason, size_t, bool remote)
+        {
+            CHECK(code == (buffered == 2 ? 1000 : 1006));
+            CHECK(reason ==
+                  (buffered == 2 ? "done" : ix::WebSocketCloseConstants::kAbnormalCloseMessage));
+            CHECK(remote == (buffered == 2));
+            events.push_back("close");
+        });
+    auto onMessage = [&](const std::string& message, size_t, bool, Transport::MessageKind)
+    { events.push_back(message); };
+
+    // EOF closed the underlying descriptor without dispatching its buffered frames.
+    // Polling it again must report failure, so run() cannot spin in the OPEN state.
+    const auto result = client.poll();
+    CHECK(result == Transport::PollResult::AbnormalClose);
+    client.dispatch(result, onMessage);
+    CHECK(client.getReadyState() == Transport::ReadyState::CLOSED);
+    const std::vector<std::string> expected = buffered == 0
+                                                  ? std::vector<std::string> {"close"}
+                                                  : std::vector<std::string> {"before", "close"};
+    CHECK(events == expected);
+    client.dispatch(client.poll(), onMessage);
+    CHECK(events == expected);
+}
+
+TEST_CASE("Incomplete or invalid frame lengths cannot prevent failure cleanup",
+          "[websocket][close][poll]")
+{
+    const auto partial = GENERATE(std::string("\x81", 1),
+                                  std::string("\x81\x7e\x00", 3),
+                                  std::string("\x81\x05OL", 4),
+                                  std::string("\x81\x7f\xff\xff\xff\xff\xff\xff\xff\xff", 10));
+    DispatchTestServer server(frame(0x81, "before") + partial);
+    Transport client;
+    server.bufferFrames(client);
+    std::vector<std::string> events;
+    client.setOnCloseCallback(
+        [&](uint16_t code, const std::string&, size_t, bool)
+        {
+            CHECK(code == 1006);
+            events.push_back("close");
+        });
+    client.dispatch(client.poll(),
+                    [&](const std::string& message, size_t, bool, Transport::MessageKind)
+                    { events.push_back(message); });
+    CHECK(client.getReadyState() == Transport::ReadyState::CLOSED);
+    CHECK(events == std::vector<std::string> {"before", "close"});
+}
+
+TEST_CASE("Close-request interrupts complete a local close exactly once",
+          "[websocket][close][poll]")
+{
+    ix::WebSocketServer server(ix::getFreePort(), "127.0.0.1");
+    server.setOnClientMessageCallback([](std::shared_ptr<ix::ConnectionState>,
+                                         ix::WebSocket&,
+                                         const ix::WebSocketMessagePtr&) { });
+    REQUIRE(server.listen().first);
+    server.start();
+    Transport client;
+    client.configure(ix::WebSocketPerMessageDeflateOptions(false), {}, false, 0);
+    REQUIRE(client.connectToUrl("ws://127.0.0.1:" + std::to_string(server.getPort()) + "/", {}, 2)
+                .success);
+    unsigned closes = 0;
+    client.setOnCloseCallback(
+        [&](uint16_t code, const std::string& reason, size_t, bool remote)
+        {
+            CHECK(code == 4000);
+            CHECK(reason == "done");
+            CHECK_FALSE(remote);
+            ++closes;
+        });
+    auto onMessage = [](const std::string&, size_t, bool, Transport::MessageKind)
+    { FAIL("Closing must not deliver messages"); };
+
+    client.close(4000, "done");
+    // The first close queues a SendRequest, which must still be handled normally.
+    REQUIRE(client.poll() == Transport::PollResult::Succeeded);
+    REQUIRE(client.getReadyState() == Transport::ReadyState::CLOSING);
+    // Closing again interrupts the poll with CloseRequest instead of sending another frame.
+    client.close(4001, "ignored");
+    const auto result = client.poll();
+    CHECK(result == Transport::PollResult::AbnormalClose);
+    client.dispatch(result, onMessage);
+    CHECK(client.getReadyState() == Transport::ReadyState::CLOSED);
+    CHECK(closes == 1);
+    client.dispatch(client.poll(), onMessage);
+    CHECK(closes == 1);
+}
+
+TEST_CASE("Parsing errors after socket failure retain their protocol close code",
+          "[websocket][close][poll]")
+{
+    const auto invalid = GENERATE(std::string("\xa1\x00", 2),
+                                  std::string("\x09\x00", 2),
+                                  std::string("\x89\x7e\x00\x7e", 4) + std::string(126, 'x'));
+    DispatchTestServer server(invalid);
+    Transport client;
+    server.bufferFrames(client);
+    unsigned closes = 0;
+    client.setOnCloseCallback(
+        [&](uint16_t code, const std::string&, size_t, bool)
+        {
+            CHECK(code == 1002);
+            ++closes;
+        });
+    client.dispatch(client.poll(),
+                    [](const std::string&, size_t, bool, Transport::MessageKind)
+                    { FAIL("Invalid frames must not deliver messages"); });
+    CHECK(client.getReadyState() == Transport::ReadyState::CLOSED);
+    CHECK(closes == 1);
 }

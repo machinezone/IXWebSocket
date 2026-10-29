@@ -383,13 +383,11 @@ namespace ix
                 return PollResult::AbnormalClose;
             }
         }
-        else if (pollResult == PollResultType::Error)
+        else if (pollResult == PollResultType::Error || pollResult == PollResultType::CloseRequest)
         {
             closeSocket();
-        }
-        else if (pollResult == PollResultType::CloseRequest)
-        {
-            closeSocket();
+            // Let dispatch consume buffered frames and finish the state transition.
+            return PollResult::AbnormalClose;
         }
 
         if (_readyState == ReadyState::CLOSING && closingDelayExceeded())
@@ -503,7 +501,7 @@ namespace ix
                 close(WebSocketCloseConstants::kProtocolErrorCode,
                       WebSocketCloseConstants::kProtocolErrorReservedBitUsed,
                       _rxbuf.size());
-                return;
+                break;
             }
 
             //
@@ -541,7 +539,7 @@ namespace ix
             else
             {
                 // invalid payload length according to the spec. bail out
-                return;
+                break;
             }
 
             if (ws.mask)
@@ -563,13 +561,13 @@ namespace ix
             const uint64_t maxFrameSize(1ULL << 63);
             if (ws.N > maxFrameSize)
             {
-                return;
+                break;
             }
 
             if (_rxbuf.size() < ws.header_size + ws.N)
             {
                 _rxbufWanted = ws.header_size + ws.N;
-                return; /* Need: ws.header_size+ws.N - _rxbuf.size() */
+                break; /* Need: ws.header_size+ws.N - _rxbuf.size() */
             }
 
             _rxbufWanted = 0;
@@ -580,7 +578,7 @@ namespace ix
                 // Control messages should not be fragmented
                 close(WebSocketCloseConstants::kProtocolErrorCode,
                       WebSocketCloseConstants::kProtocolErrorCodeControlMessageFragmented);
-                return;
+                break;
             }
 
             unmaskReceiveBuffer(ws);
@@ -662,7 +660,7 @@ namespace ix
                     // Unexpected frame type
                     close(WebSocketCloseConstants::kProtocolErrorCode,
                           WebSocketCloseConstants::kProtocolErrorPingPayloadOversized);
-                    return;
+                    break;
                 }
 
                 if (_enablePong)
@@ -763,8 +761,8 @@ namespace ix
             _rxbuf.erase(_rxbuf.begin(), _rxbuf.begin() + ws.header_size + (size_t) ws.N);
         }
 
-        // if an abnormal closure was raised in poll, and nothing else triggered a CLOSED state in
-        // the received and processed data then close the connection
+        // Finish a failed poll even if parsing stopped on an incomplete or invalid frame.
+        // A buffered Close frame may already have closed the connection with its own code.
         if (pollResult != PollResult::Succeeded)
         {
             _rxbuf.clear();
