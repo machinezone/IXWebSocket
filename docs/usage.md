@@ -219,6 +219,8 @@ headers["foo"] = "bar";
 webSocket.setExtraHeaders(headers);
 ```
 
+You may also prevent header fields from being sent - like User-Agent or Origin - by setting the corresponding HTTP header fields to "".
+
 ### Subprotocols
 
 You can specify subprotocols to be set during the WebSocket handshake. For more info you can refer to [this doc](https://hpbn.co/websocket/#subprotocol-negotiation).

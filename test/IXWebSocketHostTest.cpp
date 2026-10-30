@@ -14,10 +14,11 @@
 
 using namespace ix;
 
-bool startServer(ix::WebSocketServer& server, std::string& subProtocols)
+bool startServer(ix::WebSocketServer& server, std::string& subProtocols,
+                WebSocketHttpHeaders& receivedHeaders)
 {
     server.setOnClientMessageCallback(
-        [&server, &subProtocols](std::shared_ptr<ConnectionState> connectionState,
+        [&server, &subProtocols, &receivedHeaders](std::shared_ptr<ConnectionState> connectionState,
                                  WebSocket& webSocket,
                                  const ix::WebSocketMessagePtr& msg) {
             auto remoteIp = connectionState->getRemoteIp();
@@ -34,6 +35,7 @@ bool startServer(ix::WebSocketServer& server, std::string& subProtocols)
                 }
 
                 subProtocols = msg->openInfo.headers["Sec-WebSocket-Protocol"];
+                receivedHeaders = msg->openInfo.headers;
             }
             else if (msg->type == ix::WebSocketMessageType::Close)
             {
@@ -62,12 +64,14 @@ bool startServer(ix::WebSocketServer& server, std::string& subProtocols)
     return true;
 }
 
-void runTest(int port, const ix::WebSocketHttpHeaders & headers)
+WebSocketHttpHeaders runTest(int port, const ix::WebSocketHttpHeaders & headers)
 {
         ix::WebSocketServer server(port);
 
         std::string subProtocols;
-        startServer(server, subProtocols);
+        WebSocketHttpHeaders receivedHeaders;
+
+        startServer(server, subProtocols, receivedHeaders);
 
         std::atomic<bool> connected(false);
         ix::WebSocket webSocket;
@@ -107,6 +111,7 @@ void runTest(int port, const ix::WebSocketHttpHeaders & headers)
         server.stop();
 
         REQUIRE(subProtocols == "json,msgpack");
+        return receivedHeaders;
     }
     
 
@@ -140,5 +145,13 @@ TEST_CASE("host", "[websocket_host]")
     {
         int port = getFreePort();
         runTest(port, {{"Host", "localhost"}});
+    }
+
+    SECTION("Connect with User-Agent and Origin header removed")
+    {
+        int port = getFreePort();
+        WebSocketHttpHeaders received = runTest(port, {{"User-Agent", ""}, {"Origin", ""}});
+        CHECK(received.count("User-Agent") == 0);
+        CHECK(received.count("Origin") == 0);
     }
 }
