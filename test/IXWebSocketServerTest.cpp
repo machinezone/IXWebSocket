@@ -155,6 +155,60 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         REQUIRE(server.getClients().size() == 0);
     }
 
+    SECTION("Send a request with an unsupported version. Should return 426 with the supported "
+            "version and end the response headers")
+    {
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+        std::string connectionId;
+        REQUIRE(startServer(server, connectionId));
+
+        std::string errMsg;
+        bool tls = false;
+        SocketTLSOptions tlsOptions;
+        std::shared_ptr<Socket> socket = createSocket(tls, -1, errMsg, tlsOptions);
+        std::string host("127.0.0.1");
+        auto isCancellationRequested = []() -> bool { return false; };
+        bool success = socket->connect(host, port, errMsg, isCancellationRequested);
+        REQUIRE(success);
+
+        socket->writeBytes("GET / HTTP/1.1\r\n"
+                           "Upgrade: websocket\r\n"
+                           "Sec-WebSocket-Version: 8\r\n"
+                           "Sec-WebSocket-Key: foobar\r\n"
+                           "\r\n",
+                           isCancellationRequested);
+
+        auto lineResult = socket->readLine(isCancellationRequested);
+        REQUIRE(lineResult.first);
+
+        int status = -1;
+        REQUIRE(sscanf(lineResult.second.c_str(), "HTTP/1.1 %d", &status) == 1);
+        REQUIRE(status == 426);
+
+        bool supportedVersionSent = false;
+        bool headersEnded = false;
+        while (true)
+        {
+            lineResult = socket->readLine(isCancellationRequested);
+            if (!lineResult.first) break;
+            if (lineResult.second == "\r\n")
+            {
+                headersEnded = true;
+                break;
+            }
+            if (lineResult.second == "Sec-WebSocket-Version: 13\r\n")
+            {
+                supportedVersionSent = true;
+            }
+        }
+        REQUIRE(supportedVersionSent);
+        REQUIRE(headersEnded);
+
+        server.stop();
+        REQUIRE(server.getClients().size() == 0);
+    }
+
     SECTION("Connect to the server. Send GET request with correct header")
     {
         int port = getFreePort();

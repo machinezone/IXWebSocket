@@ -45,7 +45,9 @@ namespace ix
         std::string genRandomString(const int len);
 
         // Parse HTTP headers
-        WebSocketInitResult sendErrorResponse(int code, const std::string& reason);
+        WebSocketInitResult sendErrorResponse(int code,
+                                              const std::string& reason,
+                                              const std::string& extraHeaders = std::string());
 
         bool insensitiveStringCompare(const std::string& a, const std::string& b);
 
