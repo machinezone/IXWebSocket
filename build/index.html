@@ -41,6 +41,9 @@
                                 <a href="../CHANGELOG/" class="nav-link">Changelog</a>
                             </li>
                             <li class="nav-item">
+                                <a href="../autobahn/" class="nav-link">Autobahn compliance</a>
+                            </li>
+                            <li class="nav-item">
                                 <a href="./" class="nav-link active" aria-current="page">Build</a>
                             </li>
                             <li class="nav-item">
@@ -67,7 +70,7 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../CHANGELOG/" class="nav-link">
+                                <a rel="prev" href="../autobahn/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
@@ -139,6 +142,10 @@ including for consumers of the installed static library. Cross-compilation uses
 a compile-and-link check without running target executables. On Linux with GCC
 multilib installed, <code>make -f makefile.dev test_atomic_32</code> builds and runs the
 32-bit installed-consumer checks.</p>
+<p>Autobahn protocol compliance checks run in Docker with
+<code>make -f makefile.dev test_autobahn</code>. Add the <code>autobahn</code> label to a PR to opt into
+the CI check; it also runs on <code>master</code> and manually. See the
+<a href="../autobahn/">Autobahn instructions</a> for reports and local debugging.</p>
 <p>Options for building:</p>
 <ul>
 <li><code>-DBUILD_SHARED_LIBS=ON</code> will build the unittest as a shared libary instead of a static library, which is the default</li>
