@@ -10,6 +10,7 @@
 #include "IXNetSystem.h"
 #include "IXProgressCallback.h"
 #include "IXSelectInterrupt.h"
+#include "IXWebSocketExport.h"
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -92,8 +93,8 @@ namespace ix
                                                PollResultType* pollResult);
 
     private:
-        static const int kDefaultPollTimeout;
-        static const int kDefaultPollNoTimeout;
+        IXWEBSOCKET_EXPORT static const int kDefaultPollTimeout;
+        IXWEBSOCKET_EXPORT static const int kDefaultPollNoTimeout;
 
         SelectInterruptPtr _selectInterrupt;
     };

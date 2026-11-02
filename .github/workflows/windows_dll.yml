@@ -1,0 +1,17 @@
+name: windows_dll
+on:
+  push:
+    paths-ignore:
+    - 'docs/**'
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  windows_dll:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: seanmiddleditch/gha-setup-vsdevenv@master
+    - name: test MSVC static and shared consumers
+      run: cmake -DIXWEBSOCKET_CXX_COMPILER=cl -DIXWEBSOCKET_C_COMPILER=cl -P tools/test_windows_linkage.cmake

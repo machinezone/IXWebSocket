@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "IXWebSocketExport.h"
+
 //
 // Adapted from https://github.com/dhbaird/easywsclient
 //
@@ -233,17 +235,17 @@ namespace ix
 
         mutable std::mutex _closingTimePointMutex;
         std::chrono::time_point<std::chrono::steady_clock> _closingTimePoint;
-        static const int kClosingMaximumWaitingDelayInMs;
+        IXWEBSOCKET_EXPORT static const int kClosingMaximumWaitingDelayInMs;
 
         // enable auto response to ping
         std::atomic<bool> _enablePong;
-        static const bool kDefaultEnablePong;
+        IXWEBSOCKET_EXPORT static const bool kDefaultEnablePong;
 
         // Optional ping and pong timeout
         int _pingIntervalSecs;
         std::atomic<bool> _pongReceived;
 
-        static const int kDefaultPingIntervalSecs;
+        IXWEBSOCKET_EXPORT static const int kDefaultPingIntervalSecs;
 
         bool _setCustomMessage;
         std::string _kPingMessage;

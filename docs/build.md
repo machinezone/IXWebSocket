@@ -39,6 +39,13 @@ make install # will install to /usr/local on Unix, on macOS it is a good idea to
 ```
 
 Headers and a static library will be installed to the target dir.
+
+On Windows, `-DBUILD_SHARED_LIBS=ON` builds a DLL. Link the CMake target
+`ixwebsocket::ixwebsocket` so consumers receive `IXWEBSOCKET_SHARED`, which
+selects the required data imports for the library's static constants. The DLL
+is installed to `bin` and its import library to `lib`. Consumers linking a
+Windows DLL manually must define `IXWEBSOCKET_SHARED` themselves; static
+consumers must leave it undefined. This macro is independent of TLS options.
 There is a unittest which can be executed by typing `make test`.
 
 CMake checks whether 64-bit atomics need `libatomic` and links it when required,

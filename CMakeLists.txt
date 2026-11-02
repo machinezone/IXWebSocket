@@ -101,6 +101,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketCloseConstants.h
     ixwebsocket/IXWebSocketCloseInfo.h
     ixwebsocket/IXWebSocketErrorInfo.h
+    ixwebsocket/IXWebSocketExport.h
     ixwebsocket/IXWebSocketHandshake.h
     ixwebsocket/IXWebSocketHandshakeKeyGen.h
     ixwebsocket/IXWebSocketHttpHeaders.h
@@ -170,18 +171,26 @@ if (USE_TLS)
     endif()
 endif()
 
+set(IXWEBSOCKET_PUBLIC_CFLAGS "")
+
 if(BUILD_SHARED_LIBS)
     # Building shared library
-
-    if(MSVC)
-        # Workaround for some projects
-        set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-    endif()
 
     add_library( ixwebsocket SHARED
         ${IXWEBSOCKET_SOURCES}
         ${IXWEBSOCKET_HEADERS}
     )
+
+    if(WIN32)
+        target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_SHARED)
+        set(IXWEBSOCKET_PUBLIC_CFLAGS "-DIXWEBSOCKET_SHARED")
+        if(MSVC)
+            set_target_properties(ixwebsocket PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+        elseif(MINGW)
+            # Explicit data exports otherwise disable MinGW's automatic function exports.
+            set_property(TARGET ixwebsocket APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--export-all-symbols")
+        endif()
+    endif()
 
     # Set library version and soversion
     set_target_properties(ixwebsocket PROPERTIES
@@ -324,6 +333,8 @@ if (IXWEBSOCKET_INSTALL)
   install(TARGETS ixwebsocket
           EXPORT ixwebsocket
           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
           PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket/
   )
 

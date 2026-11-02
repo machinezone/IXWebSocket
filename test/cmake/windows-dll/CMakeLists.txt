@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.4.1...3.17.2)
+project(ixwebsocket_dll_consumer LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+find_package(Threads REQUIRED)
+find_package(ixwebsocket CONFIG REQUIRED)
+add_executable(dll_consumer main.cpp)
+target_link_libraries(dll_consumer PRIVATE ixwebsocket::ixwebsocket)

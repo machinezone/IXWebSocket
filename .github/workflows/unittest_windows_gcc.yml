@@ -24,3 +24,5 @@ jobs:
     - run: |
         cd build
         ctest -V
+    - name: test MinGW static and shared consumers
+      run: cmake -DIXWEBSOCKET_CXX_COMPILER=g++ -DIXWEBSOCKET_C_COMPILER=gcc -P tools/test_windows_linkage.cmake

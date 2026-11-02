@@ -8,5 +8,5 @@ Description: websocket and http client and server library, with TLS support and 
 Version: @CMAKE_PROJECT_VERSION@
 Libs: -L${libdir} -lixwebsocket
 Libs.private: @IXWEBSOCKET_PRIVATE_LIBS@
-Cflags: -I${includedir}
+Cflags: -I${includedir} @IXWEBSOCKET_PUBLIC_CFLAGS@
 Requires: @requires@
