@@ -248,3 +248,9 @@ commit:
 .PHONY: test
 .PHONY: build
 .PHONY: ws
+
+# Full client and server compliance suite; reports are written to build/autobahn.
+.PHONY: test_autobahn
+test_autobahn:
+	python3 -m unittest discover -s test/autobahn -p 'test_*.py'
+	python3 tools/run_autobahn.py

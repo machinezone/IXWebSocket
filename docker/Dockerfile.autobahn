@@ -1,0 +1,20 @@
+FROM debian:bookworm-slim AS build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    g++ cmake ninja-build zlib1g-dev && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+COPY CMakeLists.txt ixwebsocket-config.cmake.in ixwebsocket.pc.in ./
+COPY CMake/ CMake/
+COPY ixwebsocket/ ixwebsocket/
+COPY common/ common/
+COPY third_party/CLI11.hpp third_party/CLI11.hpp
+COPY ws/ ws/
+RUN cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_CXX_EXTENSIONS=OFF \
+    -DUSE_TLS=OFF -DUSE_ZLIB=ON -DUSE_WS=ON -DUSE_TEST=OFF \
+    -DIXWEBSOCKET_INSTALL=OFF && cmake --build build --parallel 2
+
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libstdc++6 zlib1g python3 && rm -rf /var/lib/apt/lists/*
+COPY --from=build /src/build/ws/ws /usr/local/bin/ws
+CMD ["ws", "--version"]
