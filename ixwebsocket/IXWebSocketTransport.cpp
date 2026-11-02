@@ -102,9 +102,11 @@ namespace ix
     }
 
     // Client
-    WebSocketInitResult WebSocketTransport::connectToUrl(const std::string& url,
-                                                         const WebSocketHttpHeaders& headers,
-                                                         int timeoutSecs)
+    WebSocketInitResult WebSocketTransport::connectToUrl(
+        const std::string& url,
+        const WebSocketHttpHeaders& headers,
+        int timeoutSecs,
+        const std::vector<std::string>& disabledDefaultHeaders)
     {
         resetConnectionState();
         std::lock_guard<std::mutex> lock(_socketMutex);
@@ -141,8 +143,14 @@ namespace ix
                                                   _perMessageDeflateOptions,
                                                   _enablePerMessageDeflate);
 
-            result = webSocketHandshake.clientHandshake(
-                remoteUrl, headers, protocol, host, path, port, timeoutSecs);
+            result = webSocketHandshake.clientHandshake(remoteUrl,
+                                                        headers,
+                                                        protocol,
+                                                        host,
+                                                        path,
+                                                        port,
+                                                        timeoutSecs,
+                                                        disabledDefaultHeaders);
 
             if (result.http_status >= 300 && result.http_status < 400)
             {

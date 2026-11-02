@@ -80,9 +80,11 @@ namespace ix
                        int pingIntervalSecs);
 
         // Client
-        WebSocketInitResult connectToUrl(const std::string& url,
-                                         const WebSocketHttpHeaders& headers,
-                                         int timeoutSecs);
+        WebSocketInitResult connectToUrl(
+            const std::string& url,
+            const WebSocketHttpHeaders& headers,
+            int timeoutSecs,
+            const std::vector<std::string>& disabledDefaultHeaders = {});
 
         // Server
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket,

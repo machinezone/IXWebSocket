@@ -25,6 +25,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
 namespace ix
 {
@@ -51,6 +52,8 @@ namespace ix
 
         // send extra headers in client handshake request
         void setExtraHeaders(const WebSocketHttpHeaders& headers);
+        // Suppress generated User-Agent/Origin headers; explicit extra headers still win.
+        void setDisabledDefaultHeaders(const std::vector<std::string>& headers);
         void setPerMessageDeflateOptions(
             const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
@@ -143,6 +146,7 @@ namespace ix
 
         std::string _url;
         WebSocketHttpHeaders _extraHeaders;
+        std::vector<std::string> _disabledDefaultHeaders;
 
         WebSocketPerMessageDeflateOptions _perMessageDeflateOptions;
 

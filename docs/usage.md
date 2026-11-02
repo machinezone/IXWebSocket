@@ -219,6 +219,24 @@ headers["foo"] = "bar";
 webSocket.setExtraHeaders(headers);
 ```
 
+To omit automatically generated `User-Agent` or `Origin` headers, set their names
+explicitly:
+
+```cpp
+webSocket.setDisabledDefaultHeaders({"User-Agent", "Origin"});
+```
+
+Names are case-insensitive. Only these optional defaults can be disabled; required
+handshake headers and other names are unaffected. Headers supplied through
+`setExtraHeaders()` always take precedence and are sent even when their values
+are empty. Pass an empty list to restore the defaults:
+
+```cpp
+webSocket.setDisabledDefaultHeaders({});
+```
+
+Changes apply to subsequent connections, including automatic reconnections.
+
 ### Subprotocols
 
 You can specify subprotocols to be set during the WebSocket handshake. For more info you can refer to [this doc](https://hpbn.co/websocket/#subprotocol-negotiation).
