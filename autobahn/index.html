@@ -115,6 +115,17 @@ including against a release branch or tag.</p>
 <p>The workflow calls one make target:</p>
 <pre><code class="language-sh">make -f makefile.dev test_autobahn
 </code></pre>
+<p>For a live local progress display, run:</p>
+<pre><code class="language-sh">make -f makefile.dev test_autobahn_interactive
+</code></pre>
+<p>The display shows the current case ID, cases started, and elapsed time for each
+role, followed by a validated PASS/FAIL summary and the report directory. Case
+progress is not a pass count: results are checked after each role finishes.
+A terminal updates one line in place; redirected output uses plain progress
+lines. Ctrl-C stops the run and cleans up its containers.</p>
+<p>To select a smaller run through make:</p>
+<pre><code class="language-sh">make -f makefile.dev test_autobahn_interactive AUTOBAHN_ARGS=&quot;--cases 6.4.* --role client&quot;
+</code></pre>
 <p>Docker and Python 3 are required. The library is built from the current checkout
 with C++11 and zlib enabled. This checks WebSocket framing, closing, UTF-8, and
 compression in both directions over plain WebSocket connections; it does not
