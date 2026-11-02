@@ -175,22 +175,42 @@ namespace ix
     // 4. A HTML report will be generated, you can inspect it to see if you are compliant or not
     //
 
+    class AutobahnCompletion
+    {
+    public:
+        void finish()
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _done = true;
+            _condition.notify_one();
+        }
+
+        bool wait(std::chrono::seconds timeout)
+        {
+            std::unique_lock<std::mutex> lock(_mutex);
+            return _condition.wait_for(lock, timeout, [this] { return _done; });
+        }
+
+    private:
+        std::mutex _mutex;
+        std::condition_variable _condition;
+        bool _done = false;
+    };
+
     class AutobahnTestCase
     {
     public:
         AutobahnTestCase(const std::string& _url, bool quiet);
-        void run();
+        bool run();
 
     private:
         void log(const std::string& msg);
 
         std::string _url;
+        AutobahnCompletion _completion;
         ix::WebSocket _webSocket;
 
         bool _quiet;
-
-        std::mutex _mutex;
-        std::condition_variable _condition;
     };
 
     AutobahnTestCase::AutobahnTestCase(const std::string& url, bool quiet)
@@ -213,7 +233,7 @@ namespace ix
         }
     }
 
-    void AutobahnTestCase::run()
+    bool AutobahnTestCase::run()
     {
         _webSocket.setUrl(_url);
 
@@ -238,7 +258,7 @@ namespace ix
                 ss << " code " << msg->closeInfo.code;
                 ss << " reason " << msg->closeInfo.reason << std::endl;
 
-                _condition.notify_one();
+                _completion.finish();
             }
             else if (msg->type == ix::WebSocketMessageType::Message)
             {
@@ -256,7 +276,7 @@ namespace ix
                 ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
 
                 // And error can happen, in which case the test-case is marked done
-                _condition.notify_one();
+                _completion.finish();
             }
             else if (msg->type == ix::WebSocketMessageType::Fragment)
             {
@@ -281,101 +301,101 @@ namespace ix
         _webSocket.start();
 
         log("Waiting for test completion ...");
-        std::unique_lock<std::mutex> lock(_mutex);
-        _condition.wait(lock);
-
+        const bool completed = _completion.wait(std::chrono::minutes(5));
         _webSocket.stop();
+        if (!completed) ix::logError("Autobahn case timed out: {}", _url);
+        return completed;
     }
 
     bool generateReport(const std::string& url)
     {
+        AutobahnCompletion completion;
+        std::atomic<bool> success(true);
         ix::WebSocket webSocket;
         std::string reportUrl(url);
         reportUrl += "/updateReports?agent=ixwebsocket";
         webSocket.setUrl(reportUrl);
         webSocket.disableAutomaticReconnection();
 
-        std::atomic<bool> success(true);
-        std::condition_variable condition;
-
-        webSocket.setOnMessageCallback([&condition, &success](const ix::WebSocketMessagePtr& msg) {
-            if (msg->type == ix::WebSocketMessageType::Close)
+        webSocket.setOnMessageCallback(
+            [&completion, &success](const ix::WebSocketMessagePtr& msg)
             {
-                ix::logInfo("Report generated");
-                condition.notify_one();
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error)
-            {
-                std::stringstream ss;
-                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
-                ss << "#retries: " << msg->errorInfo.retries << std::endl;
-                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
-                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                ix::logInfo(ss.str());
+                if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    ix::logInfo("Report generated");
+                    completion.finish();
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    std::stringstream ss;
+                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                    ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                    ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                    ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                    ix::logInfo(ss.str());
 
-                success = false;
-            }
-        });
+                    success = false;
+                    completion.finish();
+                }
+            });
 
         webSocket.start();
-        std::mutex mutex;
-        std::unique_lock<std::mutex> lock(mutex);
-        condition.wait(lock);
+        const bool completed = completion.wait(std::chrono::minutes(2));
         webSocket.stop();
 
-        if (!success)
+        if (!completed || !success)
         {
             ix::logError("Cannot generate report at url {}", reportUrl);
         }
 
-        return success;
+        return completed && success;
     }
 
     int getTestCaseCount(const std::string& url)
     {
+        AutobahnCompletion completion;
+        int count = -1;
         ix::WebSocket webSocket;
         std::string caseCountUrl(url);
         caseCountUrl += "/getCaseCount";
         webSocket.setUrl(caseCountUrl);
         webSocket.disableAutomaticReconnection();
 
-        int count = -1;
-        std::condition_variable condition;
+        webSocket.setOnMessageCallback(
+            [&completion, &count](const ix::WebSocketMessagePtr& msg)
+            {
+                if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    completion.finish();
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    std::stringstream ss;
+                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                    ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                    ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                    ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                    ix::logInfo(ss.str());
 
-        webSocket.setOnMessageCallback([&condition, &count](const ix::WebSocketMessagePtr& msg) {
-            if (msg->type == ix::WebSocketMessageType::Close)
-            {
-                condition.notify_one();
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error)
-            {
-                std::stringstream ss;
-                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
-                ss << "#retries: " << msg->errorInfo.retries << std::endl;
-                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
-                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                ix::logInfo(ss.str());
-
-                condition.notify_one();
-            }
-            else if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                // response is a string
-                std::stringstream ss;
-                ss << msg->str;
-                ss >> count;
-            }
-        });
+                    completion.finish();
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    // response is a string
+                    std::stringstream ss;
+                    ss << msg->str;
+                    ss >> count;
+                }
+            });
 
         webSocket.start();
-        std::mutex mutex;
-        std::unique_lock<std::mutex> lock(mutex);
-        condition.wait(lock);
+        const bool completed = completion.wait(std::chrono::seconds(30));
         webSocket.stop();
 
-        if (count == -1)
+        if (!completed || count <= 0)
         {
             ix::logError("Cannot retrieve test case count at url {}", caseCountUrl);
+            return -1;
         }
 
         return count;
@@ -395,9 +415,8 @@ namespace ix
             return 1;
         }
 
-        testCasesCount++;
-
-        for (int i = 1; i < testCasesCount; ++i)
+        bool completed = true;
+        for (int i = 1; i <= testCasesCount; ++i)
         {
             ix::logInfo("Execute test case {}", i);
 
@@ -409,10 +428,15 @@ namespace ix
             std::string url(ss.str());
 
             AutobahnTestCase testCase(url, quiet);
-            testCase.run();
+            if (!testCase.run())
+            {
+                completed = false;
+                break;
+            }
         }
 
-        return generateReport(url) ? 0 : 1;
+        const bool reported = generateReport(url);
+        return completed && reported ? 0 : 1;
     }
 
     /*
