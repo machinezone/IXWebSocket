@@ -47,6 +47,11 @@ a compile-and-link check without running target executables. On Linux with GCC
 multilib installed, `make -f makefile.dev test_atomic_32` builds and runs the
 32-bit installed-consumer checks.
 
+Autobahn protocol compliance checks run in Docker with
+`make -f makefile.dev test_autobahn`. Add the `autobahn` label to a PR to opt into
+the CI check; it also runs on `master` and manually. See the
+[Autobahn instructions](autobahn.md) for reports and local debugging.
+
 Options for building:
 
 * `-DBUILD_SHARED_LIBS=ON` will build the unittest as a shared libary instead of a static library, which is the default

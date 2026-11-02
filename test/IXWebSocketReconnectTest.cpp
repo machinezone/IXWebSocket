@@ -87,12 +87,19 @@ namespace
     }
 } // namespace
 
-TEST_CASE("Automatic reconnect discards old message fragments", "[websocket][reconnect]")
+TEST_CASE("Automatic reconnect discards old fragments and incomplete frames",
+          "[websocket][reconnect]")
 {
+    const bool incompleteFrame = GENERATE(false, true);
+    CAPTURE(incompleteFrame);
     ReconnectTestServer server(
-        [](ix::Socket& socket, unsigned index, const ix::CancellationRequest& cancelled)
+        [incompleteFrame](
+            ix::Socket& socket, unsigned index, const ix::CancellationRequest& cancelled)
         {
-            if (index == 0) return socket.writeBytes(std::string("\x01\x03OLD", 5), cancelled);
+            if (index == 0)
+                return socket.writeBytes(incompleteFrame ? std::string("\x81\x05OL", 4)
+                                                         : std::string("\x01\x03OLD", 5),
+                                         cancelled);
             if (!socket.writeBytes(std::string("\x81\x03NEW", 5), cancelled)) return false;
             char byte;
             socket.readByte(&byte, cancelled); // Keep this connection open until the client stops.
@@ -134,7 +141,7 @@ TEST_CASE("Automatic reconnect discards old message fragments", "[websocket][rec
     REQUIRE(received);
     REQUIRE(messages.size() == 1);
     CHECK(messages.front() == "NEW");
-    CHECK(fragments == 1);
+    CHECK(fragments == (incompleteFrame ? 0 : 1));
     CHECK(server.errors() == 0);
 }
 
