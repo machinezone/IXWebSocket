@@ -11,6 +11,7 @@ import sys
 import uuid
 
 from check_autobahn import check_report
+from autobahn_progress import wait_with_progress
 
 ROOT = Path(__file__).resolve().parents[1]
 SUITE = ("crossbario/autobahn-testsuite:25.10.1@sha256:"
@@ -23,9 +24,10 @@ def command(args, **kwargs):
 
 
 class Runner:
-    def __init__(self, output, timeout):
+    def __init__(self, output, timeout, interactive=False):
         self.output = output
         self.timeout = timeout
+        self.interactive = interactive
         self.network = "ix-autobahn-" + uuid.uuid4().hex[:12]
         self.containers = []
         self.image = None
@@ -40,7 +42,7 @@ class Runner:
         if alias:
             options += ["--network-alias", alias]
         if suite:
-            options += ["--platform", "linux/amd64", "--volume",
+            options += ["--env", "PYTHONUNBUFFERED=1", "--platform", "linux/amd64", "--volume",
                         str(self.output / "config") + ":/config:ro", "--volume",
                         str(ROOT / "test/autobahn") + ":/harness:ro", "--volume",
                         str(self.output / "reports") + ":/reports"]
@@ -126,6 +128,7 @@ class Runner:
             "patterns": patterns, "expected_count": len(expected)}, indent=2) + "\n")
         command(["docker", "network", "create", self.network], stdout=subprocess.DEVNULL)
         failed = False
+        results = []
         try:
             for role in roles:
                 print("Running {} compliance: {} cases".format(role, len(expected)), flush=True)
@@ -146,7 +149,11 @@ class Runner:
                         "timeout", "--kill-after=10s", str(self.timeout),
                         "wstest", "-m", "fuzzingclient", "-s", "/config/fuzzingclient.json"],
                         suite=True)
-                status = self.wait(test)
+                if self.interactive:
+                    status = wait_with_progress(test, peer if role == "client" else test,
+                                                role, expected, self.timeout + 30)
+                else:
+                    status = self.wait(test)
                 if status:
                     print("{} runner failed with exit {}".format(role, status), flush=True)
                     failed = True
@@ -158,12 +165,19 @@ class Runner:
                 for error in errors:
                     print("{}: {}".format(role, error), flush=True)
                 failed = failed or bool(errors)
+                results.append((role, status == 0 and not errors))
                 print("{}: {} expected cases, {} report failures".format(
                     role, len(expected), len(errors)), flush=True)
                 self.collect_logs()
                 command(["docker", "stop", "--time", "5", peer], stdout=subprocess.DEVNULL)
         finally:
             self.cleanup()
+        if self.interactive:
+            print("\nAutobahn summary", flush=True)
+            for role, passed in results:
+                print("  {}: {} ({} expected cases)".format(
+                    role, "PASS" if passed else "FAIL", len(expected)), flush=True)
+            print("Reports: " + str(self.output / "reports"), flush=True)
         return int(failed)
 
 
@@ -174,6 +188,8 @@ def interrupted(signum, frame):
 def main():
     signal.signal(signal.SIGTERM, interrupted)
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--interactive", action="store_true",
+                        help="Show live case progress and elapsed time")
     parser.add_argument("--role", choices=("client", "server", "both"), default="both")
     parser.add_argument("--cases", default="*", help="Comma-separated patterns for local debugging")
     parser.add_argument("--timeout", type=int, default=1800, help="Maximum seconds per role")
@@ -199,7 +215,7 @@ def main():
         parser.error("Another run owns this output directory: " + str(lock))
     roles = ["client", "server"] if args.role == "both" else [args.role]
     try:
-        return Runner(output, args.timeout).run(roles, args.cases.split(","))
+        return Runner(output, args.timeout, args.interactive).run(roles, args.cases.split(","))
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
         print("Autobahn infrastructure failure: " + str(error), file=sys.stderr)
         return 1

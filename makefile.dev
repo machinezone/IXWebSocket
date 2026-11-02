@@ -254,3 +254,9 @@ commit:
 test_autobahn:
 	python3 -m unittest discover -s test/autobahn -p 'test_*.py'
 	python3 tools/run_autobahn.py
+
+# Local live reporting; e.g. AUTOBAHN_ARGS="--cases 6.4.* --role client".
+AUTOBAHN_ARGS ?=
+.PHONY: test_autobahn_interactive
+test_autobahn_interactive:
+	python3 tools/run_autobahn.py --interactive $(AUTOBAHN_ARGS)
