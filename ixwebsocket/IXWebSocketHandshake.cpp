@@ -386,7 +386,7 @@ namespace ix
         {
             _enablePerMessageDeflate = true;
 
-            if (!_perMessageDeflate->init(webSocketPerMessageDeflateOptions))
+            if (!_perMessageDeflate->init(webSocketPerMessageDeflateOptions, true))
             {
                 return WebSocketInitResult(
                     false, 0, "Failed to initialize per message deflate engine");

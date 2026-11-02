@@ -13,6 +13,7 @@
 #include "IXCancellationRequest.h"
 #include "IXProgressCallback.h"
 #include "IXSocketTLSOptions.h"
+#include "IXUtf8Validator.h"
 #include "IXWebSocketCloseConstants.h"
 #include "IXWebSocketHandshake.h"
 #include "IXWebSocketHttpHeaders.h"
@@ -123,6 +124,8 @@ namespace ix
     private:
         friend struct WebSocketTransportTestAccess;
         std::string _url;
+        Utf8Validator _utf8Validator;
+        size_t _validatedBytes = 0;
 
         struct wsheader_type
         {
@@ -145,6 +148,8 @@ namespace ix
             uint64_t N;
             uint8_t masking_key[4];
         };
+
+        bool validateFramePayload(const wsheader_type& ws);
 
         // Tells whether we should mask the data we send.
         // client should mask but server should not

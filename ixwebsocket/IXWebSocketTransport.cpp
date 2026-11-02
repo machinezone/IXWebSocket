@@ -41,6 +41,7 @@
 #include "IXUtf8Validator.h"
 #include "IXWebSocketHandshake.h"
 #include "IXWebSocketHttpHeaders.h"
+#include <algorithm>
 #include <chrono>
 #include <cstdarg>
 #include <cstdlib>
@@ -420,6 +421,8 @@ namespace ix
         _rxbuf.clear();
         _rxbufWanted = 0;
         _chunks.clear();
+        _utf8Validator.reset();
+        _validatedBytes = 0;
         _fragmentedMessageKind = MessageKind::MSG_TEXT;
         _receivedMessageCompressed = false;
     }
@@ -460,6 +463,28 @@ namespace ix
                 _rxbuf[j + ws.header_size] ^= ws.masking_key[j & 0x3];
             }
         }
+    }
+
+    bool WebSocketTransport::validateFramePayload(const wsheader_type& ws)
+    {
+        if (_readyState != ReadyState::OPEN) return true;
+        const bool text = ws.opcode == wsheader_type::TEXT_FRAME && _chunks.empty() &&
+                          !(_enablePerMessageDeflate && ws.rsv1);
+        const bool continuation = ws.opcode == wsheader_type::CONTINUATION && !_chunks.empty() &&
+                                  _fragmentedMessageKind == MessageKind::MSG_TEXT &&
+                                  !_receivedMessageCompressed;
+        if (!text && !continuation) return true;
+        if (text && _validatedBytes == 0) _utf8Validator.reset();
+
+        const auto available =
+            (std::min) (static_cast<uint64_t>(_rxbuf.size() - ws.header_size), ws.N);
+        for (; _validatedBytes < available; ++_validatedBytes)
+        {
+            uint8_t byte = _rxbuf[ws.header_size + _validatedBytes];
+            if (ws.mask) byte ^= ws.masking_key[_validatedBytes & 3];
+            if (!_utf8Validator.consume(byte)) return false;
+        }
+        return !ws.fin || available != ws.N || _utf8Validator.complete();
     }
 
     //
@@ -572,6 +597,14 @@ namespace ix
                 break;
             }
 
+            // Check available text bytes even when TCP has not delivered the whole frame.
+            if (!validateFramePayload(ws))
+            {
+                close(WebSocketCloseConstants::kInvalidFramePayloadData,
+                      WebSocketCloseConstants::kInvalidFramePayloadDataMessage);
+                break;
+            }
+
             if (_rxbuf.size() < ws.header_size + ws.N)
             {
                 _rxbufWanted = ws.header_size + ws.N;
@@ -579,6 +612,23 @@ namespace ix
             }
 
             _rxbufWanted = 0;
+            _validatedBytes = 0;
+
+            // After sending Close, consume buffered frames only to find the peer's Close.
+            // In particular, never send a Pong or deliver more data while CLOSING (#620).
+            if (_readyState == ReadyState::CLOSING && ws.opcode != wsheader_type::CLOSE)
+            {
+                _rxbuf.erase(_rxbuf.begin(), _rxbuf.begin() + ws.header_size + (size_t) ws.N);
+                continue;
+            }
+
+            if (ws.opcode == wsheader_type::CLOSE && ws.N > 125)
+            {
+                close(WebSocketCloseConstants::kProtocolErrorCode,
+                      WebSocketCloseConstants::kProtocolErrorMessage);
+                _rxbuf.erase(_rxbuf.begin(), _rxbuf.begin() + ws.header_size + (size_t) ws.N);
+                continue;
+            }
 
             if (!ws.fin && (ws.opcode == wsheader_type::PING || ws.opcode == wsheader_type::PONG ||
                             ws.opcode == wsheader_type::CLOSE))
@@ -746,15 +796,10 @@ namespace ix
                 }
                 else
                 {
-                    // we got the CLOSE frame answer from our close, so we can close the connection
-                    // if the code/reason are the same
-                    bool identicalReason = _closeCode == code && getCloseReason() == reason;
-
-                    if (identicalReason)
-                    {
-                        bool remote = false;
-                        closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
-                    }
+                    // A peer may reply with a different status/reason. Receiving its Close
+                    // completes the handshake; retain our original local close notification.
+                    closeSocketAndSwitchToClosedState(
+                        _closeCode, getCloseReason(), _rxbuf.size(), false);
                 }
             }
             else
@@ -839,15 +884,7 @@ namespace ix
         }
         else
         {
-            if (messageKind == MessageKind::MSG_TEXT && !validateUtf8(message))
-            {
-                close(WebSocketCloseConstants::kInvalidFramePayloadData,
-                      WebSocketCloseConstants::kInvalidFramePayloadDataMessage);
-            }
-            else
-            {
-                onMessageCallback(message, wireSize, false, messageKind);
-            }
+            onMessageCallback(message, wireSize, false, messageKind);
         }
     }
 
