@@ -304,6 +304,17 @@ idle connection.</p>
 headers[&quot;foo&quot;] = &quot;bar&quot;;
 webSocket.setExtraHeaders(headers);
 </code></pre>
+<p>To omit automatically generated <code>User-Agent</code> or <code>Origin</code> headers, set their names
+explicitly:</p>
+<pre><code class="language-cpp">webSocket.setDisabledDefaultHeaders({&quot;User-Agent&quot;, &quot;Origin&quot;});
+</code></pre>
+<p>Names are case-insensitive. Only these optional defaults can be disabled; required
+handshake headers and other names are unaffected. Headers supplied through
+<code>setExtraHeaders()</code> always take precedence and are sent even when their values
+are empty. Pass an empty list to restore the defaults:</p>
+<pre><code class="language-cpp">webSocket.setDisabledDefaultHeaders({});
+</code></pre>
+<p>Changes apply to subsequent connections, including automatic reconnections.</p>
 <h3 id="subprotocols">Subprotocols</h3>
 <p>You can specify subprotocols to be set during the WebSocket handshake. For more info you can refer to <a href="https://hpbn.co/websocket/#subprotocol-negotiation">this doc</a>.</p>
 <pre><code class="language-cpp">webSocket.addSubprotocol(&quot;appProtocol-v1&quot;);
