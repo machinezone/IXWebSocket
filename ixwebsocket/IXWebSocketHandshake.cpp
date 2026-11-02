@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <iostream>
 #include <random>
+#include <set>
 #include <sstream>
 
 namespace ix
@@ -93,7 +94,8 @@ namespace ix
         const std::string& host,
         const std::string& path,
         int port,
-        int timeoutSecs)
+        int timeoutSecs,
+        const std::vector<std::string>& disabledDefaultHeaders)
     {
         _requestInitCancellation = false;
 
@@ -129,14 +131,18 @@ namespace ix
         ss << "Sec-WebSocket-Version: 13\r\n";
         ss << "Sec-WebSocket-Key: " << secWebSocketKey << "\r\n";
 
+        const std::set<std::string, CaseInsensitiveLess> disabled(disabledDefaultHeaders.begin(),
+                                                                  disabledDefaultHeaders.end());
+
         // User-Agent can be customized by users
-        if (extraHeaders.find("User-Agent") == extraHeaders.end())
+        if (extraHeaders.find("User-Agent") == extraHeaders.end() &&
+            disabled.count("User-Agent") == 0)
         {
             ss << "User-Agent: " << userAgent() << "\r\n";
         }
 
         // Set an origin header if missing
-        if (extraHeaders.find("Origin") == extraHeaders.end())
+        if (extraHeaders.find("Origin") == extraHeaders.end() && disabled.count("Origin") == 0)
         {
             ss << "Origin: " << protocol << "://" << bracketedHost << ":" << port << "\r\n";
         }

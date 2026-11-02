@@ -1,114 +1,64 @@
 /*
- *  IXWebSocketServerTest.cpp
- *  Author: Benjamin Sergeant
- *  Copyright (c) 2019 Machine Zone. All rights reserved.
+ *  IXWebSocketHostTest.cpp
+ *  Copyright (c) 2019-2026 Machine Zone, Inc. All rights reserved.
  */
 
 #include "IXTest.h"
+#include <atomic>
 #include <catch_amalgamated.hpp>
-#include <iostream>
-#include <ixwebsocket/IXSocket.h>
-#include <ixwebsocket/IXSocketFactory.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXWebSocketServer.h>
 
 using namespace ix;
 
-bool startServer(ix::WebSocketServer& server, std::string& subProtocols)
+namespace
 {
-    server.setOnClientMessageCallback(
-        [&server, &subProtocols](std::shared_ptr<ConnectionState> connectionState,
-                                 WebSocket& webSocket,
-                                 const ix::WebSocketMessagePtr& msg) {
-            auto remoteIp = connectionState->getRemoteIp();
-            if (msg->type == ix::WebSocketMessageType::Open)
-            {
-                TLogger() << "New connection";
-                TLogger() << "remote ip: " << remoteIp;
-                TLogger() << "id: " << connectionState->getId();
-                TLogger() << "Uri: " << msg->openInfo.uri;
-                TLogger() << "Headers:";
-                for (auto it : msg->openInfo.headers)
-                {
-                    TLogger() << it.first << ": " << it.second;
-                }
-
-                subProtocols = msg->openInfo.headers["Sec-WebSocket-Protocol"];
-            }
-            else if (msg->type == ix::WebSocketMessageType::Close)
-            {
-                log("Closed connection");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                for (auto&& client : server.getClients())
-                {
-                    if (client.get() != &webSocket)
-                    {
-                        client->sendBinary(msg->str);
-                    }
-                }
-            }
-        });
-
-    auto res = server.listen();
-    if (!res.first)
+    WebSocketHttpHeaders runTest(WebSocket& webSocket, int port)
     {
-        log(res.second);
-        return false;
-    }
-
-    server.start();
-    return true;
-}
-
-void runTest(int port, const ix::WebSocketHttpHeaders & headers)
-{
-        ix::WebSocketServer server(port);
-
-        std::string subProtocols;
-        startServer(server, subProtocols);
-
-        std::atomic<bool> connected(false);
-        ix::WebSocket webSocket;
-
-        if(!headers.empty()){
-            webSocket.setExtraHeaders(headers);
-        }
-
-        webSocket.setOnMessageCallback([&connected](const ix::WebSocketMessagePtr& msg) {
-            if (msg->type == ix::WebSocketMessageType::Open)
+        WebSocketHttpHeaders receivedHeaders;
+        WebSocketServer server(port, "127.0.0.1");
+        server.setOnClientMessageCallback(
+            [&](std::shared_ptr<ConnectionState>, WebSocket&, const WebSocketMessagePtr& msg)
             {
-                connected = true;
-                log("Client connected");
-            }
-        });
+                if (msg->type == WebSocketMessageType::Open)
+                    receivedHeaders = msg->openInfo.headers;
+            });
+        REQUIRE(server.listen().first);
+        server.start();
 
-        webSocket.addSubProtocol("json");
-        webSocket.addSubProtocol("msgpack");
-
-        std::string url;
-        std::stringstream ss;
-        ss << "ws://127.0.0.1:" << port;
-        url = ss.str();
-
-        webSocket.setUrl(url);
-        webSocket.start();
-
-        // Give us 3 seconds to connect
-        int attempts = 0;
-        while (!connected)
+        std::atomic<bool> connected {false};
+        webSocket.setOnMessageCallback(
+            [&](const WebSocketMessagePtr& msg)
+            {
+                if (msg->type == WebSocketMessageType::Open) connected = true;
+            });
+        webSocket.disableAutomaticReconnection();
+        if (webSocket.getSubProtocols().empty())
         {
-            REQUIRE(attempts++ < 300);
-            ix::msleep(10);
+            webSocket.addSubProtocol("json");
+            webSocket.addSubProtocol("msgpack");
         }
+        webSocket.setUrl("ws://127.0.0.1:" + std::to_string(port));
+        webSocket.start();
+        for (int attempt = 0; attempt < 300 && !connected; ++attempt)
+            ix::msleep(10);
 
+        // Join both sides before reading headers captured by the server callback.
         webSocket.stop();
         server.stop();
-
-        REQUIRE(subProtocols == "json,msgpack");
+        webSocket.setOnMessageCallback(nullptr);
+        REQUIRE(connected);
+        REQUIRE(receivedHeaders.at("Sec-WebSocket-Protocol") == "json,msgpack");
+        return receivedHeaders;
     }
-    
+
+    void runTest(int port, const WebSocketHttpHeaders& headers)
+    {
+        WebSocket webSocket;
+        webSocket.setExtraHeaders(headers);
+        runTest(webSocket, port);
+    }
+} // namespace
 
 TEST_CASE("host", "[websocket_host]")
 {
@@ -141,4 +91,90 @@ TEST_CASE("host", "[websocket_host]")
         int port = getFreePort();
         runTest(port, {{"Host", "localhost"}});
     }
+}
+
+TEST_CASE("Optional default handshake headers can be disabled individually", "[websocket_host]")
+{
+    const bool disableUserAgent = GENERATE(false, true);
+    const bool disableOrigin = GENERATE(false, true);
+    CAPTURE(disableUserAgent, disableOrigin);
+    std::vector<std::string> disabled;
+    if (disableUserAgent) disabled.push_back("User-Agent");
+    if (disableOrigin) disabled.push_back("Origin");
+    WebSocket client;
+    client.setDisabledDefaultHeaders(disabled);
+    const auto received = runTest(client, getFreePort());
+    CHECK(received.count("User-Agent") == (disableUserAgent ? 0 : 1));
+    CHECK(received.count("Origin") == (disableOrigin ? 0 : 1));
+}
+
+TEST_CASE("Disabled default header names are case insensitive", "[websocket_host]")
+{
+    const auto names = GENERATE(std::vector<std::string> {"user-agent", "origin"},
+                                std::vector<std::string> {"uSeR-aGeNt", "ORIGIN", "User-Agent"});
+    WebSocket client;
+    client.setDisabledDefaultHeaders(names);
+    const auto received = runTest(client, getFreePort());
+    CHECK(received.count("User-Agent") == 0);
+    CHECK(received.count("Origin") == 0);
+}
+
+TEST_CASE("Explicit extra headers take precedence over disabled defaults", "[websocket_host]")
+{
+    const bool empty = GENERATE(false, true);
+    CAPTURE(empty);
+    const std::string agent = empty ? "" : "custom-agent";
+    const std::string origin = empty ? "" : "https://example.org";
+    WebSocket client;
+    client.setDisabledDefaultHeaders({"USER-AGENT", "origin", "X-Custom"});
+    client.setExtraHeaders({{"user-agent", agent}, {"ORIGIN", origin}, {"X-Custom", ""}});
+    const auto received = runTest(client, getFreePort());
+    REQUIRE(received.count("User-Agent") == 1);
+    REQUIRE(received.count("Origin") == 1);
+    REQUIRE(received.count("X-Custom") == 1);
+    CHECK(received.at("User-Agent") == agent);
+    CHECK(received.at("Origin") == origin);
+    CHECK(received.at("X-Custom").empty());
+}
+
+TEST_CASE("Replacing or clearing disabled defaults takes effect on the next connection",
+          "[websocket_host]")
+{
+    WebSocket client;
+    client.setDisabledDefaultHeaders({"User-Agent", "Origin"});
+    auto received = runTest(client, getFreePort());
+    CHECK(received.count("User-Agent") == 0);
+    CHECK(received.count("Origin") == 0);
+
+    client.setDisabledDefaultHeaders({"User-Agent"});
+    received = runTest(client, getFreePort());
+    CHECK(received.count("User-Agent") == 0);
+    CHECK(received.count("Origin") == 1);
+
+    client.setDisabledDefaultHeaders({});
+    received = runTest(client, getFreePort());
+    REQUIRE(received.count("User-Agent") == 1);
+    REQUIRE(received.count("Origin") == 1);
+    CHECK_FALSE(received.at("User-Agent").empty());
+    CHECK_FALSE(received.at("Origin").empty());
+}
+
+TEST_CASE("Required handshake headers cannot be disabled", "[websocket_host]")
+{
+    WebSocket client;
+    client.setDisabledDefaultHeaders({"host",
+                                      "Upgrade",
+                                      "Connection",
+                                      "Sec-WebSocket-Version",
+                                      "Sec-WebSocket-Key",
+                                      "X-Unknown"});
+    const int port = getFreePort();
+    const auto received = runTest(client, port);
+    CHECK(received.at("Host") == "127.0.0.1:" + std::to_string(port));
+    CHECK(received.at("Upgrade") == "websocket");
+    CHECK(received.at("Connection") == "Upgrade");
+    CHECK(received.at("Sec-WebSocket-Version") == "13");
+    CHECK_FALSE(received.at("Sec-WebSocket-Key").empty());
+    CHECK(received.count("User-Agent") == 1);
+    CHECK(received.count("Origin") == 1);
 }
