@@ -6,6 +6,7 @@
 #include <atomic>
 #include <catch_amalgamated.hpp>
 #include <chrono>
+#include <future>
 #include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketServer.h>
@@ -333,6 +334,16 @@ namespace ix
             transport.setReadyState(WebSocketTransport::ReadyState::OPEN);
         }
 
+        static std::unique_lock<std::mutex> pauseCloseTimer(WebSocketTransport& transport)
+        {
+            return std::unique_lock<std::mutex>(transport._closingTimePointMutex);
+        }
+
+        static uint16_t closeCode(WebSocketTransport& transport)
+        {
+            return transport._closeCode;
+        }
+
         static void receive(WebSocketTransport& transport, const std::string& bytes)
         {
             transport._rxbuf.insert(transport._rxbuf.end(), bytes.begin(), bytes.end());
@@ -483,4 +494,93 @@ TEST_CASE("UTF8 validation handles partial masked and unmasked frames",
         dispatchBytes(transport, bytes.substr(headerSize + 2), callback);
         CHECK(messages == std::vector<std::string> {payload});
     }
+}
+
+namespace
+{
+    bool waitForCloseCode(Transport& transport, uint16_t code, std::chrono::milliseconds timeout)
+    {
+        const auto deadline = std::chrono::steady_clock::now() + timeout;
+        while (ix::WebSocketTransportTestAccess::closeCode(transport) != code)
+        {
+            if (std::chrono::steady_clock::now() >= deadline) return false;
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        return true;
+    }
+} // namespace
+
+TEST_CASE("A close racing with shutdown cannot reopen a closed transport",
+          "[websocket][close][race]")
+{
+    Transport transport;
+    ix::WebSocketTransportTestAccess::install(transport,
+                                              std::unique_ptr<ix::Socket>(new RecordingSocket));
+    unsigned closes = 0;
+    std::function<void()> messageCallback = [&] { ++closes; };
+    transport.setOnCloseCallback([&](uint16_t, const std::string&, size_t, bool)
+                                 { messageCallback(); });
+
+    // Pause close() after it has started setting its metadata, before CLOSING.
+    auto timer = ix::WebSocketTransportTestAccess::pauseCloseTimer(transport);
+    auto closing = std::async(std::launch::async, [&] { transport.close(4000, "local"); });
+    const bool entered = waitForCloseCode(transport, 4000, std::chrono::seconds(1));
+    auto shutdown = std::async(std::launch::async,
+                               [&]
+                               {
+                                   transport.setReadyState(Transport::ReadyState::CLOSED);
+                                   // Mirror the server run loop's callback cleanup after shutdown.
+                                   messageCallback = nullptr;
+                               });
+    // With the fix, shutdown waits for the whole CLOSING transition. Previously
+    // it could finish while close() was paused and close() would reopen it.
+    shutdown.wait_for(std::chrono::milliseconds(100));
+    timer.unlock();
+    closing.get();
+    shutdown.get();
+    REQUIRE(entered);
+    CHECK(transport.getReadyState() == Transport::ReadyState::CLOSED);
+    CHECK(closes == 1);
+    CHECK_NOTHROW(
+        transport.dispatch(Transport::PollResult::AbnormalClose,
+                           [](const std::string&, size_t, bool, Transport::MessageKind) { }));
+    CHECK(closes == 1);
+}
+
+TEST_CASE("Concurrent close callers preserve the first close request", "[websocket][close][race]")
+{
+    Transport transport;
+    auto* socket = new RecordingSocket;
+    ix::WebSocketTransportTestAccess::install(transport, std::unique_ptr<ix::Socket>(socket));
+    auto timer = ix::WebSocketTransportTestAccess::pauseCloseTimer(transport);
+    auto first = std::async(std::launch::async, [&] { transport.close(4000, "first"); });
+    const bool entered = waitForCloseCode(transport, 4000, std::chrono::seconds(1));
+    auto second = std::async(std::launch::async, [&] { transport.close(4001, "second"); });
+    const bool overwritten = waitForCloseCode(transport, 4001, std::chrono::milliseconds(100));
+    timer.unlock();
+    first.get();
+    second.get();
+    REQUIRE(entered);
+    CHECK_FALSE(overwritten);
+    CHECK(ix::WebSocketTransportTestAccess::closeCode(transport) == 4000);
+    CHECK(socket->sent == frame(0x88, std::string("\x0f\xa0", 2) + "first"));
+}
+
+TEST_CASE("A close notification may request close again", "[websocket][close][race]")
+{
+    Transport transport;
+    ix::WebSocketTransportTestAccess::install(transport,
+                                              std::unique_ptr<ix::Socket>(new RecordingSocket));
+    unsigned closes = 0;
+    transport.setOnCloseCallback(
+        [&](uint16_t, const std::string&, size_t, bool)
+        {
+            ++closes;
+            transport.close();
+        });
+    transport.close(4000, "local");
+    transport.dispatch(Transport::PollResult::AbnormalClose,
+                       [](const std::string&, size_t, bool, Transport::MessageKind) { });
+    CHECK(transport.getReadyState() == Transport::ReadyState::CLOSED);
+    CHECK(closes == 1);
 }
