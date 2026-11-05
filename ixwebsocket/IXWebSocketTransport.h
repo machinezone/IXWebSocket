@@ -183,8 +183,7 @@ namespace ix
         {
             None,
             SocketError,
-            Timeout,
-            DuringClose
+            Timeout
         };
         std::atomic<SendError> _sendError {SendError::None};
         // Called with _txbufMutex held; notification and socket closure belong to the I/O thread.
@@ -286,7 +285,7 @@ namespace ix
 
         bool flushSendBuffer();
         bool sendOnSocket();
-        bool receiveFromSocket(bool readOnce = false);
+        bool receiveFromSocket();
 
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
                                    const IXWebSocketSendData& message,

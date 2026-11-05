@@ -228,13 +228,7 @@ namespace ix
         // No state change, return
         if (_readyState == readyState) return;
 
-        if (readyState == ReadyState::OPEN)
-        {
-            initTimePointsAfterConnect();
-            _pongReceived = false;
-        }
-
-        // Terminal callbacks must observe CLOSED, including when they call close() again.
+        // Callbacks must observe the new state, including reentrant close() calls.
         _readyState = readyState;
         if (readyState == ReadyState::CLOSED)
         {
@@ -246,6 +240,11 @@ namespace ix
             _closeCode = WebSocketCloseConstants::kInternalErrorCode;
             _closeWireSize = 0;
             _closeRemote = false;
+        }
+        else if (readyState == ReadyState::OPEN)
+        {
+            initTimePointsAfterConnect();
+            _pongReceived = false;
         }
     }
 
@@ -328,7 +327,7 @@ namespace ix
 
     WebSocketTransport::PollResult WebSocketTransport::poll()
     {
-        if (_readyState == ReadyState::CLOSED) return PollResult::AbnormalClose;
+        if (_sendError != SendError::None) return PollResult::CannotFlushSendBuffer;
         if (_readyState == ReadyState::OPEN)
         {
             if (pingIntervalExceeded())
@@ -376,9 +375,7 @@ namespace ix
         }
 
         // poll the socket
-        PollResultType pollResult = _sendError != SendError::None
-                                        ? PollResultType::SendRequest
-                                        : _socket->isReadyToRead(lastingTimeoutDelayInMs);
+        PollResultType pollResult = _socket->isReadyToRead(lastingTimeoutDelayInMs);
 
         // Make sure we send all the buffered data
         // there can be a lot of it for large messages.
@@ -386,7 +383,6 @@ namespace ix
         {
             if (!flushSendBuffer())
             {
-                receiveFromSocket(true);
                 return PollResult::CannotFlushSendBuffer;
             }
         }
@@ -404,11 +400,7 @@ namespace ix
             return PollResult::AbnormalClose;
         }
 
-        if (_sendError != SendError::None)
-        {
-            receiveFromSocket(true);
-            return PollResult::CannotFlushSendBuffer;
-        }
+        if (_sendError != SendError::None) return PollResult::CannotFlushSendBuffer;
 
         if (_readyState == ReadyState::CLOSING && closingDelayExceeded())
         {
@@ -835,8 +827,7 @@ namespace ix
             // if we previously closed the connection (CLOSING state), then set state to CLOSED
             // (code/reason were set before)
             const auto sendError = _sendError.load();
-            if (_readyState == ReadyState::CLOSING &&
-                (sendError == SendError::None || sendError == SendError::DuringClose))
+            if (_readyState == ReadyState::CLOSING)
             {
                 closeSocket();
                 setReadyState(ReadyState::CLOSED);
@@ -1153,13 +1144,8 @@ namespace ix
         _txbuf.clear();
         _txbufPending.clear();
         _txbufPendingOffset = 0;
-        // Preserve a close request that preceded the failed write, including its code/reason.
-        if (_readyState == ReadyState::CLOSING) error = SendError::DuringClose;
-        auto expected = SendError::None;
-        if (_sendError.compare_exchange_strong(expected, error))
-        {
-            wakeUpFromPoll(SelectInterrupt::kSendRequest);
-        }
+        if (_sendError == SendError::None) _sendError = error;
+        wakeUpFromPoll(SelectInterrupt::kSendRequest);
     }
 
     bool WebSocketTransport::sendOnSocket()
@@ -1210,7 +1196,7 @@ namespace ix
         return true;
     }
 
-    bool WebSocketTransport::receiveFromSocket(bool readOnce)
+    bool WebSocketTransport::receiveFromSocket()
     {
         while (true)
         {
@@ -1226,11 +1212,7 @@ namespace ix
             // There's also no point in reading more bytes than needed.
             if (_rxbufWanted > 0 && _rxbuf.size() >= _rxbufWanted) break;
 
-            std::ptrdiff_t ret;
-            {
-                std::lock_guard<std::mutex> lock(_socketMutex);
-                ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
-            }
+            std::ptrdiff_t ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
 
             if (ret < 0 && Socket::isWaitNeeded())
             {
@@ -1248,8 +1230,7 @@ namespace ix
             else
             {
                 _rxbuf.insert(_rxbuf.end(), _readbuf.begin(), _readbuf.begin() + ret);
-                // Bound the final drain even if the peer continues sending indefinitely.
-                if (readOnce || _sendError != SendError::None) break;
+                if (_sendError != SendError::None) break;
             }
         }
 

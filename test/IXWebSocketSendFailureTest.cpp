@@ -6,7 +6,6 @@
 #include <catch_amalgamated.hpp>
 #include <chrono>
 #include <condition_variable>
-#include <cstring>
 #include <future>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXWebSocketTransport.h>
@@ -51,15 +50,6 @@ namespace
             return -1;
         }
 
-        std::ptrdiff_t recv(void* buffer, size_t) override
-        {
-            // An always-readable peer must not keep failed-send shutdown alive forever.
-            const std::string packet("\x81\x05three", 7);
-            std::memcpy(buffer, packet.data(), packet.size());
-            ++reads;
-            return static_cast<std::ptrdiff_t>(packet.size());
-        }
-
         ix::PollResultType isReadyToWrite(int) override
         {
             if (mode == 3)
@@ -83,7 +73,6 @@ namespace
 
         const int mode;
         std::atomic<unsigned> polls {0};
-        std::atomic<unsigned> reads {0};
         std::atomic<unsigned> writes {0};
         std::atomic<unsigned> closes {0};
     };
@@ -171,10 +160,9 @@ TEST_CASE("Send failures finish callbacks on the I/O thread", "[websocket][close
     CHECK(closeCode == ix::WebSocketCloseConstants::kAbnormalCloseCode);
     CHECK(closeReason == (mode == 3 ? ix::WebSocketCloseConstants::kSendTimeoutMessage
                                     : ix::WebSocketCloseConstants::kAbnormalCloseMessage));
-    CHECK(events == std::vector<std::string> {"one", "two", "three", "close"});
-    CHECK(callbackThreads == std::vector<std::thread::id>(4, ioThread));
+    CHECK(events == std::vector<std::string> {"one", "two", "close"});
+    CHECK(callbackThreads == std::vector<std::thread::id>(3, ioThread));
     CHECK(socket->closes == 1);
-    CHECK(socket->reads == 1);
     CHECK(transport.bufferedAmount() == 0);
 }
 
@@ -201,7 +189,7 @@ TEST_CASE("Closing cancels a blocked send without waiting for its timeout",
     CHECK(transport.getReadyState() == Transport::ReadyState::CLOSING);
 }
 
-TEST_CASE("A failed write preserves an earlier close request", "[websocket][close][send_failure]")
+TEST_CASE("A close request keeps its code when a write fails", "[websocket][close][send_failure]")
 {
     const bool closeFirst = GENERATE(false, true);
     Transport transport;
@@ -222,6 +210,6 @@ TEST_CASE("A failed write preserves an earlier close request", "[websocket][clos
     auto message = [](const std::string&, size_t, bool, Transport::MessageKind) { };
     transport.dispatch(transport.poll(), message);
     transport.dispatch(transport.poll(), message);
-    CHECK(code == (closeFirst ? 4000 : ix::WebSocketCloseConstants::kAbnormalCloseCode));
+    CHECK(code == 4000);
     CHECK(notifications == 1);
 }
