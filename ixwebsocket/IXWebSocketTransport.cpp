@@ -228,6 +228,14 @@ namespace ix
         // No state change, return
         if (_readyState == readyState) return;
 
+        if (readyState == ReadyState::OPEN)
+        {
+            initTimePointsAfterConnect();
+            _pongReceived = false;
+        }
+
+        // Terminal callbacks must observe CLOSED, including when they call close() again.
+        _readyState = readyState;
         if (readyState == ReadyState::CLOSED)
         {
             if (_onCloseCallback)
@@ -239,13 +247,6 @@ namespace ix
             _closeWireSize = 0;
             _closeRemote = false;
         }
-        else if (readyState == ReadyState::OPEN)
-        {
-            initTimePointsAfterConnect();
-            _pongReceived = false;
-        }
-
-        _readyState = readyState;
     }
 
     void WebSocketTransport::setOnCloseCallback(const OnCloseCallback& onCloseCallback)
@@ -327,6 +328,7 @@ namespace ix
 
     WebSocketTransport::PollResult WebSocketTransport::poll()
     {
+        if (_readyState == ReadyState::CLOSED) return PollResult::AbnormalClose;
         if (_readyState == ReadyState::OPEN)
         {
             if (pingIntervalExceeded())
@@ -374,7 +376,9 @@ namespace ix
         }
 
         // poll the socket
-        PollResultType pollResult = _socket->isReadyToRead(lastingTimeoutDelayInMs);
+        PollResultType pollResult = _sendError != SendError::None
+                                        ? PollResultType::SendRequest
+                                        : _socket->isReadyToRead(lastingTimeoutDelayInMs);
 
         // Make sure we send all the buffered data
         // there can be a lot of it for large messages.
@@ -382,6 +386,7 @@ namespace ix
         {
             if (!flushSendBuffer())
             {
+                receiveFromSocket(true);
                 return PollResult::CannotFlushSendBuffer;
             }
         }
@@ -397,6 +402,12 @@ namespace ix
             closeSocket();
             // Let dispatch consume buffered frames and finish the state transition.
             return PollResult::AbnormalClose;
+        }
+
+        if (_sendError != SendError::None)
+        {
+            receiveFromSocket(true);
+            return PollResult::CannotFlushSendBuffer;
         }
 
         if (_readyState == ReadyState::CLOSING && closingDelayExceeded())
@@ -418,6 +429,7 @@ namespace ix
         _txbuf.clear();
         _txbufPending.clear();
         _txbufPendingOffset = 0;
+        _sendError = SendError::None;
         _rxbuf.clear();
         _rxbufWanted = 0;
         _chunks.clear();
@@ -822,7 +834,9 @@ namespace ix
 
             // if we previously closed the connection (CLOSING state), then set state to CLOSED
             // (code/reason were set before)
-            if (_readyState == ReadyState::CLOSING)
+            const auto sendError = _sendError.load();
+            if (_readyState == ReadyState::CLOSING &&
+                (sendError == SendError::None || sendError == SendError::DuringClose))
             {
                 closeSocket();
                 setReadyState(ReadyState::CLOSED);
@@ -830,10 +844,13 @@ namespace ix
             // if we weren't closing, then close using abnormal close code and message
             else if (_readyState != ReadyState::CLOSED)
             {
-                closeSocketAndSwitchToClosedState(WebSocketCloseConstants::kAbnormalCloseCode,
-                                                  WebSocketCloseConstants::kAbnormalCloseMessage,
-                                                  0,
-                                                  false);
+                closeSocketAndSwitchToClosedState(
+                    WebSocketCloseConstants::kAbnormalCloseCode,
+                    sendError == SendError::Timeout
+                        ? WebSocketCloseConstants::kSendTimeoutMessage
+                        : WebSocketCloseConstants::kAbnormalCloseMessage,
+                    0,
+                    false);
             }
         }
     }
@@ -901,7 +918,8 @@ namespace ix
                                                    bool compress,
                                                    const OnProgressCallback& onProgressCallback)
     {
-        if (_readyState != ReadyState::OPEN && _readyState != ReadyState::CLOSING)
+        if (_sendError != SendError::None ||
+            (_readyState != ReadyState::OPEN && _readyState != ReadyState::CLOSING))
         {
             return WebSocketSendInfo(false);
         }
@@ -1130,9 +1148,30 @@ namespace ix
             wsheader_type::TEXT_FRAME, message, _enablePerMessageDeflate, onProgressCallback);
     }
 
+    void WebSocketTransport::recordSendFailure(SendError error)
+    {
+        _txbuf.clear();
+        _txbufPending.clear();
+        _txbufPendingOffset = 0;
+        // Preserve a close request that preceded the failed write, including its code/reason.
+        if (_readyState == ReadyState::CLOSING) error = SendError::DuringClose;
+        auto expected = SendError::None;
+        if (_sendError.compare_exchange_strong(expected, error))
+        {
+            wakeUpFromPoll(SelectInterrupt::kSendRequest);
+        }
+    }
+
     bool WebSocketTransport::sendOnSocket()
     {
         std::lock_guard<std::mutex> lock(_txbufMutex);
+        if (_sendError != SendError::None || _readyState == ReadyState::CLOSED)
+        {
+            _txbuf.clear();
+            _txbufPending.clear();
+            _txbufPendingOffset = 0;
+            return false;
+        }
 
         while (!_txbufPending.empty() || !_txbuf.empty())
         {
@@ -1154,14 +1193,7 @@ namespace ix
             }
             else if (ret <= 0)
             {
-                _txbuf.clear();
-                _txbufPending.clear();
-                _txbufPendingOffset = 0;
-                closeSocket();
-                if (_readyState != ReadyState::CLOSING)
-                {
-                    setReadyState(ReadyState::CLOSED);
-                }
+                recordSendFailure(SendError::SocketError);
                 return false;
             }
             else
@@ -1178,7 +1210,7 @@ namespace ix
         return true;
     }
 
-    bool WebSocketTransport::receiveFromSocket()
+    bool WebSocketTransport::receiveFromSocket(bool readOnce)
     {
         while (true)
         {
@@ -1194,7 +1226,11 @@ namespace ix
             // There's also no point in reading more bytes than needed.
             if (_rxbufWanted > 0 && _rxbuf.size() >= _rxbufWanted) break;
 
-            std::ptrdiff_t ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
+            std::ptrdiff_t ret;
+            {
+                std::lock_guard<std::mutex> lock(_socketMutex);
+                ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
+            }
 
             if (ret < 0 && Socket::isWaitNeeded())
             {
@@ -1212,6 +1248,8 @@ namespace ix
             else
             {
                 _rxbuf.insert(_rxbuf.end(), _readbuf.begin(), _readbuf.begin() + ret);
+                // Bound the final drain even if the peer continues sending indefinitely.
+                if (readOnce || _sendError != SendError::None) break;
             }
         }
 
@@ -1351,7 +1389,7 @@ namespace ix
             timeoutSecs = std::chrono::seconds(_pingIntervalSecs);
         }
 
-        while (!isSendBufferEmpty() && !_requestInitCancellation)
+        while (!isSendBufferEmpty() && !_requestInitCancellation && _sendError == SendError::None)
         {
             // Wait with a 10ms timeout until the socket is ready to write.
             // This way we are not busy looping
@@ -1359,8 +1397,8 @@ namespace ix
 
             if (result == PollResultType::Error)
             {
-                closeSocket();
-                setReadyState(ReadyState::CLOSED);
+                std::lock_guard<std::mutex> lock(_txbufMutex);
+                recordSendFailure(SendError::SocketError);
                 return false;
             }
             else if (result == PollResultType::ReadyForWrite)
@@ -1377,16 +1415,14 @@ namespace ix
                 // as abnormal close and use "Send Timeout" for the reason.
                 if (now > start + timeoutSecs)
                 {
-                    closeSocketAndSwitchToClosedState(WebSocketCloseConstants::kAbnormalCloseCode,
-                                                      WebSocketCloseConstants::kSendTimeoutMessage,
-                                                      0,
-                                                      false);
+                    std::lock_guard<std::mutex> lock(_txbufMutex);
+                    recordSendFailure(SendError::Timeout);
                     return false;
                 }
             }
         }
 
-        return true;
+        return _sendError == SendError::None;
     }
 
     void WebSocketTransport::setCloseReason(const std::string& reason)

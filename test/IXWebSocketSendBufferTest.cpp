@@ -88,5 +88,19 @@ TEST_CASE("Fatal sends discard both pending and newly queued bytes", "[send_buff
     socket.fail = true;
     CHECK_FALSE(ix::WebSocketTransportTestAccess::flush(transport));
     CHECK(transport.bufferedAmount() == 0);
+    // The sender records failure; only the I/O thread delivers the terminal callback.
+    CHECK(transport.getReadyState() == ix::WebSocketTransport::ReadyState::OPEN);
+    transport.dispatch(
+        ix::WebSocketTransport::PollResult::CannotFlushSendBuffer,
+        [](const std::string&, size_t, bool, ix::WebSocketTransport::MessageKind) { });
     CHECK(transport.getReadyState() == ix::WebSocketTransport::ReadyState::CLOSED);
+
+    ix::WebSocketTransportTestAccess::reset(transport);
+    PartialWriteSocket nextSocket;
+    nextSocket.writesBeforeBlocking = -1;
+    installWriteSocket(transport, nextSocket);
+    const auto fresh = writeTestMessage(41, 20);
+    ix::WebSocketTransportTestAccess::enqueue(transport, fresh);
+    flushWriteTest(transport);
+    CHECK(nextSocket.received == fresh);
 }

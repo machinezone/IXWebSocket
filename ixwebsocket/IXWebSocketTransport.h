@@ -179,6 +179,17 @@ namespace ix
         // _rxbuf has reached this size to avoid unnecessary erase churn.
         uint64_t _rxbufWanted = 0;
 
+        enum class SendError
+        {
+            None,
+            SocketError,
+            Timeout,
+            DuringClose
+        };
+        std::atomic<SendError> _sendError {SendError::None};
+        // Called with _txbufMutex held; notification and socket closure belong to the I/O thread.
+        void recordSendFailure(SendError error);
+
         // Contains all messages that are waiting to be sent
         std::vector<uint8_t> _txbuf;
         // Retries must keep the same address, contents and length. New frames go into _txbuf.
@@ -275,7 +286,7 @@ namespace ix
 
         bool flushSendBuffer();
         bool sendOnSocket();
-        bool receiveFromSocket();
+        bool receiveFromSocket(bool readOnce = false);
 
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
                                    const IXWebSocketSendData& message,
