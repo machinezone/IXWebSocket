@@ -175,6 +175,14 @@ client connection against it. The legacy external HTTP client tests in
         ...
     )
 </code></pre>
+<h3 id="openssl-compatibility-checks">OpenSSL compatibility checks</h3>
+<p><code>make -f makefile.dev test_openssl_no_deprecated</code> builds the library, CLI, and
+tests against OpenSSL 3 with <code>OPENSSL_NO_DEPRECATED</code> and a 3.0 API compatibility
+level. CI runs the same target against OpenSSL 1.1.1 and 3.0 using Debian
+Bullseye and Bookworm; the 1.1.1 build uses <code>OPENSSL_API_COMPAT=0x10100000L</code>.
+This checks that modern builds do not depend on compatibility declarations
+for older initialization, locking, or ECDH APIs. OpenSSL 3 uses the owned-reference
+certificate getter; older OpenSSL and LibreSSL retain their existing API.</p>
 <h3 id="vcpkg">vcpkg</h3>
 <p>It is possible to get IXWebSocket through Microsoft <a href="https://github.com/microsoft/vcpkg">vcpkg</a>.</p>
 <pre><code>vcpkg install ixwebsocket
