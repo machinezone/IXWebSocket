@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "IXWebSocketExport.h"
 #include <cstdint>
 #include <string>
 
@@ -35,8 +36,8 @@ namespace ix
         static bool startsWith(const std::string& str, const std::string& start);
         static std::string removeSpaces(const std::string& str);
 
-        static uint8_t const kDefaultClientMaxWindowBits;
-        static uint8_t const kDefaultServerMaxWindowBits;
+        IXWEBSOCKET_EXPORT static uint8_t const kDefaultClientMaxWindowBits;
+        IXWEBSOCKET_EXPORT static uint8_t const kDefaultServerMaxWindowBits;
 
     private:
         bool _enabled;

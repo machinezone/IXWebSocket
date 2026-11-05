@@ -8,6 +8,7 @@
 
 #include "IXHttp.h"
 #include "IXWebSocket.h"
+#include "IXWebSocketExport.h"
 #include "IXWebSocketServer.h"
 #include <functional>
 #include <memory>
@@ -45,7 +46,7 @@ namespace ix
         // Member variables
         OnConnectionCallback _onConnectionCallback;
 
-        const static int kDefaultTimeoutSecs;
+        IXWEBSOCKET_EXPORT const static int kDefaultTimeoutSecs;
         int _timeoutSecs;
 
         // Methods
