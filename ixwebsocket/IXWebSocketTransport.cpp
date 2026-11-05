@@ -1276,7 +1276,34 @@ namespace ix
     {
         _requestInitCancellation = true;
 
-        if (_readyState == ReadyState::CLOSING || _readyState == ReadyState::CLOSED)
+        bool startedClose = false;
+        // Keep the terminal-state fast path: close callbacks run under the state
+        // mutex and may call close() again while the transport is CLOSING.
+        if (_readyState != ReadyState::CLOSING && _readyState != ReadyState::CLOSED)
+        {
+            std::lock_guard<std::mutex> lock(_setReadyStateMutex);
+            // Shutdown may have completed while waiting for the lock. Never move
+            // CLOSED back to CLOSING or replace another caller's close request.
+            if (_readyState != ReadyState::CLOSING && _readyState != ReadyState::CLOSED)
+            {
+                if (closeWireSize == 0) closeWireSize = reason.size();
+                setCloseReason(reason);
+                _closeCode = code;
+                _closeWireSize = closeWireSize;
+                _closeRemote = remote;
+
+                {
+                    std::lock_guard<std::mutex> timeLock(_closingTimePointMutex);
+                    _closingTimePoint = std::chrono::steady_clock::now();
+                }
+                // CLOSING has no transition side effects. The state mutex is
+                // already held, so calling setReadyState() here would deadlock.
+                _readyState = ReadyState::CLOSING;
+                startedClose = true;
+            }
+        }
+
+        if (!startedClose)
         {
             // Wake up the socket polling thread, as
             // Socket::isReadyToRead() might be still waiting the
@@ -1292,22 +1319,6 @@ namespace ix
             }
             return;
         }
-
-        if (closeWireSize == 0)
-        {
-            closeWireSize = reason.size();
-        }
-
-        setCloseReason(reason);
-        _closeCode = code;
-        _closeWireSize = closeWireSize;
-        _closeRemote = remote;
-
-        {
-            std::lock_guard<std::mutex> lock(_closingTimePointMutex);
-            _closingTimePoint = std::chrono::steady_clock::now();
-        }
-        setReadyState(ReadyState::CLOSING);
 
         sendCloseFrame(code, reason);
 
