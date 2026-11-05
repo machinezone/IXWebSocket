@@ -160,9 +160,10 @@ TEST_CASE("Send failures finish callbacks on the I/O thread", "[websocket][close
     CHECK(closeCode == ix::WebSocketCloseConstants::kAbnormalCloseCode);
     CHECK(closeReason == (mode == 3 ? ix::WebSocketCloseConstants::kSendTimeoutMessage
                                     : ix::WebSocketCloseConstants::kAbnormalCloseMessage));
-    CHECK(events == std::vector<std::string> {"one", "two", "close"});
-    CHECK(callbackThreads == std::vector<std::thread::id>(3, ioThread));
+    CHECK(events == std::vector<std::string> {"one", "close"});
+    CHECK(callbackThreads == std::vector<std::thread::id>(2, ioThread));
     CHECK(socket->closes == 1);
+    CHECK(socket->writes == 1); // An abnormal close must not attempt a Close frame.
     CHECK(transport.bufferedAmount() == 0);
 }
 
@@ -202,7 +203,6 @@ TEST_CASE("A close request keeps its code when a write fails", "[websocket][clos
         {
             code = value;
             ++notifications;
-            CHECK(transport.bufferedAmount() == 0);
             CHECK_FALSE(transport.sendText(std::string("after close"), nullptr).success);
         });
     if (!closeFirst) CHECK_FALSE(transport.sendText(std::string("outgoing"), nullptr).success);
@@ -210,6 +210,13 @@ TEST_CASE("A close request keeps its code when a write fails", "[websocket][clos
     auto message = [](const std::string&, size_t, bool, Transport::MessageKind) { };
     transport.dispatch(transport.poll(), message);
     transport.dispatch(transport.poll(), message);
-    CHECK(code == 4000);
+    CHECK(code == (closeFirst ? 4000 : ix::WebSocketCloseConstants::kAbnormalCloseCode));
     CHECK(notifications == 1);
+}
+
+TEST_CASE("Abnormal close before connecting is harmless", "[websocket][close][send_failure]")
+{
+    Transport transport;
+    transport.close(ix::WebSocketCloseConstants::kAbnormalCloseCode);
+    CHECK(transport.getReadyState() == Transport::ReadyState::CLOSED);
 }
