@@ -94,7 +94,9 @@ namespace ix
 
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     std::vector<std::unique_ptr<std::mutex>> openSSLMutexes;
+#endif
 
     SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd)
         : Socket(fd)
@@ -126,14 +128,15 @@ namespace ix
             }
             CRYPTO_set_locking_callback(SocketOpenSSL::openSSLLockingCallback);
         }
-#endif
 
         (void) OpenSSL_add_ssl_algorithms();
         (void) SSL_load_error_strings();
+#endif
 
         _openSSLInitializationSuccessful = true;
     }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     void SocketOpenSSL::openSSLLockingCallback(int mode,
                                                int type,
                                                const char* /*file*/,
@@ -148,6 +151,7 @@ namespace ix
             openSSLMutexes[type]->unlock();
         }
     }
+#endif
 
     std::string SocketOpenSSL::getSSLError(int ret)
     {
@@ -313,7 +317,11 @@ namespace ix
 #endif
                                                std::string& errMsg)
     {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && !defined(LIBRESSL_VERSION_NUMBER)
+        X509* server_cert = SSL_get1_peer_certificate(ssl);
+#else
         X509* server_cert = SSL_get_peer_certificate(ssl);
+#endif
         if (server_cert == nullptr)
         {
             errMsg = "OpenSSL failed - peer didn't present a X509 certificate.";
@@ -719,7 +727,9 @@ namespace ix
                 return false;
             }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
             SSL_set_ecdh_auto(_ssl_connection, 1);
+#endif
 
             SSL_set_fd(_ssl_connection, _sockfd);
 

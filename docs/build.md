@@ -87,6 +87,16 @@ It is also possible to externally include the project, so that everything is fet
     )
 ```
 
+### OpenSSL compatibility checks
+
+`make -f makefile.dev test_openssl_no_deprecated` builds the library, CLI, and
+tests against OpenSSL 3 with `OPENSSL_NO_DEPRECATED` and a 3.0 API compatibility
+level. CI runs the same target against OpenSSL 1.1.1 and 3.0 using Debian
+Bullseye and Bookworm; the 1.1.1 build uses `OPENSSL_API_COMPAT=0x10100000L`.
+This checks that modern builds do not depend on compatibility declarations
+for older initialization, locking, or ECDH APIs. OpenSSL 3 uses the owned-reference
+certificate getter; older OpenSSL and LibreSSL retain their existing API.
+
 ### vcpkg
 
 It is possible to get IXWebSocket through Microsoft [vcpkg](https://github.com/microsoft/vcpkg).

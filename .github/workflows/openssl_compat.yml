@@ -1,0 +1,26 @@
+name: openssl_compat
+on:
+  push:
+    paths-ignore:
+    - 'docs/**'
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  openssl_compat:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - image: debian:bullseye-slim
+          api: 0x10100000L
+        - image: debian:bookworm-slim
+          api: 0x30000000L
+    container: ${{ matrix.image }}
+    steps:
+    - name: install dependencies
+      run: apt-get update && apt-get install -y --no-install-recommends g++ make cmake ninja-build git ca-certificates python3 openssl libssl-dev zlib1g-dev
+    - uses: actions/checkout@v4
+    - name: make test
+      run: make -f makefile.dev test_openssl_no_deprecated OPENSSL_API_COMPAT=${{ matrix.api }}
