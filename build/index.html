@@ -135,7 +135,13 @@ cmake -DUSE_TLS=1 ..
 make -j
 make install # will install to /usr/local on Unix, on macOS it is a good idea to sudo chown -R `whoami`:staff /usr/local
 </code></pre>
-<p>Headers and a static library will be installed to the target dir.
+<p>Headers and a static library will be installed to the target dir.</p>
+<p>On Windows, <code>-DBUILD_SHARED_LIBS=ON</code> builds a DLL. Link the CMake target
+<code>ixwebsocket::ixwebsocket</code> so consumers receive <code>IXWEBSOCKET_SHARED</code>, which
+selects the required data imports for the library's static constants. The DLL
+is installed to <code>bin</code> and its import library to <code>lib</code>. Consumers linking a
+Windows DLL manually must define <code>IXWEBSOCKET_SHARED</code> themselves; static
+consumers must leave it undefined. This macro is independent of TLS options.
 There is a unittest which can be executed by typing <code>make test</code>.</p>
 <p>CMake checks whether 64-bit atomics need <code>libatomic</code> and links it when required,
 including for consumers of the installed static library. Cross-compilation uses
