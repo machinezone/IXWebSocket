@@ -4,6 +4,10 @@ set -euo pipefail
 openssl_bin=$1
 cert_dir=$2
 mkdir -p "$cert_dir"
+# OpenSSL 1.1.1 appends -addext to system defaults, which can duplicate CA
+# extensions and produce invalid certificates. Use a test-only configuration.
+printf '[req]\ndistinguished_name=dn\n[dn]\n' > "$cert_dir/openssl.cnf"
+export OPENSSL_CONF="$cert_dir/openssl.cnf"
 "$openssl_bin" req -x509 -newkey rsa:2048 -nodes -sha256 -days 3650 \
     -subj /CN=IXWebSocket-Test-CA -addext basicConstraints=critical,CA:TRUE -addext keyUsage=critical,keyCertSign,cRLSign -keyout "$cert_dir/ca.key" -out "$cert_dir/ca.pem" >/dev/null 2>&1
 for name in server wrong client; do
