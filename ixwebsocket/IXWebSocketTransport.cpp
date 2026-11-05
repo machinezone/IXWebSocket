@@ -228,6 +228,8 @@ namespace ix
         // No state change, return
         if (_readyState == readyState) return;
 
+        // Callbacks must observe the new state, including reentrant close() calls.
+        _readyState = readyState;
         if (readyState == ReadyState::CLOSED)
         {
             if (_onCloseCallback)
@@ -244,8 +246,6 @@ namespace ix
             initTimePointsAfterConnect();
             _pongReceived = false;
         }
-
-        _readyState = readyState;
     }
 
     void WebSocketTransport::setOnCloseCallback(const OnCloseCallback& onCloseCallback)
@@ -327,6 +327,7 @@ namespace ix
 
     WebSocketTransport::PollResult WebSocketTransport::poll()
     {
+        if (isAbnormalClose()) return PollResult::AbnormalClose;
         if (_readyState == ReadyState::OPEN)
         {
             if (pingIntervalExceeded())
@@ -398,6 +399,8 @@ namespace ix
             // Let dispatch consume buffered frames and finish the state transition.
             return PollResult::AbnormalClose;
         }
+
+        if (isAbnormalClose()) return PollResult::AbnormalClose;
 
         if (_readyState == ReadyState::CLOSING && closingDelayExceeded())
         {
@@ -901,7 +904,8 @@ namespace ix
                                                    bool compress,
                                                    const OnProgressCallback& onProgressCallback)
     {
-        if (_readyState != ReadyState::OPEN && _readyState != ReadyState::CLOSING)
+        if (isAbnormalClose() ||
+            (_readyState != ReadyState::OPEN && _readyState != ReadyState::CLOSING))
         {
             return WebSocketSendInfo(false);
         }
@@ -1130,9 +1134,22 @@ namespace ix
             wsheader_type::TEXT_FRAME, message, _enablePerMessageDeflate, onProgressCallback);
     }
 
+    bool WebSocketTransport::isAbnormalClose() const
+    {
+        return _readyState == ReadyState::CLOSING &&
+               _closeCode == WebSocketCloseConstants::kAbnormalCloseCode;
+    }
+
     bool WebSocketTransport::sendOnSocket()
     {
-        std::lock_guard<std::mutex> lock(_txbufMutex);
+        std::unique_lock<std::mutex> lock(_txbufMutex);
+        if (isAbnormalClose() || _readyState == ReadyState::CLOSED)
+        {
+            _txbuf.clear();
+            _txbufPending.clear();
+            _txbufPendingOffset = 0;
+            return false;
+        }
 
         while (!_txbufPending.empty() || !_txbuf.empty())
         {
@@ -1154,14 +1171,10 @@ namespace ix
             }
             else if (ret <= 0)
             {
-                _txbuf.clear();
-                _txbufPending.clear();
-                _txbufPendingOffset = 0;
-                closeSocket();
-                if (_readyState != ReadyState::CLOSING)
-                {
-                    setReadyState(ReadyState::CLOSED);
-                }
+                // close() takes the send-buffer lock when discarding an aborted connection.
+                lock.unlock();
+                close(WebSocketCloseConstants::kAbnormalCloseCode,
+                      WebSocketCloseConstants::kAbnormalCloseMessage);
                 return false;
             }
             else
@@ -1212,6 +1225,7 @@ namespace ix
             else
             {
                 _rxbuf.insert(_rxbuf.end(), _readbuf.begin(), _readbuf.begin() + ret);
+                if (isAbnormalClose()) break;
             }
         }
 
@@ -1303,6 +1317,23 @@ namespace ix
             }
         }
 
+        // An abnormal close has no handshake. Discard pending output and let the I/O
+        // thread close the socket and deliver the terminal callback. Never send 1006 on wire.
+        if (code == WebSocketCloseConstants::kAbnormalCloseCode)
+        {
+            {
+                std::lock_guard<std::mutex> lock(_txbufMutex);
+                _txbuf.clear();
+                _txbufPending.clear();
+                _txbufPendingOffset = 0;
+            }
+            if (_readyState != ReadyState::CLOSED)
+            {
+                wakeUpFromPoll(SelectInterrupt::kCloseRequest);
+            }
+            return;
+        }
+
         if (!startedClose)
         {
             // Wake up the socket polling thread, as
@@ -1359,8 +1390,8 @@ namespace ix
 
             if (result == PollResultType::Error)
             {
-                closeSocket();
-                setReadyState(ReadyState::CLOSED);
+                close(WebSocketCloseConstants::kAbnormalCloseCode,
+                      WebSocketCloseConstants::kAbnormalCloseMessage);
                 return false;
             }
             else if (result == PollResultType::ReadyForWrite)
@@ -1377,16 +1408,14 @@ namespace ix
                 // as abnormal close and use "Send Timeout" for the reason.
                 if (now > start + timeoutSecs)
                 {
-                    closeSocketAndSwitchToClosedState(WebSocketCloseConstants::kAbnormalCloseCode,
-                                                      WebSocketCloseConstants::kSendTimeoutMessage,
-                                                      0,
-                                                      false);
+                    close(WebSocketCloseConstants::kAbnormalCloseCode,
+                          WebSocketCloseConstants::kSendTimeoutMessage);
                     return false;
                 }
             }
         }
 
-        return true;
+        return _readyState != ReadyState::CLOSED && !isAbnormalClose();
     }
 
     void WebSocketTransport::setCloseReason(const std::string& reason)

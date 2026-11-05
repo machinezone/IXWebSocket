@@ -273,6 +273,7 @@ namespace ix
 
         bool wakeUpFromPoll(uint64_t wakeUpCode);
 
+        bool isAbnormalClose() const;
         bool flushSendBuffer();
         bool sendOnSocket();
         bool receiveFromSocket();
