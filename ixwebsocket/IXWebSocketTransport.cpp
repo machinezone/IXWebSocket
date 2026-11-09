@@ -1160,7 +1160,7 @@ namespace ix
             }
             std::ptrdiff_t ret = 0;
             {
-                std::lock_guard<std::mutex> lock(_socketMutex);
+                std::lock_guard<std::mutex> socketLock(_socketMutex);
                 ret = _socket->send((char*) _txbufPending.data() + _txbufPendingOffset,
                                     _txbufPending.size() - _txbufPendingOffset);
             }

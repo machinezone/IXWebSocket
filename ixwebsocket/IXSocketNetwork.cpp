@@ -328,7 +328,7 @@ namespace ix
                 state->connection,
                 1,
                 65536,
-                ^(dispatch_data_t data, nw_content_context_t, bool complete, nw_error_t error) {
+                ^(dispatch_data_t data, nw_content_context_t, bool complete, nw_error_t readError) {
                     auto s = weak.lock();
                     if (!s) return;
                     std::lock_guard<std::mutex> lock(s->mutex);
@@ -349,7 +349,7 @@ namespace ix
                             s->error = "Cannot map received TLS data";
                     }
                     s->eof = complete;
-                    if (error) s->error = networkError(error);
+                    if (readError) s->error = networkError(readError);
                     if (!s->input.empty() || s->eof || !s->error.empty())
                         s->signal.notify();
                     else

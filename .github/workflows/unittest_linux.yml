@@ -14,4 +14,4 @@ jobs:
     - uses: actions/checkout@v1
     - uses: seanmiddleditch/gha-setup-ninja@master
     - name: make test
-      run: make -f makefile.dev test
+      run: make -f makefile.dev test WARNINGS_AS_ERRORS=ON

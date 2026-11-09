@@ -133,7 +133,6 @@ namespace ix
         if (std::get<0>(ret))
         {
             auto request = std::get<2>(ret);
-            std::shared_ptr<ix::HttpResponse> response;
             // The Upgrade header value is case-insensitive (RFC 6455 4.2.1);
             // e.g. Chrome's remote-debugging proxy sends "Upgrade: WebSocket".
             const std::string& upgradeHeader = request->headers["Upgrade"];
