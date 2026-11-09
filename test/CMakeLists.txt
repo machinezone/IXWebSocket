@@ -5,8 +5,6 @@
 cmake_minimum_required (VERSION 3.14)
 project (ixwebsocket_unittest)
 
-set (CMAKE_CXX_STANDARD 11)
-
 option(USE_TLS "Add TLS support" ON)
 
 # Shared sources
@@ -118,6 +116,13 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 endforeach()
+
+add_test(NAME IXWebSocketBuildSettings
+  COMMAND ${CMAKE_COMMAND}
+    -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake/build-settings
+    -B ${CMAKE_CURRENT_BINARY_DIR}/cmake-build-settings
+    -G "${CMAKE_GENERATOR}")
+set_tests_properties(IXWebSocketBuildSettings PROPERTIES TIMEOUT 30)
 
 set_tests_properties(IXWebSocketReconnectTest IXWebSocketDispatchTest IXWebSocketSendFailureTest PROPERTIES TIMEOUT 30)
 
