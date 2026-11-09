@@ -59,6 +59,13 @@ Autobahn protocol compliance checks run in Docker with
 the CI check; it also runs on `master` and manually. See the
 [Autobahn instructions](autobahn.md) for reports and local debugging.
 
+The library defaults to C++11 and requires C++11 or later. To build with a newer
+standard, pass `-DCMAKE_CXX_STANDARD=17` (or another supported standard). The CLI
+and tests inherit this choice; the test framework requires at least C++14.
+Caller-provided `CMAKE_CXX_STANDARD_REQUIRED`, `CMAKE_CXX_EXTENSIONS`, and
+`CMAKE_EXPORT_COMPILE_COMMANDS` settings are respected, including values inherited
+from a parent project using `add_subdirectory`.
+
 Options for building:
 
 * `-DBUILD_SHARED_LIBS=ON` will build the unittest as a shared libary instead of a static library, which is the default
