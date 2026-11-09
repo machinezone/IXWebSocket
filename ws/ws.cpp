@@ -237,7 +237,6 @@ namespace ix
     {
         _webSocket.setUrl(_url);
 
-        std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
@@ -425,9 +424,9 @@ namespace ix
             std::stringstream ss;
             ss << url << "/runCase?case=" << caseNumber << "&agent=ixwebsocket";
 
-            std::string url(ss.str());
+            std::string caseUrl(ss.str());
 
-            AutobahnTestCase testCase(url, quiet);
+            AutobahnTestCase testCase(caseUrl, quiet);
             if (!testCase.run())
             {
                 completed = false;
@@ -506,7 +505,6 @@ namespace ix
     {
         _webSocket.setUrl(_url);
 
-        std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback([this](const WebSocketMessagePtr& msg) {
@@ -759,7 +757,6 @@ namespace ix
             _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
         }
 
-        std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
@@ -1545,7 +1542,6 @@ namespace ix
     {
         _webSocket.setUrl(_url);
 
-        std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback(
@@ -1930,7 +1926,6 @@ namespace ix
             _enablePerMessageDeflate, false, false, 15, 15);
         _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
 
-        std::stringstream ss;
         log(std::string("ws_receive: Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
@@ -2103,7 +2098,6 @@ namespace ix
             _enablePerMessageDeflate, false, false, 15, 15);
         _webSocket.setPerMessageDeflateOptions(webSocketPerMessageDeflateOptions);
 
-        std::stringstream ss;
         log(std::string("ws_send: Connecting to url: ") + _url);
 
         _webSocket.setOnMessageCallback([this](const WebSocketMessagePtr& msg) {
@@ -2503,24 +2497,29 @@ int main(int argc, char** argv)
     int runCount = 1;
     bool decompressGzipMessages = false;
 
-    auto addGenericOptions = [&pidfile](CLI::App* app) {
-        app->add_option("--pidfile", pidfile, "Pid file");
-    };
+    auto addGenericOptions = [&pidfile](CLI::App* subcommand)
+    { subcommand->add_option("--pidfile", pidfile, "Pid file"); };
 
-    auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* app) {
-        app->add_option(
-               "--cert-file", tlsOptions.certFile, "Path to the (PEM format) TLS cert file")
+    auto addTLSOptions = [&tlsOptions, &verifyNone](CLI::App* subcommand)
+    {
+        subcommand
+            ->add_option(
+                "--cert-file", tlsOptions.certFile, "Path to the (PEM format) TLS cert file")
             ->check(CLI::ExistingPath);
-        app->add_option("--key-file", tlsOptions.keyFile, "Path to the (PEM format) TLS key file")
+        subcommand
+            ->add_option("--key-file", tlsOptions.keyFile, "Path to the (PEM format) TLS key file")
             ->check(CLI::ExistingPath);
-        app->add_option("--ca-file", tlsOptions.caFile, "Path to the (PEM format) ca roots file")
+        subcommand
+            ->add_option("--ca-file", tlsOptions.caFile, "Path to the (PEM format) ca roots file")
             ->check(CLI::ExistingPath);
-        app->add_option("--ciphers",
-                        tlsOptions.ciphers,
-                        "A (comma/space/colon) separated list of ciphers to use for TLS");
-        app->add_flag("--tls", tlsOptions.tls, "Enable TLS (server only)");
-        app->add_flag("--verify_none", verifyNone, "Disable peer cert verification");
-        app->add_flag("--disable-hostname-validation", tlsOptions.disable_hostname_validation, "Disable validation of certificates' hostnames");
+        subcommand->add_option("--ciphers",
+                               tlsOptions.ciphers,
+                               "A (comma/space/colon) separated list of ciphers to use for TLS");
+        subcommand->add_flag("--tls", tlsOptions.tls, "Enable TLS (server only)");
+        subcommand->add_flag("--verify_none", verifyNone, "Disable peer cert verification");
+        subcommand->add_flag("--disable-hostname-validation",
+                             tlsOptions.disable_hostname_validation,
+                             "Disable validation of certificates' hostnames");
     };
 
     app.add_flag("--version", version, "Print ws version");

@@ -19,12 +19,20 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
-if (UNIX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -Wshadow -Wunused -pedantic")
-endif()
-
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
+option(IXWEBSOCKET_WARNINGS_AS_ERRORS "Treat IXWebSocket and ws warnings as errors" OFF)
+set(IXWEBSOCKET_WARNING_FLAGS)
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND NOT MSVC)
+  if (UNIX)
+    list(APPEND IXWEBSOCKET_WARNING_FLAGS -Wall -Wextra -Wshadow -pedantic)
+  endif()
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    list(APPEND IXWEBSOCKET_WARNING_FLAGS -Wshorten-64-to-32)
+  endif()
+  if (IXWEBSOCKET_WARNINGS_AS_ERRORS)
+    list(APPEND IXWEBSOCKET_WARNING_FLAGS -Werror)
+  endif()
+elseif (MSVC AND IXWEBSOCKET_WARNINGS_AS_ERRORS)
+  list(APPEND IXWEBSOCKET_WARNING_FLAGS /WX)
 endif()
 
 set( IXWEBSOCKET_SOURCES
@@ -324,6 +332,8 @@ target_include_directories(ixwebsocket PUBLIC
 )
 
 set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
+
+target_compile_options(ixwebsocket PRIVATE ${IXWEBSOCKET_WARNING_FLAGS})
 
 add_library(ixwebsocket::ixwebsocket ALIAS ixwebsocket)
 

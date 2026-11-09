@@ -283,11 +283,11 @@ namespace ix
         {
             std::stringstream verboseSs;
             verboseSs << "Sending " << verb << " request "
-               << "to " << host << ":" << port << std::endl
-               << "request size: " << req.size() << " bytes" << std::endl
-               << "=============" << std::endl
-               << req << "=============" << std::endl
-               << std::endl;
+                      << "to " << host << ":" << port << std::endl
+                      << "request size: " << req.size() << " bytes" << std::endl
+                      << "=============" << std::endl
+                      << req << "=============" << std::endl
+                      << std::endl;
 
             log(verboseSs.str(), args);
         }
@@ -296,14 +296,8 @@ namespace ix
         {
             auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::SendError;
             std::string msg("Cannot send request");
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  errorCode,
-                                                  headers,
-                                                  payload,
-                                                  msg,
-                                                  uploadSize,
-                                                  downloadSize);
+            return std::make_shared<HttpResponse>(
+                code, description, errorCode, headers, payload, msg, uploadSize, downloadSize);
         }
 
         uploadSize = req.size();
@@ -316,14 +310,8 @@ namespace ix
         {
             auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotReadStatusLine;
             std::string msg("Cannot retrieve status line");
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  errorCode,
-                                                  headers,
-                                                  payload,
-                                                  msg,
-                                                  uploadSize,
-                                                  downloadSize);
+            return std::make_shared<HttpResponse>(
+                code, description, errorCode, headers, payload, msg, uploadSize, downloadSize);
         }
 
         if (args->verbose)
@@ -354,14 +342,8 @@ namespace ix
         {
             auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::HeaderParsingError;
             std::string msg("Cannot parse http headers");
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  errorCode,
-                                                  headers,
-                                                  payload,
-                                                  msg,
-                                                  uploadSize,
-                                                  downloadSize);
+            return std::make_shared<HttpResponse>(
+                code, description, errorCode, headers, payload, msg, uploadSize, downloadSize);
         }
 
         // Redirect ?
@@ -485,7 +467,8 @@ namespace ix
                                                       isCancellationRequested);
                 if (!chunkResult.first)
                 {
-                    auto errCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
+                    auto errCode =
+                        args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
                     errorMsg = "Cannot read chunk";
                     return std::make_shared<HttpResponse>(code,
                                                           description,
@@ -508,7 +491,8 @@ namespace ix
 
                 if (!lineResult.first)
                 {
-                    auto errCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
+                    auto errCode =
+                        args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
                     return std::make_shared<HttpResponse>(code,
                                                           description,
                                                           errCode,

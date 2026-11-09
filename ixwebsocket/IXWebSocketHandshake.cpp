@@ -190,8 +190,8 @@ namespace ix
         {
             std::stringstream httpVersionSs;
             httpVersionSs << "Expecting HTTP/1.1, got " << httpVersion << ". "
-               << "Rejecting connection to " << url << ", status: " << status
-               << ", HTTP Status line: " << line;
+                          << "Rejecting connection to " << url << ", status: " << status
+                          << ", HTTP Status line: " << line;
             return WebSocketInitResult(false, status, httpVersionSs.str());
         }
 
@@ -210,7 +210,7 @@ namespace ix
         {
             std::stringstream statusSs;
             statusSs << "Expecting status 101 (Switching Protocol), got " << status
-               << " status connecting to " << url << ", HTTP Status line: " << line;
+                     << " status connecting to " << url << ", HTTP Status line: " << line;
 
             return WebSocketInitResult(false, status, statusSs.str(), headers, path);
         }

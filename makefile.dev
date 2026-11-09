@@ -13,6 +13,8 @@ all: brew
 
 install: brew
 
+WARNINGS_AS_ERRORS ?= OFF
+
 MBEDTLS_CMAKE_PREFIX :=
 ifeq ($(shell uname),Darwin)
 MBEDTLS_CMAKE_PREFIX := -DCMAKE_PREFIX_PATH=$$(brew --prefix mbedtls@3)
@@ -130,7 +132,7 @@ test_server:
 	(cd test && npm i ws && node broadcast-server.js)
 
 test:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 ..)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_WS=1 -DIXWEBSOCKET_WARNINGS_AS_ERRORS=$(WARNINGS_AS_ERRORS) ..)
 	(cd build ; ninja)
 	(cd build ; ninja -v test)
 
