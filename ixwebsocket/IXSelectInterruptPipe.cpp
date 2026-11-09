@@ -34,8 +34,12 @@ namespace ix
 
     SelectInterruptPipe::~SelectInterruptPipe()
     {
-        ::close(_fildes[kPipeReadIndex]);
-        ::close(_fildes[kPipeWriteIndex]);
+        if (-1 != _fildes[kPipeReadIndex]) {
+            ::close(_fildes[kPipeReadIndex]);
+        }
+        if (-1 != _fildes[kPipeWriteIndex]) {
+            ::close(_fildes[kPipeWriteIndex]);
+        }
         _fildes[kPipeReadIndex] = -1;
         _fildes[kPipeWriteIndex] = -1;
     }
@@ -117,7 +121,7 @@ namespace ix
         int fd = _fildes[kPipeWriteIndex];
         if (fd == -1) return false;
 
-        ssize_t ret = -1;
+        std::ptrdiff_t ret = -1;
         do
         {
             ret = ::write(fd, &value, sizeof(value));
@@ -127,7 +131,6 @@ namespace ix
         return ret == 8;
     }
 
-    // TODO: return max uint64_t for errors ?
     uint64_t SelectInterruptPipe::read()
     {
         std::lock_guard<std::mutex> lock(_fildesMutex);
@@ -136,11 +139,11 @@ namespace ix
 
         uint64_t value = 0;
 
-        ssize_t ret = -1;
+        std::ptrdiff_t readret = -1;
         do
         {
-            ret = ::read(fd, &value, sizeof(value));
-        } while (ret == -1 && errno == EINTR);
+            readret = ::read(fd, &value, sizeof(value));
+        } while (readret == -1 && errno == EINTR);
 
         return value;
     }

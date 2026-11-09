@@ -72,6 +72,8 @@ namespace ix
         ss << " ssl/mbedtls " << MBEDTLS_VERSION_STRING;
 #elif defined(IXWEBSOCKET_USE_OPEN_SSL)
         ss << " ssl/OpenSSL " << OPENSSL_VERSION_TEXT;
+#elif defined(IXWEBSOCKET_USE_NETWORK_FRAMEWORK)
+        ss << " ssl/Network.framework";
 #elif __APPLE__
         ss << " ssl/SecureTransport";
 #endif

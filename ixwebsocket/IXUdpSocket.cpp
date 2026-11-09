@@ -56,7 +56,7 @@ namespace ix
         return false;
     }
 
-    void UdpSocket::closeSocket(int fd)
+    void UdpSocket::closeSocket(socket_t fd)
     {
 #ifdef _WIN32
         closesocket(fd);
@@ -67,7 +67,7 @@ namespace ix
 
     bool UdpSocket::init(const std::string& host, int port, std::string& errMsg)
     {
-        _sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        _sockfd = static_cast<int>(socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP));
         if (_sockfd < 0)
         {
             errMsg = "Could not create socket";
@@ -107,20 +107,20 @@ namespace ix
         return true;
     }
 
-    ssize_t UdpSocket::sendto(const std::string& buffer)
+    std::ptrdiff_t UdpSocket::sendto(const std::string& buffer)
     {
-        return (ssize_t)::sendto(
-            _sockfd, buffer.data(), buffer.size(), 0, (struct sockaddr*) &_server, sizeof(_server));
+        return (std::ptrdiff_t)::sendto(
+            _sockfd, buffer.data(), static_cast<int>(buffer.size()), 0, (struct sockaddr*) &_server, sizeof(_server));
     }
 
-    ssize_t UdpSocket::recvfrom(char* buffer, size_t length)
+    std::ptrdiff_t UdpSocket::recvfrom(char* buffer, size_t length)
     {
 #ifdef _WIN32
         int addressLen = (int) sizeof(_server);
 #else
         socklen_t addressLen = (socklen_t) sizeof(_server);
 #endif
-        return (ssize_t)::recvfrom(
-            _sockfd, buffer, length, 0, (struct sockaddr*) &_server, &addressLen);
+        return (std::ptrdiff_t)::recvfrom(
+            _sockfd, buffer, static_cast<int>(length), 0, (struct sockaddr*) &_server, &addressLen);
     }
 } // namespace ix

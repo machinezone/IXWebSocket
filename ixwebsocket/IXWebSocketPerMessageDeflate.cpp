@@ -68,16 +68,25 @@ namespace ix
         ;
     }
 
-    bool WebSocketPerMessageDeflate::init(
-        const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions)
+    bool WebSocketPerMessageDeflate::init(const WebSocketPerMessageDeflateOptions& options)
     {
-        bool clientNoContextTakeover = perMessageDeflateOptions.getClientNoContextTakeover();
+        return init(options, false);
+    }
 
-        uint8_t deflateBits = perMessageDeflateOptions.getClientMaxWindowBits();
-        uint8_t inflateBits = perMessageDeflateOptions.getServerMaxWindowBits();
+    bool WebSocketPerMessageDeflate::init(const WebSocketPerMessageDeflateOptions& options,
+                                          bool isServer)
+    {
+        const uint8_t deflateBits =
+            isServer ? options.getServerMaxWindowBits() : options.getClientMaxWindowBits();
+        const uint8_t inflateBits =
+            isServer ? options.getClientMaxWindowBits() : options.getServerMaxWindowBits();
+        const bool noContextTakeover =
+            isServer ? options.getServerNoContextTakeover() : options.getClientNoContextTakeover();
 
-        return _compressor->init(deflateBits, clientNoContextTakeover) &&
-               _decompressor->init(inflateBits, clientNoContextTakeover);
+        const bool peerNoContextTakeover =
+            isServer ? options.getClientNoContextTakeover() : options.getServerNoContextTakeover();
+        return _compressor->init(deflateBits, noContextTakeover) &&
+               _decompressor->init(inflateBits, peerNoContextTakeover);
     }
 
     bool WebSocketPerMessageDeflate::compress(const IXWebSocketSendData& in, std::string& out)

@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <iostream>
 #include <random>
+#include <set>
 #include <sstream>
 
 namespace ix
@@ -36,7 +37,9 @@ namespace ix
 
     bool WebSocketHandshake::insensitiveStringCompare(const std::string& a, const std::string& b)
     {
-        return CaseInsensitiveLess::cmp(a, b) == 0;
+        // Equivalence under the case-insensitive strict weak ordering: neither
+        // string sorts below the other. (cmp(a, b) == 0 only checked a >= b.)
+        return !CaseInsensitiveLess::cmp(a, b) && !CaseInsensitiveLess::cmp(b, a);
     }
 
     std::string WebSocketHandshake::genRandomString(const int len)
@@ -61,7 +64,9 @@ namespace ix
         return s;
     }
 
-    WebSocketInitResult WebSocketHandshake::sendErrorResponse(int code, const std::string& reason)
+    WebSocketInitResult WebSocketHandshake::sendErrorResponse(int code,
+                                                              const std::string& reason,
+                                                              const std::string& extraHeaders)
     {
         std::stringstream ss;
         ss << "HTTP/1.1 ";
@@ -70,6 +75,8 @@ namespace ix
         ss << reason;
         ss << "\r\n";
         ss << "Server: " << userAgent() << "\r\n";
+        ss << extraHeaders;
+        ss << "\r\n";
 
         // Socket write can only be cancelled through a timeout here, not manually.
         static std::atomic<bool> requestInitCancellation(false);
@@ -91,7 +98,8 @@ namespace ix
         const std::string& host,
         const std::string& path,
         int port,
-        int timeoutSecs)
+        int timeoutSecs,
+        const std::vector<std::string>& disabledDefaultHeaders)
     {
         _requestInitCancellation = false;
 
@@ -112,24 +120,35 @@ namespace ix
         // See https://stackoverflow.com/questions/18265128/what-is-sec-websocket-key-for
         std::string secWebSocketKey = macaron::Base64::Encode(genRandomString(16));
 
+        // For IPv6 addresses, brackets are required in Host and Origin headers (RFC 7230)
+        bool isIPv6Host = host.find(':') != std::string::npos;
+        std::string bracketedHost = isIPv6Host ? "[" + host + "]" : host;
+
         std::stringstream ss;
         ss << "GET " << path << " HTTP/1.1\r\n";
-        ss << "Host: " << host << ":" << port << "\r\n";
+        if (extraHeaders.find("Host") == extraHeaders.end())
+        {
+            ss << "Host: " << bracketedHost << ":" << port << "\r\n";
+        }
         ss << "Upgrade: websocket\r\n";
         ss << "Connection: Upgrade\r\n";
         ss << "Sec-WebSocket-Version: 13\r\n";
         ss << "Sec-WebSocket-Key: " << secWebSocketKey << "\r\n";
 
+        const std::set<std::string, CaseInsensitiveLess> disabled(disabledDefaultHeaders.begin(),
+                                                                  disabledDefaultHeaders.end());
+
         // User-Agent can be customized by users
-        if (extraHeaders.find("User-Agent") == extraHeaders.end())
+        if (extraHeaders.find("User-Agent") == extraHeaders.end() &&
+            disabled.count("User-Agent") == 0)
         {
             ss << "User-Agent: " << userAgent() << "\r\n";
         }
 
         // Set an origin header if missing
-        if (extraHeaders.find("Origin") == extraHeaders.end())
+        if (extraHeaders.find("Origin") == extraHeaders.end() && disabled.count("Origin") == 0)
         {
-            ss << "Origin: " << protocol << "://" << host << ":" << port << "\r\n";
+            ss << "Origin: " << protocol << "://" << bracketedHost << ":" << port << "\r\n";
         }
 
         for (auto& it : extraHeaders)
@@ -169,11 +188,11 @@ namespace ix
         // HTTP/1.0 is too old.
         if (httpVersion != "HTTP/1.1")
         {
-            std::stringstream ss;
-            ss << "Expecting HTTP/1.1, got " << httpVersion << ". "
-               << "Rejecting connection to " << url << ", status: " << status
-               << ", HTTP Status line: " << line;
-            return WebSocketInitResult(false, status, ss.str());
+            std::ostringstream oss;
+            oss << "Expecting HTTP/1.1, got " << httpVersion << ". "
+                << "Rejecting connection to " << url << ", status: " << status
+                << ", HTTP Status line: " << line;
+            return WebSocketInitResult(false, status, oss.str());
         }
 
         auto result = parseHttpHeaders(_socket, isCancellationRequested);
@@ -189,11 +208,11 @@ namespace ix
         // a redirection (like 301)
         if (status != 101)
         {
-            std::stringstream ss;
-            ss << "Expecting status 101 (Switching Protocol), got " << status
-               << " status connecting to " << url << ", HTTP Status line: " << line;
+            std::ostringstream oss;
+            oss << "Expecting status 101 (Switching Protocol), got " << status
+                << " status connecting to " << url << ", HTTP Status line: " << line;
 
-            return WebSocketInitResult(false, status, ss.str(), headers, path);
+            return WebSocketInitResult(false, status, oss.str(), headers, path);
         }
 
         // Check the presence of the connection field
@@ -211,9 +230,9 @@ namespace ix
         //
         if (!insensitiveStringCompare(headers["connection"], "Upgrade"))
         {
-            std::stringstream ss;
-            ss << "Invalid connection value: " << headers["connection"];
-            return WebSocketInitResult(false, status, ss.str());
+            std::ostringstream oss;
+            oss << "Invalid connection value: " << headers["connection"];
+            return WebSocketInitResult(false, status, oss.str());
         }
 
         char output[29] = {};
@@ -345,10 +364,12 @@ namespace ix
 
             if (version != 13)
             {
-                return sendErrorResponse(400,
+                // Tell the client which version is supported (RFC 6455 section 4.2.2)
+                return sendErrorResponse(426,
                                          "Invalid Sec-WebSocket-Version, "
                                          "need 13, got " +
-                                             ss.str());
+                                             ss.str(),
+                                         "Sec-WebSocket-Version: 13\r\n");
             }
         }
 
@@ -371,7 +392,7 @@ namespace ix
         {
             _enablePerMessageDeflate = true;
 
-            if (!_perMessageDeflate->init(webSocketPerMessageDeflateOptions))
+            if (!_perMessageDeflate->init(webSocketPerMessageDeflateOptions, true))
             {
                 return WebSocketInitResult(
                     false, 0, "Failed to initialize per message deflate engine");

@@ -1,0 +1,7 @@
+{
+  "outdir": "/reports/server",
+  "servers": [{"agent": "ixwebsocket", "url": "ws://ixwebsocket:9002"}],
+  "cases": ["*"],
+  "exclude-cases": [],
+  "exclude-agent-cases": {}
+}

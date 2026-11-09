@@ -57,7 +57,7 @@ namespace ix
         server.setOnConnectionCallback(
             [remoteUrl, remoteUrlsMapping](std::weak_ptr<ix::WebSocket> webSocket,
                                            std::shared_ptr<ConnectionState> connectionState) {
-                auto state = std::dynamic_pointer_cast<ProxyConnectionState>(connectionState);
+                auto state = std::static_pointer_cast<ProxyConnectionState>(connectionState);
                 auto remoteIp = connectionState->getRemoteIp();
 
                 // Server connection

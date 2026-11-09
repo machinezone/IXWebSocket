@@ -3,7 +3,9 @@ on:
   push:
     paths-ignore:
     - 'docs/**'
+    branches: [ master ]   # CI on PRs targeting master
   pull_request:
+    branches: [ master ]   # CI on PRs targeting master
 
 jobs:
   linux:
@@ -12,4 +14,4 @@ jobs:
     - uses: actions/checkout@v1
     - uses: seanmiddleditch/gha-setup-ninja@master
     - name: make test
-      run: make -f makefile.dev test
+      run: make -f makefile.dev test WARNINGS_AS_ERRORS=ON

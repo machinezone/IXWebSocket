@@ -14,25 +14,28 @@ namespace ix
 {
     /// Default values as defined in the RFC
     const uint8_t WebSocketPerMessageDeflateOptions::kDefaultServerMaxWindowBits = 15;
+    const uint8_t WebSocketPerMessageDeflateOptions::kDefaultClientMaxWindowBits = 15;
+#ifdef IXWEBSOCKET_USE_ZLIB
     static const uint8_t minServerMaxWindowBits = 8;
     static const uint8_t maxServerMaxWindowBits = 15;
-
-    const uint8_t WebSocketPerMessageDeflateOptions::kDefaultClientMaxWindowBits = 15;
     static const uint8_t minClientMaxWindowBits = 8;
     static const uint8_t maxClientMaxWindowBits = 15;
+#endif
 
     WebSocketPerMessageDeflateOptions::WebSocketPerMessageDeflateOptions(
         bool enabled,
         bool clientNoContextTakeover,
         bool serverNoContextTakeover,
         uint8_t clientMaxWindowBits,
-        uint8_t serverMaxWindowBits)
+        uint8_t serverMaxWindowBits,
+        bool sendClientServerMaxWindowBits)
     {
         _enabled = enabled;
         _clientNoContextTakeover = clientNoContextTakeover;
         _serverNoContextTakeover = serverNoContextTakeover;
         _clientMaxWindowBits = clientMaxWindowBits;
         _serverMaxWindowBits = serverMaxWindowBits;
+        _sendClientServerMaxWindowBits = sendClientServerMaxWindowBits;
 
         sanitizeClientMaxWindowBits();
     }
@@ -58,6 +61,7 @@ namespace ix
         _enabled = false;
         _clientNoContextTakeover = false;
         _serverNoContextTakeover = false;
+        _sendClientServerMaxWindowBits = true;
         _clientMaxWindowBits = kDefaultClientMaxWindowBits;
         _serverMaxWindowBits = kDefaultServerMaxWindowBits;
 
@@ -127,8 +131,11 @@ namespace ix
         if (_clientNoContextTakeover) ss << "; client_no_context_takeover";
         if (_serverNoContextTakeover) ss << "; server_no_context_takeover";
 
-        ss << "; server_max_window_bits=" << static_cast<int>(_serverMaxWindowBits);
-        ss << "; client_max_window_bits=" << static_cast<int>(_clientMaxWindowBits);
+        if (_sendClientServerMaxWindowBits)
+        {
+            ss << "; server_max_window_bits=" << static_cast<int>(_serverMaxWindowBits);
+            ss << "; client_max_window_bits=" << static_cast<int>(_clientMaxWindowBits);
+        }
 
         ss << "\r\n";
 
@@ -165,6 +172,11 @@ namespace ix
     uint8_t WebSocketPerMessageDeflateOptions::getServerMaxWindowBits() const
     {
         return _serverMaxWindowBits;
+    }
+
+    bool WebSocketPerMessageDeflateOptions::getSendClientServerMaxWindowBits() const
+    {
+        return _sendClientServerMaxWindowBits;
     }
 
     bool WebSocketPerMessageDeflateOptions::startsWith(const std::string& str,

@@ -1,6 +1,8 @@
 ## Hello world
 
-IXWebSocket is a C++ library for WebSocket client and server development. It has minimal dependencies (no boost), is very simple to use and support everything you'll likely need for websocket dev (SSL, deflate compression, compiles on most platforms, etc...). HTTP client and server code is also available, but it hasn't received as much testing.
+(note from the main developer, sadly I don't have too much time to devote to this library anymore, maybe it's time to pass the maintenance to someone else more motivated ?)
+
+IXWebSocket is a C++ library for WebSocket client and server development. It has minimal dependencies (no boost), is very simple to use and support everything you'll likely need for websocket dev (SSL, deflate compression, compiles on most platforms, etc...). HTTP client and server code is also available, but it hasn't received as much testing. CORS is supported: custom headers such as `Access-Control-Allow-Origin` can be set on responses through the extra headers mechanism (see [#587](https://github.com/machinezone/IXWebSocket/issues/587)).
 
 It is been used on big mobile video game titles sending and receiving tons of messages since 2017 (iOS and Android). It was tested on macOS, iOS, Linux, Android, Windows and FreeBSD. Two important design goals are simplicity and correctness.
 
@@ -99,15 +101,18 @@ Starting with the 11.0.8 release, IXWebSocket should be fully C++11 compatible.
 If your company or project is using this library, feel free to open an issue or PR to amend this list.
 
 - [Machine Zone](https://www.mz.com)
-- [Tokio](https://gitlab.com/HCInk/tokio), a discord library focused on audio playback with node bindings.
+- [Tokio](https://github.com/liz3/tokio), a discord library focused on audio playback with node bindings.
 - [libDiscordBot](https://github.com/tostc/libDiscordBot/tree/master), an easy to use Discord-bot framework.
 - [gwebsocket](https://github.com/norrbotten/gwebsocket), a websocket (lua) module for Garry's Mod
-- [DisCPP](https://github.com/DisCPP/DisCPP), a simple but feature rich Discord API wrapper
+- [DisCPP](https://github.com/DisCPP/DisCPP), a simple but feature rich Discord API wrapper (archived as of Oct 8, 2021)
 - [discord.cpp](https://github.com/luccanunes/discord.cpp), a discord library for making bots
 - [Teleport](http://teleportconnect.com/), Teleport is your own personal remote robot avatar
 - [Abaddon](https://github.com/uowuo/abaddon), An alternative Discord client made with C++/gtkmm 
 - [NovaCoin](https://github.com/novacoin-project/novacoin), a hybrid scrypt PoW + PoS based cryptocurrency.
 - [Candy](https://github.com/lanthora/candy), A WebSocket and TUN based VPN for Linux 
+- [ITGmania](https://github.com/itgmania/itgmania), a cross platform Dance Dance Revolution-like emulator.
+
+- [Radio](https://query.farm/products/extensions/radio/), a DuckDB extension using IXWebSocket for WebSocket messaging from SQL.
 
 ## Alternative libraries
 
@@ -115,8 +120,8 @@ There are plenty of great websocket libraries out there, which might work for yo
 
 * [websocketpp](https://github.com/zaphoyd/websocketpp) - C++
 * [beast](https://github.com/boostorg/beast) - C++
+* [µWebSockets](https://github.com/uNetworking/uWebSockets) - C++
 * [libwebsockets](https://libwebsockets.org/) - C
-* [µWebSockets](https://github.com/uNetworking/uWebSockets) - C
 * [wslay](https://github.com/tatsuhiro-t/wslay) - C
 
 [uvweb](https://github.com/bsergean/uvweb) is a library written by the IXWebSocket author which is built on top of [uvw](https://github.com/skypjack/uvw), which is a C++ wrapper for [libuv](https://libuv.org/). It has more dependencies and does not support SSL at this point, but it can be used to open multiple connections within a single OS thread thanks to libuv.
@@ -134,9 +139,7 @@ To check the performance of a websocket library, you can look at the [autoroute]
 | Windows           | Disabled          | None              | [![Build2][5]][0] |
 | UWP               | Disabled          | None              | [![Build2][6]][0] |
 | Linux             | OpenSSL           | Address Sanitizer | [![Build2][7]][0] |
-| Mingw             | Disabled          | None              | [![Build2][8]][0] |
 
-* ASAN fails on Linux because of a known problem, we need a 
 * Some tests are disabled on Windows/UWP because of a pathing problem
 * TLS and ZLIB are disabled on Windows/UWP because enabling make the CI run takes a lot of time, for setting up vcpkg.
 
@@ -148,5 +151,4 @@ To check the performance of a websocket library, you can look at the [autoroute]
 [5]: https://github.com/machinezone/IXWebSocket/workflows/windows/badge.svg
 [6]: https://github.com/machinezone/IXWebSocket/workflows/uwp/badge.svg
 [7]: https://github.com/machinezone/IXWebSocket/workflows/linux_asan/badge.svg
-[8]: https://github.com/machinezone/IXWebSocket/workflows/unittest_windows_gcc/badge.svg
 

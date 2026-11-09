@@ -173,6 +173,7 @@ namespace ix
 #if defined(IXWEBSOCKET_USE_MBED_TLS) || defined(IXWEBSOCKET_USE_OPEN_SSL)
         tlsOptionsServer.tls = preferTLS;
 #else
+        (void) preferTLS;
         tlsOptionsServer.tls = false;
 #endif
         return tlsOptionsServer;
@@ -201,6 +202,7 @@ namespace ix
             scheme = "ws://";
         }
 #else
+        (void) preferTLS;
         scheme = "ws://";
 #endif
         return scheme;

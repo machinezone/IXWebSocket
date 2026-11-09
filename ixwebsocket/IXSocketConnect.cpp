@@ -20,7 +20,6 @@
 #include <linux/in.h>
 #include <linux/tcp.h>
 #endif
-#include <ixwebsocket/IXSelectInterruptFactory.h>
 
 namespace ix
 {
@@ -47,7 +46,7 @@ namespace ix
         // block us for too long
         SocketConnect::configure(fd);
 
-        int res = ::connect(fd, address->ai_addr, address->ai_addrlen);
+        int res = ::connect(fd, address->ai_addr, static_cast<int>(address->ai_addrlen));
 
         if (res == -1 && !Socket::isWaitNeeded())
         {
@@ -67,8 +66,7 @@ namespace ix
 
             int timeoutMs = 10;
             bool readyToRead = false;
-            SelectInterruptPtr selectInterrupt = ix::createSelectInterrupt();
-            PollResultType pollResult = Socket::poll(readyToRead, timeoutMs, fd, selectInterrupt);
+            PollResultType pollResult = Socket::poll(readyToRead, timeoutMs, fd, nullptr);
 
             if (pollResult == PollResultType::Timeout)
             {
@@ -82,7 +80,7 @@ namespace ix
             }
             else if (pollResult == PollResultType::ReadyForWrite)
             {
-                return fd;
+                return static_cast<int>(fd);
             }
             else
             {
@@ -128,7 +126,7 @@ namespace ix
     }
 
     // FIXME: configure is a terrible name
-    void SocketConnect::configure(int sockfd)
+    void SocketConnect::configure(socket_t sockfd)
     {
         // 1. disable Nagle's algorithm
         int flag = 1;

@@ -13,6 +13,13 @@ all: brew
 
 install: brew
 
+WARNINGS_AS_ERRORS ?= OFF
+
+MBEDTLS_CMAKE_PREFIX :=
+ifeq ($(shell uname),Darwin)
+MBEDTLS_CMAKE_PREFIX := -DCMAKE_PREFIX_PATH=$$(brew --prefix mbedtls@3)
+endif
+
 -DCMAKE_INSTALL_PREFIX=/opt/homebrew
 
 # Use -DCMAKE_INSTALL_PREFIX= to install into another location
@@ -27,22 +34,22 @@ install: brew
 #
 brew:
 ifeq ($(shell uname),Darwin)
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_PREFIX=/opt/homebrew -DCMAKE_UNITY_BUILD=OFF -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_PREFIX=/opt/homebrew -DCMAKE_UNITY_BUILD=OFF -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; ninja)
 else
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=OFF -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=OFF -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_TEST=1 .. ; ninja)
 endif
 
 # Docker default target. We've had problems with OpenSSL and TLS 1.3 (on the
 # server side ?) and I can't work-around it easily, so we're using mbedtls on
 # Linux for the SSL backend, which works great.
 ws_mbedtls_install:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_ZLIB=OFF -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_ZLIB=OFF -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 $(MBEDTLS_CMAKE_PREFIX) .. ; ninja install)
 
 ws:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. && ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. && ninja)
 
 ws_unity:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. && ninja install)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_UNITY_BUILD=ON -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 .. && ninja)
 
 ws_install:
 	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. -DUSE_TEST=0 && ninja install)
@@ -54,13 +61,23 @@ ws_openssl_install:
 	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_OPEN_SSL=1 .. ; ninja install)
 
 ws_mbedtls:
-	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 .. ; make -j 4)
+	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_WS=1 -DUSE_MBED_TLS=1 $(MBEDTLS_CMAKE_PREFIX) .. ; ninja)
+
+# Replace any cached TLS backend selection in the standard build directory.
+.PHONY: ws_network_framework test_network_framework
+ws_network_framework:
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_UNITY_BUILD=ON -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_CXX_EXTENSIONS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_FLAGS="-pedantic-errors -Werror=deprecated-declarations" -DUSE_TLS=ON -DUSE_NETWORK_FRAMEWORK=ON -DUSE_OPEN_SSL=OFF -DUSE_LIBRE_SSL=OFF -DUSE_MBED_TLS=OFF -DUSE_SECURE_TRANSPORT=OFF -DUSE_WS=ON -DUSE_TEST=ON
+	cmake --build build --parallel
+
+test_network_framework: ws_network_framework
+	python3 tools/check_network_framework.py
+	ctest --test-dir build --output-on-failure
 
 ws_no_ssl:
-	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_WS=1 .. ; make -j 4)
+	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=Debug -DUSE_WS=1 .. ; ninja)
 
 ws_no_python:
-	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. ; make -j4 install)
+	mkdir -p build && (cd build ; cmake -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_BUILD_TYPE=MinSizeRel -DUSE_TLS=1 -DUSE_WS=1 .. ; ninja install)
 
 uninstall:
 	xargs rm -fv < build/install_manifest.txt
@@ -106,10 +123,6 @@ deploy: docker docker_push
 run:
 	docker run --cap-add sys_ptrace --entrypoint=sh -it bsergean/ws:build
 
-# this is helpful to remove trailing whitespaces
-trail:
-	sh third_party/remote_trailing_whitespaces.sh
-
 format:
 	clang-format -i `find test ixwebsocket ws -name '*.cpp' -o -name '*.h'`
 
@@ -119,9 +132,20 @@ test_server:
 	(cd test && npm i ws && node broadcast-server.js)
 
 test:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 ..)
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 -DUSE_WS=1 -DIXWEBSOCKET_WARNINGS_AS_ERRORS=$(WARNINGS_AS_ERRORS) ..)
 	(cd build ; ninja)
 	(cd build ; ninja -v test)
+
+.PHONY: test_atomic_32
+test_atomic_32:
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_UNITY_BUILD=ON -DCMAKE_C_FLAGS="-m32 -march=i486" -DCMAKE_CXX_FLAGS="-m32 -march=i486" -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY -DUSE_TLS=OFF -DUSE_NETWORK_FRAMEWORK=OFF -DUSE_ZLIB=OFF -DUSE_TEST=OFF -DUSE_WS=OFF -DCMAKE_INSTALL_PREFIX="$(CURDIR)/build/atomic-install" -DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build --parallel
+	cmake --install build
+	cmake -S test/cmake/atomic -B build/atomic-consumer -DCMAKE_CXX_FLAGS="-m32 -march=i486" -DCMAKE_PREFIX_PATH="$(CURDIR)/build/atomic-install"
+	cmake --build build/atomic-consumer --parallel
+	./build/atomic-consumer/atomic_consumer
+	$(CXX) -std=c++11 -m32 -march=i486 test/cmake/atomic/main.cpp -o build/atomic-pkg-consumer $$(PKG_CONFIG_PATH="$(CURDIR)/build/atomic-install/lib/pkgconfig" pkg-config --cflags --libs --static ixwebsocket)
+	./build/atomic-pkg-consumer
 
 test_asan:
 	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=address -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer")
@@ -129,14 +153,14 @@ test_asan:
 	(cd build ; ctest -V .)
 
 test_tsan_mbedtls:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DUSE_TEST=1 $(MBEDTLS_CMAKE_PREFIX) .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
 	(cd build ; ninja)
 	(cd build ; ninja test)
 
 test_tsan_openssl:
-	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPENS_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
+	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPEN_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
 	(cd build ; ninja)
-	(cd build ; ninja test)
+	ctest --test-dir build --output-on-failure
 
 test_tsan_sectransport:
 	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_OPENS_SSL=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer")
@@ -226,3 +250,23 @@ commit:
 .PHONY: test
 .PHONY: build
 .PHONY: ws
+
+# Full client and server compliance suite; reports are written to build/autobahn.
+.PHONY: test_autobahn
+test_autobahn:
+	python3 -m unittest discover -s test/autobahn -p 'test_*.py'
+	python3 tools/run_autobahn.py
+
+# Local live reporting; e.g. AUTOBAHN_ARGS="--cases 6.4.* --role client".
+AUTOBAHN_ARGS ?=
+.PHONY: test_autobahn_interactive
+test_autobahn_interactive:
+	python3 tools/run_autobahn.py --interactive $(AUTOBAHN_ARGS)
+
+# Hide compatibility APIs so OpenSSL migrations fail in CI rather than downstream builds.
+OPENSSL_API_COMPAT ?= 0x30000000L
+.PHONY: test_openssl_no_deprecated
+test_openssl_no_deprecated:
+	cmake -S . -B build -GNinja -UOPENSSL_CRYPTO_LIBRARY -UOPENSSL_SSL_LIBRARY -UOPENSSL_INCLUDE_DIR -DCMAKE_BUILD_TYPE=Debug -DCMAKE_UNITY_BUILD=ON -DUSE_TLS=ON -DUSE_OPEN_SSL=ON -DUSE_LIBRE_SSL=OFF -DUSE_MBED_TLS=OFF -DUSE_NETWORK_FRAMEWORK=OFF -DUSE_SECURE_TRANSPORT=OFF -DUSE_ZLIB=ON -DUSE_TEST=ON -DUSE_WS=ON -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_CXX_FLAGS="-DOPENSSL_NO_DEPRECATED -DOPENSSL_API_COMPAT=$(OPENSSL_API_COMPAT) -Werror=deprecated-declarations"
+	cmake --build build --parallel 2
+	ctest --test-dir build --output-on-failure

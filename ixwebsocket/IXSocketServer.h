@@ -10,6 +10,7 @@
 #include "IXNetSystem.h"
 #include "IXSelectInterrupt.h"
 #include "IXSocketTLSOptions.h"
+#include "IXWebSocketExport.h"
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -24,11 +25,26 @@
 namespace ix
 {
     class Socket;
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+    class SocketNetworkListener;
+#endif
+
+    enum class LogLevel
+    {
+        Info,
+        Error
+    };
 
     class SocketServer
     {
     public:
         using ConnectionStateFactory = std::function<std::shared_ptr<ConnectionState>()>;
+
+        // Application-provided sink for server log messages. When set, messages
+        // that would otherwise be written to stderr/stdout (such as TLS accept
+        // failures happening before a connection is established) are delivered
+        // to the callback instead.
+        using LogCallback = std::function<void(LogLevel level, const std::string& message)>;
 
         // Each connection is handled by its own worker thread.
         // We use a list as we only care about remove and append operations.
@@ -48,11 +64,13 @@ namespace ix
         // that inherits from ConnectionState but has its own methods.
         void setConnectionStateFactory(const ConnectionStateFactory& connectionStateFactory);
 
-        const static int kDefaultPort;
-        const static std::string kDefaultHost;
-        const static int kDefaultTcpBacklog;
-        const static size_t kDefaultMaxConnections;
-        const static int kDefaultAddressFamily;
+        void setLogCallback(const LogCallback& callback);
+
+        IXWEBSOCKET_EXPORT const static int kDefaultPort;
+        IXWEBSOCKET_EXPORT const static std::string kDefaultHost;
+        IXWEBSOCKET_EXPORT const static int kDefaultTcpBacklog;
+        IXWEBSOCKET_EXPORT const static size_t kDefaultMaxConnections;
+        IXWEBSOCKET_EXPORT const static int kDefaultAddressFamily;
 
         void start();
         std::pair<bool, std::string> listen();
@@ -60,11 +78,18 @@ namespace ix
 
         void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
 
-        int  getPort();
+        // Set FD_CLOEXEC on server and client file descriptors.
+        void setCloseOnExec()
+        {
+            _closeOnExec = true;
+        }
+
+        int getPort();
         std::string getHost();
         int getBacklog();
         std::size_t getMaxConnections();
         int getAddressFamily();
+
     protected:
         // Logging
         void logError(const std::string& str);
@@ -79,17 +104,28 @@ namespace ix
         int _backlog;
         size_t _maxConnections;
         int _addressFamily;
+        bool _closeOnExec = false;
 
         // socket for accepting connections
         socket_t _serverFd;
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+        std::unique_ptr<SocketNetworkListener> _networkListener;
+        void runNetwork();
+#endif
 
         std::atomic<bool> _stop;
 
         std::mutex _logMutex;
+        LogCallback _logCallback; // protected by _logMutex
 
         // background thread to wait for incoming connections
         std::thread _thread;
         void run();
+        void startConnection(std::unique_ptr<Socket> socket,
+                             const std::string& remoteIp,
+                             int remotePort);
+        void acceptConnection(std::unique_ptr<Socket> socket,
+                              std::shared_ptr<ConnectionState> connectionState);
         void onSetTerminatedCallback();
 
         // background thread to cleanup (join) terminated threads
@@ -126,6 +162,6 @@ namespace ix
         // as a connection
         std::condition_variable _conditionVariableGC;
         std::mutex _conditionVariableMutexGC;
-        bool _canContinueGC{ false };
+        bool _canContinueGC {false};
     };
 } // namespace ix

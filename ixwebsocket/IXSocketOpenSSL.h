@@ -3,7 +3,7 @@
  *  Author: Benjamin Sergeant, Matt DeBoer
  *  Copyright (c) 2017-2020 Machine Zone, Inc. All rights reserved.
  */
-#ifdef IXWEBSOCKET_USE_OPEN_SSL
+#if defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)
 
 #pragma once
 
@@ -26,6 +26,8 @@ namespace ix
         ~SocketOpenSSL();
 
         virtual bool accept(std::string& errMsg) final;
+        bool accept(std::string& errMsg,
+                    const CancellationRequest& isCancellationRequested) override;
 
         virtual bool connect(const std::string& host,
                              int port,
@@ -33,10 +35,11 @@ namespace ix
                              const CancellationRequest& isCancellationRequested) final;
         virtual void close() final;
 
-        virtual ssize_t send(char* buffer, size_t length) final;
-        virtual ssize_t recv(void* buffer, size_t length) final;
+        virtual std::ptrdiff_t send(char* buffer, size_t length) final;
+        virtual std::ptrdiff_t recv(void* buffer, size_t length) final;
 
     private:
+        friend struct SocketOpenSSLWriteTestAccess;
         void openSSLInitialize();
         std::string getSSLError(int ret);
         SSL_CTX* openSSLCreateContext(std::string& errMsg);
@@ -47,10 +50,12 @@ namespace ix
         bool openSSLCheckServerCert(SSL* ssl, const std::string& hostname, std::string& errMsg);
         bool checkHost(const std::string& host, const char* pattern);
         bool handleTLSOptions(std::string& errMsg);
-        bool openSSLServerHandshake(std::string& errMsg);
+        bool openSSLServerHandshake(std::string& errMsg,
+                                    const CancellationRequest& isCancellationRequested);
 
-        // Required for OpenSSL < 1.1
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
         static void openSSLLockingCallback(int mode, int type, const char* /*file*/, int /*line*/);
+#endif
 
         SSL* _ssl_connection;
         SSL_CTX* _ssl_context;
@@ -65,4 +70,4 @@ namespace ix
 
 } // namespace ix
 
-#endif // IXWEBSOCKET_USE_OPEN_SSL
+#endif // defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)

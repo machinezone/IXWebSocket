@@ -9,9 +9,12 @@
 
 #include "IXSocket.h"
 #include "IXSocketTLSOptions.h"
+#include <mbedtls/version.h>
+#if MBEDTLS_VERSION_MAJOR < 4
 #include <mbedtls/ctr_drbg.h>
-#include <mbedtls/debug.h>
 #include <mbedtls/entropy.h>
+#endif
+#include <mbedtls/debug.h>
 #include <mbedtls/error.h>
 #include <mbedtls/net_sockets.h>
 #include <mbedtls/platform.h>
@@ -28,6 +31,8 @@ namespace ix
         ~SocketMbedTLS();
 
         virtual bool accept(std::string& errMsg) final;
+        bool accept(std::string& errMsg,
+                    const CancellationRequest& isCancellationRequested) override;
 
         virtual bool connect(const std::string& host,
                              int port,
@@ -35,20 +40,24 @@ namespace ix
                              const CancellationRequest& isCancellationRequested) final;
         virtual void close() final;
 
-        virtual ssize_t send(char* buffer, size_t length) final;
-        virtual ssize_t recv(void* buffer, size_t length) final;
+        virtual std::ptrdiff_t send(char* buffer, size_t length) final;
+        virtual std::ptrdiff_t recv(void* buffer, size_t length) final;
 
     private:
+        friend struct SocketMbedTLSWriteTestAccess;
         mbedtls_ssl_context _ssl;
         mbedtls_ssl_config _conf;
+#if MBEDTLS_VERSION_MAJOR < 4
         mbedtls_entropy_context _entropy;
         mbedtls_ctr_drbg_context _ctr_drbg;
+#endif
         mbedtls_x509_crt _cacert;
         mbedtls_x509_crt _cert;
         mbedtls_pk_context _pkey;
 
         std::mutex _mutex;
         SocketTLSOptions _tlsOptions;
+        bool _mbedtlsInitialized = false;
 
         bool init(const std::string& host, bool isClient, std::string& errMsg);
         void initMBedTLS();

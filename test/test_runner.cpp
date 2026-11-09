@@ -4,10 +4,9 @@
  *  Copyright (c) 2018 Machine Zone. All rights reserved.
  */
 
-#define CATCH_CONFIG_RUNNER
-#include "catch.hpp"
+#include <catch_amalgamated.hpp>
+#include <common/IXLog.h>
 #include <ixwebsocket/IXNetSystem.h>
-#include <spdlog/spdlog.h>
 
 #ifndef _WIN32
 #include <signal.h>
@@ -20,7 +19,7 @@ int main(int argc, char* argv[])
 #ifndef _WIN32
     signal(SIGPIPE, SIG_IGN);
 #endif
-    spdlog::set_level(spdlog::level::debug);
+    ix::logger::setLevel(ix::logger::Level::Debug);
 
     int result = Catch::Session().run(argc, argv);
 

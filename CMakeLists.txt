@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.4.1...3.17.2)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_MODULE_PATH}")
 
-project(ixwebsocket LANGUAGES C CXX VERSION 11.4.4)
+project(ixwebsocket LANGUAGES C CXX VERSION 12.1.0)
 
 set (CMAKE_CXX_STANDARD 11 CACHE STRING "C++ Standard Version")
 set (CMAKE_CXX_STANDARD_REQUIRED ON BOOL "C++ Standard Required")
@@ -19,12 +19,20 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
-if (UNIX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
-endif()
-
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32")
+option(IXWEBSOCKET_WARNINGS_AS_ERRORS "Treat IXWebSocket and ws warnings as errors" OFF)
+set(IXWEBSOCKET_WARNING_FLAGS)
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND NOT MSVC)
+  if (UNIX)
+    list(APPEND IXWEBSOCKET_WARNING_FLAGS -Wall -Wextra -Wshadow -pedantic)
+  endif()
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    list(APPEND IXWEBSOCKET_WARNING_FLAGS -Wshorten-64-to-32)
+  endif()
+  if (IXWEBSOCKET_WARNINGS_AS_ERRORS)
+    list(APPEND IXWEBSOCKET_WARNING_FLAGS -Werror)
+  endif()
+elseif (MSVC AND IXWEBSOCKET_WARNINGS_AS_ERRORS)
+  list(APPEND IXWEBSOCKET_WARNING_FLAGS /WX)
 endif()
 
 set( IXWEBSOCKET_SOURCES
@@ -101,6 +109,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXWebSocketCloseConstants.h
     ixwebsocket/IXWebSocketCloseInfo.h
     ixwebsocket/IXWebSocketErrorInfo.h
+    ixwebsocket/IXWebSocketExport.h
     ixwebsocket/IXWebSocketHandshake.h
     ixwebsocket/IXWebSocketHandshakeKeyGen.h
     ixwebsocket/IXWebSocketHttpHeaders.h
@@ -121,32 +130,48 @@ set( IXWEBSOCKET_HEADERS
 
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" OFF)
 option(USE_TLS "Enable TLS support" FALSE)
+option(USE_NETWORK_FRAMEWORK "Use Apple's Network.framework TLS backend (macOS 10.15+)" OFF)
+if (USE_NETWORK_FRAMEWORK)
+    if (NOT APPLE OR NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        message(FATAL_ERROR "Network.framework backend currently supports macOS only")
+    endif()
+    if (USE_OPEN_SSL OR USE_LIBRE_SSL OR USE_MBED_TLS OR USE_SECURE_TRANSPORT)
+        message(FATAL_ERROR "USE_NETWORK_FRAMEWORK cannot be combined with another TLS backend")
+    endif()
+    if (CMAKE_OSX_DEPLOYMENT_TARGET AND CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 10.15)
+        message(FATAL_ERROR "Network.framework backend requires macOS 10.15 or later")
+    endif()
+    set(USE_TLS ON)
+endif()
 
 if (USE_TLS)
     # default to securetranport on Apple if nothing is configured
     if (APPLE)
-      if (NOT USE_MBED_TLS AND NOT USE_OPEN_SSL) # unless we want something else
+      if (NOT USE_MBED_TLS AND NOT USE_OPEN_SSL AND NOT USE_LIBRE_SSL AND NOT USE_NETWORK_FRAMEWORK) # unless we want something else
         set(USE_SECURE_TRANSPORT ON)
       endif()
     # default to mbedtls on windows if nothing is configured
     elseif (WIN32)
-      if (NOT USE_OPEN_SSL) # unless we want something else
+      if (NOT USE_OPEN_SSL AND NOT USE_LIBRE_SSL) # unless we want something else
         set(USE_MBED_TLS ON)
       endif()
     else() # default to OpenSSL on all other platforms
-      if (NOT USE_MBED_TLS) # Unless mbedtls is requested
+      if (NOT USE_MBED_TLS AND NOT USE_LIBRE_SSL) # Unless mbedtls or libressl is requested
         set(USE_OPEN_SSL ON)
         set(requires "openssl")
       endif()
     endif()
 
-    if (USE_MBED_TLS)
+    if (USE_NETWORK_FRAMEWORK)
+        list(APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketNetwork.h)
+        list(APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketNetwork.cpp)
+    elseif (USE_MBED_TLS)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketMbedTLS.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketMbedTLS.cpp)
     elseif (USE_SECURE_TRANSPORT)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketAppleSSL.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketAppleSSL.cpp)
-    elseif (USE_OPEN_SSL)
+    elseif (USE_OPEN_SSL OR USE_LIBRE_SSL)
         list( APPEND IXWEBSOCKET_HEADERS ixwebsocket/IXSocketOpenSSL.h)
         list( APPEND IXWEBSOCKET_SOURCES ixwebsocket/IXSocketOpenSSL.cpp)
     else()
@@ -154,22 +179,32 @@ if (USE_TLS)
     endif()
 endif()
 
+set(IXWEBSOCKET_PUBLIC_CFLAGS "")
+
 if(BUILD_SHARED_LIBS)
     # Building shared library
-    
-    if(MSVC)
-        # Workaround for some projects
-        set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-    endif()
 
     add_library( ixwebsocket SHARED
         ${IXWEBSOCKET_SOURCES}
         ${IXWEBSOCKET_HEADERS}
     )
 
-    # Set library version
-    set_target_properties(ixwebsocket PROPERTIES VERSION ${CMAKE_PROJECT_VERSION})
+    if(WIN32)
+        target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_SHARED)
+        set(IXWEBSOCKET_PUBLIC_CFLAGS "-DIXWEBSOCKET_SHARED")
+        if(MSVC)
+            set_target_properties(ixwebsocket PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+        elseif(MINGW)
+            # Explicit data exports otherwise disable MinGW's automatic function exports.
+            set_property(TARGET ixwebsocket APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--export-all-symbols")
+        endif()
+    endif()
 
+    # Set library version and soversion
+    set_target_properties(ixwebsocket PROPERTIES
+        VERSION ${PROJECT_VERSION}
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+    )
 else()
     # Static library
     add_library( ixwebsocket
@@ -178,12 +213,19 @@ else()
     )
 endif()
 
+set(IXWEBSOCKET_PRIVATE_LIBS "")
+include(CheckAtomic)
+
 if (USE_TLS)
     target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_TLS)
-    if (USE_MBED_TLS)
+    if (USE_NETWORK_FRAMEWORK)
+        target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_NETWORK_FRAMEWORK)
+    elseif (USE_MBED_TLS)
         target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_MBED_TLS)
     elseif (USE_OPEN_SSL)
         target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_OPEN_SSL)
+    elseif (USE_LIBRE_SSL)
+        target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_LIBRE_SSL)
     elseif (USE_SECURE_TRANSPORT)
         target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_SECURE_TRANSPORT)
     else()
@@ -192,7 +234,11 @@ if (USE_TLS)
 endif()
 
 if (USE_TLS)
-  if (USE_OPEN_SSL)
+  if (USE_NETWORK_FRAMEWORK)
+    message(STATUS "TLS configured to use Network.framework")
+    target_compile_options(ixwebsocket PRIVATE -fblocks)
+    target_link_libraries(ixwebsocket PRIVATE "-framework Network" "-framework Security" "-framework CoreFoundation")
+  elseif (USE_OPEN_SSL)
     message(STATUS "TLS configured to use openssl")
 
     # Help finding Homebrew's OpenSSL on macOS
@@ -220,14 +266,24 @@ if (USE_TLS)
     # This MBEDTLS_FOUND check is to help find a cmake manually configured MbedTLS
     if (NOT MBEDTLS_FOUND)
       find_package(MbedTLS REQUIRED)
-      
+
       if (MBEDTLS_VERSION_GREATER_THAN_3)
         target_compile_definitions(ixwebsocket PRIVATE IXWEBSOCKET_USE_MBED_TLS_MIN_VERSION_3)
       endif()
-      
+
     endif()
     target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${MBEDTLS_INCLUDE_DIRS}>)
     target_link_libraries(ixwebsocket PRIVATE ${MBEDTLS_LIBRARIES})
+  elseif (USE_LIBRE_SSL)
+    message(STATUS "TLS configured to use libressl")
+
+    if (NOT LIBRESSL_FOUND)
+      find_package(LibreSSL REQUIRED)
+    endif()
+    message(STATUS "LibreSSL: " ${LIBRESSL_VERSION})
+
+    target_include_directories(ixwebsocket PUBLIC $<BUILD_INTERFACE:${LIBRESSL_INCLUDE_DIR}>)
+    target_link_libraries(ixwebsocket PRIVATE ${LIBRESSL_LIBRARIES})
   elseif (USE_SECURE_TRANSPORT)
     message(STATUS "TLS configured to use secure transport")
     target_link_libraries(ixwebsocket PRIVATE "-framework Foundation" "-framework Security")
@@ -248,7 +304,7 @@ if (WIN32)
   target_compile_definitions(ixwebsocket PRIVATE _CRT_SECURE_NO_WARNINGS)
 
   if (USE_TLS)
-    target_link_libraries(ixwebsocket PRIVATE Crypt32)
+    target_link_libraries(ixwebsocket PRIVATE crypt32)
   endif()
 endif()
 
@@ -271,11 +327,13 @@ endif()
 include(GNUInstallDirs)
 
 target_include_directories(ixwebsocket PUBLIC
-  $<BUILD_INTERFACE:${IXWEBSOCKET_INCLUDE_DIRS}/>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket>
+  $<BUILD_INTERFACE:${IXWEBSOCKET_INCLUDE_DIRS}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 set_target_properties(ixwebsocket PROPERTIES PUBLIC_HEADER "${IXWEBSOCKET_HEADERS}")
+
+target_compile_options(ixwebsocket PRIVATE ${IXWEBSOCKET_WARNING_FLAGS})
 
 add_library(ixwebsocket::ixwebsocket ALIAS ixwebsocket)
 
@@ -285,12 +343,14 @@ if (IXWEBSOCKET_INSTALL)
   install(TARGETS ixwebsocket
           EXPORT ixwebsocket
           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
           PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ixwebsocket/
   )
 
   configure_file("${CMAKE_CURRENT_LIST_DIR}/ixwebsocket-config.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/ixwebsocket-config.cmake" @ONLY)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ixwebsocket-config.cmake" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ixwebsocket")
-  
+
   set(prefix ${CMAKE_INSTALL_PREFIX})
   configure_file("${CMAKE_CURRENT_LIST_DIR}/ixwebsocket.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/ixwebsocket.pc" @ONLY)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ixwebsocket.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
@@ -302,25 +362,22 @@ if (IXWEBSOCKET_INSTALL)
   )
 endif()
 
-if (USE_WS OR USE_TEST)
-  include(FetchContent)
-  FetchContent_Declare(spdlog
-      GIT_REPOSITORY "https://github.com/gabime/spdlog"
-      GIT_TAG "v1.8.0"
-      GIT_SHALLOW 1) 
-
-  FetchContent_MakeAvailable(spdlog)
-
-  if (USE_WS)
-    add_subdirectory(ws)
-  endif()
-  if (USE_TEST)
-    enable_testing()
-    add_subdirectory(test)
-  endif()
+#
+# ws and the unittest have no external dependency: everything they need is
+# either vendored in third_party (CLI11 and Catch2, as single files) or lives
+# in common/ (a tiny logger and serialization format). Nothing is downloaded at
+# configure time.
+#
+if (USE_WS)
+  add_subdirectory(ws)
 endif()
 
-if (BUILD_DEMO) 
+if (USE_TEST)
+  enable_testing()
+  add_subdirectory(test)
+endif()
+
+if (BUILD_DEMO)
   add_executable(demo main.cpp)
-  target_link_libraries(demo ixwebsocket) 
+  target_link_libraries(demo ixwebsocket)
 endif()
