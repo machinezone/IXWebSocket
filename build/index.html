@@ -162,6 +162,7 @@ the CI check; it also runs on <code>master</code> and manually. See the
 <li><code>-DUSE_MBED_TLS=1</code> will use <a href="https://tls.mbed.org/">mbedlts</a> for the TLS support</li>
 <li><code>-DUSE_WS=1</code> will build the ws interactive command line tool</li>
 <li><code>-DUSE_TEST=1</code> will build the unittest</li>
+<li><code>-DIXWEBSOCKET_WARNINGS_AS_ERRORS=ON</code> treats library and CLI compiler warnings as errors. It is off by default; <code>make -f makefile.dev test WARNINGS_AS_ERRORS=ON</code> enables it and builds both targets, as used by Linux CI. Unix GCC/Clang builds enable <code>-Wshadow</code>. Warning flags are private to these targets and do not apply to vendored dependencies or consumers.</li>
 </ul>
 <p>The default CTest suite uses loopback servers and in-memory TLS sessions; it does
 not require Internet access. TLS server tests generate a local CA and verify the
