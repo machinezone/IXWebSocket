@@ -410,6 +410,7 @@ namespace ix
 
                 connectErr.reason = status.errorStr;
                 connectErr.http_status = status.http_status;
+                connectErr.headers = status.headers;
 
                 _onMessageCallback(ix::make_unique<WebSocketMessage>(WebSocketMessageType::Error,
                                                                      emptyMsg,

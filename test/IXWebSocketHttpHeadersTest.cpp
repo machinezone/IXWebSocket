@@ -5,9 +5,15 @@
 
 #include <algorithm>
 #include <catch_amalgamated.hpp>
+#include <chrono>
 #include <cstring>
+#include <future>
+#include <ixwebsocket/IXGetFreePort.h>
+#include <ixwebsocket/IXHttp.h>
 #include <ixwebsocket/IXSocket.h>
+#include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
+#include <ixwebsocket/IXWebSocketServer.h>
 
 namespace
 {
@@ -31,6 +37,32 @@ namespace
     private:
         std::string _input;
         size_t _offset;
+    };
+
+    class RejectedHandshakeServer final : public ix::WebSocketServer
+    {
+    public:
+        explicit RejectedHandshakeServer(const ix::HttpResponsePtr& response)
+            : ix::WebSocketServer(ix::getFreePort(), "127.0.0.1")
+            , _response(response)
+        {
+        }
+
+        ~RejectedHandshakeServer() override
+        {
+            stop();
+        }
+
+    private:
+        void handleConnection(std::unique_ptr<ix::Socket> socket,
+                              std::shared_ptr<ix::ConnectionState> state) override
+        {
+            if (std::get<0>(ix::Http::parseRequest(socket, 2)))
+                ix::Http::sendResponse(_response, socket);
+            state->setTerminated();
+        }
+
+        ix::HttpResponsePtr _response;
     };
 } // namespace
 
@@ -128,4 +160,43 @@ TEST_CASE("Incomplete or cancelled HTTP headers", "[http][headers]")
 
     std::unique_ptr<ix::Socket> socket(new HttpHeadersTestSocket(input));
     CHECK_FALSE(ix::parseHttpHeaders(socket, [cancelled] { return cancelled; }).first);
+}
+
+TEST_CASE("Rejected WebSocket handshakes expose response headers", "[websocket][http][headers]")
+{
+    const int status = GENERATE(401, 503);
+    CAPTURE(status);
+    const ix::WebSocketHttpHeaders headers = {
+        {"X-Error-Reason", status == 401 ? "token_expired" : "server_busy"}, {"Retry-After", "60"}};
+    RejectedHandshakeServer server(
+        std::make_shared<ix::HttpResponse>(status,
+                                           status == 401 ? "Unauthorized" : "Service Unavailable",
+                                           ix::HttpErrorCode::Ok,
+                                           headers,
+                                           ""));
+    REQUIRE(server.listen().first);
+    server.start();
+
+    std::promise<ix::WebSocketErrorInfo> error;
+    auto result = error.get_future();
+    ix::WebSocket client;
+    client.disableAutomaticReconnection();
+    client.setUrl("ws://127.0.0.1:" + std::to_string(server.getPort()) + "/");
+    client.setOnMessageCallback(
+        [&error](const ix::WebSocketMessagePtr& message)
+        {
+            if (message->type == ix::WebSocketMessageType::Error)
+                error.set_value(message->errorInfo);
+        });
+    client.start();
+    const auto ready = result.wait_for(std::chrono::seconds(2));
+    client.stop();
+    server.stop();
+
+    REQUIRE(ready == std::future_status::ready);
+    const auto info = result.get();
+    CHECK(info.http_status == status);
+    CHECK_FALSE(info.reason.empty());
+    CHECK(info.headers.at("x-error-reason") == headers.at("X-Error-Reason"));
+    CHECK(info.headers.at("retry-after") == "60");
 }

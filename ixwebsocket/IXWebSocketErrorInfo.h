@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "IXWebSocketHttpHeaders.h"
 #include <cstdint>
 #include <string>
 
@@ -18,5 +19,7 @@ namespace ix
         int http_status = 0;
         std::string reason;
         bool decompressionError = false;
+        // HTTP response headers available when the server rejects the handshake.
+        WebSocketHttpHeaders headers;
     };
 } // namespace ix

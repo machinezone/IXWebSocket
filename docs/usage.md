@@ -147,6 +147,8 @@ webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
 
 A message will be fired when there is an error with the connection. The message type will be `ix::WebSocketMessageType::Error`. Multiple fields will be available on the event to describe the error.
 
+When a server rejects the WebSocket handshake, `msg->errorInfo.headers` contains the HTTP response headers, such as `Retry-After` or custom authentication headers. Header names are case insensitive. Errors without response headers leave this map empty.
+
 ```cpp
 webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
     {
