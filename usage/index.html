@@ -256,6 +256,7 @@ result = webSocket.sendUtf8Text(IXWebSocketSendData(text, strlen(text)));
 </code></pre>
 <h3 id="error-notification">Error notification</h3>
 <p>A message will be fired when there is an error with the connection. The message type will be <code>ix::WebSocketMessageType::Error</code>. Multiple fields will be available on the event to describe the error.</p>
+<p>When a server rejects the WebSocket handshake, <code>msg-&gt;errorInfo.headers</code> contains the HTTP response headers, such as <code>Retry-After</code> or custom authentication headers. Header names are case insensitive. Errors without response headers leave this map empty.</p>
 <pre><code class="language-cpp">webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; msg)
     {
         if (msg-&gt;type == ix::WebSocketMessageType::Error)
