@@ -421,10 +421,10 @@ namespace ix
 
             int caseNumber = i;
 
-            std::stringstream ss;
-            ss << url << "/runCase?case=" << caseNumber << "&agent=ixwebsocket";
+            std::ostringstream oss;
+            oss << url << "/runCase?case=" << caseNumber << "&agent=ixwebsocket";
 
-            std::string caseUrl(ss.str());
+            std::string caseUrl(oss.str());
 
             AutobahnTestCase testCase(caseUrl, quiet);
             if (!testCase.run())

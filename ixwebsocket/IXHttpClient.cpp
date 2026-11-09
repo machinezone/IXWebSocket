@@ -264,14 +264,14 @@ namespace ix
         if (!success)
         {
             auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotConnect;
-            std::stringstream errSs;
-            errSs << "Cannot connect to url: " << url << " / error : " << errMsg;
+            std::ostringstream oss;
+            oss << "Cannot connect to url: " << url << " / error : " << errMsg;
             return std::make_shared<HttpResponse>(code,
                                                   description,
                                                   errorCode,
                                                   headers,
                                                   payload,
-                                                  errSs.str(),
+                                                  oss.str(),
                                                   uploadSize,
                                                   downloadSize);
         }
@@ -281,15 +281,15 @@ namespace ix
 
         if (args->verbose)
         {
-            std::stringstream verboseSs;
-            verboseSs << "Sending " << verb << " request "
-                      << "to " << host << ":" << port << std::endl
-                      << "request size: " << req.size() << " bytes" << std::endl
-                      << "=============" << std::endl
-                      << req << "=============" << std::endl
-                      << std::endl;
+            std::ostringstream oss;
+            oss << "Sending " << verb << " request "
+                << "to " << host << ":" << port << std::endl
+                << "request size: " << req.size() << " bytes" << std::endl
+                << "=============" << std::endl
+                << req << "=============" << std::endl
+                << std::endl;
 
-            log(verboseSs.str(), args);
+            log(oss.str(), args);
         }
 
         if (!_socket->writeBytes(req, isCancellationRequested))
@@ -316,9 +316,9 @@ namespace ix
 
         if (args->verbose)
         {
-            std::stringstream verboseSs;
-            verboseSs << "Status line " << line;
-            log(verboseSs.str(), args);
+            std::ostringstream oss;
+            oss << "Status line " << line;
+            log(oss.str(), args);
         }
 
         if (sscanf(line.c_str(), "HTTP/1.1 %d", &code) != 1)
@@ -364,14 +364,14 @@ namespace ix
 
             if (redirects >= args->maxRedirects)
             {
-                std::stringstream maxRedirectSs;
-                maxRedirectSs << "Too many redirects: " << redirects;
+                std::ostringstream oss;
+                oss << "Too many redirects: " << redirects;
                 return std::make_shared<HttpResponse>(code,
                                                       description,
                                                       HttpErrorCode::TooManyRedirects,
                                                       headers,
                                                       payload,
-                                                      maxRedirectSs.str(),
+                                                      oss.str(),
                                                       uploadSize,
                                                       downloadSize);
             }
@@ -455,7 +455,7 @@ namespace ix
 
                 if (args->verbose)
                 {
-                    std::stringstream oss;
+                    std::ostringstream oss;
                     oss << "Reading " << chunkSize << " bytes" << std::endl;
                     log(oss.str(), args);
                 }
