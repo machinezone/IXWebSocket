@@ -152,6 +152,12 @@ multilib installed, <code>make -f makefile.dev test_atomic_32</code> builds and 
 <code>make -f makefile.dev test_autobahn</code>. Add the <code>autobahn</code> label to a PR to opt into
 the CI check; it also runs on <code>master</code> and manually. See the
 <a href="../autobahn/">Autobahn instructions</a> for reports and local debugging.</p>
+<p>The library defaults to C++11 and requires C++11 or later. To build with a newer
+standard, pass <code>-DCMAKE_CXX_STANDARD=17</code> (or another supported standard). The CLI
+and tests inherit this choice; the test framework requires at least C++14.
+Caller-provided <code>CMAKE_CXX_STANDARD_REQUIRED</code>, <code>CMAKE_CXX_EXTENSIONS</code>, and
+<code>CMAKE_EXPORT_COMPILE_COMMANDS</code> settings are respected, including values inherited
+from a parent project using <code>add_subdirectory</code>.</p>
 <p>Options for building:</p>
 <ul>
 <li><code>-DBUILD_SHARED_LIBS=ON</code> will build the unittest as a shared libary instead of a static library, which is the default</li>
