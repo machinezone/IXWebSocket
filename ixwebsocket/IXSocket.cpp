@@ -43,7 +43,7 @@ namespace ix
 
     PollResultType Socket::poll(bool readyToRead,
                                 int timeoutMs,
-                                int sockfd,
+                                socket_t sockfd,
                                 const SelectInterruptPtr& selectInterrupt)
     {
         PollResultType pollResult = PollResultType::ReadyForRead;
@@ -217,6 +217,16 @@ namespace ix
         return true;
     }
 
+    bool Socket::accept(std::string& errMsg, const CancellationRequest& isCancellationRequested)
+    {
+        if (isCancellationRequested && isCancellationRequested())
+        {
+            errMsg = "Cancellation requested";
+            return false;
+        }
+        return accept(errMsg);
+    }
+
     bool Socket::connect(const std::string& host,
                          int port,
                          std::string& errMsg,
@@ -240,29 +250,37 @@ namespace ix
         _sockfd = -1;
     }
 
-    ssize_t Socket::send(char* buffer, size_t length)
+    std::ptrdiff_t Socket::send(char* buffer, size_t length)
     {
         int flags = 0;
 #ifdef MSG_NOSIGNAL
         flags = MSG_NOSIGNAL;
 #endif
 
+#ifdef _WIN32
+        return ::send(_sockfd, buffer, static_cast<int>(length), flags);
+#else
         return ::send(_sockfd, buffer, length, flags);
+#endif
     }
 
-    ssize_t Socket::send(const std::string& buffer)
+    std::ptrdiff_t Socket::send(const std::string& buffer)
     {
         return send((char*) &buffer[0], buffer.size());
     }
 
-    ssize_t Socket::recv(void* buffer, size_t length)
+    std::ptrdiff_t Socket::recv(void* buffer, size_t length)
     {
         int flags = 0;
 #ifdef MSG_NOSIGNAL
         flags = MSG_NOSIGNAL;
 #endif
 
+#ifdef _WIN32
+        return ::recv(_sockfd, (char*) buffer, static_cast<int>(length), flags);
+#else
         return ::recv(_sockfd, (char*) buffer, length, flags);
+#endif
     }
 
     int Socket::getErrno()
@@ -278,6 +296,17 @@ namespace ix
         return err;
     }
 
+    void Socket::setErrno(int err)
+    {
+#ifdef _WIN32
+        // getErrno() reads WSAGetLastError() on Windows, the CRT errno is
+        // invisible to it
+        WSASetLastError(err);
+#else
+        errno = err;
+#endif
+    }
+
     bool Socket::isWaitNeeded()
     {
         int err = getErrno();
@@ -290,12 +319,22 @@ namespace ix
         return false;
     }
 
-    void Socket::closeSocket(int fd)
+    void Socket::closeSocket(socket_t fd)
     {
 #ifdef _WIN32
         closesocket(fd);
 #else
         ::close(fd);
+#endif
+    }
+
+    bool Socket::setCloseOnExec(socket_t fd)
+    {
+#ifdef _WIN32
+        // Not implemented on Windows.
+        return false;
+#else
+        return ::fcntl(fd, F_SETFD, FD_CLOEXEC) == 0;
 #endif
     }
 
@@ -314,7 +353,7 @@ namespace ix
         {
             if (isCancellationRequested && isCancellationRequested()) return false;
 
-            ssize_t ret = send((char*) &str[offset], len);
+            std::ptrdiff_t ret = send((char*) &str[offset], len);
 
             // We wrote some bytes, as needed, all good.
             if (ret > 0)
@@ -349,7 +388,7 @@ namespace ix
         {
             if (isCancellationRequested && isCancellationRequested()) return false;
 
-            ssize_t ret;
+            std::ptrdiff_t ret;
             ret = recv(buffer, 1);
 
             // We read one byte, as needed, all good.
@@ -415,7 +454,7 @@ namespace ix
             }
 
             size_t size = std::min(readBuffer.size(), length - bytesRead);
-            ssize_t ret = recv((char*) &readBuffer[0], size);
+            std::ptrdiff_t ret = recv((char*) &readBuffer[0], size);
 
             if (ret > 0)
             {

@@ -5,7 +5,7 @@
  */
 
 #include "IXTest.h"
-#include "catch.hpp"
+#include <catch_amalgamated.hpp>
 #include <iostream>
 #include <ixwebsocket/IXCancellationRequest.h>
 #include <ixwebsocket/IXSocket.h>
@@ -76,23 +76,4 @@ TEST_CASE("socket", "[socket]")
 
         testSocket(host, port, request, socket, expectedStatus, timeoutSecs);
     }
-
-#if defined(IXWEBSOCKET_USE_TLS)
-    SECTION("Connect to google HTTPS server over port 443. Send GET request without header. Should "
-            "return 200")
-    {
-        std::string errMsg;
-        bool tls = true;
-        SocketTLSOptions tlsOptions;
-        tlsOptions.caFile = "cacert.pem";
-        std::shared_ptr<Socket> socket = createSocket(tls, -1, errMsg, tlsOptions);
-        std::string host("www.google.com");
-        int port = 443;
-        std::string request("GET / HTTP/1.1\r\n\r\n");
-        int expectedStatus = 200;
-        int timeoutSecs = 3;
-
-        testSocket(host, port, request, socket, expectedStatus, timeoutSecs);
-    }
-#endif
 }

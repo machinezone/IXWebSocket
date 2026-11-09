@@ -5,7 +5,7 @@
  */
 
 #include "IXTest.h"
-#include "catch.hpp"
+#include <catch_amalgamated.hpp>
 #include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketFactory.h>
@@ -155,6 +155,60 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         REQUIRE(server.getClients().size() == 0);
     }
 
+    SECTION("Send a request with an unsupported version. Should return 426 with the supported "
+            "version and end the response headers")
+    {
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+        std::string connectionId;
+        REQUIRE(startServer(server, connectionId));
+
+        std::string errMsg;
+        bool tls = false;
+        SocketTLSOptions tlsOptions;
+        std::shared_ptr<Socket> socket = createSocket(tls, -1, errMsg, tlsOptions);
+        std::string host("127.0.0.1");
+        auto isCancellationRequested = []() -> bool { return false; };
+        bool success = socket->connect(host, port, errMsg, isCancellationRequested);
+        REQUIRE(success);
+
+        socket->writeBytes("GET / HTTP/1.1\r\n"
+                           "Upgrade: websocket\r\n"
+                           "Sec-WebSocket-Version: 8\r\n"
+                           "Sec-WebSocket-Key: foobar\r\n"
+                           "\r\n",
+                           isCancellationRequested);
+
+        auto lineResult = socket->readLine(isCancellationRequested);
+        REQUIRE(lineResult.first);
+
+        int status = -1;
+        REQUIRE(sscanf(lineResult.second.c_str(), "HTTP/1.1 %d", &status) == 1);
+        REQUIRE(status == 426);
+
+        bool supportedVersionSent = false;
+        bool headersEnded = false;
+        while (true)
+        {
+            lineResult = socket->readLine(isCancellationRequested);
+            if (!lineResult.first) break;
+            if (lineResult.second == "\r\n")
+            {
+                headersEnded = true;
+                break;
+            }
+            if (lineResult.second == "Sec-WebSocket-Version: 13\r\n")
+            {
+                supportedVersionSent = true;
+            }
+        }
+        REQUIRE(supportedVersionSent);
+        REQUIRE(headersEnded);
+
+        server.stop();
+        REQUIRE(server.getClients().size() == 0);
+    }
+
     SECTION("Connect to the server. Send GET request with correct header")
     {
         int port = getFreePort();
@@ -195,4 +249,59 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         REQUIRE(connectionId == "foobarConnectionId");
         REQUIRE(server.getClients().size() == 0);
     }
+
+#if defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_MBED_TLS)
+    SECTION("TLS server: a failed TLS handshake is reported through the log callback")
+    {
+        int port = getFreePort();
+        ix::WebSocketServer server(port);
+        server.setTLSOptions(makeServerTLSOptions(true));
+
+        std::mutex logMutex;
+        std::vector<std::string> errors;
+        server.setLogCallback([&logMutex, &errors](LogLevel level, const std::string& msg) {
+            std::lock_guard<std::mutex> lock(logMutex);
+            if (level == LogLevel::Error)
+            {
+                errors.push_back(msg);
+            }
+        });
+
+        std::string connectionId;
+        REQUIRE(startServer(server, connectionId));
+
+        // Talk plaintext HTTP to the TLS endpoint: this cannot be a valid
+        // ClientHello, so the server fails the connection during the TLS
+        // handshake, before any WebSocket exists.
+        std::string errMsg;
+        bool tls = false;
+        SocketTLSOptions tlsOptions;
+        std::shared_ptr<Socket> socket = createSocket(tls, -1, errMsg, tlsOptions);
+        std::string host("127.0.0.1");
+        auto isCancellationRequested = []() -> bool { return false; };
+        bool success = socket->connect(host, port, errMsg, isCancellationRequested);
+        REQUIRE(success);
+
+        socket->writeBytes("GET / HTTP/1.1\r\n\r\n", isCancellationRequested);
+
+        bool logged = false;
+        for (int i = 0; i < 100 && !logged; ++i)
+        {
+            ix::msleep(100);
+            std::lock_guard<std::mutex> lock(logMutex);
+            logged = !errors.empty();
+        }
+        REQUIRE(logged);
+
+        {
+            std::lock_guard<std::mutex> lock(logMutex);
+            TLogger() << "server error log: " << errors[0];
+            REQUIRE(errors[0].find("tls accept failed") != std::string::npos);
+            REQUIRE(errors[0].find("127.0.0.1") != std::string::npos);
+        }
+
+        server.stop();
+        REQUIRE(server.getClients().size() == 0);
+    }
+#endif
 }

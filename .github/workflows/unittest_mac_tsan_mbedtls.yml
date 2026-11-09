@@ -3,7 +3,9 @@ on:
   push:
     paths-ignore:
     - 'docs/**'
+    branches: [ master ]   # CI on PRs targeting master
   pull_request:
+    branches: [ master ]   # CI on PRs targeting master
 
 jobs:
   mac_tsan_mbedtls:
@@ -11,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: seanmiddleditch/gha-setup-ninja@master
-    - name: install mbedtls
-      run: brew install mbedtls
+    - name: install mbedtls@3
+      run: brew install mbedtls@3
     - name: make test
       run: make -f makefile.dev test_tsan_mbedtls

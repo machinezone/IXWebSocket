@@ -22,6 +22,7 @@ namespace ix
         SocketAppleSSL(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketAppleSSL();
 
+        using Socket::accept;
         virtual bool accept(std::string& errMsg) final;
 
         virtual bool connect(const std::string& host,
@@ -30,8 +31,8 @@ namespace ix
                              const CancellationRequest& isCancellationRequested) final;
         virtual void close() final;
 
-        virtual ssize_t send(char* buffer, size_t length) final;
-        virtual ssize_t recv(void* buffer, size_t length) final;
+        virtual std::ptrdiff_t send(char* buffer, size_t length) final;
+        virtual std::ptrdiff_t recv(void* buffer, size_t length) final;
 
     private:
         static std::string getSSLErrorDescription(OSStatus status);

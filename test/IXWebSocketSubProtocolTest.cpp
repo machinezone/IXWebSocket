@@ -5,7 +5,7 @@
  */
 
 #include "IXTest.h"
-#include "catch.hpp"
+#include <catch_amalgamated.hpp>
 #include <iostream>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketFactory.h>

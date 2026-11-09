@@ -8,10 +8,11 @@
 // Main driver for websocket utilities
 //
 
-#include "linenoise.hpp"
 #include <CLI11.hpp>
 #include <atomic>
 #include <chrono>
+#include <common/IXLog.h>
+#include <common/IXPdu.h>
 #include <condition_variable>
 #include <fstream>
 #include <iostream>
@@ -30,11 +31,8 @@
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketProxyServer.h>
 #include <ixwebsocket/IXWebSocketServer.h>
-#include <msgpack11.hpp>
 #include <mutex>
 #include <queue>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -47,15 +45,12 @@
 #define getpid _getpid
 #endif
 
-// for convenience
-using msgpack11::MsgPack;
-
 namespace
 {
     std::pair<bool, std::vector<uint8_t>> load(const std::string& path)
     {
         std::vector<uint8_t> memblock;
-        std::ifstream file(path);
+        std::ifstream file(path, std::ios::binary);
 
         if (!file.is_open()) return std::make_pair(false, memblock);
 
@@ -63,9 +58,13 @@ namespace
         std::streamoff size = file.tellg();
         file.seekg(0, file.beg);
 
-        memblock.reserve((size_t) size);
-        memblock.insert(
-            memblock.begin(), std::istream_iterator<char>(file), std::istream_iterator<char>());
+        if (size <= 0) return std::make_pair(true, memblock);
+
+        // Read the file with an unformatted read: an istream_iterator would
+        // skip whitespace bytes and corrupt any binary file
+        memblock.resize((size_t) size);
+        file.read(reinterpret_cast<char*>(&memblock.front()), size);
+        memblock.resize((size_t) file.gcount());
 
         return std::make_pair(true, memblock);
     }
@@ -176,22 +175,42 @@ namespace ix
     // 4. A HTML report will be generated, you can inspect it to see if you are compliant or not
     //
 
+    class AutobahnCompletion
+    {
+    public:
+        void finish()
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _done = true;
+            _condition.notify_one();
+        }
+
+        bool wait(std::chrono::seconds timeout)
+        {
+            std::unique_lock<std::mutex> lock(_mutex);
+            return _condition.wait_for(lock, timeout, [this] { return _done; });
+        }
+
+    private:
+        std::mutex _mutex;
+        std::condition_variable _condition;
+        bool _done = false;
+    };
+
     class AutobahnTestCase
     {
     public:
         AutobahnTestCase(const std::string& _url, bool quiet);
-        void run();
+        bool run();
 
     private:
         void log(const std::string& msg);
 
         std::string _url;
+        AutobahnCompletion _completion;
         ix::WebSocket _webSocket;
 
         bool _quiet;
-
-        std::mutex _mutex;
-        std::condition_variable _condition;
     };
 
     AutobahnTestCase::AutobahnTestCase(const std::string& url, bool quiet)
@@ -210,11 +229,11 @@ namespace ix
     {
         if (!_quiet)
         {
-            spdlog::info(msg);
+            ix::logInfo(msg);
         }
     }
 
-    void AutobahnTestCase::run()
+    bool AutobahnTestCase::run()
     {
         _webSocket.setUrl(_url);
 
@@ -239,7 +258,7 @@ namespace ix
                 ss << " code " << msg->closeInfo.code;
                 ss << " reason " << msg->closeInfo.reason << std::endl;
 
-                _condition.notify_one();
+                _completion.finish();
             }
             else if (msg->type == ix::WebSocketMessageType::Message)
             {
@@ -257,7 +276,7 @@ namespace ix
                 ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
 
                 // And error can happen, in which case the test-case is marked done
-                _condition.notify_one();
+                _completion.finish();
             }
             else if (msg->type == ix::WebSocketMessageType::Fragment)
             {
@@ -282,101 +301,101 @@ namespace ix
         _webSocket.start();
 
         log("Waiting for test completion ...");
-        std::unique_lock<std::mutex> lock(_mutex);
-        _condition.wait(lock);
-
+        const bool completed = _completion.wait(std::chrono::minutes(5));
         _webSocket.stop();
+        if (!completed) ix::logError("Autobahn case timed out: {}", _url);
+        return completed;
     }
 
     bool generateReport(const std::string& url)
     {
+        AutobahnCompletion completion;
+        std::atomic<bool> success(true);
         ix::WebSocket webSocket;
         std::string reportUrl(url);
         reportUrl += "/updateReports?agent=ixwebsocket";
         webSocket.setUrl(reportUrl);
         webSocket.disableAutomaticReconnection();
 
-        std::atomic<bool> success(true);
-        std::condition_variable condition;
-
-        webSocket.setOnMessageCallback([&condition, &success](const ix::WebSocketMessagePtr& msg) {
-            if (msg->type == ix::WebSocketMessageType::Close)
+        webSocket.setOnMessageCallback(
+            [&completion, &success](const ix::WebSocketMessagePtr& msg)
             {
-                spdlog::info("Report generated");
-                condition.notify_one();
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error)
-            {
-                std::stringstream ss;
-                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
-                ss << "#retries: " << msg->errorInfo.retries << std::endl;
-                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
-                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                spdlog::info(ss.str());
+                if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    ix::logInfo("Report generated");
+                    completion.finish();
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    std::stringstream ss;
+                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                    ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                    ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                    ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                    ix::logInfo(ss.str());
 
-                success = false;
-            }
-        });
+                    success = false;
+                    completion.finish();
+                }
+            });
 
         webSocket.start();
-        std::mutex mutex;
-        std::unique_lock<std::mutex> lock(mutex);
-        condition.wait(lock);
+        const bool completed = completion.wait(std::chrono::minutes(2));
         webSocket.stop();
 
-        if (!success)
+        if (!completed || !success)
         {
-            spdlog::error("Cannot generate report at url {}", reportUrl);
+            ix::logError("Cannot generate report at url {}", reportUrl);
         }
 
-        return success;
+        return completed && success;
     }
 
     int getTestCaseCount(const std::string& url)
     {
+        AutobahnCompletion completion;
+        int count = -1;
         ix::WebSocket webSocket;
         std::string caseCountUrl(url);
         caseCountUrl += "/getCaseCount";
         webSocket.setUrl(caseCountUrl);
         webSocket.disableAutomaticReconnection();
 
-        int count = -1;
-        std::condition_variable condition;
+        webSocket.setOnMessageCallback(
+            [&completion, &count](const ix::WebSocketMessagePtr& msg)
+            {
+                if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    completion.finish();
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    std::stringstream ss;
+                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                    ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                    ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                    ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                    ix::logInfo(ss.str());
 
-        webSocket.setOnMessageCallback([&condition, &count](const ix::WebSocketMessagePtr& msg) {
-            if (msg->type == ix::WebSocketMessageType::Close)
-            {
-                condition.notify_one();
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error)
-            {
-                std::stringstream ss;
-                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
-                ss << "#retries: " << msg->errorInfo.retries << std::endl;
-                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
-                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                spdlog::info(ss.str());
-
-                condition.notify_one();
-            }
-            else if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                // response is a string
-                std::stringstream ss;
-                ss << msg->str;
-                ss >> count;
-            }
-        });
+                    completion.finish();
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    // response is a string
+                    std::stringstream ss;
+                    ss << msg->str;
+                    ss >> count;
+                }
+            });
 
         webSocket.start();
-        std::mutex mutex;
-        std::unique_lock<std::mutex> lock(mutex);
-        condition.wait(lock);
+        const bool completed = completion.wait(std::chrono::seconds(30));
         webSocket.stop();
 
-        if (count == -1)
+        if (!completed || count <= 0)
         {
-            spdlog::error("Cannot retrieve test case count at url {}", caseCountUrl);
+            ix::logError("Cannot retrieve test case count at url {}", caseCountUrl);
+            return -1;
         }
 
         return count;
@@ -388,19 +407,18 @@ namespace ix
     int ws_autobahn_main(const std::string& url, bool quiet)
     {
         int testCasesCount = getTestCaseCount(url);
-        spdlog::info("Test cases count: {}", testCasesCount);
+        ix::logInfo("Test cases count: {}", testCasesCount);
 
         if (testCasesCount == -1)
         {
-            spdlog::error("Cannot retrieve test case count at url {}", url);
+            ix::logError("Cannot retrieve test case count at url {}", url);
             return 1;
         }
 
-        testCasesCount++;
-
-        for (int i = 1; i < testCasesCount; ++i)
+        bool completed = true;
+        for (int i = 1; i <= testCasesCount; ++i)
         {
-            spdlog::info("Execute test case {}", i);
+            ix::logInfo("Execute test case {}", i);
 
             int caseNumber = i;
 
@@ -410,10 +428,15 @@ namespace ix
             std::string url(ss.str());
 
             AutobahnTestCase testCase(url, quiet);
-            testCase.run();
+            if (!testCase.run())
+            {
+                completed = false;
+                break;
+            }
         }
 
-        return generateReport(url) ? 0 : 1;
+        const bool reported = generateReport(url);
+        return completed && reported ? 0 : 1;
     }
 
     /*
@@ -461,7 +484,7 @@ namespace ix
 
     void WebSocketChat::log(const std::string& msg)
     {
-        spdlog::info(msg);
+        ix::logInfo(msg);
     }
 
     size_t WebSocketChat::getReceivedMessagesCount() const
@@ -491,14 +514,14 @@ namespace ix
             if (msg->type == ix::WebSocketMessageType::Open)
             {
                 log("ws chat: connected");
-                spdlog::info("Uri: {}", msg->openInfo.uri);
-                spdlog::info("Headers:");
+                ix::logInfo("Uri: {}", msg->openInfo.uri);
+                ix::logInfo("Headers:");
                 for (auto it : msg->openInfo.headers)
                 {
-                    spdlog::info("{}: {}", it.first, it.second);
+                    ix::logInfo("{}: {}", it.first, it.second);
                 }
 
-                spdlog::info("ws chat: user {} connected !", _user);
+                ix::logInfo("ws chat: user {} connected !", _user);
                 log(ss.str());
             }
             else if (msg->type == ix::WebSocketMessageType::Close)
@@ -544,25 +567,23 @@ namespace ix
 
     std::pair<std::string, std::string> WebSocketChat::decodeMessage(const std::string& str)
     {
-        std::string errMsg;
-        MsgPack msg = MsgPack::parse(str, errMsg);
+        Pdu pdu;
+        if (!parsePdu(str, pdu))
+        {
+            return std::pair<std::string, std::string>(std::string(), std::string());
+        }
 
-        std::string msg_user = msg["user"].string_value();
-        std::string msg_text = msg["text"].string_value();
-
-        return std::pair<std::string, std::string>(msg_user, msg_text);
+        return std::pair<std::string, std::string>(getPduField(pdu, "user"),
+                                                   getPduField(pdu, "text"));
     }
 
     std::string WebSocketChat::encodeMessage(const std::string& text)
     {
-        std::map<MsgPack, MsgPack> obj;
-        obj["user"] = _user;
-        obj["text"] = text;
+        Pdu pdu;
+        pdu["user"] = _user;
+        pdu["text"] = text;
 
-        MsgPack msg(obj);
-
-        std::string output = msg.dump();
-        return output;
+        return serializePdu(pdu);
     }
 
     void WebSocketChat::sendMessage(const std::string& text)
@@ -572,7 +593,7 @@ namespace ix
 
     int ws_chat_main(const std::string& url, const std::string& user)
     {
-        spdlog::info("Type Ctrl-D to exit prompt...");
+        ix::logInfo("Type Ctrl-D to exit prompt...");
         WebSocketChat webSocketChat(url, user);
         webSocketChat.start();
 
@@ -591,7 +612,7 @@ namespace ix
             webSocketChat.sendMessage(line);
         }
 
-        spdlog::info("");
+        ix::logInfo("");
         webSocketChat.stop();
 
         return 0;
@@ -707,7 +728,7 @@ namespace ix
             auto key = token.substr(0, pos);
             auto val = token.substr(pos + 1);
 
-            spdlog::info("{}: {}", key, val);
+            ix::logInfo("{}: {}", key, val);
             headers[key] = val;
         }
 
@@ -745,12 +766,12 @@ namespace ix
             std::stringstream ss;
             if (msg->type == ix::WebSocketMessageType::Open)
             {
-                spdlog::info("ws_connect: connected");
-                spdlog::info("Uri: {}", msg->openInfo.uri);
-                spdlog::info("Headers:");
+                ix::logInfo("ws_connect: connected");
+                ix::logInfo("Uri: {}", msg->openInfo.uri);
+                ix::logInfo("Headers:");
                 for (auto it : msg->openInfo.headers)
                 {
-                    spdlog::info("{}: {}", it.first, it.second);
+                    ix::logInfo("{}: {}", it.first, it.second);
                 }
             }
             else if (msg->type == ix::WebSocketMessageType::Close)
@@ -762,7 +783,7 @@ namespace ix
             }
             else if (msg->type == ix::WebSocketMessageType::Message)
             {
-                spdlog::info("Received {} bytes", msg->wireSize);
+                ix::logInfo("Received {} bytes", msg->wireSize);
 
                 std::string payload = msg->str;
                 if (_decompressGzipMessages)
@@ -774,7 +795,7 @@ namespace ix
                     }
                     else
                     {
-                        spdlog::error("Error decompressing: {}", payload);
+                        ix::logError("Error decompressing: {}", payload);
                     }
                 }
 
@@ -791,15 +812,15 @@ namespace ix
             }
             else if (msg->type == ix::WebSocketMessageType::Fragment)
             {
-                spdlog::info("Received message fragment");
+                ix::logInfo("Received message fragment");
             }
             else if (msg->type == ix::WebSocketMessageType::Ping)
             {
-                spdlog::info("Received ping");
+                ix::logInfo("Received ping");
             }
             else if (msg->type == ix::WebSocketMessageType::Pong)
             {
-                spdlog::info("Received pong {}", msg->str);
+                ix::logInfo("Received pong {}", msg->str);
             }
             else
             {
@@ -851,38 +872,36 @@ namespace ix
         {
             // Read line
             std::string line;
-            auto quit = linenoise::Readline("> ", line);
+            std::cout << "> " << std::flush;
+            std::getline(std::cin, line);
 
-            if (quit)
+            if (!std::cin)
             {
                 break;
             }
 
             if (line == "/stop")
             {
-                spdlog::info("Stopping connection...");
+                ix::logInfo("Stopping connection...");
                 webSocketChat.stop();
                 continue;
             }
 
             if (line == "/start")
             {
-                spdlog::info("Starting connection...");
+                ix::logInfo("Starting connection...");
                 webSocketChat.start();
                 continue;
             }
 
             webSocketChat.sendMessage(line);
-
-            // Add text to history
-            linenoise::AddHistory(line.c_str());
         }
 
-        spdlog::info("");
+        ix::logInfo("");
         webSocketChat.stop();
 
-        spdlog::info("Received {} bytes", webSocketChat.getReceivedBytes());
-        spdlog::info("Sent {} bytes", webSocketChat.getSentBytes());
+        ix::logInfo("Received {} bytes", webSocketChat.getReceivedBytes());
+        ix::logInfo("Sent {} bytes", webSocketChat.getSentBytes());
 
         return 0;
     }
@@ -903,7 +922,7 @@ namespace ix
         char str[INET_ADDRSTRLEN];
         ix::inet_ntop(AF_INET, &addr, str, INET_ADDRSTRLEN);
 
-        spdlog::info("host: {} ip: {}", hostname, str);
+        ix::logInfo("host: {} ip: {}", hostname, str);
 
         return 0;
     }
@@ -914,18 +933,18 @@ namespace ix
         bool found = res.first;
         if (!found)
         {
-            spdlog::error("Cannot read content of {}", filename);
+            ix::logError("Cannot read content of {}", filename);
             return 1;
         }
 
-        spdlog::info("gzip input: {} size {} cksum {}",
-                     filename,
-                     res.second.size(),
-                     djb2HashStr(res.second));
+        ix::logInfo("gzip input: {} size {} cksum {}",
+                    filename,
+                    res.second.size(),
+                    djb2HashStr(res.second));
 
         std::string compressedBytes;
 
-        spdlog::info("compressing {} times", runCount);
+        ix::logInfo("compressing {} times", runCount);
         std::vector<uint64_t> durations;
         {
             Bench bench("compressing file");
@@ -941,41 +960,41 @@ namespace ix
 
             size_t medianIdx = durations.size() / 2;
             uint64_t medianRuntime = durations[medianIdx];
-            spdlog::info("median runtime to compress file: {}", medianRuntime);
+            ix::logInfo("median runtime to compress file: {}", medianRuntime);
         }
 
         std::string outputFilename(filename);
         outputFilename += ".gz";
 
         std::ofstream f;
-        f.open(outputFilename);
+        f.open(outputFilename, std::ios::binary);
         f << compressedBytes;
         f.close();
 
-        spdlog::info("gzip output: {} size {} cksum {}",
-                     outputFilename,
-                     compressedBytes.size(),
-                     djb2HashStr(compressedBytes));
+        ix::logInfo("gzip output: {} size {} cksum {}",
+                    outputFilename,
+                    compressedBytes.size(),
+                    djb2HashStr(compressedBytes));
 
         return 0;
     }
 
     int ws_gunzip(const std::string& filename)
     {
-        spdlog::info("filename to gunzip: {}", filename);
+        ix::logInfo("filename to gunzip: {}", filename);
 
         auto res = readAsString(filename);
         bool found = res.first;
         if (!found)
         {
-            spdlog::error("Cannot read content of {}", filename);
+            ix::logError("Cannot read content of {}", filename);
             return 1;
         }
 
-        spdlog::info("gunzip input: {} size {} cksum {}",
-                     filename,
-                     res.second.size(),
-                     djb2HashStr(res.second));
+        ix::logInfo("gunzip input: {} size {} cksum {}",
+                    filename,
+                    res.second.size(),
+                    djb2HashStr(res.second));
 
         std::string decompressedBytes;
 
@@ -983,7 +1002,7 @@ namespace ix
             Bench bench("decompressing file");
             if (!gzipDecompress(res.second, decompressedBytes))
             {
-                spdlog::error("Cannot decompress content of {}", filename);
+                ix::logError("Cannot decompress content of {}", filename);
                 return 1;
             }
         }
@@ -991,19 +1010,19 @@ namespace ix
         std::string outputFilename(removeExtension(filename));
 
         std::ofstream f;
-        f.open(outputFilename);
+        f.open(outputFilename, std::ios::binary);
         if (!f.is_open())
         {
-            spdlog::error("Cannot open {} for writing", outputFilename);
+            ix::logError("Cannot open {} for writing", outputFilename);
             return 1;
         }
         f << decompressedBytes;
         f.close();
 
-        spdlog::info("gunzip output: {} size {} cksum {}",
-                     outputFilename,
-                     decompressedBytes.size(),
-                     djb2HashStr(decompressedBytes));
+        ix::logInfo("gunzip output: {} size {} cksum {}",
+                    outputFilename,
+                    decompressedBytes.size(),
+                    djb2HashStr(decompressedBytes));
 
         return 0;
     }
@@ -1069,30 +1088,30 @@ namespace ix
                             std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
                         auto duration = milliseconds.count();
 
-                        spdlog::info("AUTOROUTE IXWebSocket :: {} ms", duration);
+                        ix::logInfo("AUTOROUTE IXWebSocket :: {} ms", duration);
                     }
                 }
                 else if (msg->type == ix::WebSocketMessageType::Open)
                 {
                     bench.reset();
 
-                    spdlog::info("ws_autoroute: connected");
-                    spdlog::info("Uri: {}", msg->openInfo.uri);
-                    spdlog::info("Headers:");
+                    ix::logInfo("ws_autoroute: connected");
+                    ix::logInfo("Uri: {}", msg->openInfo.uri);
+                    ix::logInfo("Headers:");
                     for (auto it : msg->openInfo.headers)
                     {
-                        spdlog::info("{}: {}", it.first, it.second);
+                        ix::logInfo("{}: {}", it.first, it.second);
                     }
 
                     start = std::chrono::high_resolution_clock::now();
                 }
                 else if (msg->type == ix::WebSocketMessageType::Pong)
                 {
-                    spdlog::info("Received pong {}", msg->str);
+                    ix::logInfo("Received pong {}", msg->str);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    spdlog::info("ws_autoroute: connection closed");
+                    ix::logInfo("ws_autoroute: connection closed");
                 }
             });
 
@@ -1108,7 +1127,7 @@ namespace ix
                 std::stringstream ss;
                 ss << "messages received per second: " << receivedCountPerSecs;
 
-                spdlog::info(ss.str());
+                ix::logInfo(ss.str());
 
                 receivedCountPerSecs = 0;
 
@@ -1142,7 +1161,7 @@ namespace ix
                             bool disablePong,
                             const std::string& httpHeaderAuthorization)
     {
-        spdlog::info("Listening on {}:{}", hostname, port);
+        ix::logInfo("Listening on {}:{}", hostname, port);
 
         ix::WebSocketServer server(port,
                                    hostname,
@@ -1155,13 +1174,13 @@ namespace ix
 
         if (disablePerMessageDeflate)
         {
-            spdlog::info("Disable per message deflate");
+            ix::logInfo("Disable per message deflate");
             server.disablePerMessageDeflate();
         }
 
         if (disablePong)
         {
-            spdlog::info("Disable responding to PING messages with PONG");
+            ix::logInfo("Disable responding to PING messages with PONG");
             server.disablePong();
         }
 
@@ -1172,14 +1191,14 @@ namespace ix
                 auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    spdlog::info("New connection");
-                    spdlog::info("remote ip: {}", remoteIp);
-                    spdlog::info("id: {}", connectionState->getId());
-                    spdlog::info("Uri: {}", msg->openInfo.uri);
-                    spdlog::info("Headers:");
+                    ix::logInfo("New connection");
+                    ix::logInfo("remote ip: {}", remoteIp);
+                    ix::logInfo("id: {}", connectionState->getId());
+                    ix::logInfo("Uri: {}", msg->openInfo.uri);
+                    ix::logInfo("Headers:");
                     for (auto it : msg->openInfo.headers)
                     {
-                        spdlog::info("{}: {}", it.first, it.second);
+                        ix::logInfo("{}: {}", it.first, it.second);
                     }
 
                     if (!httpHeaderAuthorization.empty())
@@ -1202,21 +1221,21 @@ namespace ix
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    spdlog::info("Closed connection: client id {} code {} reason {}",
-                                 connectionState->getId(),
-                                 msg->closeInfo.code,
-                                 msg->closeInfo.reason);
+                    ix::logInfo("Closed connection: client id {} code {} reason {}",
+                                connectionState->getId(),
+                                msg->closeInfo.code,
+                                msg->closeInfo.reason);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
-                    spdlog::error("Connection error: {}", msg->errorInfo.reason);
-                    spdlog::error("#retries: {}", msg->errorInfo.retries);
-                    spdlog::error("Wait time(ms): {}", msg->errorInfo.wait_time);
-                    spdlog::error("HTTP Status: {}", msg->errorInfo.http_status);
+                    ix::logError("Connection error: {}", msg->errorInfo.reason);
+                    ix::logError("#retries: {}", msg->errorInfo.retries);
+                    ix::logError("Wait time(ms): {}", msg->errorInfo.wait_time);
+                    ix::logError("HTTP Status: {}", msg->errorInfo.http_status);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    spdlog::info("Received {} bytes", msg->wireSize);
+                    ix::logInfo("Received {} bytes", msg->wireSize);
                     webSocket.send(msg->str, msg->binary);
                 }
             });
@@ -1224,7 +1243,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            spdlog::error(res.second);
+            ix::logError(res.second);
             return 1;
         }
 
@@ -1252,7 +1271,7 @@ namespace ix
             auto key = token.substr(0, pos);
             auto val = token.substr(pos + 1);
 
-            spdlog::info("{}: {}", key, val);
+            ix::logInfo("{}: {}", key, val);
             headers[key] = val;
         }
 
@@ -1281,7 +1300,7 @@ namespace ix
             auto key = token.substr(0, pos);
             auto val = token.substr(pos + 1);
 
-            spdlog::info("{}: {}", key, val);
+            ix::logInfo("{}: {}", key, val);
             httpParameters[key] = val;
         }
 
@@ -1306,7 +1325,7 @@ namespace ix
             auto key = token.substr(0, pos);
             auto val = token.substr(pos + 1);
 
-            spdlog::info("{}: {}", key, val);
+            ix::logInfo("{}: {}", key, val);
 
             if (val[0] == '@')
             {
@@ -1316,7 +1335,7 @@ namespace ix
                 bool found = res.first;
                 if (!found)
                 {
-                    spdlog::error("Cannot read content of {}", filename);
+                    ix::logError("Cannot read content of {}", filename);
                     continue;
                 }
 
@@ -1358,11 +1377,11 @@ namespace ix
         args->verbose = verbose;
         args->compress = compress;
         args->compressRequest = compressRequest;
-        args->logger = [](const std::string& msg) { spdlog::info(msg); };
+        args->logger = [](const std::string& msg) { ix::logInfo(msg); };
         args->onProgressCallback = [verbose](int current, int total) -> bool {
             if (verbose)
             {
-                spdlog::info("Downloaded {} bytes out of {}", current, total);
+                ix::logInfo("Downloaded {} bytes out of {}", current, total);
             }
             return true;
         };
@@ -1393,20 +1412,20 @@ namespace ix
             response = httpClient.post(url, httpParameters, httpFormDataParameters, args);
         }
 
-        spdlog::info("");
+        ix::logInfo("");
 
         for (auto it : response->headers)
         {
-            spdlog::info("{}: {}", it.first, it.second);
+            ix::logInfo("{}: {}", it.first, it.second);
         }
 
-        spdlog::info("Upload size: {}", response->uploadSize);
-        spdlog::info("Download size: {}", response->downloadSize);
+        ix::logInfo("Upload size: {}", response->uploadSize);
+        ix::logInfo("Download size: {}", response->downloadSize);
 
-        spdlog::info("Status: {}", response->statusCode);
+        ix::logInfo("Status: {}", response->statusCode);
         if (response->errorCode != HttpErrorCode::Ok)
         {
-            spdlog::error("error message: {}", response->errorMsg);
+            ix::logError("error message: {}", response->errorMsg);
         }
 
         if (!headersOnly && response->errorCode == HttpErrorCode::Ok)
@@ -1422,14 +1441,14 @@ namespace ix
 
                 if (filename.empty())
                 {
-                    spdlog::error("Cannot save content to disk: No output file supplied, and not "
-                                  "filename could be extracted from the url {}",
-                                  url);
+                    ix::logError("Cannot save content to disk: No output file supplied, and not "
+                                 "filename could be extracted from the url {}",
+                                 url);
                 }
                 else
                 {
-                    spdlog::info("Writing to disk: {}", filename);
-                    std::ofstream out(filename);
+                    ix::logInfo("Writing to disk: {}", filename);
+                    std::ofstream out(filename, std::ios::binary);
                     out << response->body;
                 }
             }
@@ -1437,13 +1456,13 @@ namespace ix
             {
                 if (response->headers["Content-Type"] != "application/octet-stream")
                 {
-                    spdlog::info("body: {}", response->body);
+                    ix::logInfo("body: {}", response->body);
                 }
                 else
                 {
-                    spdlog::info("Binary output can mess up your terminal.");
-                    spdlog::info("Use the -O flag to save the file to disk.");
-                    spdlog::info("You can also use the --output option to specify a filename.");
+                    ix::logInfo("Binary output can mess up your terminal.");
+                    ix::logInfo("Use the -O flag to save the file to disk.");
+                    ix::logInfo("You can also use the --output option to specify a filename.");
                 }
             }
         }
@@ -1458,7 +1477,7 @@ namespace ix
                       bool debug,
                       const ix::SocketTLSOptions& tlsOptions)
     {
-        spdlog::info("Listening on {}:{}", hostname, port);
+        ix::logInfo("Listening on {}:{}", hostname, port);
 
         ix::HttpServer server(port, hostname);
         server.setTLSOptions(tlsOptions);
@@ -1476,7 +1495,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            spdlog::error(res.second);
+            ix::logError(res.second);
             return 1;
         }
 
@@ -1514,7 +1533,7 @@ namespace ix
 
     void WebSocketPingPong::log(const std::string& msg)
     {
-        spdlog::info(msg);
+        ix::logInfo(msg);
     }
 
     void WebSocketPingPong::stop()
@@ -1529,57 +1548,59 @@ namespace ix
         std::stringstream ss;
         log(std::string("Connecting to url: ") + _url);
 
-        _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
-            spdlog::info("Received {} bytes", msg->wireSize);
-
-            std::stringstream ss;
-            if (msg->type == ix::WebSocketMessageType::Open)
+        _webSocket.setOnMessageCallback(
+            [this](const ix::WebSocketMessagePtr& msg)
             {
-                log("ping_pong: connected");
+                ix::logInfo("Received {} bytes", msg->wireSize);
 
-                spdlog::info("Uri: {}", msg->openInfo.uri);
-                spdlog::info("Headers:");
-                for (auto it : msg->openInfo.headers)
+                std::stringstream ss;
+                if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    spdlog::info("{}: {}", it.first, it.second);
+                    log("ping_pong: connected");
+
+                    ix::logInfo("Uri: {}", msg->openInfo.uri);
+                    ix::logInfo("Headers:");
+                    for (auto it : msg->openInfo.headers)
+                    {
+                        ix::logInfo("{}: {}", it.first, it.second);
+                    }
                 }
-            }
-            else if (msg->type == ix::WebSocketMessageType::Close)
-            {
-                ss << "ping_pong: disconnected:"
-                   << " code " << msg->closeInfo.code << " reason " << msg->closeInfo.reason
-                   << msg->str;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                ss << "ping_pong: received message: " << msg->str;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Ping)
-            {
-                ss << "ping_pong: received ping message: " << msg->str;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Pong)
-            {
-                ss << "ping_pong: received pong message: " << msg->str;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error)
-            {
-                ss << "Connection error: " << msg->errorInfo.reason << std::endl;
-                ss << "#retries: " << msg->errorInfo.retries << std::endl;
-                ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
-                ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                log(ss.str());
-            }
-            else
-            {
-                ss << "Invalid ix::WebSocketMessageType";
-                log(ss.str());
-            }
-        });
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    ss << "ping_pong: disconnected:"
+                       << " code " << msg->closeInfo.code << " reason " << msg->closeInfo.reason
+                       << msg->str;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    ss << "ping_pong: received message: " << msg->str;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Ping)
+                {
+                    ss << "ping_pong: received ping message: " << msg->str;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Pong)
+                {
+                    ss << "ping_pong: received pong message: " << msg->str;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    ss << "Connection error: " << msg->errorInfo.reason << std::endl;
+                    ss << "#retries: " << msg->errorInfo.retries << std::endl;
+                    ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
+                    ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
+                    log(ss.str());
+                }
+                else
+                {
+                    ss << "Invalid ix::WebSocketMessageType";
+                    log(ss.str());
+                }
+            });
 
         _webSocket.start();
     }
@@ -1601,7 +1622,7 @@ namespace ix
 
     int ws_ping_pong_main(const std::string& url, const ix::SocketTLSOptions& tlsOptions)
     {
-        spdlog::info("Type Ctrl-D to exit prompt...");
+        ix::logInfo("Type Ctrl-D to exit prompt...");
         WebSocketPingPong webSocketPingPong(url, tlsOptions);
         webSocketPingPong.start();
 
@@ -1640,7 +1661,7 @@ namespace ix
                        bool disablePong,
                        const std::string& sendMsg)
     {
-        spdlog::info("Listening on {}:{}", hostname, port);
+        ix::logInfo("Listening on {}:{}", hostname, port);
 
         ix::WebSocketServer server(port,
                                    hostname,
@@ -1653,13 +1674,13 @@ namespace ix
 
         if (disablePerMessageDeflate)
         {
-            spdlog::info("Disable per message deflate");
+            ix::logInfo("Disable per message deflate");
             server.disablePerMessageDeflate();
         }
 
         if (disablePong)
         {
-            spdlog::info("Disable responding to PING messages with PONG");
+            ix::logInfo("Disable responding to PING messages with PONG");
             server.disablePong();
         }
 
@@ -1673,14 +1694,14 @@ namespace ix
                 auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    spdlog::info("New connection");
-                    spdlog::info("remote ip: {}", remoteIp);
-                    spdlog::info("id: {}", connectionState->getId());
-                    spdlog::info("Uri: {}", msg->openInfo.uri);
-                    spdlog::info("Headers:");
+                    ix::logInfo("New connection");
+                    ix::logInfo("remote ip: {}", remoteIp);
+                    ix::logInfo("id: {}", connectionState->getId());
+                    ix::logInfo("Uri: {}", msg->openInfo.uri);
+                    ix::logInfo("Headers:");
                     for (auto it : msg->openInfo.headers)
                     {
-                        spdlog::info("{}: {}", it.first, it.second);
+                        ix::logInfo("{}: {}", it.first, it.second);
                     }
 
                     // Parse the msg count from the uri.
@@ -1692,7 +1713,7 @@ namespace ix
 
                     if (msgCount == -1)
                     {
-                        spdlog::info("Error parsing message count, closing connection");
+                        ix::logInfo("Error parsing message count, closing connection");
                         webSocket.close();
                     }
                     else
@@ -1703,7 +1724,7 @@ namespace ix
                             auto sendInfo = webSocket.send(sendMsg, binary);
                             if (!sendInfo.success)
                             {
-                                spdlog::info("Error sending message, closing connection");
+                                ix::logInfo("Error sending message, closing connection");
                                 webSocket.close();
                                 break;
                             }
@@ -1712,22 +1733,22 @@ namespace ix
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    spdlog::info("Closed connection: client id {} code {} reason {}",
-                                 connectionState->getId(),
-                                 msg->closeInfo.code,
-                                 msg->closeInfo.reason);
+                    ix::logInfo("Closed connection: client id {} code {} reason {}",
+                                connectionState->getId(),
+                                msg->closeInfo.code,
+                                msg->closeInfo.reason);
                     stop = true;
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
-                    spdlog::error("Connection error: {}", msg->errorInfo.reason);
-                    spdlog::error("#retries: {}", msg->errorInfo.retries);
-                    spdlog::error("Wait time(ms): {}", msg->errorInfo.wait_time);
-                    spdlog::error("HTTP Status: {}", msg->errorInfo.http_status);
+                    ix::logError("Connection error: {}", msg->errorInfo.reason);
+                    ix::logError("#retries: {}", msg->errorInfo.retries);
+                    ix::logError("Wait time(ms): {}", msg->errorInfo.wait_time);
+                    ix::logError("HTTP Status: {}", msg->errorInfo.http_status);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    spdlog::info("Received {} bytes", msg->wireSize);
+                    ix::logInfo("Received {} bytes", msg->wireSize);
                     webSocket.send(msg->str, msg->binary);
                 }
             });
@@ -1735,7 +1756,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            spdlog::error(res.second);
+            ix::logError(res.second);
             return 1;
         }
 
@@ -1804,12 +1825,12 @@ namespace ix
 
     void WebSocketReceiver::log(const std::string& msg)
     {
-        spdlog::info(msg);
+        ix::logInfo(msg);
     }
 
     void WebSocketReceiver::waitForConnection()
     {
-        spdlog::info("{}: Connecting...", "ws_receive");
+        ix::logInfo("{}: Connecting...", "ws_receive");
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
         _condition.wait(lock);
@@ -1817,7 +1838,7 @@ namespace ix
 
     void WebSocketReceiver::waitForMessage()
     {
-        spdlog::info("{}: Waiting for message...", "ws_receive");
+        ix::logInfo("{}: Waiting for message...", "ws_receive");
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
         _condition.wait(lock);
@@ -1842,38 +1863,37 @@ namespace ix
 
     void WebSocketReceiver::handleError(const std::string& errMsg, const std::string& id)
     {
-        std::map<MsgPack, MsgPack> pdu;
+        Pdu pdu;
         pdu["kind"] = "error";
         pdu["id"] = id;
         pdu["message"] = errMsg;
 
-        MsgPack msg(pdu);
-        _webSocket.sendBinary(msg.dump());
+        _webSocket.sendBinary(serializePdu(pdu));
     }
 
     void WebSocketReceiver::handleMessage(const std::string& str)
     {
-        spdlog::info("ws_receive: Received message: {}", str.size());
+        ix::logInfo("ws_receive: Received message: {}", str.size());
 
-        std::string errMsg;
-        MsgPack data = MsgPack::parse(str, errMsg);
-        if (!errMsg.empty())
+        Pdu data;
+        if (!parsePdu(str, data))
         {
-            handleError("ws_receive: Invalid MsgPack", std::string());
+            handleError("ws_receive: Invalid pdu", std::string());
             return;
         }
 
-        spdlog::info("id: {}", data["id"].string_value());
+        ix::logInfo("id: {}", getPduField(data, "id"));
 
-        std::vector<uint8_t> content = data["content"].binary_items();
-        spdlog::info("ws_receive: Content size: {}", content.size());
+        auto contentAsString = getPduField(data, "content");
+        std::vector<uint8_t> content(contentAsString.begin(), contentAsString.end());
+        ix::logInfo("ws_receive: Content size: {}", content.size());
 
         // Validate checksum
         uint64_t cksum = djb2Hash(content);
-        auto cksumRef = data["djb2_hash"].string_value();
+        auto cksumRef = getPduField(data, "djb2_hash");
 
-        spdlog::info("ws_receive: Computed hash: {}", cksum);
-        spdlog::info("ws_receive: Reference hash: {}", cksumRef);
+        ix::logInfo("ws_receive: Computed hash: {}", cksum);
+        ix::logInfo("ws_receive: Reference hash: {}", cksumRef);
 
         if (std::to_string(cksum) != cksumRef)
         {
@@ -1881,28 +1901,26 @@ namespace ix
             return;
         }
 
-        std::string filename = data["filename"].string_value();
+        std::string filename = getPduField(data, "filename");
         filename = extractFilename(filename);
 
         std::string filenameTmp = filename + ".tmp";
 
-        spdlog::info("ws_receive: Writing to disk: {}", filenameTmp);
-        std::ofstream out(filenameTmp);
-        std::string contentAsString(content.begin(), content.end());
+        ix::logInfo("ws_receive: Writing to disk: {}", filenameTmp);
+        std::ofstream out(filenameTmp, std::ios::binary);
         out << contentAsString;
         out.close();
 
-        spdlog::info("ws_receive: Renaming {} to {}", filenameTmp, filename);
+        ix::logInfo("ws_receive: Renaming {} to {}", filenameTmp, filename);
         rename(filenameTmp.c_str(), filename.c_str());
 
-        std::map<MsgPack, MsgPack> pdu;
-        pdu["ack"] = true;
-        pdu["id"] = data["id"];
-        pdu["filename"] = data["filename"];
+        Pdu pdu;
+        pdu["ack"] = "true";
+        pdu["id"] = getPduField(data, "id");
+        pdu["filename"] = getPduField(data, "filename");
 
-        spdlog::info("Sending ack to sender");
-        MsgPack msg(pdu);
-        _webSocket.sendBinary(msg.dump());
+        ix::logInfo("Sending ack to sender");
+        _webSocket.sendBinary(serializePdu(pdu));
     }
 
     void WebSocketReceiver::start()
@@ -1922,11 +1940,11 @@ namespace ix
                 _condition.notify_one();
 
                 log("ws_receive: connected");
-                spdlog::info("Uri: {}", msg->openInfo.uri);
-                spdlog::info("Headers:");
+                ix::logInfo("Uri: {}", msg->openInfo.uri);
+                ix::logInfo("Headers:");
                 for (auto it : msg->openInfo.headers)
                 {
-                    spdlog::info("{}: {}", it.first, it.second);
+                    ix::logInfo("{}: {}", it.first, it.second);
                 }
             }
             else if (msg->type == ix::WebSocketMessageType::Close)
@@ -1997,7 +2015,7 @@ namespace ix
         std::chrono::duration<double, std::milli> duration(1000);
         std::this_thread::sleep_for(duration);
 
-        spdlog::info("ws_receive: Done !");
+        ix::logInfo("ws_receive: Done !");
         webSocketReceiver.stop();
     }
 
@@ -2058,12 +2076,12 @@ namespace ix
 
     void WebSocketSender::log(const std::string& msg)
     {
-        spdlog::info(msg);
+        ix::logInfo(msg);
     }
 
     void WebSocketSender::waitForConnection()
     {
-        spdlog::info("{}: Connecting...", "ws_send");
+        ix::logInfo("{}: Connecting...", "ws_send");
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
         _condition.wait(lock);
@@ -2071,7 +2089,7 @@ namespace ix
 
     void WebSocketSender::waitForAck()
     {
-        spdlog::info("{}: Waiting for ack...", "ws_send");
+        ix::logInfo("{}: Waiting for ack...", "ws_send");
 
         std::unique_lock<std::mutex> lock(_conditionVariableMutex);
         _condition.wait(lock);
@@ -2097,11 +2115,11 @@ namespace ix
                 _condition.notify_one();
 
                 log("ws_send: connected");
-                spdlog::info("Uri: {}", msg->openInfo.uri);
-                spdlog::info("Headers:");
+                ix::logInfo("Uri: {}", msg->openInfo.uri);
+                ix::logInfo("Headers:");
                 for (auto it : msg->openInfo.headers)
                 {
-                    spdlog::info("{}: {}", it.first, it.second);
+                    ix::logInfo("{}: {}", it.first, it.second);
                 }
             }
             else if (msg->type == ix::WebSocketMessageType::Close)
@@ -2120,18 +2138,17 @@ namespace ix
                 ss << "ws_send: received message (" << msg->wireSize << " bytes)";
                 log(ss.str());
 
-                std::string errMsg;
-                MsgPack data = MsgPack::parse(msg->str, errMsg);
-                if (!errMsg.empty())
+                Pdu data;
+                if (!parsePdu(msg->str, data))
                 {
-                    spdlog::info("Invalid MsgPack response");
+                    ix::logInfo("Invalid pdu response");
                     return;
                 }
 
-                std::string id = data["id"].string_value();
+                std::string id = getPduField(data, "id");
                 if (_id != id)
                 {
-                    spdlog::info("Invalid id");
+                    ix::logInfo("Invalid id");
                 }
             }
             else if (msg->type == ix::WebSocketMessageType::Error)
@@ -2145,15 +2162,15 @@ namespace ix
             }
             else if (msg->type == ix::WebSocketMessageType::Ping)
             {
-                spdlog::info("ws_send: received ping");
+                ix::logInfo("ws_send: received ping");
             }
             else if (msg->type == ix::WebSocketMessageType::Pong)
             {
-                spdlog::info("ws_send: received pong");
+                ix::logInfo("ws_send: received pong");
             }
             else if (msg->type == ix::WebSocketMessageType::Fragment)
             {
-                spdlog::info("ws_send: received fragment");
+                ix::logInfo("ws_send: received fragment");
             }
             else
             {
@@ -2176,51 +2193,51 @@ namespace ix
 
         _id = uuid4();
 
-        std::map<MsgPack, MsgPack> pdu;
+        Pdu pdu;
         pdu["kind"] = "send";
         pdu["id"] = _id;
-        pdu["content"] = content;
+        pdu["content"] = std::string(content.begin(), content.end());
         auto hash = djb2Hash(content);
         pdu["djb2_hash"] = std::to_string(hash);
         pdu["filename"] = filename;
 
-        MsgPack msg(pdu);
-
-        auto serializedMsg = msg.dump();
-        spdlog::info("ws_send: sending {} bytes", serializedMsg.size());
+        auto serializedMsg = serializePdu(pdu);
+        ix::logInfo("ws_send: sending {} bytes", serializedMsg.size());
 
         Bench bench("ws_send: Sending file through websocket");
         auto result =
-            _webSocket.sendBinary(serializedMsg, [this, throttle](int current, int total) -> bool {
-                spdlog::info("ws_send: Step {} out of {}", current + 1, total);
+            _webSocket.sendBinary(serializedMsg,
+                                  [this, throttle](int current, int total) -> bool
+                                  {
+                                      ix::logInfo("ws_send: Step {} out of {}", current + 1, total);
 
-                if (throttle)
-                {
-                    std::chrono::duration<double, std::milli> duration(10);
-                    std::this_thread::sleep_for(duration);
-                }
+                                      if (throttle)
+                                      {
+                                          std::chrono::duration<double, std::milli> duration(10);
+                                          std::this_thread::sleep_for(duration);
+                                      }
 
-                return _connected;
-            });
+                                      return _connected;
+                                  });
 
         if (!result.success)
         {
-            spdlog::error("ws_send: Error sending file.");
+            ix::logError("ws_send: Error sending file.");
             return false;
         }
 
         if (!_connected)
         {
-            spdlog::error("ws_send: Got disconnected from the server");
+            ix::logError("ws_send: Got disconnected from the server");
             return false;
         }
 
-        spdlog::info("ws_send: sent {} bytes", serializedMsg.size());
+        ix::logInfo("ws_send: sent {} bytes", serializedMsg.size());
 
         do
         {
             size_t bufferedAmount = _webSocket.bufferedAmount();
-            spdlog::info("ws_send: {} bytes left to be sent", bufferedAmount);
+            ix::logInfo("ws_send: {} bytes left to be sent", bufferedAmount);
 
             std::chrono::duration<double, std::milli> duration(500);
             std::this_thread::sleep_for(duration);
@@ -2232,11 +2249,11 @@ namespace ix
             auto duration = bench.getDuration();
             auto transferRate = 1000 * content.size() / duration;
             transferRate /= (1024 * 1024);
-            spdlog::info("ws_send: Send transfer rate: {} MB/s", transferRate);
+            ix::logInfo("ws_send: Send transfer rate: {} MB/s", transferRate);
         }
         else
         {
-            spdlog::error("ws_send: Got disconnected from the server");
+            ix::logError("ws_send: Got disconnected from the server");
         }
 
         return _connected;
@@ -2253,15 +2270,15 @@ namespace ix
 
         webSocketSender.waitForConnection();
 
-        spdlog::info("ws_send: Sending...");
+        ix::logInfo("ws_send: Sending...");
         if (webSocketSender.sendMessage(path, throttle))
         {
             webSocketSender.waitForAck();
-            spdlog::info("ws_send: Done !");
+            ix::logInfo("ws_send: Done !");
         }
         else
         {
-            spdlog::error("ws_send: Error sending file.");
+            ix::logError("ws_send: Error sending file.");
         }
 
         webSocketSender.stop();
@@ -2283,7 +2300,7 @@ namespace ix
                          const std::string& hostname,
                          const ix::SocketTLSOptions& tlsOptions)
     {
-        spdlog::info("Listening on {}:{}", hostname, port);
+        ix::logInfo("Listening on {}:{}", hostname, port);
 
         ix::WebSocketServer server(port, hostname);
         server.setTLSOptions(tlsOptions);
@@ -2295,24 +2312,24 @@ namespace ix
                 auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    spdlog::info("ws_transfer: New connection");
-                    spdlog::info("remote ip: {}", remoteIp);
-                    spdlog::info("id: {}", connectionState->getId());
-                    spdlog::info("Uri: {}", msg->openInfo.uri);
-                    spdlog::info("Headers:");
+                    ix::logInfo("ws_transfer: New connection");
+                    ix::logInfo("remote ip: {}", remoteIp);
+                    ix::logInfo("id: {}", connectionState->getId());
+                    ix::logInfo("Uri: {}", msg->openInfo.uri);
+                    ix::logInfo("Headers:");
                     for (auto it : msg->openInfo.headers)
                     {
-                        spdlog::info("{}: {}", it.first, it.second);
+                        ix::logInfo("{}: {}", it.first, it.second);
                     }
                 }
                 else if (msg->type == ix::WebSocketMessageType::Close)
                 {
-                    spdlog::info("ws_transfer: Closed connection: client id {} code {} reason {}",
-                                 connectionState->getId(),
-                                 msg->closeInfo.code,
-                                 msg->closeInfo.reason);
+                    ix::logInfo("ws_transfer: Closed connection: client id {} code {} reason {}",
+                                connectionState->getId(),
+                                msg->closeInfo.code,
+                                msg->closeInfo.reason);
                     auto remaining = server.getClients().size() - 1;
-                    spdlog::info("ws_transfer: {} remaining clients", remaining);
+                    ix::logInfo("ws_transfer: {} remaining clients", remaining);
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
@@ -2321,15 +2338,15 @@ namespace ix
                     ss << "#retries: " << msg->errorInfo.retries << std::endl;
                     ss << "Wait time(ms): " << msg->errorInfo.wait_time << std::endl;
                     ss << "HTTP Status: " << msg->errorInfo.http_status << std::endl;
-                    spdlog::info(ss.str());
+                    ix::logInfo(ss.str());
                 }
                 else if (msg->type == ix::WebSocketMessageType::Fragment)
                 {
-                    spdlog::info("ws_transfer: Received message fragment ");
+                    ix::logInfo("ws_transfer: Received message fragment ");
                 }
                 else if (msg->type == ix::WebSocketMessageType::Message)
                 {
-                    spdlog::info("ws_transfer: Received {} bytes", msg->wireSize);
+                    ix::logInfo("ws_transfer: Received {} bytes", msg->wireSize);
                     size_t receivers = 0;
                     for (auto&& client : server.getClients())
                     {
@@ -2341,23 +2358,25 @@ namespace ix
                             if (readyState == ReadyState::Open)
                             {
                                 ++receivers;
-                                client->send(
-                                    msg->str, msg->binary, [&id](int current, int total) -> bool {
-                                        spdlog::info("{}: [client {}]: Step {} out of {}",
-                                                     "ws_transfer",
-                                                     id,
-                                                     current,
-                                                     total);
-                                        return true;
-                                    });
+                                client->send(msg->str,
+                                             msg->binary,
+                                             [&id](int current, int total) -> bool
+                                             {
+                                                 ix::logInfo("{}: [client {}]: Step {} out of {}",
+                                                             "ws_transfer",
+                                                             id,
+                                                             current,
+                                                             total);
+                                                 return true;
+                                             });
                                 do
                                 {
                                     size_t bufferedAmount = client->bufferedAmount();
 
-                                    spdlog::info("{}: [client {}]: {} bytes left to send",
-                                                 "ws_transfer",
-                                                 id,
-                                                 bufferedAmount);
+                                    ix::logInfo("{}: [client {}]: {} bytes left to send",
+                                                "ws_transfer",
+                                                id,
+                                                bufferedAmount);
 
                                     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
@@ -2372,7 +2391,7 @@ namespace ix
                                                                          : "Closed";
                                 size_t bufferedAmount = client->bufferedAmount();
 
-                                spdlog::info(
+                                ix::logInfo(
                                     "{}: [client {}]: has readystate {} bytes left to be sent {}",
                                     "ws_transfer",
                                     id,
@@ -2383,7 +2402,7 @@ namespace ix
                     }
                     if (!receivers)
                     {
-                        spdlog::info("ws_transfer: no remaining receivers");
+                        ix::logInfo("ws_transfer: no remaining receivers");
                     }
                 }
             });
@@ -2391,7 +2410,7 @@ namespace ix
         auto res = server.listen();
         if (!res.first)
         {
-            spdlog::info(res.second);
+            ix::logInfo(res.second);
             return 1;
         }
 
@@ -2407,7 +2426,7 @@ int main(int argc, char** argv)
     ix::setThreadName("ws main thread");
     ix::initNetSystem();
 
-    spdlog::set_level(spdlog::level::debug);
+    ix::logger::setLevel(ix::logger::Level::Debug);
 
 #ifndef _WIN32
     signal(SIGPIPE, SIG_IGN);
@@ -2422,7 +2441,7 @@ int main(int argc, char** argv)
         {
             ss << argv[i] << " ";
         }
-        spdlog::info(ss.str());
+        ix::logInfo(ss.str());
     }
 
     CLI::App app {"ws is a websocket tool"};
@@ -2703,25 +2722,20 @@ int main(int argc, char** argv)
 
     if (!logfile.empty())
     {
-        try
+        if (!ix::logger::setLogFile(logfile))
         {
-            auto fileLogger = spdlog::basic_logger_mt("ws", logfile);
-            spdlog::set_default_logger(fileLogger);
-            spdlog::flush_every(std::chrono::seconds(1));
-
-            std::cerr << "All logs will be redirected to " << logfile << std::endl;
-        }
-        catch (const spdlog::spdlog_ex& ex)
-        {
-            std::cerr << "Fatal error, log init failed: " << ex.what() << std::endl;
+            std::cerr << "Fatal error, cannot open log file " << logfile << " for writing"
+                      << std::endl;
             ix::uninitNetSystem();
             return 1;
         }
+
+        std::cerr << "All logs will be redirected to " << logfile << std::endl;
     }
 
     if (quiet)
     {
-        spdlog::set_level(spdlog::level::info);
+        ix::logger::setLevel(ix::logger::Level::Info);
     }
 
     int ret = 1;
@@ -2766,7 +2780,7 @@ int main(int argc, char** argv)
         server.makeBroadcastServer();
         if (!server.listenAndStart())
         {
-            spdlog::error("Error while starting the server");
+            ix::logError("Error while starting the server");
         }
         else
         {
@@ -2827,7 +2841,7 @@ int main(int argc, char** argv)
             bool found = res.first;
             if (!found)
             {
-                spdlog::error("Cannot read config file {} from disk", configPath);
+                ix::logError("Cannot read config file {} from disk", configPath);
             }
             else
             {
@@ -2845,7 +2859,7 @@ int main(int argc, char** argv)
                     auto key = token.substr(0, pos);
                     auto val = token.substr(pos + 1);
 
-                    spdlog::info("{}: {}", key, val);
+                    ix::logInfo("{}: {}", key, val);
 
                     remoteUrlsMapping[key] = val;
                 }
@@ -2870,10 +2884,11 @@ int main(int argc, char** argv)
     else if (version)
     {
         std::cout << "ws " << ix::userAgent() << std::endl;
+        ret = 0;
     }
     else
     {
-        spdlog::error("A subcommand or --version is required");
+        ix::logError("A subcommand or --version is required");
     }
 
     ix::uninitNetSystem();

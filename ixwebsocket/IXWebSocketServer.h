@@ -8,6 +8,7 @@
 
 #include "IXSocketServer.h"
 #include "IXWebSocket.h"
+#include "IXWebSocketExport.h"
 #include <condition_variable>
 #include <functional>
 #include <memory>
@@ -34,7 +35,8 @@ namespace ix
                         size_t maxConnections = SocketServer::kDefaultMaxConnections,
                         int handshakeTimeoutSecs = WebSocketServer::kDefaultHandShakeTimeoutSecs,
                         int addressFamily = SocketServer::kDefaultAddressFamily,
-                        int pingIntervalSeconds = WebSocketServer::kPingIntervalSeconds);
+                        int pingIntervalSeconds = WebSocketServer::kPingIntervalSeconds,
+                        int sendTimeoutSeconds = WebSocketServer::kSendTimeoutSeconds);
         virtual ~WebSocketServer();
         virtual void stop() final;
 
@@ -51,7 +53,7 @@ namespace ix
         void makeBroadcastServer();
         bool listenAndStart();
 
-        const static int kDefaultHandShakeTimeoutSecs;
+        IXWEBSOCKET_EXPORT const static int kDefaultHandShakeTimeoutSecs;
 
         int getHandshakeTimeoutSecs();
         bool isPongEnabled();
@@ -63,6 +65,7 @@ namespace ix
         bool _enablePong;
         bool _enablePerMessageDeflate;
         int _pingIntervalSeconds;
+        int _sendTimeoutSeconds;
 
         OnConnectionCallback _onConnectionCallback;
         OnClientMessageCallback _onClientMessageCallback;
@@ -70,8 +73,9 @@ namespace ix
         std::mutex _clientsMutex;
         std::set<std::shared_ptr<WebSocket>> _clients;
 
-        const static bool kDefaultEnablePong;
-        const static int kPingIntervalSeconds;
+        IXWEBSOCKET_EXPORT const static bool kDefaultEnablePong;
+        IXWEBSOCKET_EXPORT const static int kPingIntervalSeconds;
+        IXWEBSOCKET_EXPORT const static int kSendTimeoutSeconds;
 
         // Methods
         virtual void handleConnection(std::unique_ptr<Socket> socket,

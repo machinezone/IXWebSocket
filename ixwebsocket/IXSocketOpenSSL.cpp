@@ -5,10 +5,11 @@
  *
  *  Adapted from Satori SDK OpenSSL code.
  */
-#ifdef IXWEBSOCKET_USE_OPEN_SSL
+#if defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)
 
 #include "IXSocketOpenSSL.h"
 
+#include "IXNetSystem.h"
 #include "IXSocketConnect.h"
 #include "IXUniquePtr.h"
 #include <cassert>
@@ -93,7 +94,9 @@ namespace ix
 
     std::atomic<bool> SocketOpenSSL::_openSSLInitializationSuccessful(false);
     std::once_flag SocketOpenSSL::_openSSLInitFlag;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     std::vector<std::unique_ptr<std::mutex>> openSSLMutexes;
+#endif
 
     SocketOpenSSL::SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd)
         : Socket(fd)
@@ -125,14 +128,15 @@ namespace ix
             }
             CRYPTO_set_locking_callback(SocketOpenSSL::openSSLLockingCallback);
         }
-#endif
 
         (void) OpenSSL_add_ssl_algorithms();
         (void) SSL_load_error_strings();
+#endif
 
         _openSSLInitializationSuccessful = true;
     }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     void SocketOpenSSL::openSSLLockingCallback(int mode,
                                                int type,
                                                const char* /*file*/,
@@ -147,6 +151,7 @@ namespace ix
             openSSLMutexes[type]->unlock();
         }
     }
+#endif
 
     std::string SocketOpenSSL::getSSLError(int ret)
     {
@@ -219,11 +224,6 @@ namespace ix
 
             int options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE;
 
-#ifdef SSL_OP_NO_TLSv1_3
-            // (partially?) work around hang in openssl 1.1.1b, by disabling TLS V1.3
-            // https://github.com/openssl/openssl/issues/7967
-            options |= SSL_OP_NO_TLSv1_3;
-#endif
             SSL_CTX_set_options(ctx, options);
         }
         return ctx;
@@ -295,6 +295,8 @@ namespace ix
     bool SocketOpenSSL::checkHost(const std::string& host, const char* pattern)
     {
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
+        (void)host;
+        (void)pattern;
         return true;
 #else
 
@@ -315,7 +317,11 @@ namespace ix
 #endif
                                                std::string& errMsg)
     {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && !defined(LIBRESSL_VERSION_NUMBER)
+        X509* server_cert = SSL_get1_peer_certificate(ssl);
+#else
         X509* server_cert = SSL_get_peer_certificate(ssl);
+#endif
         if (server_cert == nullptr)
         {
             errMsg = "OpenSSL failed - peer didn't present a X509 certificate.";
@@ -428,10 +434,16 @@ namespace ix
         }
     }
 
-    bool SocketOpenSSL::openSSLServerHandshake(std::string& errMsg)
+    bool SocketOpenSSL::openSSLServerHandshake(std::string& errMsg,
+                                               const CancellationRequest& isCancellationRequested)
     {
         while (true)
         {
+            if (isCancellationRequested && isCancellationRequested())
+            {
+                errMsg = "Cancellation requested";
+                return false;
+            }
             if (_ssl_connection == nullptr || _ssl_context == nullptr)
             {
                 return false;
@@ -448,7 +460,9 @@ namespace ix
             bool rc = false;
             if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
             {
-                rc = true;
+                auto ready = reason == SSL_ERROR_WANT_READ ? isReadyToRead(10) : isReadyToWrite(10);
+                rc = ready != PollResultType::Error;
+                if (!rc) errMsg = "Socket error during TLS handshake";
             }
             else
             {
@@ -567,6 +581,12 @@ namespace ix
     }
 
     bool SocketOpenSSL::accept(std::string& errMsg)
+    {
+        return accept(errMsg, CancellationRequest());
+    }
+
+    bool SocketOpenSSL::accept(std::string& errMsg,
+                               const CancellationRequest& isCancellationRequested)
     {
         bool handshakeSuccessful = false;
         {
@@ -707,11 +727,13 @@ namespace ix
                 return false;
             }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
             SSL_set_ecdh_auto(_ssl_connection, 1);
+#endif
 
             SSL_set_fd(_ssl_connection, _sockfd);
 
-            handshakeSuccessful = openSSLServerHandshake(errMsg);
+            handshakeSuccessful = openSSLServerHandshake(errMsg, isCancellationRequested);
         }
 
         if (!handshakeSuccessful)
@@ -773,7 +795,21 @@ namespace ix
             if (!_tlsOptions.disable_hostname_validation)
             {
                 X509_VERIFY_PARAM* param = SSL_get0_param(_ssl_connection);
-                X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
+
+                // When the host is an IP address (literal IPv4 or IPv6), it must be
+                // validated against the certificate's iPAddress SAN entries rather
+                // than the dNSName ones. X509_VERIFY_PARAM_set1_host only checks
+                // dNSName / CN, so it would always fail for IP literals.
+                struct in6_addr addr;
+                if (ix::inet_pton(AF_INET, host.c_str(), &addr) == 1 ||
+                    ix::inet_pton(AF_INET6, host.c_str(), &addr) == 1)
+                {
+                    X509_VERIFY_PARAM_set1_ip_asc(param, host.c_str());
+                }
+                else
+                {
+                    X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size());
+                }
             }
 #endif
             handshakeSuccessful = openSSLClientHandshake(host, errMsg, isCancellationRequested);
@@ -806,7 +842,7 @@ namespace ix
         Socket::close();
     }
 
-    ssize_t SocketOpenSSL::send(char* buf, size_t nbyte)
+    std::ptrdiff_t SocketOpenSSL::send(char* buf, size_t nbyte)
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
@@ -816,7 +852,7 @@ namespace ix
         }
 
         ERR_clear_error();
-        ssize_t write_result = SSL_write(_ssl_connection, buf, (int) nbyte);
+        std::ptrdiff_t write_result = SSL_write(_ssl_connection, buf, (int) nbyte);
         int reason = SSL_get_error(_ssl_connection, (int) write_result);
 
         if (reason == SSL_ERROR_NONE)
@@ -825,16 +861,17 @@ namespace ix
         }
         else if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
         {
-            errno = EWOULDBLOCK;
+            Socket::setErrno(EWOULDBLOCK);
             return -1;
         }
         else
         {
+            Socket::setErrno(EIO);
             return -1;
         }
     }
 
-    ssize_t SocketOpenSSL::recv(void* buf, size_t nbyte)
+    std::ptrdiff_t SocketOpenSSL::recv(void* buf, size_t nbyte)
     {
         while (true)
         {
@@ -846,7 +883,7 @@ namespace ix
             }
 
             ERR_clear_error();
-            ssize_t read_result = SSL_read(_ssl_connection, buf, (int) nbyte);
+            std::ptrdiff_t read_result = SSL_read(_ssl_connection, buf, (int) nbyte);
 
             if (read_result > 0)
             {
@@ -857,7 +894,7 @@ namespace ix
 
             if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
             {
-                errno = EWOULDBLOCK;
+                Socket::setErrno(EWOULDBLOCK);
             }
             return -1;
         }
@@ -865,4 +902,4 @@ namespace ix
 
 } // namespace ix
 
-#endif // IXWEBSOCKET_USE_OPEN_SSL
+#endif // defined(IXWEBSOCKET_USE_OPEN_SSL) || defined(IXWEBSOCKET_USE_LIBRE_SSL)

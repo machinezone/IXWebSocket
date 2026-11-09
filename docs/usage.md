@@ -4,7 +4,7 @@ The [*ws*](https://github.com/machinezone/IXWebSocket/tree/master/ws) folder cou
 
 ## Windows note
 
-To use the network system on Windows, you need to initialize it once with *WSAStartup()* and clean it up with *WSACleanup()*. We have helpers for that which you can use, see below. This init would typically take place in your main function.
+To use the network system on Windows, you need to initialize it once with *WSAStartup()* and clean it up with *WSACleanup()*. We have helpers for that which you can use, see below. This init would typically take place in your main function. On every platform, *ix::uninitNetSystem()* also releases process-global TLS state (mbedTLS PSA crypto, with mbedTLS >= 3.6), so call it only after all sockets are closed.
 
 ```cpp
 #include <ixwebsocket/IXNetSystem.h>
@@ -37,7 +37,8 @@ webSocket.setUrl(url);
 // to make sure that load balancers do not kill an idle connection.
 webSocket.setPingInterval(45);
 
-// Per message deflate connection is enabled by default. You can tweak its parameters or disable it
+// Per message deflate connection is not enabled by default. You can tweak its parameters, enable or disable it with
+webSocket.enablePerMessageDeflate();
 webSocket.disablePerMessageDeflate();
 
 // Setup a callback to be fired when a message or an event (open, close, error) is received
@@ -78,7 +79,7 @@ Here is an example code snippet copied from the ws send sub-command. Each fragme
 ```
 auto result =
     _webSocket.sendBinary(serializedMsg, [this, throttle](int current, int total) -> bool {
-        spdlog::info("ws_send: Step {} out of {}", current + 1, total);
+        ix::logInfo("ws_send: Step {} out of {}", current + 1, total);
 
         if (throttle)
         {
@@ -145,6 +146,8 @@ webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
 ### Error notification
 
 A message will be fired when there is an error with the connection. The message type will be `ix::WebSocketMessageType::Error`. Multiple fields will be available on the event to describe the error.
+
+When a server rejects the WebSocket handshake, `msg->errorInfo.headers` contains the HTTP response headers, such as `Retry-After` or custom authentication headers. Header names are case insensitive. Errors without response headers leave this map empty.
 
 ```cpp
 webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
@@ -218,6 +221,24 @@ headers["foo"] = "bar";
 webSocket.setExtraHeaders(headers);
 ```
 
+To omit automatically generated `User-Agent` or `Origin` headers, set their names
+explicitly:
+
+```cpp
+webSocket.setDisabledDefaultHeaders({"User-Agent", "Origin"});
+```
+
+Names are case-insensitive. Only these optional defaults can be disabled; required
+handshake headers and other names are unaffected. Headers supplied through
+`setExtraHeaders()` always take precedence and are sent even when their values
+are empty. Pass an empty list to restore the defaults:
+
+```cpp
+webSocket.setDisabledDefaultHeaders({});
+```
+
+Changes apply to subsequent connections, including automatic reconnections.
+
 ### Subprotocols
 
 You can specify subprotocols to be set during the WebSocket handshake. For more info you can refer to [this doc](https://hpbn.co/websocket/#subprotocol-negotiation).
@@ -289,6 +310,8 @@ setHandshakeTimeout(handshakeTimeoutSecs);
 ```
 
 ## WebSocket server API
+
+TLS handshakes run in individual connection workers, so an idle peer does not block other clients from connecting. Server TLS handshakes have a 10-second timeout and are cancelled when the server stops. The maximum connection limit includes clients whose TLS handshake is still pending.
 
 ### Legacy api
 
@@ -454,6 +477,25 @@ To enable a 45 second heartbeat on a `WebSocketServer`:
 ```cpp
 int pingIntervalSeconds = 45;
 ix::WebSocketServer server(port, host, backlog, maxConnections, handshakeTimeoutSecs, addressFamily, pingIntervalSeconds);
+```
+
+### Server log callback
+
+By default the server writes internal errors to stderr (and some info messages to stdout). Errors that happen before a connection is fully established — for example a failed TLS handshake when a client presents a bad certificate — cannot be reported through `setOnClientMessageCallback`, since no WebSocket object exists yet at that point.
+
+To capture those messages in your application logs, set a log callback. It applies to `WebSocketServer` as well as `HttpServer`. When a callback is set, messages are delivered to it instead of being written to stderr/stdout.
+
+```cpp
+server.setLogCallback([](ix::LogLevel level, const std::string& msg) {
+    if (level == ix::LogLevel::Error)
+    {
+        myLogger.error(msg);
+    }
+    else
+    {
+        myLogger.info(msg);
+    }
+});
 ```
 
 ## HTTP client API
@@ -641,3 +683,32 @@ For a server, specifying `caFile` implies that:
 1. It must be signed by one of the trusted roots in the file
 
 By default, a destination's hostname is always validated against the certificate that it presents. To accept certificates with any hostname, set `ix::SocketTLSOptions::disable_hostname_validation` to `true`.
+
+### Network.framework backend on macOS
+
+Build with `USE_NETWORK_FRAMEWORK=ON` to use native TLS for `wss://` and `https://`
+clients and TLS-enabled WebSocket/HTTP servers. Network.framework handles connection
+setup, DNS, and TCP. Application HTTP and WebSocket handling stays in IXWebSocket.
+TLS 1.2 is the minimum; TLS 1.3 is negotiated when supported by the peer.
+
+The existing `SocketTLSOptions` fields apply:
+
+- `certFile` and `keyFile` accept a PEM certificate chain (leaf first) and matching,
+  unencrypted PEM private key. Both are required for a TLS server and optional for a
+  client presenting a certificate. Credentials are imported in memory, without
+  installing them in a keychain.
+- `caFile = "SYSTEM"` uses Apple's trust evaluation and configured system trust.
+  A PEM CA file or in-memory PEM bundle instead restricts trust to those anchors.
+- `caFile = "NONE"` disables peer verification. On a server this also disables the
+  requirement for a client certificate. Other CA settings require client
+  authentication, matching the existing server options.
+- `disable_hostname_validation` skips the client's hostname check while retaining
+  certificate trust evaluation. IP literals are checked against IP SAN entries.
+- Custom `ciphers` strings are currently rejected; leave `ciphers` at `DEFAULT`.
+
+The native server uses a Network.framework listener. `createSocket` cannot adopt an
+existing BSD descriptor for TLS with this backend. The listener requires a numeric
+bind address and uses the framework's TCP listen queue rather than the BSD backlog
+setting. Pending connections are bounded by `maxConnections`. Server TLS handshakes
+have a ten-second limit and are interrupted when the server stops. Client connection
+timeouts use the caller's cancellation callback, including HTTP/WebSocket timeouts.

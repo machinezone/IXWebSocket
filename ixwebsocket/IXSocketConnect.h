@@ -7,6 +7,7 @@
 #pragma once
 
 #include "IXCancellationRequest.h"
+#include "IXNetSystem.h"
 #include <string>
 
 struct addrinfo;
@@ -21,7 +22,7 @@ namespace ix
                            std::string& errMsg,
                            const CancellationRequest& isCancellationRequested);
 
-        static void configure(int sockfd);
+        static void configure(socket_t sockfd);
 
     private:
         static int connectToAddress(const struct addrinfo* address,

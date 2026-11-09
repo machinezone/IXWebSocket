@@ -44,9 +44,18 @@ namespace
         LUrlParserError_NoUrlCharacter = 2,
         LUrlParserError_InvalidSchemeName = 3,
         LUrlParserError_NoDoubleSlash = 4,
-        LUrlParserError_NoAtSign = 5,
-        LUrlParserError_UnexpectedEndOfLine = 6,
-        LUrlParserError_NoSlash = 7,
+        LUrlParserError_NoSlash = 5,
+        LUrlParserError_MissingClosingBracketForIPv6 = 6,
+        LUrlParserError_InvalidCharacterAfterIPv6Host = 7,
+        LUrlParserError_MissingHost = 8,
+        LUrlParserError_InvalidPort = 9,
+        LUrlParserError_UnmatchedClosingBracketInHost = 10,
+        LUrlParserError_InvalidOpeningBracketInHost = 11,
+        LUrlParserError_InvalidPortSeparator = 12,
+        LUrlParserError_MissingPortAfterColon = 13,
+        LUrlParserError_EmptyIPv6Host = 14,
+        LUrlParserError_UnbracketedIPv6Host = 15,
+        LUrlParserError_MultipleAtSignsInAuthority = 16,
     };
 
     class clParseURL
@@ -119,220 +128,252 @@ namespace
         return true;
     }
 
-    // based on RFC 1738 and RFC 3986
+    // Practical URI parser for ws/wss/http/https URLs.
+    //
+    // Standards references:
+    // - RFC 3986: generic URI syntax used for scheme, authority, path, query, fragment.
+    // - RFC 3986 Section 3.2.2: IP-literal host syntax (bracketed IPv6 in authority).
+    // - RFC 6455 Section 3: ws/wss URI schemes (default ports handled in getProtocolPort).
+    //
+    // Note: this is not a full RFC validator; it is a fast parser with targeted syntax checks.
     clParseURL clParseURL::ParseURL(const std::string& URL)
     {
         clParseURL Result;
+        const std::size_t npos = std::string::npos;
+        std::size_t current = 0;
 
-        const char* CurrentString = URL.c_str();
-
-        /*
-         *	<scheme>:<scheme-specific-part>
-         *	<scheme> := [a-z\+\-\.]+
-         *	For resiliency, programs interpreting URLs should treat upper case letters as
-         *equivalent to lower case in scheme names
-         */
-
-        // try to read scheme
+        // Step 1: read scheme (<scheme>:) and normalize to lowercase.
+        std::size_t schemeEnd = URL.find(':', current);
+        if (schemeEnd == npos)
         {
-            const char* LocalString = strchr(CurrentString, ':');
-
-            if (!LocalString)
-            {
-                return clParseURL(LUrlParserError_NoUrlCharacter);
-            }
-
-            // save the scheme name
-            Result.m_Scheme = std::string(CurrentString, LocalString - CurrentString);
-
-            if (!IsSchemeValid(Result.m_Scheme))
-            {
-                return clParseURL(LUrlParserError_InvalidSchemeName);
-            }
-
-            // scheme should be lowercase
-            std::transform(
-                Result.m_Scheme.begin(), Result.m_Scheme.end(), Result.m_Scheme.begin(), ::tolower);
-
-            // skip ':'
-            CurrentString = LocalString + 1;
+            return clParseURL(LUrlParserError_NoUrlCharacter);
         }
 
-        /*
-         *	//<user>:<password>@<host>:<port>/<url-path>
-         *	any ":", "@" and "/" must be normalized
-         */
-
-        // skip "//"
-        if (*CurrentString++ != '/') return clParseURL(LUrlParserError_NoDoubleSlash);
-        if (*CurrentString++ != '/') return clParseURL(LUrlParserError_NoDoubleSlash);
-
-        // check if the user name and password are specified
-        bool bHasUserName = false;
-
-        const char* LocalString = CurrentString;
-
-        while (*LocalString)
+        Result.m_Scheme = URL.substr(current, schemeEnd - current);
+        if (!IsSchemeValid(Result.m_Scheme))
         {
-            if (*LocalString == '@')
-            {
-                // user name and password are specified
-                bHasUserName = true;
-                break;
-            }
-            else if (*LocalString == '/' || *LocalString == '?')
-            {
-                // end of <host>:<port> specification
-                bHasUserName = false;
-                break;
-            }
-
-            LocalString++;
+            return clParseURL(LUrlParserError_InvalidSchemeName);
         }
 
-        // user name and password
-        LocalString = CurrentString;
+        std::transform(Result.m_Scheme.begin(),
+                       Result.m_Scheme.end(),
+                       Result.m_Scheme.begin(),
+                       ::tolower);
 
-        if (bHasUserName)
+        current = schemeEnd + 1;
+
+        // Step 2: require authority prefix "//".
+        if (current + 1 >= URL.size() || URL[current] != '/' || URL[current + 1] != '/')
         {
-            // read user name
-            while (*LocalString && *LocalString != ':' && *LocalString != '@')
-                LocalString++;
+            return clParseURL(LUrlParserError_NoDoubleSlash);
+        }
+        current += 2;
 
-            Result.m_UserName = std::string(CurrentString, LocalString - CurrentString);
-
-            // proceed with the current pointer
-            CurrentString = LocalString;
-
-            if (*CurrentString == ':')
-            {
-                // skip ':'
-                CurrentString++;
-
-                // read password
-                LocalString = CurrentString;
-
-                while (*LocalString && *LocalString != '@')
-                    LocalString++;
-
-                Result.m_Password = std::string(CurrentString, LocalString - CurrentString);
-
-                CurrentString = LocalString;
-            }
-
-            // skip '@'
-            if (*CurrentString != '@')
-            {
-                return clParseURL(LUrlParserError_NoAtSign);
-            }
-
-            CurrentString++;
+        // Step 3: locate the authority boundary (<authority> ends at '/' or '?').
+        std::size_t authorityEnd = URL.find_first_of("/?", current);
+        if (authorityEnd == npos)
+        {
+            authorityEnd = URL.size();
         }
 
-        bool bHasBracket = (*CurrentString == '[');
-
-        // go ahead, read the host name
-        LocalString = CurrentString;
-
-        while (*LocalString)
+        // Step 4: parse optional user info (<user>[:<password>]@).
+        bool hasUserInfo = false;
+        std::size_t atPos = URL.find('@', current);
+        if (atPos != npos && atPos < authorityEnd)
         {
-            if (bHasBracket && *LocalString == ']')
-            {
-                // end of IPv6 address
-                LocalString++;
-                break;
-            }
-            else if (!bHasBracket && (*LocalString == ':' || *LocalString == '/' || *LocalString == '?'))
-            {
-                // port number is specified
-                break;
-            }
-
-            LocalString++;
+            hasUserInfo = true;
         }
 
-        Result.m_Host = std::string(CurrentString, LocalString - CurrentString);
-
-        CurrentString = LocalString;
-
-        // is port number specified?
-        if (*CurrentString == ':')
+        if (hasUserInfo)
         {
-            CurrentString++;
+            // User info can contain ':' but must contain exactly one '@' separator
+            // within the authority segment.
+            if (URL.find('@', atPos + 1) != npos && URL.find('@', atPos + 1) < authorityEnd)
+            {
+                return clParseURL(LUrlParserError_MultipleAtSignsInAuthority);
+            }
 
-            // read port number
-            LocalString = CurrentString;
+            std::size_t colonPos = URL.find(':', current);
+            if (colonPos != npos && colonPos < atPos)
+            {
+                Result.m_UserName = URL.substr(current, colonPos - current);
+                Result.m_Password = URL.substr(colonPos + 1, atPos - colonPos - 1);
+            }
+            else
+            {
+                Result.m_UserName = URL.substr(current, atPos - current);
+            }
 
-            while (*LocalString && *LocalString != '/')
-                LocalString++;
-
-            Result.m_Port = std::string(CurrentString, LocalString - CurrentString);
-
-            CurrentString = LocalString;
+            current = atPos + 1;
         }
 
-        // end of string
-        if (!*CurrentString)
+        // Step 5: parse host and optional port from authority tail.
+        authorityEnd = URL.find_first_of("/?", current);
+        if (authorityEnd == npos)
+        {
+            authorityEnd = URL.size();
+        }
+
+        std::string authority = URL.substr(current, authorityEnd - current);
+        std::size_t openingBracketPos = authority.find('[');
+        std::size_t closingBracketPos = authority.find(']');
+
+        // Malformed authority checks (RFC 3986):
+        // - IP-literals must be enclosed in '[' and ']' (Section 3.2.2).
+        // - A closing bracket without an opening bracket is invalid.
+        // - An opening bracket is only valid at the beginning of host when parsing [IPv6].
+        // - Unbracketed multi-colon authorities are either invalid separators or IPv6 literals
+        //   missing required brackets.
+        if (closingBracketPos != npos && openingBracketPos == npos)
+        {
+            return clParseURL(LUrlParserError_UnmatchedClosingBracketInHost);
+        }
+
+        if (openingBracketPos != npos && openingBracketPos != 0)
+        {
+            return clParseURL(LUrlParserError_InvalidOpeningBracketInHost);
+        }
+
+        if (openingBracketPos == npos)
+        {
+            const auto colonCount = std::count(authority.begin(), authority.end(), ':');
+            if (colonCount > 1)
+            {
+                bool looksLikeUnbracketedIPv6 =
+                    authority.find('.') == npos &&
+                    authority.find_first_not_of("0123456789abcdefABCDEF:") == npos;
+
+                if (looksLikeUnbracketedIPv6)
+                {
+                    return clParseURL(LUrlParserError_UnbracketedIPv6Host);
+                }
+
+                return clParseURL(LUrlParserError_InvalidPortSeparator);
+            }
+        }
+
+        if (current < authorityEnd && URL[current] == '[')
+        {
+            // Step 5a: bracketed IPv6 host: [<ipv6>][:<port>]
+            std::size_t closeBracket = URL.find(']', current + 1);
+            if (closeBracket == npos || closeBracket >= authorityEnd)
+            {
+                // Bracketed IPv6 literal started but did not terminate before authority end.
+                return clParseURL(LUrlParserError_MissingClosingBracketForIPv6);
+            }
+
+            Result.m_Host = URL.substr(current + 1, closeBracket - current - 1);
+            if (Result.m_Host.empty())
+            {
+                return clParseURL(LUrlParserError_EmptyIPv6Host);
+            }
+
+            std::size_t afterBracket = closeBracket + 1;
+            if (afterBracket < authorityEnd)
+            {
+                if (URL[afterBracket] != ':')
+                {
+                    // After ] only ':' is allowed before authority terminates.
+                    return clParseURL(LUrlParserError_InvalidCharacterAfterIPv6Host);
+                }
+                Result.m_Port = URL.substr(afterBracket + 1, authorityEnd - afterBracket - 1);
+                if (Result.m_Port.empty())
+                {
+                    // ':' present, but no port digits followed.
+                    return clParseURL(LUrlParserError_MissingPortAfterColon);
+                }
+            }
+        }
+        else
+        {
+            // Step 5b: regular host: <host>[:<port>]
+            std::size_t colonPos = URL.find(':', current);
+            if (colonPos != npos && colonPos < authorityEnd)
+            {
+                Result.m_Host = URL.substr(current, colonPos - current);
+                Result.m_Port = URL.substr(colonPos + 1, authorityEnd - colonPos - 1);
+                if (Result.m_Port.empty())
+                {
+                    // ':' present, but no port digits followed.
+                    return clParseURL(LUrlParserError_MissingPortAfterColon);
+                }
+            }
+            else
+            {
+                Result.m_Host = URL.substr(current, authorityEnd - current);
+            }
+        }
+
+        // Step 5c: validate host/port extracted from authority.
+        if (Result.m_Host.empty())
+        {
+            // Host is mandatory in authority form: //host[:port]
+            return clParseURL(LUrlParserError_MissingHost);
+        }
+
+        if (Result.m_Port.find_first_not_of("0123456789") != std::string::npos)
+        {
+            // Port must be decimal digits only (conversion/range checked later by GetPort).
+            return clParseURL(LUrlParserError_InvalidPort);
+        }
+
+        current = authorityEnd;
+
+        // Step 6: if authority reaches end of string, URL parsing is complete.
+        if (current >= URL.size())
         {
             Result.m_ErrorCode = LUrlParserError_Ok;
-
             return Result;
         }
 
-        // skip '/'
-        if (*CurrentString != '/' && *CurrentString != '?')
+        // Step 7: parse path start (either '/' or query-only '?').
+        if (URL[current] != '/' && URL[current] != '?')
         {
             return clParseURL(LUrlParserError_NoSlash);
         }
 
-        if (*CurrentString != '?') {
-            CurrentString++;
+        if (URL[current] == '/')
+        {
+            ++current;
         }
 
-        // parse the path
-        LocalString = CurrentString;
-
-        while (*LocalString && *LocalString != '#' && *LocalString != '?')
-            LocalString++;
-
-        Result.m_Path = std::string(CurrentString, LocalString - CurrentString);
-
-        CurrentString = LocalString;
-
-        // check for query
-        if (*CurrentString == '?')
+        // Step 8: parse path up to '?' or '#'.
+        std::size_t pathEnd = URL.find_first_of("?#", current);
+        if (pathEnd == npos)
         {
-            // skip '?'
-            CurrentString++;
-
-            // read query
-            LocalString = CurrentString;
-
-            while (*LocalString && *LocalString != '#')
-                LocalString++;
-
-            Result.m_Query = std::string(CurrentString, LocalString - CurrentString);
-
-            CurrentString = LocalString;
+            Result.m_Path = URL.substr(current);
+            Result.m_ErrorCode = LUrlParserError_Ok;
+            return Result;
         }
 
-        // check for fragment
-        if (*CurrentString == '#')
+        Result.m_Path = URL.substr(current, pathEnd - current);
+        current = pathEnd;
+
+        // Step 9: parse optional query after '?', up to '#'.
+        if (current < URL.size() && URL[current] == '?')
         {
-            // skip '#'
-            CurrentString++;
+            ++current;
 
-            // read fragment
-            LocalString = CurrentString;
+            std::size_t queryEnd = URL.find('#', current);
+            if (queryEnd == npos)
+            {
+                Result.m_Query = URL.substr(current);
+                Result.m_ErrorCode = LUrlParserError_Ok;
+                return Result;
+            }
 
-            while (*LocalString)
-                LocalString++;
+            Result.m_Query = URL.substr(current, queryEnd - current);
+            current = queryEnd;
+        }
 
-            Result.m_Fragment = std::string(CurrentString, LocalString - CurrentString);
+        // Step 10: parse optional fragment after '#', to end of URL.
+        if (current < URL.size() && URL[current] == '#')
+        {
+            ++current;
+            Result.m_Fragment = URL.substr(current);
         }
 
         Result.m_ErrorCode = LUrlParserError_Ok;
-
         return Result;
     }
 

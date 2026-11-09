@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "IXWebSocketExport.h"
+
 //
 // Adapted from https://github.com/dhbaird/easywsclient
 //
@@ -13,6 +15,7 @@
 #include "IXCancellationRequest.h"
 #include "IXProgressCallback.h"
 #include "IXSocketTLSOptions.h"
+#include "IXUtf8Validator.h"
 #include "IXWebSocketCloseConstants.h"
 #include "IXWebSocketHandshake.h"
 #include "IXWebSocketHttpHeaders.h"
@@ -80,15 +83,18 @@ namespace ix
                        int pingIntervalSecs);
 
         // Client
-        WebSocketInitResult connectToUrl(const std::string& url,
-                                         const WebSocketHttpHeaders& headers,
-                                         int timeoutSecs);
+        WebSocketInitResult connectToUrl(
+            const std::string& url,
+            const WebSocketHttpHeaders& headers,
+            int timeoutSecs,
+            const std::vector<std::string>& disabledDefaultHeaders = {});
 
         // Server
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket,
                                             int timeoutSecs,
                                             bool enablePerMessageDeflate,
-                                            HttpRequestPtr request = nullptr);
+                                            HttpRequestPtr request = nullptr,
+                                            int sendTimeoutSecs = -1);
 
         PollResult poll();
         WebSocketSendInfo sendBinary(const IXWebSocketSendData& message,
@@ -118,7 +124,10 @@ namespace ix
         WebSocketSendInfo sendHeartBeat(SendMessageKind pingType);
 
     private:
+        friend struct WebSocketTransportTestAccess;
         std::string _url;
+        Utf8Validator _utf8Validator;
+        size_t _validatedBytes = 0;
 
         struct wsheader_type
         {
@@ -142,6 +151,8 @@ namespace ix
             uint8_t masking_key[4];
         };
 
+        bool validateFramePayload(const wsheader_type& ws);
+
         // Tells whether we should mask the data we send.
         // client should mask but server should not
         std::atomic<bool> _useMask;
@@ -149,6 +160,12 @@ namespace ix
         // Tells whether we should flush the send buffer before
         // saying that a send is complete. This is the mode for server code.
         std::atomic<bool> _blockingSend;
+
+        // A configurable timeout for how long flushSendBuffer() may block
+        // before forcefully closing the client socket with a "Send timeout"
+        // message. This is useful when a client doesn't read from its socket
+        // and the server stalls on trying to send more data.
+        int _sendTimeoutSecs = -1;
 
         // Buffer for reading from our socket. That buffer is never resized.
         std::vector<uint8_t> _readbuf;
@@ -158,8 +175,15 @@ namespace ix
         // data messages. That buffer is resized
         std::vector<uint8_t> _rxbuf;
 
+        // If set to a positive value, only read bytes from the socket until
+        // _rxbuf has reached this size to avoid unnecessary erase churn.
+        uint64_t _rxbufWanted = 0;
+
         // Contains all messages that are waiting to be sent
         std::vector<uint8_t> _txbuf;
+        // Retries must keep the same address, contents and length. New frames go into _txbuf.
+        std::vector<uint8_t> _txbufPending;
+        size_t _txbufPendingOffset = 0;
         mutable std::mutex _txbufMutex;
 
         // Hold fragments for multi-fragments messages in a list. We support receiving very large
@@ -185,6 +209,8 @@ namespace ix
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)
         std::atomic<ReadyState> _readyState;
+        // Mutex to serialize setReadyState() execution.
+        std::mutex _setReadyStateMutex;
 
         OnCloseCallback _onCloseCallback;
         std::string _closeReason;
@@ -209,17 +235,17 @@ namespace ix
 
         mutable std::mutex _closingTimePointMutex;
         std::chrono::time_point<std::chrono::steady_clock> _closingTimePoint;
-        static const int kClosingMaximumWaitingDelayInMs;
+        IXWEBSOCKET_EXPORT static const int kClosingMaximumWaitingDelayInMs;
 
         // enable auto response to ping
         std::atomic<bool> _enablePong;
-        static const bool kDefaultEnablePong;
+        IXWEBSOCKET_EXPORT static const bool kDefaultEnablePong;
 
         // Optional ping and pong timeout
         int _pingIntervalSecs;
         std::atomic<bool> _pongReceived;
 
-        static const int kDefaultPingIntervalSecs;
+        IXWEBSOCKET_EXPORT static const int kDefaultPingIntervalSecs;
 
         bool _setCustomMessage;
         std::string _kPingMessage;
@@ -247,6 +273,7 @@ namespace ix
 
         bool wakeUpFromPoll(uint64_t wakeUpCode);
 
+        bool isAbnormalClose() const;
         bool flushSendBuffer();
         bool sendOnSocket();
         bool receiveFromSocket();
@@ -266,6 +293,7 @@ namespace ix
                          const OnMessageCallback& onMessageCallback);
 
         bool isSendBufferEmpty() const;
+        void resetConnectionState();
 
         template<class Iterator>
         void appendToSendBuffer(const std::vector<uint8_t>& header,

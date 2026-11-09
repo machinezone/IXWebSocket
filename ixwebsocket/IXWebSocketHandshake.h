@@ -17,6 +17,7 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace ix
 {
@@ -29,13 +30,15 @@ namespace ix
                            WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
                            std::atomic<bool>& enablePerMessageDeflate);
 
-        WebSocketInitResult clientHandshake(const std::string& url,
-                                            const WebSocketHttpHeaders& extraHeaders,
-                                            const std::string& protocol,
-                                            const std::string& host,
-                                            const std::string& path,
-                                            int port,
-                                            int timeoutSecs);
+        WebSocketInitResult clientHandshake(
+            const std::string& url,
+            const WebSocketHttpHeaders& extraHeaders,
+            const std::string& protocol,
+            const std::string& host,
+            const std::string& path,
+            int port,
+            int timeoutSecs,
+            const std::vector<std::string>& disabledDefaultHeaders = {});
 
         WebSocketInitResult serverHandshake(int timeoutSecs,
                                             bool enablePerMessageDeflate,
@@ -45,7 +48,9 @@ namespace ix
         std::string genRandomString(const int len);
 
         // Parse HTTP headers
-        WebSocketInitResult sendErrorResponse(int code, const std::string& reason);
+        WebSocketInitResult sendErrorResponse(int code,
+                                              const std::string& reason,
+                                              const std::string& extraHeaders = std::string());
 
         bool insensitiveStringCompare(const std::string& a, const std::string& b);
 

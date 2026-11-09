@@ -1,11 +1,37 @@
 ## Build
 
+### Building static libraries
+
+A static library can be build using:
+```
+mkdir build #make a build dir so that you can build out of tree
+cd build
+cmake -DUSE_TLS=1 ..
+make -j
+```
+There are also two build scripts in the `tools` folder for creating static libraries for android and iOS/macOS respectively.<br>
+Arguments can be changed in the script files.
+
+Android:
+```
+mkdir build
+cd build
+./../tools/build_android.sh
+make -j
+```
+macOS & iOS:
+```
+mkdir build
+cd build
+./../tools/build_ios.sh
+```
+
 ### CMake
 
 CMakefiles for the library and the examples are available. This library has few dependencies, so it is possible to just add the source files into your project. Otherwise the usual way will suffice.
 
 ```
-mkdir build # make a build dir so that you can build out of tree.
+mkdir build
 cd build
 cmake -DUSE_TLS=1 ..
 make -j
@@ -13,7 +39,25 @@ make install # will install to /usr/local on Unix, on macOS it is a good idea to
 ```
 
 Headers and a static library will be installed to the target dir.
+
+On Windows, `-DBUILD_SHARED_LIBS=ON` builds a DLL. Link the CMake target
+`ixwebsocket::ixwebsocket` so consumers receive `IXWEBSOCKET_SHARED`, which
+selects the required data imports for the library's static constants. The DLL
+is installed to `bin` and its import library to `lib`. Consumers linking a
+Windows DLL manually must define `IXWEBSOCKET_SHARED` themselves; static
+consumers must leave it undefined. This macro is independent of TLS options.
 There is a unittest which can be executed by typing `make test`.
+
+CMake checks whether 64-bit atomics need `libatomic` and links it when required,
+including for consumers of the installed static library. Cross-compilation uses
+a compile-and-link check without running target executables. On Linux with GCC
+multilib installed, `make -f makefile.dev test_atomic_32` builds and runs the
+32-bit installed-consumer checks.
+
+Autobahn protocol compliance checks run in Docker with
+`make -f makefile.dev test_autobahn`. Add the `autobahn` label to a PR to opt into
+the CI check; it also runs on `master` and manually. See the
+[Autobahn instructions](autobahn.md) for reports and local debugging.
 
 Options for building:
 
@@ -21,9 +65,15 @@ Options for building:
 * `-DUSE_ZLIB=1` will enable zlib support, required for http client + server + websocket per message deflate extension
 * `-DUSE_TLS=1` will enable TLS support
 * `-DUSE_OPEN_SSL=1` will use [openssl](https://www.openssl.org/) for the TLS support (default on Linux and Windows). When using a custom version of openssl (say a prebuilt version, odd runtime problems can happens, as in #319, and special cmake trickery will be required (see this [comment](https://github.com/machinezone/IXWebSocket/issues/175#issuecomment-620231032))
+* `-DUSE_NETWORK_FRAMEWORK=ON` enables the experimental native macOS TLS backend and also enables `USE_TLS`. It requires macOS 10.15 or later and links Apple's Network, Security, and CoreFoundation frameworks, with no OpenSSL library dependency. It cannot be combined with another TLS backend; the make target below overrides cached backend selections. Client and server TLS, including mutual TLS, are supported. The existing Apple backend remains the default.
 * `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support
 * `-DUSE_WS=1` will build the ws interactive command line tool
 * `-DUSE_TEST=1` will build the unittest
+
+The default CTest suite uses loopback servers and in-memory TLS sessions; it does
+not require Internet access. TLS server tests generate a local CA and verify the
+client connection against it. The legacy external HTTP client tests in
+`test/IXHttpClientTest.cpp` are not part of the default suite.
 
 If you are on Windows, look at the [appveyor](https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml) file (not maintained much though) or rather the [github actions](https://github.com/machinezone/IXWebSocket/blob/master/.github/workflows/unittest_windows.yml) which have instructions for building dependencies.
 
@@ -36,6 +86,16 @@ It is also possible to externally include the project, so that everything is fet
         ...
     )
 ```
+
+### OpenSSL compatibility checks
+
+`make -f makefile.dev test_openssl_no_deprecated` builds the library, CLI, and
+tests against OpenSSL 3 with `OPENSSL_NO_DEPRECATED` and a 3.0 API compatibility
+level. CI runs the same target against OpenSSL 1.1.1 and 3.0 using Debian
+Bullseye and Bookworm; the 1.1.1 build uses `OPENSSL_API_COMPAT=0x10100000L`.
+This checks that modern builds do not depend on compatibility declarations
+for older initialization, locking, or ECDH APIs. OpenSSL 3 uses the owned-reference
+certificate getter; older OpenSSL and LibreSSL retain their existing API.
 
 ### vcpkg
 
@@ -91,3 +151,32 @@ app@ca2340eb9106:~$ ws --help
 ws is a websocket tool
 ...
 ```
+
+### Native macOS TLS with Network.framework
+
+The developer makefile builds the library, `ws`, and tests in `build`:
+
+```sh
+make -f makefile.dev ws_network_framework
+make -f makefile.dev test_network_framework
+```
+
+The test target runs the full suite and verifies C++11 compilation, native TLS
+selection, and absence of OpenSSL linkage. Builds treat deprecated API warnings
+as errors.
+
+Or invoke CMake directly:
+
+```sh
+cmake -S . -B build -DUSE_NETWORK_FRAMEWORK=ON \
+  -DUSE_OPEN_SSL=OFF -DUSE_LIBRE_SSL=OFF -DUSE_MBED_TLS=OFF -DUSE_SECURE_TRANSPORT=OFF
+cmake --build build
+```
+
+To build the native backend's integration tests, add `-DUSE_TEST=ON`, then run
+`ctest --test-dir build -R IXSocketNetworkTest --output-on-failure`.
+The tests use the `openssl` command-line tool only to generate temporary credentials
+inside the build directory. The library itself does not link OpenSSL. Tests never
+modify the system keychain.
+
+This backend currently targets macOS; iOS, tvOS, and watchOS builds are not enabled.
