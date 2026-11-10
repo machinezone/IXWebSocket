@@ -723,7 +723,34 @@ existing BSD descriptor for TLS with this backend. The listener requires a numer
 bind address and uses the framework's TCP listen queue rather than the BSD backlog
 setting. Pending connections are bounded by <code>maxConnections</code>. Server TLS handshakes
 have a ten-second limit and are interrupted when the server stops. Client connection
-timeouts use the caller's cancellation callback, including HTTP/WebSocket timeouts.</p></div>
+timeouts use the caller's cancellation callback, including HTTP/WebSocket timeouts.</p>
+<h3 id="socks5-client-proxies">SOCKS5 client proxies</h3>
+<p>Configure an outbound SOCKS5 proxy before connecting a WebSocket or issuing HTTP
+requests. The same options apply to HTTP, HTTPS, WS, and WSS:</p>
+<pre><code class="language-cpp">ix::ProxyOptions proxy;
+proxy.host = &quot;127.0.0.1&quot;;
+proxy.port = 1080; // default
+proxy.dnsMode = ix::ProxyOptions::DnsMode::Remote; // default: proxy resolves the destination
+
+webSocket.setProxyOptions(proxy);
+httpClient.setProxyOptions(proxy);
+</code></pre>
+<p>Use <code>DnsMode::Local</code> to resolve the destination locally and send an IPv4 or IPv6
+address to the proxy. Numeric destinations are always sent as numeric addresses.
+The proxy's own hostname is resolved locally in both modes. TLS continues to use
+the original destination hostname for SNI and certificate verification.</p>
+<p>Set both <code>proxy.username</code> and <code>proxy.password</code> to offer SOCKS username/password
+authentication as well as the unauthenticated method. Each credential must contain
+1–255 bytes. Proxy authentication takes place before the destination TLS handshake.
+An empty proxy host disables this proxy configuration; call <code>setProxyOptions({})</code>
+to clear it. Configure options before use; WebSocket reconnections use the current
+configuration. Proxy negotiation shares the existing connection timeout and
+cancellation mechanism, and failures do not fall back to a direct connection.</p>
+<p>SOCKS5 CONNECT is supported for plain sockets, OpenSSL/LibreSSL, Mbed TLS, and
+SecureTransport. SOCKS4 and HTTP CONNECT proxies are not implemented. The native
+Network.framework TLS backend currently returns an explicit unsupported-proxy
+error. Its native SOCKS API failed routing and fragmented-reply checks during
+implementation, so it is not enabled by this feature.</p></div>
             </div>
         </div>
 
