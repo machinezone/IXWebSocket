@@ -12,6 +12,9 @@ If you are using OpenSSL, try to be on a version higher than 1.1.x as there ther
 
 ### Polling and background thread work
 
+For callback execution contexts, synchronous connection mode, and shutdown guidance,
+see [Threading and callbacks](usage.md#threading-and-callbacks).
+
 No manual polling to fetch data is required. Data is sent and received instantly by using a background thread for receiving data and the select [system](http://man7.org/linux/man-pages/man2/select.2.html) call to be notified by the OS of incoming data. No timeout is used for select so that the background thread is only woken up when data is available, to optimize battery life. This is also the recommended way of using select according to the select tutorial, section [select law](https://linux.die.net/man/2/select_tut). Read and Writes to the socket are non blocking. Data is sent right away and not enqueued by writing directly to the socket, which is [possible](https://stackoverflow.com/questions/1981372/are-parallel-calls-to-send-recv-on-the-same-socket-valid) since system socket implementations allow concurrent read/writes.
 
 ### Automatic reconnection

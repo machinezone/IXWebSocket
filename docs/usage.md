@@ -167,8 +167,54 @@ webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
 
 ### start, stop
 
-1. `websocket.start()` connect to the remote server and starts the message receiving background thread.
-2. `websocket.stop()` disconnect from the remote server and closes the background thread.
+1. `websocket.start()` starts a background thread that connects to the remote server and processes incoming events.
+2. `websocket.stop()` requests closure and waits for that background thread to exit.
+
+### Threading and callbacks
+
+`setOnMessageCallback()` handles Open, Message, Close, Error, Ping, Pong, and Fragment
+events. Callbacks execute inline on the thread processing the connection; they are
+not dispatched to an application event loop or the main thread.
+
+| Connection mode | Thread executing event callbacks |
+| --- | --- |
+| Client using `start()` | The client's background connection thread, including connection attempts and automatic reconnections. |
+| Client calling `connect()` explicitly | A successful connection invokes Open on the thread calling `connect()`. A failed connection is returned as a `WebSocketInitResult`. |
+| Client calling `run()` explicitly | The thread calling `run()` processes subsequent events. Call `connect()` first, and do not combine this mode with `start()`. |
+| `WebSocketServer` | Each connection has its own worker thread. The connection setup callback and that connection's event callbacks run on this thread. Different connections can invoke application callbacks concurrently. |
+
+For a connection owned by `start()` or `WebSocketServer`, message events and the
+terminal Close notification are processed on its connection thread. A fatal socket
+write failure makes `send()` return an unsuccessful `WebSocketSendInfo` and request
+closure without invoking the message handler on the sending thread. The connection
+thread finishes any active message callback before delivering Close. Sending on an already closed
+connection also returns failure.
+
+Other callbacks have different execution contexts:
+
+| Callback | Execution thread |
+| --- | --- |
+| Progress callback passed to `send()` | The thread calling `send()`, during the send operation. |
+| Traffic tracker registered with `setTrafficTrackerCallback()` | The sending thread for outgoing traffic and the connection thread for incoming traffic. This callback is shared across WebSocket instances and can be called concurrently. |
+
+Keep event handlers short: a slow handler delays incoming messages, heartbeats,
+and close processing for that connection. To update a UI or perform lengthy work,
+copy the required data into an application queue and process it on the appropriate
+thread. Protect application state shared between callbacks and other threads.
+
+Register callbacks before starting the connection and leave them installed until
+processing has stopped. Do not replace a callback concurrently with its execution.
+Use only one owner to manage `start()`, `stop()`, and destruction; do not invoke
+these lifecycle operations concurrently.
+
+To disconnect from inside a message callback, call `close()`. Do not call `stop()`
+or destroy the WebSocket there: `stop()` joins the background thread created by
+`start()`, and server workers must return from their callbacks to finish shutdown.
+Call `stop()` from an owning application thread, and keep the WebSocket and any
+objects captured by its callbacks alive until processing has finished. Do not hold
+an application mutex across `stop()` if a callback needs that mutex, because
+`stop()` waits for the callback's thread to finish. Similarly, stop a server from
+outside its connection callbacks.
 
 ### Configuring the remote url
 
