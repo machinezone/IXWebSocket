@@ -760,7 +760,7 @@ namespace ix
                 return false;
             }
 
-            _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
+            _sockfd = connectToHost(host, port, errMsg, isCancellationRequested);
             if (_sockfd == -1) return false;
 
             _ssl_context = openSSLCreateContext(errMsg);

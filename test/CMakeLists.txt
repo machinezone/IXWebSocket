@@ -10,6 +10,7 @@ option(USE_TLS "Add TLS support" ON)
 # Shared sources
 set (TEST_TARGET_NAMES
   IXSocketTest
+  IXSocks5Test
   IXSocketConnectTest
   IXWebSocketServerTest
   IXWebSocketTestConnectionDisconnection
@@ -124,6 +125,8 @@ add_test(NAME IXWebSocketBuildSettings
     -G "${CMAKE_GENERATOR}")
 set_tests_properties(IXWebSocketBuildSettings PROPERTIES TIMEOUT 30)
 
+set_tests_properties(IXSocks5Test PROPERTIES TIMEOUT 30)
+
 set_tests_properties(IXWebSocketReconnectTest IXWebSocketDispatchTest IXWebSocketSendFailureTest PROPERTIES TIMEOUT 30)
 
 if (USE_NETWORK_FRAMEWORK OR (UNIX AND USE_TLS AND (USE_OPEN_SSL OR USE_LIBRE_SSL OR USE_MBED_TLS)))
@@ -138,6 +141,8 @@ if (USE_NETWORK_FRAMEWORK OR (UNIX AND USE_TLS AND (USE_OPEN_SSL OR USE_LIBRE_SS
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/generate_network_certs.sh"
     VERBATIM)
   add_custom_target(tls_test_certs DEPENDS "${TLS_TEST_CERTS}/ready")
+  add_dependencies(IXSocks5Test tls_test_certs)
+  target_compile_definitions(IXSocks5Test PRIVATE IX_SOCKS_TEST_CERTS="${TLS_TEST_CERTS}")
   add_executable(IXSocketTLSServerTest IXSocketTLSServerTest.cpp)
   add_dependencies(IXSocketTLSServerTest tls_test_certs)
   target_compile_definitions(IXSocketTLSServerTest PRIVATE IX_TLS_SERVER_TEST_CERTS="${TLS_TEST_CERTS}")

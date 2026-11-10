@@ -71,6 +71,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSocketFactory.cpp
     ixwebsocket/IXSocketServer.cpp
     ixwebsocket/IXSocketTLSOptions.cpp
+    ixwebsocket/IXSocks5.cpp
     ixwebsocket/IXStrCaseCompare.cpp
     ixwebsocket/IXUdpSocket.cpp
     ixwebsocket/IXUrlParser.cpp
@@ -102,6 +103,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXHttpServer.h
     ixwebsocket/IXNetSystem.h
     ixwebsocket/IXProgressCallback.h
+    ixwebsocket/IXProxyOptions.h
     ixwebsocket/IXSelectInterrupt.h
     ixwebsocket/IXSelectInterruptFactory.h
     ixwebsocket/IXSelectInterruptPipe.h

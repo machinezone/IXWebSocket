@@ -196,7 +196,7 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_mutex);
 
-            _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
+            _sockfd = connectToHost(host, port, errMsg, isCancellationRequested);
             if (_sockfd == -1) return false;
 
             _sslContext = SSLCreateContext(kCFAllocatorDefault, kSSLClientSide, kSSLStreamType);

@@ -93,11 +93,13 @@ namespace ix
         const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions,
         const SocketTLSOptions& socketTLSOptions,
         bool enablePong,
-        int pingIntervalSecs)
+        int pingIntervalSecs,
+        const ProxyOptions& proxyOptions)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
         _socketTLSOptions = socketTLSOptions;
+        _proxyOptions = proxyOptions;
         _enablePong = enablePong;
         _pingIntervalSecs = pingIntervalSecs;
     }
@@ -130,7 +132,7 @@ namespace ix
 
             std::string errorMsg;
             bool tls = protocol == "wss";
-            _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions);
+            _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions, _proxyOptions);
             _perMessageDeflate = ix::make_unique<WebSocketPerMessageDeflate>();
 
             if (!_socket)

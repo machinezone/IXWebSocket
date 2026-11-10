@@ -9,6 +9,7 @@
 #include "IXCancellationRequest.h"
 #include "IXNetSystem.h"
 #include "IXProgressCallback.h"
+#include "IXProxyOptions.h"
 #include "IXSelectInterrupt.h"
 #include "IXWebSocketExport.h"
 #include <atomic>
@@ -37,6 +38,8 @@ namespace ix
         Socket(int fd = -1);
         virtual ~Socket();
         bool init(std::string& errorMsg);
+        // Configure before connecting; proxy options are immutable during connection setup.
+        void setProxyOptions(const ProxyOptions& options);
 
         // Functions to check whether there is activity on the socket
         PollResultType poll(int timeoutMs = kDefaultPollTimeout);
@@ -86,6 +89,11 @@ namespace ix
                                    const SelectInterruptPtr& selectInterrupt);
 
     protected:
+        int connectToHost(const std::string& host,
+                          int port,
+                          std::string& error,
+                          const CancellationRequest& cancelled);
+        ProxyOptions _proxyOptions;
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;
 

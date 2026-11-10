@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "IXProxyOptions.h"
 #include "IXSocketTLSOptions.h"
 #include <memory>
 #include <string>
@@ -17,5 +18,6 @@ namespace ix
     std::unique_ptr<Socket> createSocket(bool tls,
                                          int fd,
                                          std::string& errorMsg,
-                                         const SocketTLSOptions& tlsOptions);
+                                         const SocketTLSOptions& tlsOptions,
+                                         const ProxyOptions& proxyOptions = {});
 } // namespace ix
