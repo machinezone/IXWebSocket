@@ -30,7 +30,8 @@ namespace ix
     std::unique_ptr<Socket> createSocket(bool tls,
                                          int fd,
                                          std::string& errorMsg,
-                                         const SocketTLSOptions& tlsOptions)
+                                         const SocketTLSOptions& tlsOptions,
+                                         const ProxyOptions& proxyOptions)
     {
         (void) tlsOptions;
         errorMsg.clear();
@@ -64,6 +65,7 @@ namespace ix
 #endif
         }
 
+        socket->setProxyOptions(proxyOptions);
         if (!socket->init(errorMsg))
         {
             socket.reset();

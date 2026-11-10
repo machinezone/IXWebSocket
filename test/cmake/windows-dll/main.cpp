@@ -11,6 +11,11 @@ int main()
     if (!ix::initNetSystem()) return 1;
     {
         ix::WebSocket client;
+        ix::ProxyOptions proxy;
+        proxy.host = "127.0.0.1";
+        client.setProxyOptions(proxy);
+        ix::HttpClient httpClient;
+        httpClient.setProxyOptions(proxy);
         client.close();
         ix::WebSocketServer server;
         ix::HttpServer http;

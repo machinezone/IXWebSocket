@@ -382,6 +382,11 @@ namespace ix
             error = "Invalid TLS port";
             return false;
         }
+        if (!_proxyOptions.host.empty())
+        {
+            error = "SOCKS5 is not supported by the Network.framework backend";
+            return false;
+        }
         nw_parameters_t params = makeParameters(_options, false, host, error);
         if (!params) return false;
         nw_endpoint_t endpoint =

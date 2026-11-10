@@ -10,6 +10,7 @@
 #include "IXSelectInterrupt.h"
 #include "IXSelectInterruptFactory.h"
 #include "IXSocketConnect.h"
+#include "IXSocks5.h"
 #include <algorithm>
 #include <array>
 #include <assert.h>
@@ -236,8 +237,29 @@ namespace ix
 
         if (!_selectInterrupt->clear()) return false;
 
-        _sockfd = SocketConnect::connect(host, port, errMsg, isCancellationRequested);
+        _sockfd = connectToHost(host, port, errMsg, isCancellationRequested);
         return _sockfd != -1;
+    }
+
+    void Socket::setProxyOptions(const ProxyOptions& options)
+    {
+        _proxyOptions = options;
+    }
+
+    int Socket::connectToHost(const std::string& host,
+                              int port,
+                              std::string& error,
+                              const CancellationRequest& cancelled)
+    {
+        if (_proxyOptions.host.empty()) return SocketConnect::connect(host, port, error, cancelled);
+        if (!Socks5::validate(_proxyOptions, error)) return -1;
+        int fd = SocketConnect::connect(_proxyOptions.host, _proxyOptions.port, error, cancelled);
+        if (fd != -1 && !Socks5::connect(fd, host, port, _proxyOptions, error, cancelled))
+        {
+            Socket::closeSocket(fd);
+            return -1;
+        }
+        return fd;
     }
 
     void Socket::close()
