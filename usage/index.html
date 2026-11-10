@@ -273,9 +273,80 @@ result = webSocket.sendUtf8Text(IXWebSocketSendData(text, strlen(text)));
 </code></pre>
 <h3 id="start-stop">start, stop</h3>
 <ol>
-<li><code>websocket.start()</code> connect to the remote server and starts the message receiving background thread.</li>
-<li><code>websocket.stop()</code> disconnect from the remote server and closes the background thread.</li>
+<li><code>websocket.start()</code> starts a background thread that connects to the remote server and processes incoming events.</li>
+<li><code>websocket.stop()</code> requests closure and waits for that background thread to exit.</li>
 </ol>
+<h3 id="threading-and-callbacks">Threading and callbacks</h3>
+<p><code>setOnMessageCallback()</code> handles Open, Message, Close, Error, Ping, Pong, and Fragment
+events. Callbacks execute inline on the thread processing the connection; they are
+not dispatched to an application event loop or the main thread.</p>
+<table>
+<thead>
+<tr>
+<th>Connection mode</th>
+<th>Thread executing event callbacks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Client using <code>start()</code></td>
+<td>The client's background connection thread, including connection attempts and automatic reconnections.</td>
+</tr>
+<tr>
+<td>Client calling <code>connect()</code> explicitly</td>
+<td>A successful connection invokes Open on the thread calling <code>connect()</code>. A failed connection is returned as a <code>WebSocketInitResult</code>.</td>
+</tr>
+<tr>
+<td>Client calling <code>run()</code> explicitly</td>
+<td>The thread calling <code>run()</code> processes subsequent events. Call <code>connect()</code> first, and do not combine this mode with <code>start()</code>.</td>
+</tr>
+<tr>
+<td><code>WebSocketServer</code></td>
+<td>Each connection has its own worker thread. The connection setup callback and that connection's event callbacks run on this thread. Different connections can invoke application callbacks concurrently.</td>
+</tr>
+</tbody>
+</table>
+<p>For a connection owned by <code>start()</code> or <code>WebSocketServer</code>, message events and the
+terminal Close notification are processed on its connection thread. A fatal socket
+write failure makes <code>send()</code> return an unsuccessful <code>WebSocketSendInfo</code> and request
+closure without invoking the message handler on the sending thread. The connection
+thread finishes any active message callback before delivering Close. Sending on an already closed
+connection also returns failure.</p>
+<p>Other callbacks have different execution contexts:</p>
+<table>
+<thead>
+<tr>
+<th>Callback</th>
+<th>Execution thread</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Progress callback passed to <code>send()</code></td>
+<td>The thread calling <code>send()</code>, during the send operation.</td>
+</tr>
+<tr>
+<td>Traffic tracker registered with <code>setTrafficTrackerCallback()</code></td>
+<td>The sending thread for outgoing traffic and the connection thread for incoming traffic. This callback is shared across WebSocket instances and can be called concurrently.</td>
+</tr>
+</tbody>
+</table>
+<p>Keep event handlers short: a slow handler delays incoming messages, heartbeats,
+and close processing for that connection. To update a UI or perform lengthy work,
+copy the required data into an application queue and process it on the appropriate
+thread. Protect application state shared between callbacks and other threads.</p>
+<p>Register callbacks before starting the connection and leave them installed until
+processing has stopped. Do not replace a callback concurrently with its execution.
+Use only one owner to manage <code>start()</code>, <code>stop()</code>, and destruction; do not invoke
+these lifecycle operations concurrently.</p>
+<p>To disconnect from inside a message callback, call <code>close()</code>. Do not call <code>stop()</code>
+or destroy the WebSocket there: <code>stop()</code> joins the background thread created by
+<code>start()</code>, and server workers must return from their callbacks to finish shutdown.
+Call <code>stop()</code> from an owning application thread, and keep the WebSocket and any
+objects captured by its callbacks alive until processing has finished. Do not hold
+an application mutex across <code>stop()</code> if a callback needs that mutex, because
+<code>stop()</code> waits for the callback's thread to finish. Similarly, stop a server from
+outside its connection callbacks.</p>
 <h3 id="configuring-the-remote-url">Configuring the remote url</h3>
 <p>The url can be set and queried after a websocket object has been created. You will have to call <code>stop</code> and <code>start</code> if you want to disconnect and connect to that new url.</p>
 <pre><code class="language-cpp">std::string url(&quot;wss://example.com&quot;);
