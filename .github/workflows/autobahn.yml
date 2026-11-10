@@ -1,0 +1,35 @@
+name: autobahn
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+    types: [ opened, reopened, synchronize, labeled, unlabeled ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autobahn-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  autobahn:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'autobahn')
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+    - uses: actions/checkout@v4
+    - name: make test_autobahn
+      run: make -f makefile.dev test_autobahn
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: autobahn-reports
+        path: |
+          build/autobahn/reports
+          build/autobahn/logs
+          build/autobahn/expected.json
+          build/autobahn/selection.json
+        retention-days: 14

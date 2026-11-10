@@ -79,6 +79,12 @@ namespace ix
         _extraHeaders = headers;
     }
 
+    void WebSocket::setDisabledDefaultHeaders(const std::vector<std::string>& headers)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _disabledDefaultHeaders = headers;
+    }
+
     const std::string WebSocket::getUrl() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
@@ -96,12 +102,6 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         _socketTLSOptions = socketTLSOptions;
-    }
-
-    void WebSocket::setProxyOptions(const ProxyOptions& proxyOptions) 
-    {
-        std::lock_guard<std::mutex> lock(_configMutex);
-        _proxyOptions = proxyOptions;
     }
 
     const WebSocketPerMessageDeflateOptions WebSocket::getPerMessageDeflateOptions() const
@@ -192,14 +192,23 @@ namespace ix
 
     void WebSocket::stop(uint16_t code, const std::string& reason)
     {
+        const bool isJoinable = _thread.joinable();
+
+        if(isJoinable)
+        {
+            // we need to set _stop before close()
+            // otherwise automatic reconnection might restart the connection before _stop has a chance to get set
+            // this can happen during high CPU load => _thread.join() below blocks indefinitely
+            _stop = true;
+            _sleepCondition.notify_one();
+        }
+
         close(code, reason);
 
-        if (_thread.joinable())
+        if (isJoinable)
         {
             // wait until working thread will exit
             // it will exit after close operation is finished
-            _stop = true;
-            _sleepCondition.notify_one();
             _thread.join();
             _stop = false;
         }
@@ -207,15 +216,27 @@ namespace ix
 
     WebSocketInitResult WebSocket::connect(int timeoutSecs)
     {
+        // Finish any in-flight send before discarding the previous connection's state.
+        std::unique_lock<std::mutex> writeLock(_writeMutex, std::defer_lock);
+        if (!waitForWriteLock(writeLock))
+        {
+            return WebSocketInitResult(false, 0, "Connection cancelled while waiting for a send");
+        }
+        WebSocketHttpHeaders headers;
+        std::vector<std::string> disabledDefaultHeaders;
+        std::vector<std::string> subProtocols;
+        std::string url;
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(
-                _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs, _proxyOptions);
+                _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs);
+            headers = _extraHeaders;
+            disabledDefaultHeaders = _disabledDefaultHeaders;
+            subProtocols = _subProtocols;
+            url = _url;
         }
 
-        WebSocketHttpHeaders headers(_extraHeaders);
         std::string subProtocolsHeader;
-        const auto &subProtocols = getSubProtocols();
         if (!subProtocols.empty())
         {
             //
@@ -236,7 +257,9 @@ namespace ix
             headers["Sec-WebSocket-Protocol"] = subProtocolsHeader;
         }
 
-        WebSocketInitResult status = _ws.connectToUrl(_url, headers, timeoutSecs);
+        WebSocketInitResult status =
+            _ws.connectToUrl(url, headers, timeoutSecs, disabledDefaultHeaders);
+        writeLock.unlock();
         if (!status.success)
         {
             return status;
@@ -265,14 +288,20 @@ namespace ix
                                                    HttpRequestPtr request,
                                                    int sendTimeoutSecs)
     {
+        std::unique_lock<std::mutex> writeLock(_writeMutex, std::defer_lock);
+        if (!waitForWriteLock(writeLock))
+        {
+            return WebSocketInitResult(false, 0, "Connection cancelled while waiting for a send");
+        }
         {
             std::lock_guard<std::mutex> lock(_configMutex);
             _ws.configure(
-                _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs, _proxyOptions);
+                _perMessageDeflateOptions, _socketTLSOptions, _enablePong, _pingIntervalSecs);
         }
 
         WebSocketInitResult status = _ws.connectToSocket(
             std::move(socket), timeoutSecs, enablePerMessageDeflate, request, sendTimeoutSecs);
+        writeLock.unlock();
         if (!status.success)
         {
             return status;
@@ -293,6 +322,22 @@ namespace ix
         }
 
         return status;
+    }
+
+    bool WebSocket::waitForWriteLock(std::unique_lock<std::mutex>& lock)
+    {
+        while (!lock.try_lock())
+        {
+            // A progress callback can call stop() while holding _writeMutex. Let the
+            // background thread exit so stop() can join it without waiting for that send.
+            std::unique_lock<std::mutex> sleepLock(_sleepMutex);
+            if (_sleepCondition.wait_for(
+                    sleepLock, std::chrono::milliseconds(10), [this] { return _stop.load(); }))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool WebSocket::isConnected() const
@@ -365,6 +410,7 @@ namespace ix
 
                 connectErr.reason = status.errorStr;
                 connectErr.http_status = status.http_status;
+                connectErr.headers = status.headers;
 
                 _onMessageCallback(ix::make_unique<WebSocketMessage>(WebSocketMessageType::Error,
                                                                      emptyMsg,

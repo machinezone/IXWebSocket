@@ -1,0 +1,32 @@
+name: openssl_compat
+on:
+  push:
+    paths-ignore:
+    - 'docs/**'
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  openssl_compat:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - image: debian:bullseye-slim
+          api: 0x10100000L
+        - image: debian:bookworm-slim
+          api: 0x30000000L
+    container: ${{ matrix.image }}
+    steps:
+    - name: use archived repositories for OpenSSL 1.1.1
+      if: matrix.api == '0x10100000L'
+      run: |
+        printf 'deb http://archive.debian.org/debian bullseye main\ndeb http://archive.debian.org/debian-security bullseye-security main\n' > /etc/apt/sources.list
+        rm -f /etc/apt/sources.list.d/debian.sources
+        printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99archive
+    - name: install dependencies
+      run: apt-get update && apt-get install -y --no-install-recommends g++ make cmake ninja-build git ca-certificates python3 openssl libssl-dev zlib1g-dev
+    - uses: actions/checkout@v4
+    - name: make test
+      run: make -f makefile.dev test_openssl_no_deprecated OPENSSL_API_COMPAT=${{ matrix.api }}

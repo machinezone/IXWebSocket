@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "IXWebSocketExport.h"
 #include <cstdint>
 #include <string>
 
@@ -19,7 +20,8 @@ namespace ix
             bool clientNoContextTakeover = false,
             bool serverNoContextTakeover = false,
             uint8_t clientMaxWindowBits = kDefaultClientMaxWindowBits,
-            uint8_t serverMaxWindowBits = kDefaultServerMaxWindowBits);
+            uint8_t serverMaxWindowBits = kDefaultServerMaxWindowBits,
+            bool sendClientServerMaxWindowBits = true);
 
         WebSocketPerMessageDeflateOptions(std::string extension);
 
@@ -29,17 +31,19 @@ namespace ix
         bool getServerNoContextTakeover() const;
         uint8_t getServerMaxWindowBits() const;
         uint8_t getClientMaxWindowBits() const;
+        bool getSendClientServerMaxWindowBits() const;
 
         static bool startsWith(const std::string& str, const std::string& start);
         static std::string removeSpaces(const std::string& str);
 
-        static uint8_t const kDefaultClientMaxWindowBits;
-        static uint8_t const kDefaultServerMaxWindowBits;
+        IXWEBSOCKET_EXPORT static uint8_t const kDefaultClientMaxWindowBits;
+        IXWEBSOCKET_EXPORT static uint8_t const kDefaultServerMaxWindowBits;
 
     private:
         bool _enabled;
         bool _clientNoContextTakeover;
         bool _serverNoContextTakeover;
+        bool _sendClientServerMaxWindowBits;
         uint8_t _clientMaxWindowBits;
         uint8_t _serverMaxWindowBits;
 

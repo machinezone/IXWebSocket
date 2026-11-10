@@ -1,0 +1,14 @@
+**
+!CMakeLists.txt
+!ixwebsocket-config.cmake.in
+!ixwebsocket.pc.in
+!CMake/
+!CMake/**
+!ixwebsocket/
+!ixwebsocket/**
+!common/
+!common/**
+!third_party/
+!third_party/CLI11.hpp
+!ws/
+!ws/**

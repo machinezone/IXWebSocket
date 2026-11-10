@@ -16,24 +16,25 @@
 
 namespace ix
 {
-    class SocketAppleSSL : public Socket
+    class SocketAppleSSL final : public Socket
     {
     public:
         SocketAppleSSL(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketAppleSSL();
 
+        using Socket::accept;
         virtual bool accept(std::string& errMsg) final;
 
         virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg,
-                             const CancellationRequest& isCancellationRequested);
+                             const CancellationRequest& isCancellationRequested) final;
         virtual void close() final;
 
-        virtual ssize_t send(char* buffer, size_t length) final;
-        virtual ssize_t recv(void* buffer, size_t length) final;
+        virtual std::ptrdiff_t send(char* buffer, size_t length) final;
+        virtual std::ptrdiff_t recv(void* buffer, size_t length) final;
 
-    protected:
+    private:
         static std::string getSSLErrorDescription(OSStatus status);
         static OSStatus writeToSocket(SSLConnectionRef connection, const void* data, size_t* len);
         static OSStatus readFromSocket(SSLConnectionRef connection, void* data, size_t* len);

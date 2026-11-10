@@ -7,9 +7,9 @@
 #pragma once
 
 #include "IXHttp.h"
-#include "IXProxyOptions.h"
 #include "IXSocket.h"
 #include "IXSocketTLSOptions.h"
+#include "IXWebSocketExport.h"
 #include "IXWebSocketHttpHeaders.h"
 #include <algorithm>
 #include <atomic>
@@ -81,9 +81,6 @@ namespace ix
         // TLS
         void setTLSOptions(const SocketTLSOptions& tlsOptions);
 
-        // Proxy
-        void setProxyOptions(const ProxyOptions& proxyOptions);
-
         std::string serializeHttpParameters(const HttpParameters& httpParameters);
 
         std::string serializeHttpFormDataParameters(
@@ -95,12 +92,12 @@ namespace ix
 
         std::string urlEncode(const std::string& value);
 
-        const static std::string kPost;
-        const static std::string kGet;
-        const static std::string kHead;
-        const static std::string kDelete;
-        const static std::string kPut;
-        const static std::string kPatch;
+        IXWEBSOCKET_EXPORT const static std::string kPost;
+        IXWEBSOCKET_EXPORT const static std::string kGet;
+        IXWEBSOCKET_EXPORT const static std::string kHead;
+        IXWEBSOCKET_EXPORT const static std::string kDelete;
+        IXWEBSOCKET_EXPORT const static std::string kPut;
+        IXWEBSOCKET_EXPORT const static std::string kPatch;
 
     private:
         void log(const std::string& msg, HttpRequestArgsPtr args);
@@ -121,7 +118,6 @@ namespace ix
                                      // might be called recursively to follow HTTP redirections
 
         SocketTLSOptions _tlsOptions;
-        ProxyOptions _proxyOptions;
 
         bool _forceBody;
     };

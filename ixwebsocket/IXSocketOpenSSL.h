@@ -19,24 +19,27 @@
 
 namespace ix
 {
-    class SocketOpenSSL : public Socket
+    class SocketOpenSSL final : public Socket
     {
     public:
         SocketOpenSSL(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketOpenSSL();
 
         virtual bool accept(std::string& errMsg) final;
+        bool accept(std::string& errMsg,
+                    const CancellationRequest& isCancellationRequested) override;
 
         virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg,
-                             const CancellationRequest& isCancellationRequested);
+                             const CancellationRequest& isCancellationRequested) final;
         virtual void close() final;
 
-        virtual ssize_t send(char* buffer, size_t length) final;
-        virtual ssize_t recv(void* buffer, size_t length) final;
+        virtual std::ptrdiff_t send(char* buffer, size_t length) final;
+        virtual std::ptrdiff_t recv(void* buffer, size_t length) final;
 
-    protected:
+    private:
+        friend struct SocketOpenSSLWriteTestAccess;
         void openSSLInitialize();
         std::string getSSLError(int ret);
         SSL_CTX* openSSLCreateContext(std::string& errMsg);
@@ -47,10 +50,12 @@ namespace ix
         bool openSSLCheckServerCert(SSL* ssl, const std::string& hostname, std::string& errMsg);
         bool checkHost(const std::string& host, const char* pattern);
         bool handleTLSOptions(std::string& errMsg);
-        bool openSSLServerHandshake(std::string& errMsg);
+        bool openSSLServerHandshake(std::string& errMsg,
+                                    const CancellationRequest& isCancellationRequested);
 
-        // Required for OpenSSL < 1.1
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
         static void openSSLLockingCallback(int mode, int type, const char* /*file*/, int /*line*/);
+#endif
 
         SSL* _ssl_connection;
         SSL_CTX* _ssl_context;

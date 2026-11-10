@@ -4,7 +4,7 @@
  *  Copyright (c) 2019 Machine Zone. All rights reserved.
  */
 
-#include "catch.hpp"
+#include <catch_amalgamated.hpp>
 #include <ixwebsocket/IXCancellationRequest.h>
 #include <ixwebsocket/IXConnectionState.h>
 #include <ixwebsocket/IXDNSLookup.h>

@@ -1,0 +1,19 @@
+name: linux_32bit
+on:
+  push:
+    paths-ignore:
+    - 'docs/**'
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  linux_32bit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: seanmiddleditch/gha-setup-ninja@master
+    - name: install 32-bit toolchain
+      run: sudo apt-get update && sudo apt-get install -y g++-multilib pkg-config
+    - name: make test
+      run: make -f makefile.dev test_atomic_32

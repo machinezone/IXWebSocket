@@ -6,27 +6,18 @@
 
 #pragma once
 
+#include "IXCancellationRequest.h"
+#include "IXNetSystem.h"
+#include "IXProgressCallback.h"
+#include "IXSelectInterrupt.h"
+#include "IXWebSocketExport.h"
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
-
-#ifdef __APPLE__
-#include <sys/types.h>
-#endif
-
-#ifdef _WIN32
-#include <basetsd.h>
-#ifdef _MSC_VER
-typedef SSIZE_T ssize_t;
-#endif
-#endif
-
-#include "IXCancellationRequest.h"
-#include "IXProgressCallback.h"
-#include "IXSelectInterrupt.h"
 
 namespace ix
 {
@@ -52,7 +43,6 @@ namespace ix
         bool wakeUpFromPoll(uint64_t wakeUpCode);
         bool isWakeUpFromPollSupported();
 
-        PollResultType isReadyToWrite(int timeoutMs);
         PollResultType isReadyToRead(int timeoutMs);
 
         // Virtual methods
@@ -64,9 +54,14 @@ namespace ix
                              const CancellationRequest& isCancellationRequested);
         virtual void close();
 
-        virtual ssize_t send(char* buffer, size_t length);
-        ssize_t send(const std::string& buffer);
-        virtual ssize_t recv(void* buffer, size_t length);
+        // Keep the buffer and length unchanged across would-block retries.
+        // Advance the input only after a positive return value.
+        virtual std::ptrdiff_t send(char* buffer, size_t length);
+        std::ptrdiff_t send(const std::string& buffer);
+        virtual std::ptrdiff_t recv(void* buffer, size_t length);
+        virtual PollResultType isReadyToWrite(int timeoutMs);
+        virtual bool accept(std::string& errMsg,
+                            const CancellationRequest& isCancellationRequested);
 
         // Blocking and cancellable versions, working with socket that can be set
         // to non blocking mode. Used during HTTP upgrade.
@@ -80,12 +75,14 @@ namespace ix
                                                const CancellationRequest& isCancellationRequested);
 
         static int getErrno();
+        static void setErrno(int err);
         static bool isWaitNeeded();
-        static void closeSocket(int fd);
+        static void closeSocket(socket_t fd);
+        static bool setCloseOnExec(socket_t fd);
 
         static PollResultType poll(bool readyToRead,
                                    int timeoutMs,
-                                   int sockfd,
+                                   socket_t sockfd,
                                    const SelectInterruptPtr& selectInterrupt);
 
     protected:
@@ -96,8 +93,8 @@ namespace ix
                                                PollResultType* pollResult);
 
     private:
-        static const int kDefaultPollTimeout;
-        static const int kDefaultPollNoTimeout;
+        IXWEBSOCKET_EXPORT static const int kDefaultPollTimeout;
+        IXWEBSOCKET_EXPORT static const int kDefaultPollNoTimeout;
 
         SelectInterruptPtr _selectInterrupt;
     };

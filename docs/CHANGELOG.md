@@ -2,6 +2,21 @@
 
 All changes to this project will be documented in this file.
 
+## [12.1.0] - 2026-10-14 — Philippe V le Long
+
+- Add an opt-in native macOS Network.framework TLS backend for HTTP/WebSocket clients and servers, including TLS 1.3, mutual TLS, and Apple certificate trust evaluation, without linking OpenSSL (#615).
+- Fix a WebSocket shutdown race that could trigger an automatic reconnect and block `stop()` indefinitely (#609).
+- Prevent path traversal in the HTTP server's default file handler (#608).
+- Fix mbedTLS TLS 1.3 reads and Windows errno signaling (#594), and keep PSA crypto initialized until network-system teardown (#613).
+- Add server error logging callbacks for failures before a WebSocket connection exists (#595).
+- Add close-on-exec support for server and accepted sockets (#604).
+- Allow omitting client/server window-bit parameters from per-message deflate offers (#599).
+- Remove CMake FetchContent downloads; developer tools and tests use vendored dependencies (#605).
+- Set the shared-library soversion (#607), improve MSVC type compatibility (#597), and fix build warnings (#572).
+- Align the runtime and CMake version numbers.
+
+[Release notes](https://github.com/machinezone/IXWebSocket/releases/tag/v12.1.0)
+
 ## [11.4.5] - 2024-06-05
 
 New changes are documented in the Release page in the GitHub repository.

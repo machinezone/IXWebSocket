@@ -21,21 +21,26 @@ namespace ix
 
         while (true)
         {
-            int colon = 0;
+            int colon = -1;
 
-            for (i = 0; i < 2 || (i < 1023 && line[i - 2] != '\r' && line[i - 1] != '\n'); ++i)
+            for (i = 0; i < 1023; ++i)
             {
                 if (!socket->readByte(line + i, isCancellationRequested))
                 {
                     return std::make_pair(false, headers);
                 }
 
-                if (line[i] == ':' && colon == 0)
+                if (line[i] == '\n') break;
+
+                if (line[i] == ':' && colon == -1)
                 {
                     colon = i;
                 }
             }
-            if (line[0] == '\r' && line[1] == '\n')
+            // Reject oversized lines instead of parsing their remainder as another header.
+            if (i == 1023) return std::make_pair(false, headers);
+
+            if (i == 0 || (i == 1 && line[0] == '\r'))
             {
                 break;
             }

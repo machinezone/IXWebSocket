@@ -51,6 +51,7 @@ namespace ix
         ~WebSocketPerMessageDeflate();
 
         bool init(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
+        bool init(const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions, bool isServer);
         bool compress(const IXWebSocketSendData& in, std::string& out);
         bool compress(const std::string& in, std::string& out);
         bool decompress(const std::string& in, std::string& out);

@@ -24,24 +24,27 @@
 
 namespace ix
 {
-    class SocketMbedTLS : public Socket
+    class SocketMbedTLS final : public Socket
     {
     public:
         SocketMbedTLS(const SocketTLSOptions& tlsOptions, int fd = -1);
         ~SocketMbedTLS();
 
         virtual bool accept(std::string& errMsg) final;
+        bool accept(std::string& errMsg,
+                    const CancellationRequest& isCancellationRequested) override;
 
         virtual bool connect(const std::string& host,
                              int port,
                              std::string& errMsg,
-                             const CancellationRequest& isCancellationRequested);
+                             const CancellationRequest& isCancellationRequested) final;
         virtual void close() final;
 
-        virtual ssize_t send(char* buffer, size_t length) final;
-        virtual ssize_t recv(void* buffer, size_t length) final;
+        virtual std::ptrdiff_t send(char* buffer, size_t length) final;
+        virtual std::ptrdiff_t recv(void* buffer, size_t length) final;
 
-    protected:
+    private:
+        friend struct SocketMbedTLSWriteTestAccess;
         mbedtls_ssl_context _ssl;
         mbedtls_ssl_config _conf;
 #if MBEDTLS_VERSION_MAJOR < 4
@@ -54,6 +57,7 @@ namespace ix
 
         std::mutex _mutex;
         SocketTLSOptions _tlsOptions;
+        bool _mbedtlsInitialized = false;
 
         bool init(const std::string& host, bool isClient, std::string& errMsg);
         void initMBedTLS();

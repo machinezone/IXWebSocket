@@ -40,15 +40,19 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        mbedtls_ssl_init(&_ssl);
-        mbedtls_ssl_config_init(&_conf);
+        if (!_mbedtlsInitialized)
+        {
+            _mbedtlsInitialized = true;
+            mbedtls_ssl_init(&_ssl);
+            mbedtls_ssl_config_init(&_conf);
 #if MBEDTLS_VERSION_MAJOR < 4
-        mbedtls_ctr_drbg_init(&_ctr_drbg);
-        mbedtls_entropy_init(&_entropy);
+            mbedtls_ctr_drbg_init(&_ctr_drbg);
+            mbedtls_entropy_init(&_entropy);
 #endif
-        mbedtls_x509_crt_init(&_cacert);
-        mbedtls_x509_crt_init(&_cert);
-        mbedtls_pk_init(&_pkey);
+            mbedtls_x509_crt_init(&_cacert);
+            mbedtls_x509_crt_init(&_cert);
+            mbedtls_pk_init(&_pkey);
+        }
         // Initialize the PSA Crypto API for mbedTLS 3.6+ and all 4.x releases.
         // See: https://github.com/Mbed-TLS/mbedtls/blob/development/docs/use-psa-crypto.md
 #if MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6)
@@ -98,6 +102,7 @@ namespace ix
 
         return true;
 #else
+        (void)errorMsg;
         // On macOS we can query the system cert location from the keychain
         // On Linux we could try to fetch some local files based on the distribution
         // On Android we could use JNI to get to the system certs
@@ -110,9 +115,17 @@ namespace ix
         initMBedTLS();
         std::lock_guard<std::mutex> lock(_mutex);
 
-        const char* pers = "IXSocketMbedTLS";
+#if MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6)
+        psa_status_t status = psa_crypto_init();
+        if (status != PSA_SUCCESS)
+        {
+            errMsg = "PSA crypto init failed: " + std::to_string((int) status);
+            return false;
+        }
+#endif
 
 #if MBEDTLS_VERSION_MAJOR < 4
+        const char* pers = "IXSocketMbedTLS";
         if (mbedtls_ctr_drbg_seed(&_ctr_drbg,
                                   mbedtls_entropy_func,
                                   &_entropy,
@@ -221,6 +234,12 @@ namespace ix
 
     bool SocketMbedTLS::accept(std::string& errMsg)
     {
+        return accept(errMsg, CancellationRequest());
+    }
+
+    bool SocketMbedTLS::accept(std::string& errMsg,
+                               const CancellationRequest& isCancellationRequested)
+    {
         bool isClient = false;
         bool initialized = init(std::string(), isClient, errMsg);
         if (!initialized)
@@ -234,8 +253,27 @@ namespace ix
         int res;
         do
         {
-            std::lock_guard<std::mutex> lock(_mutex);
-            res = mbedtls_ssl_handshake(&_ssl);
+            if (isCancellationRequested && isCancellationRequested())
+            {
+                errMsg = "Cancellation requested";
+                close();
+                return false;
+            }
+            {
+                std::lock_guard<std::mutex> lock(_mutex);
+                res = mbedtls_ssl_handshake(&_ssl);
+            }
+            if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
+            {
+                auto ready =
+                    res == MBEDTLS_ERR_SSL_WANT_READ ? isReadyToRead(10) : isReadyToWrite(10);
+                if (ready == PollResultType::Error)
+                {
+                    errMsg = "Socket error during TLS handshake";
+                    close();
+                    return false;
+                }
+            }
         } while (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE);
 
         if (res != 0)
@@ -328,55 +366,75 @@ namespace ix
         mbedtls_x509_crt_free(&_cacert);
         mbedtls_x509_crt_free(&_cert);
         mbedtls_pk_free(&_pkey);
-#if MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6)
-        mbedtls_psa_crypto_free();
-#endif
+        _mbedtlsInitialized = false;
+        // PSA crypto state is process-global; it is released in ix::uninitNetSystem(),
+        // not per socket.
 
         Socket::close();
     }
 
-    ssize_t SocketMbedTLS::send(char* buf, size_t nbyte)
+    std::ptrdiff_t SocketMbedTLS::send(char* buf, size_t nbyte)
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        ssize_t res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
+        if (nbyte != 0 && buf == nullptr)
+        {
+            Socket::setErrno(EINVAL);
+            return -1;
+        }
+        const int res = mbedtls_ssl_write(&_ssl, (unsigned char*) buf, nbyte);
+        if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
+        {
+            Socket::setErrno(EWOULDBLOCK);
+            return -1;
+        }
 
-        if (res > 0)
+        if (res < 0)
         {
-            return res;
-        }
-        else if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
-        {
-            errno = EWOULDBLOCK;
+            // A previous retry may have left the socket's wait status set.
+            Socket::setErrno(EIO);
             return -1;
         }
-        else
-        {
-            return -1;
-        }
+        return res;
     }
 
-    ssize_t SocketMbedTLS::recv(void* buf, size_t nbyte)
+    std::ptrdiff_t SocketMbedTLS::recv(void* buf, size_t nbyte)
     {
         while (true)
         {
             std::lock_guard<std::mutex> lock(_mutex);
 
-            ssize_t res = mbedtls_ssl_read(&_ssl, (unsigned char*) buf, (int) nbyte);
+            std::ptrdiff_t res = mbedtls_ssl_read(&_ssl, (unsigned char*) buf, (int) nbyte);
 
             if (res > 0)
             {
                 return res;
             }
 
+            // TLS 1.3 (mbedtls 3.6+): the server can send post-handshake messages
+            // (NewSessionTicket, early data) which surface as non-fatal "read again"
+            // return codes. Retry the read instead of treating them as errors.
+#if defined(MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET)
+            if (res == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET)
+            {
+                continue;
+            }
+#endif
+#if defined(MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA)
+            if (res == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA)
+            {
+                continue;
+            }
+#endif
+
             if (res == 0)
             {
-                errno = ECONNRESET;
+                Socket::setErrno(ECONNRESET);
             }
 
             if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                errno = EWOULDBLOCK;
+                Socket::setErrno(EWOULDBLOCK);
             }
             return -1;
         }

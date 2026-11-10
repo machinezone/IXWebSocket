@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "IXWebSocketExport.h"
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -27,8 +28,8 @@ namespace ix
         virtual void* getEvent() const;
 
         // Used as special codes for pipe communication
-        static const uint64_t kSendRequest;
-        static const uint64_t kCloseRequest;
+        IXWEBSOCKET_EXPORT static const uint64_t kSendRequest;
+        IXWEBSOCKET_EXPORT static const uint64_t kCloseRequest;
     };
 
     using SelectInterruptPtr = std::unique_ptr<SelectInterrupt>;
