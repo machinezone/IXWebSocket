@@ -118,6 +118,15 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
 
 endforeach()
 
+if (USE_WS)
+  find_package(Python3 QUIET COMPONENTS Interpreter)
+  if (Python3_Interpreter_FOUND)
+    add_test(NAME IXWsProxyTest
+      COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/IXWsProxyTest.py" $<TARGET_FILE:ws>)
+    set_tests_properties(IXWsProxyTest PROPERTIES TIMEOUT 30)
+  endif()
+endif()
+
 add_test(NAME IXWebSocketBuildSettings
   COMMAND ${CMAKE_COMMAND}
     -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake/build-settings

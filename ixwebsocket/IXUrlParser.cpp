@@ -32,7 +32,7 @@
 #include "IXUrlParser.h"
 
 #include <algorithm>
-#include <cstdlib>
+#include <cctype>
 #include <cstring>
 
 namespace
@@ -83,7 +83,7 @@ namespace
         }
 
         /// helper to convert the port number to int, return 'true' if the port is valid (within the
-        /// 0..65535 range)
+        /// 1..65535 range)
         bool GetPort(int* OutPort) const;
 
         /// parse the URL
@@ -98,9 +98,10 @@ namespace
 
     static bool IsSchemeValid(const std::string& SchemeName)
     {
-        for (auto c : SchemeName)
+        if (SchemeName.empty() || !isalpha(static_cast<unsigned char>(SchemeName[0]))) return false;
+        for (unsigned char c : SchemeName)
         {
-            if (!isalpha(c) && c != '+' && c != '-' && c != '.') return false;
+            if (!isalnum(c) && c != '+' && c != '-' && c != '.') return false;
         }
 
         return true;
@@ -113,12 +114,13 @@ namespace
             return false;
         }
 
-        int Port = atoi(m_Port.c_str());
-
-        if (Port <= 0 || Port > 65535)
+        int Port = 0;
+        for (auto c : m_Port)
         {
-            return false;
+            Port = Port * 10 + (c - '0');
+            if (Port > 65535) return false;
         }
+        if (Port == 0) return false;
 
         if (OutPort)
         {
@@ -427,6 +429,7 @@ namespace ix
         const auto protocolPort = getProtocolPort(protocol);
         if (!res.GetPort(&port))
         {
+            if (!res.m_Port.empty()) return false;
             port = protocolPort;
         }
         isProtocolDefaultPort = port == protocolPort;

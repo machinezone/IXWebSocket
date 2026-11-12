@@ -17,6 +17,29 @@ namespace ix
 {
     TEST_CASE("urlParser", "[urlParser]")
     {
+        SECTION("SOCKS schemes allow digits after the initial letter")
+        {
+            std::string protocol, host, path, query;
+            int port;
+            auto scheme = GENERATE(std::string("socks5"), std::string("socks5h"));
+            REQUIRE(
+                UrlParser::parse(scheme + "://127.0.0.1:1080", protocol, host, path, query, port));
+            CHECK(protocol == scheme);
+            CHECK(host == "127.0.0.1");
+            CHECK(port == 1080);
+        }
+        SECTION("Reject invalid scheme starts and explicit out-of-range ports")
+        {
+            std::string protocol, host, path, query;
+            int port;
+            auto url = GENERATE("://localhost",
+                                "5socks://localhost",
+                                "+socks://localhost",
+                                "socks5://localhost:0",
+                                "socks5://localhost:65536",
+                                "socks5://localhost:99999999999999999999999999");
+            CHECK_FALSE(UrlParser::parse(url, protocol, host, path, query, port));
+        }
         SECTION("http://google.com")
         {
             std::string url = "http://google.com";
