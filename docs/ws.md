@@ -133,6 +133,30 @@ payload: {
 }
 ```
 
+## SOCKS5 proxies
+
+The `connect` and `curl` commands accept `--proxy` with a SOCKS5 URL. The default
+proxy port is 1080. Use `socks5://` to resolve the destination locally, or
+`socks5h://` to have the proxy resolve it:
+
+```sh
+ws connect ws://echo.example.com --proxy socks5h://127.0.0.1:1080
+ws curl https://example.com --proxy socks5://127.0.0.1:1080
+ws curl http://example.com --proxy 'socks5h://[::1]:1080'
+```
+
+For authentication, pass `--proxy-user username:password` along with `--proxy`.
+Both credentials must contain 1 to 255 bytes. The first colon separates the
+username from the password; additional colons are part of the password.
+Credentials in the proxy URL, URL paths other than `/`, queries, and fragments
+are rejected. Proxy settings apply to reconnections and HTTP redirects, and
+failures never fall back to a direct connection.
+
+This supports HTTP/HTTPS and WS/WSS through SOCKS5. HTTP CONNECT and SOCKS4 proxies
+are not supported. With the Network.framework TLS backend, HTTPS/WSS through a
+proxy returns an explicit unsupported error; plain HTTP/WS still works. See
+[SOCKS5 client proxies](usage.md#socks5-client-proxies) for backend support.
+
 ## connect
 
 The connect command connects to a websocket endpoint, and starts an interactive prompt. Line editing, such as using the direction keys to fetch the last thing you tried to type) is provided. That command is pretty useful to try to send random data to an endpoint and verify that the service handles it with grace (such as sending invalid json).

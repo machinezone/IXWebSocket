@@ -25,6 +25,7 @@
 #include <ixwebsocket/IXSetThreadName.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketTLSOptions.h>
+#include <ixwebsocket/IXUrlParser.h>
 #include <ixwebsocket/IXUserAgent.h>
 #include <ixwebsocket/IXUuid.h>
 #include <ixwebsocket/IXWebSocket.h>
@@ -626,6 +627,7 @@ namespace ix
                          bool binaryMode,
                          uint32_t maxWaitBetweenReconnectionRetries,
                          const ix::SocketTLSOptions& tlsOptions,
+                         const ix::ProxyOptions& proxyOptions,
                          const std::string& subprotocol,
                          int pingIntervalSecs,
                          bool decompressGzipMessages);
@@ -666,6 +668,7 @@ namespace ix
                                        bool binaryMode,
                                        uint32_t maxWaitBetweenReconnectionRetries,
                                        const ix::SocketTLSOptions& tlsOptions,
+                                       const ix::ProxyOptions& proxyOptions,
                                        const std::string& subprotocol,
                                        int pingIntervalSecs,
                                        bool decompressGzipMessages)
@@ -682,6 +685,7 @@ namespace ix
         }
         _webSocket.setMaxWaitBetweenReconnectionRetries(maxWaitBetweenReconnectionRetries);
         _webSocket.setTLSOptions(tlsOptions);
+        _webSocket.setProxyOptions(proxyOptions);
         _webSocket.setPingInterval(pingIntervalSecs);
 
         _headers = parseHeaders(headers);
@@ -848,6 +852,7 @@ namespace ix
                         bool binaryMode,
                         uint32_t maxWaitBetweenReconnectionRetries,
                         const ix::SocketTLSOptions& tlsOptions,
+                        const ix::ProxyOptions& proxyOptions,
                         const std::string& subprotocol,
                         int pingIntervalSecs,
                         bool decompressGzipMessages)
@@ -860,6 +865,7 @@ namespace ix
                                        binaryMode,
                                        maxWaitBetweenReconnectionRetries,
                                        tlsOptions,
+                                       proxyOptions,
                                        subprotocol,
                                        pingIntervalSecs,
                                        decompressGzipMessages);
@@ -1360,10 +1366,12 @@ namespace ix
                             const std::string& output,
                             bool compress,
                             bool compressRequest,
-                            const ix::SocketTLSOptions& tlsOptions)
+                            const ix::SocketTLSOptions& tlsOptions,
+                            const ix::ProxyOptions& proxyOptions)
     {
         HttpClient httpClient;
         httpClient.setTLSOptions(tlsOptions);
+        httpClient.setProxyOptions(proxyOptions);
 
         auto args = httpClient.createRequest();
         args->extraHeaders = parseHeaders(headersData);
@@ -2469,6 +2477,9 @@ int main(int argc, char** argv)
     ix::SocketTLSOptions tlsOptions;
     std::string ciphers;
     std::string redirectUrl;
+    std::string proxyUrl;
+    std::string proxyUser;
+    ix::ProxyOptions proxyOptions;
     bool headersOnly = false;
     bool followRedirects = false;
     bool verbose = false;
@@ -2522,6 +2533,15 @@ int main(int argc, char** argv)
                              "Disable validation of certificates' hostnames");
     };
 
+    auto addProxyOptions = [&proxyUrl, &proxyUser](CLI::App* subcommand)
+    {
+        auto proxy = subcommand->add_option(
+            "--proxy",
+            proxyUrl,
+            "SOCKS5 URL: socks5://host[:port] (local DNS) or socks5h://host[:port] (proxy DNS)");
+        subcommand->add_option("--proxy-user", proxyUser, "SOCKS5 username:password")->needs(proxy);
+    };
+
     app.add_flag("--version", version, "Print ws version");
     app.add_option("--logfile", logfile, "path where all logs will be redirected");
 
@@ -2567,6 +2587,7 @@ int main(int argc, char** argv)
     connectApp->add_flag("-g", decompressGzipMessages, "Decompress gziped messages");
     addGenericOptions(connectApp);
     addTLSOptions(connectApp);
+    addProxyOptions(connectApp);
 
     CLI::App* echoClientApp = app.add_subcommand("autoroute", "Test websocket client performance");
     echoClientApp->fallthrough();
@@ -2636,6 +2657,7 @@ int main(int argc, char** argv)
     httpClientApp->add_option("--connect-timeout", connectTimeOut, "Connection timeout");
     httpClientApp->add_option("--transfer-timeout", transferTimeout, "Transfer timeout");
     addTLSOptions(httpClientApp);
+    addProxyOptions(httpClientApp);
 
     CLI::App* httpServerApp = app.add_subcommand("httpd", "HTTP server");
     httpServerApp->fallthrough();
@@ -2676,6 +2698,43 @@ int main(int argc, char** argv)
     gunzipApp->add_option("filename", filename, "Filename")->required();
 
     CLI11_PARSE(app, argc, argv);
+
+    if (connectApp->count("--proxy") || httpClientApp->count("--proxy"))
+    {
+        std::string protocol, proxyPath, query;
+        int proxyPort = -1;
+        bool invalidCharacter = false;
+        for (unsigned char c : proxyUrl)
+            if (c <= 32 || c == 127) invalidCharacter = true;
+        if (invalidCharacter || proxyUrl.find_first_of("@?#") != std::string::npos ||
+            !ix::UrlParser::parse(
+                proxyUrl, protocol, proxyOptions.host, proxyPath, query, proxyPort) ||
+            (protocol != "socks5" && protocol != "socks5h") || proxyPath != "/" || proxyPort == 0)
+        {
+            std::cerr << "Invalid --proxy: use socks5://host[:port] or socks5h://host[:port]; "
+                         "pass credentials with --proxy-user"
+                      << std::endl;
+            ix::uninitNetSystem();
+            return 1;
+        }
+        proxyOptions.port = proxyPort == -1 ? 1080 : proxyPort;
+        proxyOptions.dnsMode = protocol == "socks5h" ? ix::ProxyOptions::DnsMode::Remote
+                                                     : ix::ProxyOptions::DnsMode::Local;
+        if (connectApp->count("--proxy-user") || httpClientApp->count("--proxy-user"))
+        {
+            auto separator = proxyUser.find(':');
+            if (separator == std::string::npos || separator == 0 || separator > 255 ||
+                proxyUser.size() - separator - 1 == 0 || proxyUser.size() - separator - 1 > 255)
+            {
+                std::cerr << "Invalid --proxy-user: supply username:password, each 1 to 255 bytes"
+                          << std::endl;
+                ix::uninitNetSystem();
+                return 1;
+            }
+            proxyOptions.username = proxyUser.substr(0, separator);
+            proxyOptions.password = proxyUser.substr(separator + 1);
+        }
+    }
 
     // pid file handling
     if (!pidfile.empty())
@@ -2747,6 +2806,7 @@ int main(int argc, char** argv)
                                   binaryMode,
                                   maxWaitBetweenReconnectionRetries,
                                   tlsOptions,
+                                  proxyOptions,
                                   subprotocol,
                                   pingIntervalSecs,
                                   decompressGzipMessages);
@@ -2820,7 +2880,8 @@ int main(int argc, char** argv)
                                       output,
                                       compress,
                                       compressRequest,
-                                      tlsOptions);
+                                      tlsOptions,
+                                      proxyOptions);
     }
     else if (app.got_subcommand("httpd"))
     {
