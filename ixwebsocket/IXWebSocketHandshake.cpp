@@ -180,6 +180,10 @@ namespace ix
                 false, 0, std::string("Failed reading HTTP status line from ") + url);
         }
 
+        // Keep the wire line ending out of error messages that include the status line.
+        while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+            line.pop_back();
+
         // Validate status
         auto statusLine = Http::parseStatusLine(line);
         std::string httpVersion = statusLine.first;
