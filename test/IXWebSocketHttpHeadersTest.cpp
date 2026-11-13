@@ -41,10 +41,7 @@ namespace
             return static_cast<std::ptrdiff_t>(length);
         }
 
-        bool connect(const std::string&,
-                     int,
-                     std::string&,
-                     const ix::CancellationRequest&) override
+        bool connect(const std::string&, int, std::string&, const ix::CancellationRequest&) override
         {
             return true;
         }
