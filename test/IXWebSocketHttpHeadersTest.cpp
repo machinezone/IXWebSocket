@@ -4,6 +4,7 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <catch_amalgamated.hpp>
 #include <chrono>
 #include <cstring>
@@ -12,6 +13,7 @@
 #include <ixwebsocket/IXHttp.h>
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXWebSocket.h>
+#include <ixwebsocket/IXWebSocketHandshake.h>
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketServer.h>
 
@@ -32,6 +34,19 @@ namespace
             std::memcpy(buffer, _input.data() + _offset, count);
             _offset += count;
             return static_cast<std::ptrdiff_t>(count);
+        }
+
+        std::ptrdiff_t send(char*, size_t length) override
+        {
+            return static_cast<std::ptrdiff_t>(length);
+        }
+
+        bool connect(const std::string&,
+                     int,
+                     std::string&,
+                     const ix::CancellationRequest&) override
+        {
+            return true;
         }
 
     private:
@@ -197,6 +212,29 @@ TEST_CASE("Rejected WebSocket handshakes expose response headers", "[websocket][
     const auto info = result.get();
     CHECK(info.http_status == status);
     CHECK_FALSE(info.reason.empty());
+    CHECK(info.reason.find_first_of("\r\n") == std::string::npos);
     CHECK(info.headers.at("x-error-reason") == headers.at("X-Error-Reason"));
     CHECK(info.headers.at("retry-after") == "60");
+}
+
+TEST_CASE("Handshake error reasons omit status line endings", "[websocket][http][headers]")
+{
+    const std::string statusLine = GENERATE(std::string("HTTP/1.0 502 Bad Gateway"),
+                                            std::string("HTTP/1.1 503 Service Unavailable"));
+    const std::string ending = GENERATE(std::string("\r\n"), std::string("\n"));
+    CAPTURE(statusLine, ending);
+    std::unique_ptr<ix::Socket> socket(
+        new HttpHeadersTestSocket(statusLine + ending + "Retry-After: 60" + ending + ending));
+    std::atomic<bool> cancelled(false);
+    std::atomic<bool> deflateEnabled(false);
+    ix::WebSocketPerMessageDeflatePtr deflate;
+    ix::WebSocketPerMessageDeflateOptions options;
+    ix::WebSocketHandshake handshake(cancelled, socket, deflate, options, deflateEnabled);
+    const auto result =
+        handshake.clientHandshake("ws://localhost/", {}, "ws", "localhost", "/", 80, 1);
+    CAPTURE(result.errorStr);
+    CHECK_FALSE(result.success);
+    CHECK(result.errorStr.find(statusLine) != std::string::npos);
+    CHECK(result.errorStr.find_first_of("\r\n") == std::string::npos);
+    if (result.http_status == 503) CHECK(result.headers.at("Retry-After") == "60");
 }
