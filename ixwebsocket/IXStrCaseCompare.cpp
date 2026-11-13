@@ -7,18 +7,21 @@
 #include "IXStrCaseCompare.h"
 
 #include <algorithm>
-#include <locale>
+
+namespace
+{
+    unsigned char asciiLower(unsigned char c)
+    {
+        return c >= 'A' && c <= 'Z' ? static_cast<unsigned char>(c + ('a' - 'A')) : c;
+    }
+} // namespace
 
 namespace ix
 {
     bool CaseInsensitiveLess::NocaseCompare::operator()(const unsigned char& c1,
                                                         const unsigned char& c2) const
     {
-#if defined(_WIN32) && !defined(__GNUC__)
-        return std::tolower(c1, std::locale()) < std::tolower(c2, std::locale());
-#else
-        return std::tolower(c1) < std::tolower(c2);
-#endif
+        return asciiLower(c1) < asciiLower(c2);
     }
 
     bool CaseInsensitiveLess::cmp(const std::string& s1, const std::string& s2)

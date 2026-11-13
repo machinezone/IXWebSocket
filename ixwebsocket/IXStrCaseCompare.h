@@ -12,7 +12,7 @@ namespace ix
 {
     struct CaseInsensitiveLess
     {
-        // Case Insensitive compare_less binary function
+        // ASCII case-insensitive ordering, independent of the application's locale.
         struct NocaseCompare
         {
             bool operator()(const unsigned char& c1, const unsigned char& c2) const;
