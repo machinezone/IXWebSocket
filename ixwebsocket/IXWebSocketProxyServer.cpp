@@ -6,38 +6,97 @@
 
 #include "IXWebSocketProxyServer.h"
 
-#include "IXWebSocketServer.h"
-#include <sstream>
+#include "IXWebSocketProxyServerPrivate.h"
 
 namespace ix
 {
-    class ProxyConnectionState : public ix::ConnectionState
+    void detail::configureWebSocketProxyServer(WebSocketServer& server,
+                                               const std::string& remoteUrl,
+                                               const RemoteUrlsMapping& remoteUrlsMapping)
     {
-    public:
-        ProxyConnectionState()
-            : _connected(false)
-        {
-        }
+        auto factory = []() -> std::shared_ptr<ix::ConnectionState>
+        { return std::make_shared<ProxyConnectionState>(); };
+        server.setConnectionStateFactory(factory);
 
-        ix::WebSocket& webSocket()
-        {
-            return _serverWebSocket;
-        }
+        server.setOnConnectionCallback(
+            [remoteUrl, remoteUrlsMapping](std::weak_ptr<ix::WebSocket> webSocket,
+                                           std::shared_ptr<ConnectionState> connectionState)
+            {
+                auto state = std::static_pointer_cast<ProxyConnectionState>(connectionState);
+                // The server owns state until its downstream worker exits. Retaining
+                // it in the upstream callback would create a cycle through webSocket().
+                state->webSocket().setOnMessageCallback(
+                    [webSocket](const WebSocketMessagePtr& msg)
+                    {
+                        auto ws = webSocket.lock();
+                        if (!ws) return;
+                        if (msg->type == ix::WebSocketMessageType::Close)
+                        {
+                            ws->close(msg->closeInfo.code, msg->closeInfo.reason);
+                        }
+                        else if (msg->type == ix::WebSocketMessageType::Error)
+                        {
+                            ws->close(WebSocketCloseConstants::kInternalErrorCode,
+                                      "Upstream connection failed");
+                        }
+                        else if (msg->type == ix::WebSocketMessageType::Message)
+                        {
+                            ws->send(msg->str, msg->binary);
+                        }
+                    });
 
-        bool isConnected()
-        {
-            return _connected;
-        }
+                // Client connection
+                auto ws = webSocket.lock();
+                if (ws)
+                {
+                    ws->setOnMessageCallback(
+                        [state, webSocket, remoteUrl, remoteUrlsMapping](
+                            const WebSocketMessagePtr& msg)
+                        {
+                            auto downstream = webSocket.lock();
+                            if (!downstream) return;
+                            if (msg->type == ix::WebSocketMessageType::Open)
+                            {
+                                // Connect to the 'real' server
+                                std::string url(remoteUrl);
 
-        void setConnected()
-        {
-            _connected = true;
-        }
+                                // maybe we want a different url based on the mapping
+                                std::string host = msg->openInfo.headers["Host"];
+                                auto it = remoteUrlsMapping.find(host);
+                                if (it != remoteUrlsMapping.end())
+                                {
+                                    url = it->second;
+                                }
 
-    private:
-        ix::WebSocket _serverWebSocket;
-        bool _connected;
-    };
+                                // append the uri to form the full url
+                                // (say ws://localhost:1234/foo/?bar=baz)
+                                url += msg->openInfo.uri;
+
+                                state->webSocket().setUrl(url);
+                                state->webSocket().disableAutomaticReconnection();
+                                state->webSocket().start();
+
+                                // Stop waiting if upstream setup fails or the server shuts
+                                // down.
+                                while (state->webSocket().getReadyState() != ReadyState::Open &&
+                                       downstream->getReadyState() == ReadyState::Open)
+                                {
+                                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                                }
+                            }
+                            else if (msg->type == ix::WebSocketMessageType::Close)
+                            {
+                                state->webSocket().close(msg->closeInfo.code,
+                                                         msg->closeInfo.reason);
+                            }
+                            else if (msg->type == ix::WebSocketMessageType::Message)
+                            {
+                                state->webSocket().send(msg->str, msg->binary);
+                            }
+                        });
+                }
+            });
+    }
 
     int websocket_proxy_server_main(int port,
                                     const std::string& hostname,
@@ -49,79 +108,7 @@ namespace ix
         ix::WebSocketServer server(port, hostname);
         server.setTLSOptions(tlsOptions);
 
-        auto factory = []() -> std::shared_ptr<ix::ConnectionState> {
-            return std::make_shared<ProxyConnectionState>();
-        };
-        server.setConnectionStateFactory(factory);
-
-        server.setOnConnectionCallback(
-            [remoteUrl, remoteUrlsMapping](std::weak_ptr<ix::WebSocket> webSocket,
-                                           std::shared_ptr<ConnectionState> connectionState) {
-                auto state = std::static_pointer_cast<ProxyConnectionState>(connectionState);
-                auto remoteIp = connectionState->getRemoteIp();
-
-                // Server connection
-                state->webSocket().setOnMessageCallback(
-                    [webSocket, state, remoteIp](const WebSocketMessagePtr& msg) {
-                        if (msg->type == ix::WebSocketMessageType::Close)
-                        {
-                            state->setTerminated();
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Message)
-                        {
-                            auto ws = webSocket.lock();
-                            if (ws)
-                            {
-                                ws->send(msg->str, msg->binary);
-                            }
-                        }
-                    });
-
-                // Client connection
-                auto ws = webSocket.lock();
-                if (ws)
-                {
-                    ws->setOnMessageCallback([state, remoteUrl, remoteUrlsMapping](
-                                                 const WebSocketMessagePtr& msg) {
-                        if (msg->type == ix::WebSocketMessageType::Open)
-                        {
-                            // Connect to the 'real' server
-                            std::string url(remoteUrl);
-
-                            // maybe we want a different url based on the mapping
-                            std::string host = msg->openInfo.headers["Host"];
-                            auto it = remoteUrlsMapping.find(host);
-                            if (it != remoteUrlsMapping.end())
-                            {
-                                url = it->second;
-                            }
-
-                            // append the uri to form the full url
-                            // (say ws://localhost:1234/foo/?bar=baz)
-                            url += msg->openInfo.uri;
-
-                            state->webSocket().setUrl(url);
-                            state->webSocket().disableAutomaticReconnection();
-                            state->webSocket().start();
-
-                            // we should sleep here for a bit until we've established the
-                            // connection with the remote server
-                            while (state->webSocket().getReadyState() != ReadyState::Open)
-                            {
-                                std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                            }
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Close)
-                        {
-                            state->webSocket().close(msg->closeInfo.code, msg->closeInfo.reason);
-                        }
-                        else if (msg->type == ix::WebSocketMessageType::Message)
-                        {
-                            state->webSocket().send(msg->str, msg->binary);
-                        }
-                    });
-                }
-            });
+        detail::configureWebSocketProxyServer(server, remoteUrl, remoteUrlsMapping);
 
         auto res = server.listen();
         if (!res.first)
