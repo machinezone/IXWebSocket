@@ -6,13 +6,28 @@
 
 #include "IXWebSocketProxyServer.h"
 
-#include "IXWebSocketProxyServerPrivate.h"
+#include "IXWebSocketServer.h"
+
+namespace
+{
+    class ProxyConnectionState : public ix::ConnectionState
+    {
+    public:
+        ix::WebSocket& webSocket()
+        {
+            return _serverWebSocket;
+        }
+
+    private:
+        ix::WebSocket _serverWebSocket;
+    };
+} // namespace
 
 namespace ix
 {
-    void detail::configureWebSocketProxyServer(WebSocketServer& server,
-                                               const std::string& remoteUrl,
-                                               const RemoteUrlsMapping& remoteUrlsMapping)
+    void configureWebSocketProxyServer(WebSocketServer& server,
+                                       const std::string& remoteUrl,
+                                       const RemoteUrlsMapping& remoteUrlsMapping)
     {
         auto factory = []() -> std::shared_ptr<ix::ConnectionState>
         { return std::make_shared<ProxyConnectionState>(); };
@@ -108,7 +123,7 @@ namespace ix
         ix::WebSocketServer server(port, hostname);
         server.setTLSOptions(tlsOptions);
 
-        detail::configureWebSocketProxyServer(server, remoteUrl, remoteUrlsMapping);
+        configureWebSocketProxyServer(server, remoteUrl, remoteUrlsMapping);
 
         auto res = server.listen();
         if (!res.first)

@@ -2,44 +2,82 @@
  *  IXWebSocketProxyServerTest.cpp
  *  Copyright (c) 2026 Machine Zone, Inc. All rights reserved.
  */
+#include <algorithm>
 #include <atomic>
 #include <catch_amalgamated.hpp>
 #include <chrono>
 #include <condition_variable>
 #include <ixwebsocket/IXGetFreePort.h>
-#include <ixwebsocket/IXWebSocketProxyServerPrivate.h>
+#include <ixwebsocket/IXWebSocketProxyServer.h>
+#include <ixwebsocket/IXWebSocketServer.h>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 namespace
 {
     using Clock = std::chrono::steady_clock;
 
-    struct Counts
+    struct States
     {
-        std::atomic<unsigned> created {0};
-        std::atomic<unsigned> destroyed {0};
-    };
+        std::mutex mutex;
+        std::vector<std::weak_ptr<ix::ConnectionState>> connections;
 
-    class CountedState final : public ix::detail::ProxyConnectionState
-    {
-    public:
-        explicit CountedState(Counts& counts)
-            : _counts(counts)
+        void observe(const std::shared_ptr<ix::ConnectionState>& state)
         {
-            ++_counts.created;
+            std::lock_guard<std::mutex> lock(mutex);
+            connections.push_back(state);
         }
 
-        ~CountedState() override
+        size_t created()
         {
-            // Count completion only after the owned upstream thread has been joined.
-            webSocket().stop();
-            ++_counts.destroyed;
+            std::lock_guard<std::mutex> lock(mutex);
+            return connections.size();
+        }
+
+        size_t released()
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            return static_cast<size_t>(std::count_if(
+                connections.begin(),
+                connections.end(),
+                [](const std::weak_ptr<ix::ConnectionState>& state) { return state.expired(); }));
+        }
+    };
+
+    class ObservedProxy final : public ix::WebSocketServer
+    {
+    public:
+        explicit ObservedProxy(States& states)
+            : WebSocketServer(ix::getFreePort(), "127.0.0.1")
+            , _states(states)
+        {
+        }
+
+        ~ObservedProxy() override
+        {
+            stop();
         }
 
     private:
-        Counts& _counts;
+        void handleConnection(std::unique_ptr<ix::Socket> socket,
+                              std::shared_ptr<ix::ConnectionState> state) override
+        {
+            _states.observe(state);
+            handleUpgrade(std::move(socket), state);
+            state->setTerminated();
+        }
+
+        States& _states;
     };
+
+    bool waitForRelease(States& states, unsigned expected)
+    {
+        const auto deadline = Clock::now() + std::chrono::seconds(2);
+        while (states.released() != expected && Clock::now() < deadline)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        return states.released() == expected;
+    }
 
     bool waitFor(const std::atomic<unsigned>& value, unsigned expected)
     {
@@ -54,11 +92,9 @@ namespace
         return "ws://127.0.0.1:" + std::to_string(server.getPort());
     }
 
-    void configureProxy(ix::WebSocketServer& proxy, const std::string& remote, Counts& counts)
+    void configureProxy(ix::WebSocketServer& proxy, const std::string& remote)
     {
-        ix::detail::configureWebSocketProxyServer(proxy, remote, {});
-        proxy.setConnectionStateFactory([&counts]
-                                        { return std::make_shared<CountedState>(counts); });
+        ix::configureWebSocketProxyServer(proxy, remote, {});
         REQUIRE(proxy.listen().first);
         proxy.start();
     }
@@ -175,11 +211,11 @@ namespace
 
 TEST_CASE("Proxy sessions are released after downstream disconnect", "[proxy][lifetime]")
 {
-    Counts counts;
+    States states;
     ix::WebSocketServer origin(ix::getFreePort(), "127.0.0.1");
     startOrigin(origin);
-    ix::WebSocketServer proxy(ix::getFreePort(), "127.0.0.1");
-    configureProxy(proxy, url(origin), counts);
+    ObservedProxy proxy(states);
+    configureProxy(proxy, url(origin));
     for (unsigned i = 0; i != 5; ++i)
     {
         Client client(url(proxy) + "/echo");
@@ -189,21 +225,21 @@ TEST_CASE("Proxy sessions are released after downstream disconnect", "[proxy][li
         REQUIRE(client.socket.send("echo", binary).success);
         REQUIRE(client.wait([&] { return client.received == "echo" && client.binary == binary; }));
         client.socket.stop(4001, "downstream done");
-        CHECK(waitFor(counts.destroyed, i + 1));
+        CHECK(waitForRelease(states, i + 1));
     }
     proxy.stop();
     origin.stop();
-    CHECK(counts.created == 5);
-    CHECK(counts.destroyed == counts.created);
+    CHECK(states.created() == 5);
+    CHECK(states.released() == states.created());
 }
 
 TEST_CASE("Upstream closure releases the proxy session", "[proxy][lifetime]")
 {
-    Counts counts;
+    States states;
     ix::WebSocketServer origin(ix::getFreePort(), "127.0.0.1");
     startOrigin(origin);
-    ix::WebSocketServer proxy(ix::getFreePort(), "127.0.0.1");
-    configureProxy(proxy, url(origin), counts);
+    ObservedProxy proxy(states);
+    configureProxy(proxy, url(origin));
     Client client(url(proxy));
     REQUIRE(client.wait([&] { return client.opened || client.failed; }));
     REQUIRE(client.opened);
@@ -212,19 +248,19 @@ TEST_CASE("Upstream closure releases the proxy session", "[proxy][lifetime]")
     client.socket.stop();
     CHECK(client.code == 4002);
     CHECK(client.reason == "upstream done");
-    CHECK(waitFor(counts.destroyed, 1));
+    CHECK(waitForRelease(states, 1));
     proxy.stop();
     origin.stop();
-    CHECK(counts.destroyed == counts.created);
+    CHECK(states.released() == states.created());
 }
 
 TEST_CASE("Stopping a proxy releases live sessions", "[proxy][lifetime]")
 {
-    Counts counts;
+    States states;
     ix::WebSocketServer origin(ix::getFreePort(), "127.0.0.1");
     startOrigin(origin);
-    ix::WebSocketServer proxy(ix::getFreePort(), "127.0.0.1");
-    configureProxy(proxy, url(origin), counts);
+    ObservedProxy proxy(states);
+    configureProxy(proxy, url(origin));
     Client client(url(proxy));
     REQUIRE(client.wait([&] { return client.opened || client.failed; }));
     REQUIRE(client.opened);
@@ -232,19 +268,19 @@ TEST_CASE("Stopping a proxy releases live sessions", "[proxy][lifetime]")
     REQUIRE(client.wait([&] { return client.closed; }));
     client.socket.stop();
     origin.stop();
-    CHECK(counts.created == 1);
-    CHECK(counts.destroyed == counts.created);
+    CHECK(states.created() == 1);
+    CHECK(states.released() == states.created());
 }
 
 TEST_CASE("Failed and pending upstream handshakes can be cleaned up", "[proxy][lifetime]")
 {
     const bool idle = GENERATE(false, true);
-    Counts counts;
+    States states;
     UnavailableOrigin origin(idle);
     REQUIRE(origin.listen().first);
     origin.start();
-    ix::WebSocketServer proxy(ix::getFreePort(), "127.0.0.1");
-    configureProxy(proxy, url(origin), counts);
+    ObservedProxy proxy(states);
+    configureProxy(proxy, url(origin));
     Client client(url(proxy));
     REQUIRE(client.wait([&] { return client.opened || client.failed; }));
     REQUIRE(client.opened);
@@ -260,6 +296,6 @@ TEST_CASE("Failed and pending upstream handshakes can be cleaned up", "[proxy][l
     CHECK(Clock::now() - start < std::chrono::seconds(2));
     client.socket.stop();
     origin.stop();
-    CHECK(counts.created == 1);
-    CHECK(counts.destroyed == counts.created);
+    CHECK(states.created() == 1);
+    CHECK(states.released() == states.created());
 }
