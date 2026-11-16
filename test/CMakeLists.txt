@@ -13,6 +13,7 @@ set (TEST_TARGET_NAMES
   IXSocks5Test
   IXSocketConnectTest
   IXWebSocketServerTest
+  IXWebSocketProxyServerTest
   IXWebSocketTestConnectionDisconnection
   IXWebSocketReconnectTest
   IXUrlParserTest
@@ -135,6 +136,7 @@ add_test(NAME IXWebSocketBuildSettings
 set_tests_properties(IXWebSocketBuildSettings PROPERTIES TIMEOUT 30)
 
 set_tests_properties(IXSocks5Test PROPERTIES TIMEOUT 30)
+set_tests_properties(IXWebSocketProxyServerTest PROPERTIES TIMEOUT 30)
 
 set_tests_properties(IXWebSocketReconnectTest IXWebSocketDispatchTest IXWebSocketSendFailureTest PROPERTIES TIMEOUT 30)
 
