@@ -20,6 +20,7 @@ set (TEST_TARGET_NAMES
   # IXHttpClientTest ## FIXME httpbin.org does not seem normal
   IXUnityBuildsTest
   IXHttpTest
+  IXHttpClientAsyncTest
   IXWebSocketHttpHeadersTest
   IXDNSLookupTest
   IXWebSocketSubProtocolTest
@@ -134,6 +135,7 @@ add_test(NAME IXWebSocketBuildSettings
     -B ${CMAKE_CURRENT_BINARY_DIR}/cmake-build-settings
     -G "${CMAKE_GENERATOR}")
 set_tests_properties(IXWebSocketBuildSettings PROPERTIES TIMEOUT 30)
+set_tests_properties(IXHttpClientAsyncTest PROPERTIES TIMEOUT 15)
 
 set_tests_properties(IXSocks5Test PROPERTIES TIMEOUT 30)
 set_tests_properties(IXWebSocketProxyServerTest PROPERTIES TIMEOUT 30)

@@ -106,11 +106,19 @@ namespace ix
     private:
         void log(const std::string& msg, HttpRequestArgsPtr args);
 
+        HttpResponsePtr requestImpl(const std::string& url,
+                                    const std::string& verb,
+                                    const std::string& body,
+                                    HttpRequestArgsPtr args,
+                                    std::atomic<bool>& cancel,
+                                    int redirects);
+
+
         // Async API background thread runner
         void run();
         // Async API
         bool _async;
-        std::queue<std::pair<HttpRequestArgsPtr, OnResponseCallback>> _queue;
+        std::queue<std::function<void()>> _queue;
         mutable std::mutex _queueMutex;
         std::condition_variable _condition;
         std::atomic<bool> _stop;

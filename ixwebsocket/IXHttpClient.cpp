@@ -17,7 +17,33 @@
 #include <iomanip>
 #include <random>
 #include <sstream>
+#include <utility>
 #include <vector>
+
+namespace
+{
+    ix::HttpRequestArgsPtr snapshotRequest(const ix::HttpRequestArgs& args)
+    {
+        auto copy = std::make_shared<ix::HttpRequestArgs>();
+        copy->url = args.url;
+        copy->verb = args.verb;
+        copy->extraHeaders = args.extraHeaders;
+        copy->body = args.body;
+        copy->multipartBoundary = args.multipartBoundary;
+        copy->connectTimeout = args.connectTimeout;
+        copy->transferTimeout = args.transferTimeout;
+        copy->followRedirects = args.followRedirects;
+        copy->maxRedirects = args.maxRedirects;
+        copy->verbose = args.verbose;
+        copy->compress = args.compress;
+        copy->compressRequest = args.compressRequest;
+        copy->logger = args.logger;
+        copy->onProgressCallback = args.onProgressCallback;
+        copy->onChunkCallback = args.onChunkCallback;
+        copy->cancel = args.cancel.load();
+        return copy;
+    }
+} // namespace
 
 namespace ix
 {
@@ -76,16 +102,22 @@ namespace ix
     {
         assert(_async && "HttpClient needs its async parameter set to true "
                          "in order to call performRequest");
-        if (!_async) return false;
+        if (!_async || !args) return false;
 
-        // Enqueue the task
+        auto snapshot = snapshotRequest(*args);
+
         {
-            // acquire lock
-            std::unique_lock<std::mutex> lock(_queueMutex);
+            std::lock_guard<std::mutex> lock(_queueMutex);
 
-            // add the task
-            _queue.push(std::make_pair(args, onResponseCallback));
-        } // release lock
+            // Retain the original arguments only for their shared cancellation flag.
+            _queue.push(
+                [this, args, snapshot, onResponseCallback]
+                {
+                    auto response = requestImpl(
+                        snapshot->url, snapshot->verb, snapshot->body, snapshot, args->cancel, 0);
+                    onResponseCallback(response);
+                });
+        }
 
         // wake up one thread
         _condition.notify_one();
@@ -97,8 +129,7 @@ namespace ix
     {
         while (true)
         {
-            HttpRequestArgsPtr args;
-            OnResponseCallback onResponseCallback;
+            std::function<void()> task;
 
             {
                 std::unique_lock<std::mutex> lock(_queueMutex);
@@ -110,17 +141,13 @@ namespace ix
 
                 if (_stop) return;
 
-                auto p = _queue.front();
+                task = std::move(_queue.front());
                 _queue.pop();
-
-                args = p.first;
-                onResponseCallback = p.second;
             }
 
             if (_stop) return;
 
-            HttpResponsePtr response = request(args->url, args->verb, args->body, args);
-            onResponseCallback(response);
+            task();
 
             if (_stop) return;
         }
@@ -131,6 +158,16 @@ namespace ix
                                         const std::string& body,
                                         HttpRequestArgsPtr args,
                                         int redirects)
+    {
+        return requestImpl(url, verb, body, args, args->cancel, redirects);
+    }
+
+    HttpResponsePtr HttpClient::requestImpl(const std::string& url,
+                                            const std::string& verb,
+                                            const std::string& body,
+                                            HttpRequestArgsPtr args,
+                                            std::atomic<bool>& cancel,
+                                            int redirects)
     {
         // We only have one socket connection, so we cannot
         // make multiple requests concurrently.
@@ -259,7 +296,7 @@ namespace ix
         std::string errMsg;
 
         // Make a cancellation object dealing with connection timeout
-        auto cancelled = makeCancellationRequestWithTimeout(args->connectTimeout, args->cancel);
+        auto cancelled = makeCancellationRequestWithTimeout(args->connectTimeout, cancel);
 
         auto isCancellationRequested = [&]() {
             return cancelled() || _stop;
@@ -268,7 +305,7 @@ namespace ix
         bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
         if (!success)
         {
-            auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotConnect;
+            auto errorCode = cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotConnect;
             std::ostringstream oss;
             oss << "Cannot connect to url: " << url << " / error : " << errMsg;
             return std::make_shared<HttpResponse>(code,
@@ -282,7 +319,7 @@ namespace ix
         }
 
         // Make a new cancellation object dealing with transfer timeout
-        cancelled = makeCancellationRequestWithTimeout(args->transferTimeout, args->cancel);
+        cancelled = makeCancellationRequestWithTimeout(args->transferTimeout, cancel);
 
         if (args->verbose)
         {
@@ -299,7 +336,7 @@ namespace ix
 
         if (!_socket->writeBytes(req, isCancellationRequested))
         {
-            auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::SendError;
+            auto errorCode = cancel ? HttpErrorCode::Cancelled : HttpErrorCode::SendError;
             std::string msg("Cannot send request");
             return std::make_shared<HttpResponse>(
                 code, description, errorCode, headers, payload, msg, uploadSize, downloadSize);
@@ -313,7 +350,8 @@ namespace ix
 
         if (!lineValid)
         {
-            auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotReadStatusLine;
+            auto errorCode =
+                cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotReadStatusLine;
             std::string msg("Cannot retrieve status line");
             return std::make_shared<HttpResponse>(
                 code, description, errorCode, headers, payload, msg, uploadSize, downloadSize);
@@ -345,7 +383,7 @@ namespace ix
 
         if (!headersValid)
         {
-            auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::HeaderParsingError;
+            auto errorCode = cancel ? HttpErrorCode::Cancelled : HttpErrorCode::HeaderParsingError;
             std::string msg("Cannot parse http headers");
             return std::make_shared<HttpResponse>(
                 code, description, errorCode, headers, payload, msg, uploadSize, downloadSize);
@@ -383,7 +421,7 @@ namespace ix
 
             // Recurse
             std::string location = headers["Location"];
-            return request(location, verb, body, args, redirects + 1);
+            return requestImpl(location, verb, body, args, cancel, redirects + 1);
         }
 
         if (verb == "HEAD")
@@ -412,7 +450,7 @@ namespace ix
                                                   isCancellationRequested);
             if (!chunkResult.first)
             {
-                auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
+                auto errorCode = cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
                 errorMsg = "Cannot read chunk";
                 return std::make_shared<HttpResponse>(code,
                                                       description,
@@ -437,7 +475,7 @@ namespace ix
 
             while (true)
             {
-                auto errorCode = args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
+                auto errorCode = cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
                 lineResult = _socket->readLine(isCancellationRequested);
                 line = lineResult.second;
 
@@ -473,7 +511,7 @@ namespace ix
                 if (!chunkResult.first)
                 {
                     auto errCode =
-                        args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
+                        cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
                     errorMsg = "Cannot read chunk";
                     return std::make_shared<HttpResponse>(code,
                                                           description,
@@ -497,7 +535,7 @@ namespace ix
                 if (!lineResult.first)
                 {
                     auto errCode =
-                        args->cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
+                        cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
                     return std::make_shared<HttpResponse>(code,
                                                           description,
                                                           errCode,
