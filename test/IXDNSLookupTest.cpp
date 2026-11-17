@@ -65,3 +65,13 @@ TEST_CASE("Already cancelled DNS lookups do not start a worker", "[net][numeric_
     CHECK(lookup.resolve(error, [] { return true; }) == nullptr);
     CHECK(error == "cancellation requested");
 }
+
+TEST_CASE("Numeric resolution preserves cancellation after parsing", "[net][numeric_dns]")
+{
+    DNSLookup lookup("127.0.0.1", 80);
+    unsigned checks = 0;
+    std::string error;
+    CHECK(lookup.resolve(error, [&] { return ++checks > 1; }) == nullptr);
+    CHECK(checks == 2);
+    CHECK(error == "cancellation requested");
+}

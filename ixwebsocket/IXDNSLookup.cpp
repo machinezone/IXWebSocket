@@ -129,7 +129,13 @@ namespace ix
                 errMsg = "cancellation requested";
                 return nullptr;
             }
-            return getAddrInfo(_hostname, _port, errMsg);
+            auto result = getAddrInfo(_hostname, _port, errMsg);
+            if (isCancellationRequested && isCancellationRequested())
+            {
+                errMsg = "cancellation requested";
+                return nullptr;
+            }
+            return result;
         }
         return cancellable ? resolveCancellable(errMsg, isCancellationRequested)
                            : resolveUnCancellable(errMsg, isCancellationRequested);
