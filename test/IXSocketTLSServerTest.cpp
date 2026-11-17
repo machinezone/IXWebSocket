@@ -127,6 +127,30 @@ namespace
     };
 } // namespace
 
+#if defined(IXWEBSOCKET_USE_MBED_TLS) && !defined(_WIN32)
+TEST_CASE("MbedTLS explains unsupported system CA loading", "[tls][mbedtls]")
+{
+    TLSAcceptTestServer fixture;
+    fixture.start();
+    ix::HttpClient client;
+    auto args = client.createRequest();
+    args->connectTimeout = 1;
+    args->transferTimeout = 1;
+    auto response =
+        client.get("https://127.0.0.1:" + std::to_string(fixture.server.getPort()) + "/", args);
+    CHECK(response->errorCode == ix::HttpErrorCode::CannotConnect);
+    CHECK(response->errorMsg.find("Mbed TLS") != std::string::npos);
+    CHECK(response->errorMsg.find("caFile=SYSTEM") != std::string::npos);
+    CHECK(response->errorMsg.find("PEM CA bundle") != std::string::npos);
+
+    // The same endpoint works when the caller supplies the trusted CA explicitly.
+    auto verified = fixture.request();
+    CHECK(verified->errorCode == ix::HttpErrorCode::Ok);
+    CHECK(verified->statusCode == 200);
+    CHECK(verified->body == "ok");
+}
+#endif
+
 TEST_CASE("An idle TLS peer does not block other handshakes or shutdown", "[tls][server]")
 {
     TLSAcceptTestServer fixture;

@@ -733,6 +733,13 @@ Specifying `caFile` configures the trusted roots bundle file (in PEM format) tha
  - The special value of `NONE` can be used to disable peer verification; this is only recommended to rule out certificate verification when testing connectivity.
  - If the value contain the special value `-----BEGIN CERTIFICATE-----`, the value will be read from memory, and not from a file. This is convenient on platforms like Android where reading / writing to the file system can be challenging without proper permissions, or without knowing the location of a temp directory.
 
+The Mbed TLS backend currently supports `caFile = "SYSTEM"` only on Windows.
+On other platforms, including macOS, set `caFile` explicitly to the path of a
+trusted PEM CA bundle or its PEM contents, including for publicly trusted servers.
+Otherwise the connection fails with an error explaining the missing configuration.
+Use a bundle containing a trusted root for the server's certificate chain; keep
+hostname and certificate verification enabled.
+
 For a client, specifying `caFile` can be used if connecting to a server that uses a self-signed cert, or when using a custom CA in an internal environment.
 
 For a server, specifying `caFile` implies that:
