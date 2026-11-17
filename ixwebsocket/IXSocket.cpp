@@ -306,6 +306,11 @@ namespace ix
 #endif
     }
 
+    // Darwin TSan can confuse reused per-thread errno storage with shared memory.
+    // These accessors touch only OS thread-local error state; keep callers instrumented.
+#if defined(__APPLE__) && defined(__clang__)
+    __attribute__((no_sanitize("thread")))
+#endif
     int Socket::getErrno()
     {
         int err;
@@ -319,6 +324,9 @@ namespace ix
         return err;
     }
 
+#if defined(__APPLE__) && defined(__clang__)
+    __attribute__((no_sanitize("thread")))
+#endif
     void Socket::setErrno(int err)
     {
 #ifdef _WIN32
