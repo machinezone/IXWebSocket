@@ -5,7 +5,9 @@
  */
 
 #include "IXTest.h"
+#include <algorithm>
 #include <catch_amalgamated.hpp>
+#include <cstring>
 #include <iostream>
 #include <ixwebsocket/IXCancellationRequest.h>
 #include <ixwebsocket/IXSocket.h>
@@ -13,6 +15,97 @@
 #include <string.h>
 
 using namespace ix;
+
+namespace
+{
+    // No native descriptor: completed reads and EOF must not poll for more data.
+    class MemorySocket : public Socket
+    {
+    public:
+        explicit MemorySocket(const std::string& data = std::string(), int error = 0)
+            : _data(data)
+            , _error(error)
+        {
+        }
+
+        std::ptrdiff_t recv(void* buffer, size_t length) override
+        {
+            ++reads;
+            if (_data.empty())
+            {
+                Socket::setErrno(_error);
+                return 0;
+            }
+            const size_t count = (std::min) (length, _data.size());
+            std::memcpy(buffer, _data.data(), count);
+            _data.erase(0, count);
+            return static_cast<std::ptrdiff_t>(count);
+        }
+
+        unsigned reads = 0;
+
+    private:
+        std::string _data;
+        int _error;
+    };
+} // namespace
+
+TEST_CASE("Completed socket reads do not wait for more data", "[socket][read]")
+{
+    const bool streaming = GENERATE(false, true);
+    MemorySocket socket("abc");
+    std::string streamed;
+    OnChunkCallback onChunk;
+    if (streaming) onChunk = [&](const std::string& bytes) { streamed += bytes; };
+    int progress = 0;
+    auto result = socket.readBytes(
+        3,
+        [&](int current, int total)
+        {
+            CHECK(current == 3);
+            CHECK(total == 3);
+            ++progress;
+            return true;
+        },
+        onChunk,
+        nullptr);
+    REQUIRE(result.first);
+    CHECK(result.second == (streaming ? "" : "abc"));
+    CHECK(streamed == (streaming ? "abc" : ""));
+    CHECK(progress == 1);
+    CHECK(socket.reads == 1);
+}
+
+TEST_CASE("Socket EOF does not depend on the previous socket error", "[socket][read]")
+{
+    const int error = GENERATE(0, EWOULDBLOCK);
+    MemorySocket socket("", error);
+    unsigned progress = 0;
+    auto result = socket.readBytes(
+        1,
+        [&](int, int)
+        {
+            ++progress;
+            return true;
+        },
+        nullptr,
+        nullptr);
+    CHECK_FALSE(result.first);
+    CHECK(progress == 0);
+    CHECK(socket.reads == 1);
+}
+
+TEST_CASE("Empty and cancelled socket reads do not receive data", "[socket][read]")
+{
+    MemorySocket socket("abc");
+    auto empty = socket.readBytes(0, nullptr, nullptr, nullptr);
+    CHECK(empty.first);
+    CHECK(empty.second.empty());
+    CHECK(socket.reads == 0);
+    auto cancelled = socket.readBytes(3, nullptr, nullptr, [] { return true; });
+    CHECK_FALSE(cancelled.first);
+    CHECK(socket.reads == 0);
+}
 
 namespace ix
 {

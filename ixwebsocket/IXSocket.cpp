@@ -491,7 +491,8 @@ namespace ix
                 }
                 bytesRead += ret;
             }
-            else if (ret <= 0 && !Socket::isWaitNeeded())
+            // A zero return is EOF; the previous socket error is irrelevant.
+            else if (ret == 0 || !Socket::isWaitNeeded())
             {
                 const std::string errorMsg("Recv Error");
                 return std::make_pair(false, errorMsg);
@@ -501,7 +502,7 @@ namespace ix
 
             // Wait with a 1ms timeout until the socket is ready to read.
             // This way we are not busy looping
-            if (isReadyToRead(1) == PollResultType::Error)
+            if (bytesRead != length && isReadyToRead(1) == PollResultType::Error)
             {
                 const std::string errorMsg("Poll Error");
                 return std::make_pair(false, errorMsg);
