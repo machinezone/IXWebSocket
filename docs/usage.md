@@ -170,6 +170,11 @@ webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
 1. `websocket.start()` starts a background thread that connects to the remote server and processes incoming events.
 2. `websocket.stop()` requests closure and waits for that background thread to exit.
 
+For parallel connections, configure a separate `ix::WebSocket` for each URL and
+call `start()` on each instance. Each connection attempt runs on its own background
+thread, so starting another client does not wait for the first handshake.
+`connect()` is the synchronous connection API.
+
 ### Threading and callbacks
 
 `setOnMessageCallback()` handles Open, Message, Close, Error, Ping, Pong, and Fragment
@@ -359,9 +364,21 @@ setHandshakeTimeout(handshakeTimeoutSecs);
 
 TLS handshakes run in individual connection workers, so an idle peer does not block other clients from connecting. Server TLS handshakes have a 10-second timeout and are cancelled when the server stops. The maximum connection limit includes clients whose TLS handshake is still pending.
 
-### Legacy api
+### Connection setup callback
 
-This api was actually changed to take a weak_ptr<WebSocket> as the first argument to setOnConnectionCallback ; previously it would take a shared_ptr<WebSocket> which was creating cycles and then memory leaks problems.
+`setOnConnectionCallback()` provides a `std::weak_ptr<ix::WebSocket>` and a
+`ConnectionState` for each accepted connection. Use this API when the application
+needs to retain a handle for later asynchronous sends. Register that connection's
+message callback inside the setup callback, as shown below.
+
+Use `connectionState->getId()` as the key in an application registry of weak
+pointers. Protect a registry shared by connection callbacks and application threads
+with a mutex. To send later, copy the weak pointer while holding the registry lock,
+release that lock, then call `lock()` on the weak pointer and send if it succeeds.
+An expired weak pointer cannot refer to a later connection, even if its allocation
+reuses the same address. Check the send result because the connection can close
+after `lock()` succeeds. Capturing a weak pointer also avoids a cycle between the
+WebSocket and its own callback.
 
 ```cpp
 #include <ixwebsocket/IXWebSocketServer.h>
@@ -375,16 +392,16 @@ std::string host("127.0.0.1"); // If you need this server to be accessible on a 
 ix::WebSocketServer server(port, host);
 
 server.setOnConnectionCallback(
-    [&server](std::weak_ptr<WebSocket> webSocket,
-              std::shared_ptr<ConnectionState> connectionState)
+    [&server](std::weak_ptr<ix::WebSocket> webSocket,
+              std::shared_ptr<ix::ConnectionState> connectionState)
     {
-        std::cout << "Remote ip: " << connectionState->remoteIp << std::endl;
+        std::cout << "Remote ip: " << connectionState->getRemoteIp() << std::endl;
 
         auto ws = webSocket.lock();
         if (ws)
         {
             ws->setOnMessageCallback(
-                [webSocket, connectionState, &server](const ix::WebSocketMessagePtr msg)
+                [webSocket, connectionState, &server](const ix::WebSocketMessagePtr& msg)
                 {
                     if (msg->type == ix::WebSocketMessageType::Open)
                     {
@@ -418,8 +435,8 @@ server.setOnConnectionCallback(
                         }
                     }
                 }
-            }
-        );
+            );
+        }
     }
 );
 
@@ -442,11 +459,11 @@ server.wait();
 
 ```
 
-### New api
+### Client message callback
 
-The new API does not require to use 2 nested callbacks, which is a bit annoying. The real fix is that there was a memory leak due to a shared_ptr cycle, due to passing down a shared_ptr<WebSocket> down to the callbacks.
-
-The webSocket reference is guaranteed to be always valid ; by design the callback will never be invoked with a null webSocket object.
+`setOnClientMessageCallback()` installs one handler for all connections. Its
+WebSocket reference is valid for the duration of the callback. Use the connection
+setup callback above when a weak handle must outlive an individual callback.
 
 ```cpp
 #include <ixwebsocket/IXWebSocketServer.h>
@@ -713,13 +730,25 @@ Then, secure sockets are automatically used when connecting to a `wss://*` url.
 Additional TLS options can be configured by passing a `ix::SocketTLSOptions` instance to the
 `setTLSOptions` on `ix::WebSocket` (or `ix::WebSocketServer` or `ix::HttpServer`)
 
+A TLS-enabled build still creates a plain server listener by default. Enable TLS
+on the listener before calling `listen()`:
+
 ```cpp
-webSocket.setTLSOptions({
-    .certFile = "path/to/cert/file.pem",
-    .keyFile = "path/to/key/file.pem",
-    .caFile = "path/to/trust/bundle/file.pem", // as a file, or in memory buffer in PEM format
-    .tls = true // required in server mode
-});
+ix::SocketTLSOptions serverTLS;
+serverTLS.tls = true;
+serverTLS.certFile = "path/to/server-cert.pem";
+serverTLS.keyFile = "path/to/server-key.pem";
+server.setTLSOptions(serverTLS);
+```
+
+Clients select TLS with a `wss://` URL. For a local server signed by a private CA,
+configure the matching trust bundle before starting the client:
+
+```cpp
+ix::SocketTLSOptions clientTLS;
+clientTLS.caFile = "path/to/ca.pem";
+webSocket.setTLSOptions(clientTLS);
+webSocket.setUrl("wss://localhost:8008");
 ```
 
 Specifying `certFile` and `keyFile` configures the certificate that will be used to communicate with TLS peers.
