@@ -4,7 +4,7 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  *
  *  Resolve a hostname+port to a struct addrinfo obtained with getaddrinfo
- *  Does this in a background thread so that it can be cancelled, since
+ *  Numeric addresses resolve inline. Hostnames normally use a cancellable worker, since
  *  getaddrinfo is a blocking call, and we don't want to block the main thread on Mobile.
  */
 
@@ -40,11 +40,9 @@ namespace ix
         AddrInfoPtr resolveUnCancellable(std::string& errMsg,
                                               const CancellationRequest& isCancellationRequested);
 
-        AddrInfoPtr getAddrInfo(const std::string& hostname,
-                                            int port,
-                                            std::string& errMsg);
+        static AddrInfoPtr getAddrInfo(const std::string& hostname, int port, std::string& errMsg);
 
-        void run(std::weak_ptr<DNSLookup> self, std::string hostname, int port); // thread runner
+        static void run(std::weak_ptr<DNSLookup> self, std::string hostname, int port);
 
         void setErrMsg(const std::string& errMsg);
         const std::string& getErrMsg();

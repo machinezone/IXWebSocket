@@ -46,3 +46,40 @@ TEST_CASE("dns", "[net]")
         REQUIRE(res == nullptr);
     }
 }
+
+TEST_CASE("Numeric addresses do not require a DNS worker", "[net][numeric_dns]")
+{
+    const std::string host = GENERATE(std::string("127.0.0.1"), std::string("::1"));
+    DNSLookup lookup(host, 80);
+    std::string error;
+    auto result = lookup.resolve(error, CancellationRequest());
+    REQUIRE(result != nullptr);
+    CHECK(error.empty());
+    CHECK(result->ai_family == (host == "::1" ? AF_INET6 : AF_INET));
+}
+
+TEST_CASE("Already cancelled DNS lookups do not start a worker", "[net][numeric_dns]")
+{
+    DNSLookup lookup("ixwebsocket-test.invalid.", 80);
+    std::string error;
+    CHECK(lookup.resolve(error, [] { return true; }) == nullptr);
+    CHECK(error == "cancellation requested");
+}
+
+TEST_CASE("Numeric resolution preserves cancellation after parsing", "[net][numeric_dns]")
+{
+    DNSLookup lookup("127.0.0.1", 80);
+    unsigned checks = 0;
+    std::string error;
+    CHECK(lookup.resolve(error, [&] { return ++checks > 1; }) == nullptr);
+    CHECK(checks == 2);
+    CHECK(error == "cancellation requested");
+}
+
+TEST_CASE("Synchronous hostname resolution accepts an empty cancellation callback",
+          "[net][numeric_dns]")
+{
+    DNSLookup lookup("localhost", 80);
+    std::string error;
+    CHECK(lookup.resolve(error, CancellationRequest(), false) != nullptr);
+}

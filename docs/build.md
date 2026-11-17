@@ -75,6 +75,7 @@ Options for building:
 * `-DUSE_NETWORK_FRAMEWORK=ON` enables the experimental native macOS TLS backend and also enables `USE_TLS`. It requires macOS 10.15 or later and links Apple's Network, Security, and CoreFoundation frameworks, with no OpenSSL library dependency. It cannot be combined with another TLS backend; the make target below overrides cached backend selections. Client and server TLS, including mutual TLS, are supported. The existing Apple backend remains the default.
 * `-DUSE_MBED_TLS=1` will use [mbedlts](https://tls.mbed.org/) for the TLS support
 * `-DUSE_WS=1` will build the ws interactive command line tool
+* `-DUSE_ASYNC_DNS=OFF` resolves hostnames synchronously, for static-glibc deployments that cannot use the default resolver worker. This is an opt-in workaround: hostname resolution cannot be cancelled until the system resolver returns, so `stop()` can wait for it. The default is `ON`. Numeric IP addresses never need a DNS worker.
 * `-DUSE_TEST=1` will build the unittest
 * `-DIXWEBSOCKET_WARNINGS_AS_ERRORS=ON` treats library and CLI compiler warnings as errors. It is off by default; `make -f makefile.dev test WARNINGS_AS_ERRORS=ON` enables it and builds both targets, as used by Linux CI. Unix GCC/Clang builds enable `-Wshadow`. Warning flags are private to these targets and do not apply to vendored dependencies or consumers.
 
