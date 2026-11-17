@@ -117,38 +117,39 @@ namespace ix
             // The InterruptEvent was signaled
             readSelectInterruptRequest(selectInterrupt, &pollResult);
         }
-        else if (sockfd != -1 && readyToRead && fds[0].revents & POLLIN)
+        else if (sockfd != static_cast<socket_t>(-1) && readyToRead && fds[0].revents & POLLIN)
         {
             pollResult = PollResultType::ReadyForRead;
         }
-        else if (sockfd != -1 && !readyToRead && fds[0].revents & POLLOUT)
+        else if (sockfd != static_cast<socket_t>(-1) && !readyToRead &&
+                 (fds[0].revents & (POLLOUT | POLLERR | POLLHUP | POLLNVAL)))
         {
-            pollResult = PollResultType::ReadyForWrite;
-
-#ifdef _WIN32
-            // On connect error, in async mode, windows will write to the exceptions fds
-            if (fds[0].revents & POLLERR)
+            int error = 0;
+            socklen_t length = sizeof(error);
+            if (getsockopt(
+                    sockfd, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &length) != 0)
             {
+                // Preserve the getsockopt error, rather than overwriting it with zero.
                 pollResult = PollResultType::Error;
             }
-#else
-            int optval = -1;
-            socklen_t optlen = sizeof(optval);
-
-            // getsockopt() puts the errno value for connect into optval so 0
-            // means no-error.
-            if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, &optlen) == -1 || optval != 0)
+            else if (error != 0)
             {
+                Socket::setErrno(error);
                 pollResult = PollResultType::Error;
-
-                // set errno to optval so that external callers can have an
-                // appropriate error description when calling strerror
-                errno = optval;
             }
-#endif
+            else if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL))
+            {
+                Socket::setErrno((fds[0].revents & POLLNVAL) ? EBADF : ECONNRESET);
+                pollResult = PollResultType::Error;
+            }
+            else
+            {
+                pollResult = PollResultType::ReadyForWrite;
+            }
         }
-        else if (sockfd != -1 && (fds[0].revents & POLLERR || fds[0].revents & POLLHUP ||
-                                  fds[0].revents & POLLNVAL))
+        else if (sockfd != static_cast<socket_t>(-1) &&
+                 (fds[0].revents & POLLERR || fds[0].revents & POLLHUP ||
+                  fds[0].revents & POLLNVAL))
         {
             pollResult = PollResultType::Error;
         }
