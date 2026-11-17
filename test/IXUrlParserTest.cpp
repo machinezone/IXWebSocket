@@ -6,6 +6,7 @@
 
 #include "IXTest.h"
 #include <catch_amalgamated.hpp>
+#include <clocale>
 #include <iostream>
 #include <ixwebsocket/IXUrlParser.h>
 #include <string.h>
@@ -219,7 +220,7 @@ namespace ix
         SECTION("reject malformed userinfo")
         {
             std::vector<std::string> malformedUrls = {
-                "ws://user@@127.0.0.1/",     // multiple @ separators in authority
+                "ws://user@@127.0.0.1/",      // multiple @ separators in authority
                 "ws://user:pass@@[::1]:9001/" // multiple @ separators in authority
             };
 
@@ -235,3 +236,83 @@ namespace ix
     }
 
 } // namespace ix
+
+TEST_CASE("URL components preserve authority boundaries and empty queries", "[url][components]")
+{
+    const std::string url = GENERATE(std::string("http://example.com#section"),
+                                     std::string("http://example.com:8080#section"),
+                                     std::string("http://[::1]#section"),
+                                     std::string("http://example.com/path?"),
+                                     std::string("http://example.com?"));
+    std::string protocol, host, path, query;
+    int port = 0;
+    REQUIRE(ix::UrlParser::parse(url, protocol, host, path, query, port));
+    CHECK(host == (url.find("[::1]") != std::string::npos ? "::1" : "example.com"));
+    CHECK(port == (url.find("8080") != std::string::npos ? 8080 : 80));
+    CHECK(path == (url.find("/path") != std::string::npos ? "/path?"
+                   : url.back() == '?'                    ? "/?"
+                                                          : "/"));
+}
+
+TEST_CASE("Explicit invalid URL ports do not fall back to a default", "[url][components]")
+{
+    const std::string portText = GENERATE(std::string("0"),
+                                          std::string("65536"),
+                                          std::string("4294967376"),
+                                          std::string("99999999999999999999999999999999"));
+    const std::string hostText = GENERATE(std::string("example.com"), std::string("[::1]"));
+    std::string protocol, host, path, query;
+    int port = 0;
+    CHECK_FALSE(ix::UrlParser::parse(
+        "http://" + hostText + ":" + portText + "/", protocol, host, path, query, port));
+}
+
+TEST_CASE("URL schemes follow the ASCII scheme grammar", "[url][components]")
+{
+    const std::string scheme = GENERATE(std::string(""),
+                                        std::string("+http"),
+                                        std::string(".http"),
+                                        std::string("1http"),
+                                        std::string("h\xe9ttp"));
+    std::string protocol, host, path, query;
+    int port = 0;
+    CHECK_FALSE(
+        ix::UrlParser::parse(scheme + "://example.com/", protocol, host, path, query, port));
+    REQUIRE(ix::UrlParser::parse("SOCKS5://example.com:1080/", protocol, host, path, query, port));
+    CHECK(protocol == "socks5");
+    CHECK(port == 1080);
+}
+
+TEST_CASE("URL schemes stay ASCII in single byte locales", "[url][components]")
+{
+    const char* current = std::setlocale(LC_CTYPE, nullptr);
+    const std::string saved = current ? current : "C";
+    struct RestoreLocale
+    {
+        std::string name;
+        ~RestoreLocale()
+        {
+            std::setlocale(LC_CTYPE, name.c_str());
+        }
+    } restore {saved};
+    if (!std::setlocale(LC_CTYPE, "en_US.ISO8859-1"))
+        SKIP("Single-byte test locale is unavailable");
+    std::string protocol, host, path, query;
+    int port = 0;
+    CHECK_FALSE(ix::UrlParser::parse("h\xe9ttp://example.com/", protocol, host, path, query, port));
+    REQUIRE(ix::UrlParser::parse("HTTPS://example.com/", protocol, host, path, query, port));
+    CHECK(protocol == "https");
+}
+
+TEST_CASE("URLs reject raw whitespace and control characters", "[url][components]")
+{
+    const char character = GENERATE(' ', '\t', '\r', '\n', '\0', '\x7f');
+    const std::string prefix = GENERATE(std::string("http://exam"),
+                                        std::string("http://example.com/path"),
+                                        std::string("http://example.com/?query="));
+    std::string protocol, host, path, query;
+    int port = 0;
+    CHECK_FALSE(
+        ix::UrlParser::parse(prefix + character + "text", protocol, host, path, query, port));
+    CHECK(ix::UrlParser::parse("http://example.com/a%20b", protocol, host, path, query, port));
+}
