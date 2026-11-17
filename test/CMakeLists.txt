@@ -18,9 +18,9 @@ set (TEST_TARGET_NAMES
   IXWebSocketReconnectTest
   IXUrlParserTest
   # IXHttpClientTest ## FIXME httpbin.org does not seem normal
+  IXHttpServerStaticTest
   IXUnityBuildsTest
   IXHttpTest
-  IXHttpServerStaticTest
   IXHttpClientAsyncTest
   IXWebSocketHttpHeadersTest
   IXDNSLookupTest
@@ -137,14 +137,15 @@ add_test(NAME IXWebSocketBuildSettings
     -G "${CMAKE_GENERATOR}")
 set_tests_properties(IXWebSocketBuildSettings PROPERTIES TIMEOUT 30)
 set_tests_properties(IXHttpClientAsyncTest PROPERTIES TIMEOUT 15)
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/static-directory")
-set_tests_properties(IXHttpServerStaticTest PROPERTIES
-  TIMEOUT 15 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
 set_tests_properties(IXSocks5Test PROPERTIES TIMEOUT 30)
 set_tests_properties(IXWebSocketProxyServerTest PROPERTIES TIMEOUT 30)
 
 set_tests_properties(IXWebSocketReconnectTest IXWebSocketDispatchTest IXWebSocketSendFailureTest PROPERTIES TIMEOUT 30)
+
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/static-directory")
+set_tests_properties(IXHttpServerStaticTest PROPERTIES
+  TIMEOUT 15 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
 if (USE_NETWORK_FRAMEWORK OR (UNIX AND USE_TLS AND (USE_OPEN_SSL OR USE_LIBRE_SSL OR USE_MBED_TLS)))
   # Only the test credential generator needs the openssl command-line tool.
