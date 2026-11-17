@@ -44,6 +44,8 @@ namespace ix
                               const CancellationRequest& isCancellationRequested);
 
         SSLContextRef _sslContext;
+        // SecureTransport uses one would-block status for both I/O directions.
+        bool _handshakeWantsRead = true;
         mutable std::mutex _mutex; // AppleSSL routines are not thread-safe
 
         SocketTLSOptions _tlsOptions;

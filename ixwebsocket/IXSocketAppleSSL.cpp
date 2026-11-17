@@ -68,7 +68,9 @@ namespace ix
 
     OSStatus SocketAppleSSL::readFromSocket(SSLConnectionRef connection, void* data, size_t* len)
     {
-        int fd = (int) (long) connection;
+        auto* socket = static_cast<SocketAppleSSL*>(const_cast<void*>(connection));
+        int fd = socket->_sockfd;
+        socket->_handshakeWantsRead = true;
         if (fd < 0) return errSSLInternal;
 
         assert(data != nullptr);
@@ -116,7 +118,9 @@ namespace ix
                                            const void* data,
                                            size_t* len)
     {
-        int fd = (int) (long) connection;
+        auto* socket = static_cast<SocketAppleSSL*>(const_cast<void*>(connection));
+        int fd = socket->_sockfd;
+        socket->_handshakeWantsRead = false;
         if (fd < 0) return errSSLInternal;
 
         assert(data != nullptr);
@@ -176,17 +180,25 @@ namespace ix
             status = SSLHandshake(_sslContext);
 
             // Interrupt the handshake
-            if (isCancellationRequested())
+            if (isCancellationRequested && isCancellationRequested())
             {
                 errMsg = "Cancellation requested";
                 return errSSLInternal;
+            }
+            if (status == errSSLWouldBlock)
+            {
+                const auto ready = _handshakeWantsRead ? isReadyToRead(10) : isReadyToWrite(10);
+                if (ready == PollResultType::Error)
+                {
+                    errMsg = "Socket error during TLS handshake";
+                    return errSSLInternal;
+                }
             }
         } while (status == errSSLWouldBlock || status == errSSLServerAuthCompleted);
 
         return status;
     }
 
-    // No wait support
     bool SocketAppleSSL::connect(const std::string& host,
                                  int port,
                                  std::string& errMsg,
@@ -203,7 +215,7 @@ namespace ix
 
             SSLSetIOFuncs(
                 _sslContext, SocketAppleSSL::readFromSocket, SocketAppleSSL::writeToSocket);
-            SSLSetConnection(_sslContext, (SSLConnectionRef)(long) _sockfd);
+            SSLSetConnection(_sslContext, this);
             SSLSetProtocolVersionMin(_sslContext, kTLSProtocol12);
 
             if (!_tlsOptions.disable_hostname_validation)

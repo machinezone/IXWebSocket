@@ -19,12 +19,31 @@ namespace ix
             *size = 0;
             return errSecIO;
         }
-        static void install(SocketAppleSSL& socket)
+        static OSStatus readBlocked(SSLConnectionRef, void*, size_t* size)
+        {
+            *size = 0;
+            return errSSLWouldBlock;
+        }
+        static OSStatus writeBlocked(SSLConnectionRef, const void*, size_t* size)
+        {
+            *size = 0;
+            return errSSLWouldBlock;
+        }
+        static OSStatus handshake(SocketAppleSSL& socket,
+                                  std::string& error,
+                                  const CancellationRequest& cancelled)
+        {
+            return socket.tlsHandShake(error, cancelled);
+        }
+        static void install(SocketAppleSSL& socket, bool blocked = false, bool reading = true)
         {
             socket._sslContext =
                 SSLCreateContext(kCFAllocatorDefault, kSSLClientSide, kSSLStreamType);
             REQUIRE(socket._sslContext != nullptr);
-            REQUIRE(SSLSetIOFuncs(socket._sslContext, read, write) == noErr);
+            socket._handshakeWantsRead = reading;
+            REQUIRE(SSLSetIOFuncs(socket._sslContext,
+                                  blocked ? readBlocked : read,
+                                  blocked ? writeBlocked : write) == noErr);
         }
     };
 } // namespace ix
@@ -39,4 +58,17 @@ TEST_CASE("SecureTransport terminal errors clear a previous wait status", "[sock
     CHECK((reading ? socket.recv(&byte, 1) : socket.send(&byte, 1)) == -1);
     CHECK_FALSE(ix::Socket::isWaitNeeded());
     CHECK(ix::Socket::getErrno() != 0);
+}
+
+TEST_CASE("SecureTransport handshakes stop on readiness errors", "[socket_apple][handshake_wait]")
+{
+    const bool reading = GENERATE(false, true);
+    ix::SocketAppleSSL socket(ix::SocketTLSOptions {});
+    ix::SocketAppleSSLReadTestAccess::install(socket, true, reading);
+    unsigned checks = 0;
+    std::string error;
+    CHECK(ix::SocketAppleSSLReadTestAccess::handshake(
+              socket, error, [&] { return ++checks > 3; }) == errSSLInternal);
+    CHECK(checks == 1);
+    CHECK(error == "Socket error during TLS handshake");
 }
