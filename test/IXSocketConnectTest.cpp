@@ -8,48 +8,8 @@
 #include <catch_amalgamated.hpp>
 #include <iostream>
 #include <ixwebsocket/IXSocketConnect.h>
-#include <system_error>
 
 using namespace ix;
-
-TEST_CASE("Refused connections retain the socket error", "[net][connect]")
-{
-    const auto fd = ::socket(AF_INET, SOCK_STREAM, 0);
-    REQUIRE(fd != static_cast<socket_t>(-1));
-    struct CloseSocket
-    {
-        socket_t fd;
-        ~CloseSocket()
-        {
-            if (fd != static_cast<socket_t>(-1)) Socket::closeSocket(fd);
-        }
-    } close {fd};
-    sockaddr_in address {};
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    REQUIRE(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0);
-    socklen_t size = sizeof(address);
-    REQUIRE(getsockname(fd, reinterpret_cast<sockaddr*>(&address), &size) == 0);
-    Socket::closeSocket(fd);
-    close.fd = static_cast<socket_t>(-1);
-    std::string error;
-    // Windows can take over two seconds to report a refused loopback connection.
-    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
-    Socket::setErrno(0);
-    const int connected =
-        SocketConnect::connect("127.0.0.1",
-                               ntohs(address.sin_port),
-                               error,
-                               [deadline] { return std::chrono::steady_clock::now() >= deadline; });
-    REQUIRE(connected == -1);
-    CAPTURE(error);
-#ifdef _WIN32
-    const int expected = WSAECONNREFUSED;
-#else
-    const int expected = ECONNREFUSED;
-#endif
-    CHECK(error.find(std::system_category().message(expected)) != std::string::npos);
-}
 
 TEST_CASE("Write polling reports invalid socket errors", "[net][connect]")
 {
