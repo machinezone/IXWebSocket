@@ -35,6 +35,7 @@ namespace ix
         virtual std::ptrdiff_t recv(void* buffer, size_t length) final;
 
     private:
+        friend struct SocketAppleSSLReadTestAccess;
         static std::string getSSLErrorDescription(OSStatus status);
         static OSStatus writeToSocket(SSLConnectionRef connection, const void* data, size_t* len);
         static OSStatus readFromSocket(SSLConnectionRef connection, void* data, size_t* len);

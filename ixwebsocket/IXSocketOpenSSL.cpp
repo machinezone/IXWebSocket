@@ -873,31 +873,26 @@ namespace ix
 
     std::ptrdiff_t SocketOpenSSL::recv(void* buf, size_t nbyte)
     {
-        while (true)
+        std::lock_guard<std::mutex> lock(_mutex);
+        if (_ssl_connection == nullptr || _ssl_context == nullptr)
         {
-            std::lock_guard<std::mutex> lock(_mutex);
-
-            if (_ssl_connection == nullptr || _ssl_context == nullptr)
-            {
-                return 0;
-            }
-
-            ERR_clear_error();
-            std::ptrdiff_t read_result = SSL_read(_ssl_connection, buf, (int) nbyte);
-
-            if (read_result > 0)
-            {
-                return read_result;
-            }
-
-            int reason = SSL_get_error(_ssl_connection, (int) read_result);
-
-            if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
-            {
-                Socket::setErrno(EWOULDBLOCK);
-            }
-            return -1;
+            Socket::setErrno(0);
+            return 0;
         }
+
+        ERR_clear_error();
+        const int result = SSL_read(_ssl_connection, buf, static_cast<int>(nbyte));
+        if (result > 0) return result;
+
+        const int reason = SSL_get_error(_ssl_connection, result);
+        if (reason == SSL_ERROR_ZERO_RETURN)
+        {
+            Socket::setErrno(0);
+            return 0;
+        }
+        Socket::setErrno(
+            reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE ? EWOULDBLOCK : EIO);
+        return -1;
     }
 
 } // namespace ix

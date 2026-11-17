@@ -21,6 +21,7 @@ set (TEST_TARGET_NAMES
   IXHttpServerStaticTest
   IXUnityBuildsTest
   IXHttpTest
+  IXHttpClientResponseTest
   IXHttpClientAsyncTest
   IXWebSocketHttpHeadersTest
   IXDNSLookupTest
@@ -50,8 +51,13 @@ endif()
 
 if (USE_ZLIB)
   list(APPEND TEST_TARGET_NAMES
+    IXGzipCodecTest
     IXWebSocketPerMessageDeflateCompressorTest
   )
+endif()
+
+if (USE_TLS AND USE_SECURE_TRANSPORT)
+  list(APPEND TEST_TARGET_NAMES IXSocketAppleSSLReadTest)
 endif()
 
 if (USE_TLS AND USE_MBED_TLS)
@@ -137,6 +143,7 @@ add_test(NAME IXWebSocketBuildSettings
     -G "${CMAKE_GENERATOR}")
 set_tests_properties(IXWebSocketBuildSettings PROPERTIES TIMEOUT 30)
 set_tests_properties(IXHttpClientAsyncTest PROPERTIES TIMEOUT 15)
+set_tests_properties(IXHttpClientResponseTest PROPERTIES TIMEOUT 30)
 
 set_tests_properties(IXSocks5Test PROPERTIES TIMEOUT 30)
 set_tests_properties(IXWebSocketProxyServerTest PROPERTIES TIMEOUT 30)
