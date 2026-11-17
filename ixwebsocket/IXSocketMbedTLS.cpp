@@ -102,10 +102,8 @@ namespace ix
 
         return true;
 #else
-        (void)errorMsg;
-        // On macOS we can query the system cert location from the keychain
-        // On Linux we could try to fetch some local files based on the distribution
-        // On Android we could use JNI to get to the system certs
+        errorMsg = "Mbed TLS does not support caFile=SYSTEM on this platform; "
+                   "set caFile to a trusted PEM CA bundle";
         return false;
 #endif
     }
