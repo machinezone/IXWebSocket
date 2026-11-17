@@ -3,7 +3,10 @@
  *  Copyright (c) 2026 Machine Zone, Inc. All rights reserved.
  */
 #include <catch_amalgamated.hpp>
+#include <cerrno>
+#include <fcntl.h>
 #include <ixwebsocket/IXSocketAppleSSL.h>
+#include <sys/socket.h>
 
 namespace ix
 {
@@ -47,6 +50,21 @@ namespace ix
         }
     };
 } // namespace ix
+
+TEST_CASE("SecureTransport closes the native socket without a TLS context", "[socket_apple][close]")
+{
+    const bool contextCreated = GENERATE(false, true);
+    const int fd = ::socket(AF_INET, SOCK_STREAM, 0);
+    REQUIRE(fd != -1);
+    ix::SocketAppleSSL socket(ix::SocketTLSOptions {}, fd);
+    if (contextCreated) ix::SocketAppleSSLReadTestAccess::install(socket);
+
+    socket.close();
+    errno = 0;
+    CHECK(fcntl(fd, F_GETFD) == -1);
+    CHECK(errno == EBADF);
+    socket.close();
+}
 
 TEST_CASE("SecureTransport terminal errors clear a previous wait status", "[socket_apple][read]")
 {

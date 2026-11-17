@@ -254,11 +254,12 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_mutex);
 
-        if (_sslContext == nullptr) return;
-
-        SSLClose(_sslContext);
-        CFRelease(_sslContext);
-        _sslContext = nullptr;
+        if (_sslContext != nullptr)
+        {
+            SSLClose(_sslContext);
+            CFRelease(_sslContext);
+            _sslContext = nullptr;
+        }
 
         Socket::close();
     }
