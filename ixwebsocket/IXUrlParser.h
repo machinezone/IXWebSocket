@@ -13,6 +13,9 @@ namespace ix
     class UrlParser
     {
     public:
+        // Compare scheme, case-insensitive hostname and effective port.
+        static bool isSameOrigin(const std::string& first, const std::string& second);
+
         static bool parse(const std::string& url,
                           std::string& protocol,
                           std::string& host,

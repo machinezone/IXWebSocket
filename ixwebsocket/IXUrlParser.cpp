@@ -31,6 +31,7 @@
 
 #include "IXUrlParser.h"
 
+#include "IXStrCaseCompare.h"
 #include <algorithm>
 #include <cctype>
 #include <cstring>
@@ -405,6 +406,18 @@ namespace
 
 namespace ix
 {
+    bool UrlParser::isSameOrigin(const std::string& first, const std::string& second)
+    {
+        std::string firstProtocol, firstHost, firstPath, firstQuery;
+        std::string secondProtocol, secondHost, secondPath, secondQuery;
+        int firstPort, secondPort;
+        return parse(first, firstProtocol, firstHost, firstPath, firstQuery, firstPort) &&
+               parse(second, secondProtocol, secondHost, secondPath, secondQuery, secondPort) &&
+               firstProtocol == secondProtocol && firstPort == secondPort &&
+               !CaseInsensitiveLess::cmp(firstHost, secondHost) &&
+               !CaseInsensitiveLess::cmp(secondHost, firstHost);
+    }
+
     bool UrlParser::parse(const std::string& url,
                           std::string& protocol,
                           std::string& host,

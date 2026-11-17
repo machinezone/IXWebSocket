@@ -316,3 +316,30 @@ TEST_CASE("URLs reject raw whitespace and control characters", "[url][components
         ix::UrlParser::parse(prefix + character + "text", protocol, host, path, query, port));
     CHECK(ix::UrlParser::parse("http://example.com/a%20b", protocol, host, path, query, port));
 }
+
+TEST_CASE("URL origins compare scheme, hostname and effective port", "[url][origin]")
+{
+    struct Example
+    {
+        const char* first;
+        const char* second;
+        bool same;
+    };
+    const Example examples[] = {
+        {"HTTP://EXAMPLE.com/a", "http://example.COM:80/b?query#fragment", true},
+        {"https://example.com/a", "https://example.com:443/b", true},
+        {"ws://example.com", "ws://example.com:80/", true},
+        {"wss://[FE80::ABCD]", "wss://[fe80::abcd]:443/", true},
+        {"https://example.com", "http://example.com:443", false},
+        {"http://example.com", "http://other.example.com", false},
+        {"http://example.com", "http://example.com:8080", false},
+        {"ws://example.com", "http://example.com", false},
+        {"http://example.com", "http://example.com:0", false},
+        {"invalid", "invalid", false}};
+    for (const auto& example : examples)
+    {
+        CAPTURE(example.first, example.second);
+        CHECK(ix::UrlParser::isSameOrigin(example.first, example.second) == example.same);
+        CHECK(ix::UrlParser::isSameOrigin(example.second, example.first) == example.same);
+    }
+}
