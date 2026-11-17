@@ -14,7 +14,9 @@
 #include <cstdint>
 #include <cstring>
 #include <fstream>
+#include <limits>
 #include <sstream>
+#include <sys/stat.h>
 #include <vector>
 
 namespace
@@ -23,15 +25,28 @@ namespace
     {
         std::vector<uint8_t> memblock;
 
-        std::ifstream file(path);
+#ifdef _WIN32
+        struct _stat64 info;
+        if (_stat64(path.c_str(), &info) != 0 || (info.st_mode & _S_IFMT) != _S_IFREG)
+#else
+        struct stat info;
+        if (stat(path.c_str(), &info) != 0 || !S_ISREG(info.st_mode))
+#endif
+            return std::make_pair(false, memblock);
+
+        std::ifstream file(path, std::ios::binary);
         if (!file.is_open()) return std::make_pair(false, memblock);
 
         file.seekg(0, file.end);
         std::streamoff size = file.tellg();
+        if (size < 0 || static_cast<uint64_t>(size) > (std::numeric_limits<size_t>::max)())
+            return std::make_pair(false, memblock);
         file.seekg(0, file.beg);
 
-        memblock.resize((size_t) size);
-        file.read((char*) &memblock.front(), static_cast<std::streamsize>(size));
+        memblock.resize(static_cast<size_t>(size));
+        if (!memblock.empty() && !file.read(reinterpret_cast<char*>(memblock.data()),
+                                            static_cast<std::streamsize>(size)))
+            return std::make_pair(false, std::vector<uint8_t>());
 
         return std::make_pair(true, memblock);
     }
@@ -159,7 +174,7 @@ namespace ix
             [this](HttpRequestPtr request,
                    std::shared_ptr<ConnectionState> connectionState) -> HttpResponsePtr
             {
-                std::string uri(sanitizeUri(request->uri));
+                std::string uri(sanitizeUri(request->uri.substr(0, request->uri.find('?'))));
                 if (uri.empty() || uri == "/")
                 {
                     uri = "/index.html";
