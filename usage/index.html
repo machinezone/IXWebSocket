@@ -707,6 +707,15 @@ bool ok = httpClient.performRequest(args, [](const HttpResponsePtr&amp; response
 // A request in progress can be cancelled by setting the cancel flag. It does nothing if the request already completed.
 args-&gt;cancel = true;
 </code></pre>
+<p><code>performRequest()</code> copies the request configuration when it is submitted. After
+it returns, reusing the arguments for another URL, body, or headers does not change
+earlier queued requests. Do not modify the configuration concurrently with the
+submission itself. Callbacks are copied, but objects they capture still need to
+remain valid when the callbacks run.</p>
+<p>The original <code>args-&gt;cancel</code> flag remains the cancellation handle, including while
+following redirects. Reusing an arguments object shares that flag across its
+submitted requests; use separate arguments objects for independently cancellable
+requests. HTTP connection reuse is not provided by this behavior.</p>
 <p>See this <a href="https://github.com/machinezone/IXWebSocket/issues/209">issue</a> for links about uploading files with HTTP multipart.</p>
 <h2 id="http-server-api">HTTP server API</h2>
 <pre><code class="language-cpp">#include &lt;ixwebsocket/IXHttpServer.h&gt;
