@@ -137,6 +137,9 @@ namespace ix
             }
             return result;
         }
+#ifdef IXWEBSOCKET_USE_SYNC_DNS
+        cancellable = false;
+#endif
         return cancellable ? resolveCancellable(errMsg, isCancellationRequested)
                            : resolveUnCancellable(errMsg, isCancellationRequested);
     }

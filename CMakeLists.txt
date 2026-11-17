@@ -146,6 +146,7 @@ set( IXWEBSOCKET_HEADERS
 
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" OFF)
 option(USE_TLS "Enable TLS support" FALSE)
+option(USE_ASYNC_DNS "Resolve hostnames on a cancellable background thread" ON)
 option(USE_NETWORK_FRAMEWORK "Use Apple's Network.framework TLS backend (macOS 10.15+)" OFF)
 if (USE_NETWORK_FRAMEWORK)
     if (NOT APPLE OR NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -227,6 +228,10 @@ else()
         ${IXWEBSOCKET_SOURCES}
         ${IXWEBSOCKET_HEADERS}
     )
+endif()
+
+if (NOT USE_ASYNC_DNS)
+    target_compile_definitions(ixwebsocket PRIVATE IXWEBSOCKET_USE_SYNC_DNS)
 endif()
 
 set(IXWEBSOCKET_PRIVATE_LIBS "")

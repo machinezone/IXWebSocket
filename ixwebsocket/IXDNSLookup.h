@@ -4,7 +4,7 @@
  *  Copyright (c) 2018 Machine Zone, Inc. All rights reserved.
  *
  *  Resolve a hostname+port to a struct addrinfo obtained with getaddrinfo
- *  Numeric addresses resolve inline. Hostnames use a cancellable worker, since
+ *  Numeric addresses resolve inline. Hostnames normally use a cancellable worker, since
  *  getaddrinfo is a blocking call, and we don't want to block the main thread on Mobile.
  */
 

@@ -75,3 +75,11 @@ TEST_CASE("Numeric resolution preserves cancellation after parsing", "[net][nume
     CHECK(checks == 2);
     CHECK(error == "cancellation requested");
 }
+
+TEST_CASE("Synchronous hostname resolution accepts an empty cancellation callback",
+          "[net][numeric_dns]")
+{
+    DNSLookup lookup("localhost", 80);
+    std::string error;
+    CHECK(lookup.resolve(error, CancellationRequest(), false) != nullptr);
+}
