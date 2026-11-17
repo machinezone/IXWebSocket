@@ -732,6 +732,12 @@ remain valid when the callbacks run.</p>
 following redirects. Reusing an arguments object shares that flag across its
 submitted requests; use separate arguments objects for independently cancellable
 requests. HTTP connection reuse is not provided by this behavior.</p>
+<p>Automatic HTTP and WebSocket redirects retain caller-supplied <code>Authorization</code> and <code>Cookie</code>
+headers only while the scheme, hostname and port stay the same. Once a redirect
+changes origin, these headers remain removed for the rest of that redirect chain.
+The caller's original request arguments are preserved. Other custom headers are
+forwarded; applications should avoid putting credentials in those headers when
+following redirects to untrusted destinations.</p>
 <p>See this <a href="https://github.com/machinezone/IXWebSocket/issues/209">issue</a> for links about uploading files with HTTP multipart.</p>
 <h2 id="http-server-api">HTTP server API</h2>
 <pre><code class="language-cpp">#include &lt;ixwebsocket/IXHttpServer.h&gt;
