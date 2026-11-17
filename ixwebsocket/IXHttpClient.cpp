@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iomanip>
+#include <limits>
 #include <random>
 #include <sstream>
 #include <utility>
@@ -42,6 +43,27 @@ namespace
         copy->onChunkCallback = args.onChunkCallback;
         copy->cancel = args.cancel.load();
         return copy;
+    }
+    bool parseSize(const std::string& text, unsigned base, size_t& value)
+    {
+        if (text.empty()) return false;
+        value = 0;
+        for (unsigned char c : text)
+        {
+            unsigned digit;
+            if (c >= '0' && c <= '9')
+                digit = c - '0';
+            else if (c >= 'a' && c <= 'f')
+                digit = c - 'a' + 10;
+            else if (c >= 'A' && c <= 'F')
+                digit = c - 'A' + 10;
+            else
+                return false;
+            if (digit >= base || value > ((std::numeric_limits<size_t>::max)() - digit) / base)
+                return false;
+            value = value * base + digit;
+        }
+        return true;
     }
 } // namespace
 
@@ -389,8 +411,20 @@ namespace ix
                 code, description, errorCode, headers, payload, msg, uploadSize, downloadSize);
         }
 
-        // Redirect ?
-        if ((code >= 301 && code <= 308) && args->followRedirects)
+        // These responses never contain a message body, even with representation metadata.
+        if (code == 204 || code == 304)
+            return std::make_shared<HttpResponse>(code,
+                                                  description,
+                                                  HttpErrorCode::Ok,
+                                                  headers,
+                                                  payload,
+                                                  std::string(),
+                                                  uploadSize,
+                                                  0);
+
+        // Only statuses that define an automatic redirect are followed.
+        if ((code == 301 || code == 302 || code == 303 || code == 307 || code == 308) &&
+            args->followRedirects)
         {
             if (headers.find("Location") == headers.end())
             {
@@ -421,6 +455,17 @@ namespace ix
 
             // Recurse
             std::string location = headers["Location"];
+            if (code == 303 && verb != kHead)
+            {
+                auto redirected = snapshotRequest(*args);
+                redirected->extraHeaders.erase("Content-Length");
+                redirected->extraHeaders.erase("Content-Type");
+                redirected->extraHeaders.erase("Content-Encoding");
+                redirected->multipartBoundary.clear();
+                redirected->compressRequest = false;
+                return requestImpl(
+                    location, kGet, std::string(), redirected, cancel, redirects + 1);
+            }
             return requestImpl(location, verb, body, args, cancel, redirects + 1);
         }
 
@@ -436,137 +481,67 @@ namespace ix
                                                   downloadSize);
         }
 
-        // Parse response:
-        if (headers.find("Content-Length") != headers.end())
+        auto failure = [&](HttpErrorCode error, const std::string& message)
         {
-            std::ptrdiff_t contentLength = -1;
-            ss.str("");
-            ss << headers["Content-Length"];
-            ss >> contentLength;
+            if (cancel) error = HttpErrorCode::Cancelled;
+            return std::make_shared<HttpResponse>(
+                code, description, error, headers, payload, message, uploadSize, downloadSize);
+        };
 
-            auto chunkResult = _socket->readBytes(contentLength,
-                                                  args->onProgressCallback,
-                                                  args->onChunkCallback,
-                                                  isCancellationRequested);
-            if (!chunkResult.first)
-            {
-                auto errorCode = cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
-                errorMsg = "Cannot read chunk";
-                return std::make_shared<HttpResponse>(code,
-                                                      description,
-                                                      errorCode,
-                                                      headers,
-                                                      payload,
-                                                      errorMsg,
-                                                      uploadSize,
-                                                      downloadSize);
-            }
-
-            if (!args->onChunkCallback)
-            {
-                payload.reserve(contentLength);
-                payload += chunkResult.second;
-            }
-        }
-        else if (headers.find("Transfer-Encoding") != headers.end() &&
-                 headers["Transfer-Encoding"] == "chunked")
+        // Transfer-Encoding determines framing in preference to Content-Length.
+        if (headers.find("Transfer-Encoding") != headers.end())
         {
-            std::stringstream chunkSizeSs;
-
+            const auto& coding = headers.at("Transfer-Encoding");
+            if (CaseInsensitiveLess::cmp(coding, "chunked") ||
+                CaseInsensitiveLess::cmp("chunked", coding))
+                return failure(HttpErrorCode::HeaderParsingError, "Unsupported Transfer-Encoding");
             while (true)
             {
-                auto errorCode = cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
                 lineResult = _socket->readLine(isCancellationRequested);
-                line = lineResult.second;
-
                 if (!lineResult.first)
+                    return failure(HttpErrorCode::ChunkReadError, "Cannot read chunk size");
+                size_t chunkSize = 0;
+                const auto sizeText =
+                    lineResult.second.substr(0, lineResult.second.find_first_of(";\r\n"));
+                if (!parseSize(sizeText, 16, chunkSize))
+                    return failure(HttpErrorCode::ChunkReadError, "Invalid chunk size");
+                if (chunkSize == 0)
                 {
-                    return std::make_shared<HttpResponse>(code,
-                                                          description,
-                                                          errorCode,
-                                                          headers,
-                                                          payload,
-                                                          errorMsg,
-                                                          uploadSize,
-                                                          downloadSize);
+                    // Trailers are a separate header block; do not overwrite framing headers.
+                    if (!parseHttpHeaders(_socket, isCancellationRequested).first)
+                        return failure(HttpErrorCode::ChunkReadError, "Invalid chunk trailers");
+                    break;
                 }
-
-                uint64_t chunkSize;
-                chunkSizeSs.str("");
-                chunkSizeSs << std::hex << line;
-                chunkSizeSs >> chunkSize;
-
-                if (args->verbose)
-                {
-                    std::ostringstream oss;
-                    oss << "Reading " << chunkSize << " bytes" << std::endl;
-                    log(oss.str(), args);
-                }
-
-                // Read a chunk
-                auto chunkResult = _socket->readBytes((size_t) chunkSize,
-                                                      args->onProgressCallback,
-                                                      args->onChunkCallback,
-                                                      isCancellationRequested);
-                if (!chunkResult.first)
-                {
-                    auto errCode =
-                        cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
-                    errorMsg = "Cannot read chunk";
-                    return std::make_shared<HttpResponse>(code,
-                                                          description,
-                                                          errCode,
-                                                          headers,
-                                                          payload,
-                                                          errorMsg,
-                                                          uploadSize,
-                                                          downloadSize);
-                }
-
-                if (!args->onChunkCallback)
-                {
-                    payload.reserve(payload.size() + (size_t) chunkSize);
-                    payload += chunkResult.second;
-                }
-
-                // Read the line that terminates the chunk (\r\n)
+                auto chunk = _socket->readBytes(chunkSize,
+                                                args->onProgressCallback,
+                                                args->onChunkCallback,
+                                                isCancellationRequested);
+                if (!chunk.first)
+                    return failure(HttpErrorCode::ChunkReadError, "Cannot read chunk");
                 lineResult = _socket->readLine(isCancellationRequested);
-
-                if (!lineResult.first)
-                {
-                    auto errCode =
-                        cancel ? HttpErrorCode::Cancelled : HttpErrorCode::ChunkReadError;
-                    return std::make_shared<HttpResponse>(code,
-                                                          description,
-                                                          errCode,
-                                                          headers,
-                                                          payload,
-                                                          errorMsg,
-                                                          uploadSize,
-                                                          downloadSize);
-                }
-
-                if (chunkSize == 0) break;
+                if (!lineResult.first || (lineResult.second != "\r\n" && lineResult.second != "\n"))
+                    return failure(HttpErrorCode::ChunkReadError, "Invalid chunk terminator");
+                downloadSize += chunkSize;
+                if (!args->onChunkCallback) payload += chunk.second;
             }
         }
-        else if (code == 204)
+        else if (headers.find("Content-Length") != headers.end())
         {
-            ; // 204 is NoContent response code
+            size_t contentLength = 0;
+            if (!parseSize(headers.at("Content-Length"), 10, contentLength))
+                return failure(HttpErrorCode::HeaderParsingError, "Invalid Content-Length");
+            auto chunk = _socket->readBytes(contentLength,
+                                            args->onProgressCallback,
+                                            args->onChunkCallback,
+                                            isCancellationRequested);
+            if (!chunk.first) return failure(HttpErrorCode::ChunkReadError, "Cannot read body");
+            downloadSize = contentLength;
+            if (!args->onChunkCallback) payload = std::move(chunk.second);
         }
         else
         {
-            std::string msg("Cannot read http body");
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  HttpErrorCode::CannotReadBody,
-                                                  headers,
-                                                  payload,
-                                                  msg,
-                                                  uploadSize,
-                                                  downloadSize);
+            return failure(HttpErrorCode::CannotReadBody, "Cannot read http body");
         }
-
-        downloadSize = payload.size();
 
         // If the content was compressed with gzip, decode it
         if (headers["Content-Encoding"] == "gzip")
