@@ -41,6 +41,16 @@
 #endif
 #endif
 
+namespace
+{
+    bool isNumericHost(const std::string& hostname)
+    {
+        struct in6_addr address;
+        return ix::inet_pton(AF_INET, hostname.c_str(), &address) == 1 ||
+               ix::inet_pton(AF_INET6, hostname.c_str(), &address) == 1;
+    }
+} // namespace
+
 namespace ix
 {
     const int64_t DNSLookup::kDefaultWait = 1; // ms
@@ -72,9 +82,7 @@ namespace ix
         // the whole process inside getaddrinfo (issue #560, reproduced with
         // "127.0.0.1") and that also fails to resolve loopback when the machine is
         // offline (issue #524).
-        struct in6_addr dummy;
-        bool numericHost = ix::inet_pton(AF_INET, hostname.c_str(), &dummy) == 1 ||
-                           ix::inet_pton(AF_INET6, hostname.c_str(), &dummy) == 1;
+        const bool numericHost = isNumericHost(hostname);
         if (numericHost)
         {
             hints.ai_flags |= AI_NUMERICHOST;
@@ -111,6 +119,18 @@ namespace ix
                                         const CancellationRequest& isCancellationRequested,
                                         bool cancellable)
     {
+        // AI_NUMERICHOST | AI_NUMERICSERV performs no name/service lookup, and
+        // getAddrInfo deliberately omits the interface-querying AI_ADDRCONFIG here.
+        if (isNumericHost(_hostname))
+        {
+            errMsg.clear();
+            if (isCancellationRequested && isCancellationRequested())
+            {
+                errMsg = "cancellation requested";
+                return nullptr;
+            }
+            return getAddrInfo(_hostname, _port, errMsg);
+        }
         return cancellable ? resolveCancellable(errMsg, isCancellationRequested)
                            : resolveUnCancellable(errMsg, isCancellationRequested);
     }
@@ -121,7 +141,7 @@ namespace ix
         errMsg = "no error";
 
         // Maybe a cancellation request got in before the background thread terminated ?
-        if (isCancellationRequested())
+        if (isCancellationRequested && isCancellationRequested())
         {
             errMsg = "cancellation requested";
             return nullptr;
@@ -134,6 +154,12 @@ namespace ix
         std::string& errMsg, const CancellationRequest& isCancellationRequested)
     {
         errMsg = "no error";
+
+        if (isCancellationRequested && isCancellationRequested())
+        {
+            errMsg = "cancellation requested";
+            return nullptr;
+        }
 
         // Can only be called once, otherwise we would have to manage a pool
         // of background thread which is overkill for our usage.
@@ -153,11 +179,9 @@ namespace ix
         int port = _port;
         std::string hostname(_hostname);
 
-        // We make the background thread doing the work a shared pointer
-        // instead of a member variable, because it can keep running when
-        // this object goes out of scope, in case of cancellation
-        auto t = std::make_shared<std::thread>(&DNSLookup::run, this, self, hostname, port);
-        t->detach();
+        // The detached worker owns its arguments and only accesses the lookup
+        // after acquiring a strong reference from self.
+        std::thread(&DNSLookup::run, self, hostname, port).detach();
 
         while (!_done)
         {
@@ -167,7 +191,7 @@ namespace ix
             std::this_thread::sleep_for(std::chrono::milliseconds(_wait));
 
             // Were we cancelled ?
-            if (isCancellationRequested())
+            if (isCancellationRequested && isCancellationRequested())
             {
                 errMsg = "cancellation requested";
                 return nullptr;
@@ -175,7 +199,7 @@ namespace ix
         }
 
         // Maybe a cancellation request got in before the bg terminated ?
-        if (isCancellationRequested())
+        if (isCancellationRequested && isCancellationRequested())
         {
             errMsg = "cancellation requested";
             return nullptr;
@@ -198,10 +222,10 @@ namespace ix
         if (auto lock = self.lock())
         {
             // Copy result into the member variables
-            setRes(res);
-            setErrMsg(errMsg);
+            lock->setRes(res);
+            lock->setErrMsg(errMsg);
 
-            _done = true;
+            lock->_done = true;
         }
     }
 
