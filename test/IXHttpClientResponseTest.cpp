@@ -97,12 +97,14 @@ TEST_CASE("Bodyless HTTP responses do not read representation bodies", "[http][r
 TEST_CASE("Only followable redirect statuses are followed", "[http][response]")
 {
     const int status = GENERATE(300, 305, 306);
+    std::string redirectUrl;
     ResponseServer server(
         [&](const ix::HttpRequestPtr&, size_t)
         {
-            return "HTTP/1.1 " + std::to_string(status) + " Status\r\nLocation: " + server.url() +
+            return "HTTP/1.1 " + std::to_string(status) + " Status\r\nLocation: " + redirectUrl +
                    "\r\nContent-Length: 0\r\n\r\n";
         });
+    redirectUrl = server.url();
     server.startServing();
     ix::HttpClient client;
     auto args = options(client);
@@ -116,13 +118,15 @@ TEST_CASE("Only followable redirect statuses are followed", "[http][response]")
 TEST_CASE("303 redirects retrieve the target without replaying the body", "[http][response]")
 {
     const std::string verb = GENERATE(std::string("POST"), std::string("PUT"), std::string("HEAD"));
+    std::string redirectUrl;
     ResponseServer server(
         [&](const ix::HttpRequestPtr&, size_t index)
         {
-            return index == 0 ? "HTTP/1.1 303 See Other\r\nLocation: " + server.url() +
+            return index == 0 ? "HTTP/1.1 303 See Other\r\nLocation: " + redirectUrl +
                                     "\r\nContent-Length: 0\r\n\r\n"
                               : "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
         });
+    redirectUrl = server.url();
     server.startServing();
     ix::HttpClient client;
     auto args = options(client);
@@ -140,14 +144,16 @@ TEST_CASE("303 redirects retrieve the target without replaying the body", "[http
 TEST_CASE("307 and 308 redirects preserve the request method and body", "[http][response]")
 {
     const int status = GENERATE(307, 308);
+    std::string redirectUrl;
     ResponseServer server(
         [&](const ix::HttpRequestPtr&, size_t index)
         {
             return index == 0 ? "HTTP/1.1 " + std::to_string(status) +
-                                    " Redirect\r\nLocation: " + server.url() +
+                                    " Redirect\r\nLocation: " + redirectUrl +
                                     "\r\nContent-Length: 0\r\n\r\n"
                               : "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
         });
+    redirectUrl = server.url();
     server.startServing();
     ix::HttpClient client;
     auto response = client.request(server.url(), "POST", "body", options(client));
