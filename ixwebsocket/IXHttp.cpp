@@ -138,9 +138,7 @@ namespace ix
                 char* p_end {};
                 errno = 0;
                 long val = std::strtol(p, &p_end, 10);
-                if (p_end == p         // invalid argument
-                    || errno == ERANGE // out of range
-                )
+                if (p[0] < '0' || p[0] > '9' || *p_end != '\0' || errno == ERANGE)
                 {
                     return std::make_tuple(
                         false, "Error parsing HTTP Header 'Content-Length'", httpRequest);
@@ -213,6 +211,10 @@ namespace ix
         ss << "Content-Length: " << response->body.size() << "\r\n";
         for (auto&& it : response->headers)
         {
+            // The generated length must match the actual body and appear only once.
+            if (!CaseInsensitiveLess::cmp(it.first, "Content-Length") &&
+                !CaseInsensitiveLess::cmp("Content-Length", it.first))
+                continue;
             ss << it.first << ": " << it.second << "\r\n";
         }
         ss << "\r\n";

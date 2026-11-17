@@ -7,9 +7,11 @@
 #include <algorithm>
 #include <catch_amalgamated.hpp>
 #include <clocale>
+#include <cstring>
 #include <iostream>
 #include <ixwebsocket/IXHttp.h>
 #include <ixwebsocket/IXHttpClient.h>
+#include <ixwebsocket/IXSocket.h>
 #include <string.h>
 #include <thread>
 #include <vector>
@@ -100,3 +102,67 @@ namespace ix
     }
 
 } // namespace ix
+
+namespace
+{
+    class HttpMemorySocket : public ix::Socket
+    {
+    public:
+        explicit HttpMemorySocket(const std::string& input = std::string())
+            : _input(input)
+        {
+        }
+        std::ptrdiff_t recv(void* buffer, size_t length) override
+        {
+            const size_t size = (std::min) (length, _input.size() - _offset);
+            std::memcpy(buffer, _input.data() + _offset, size);
+            _offset += size;
+            return static_cast<std::ptrdiff_t>(size);
+        }
+        std::ptrdiff_t send(char* buffer, size_t length) override
+        {
+            output.append(buffer, length);
+            return static_cast<std::ptrdiff_t>(length);
+        }
+        std::string output;
+
+    private:
+        std::string _input;
+        size_t _offset = 0;
+    };
+} // namespace
+
+TEST_CASE("HTTP requests reject partially parsed content lengths", "[http][framing]")
+{
+    const std::string length =
+        GENERATE(std::string("1x"), std::string("+1"), std::string("1, 2"), std::string("\v1"));
+    std::unique_ptr<ix::Socket> socket(
+        new HttpMemorySocket("POST / HTTP/1.1\r\nContent-Length: " + length + "\r\n\r\nx"));
+    auto result = ix::Http::parseRequest(socket, 1);
+    CHECK_FALSE(std::get<0>(result));
+    CHECK_FALSE(std::get<1>(result).empty());
+}
+
+TEST_CASE("HTTP requests accept exact decimal content lengths", "[http][framing]")
+{
+    const std::string length = GENERATE(std::string("1"), std::string("0001"), std::string("\t1"));
+    std::unique_ptr<ix::Socket> socket(
+        new HttpMemorySocket("POST / HTTP/1.1\r\nContent-Length: " + length + "\r\n\r\nx"));
+    auto result = ix::Http::parseRequest(socket, 1);
+    REQUIRE(std::get<0>(result));
+    CHECK(std::get<2>(result)->body == "x");
+}
+
+TEST_CASE("HTTP responses send exactly one accurate content length", "[http][framing]")
+{
+    const std::string supplied = GENERATE(std::string("999"), std::string("3"));
+    std::unique_ptr<ix::Socket> socket(new HttpMemorySocket());
+    ix::WebSocketHttpHeaders headers;
+    headers["content-length"] = supplied;
+    headers["X-Custom"] = "preserved";
+    auto response =
+        std::make_shared<ix::HttpResponse>(200, "OK", ix::HttpErrorCode::Ok, headers, "abc");
+    REQUIRE(ix::Http::sendResponse(response, socket));
+    const auto& wire = static_cast<HttpMemorySocket&>(*socket).output;
+    CHECK(wire == "HTTP/1.1 200 OK\r\nContent-Length: 3\r\nX-Custom: preserved\r\n\r\nabc");
+}
