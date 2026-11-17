@@ -135,7 +135,7 @@ namespace
 TEST_CASE("HTTP requests reject partially parsed content lengths", "[http][framing]")
 {
     const std::string length =
-        GENERATE(std::string("1x"), std::string("+1"), std::string("1, 2"), std::string("\t1"));
+        GENERATE(std::string("1x"), std::string("+1"), std::string("1, 2"), std::string("\v1"));
     std::unique_ptr<ix::Socket> socket(
         new HttpMemorySocket("POST / HTTP/1.1\r\nContent-Length: " + length + "\r\n\r\nx"));
     auto result = ix::Http::parseRequest(socket, 1);
@@ -145,7 +145,7 @@ TEST_CASE("HTTP requests reject partially parsed content lengths", "[http][frami
 
 TEST_CASE("HTTP requests accept exact decimal content lengths", "[http][framing]")
 {
-    const std::string length = GENERATE(std::string("1"), std::string("0001"));
+    const std::string length = GENERATE(std::string("1"), std::string("0001"), std::string("\t1"));
     std::unique_ptr<ix::Socket> socket(
         new HttpMemorySocket("POST / HTTP/1.1\r\nContent-Length: " + length + "\r\n\r\nx"));
     auto result = ix::Http::parseRequest(socket, 1);

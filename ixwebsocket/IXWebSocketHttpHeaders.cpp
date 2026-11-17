@@ -53,7 +53,8 @@ namespace ix
                 std::string lineStr(line);
 
                 int start = colon + 1;
-                while (start < (int) lineStr.size() && lineStr[start] == ' ')
+                while (start < (int) lineStr.size() &&
+                       (lineStr[start] == ' ' || lineStr[start] == '\t'))
                 {
                     start++;
                 }
