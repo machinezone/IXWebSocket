@@ -54,6 +54,10 @@ if (USE_ZLIB)
   )
 endif()
 
+if (USE_TLS AND USE_SECURE_TRANSPORT)
+  list(APPEND TEST_TARGET_NAMES IXSocketAppleSSLReadTest)
+endif()
+
 if (USE_TLS AND USE_MBED_TLS)
   list(APPEND TEST_TARGET_NAMES
     IXSocketMbedTLSPSATest
