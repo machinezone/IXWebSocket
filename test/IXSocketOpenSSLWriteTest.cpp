@@ -32,6 +32,8 @@ namespace
         int writesBeforeBlocking = -1;
         bool wantRead = false;
         bool failWrites = false;
+        bool failReads = false;
+        bool eof = false;
 
         ~MemoryPeer()
         {
@@ -61,6 +63,8 @@ namespace
         {
             auto& peer = *static_cast<MemoryPeer*>(BIO_get_data(bio));
             BIO_clear_retry_flags(bio);
+            if (peer.failReads) return -1;
+            if (peer.eof && peer.incoming.empty()) return 0;
             if (peer.incoming.empty())
             {
                 BIO_set_retry_read(bio);
@@ -248,6 +252,35 @@ TEST_CASE("OpenSSL fatal send errors do not retain the previous wait status", "[
     CHECK_FALSE(ix::WebSocketTransportTestAccess::flush(connection.transport));
     CHECK(connection.transport.bufferedAmount() == 0);
     CHECK_FALSE(ix::Socket::isWaitNeeded());
+}
+
+TEST_CASE("OpenSSL terminal reads clear a previous wait status", "[socket_openssl][read]")
+{
+    const int terminal = GENERATE(0, 1, 2);
+    ix::SocketOpenSSL socket(ix::SocketTLSOptions {});
+    MemoryConnection connection(socket);
+    char byte;
+    REQUIRE(socket.recv(&byte, 1) == -1);
+    REQUIRE(ix::Socket::isWaitNeeded());
+    if (terminal == 0)
+        REQUIRE(SSL_shutdown(connection.server.ssl) == 0);
+    else if (terminal == 1)
+        connection.client.failReads = true;
+    else
+        connection.client.eof = true;
+    CHECK(socket.recv(&byte, 1) == (terminal == 0 ? 0 : -1));
+    if (terminal != 0) CHECK(ix::Socket::getErrno() != 0);
+    CHECK_FALSE(ix::Socket::isWaitNeeded());
+}
+
+TEST_CASE("OpenSSL readBytes completes from TLS buffers without polling", "[socket_openssl][read]")
+{
+    ix::SocketOpenSSL socket(ix::SocketTLSOptions {});
+    MemoryConnection connection(socket);
+    REQUIRE(SSL_write(connection.server.ssl, "abc", 3) == 3);
+    auto result = socket.readBytes(3, nullptr, nullptr, nullptr);
+    CHECK(result.first);
+    CHECK(result.second == "abc");
 }
 
 #else

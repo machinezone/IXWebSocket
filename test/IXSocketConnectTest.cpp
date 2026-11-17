@@ -11,6 +11,16 @@
 
 using namespace ix;
 
+TEST_CASE("Write polling reports invalid socket errors", "[net][connect]")
+{
+    const auto fd = ::socket(AF_INET, SOCK_STREAM, 0);
+    REQUIRE(fd != static_cast<socket_t>(-1));
+    Socket::closeSocket(fd);
+    Socket::setErrno(0);
+    CHECK(Socket::poll(false, 0, fd, nullptr) == PollResultType::Error);
+    CHECK(Socket::getErrno() != 0);
+}
+
 
 TEST_CASE("socket_connect", "[net]")
 {

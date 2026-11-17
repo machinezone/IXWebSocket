@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/types.h>
+#include <system_error>
 
 // Android needs extra headers for TCP_NODELAY and IPPROTO_TCP
 #ifdef ANDROID
@@ -36,7 +37,7 @@ namespace ix
         errMsg = "no error";
 
         socket_t fd = socket(address->ai_family, address->ai_socktype, address->ai_protocol);
-        if (fd < 0)
+        if (fd == static_cast<socket_t>(-1))
         {
             errMsg = "Cannot create a socket";
             return -1;
@@ -50,7 +51,7 @@ namespace ix
 
         if (res == -1 && !Socket::isWaitNeeded())
         {
-            errMsg = strerror(Socket::getErrno());
+            errMsg = std::system_category().message(Socket::getErrno());
             Socket::closeSocket(fd);
             return -1;
         }
@@ -74,8 +75,10 @@ namespace ix
             }
             else if (pollResult == PollResultType::Error)
             {
+                const int error = Socket::getErrno();
                 Socket::closeSocket(fd);
-                errMsg = std::string("Connect error: ") + strerror(Socket::getErrno());
+                errMsg = error ? "Connect error: " + std::system_category().message(error)
+                               : "Connect error: socket did not become writable";
                 return -1;
             }
             else if (pollResult == PollResultType::ReadyForWrite)
@@ -84,8 +87,10 @@ namespace ix
             }
             else
             {
+                const int error = Socket::getErrno();
                 Socket::closeSocket(fd);
-                errMsg = std::string("Connect error: ") + strerror(Socket::getErrno());
+                errMsg = error ? "Connect error: " + std::system_category().message(error)
+                               : "Connect error: socket did not become writable";
                 return -1;
             }
         }
