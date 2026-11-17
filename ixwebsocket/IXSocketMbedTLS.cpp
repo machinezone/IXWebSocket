@@ -425,14 +425,23 @@ namespace ix
             }
 #endif
 
+            if (res == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)
+            {
+                Socket::setErrno(0);
+                return 0;
+            }
             if (res == 0)
             {
                 Socket::setErrno(ECONNRESET);
             }
 
-            if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
+            else if (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE)
             {
                 Socket::setErrno(EWOULDBLOCK);
+            }
+            else
+            {
+                Socket::setErrno(EIO);
             }
             return -1;
         }

@@ -58,6 +58,7 @@ namespace
         int writesBeforeBlocking = -1;
         int blockedResult = MBEDTLS_ERR_SSL_WANT_WRITE;
         bool failWrites = false;
+        bool failReads = false;
 
         MemoryPeer()
         {
@@ -92,6 +93,7 @@ namespace
         static int receive(void* context, unsigned char* data, size_t size)
         {
             auto& peer = *static_cast<MemoryPeer*>(context);
+            if (peer.failReads) return MBEDTLS_ERR_NET_RECV_FAILED;
             if (peer.incoming.empty()) return MBEDTLS_ERR_SSL_WANT_READ;
             const size_t count = (std::min) (size, peer.incoming.size());
             for (size_t i = 0; i < count; ++i)
@@ -276,6 +278,33 @@ TEST_CASE("MbedTLS fatal send errors do not retain the previous wait status", "[
     CHECK_FALSE(ix::WebSocketTransportTestAccess::flush(connection.transport));
     CHECK(connection.transport.bufferedAmount() == 0);
     CHECK_FALSE(ix::Socket::isWaitNeeded());
+}
+
+TEST_CASE("MbedTLS terminal reads clear a previous wait status", "[socket_mbedtls][read]")
+{
+    const bool clean = GENERATE(false, true);
+    ix::SocketMbedTLS socket(ix::SocketTLSOptions {});
+    MemoryConnection connection(socket);
+    char byte;
+    REQUIRE(socket.recv(&byte, 1) == -1);
+    REQUIRE(ix::Socket::isWaitNeeded());
+    if (clean)
+        REQUIRE(mbedtls_ssl_close_notify(&connection.server.ssl) == 0);
+    else
+        connection.client.failReads = true;
+    CHECK(socket.recv(&byte, 1) == (clean ? 0 : -1));
+    CHECK_FALSE(ix::Socket::isWaitNeeded());
+}
+
+TEST_CASE("MbedTLS readBytes completes from TLS buffers without polling", "[socket_mbedtls][read]")
+{
+    ix::SocketMbedTLS socket(ix::SocketTLSOptions {});
+    MemoryConnection connection(socket);
+    REQUIRE(mbedtls_ssl_write(
+                &connection.server.ssl, reinterpret_cast<const unsigned char*>("abc"), 3) == 3);
+    auto result = socket.readBytes(3, nullptr, nullptr, nullptr);
+    CHECK(result.first);
+    CHECK(result.second == "abc");
 }
 
 #else

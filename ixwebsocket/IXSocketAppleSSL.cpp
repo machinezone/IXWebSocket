@@ -277,6 +277,7 @@ namespace ix
                 return -1;
             }
         }
+        Socket::setErrno(EIO);
         return -1;
     }
 
@@ -294,8 +295,12 @@ namespace ix
 
             // The connection was reset, inform the caller that this
             // Socket should close
-            if (status == errSSLClosedGraceful || status == errSSLClosedNoNotify ||
-                status == errSSLClosedAbort)
+            if (status == errSSLClosedGraceful)
+            {
+                Socket::setErrno(0);
+                return 0;
+            }
+            if (status == errSSLClosedNoNotify || status == errSSLClosedAbort)
             {
                 Socket::setErrno(ECONNRESET);
                 return -1;
@@ -307,6 +312,7 @@ namespace ix
                 return -1;
             }
         }
+        Socket::setErrno(EIO);
         return -1;
     }
 
