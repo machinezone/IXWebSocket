@@ -397,7 +397,7 @@ namespace ix
                 return false;
             }
 
-            if (isCancellationRequested())
+            if (isCancellationRequested && isCancellationRequested())
             {
                 errMsg = "Cancellation requested";
                 return false;
@@ -419,7 +419,9 @@ namespace ix
             bool rc = false;
             if (reason == SSL_ERROR_WANT_READ || reason == SSL_ERROR_WANT_WRITE)
             {
-                rc = true;
+                auto ready = reason == SSL_ERROR_WANT_READ ? isReadyToRead(10) : isReadyToWrite(10);
+                rc = ready != PollResultType::Error;
+                if (!rc) errMsg = "Socket error during TLS handshake";
             }
             else
             {

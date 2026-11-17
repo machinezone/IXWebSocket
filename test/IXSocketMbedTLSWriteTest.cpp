@@ -34,6 +34,16 @@ namespace ix
 {
     struct SocketMbedTLSWriteTestAccess
     {
+        static bool handshake(SocketMbedTLS& socket,
+                              std::string& error,
+                              const CancellationRequest& cancelled)
+        {
+            return socket.handshake(error, cancelled);
+        }
+        static int reset(SocketMbedTLS& socket)
+        {
+            return mbedtls_ssl_session_reset(&socket._ssl);
+        }
         static void install(SocketMbedTLS& socket, mbedtls_ssl_context& session)
         {
             socket.initMBedTLS();
@@ -305,6 +315,23 @@ TEST_CASE("MbedTLS readBytes completes from TLS buffers without polling", "[sock
     auto result = socket.readBytes(3, nullptr, nullptr, nullptr);
     CHECK(result.first);
     CHECK(result.second == "abc");
+}
+
+TEST_CASE("MbedTLS client handshakes stop on readiness errors", "[socket_mbedtls][handshake_wait]")
+{
+    const bool blockedWrite = GENERATE(false, true);
+    ix::SocketMbedTLS socket(ix::SocketTLSOptions {});
+    MemoryConnection connection(socket);
+    REQUIRE(ix::SocketMbedTLSWriteTestAccess::reset(socket) == 0);
+    connection.client.incoming.clear();
+    connection.server.incoming.clear();
+    if (blockedWrite) connection.client.writesBeforeBlocking = 0;
+    unsigned checks = 0;
+    std::string error;
+    CHECK_FALSE(
+        ix::SocketMbedTLSWriteTestAccess::handshake(socket, error, [&] { return ++checks > 3; }));
+    CHECK(checks == 1);
+    CHECK(error == "Socket error during TLS handshake");
 }
 
 #else

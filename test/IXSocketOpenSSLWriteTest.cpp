@@ -13,6 +13,16 @@ namespace ix
 {
     struct SocketOpenSSLWriteTestAccess
     {
+        static bool handshake(SocketOpenSSL& socket,
+                              std::string& error,
+                              const CancellationRequest& cancelled)
+        {
+            return socket.openSSLClientHandshake("memory.invalid", error, cancelled);
+        }
+        static int reset(SocketOpenSSL& socket)
+        {
+            return SSL_clear(socket._ssl_connection);
+        }
         static void install(SocketOpenSSL& socket, SSL*& session, SSL_CTX*& context)
         {
             std::swap(socket._ssl_connection, session);
@@ -281,6 +291,23 @@ TEST_CASE("OpenSSL readBytes completes from TLS buffers without polling", "[sock
     auto result = socket.readBytes(3, nullptr, nullptr, nullptr);
     CHECK(result.first);
     CHECK(result.second == "abc");
+}
+
+TEST_CASE("OpenSSL client handshakes stop on readiness errors", "[socket_openssl][handshake_wait]")
+{
+    const bool blockedWrite = GENERATE(false, true);
+    ix::SocketOpenSSL socket(ix::SocketTLSOptions {});
+    MemoryConnection connection(socket);
+    REQUIRE(ix::SocketOpenSSLWriteTestAccess::reset(socket) == 1);
+    connection.client.incoming.clear();
+    connection.server.incoming.clear();
+    if (blockedWrite) connection.client.writesBeforeBlocking = 0;
+    unsigned checks = 0;
+    std::string error;
+    CHECK_FALSE(
+        ix::SocketOpenSSLWriteTestAccess::handshake(socket, error, [&] { return ++checks > 3; }));
+    CHECK(checks == 1);
+    CHECK(error == "Socket error during TLS handshake");
 }
 
 #else

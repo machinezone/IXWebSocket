@@ -61,6 +61,7 @@ namespace ix
 
         bool init(const std::string& host, bool isClient, std::string& errMsg);
         void initMBedTLS();
+        bool handshake(std::string& errMsg, const CancellationRequest& isCancellationRequested);
         bool loadSystemCertificates(std::string& errMsg);
     };
 

@@ -248,6 +248,36 @@ namespace ix
 
         mbedtls_ssl_set_bio(&_ssl, &_sockfd, mbedtls_net_send, mbedtls_net_recv, NULL);
 
+        return handshake(errMsg, isCancellationRequested);
+    }
+
+    bool SocketMbedTLS::connect(const std::string& host,
+                                int port,
+                                std::string& errMsg,
+                                const CancellationRequest& isCancellationRequested)
+    {
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _sockfd = connectToHost(host, port, errMsg, isCancellationRequested);
+            if (_sockfd == -1) return false;
+        }
+
+        bool isClient = true;
+        bool initialized = init(host, isClient, errMsg);
+        if (!initialized)
+        {
+            close();
+            return false;
+        }
+
+        mbedtls_ssl_set_bio(&_ssl, &_sockfd, mbedtls_net_send, mbedtls_net_recv, NULL);
+
+        return handshake(errMsg, isCancellationRequested);
+    }
+
+    bool SocketMbedTLS::handshake(std::string& errMsg,
+                                  const CancellationRequest& isCancellationRequested)
+    {
         int res;
         do
         {
@@ -291,58 +321,6 @@ namespace ix
                 errMsg += " : ";
                 errMsg += verifyBuf;
             }
-
-            close();
-            return false;
-        }
-
-        return true;
-    }
-
-    bool SocketMbedTLS::connect(const std::string& host,
-                                int port,
-                                std::string& errMsg,
-                                const CancellationRequest& isCancellationRequested)
-    {
-        {
-            std::lock_guard<std::mutex> lock(_mutex);
-            _sockfd = connectToHost(host, port, errMsg, isCancellationRequested);
-            if (_sockfd == -1) return false;
-        }
-
-        bool isClient = true;
-        bool initialized = init(host, isClient, errMsg);
-        if (!initialized)
-        {
-            close();
-            return false;
-        }
-
-        mbedtls_ssl_set_bio(&_ssl, &_sockfd, mbedtls_net_send, mbedtls_net_recv, NULL);
-
-        int res;
-        do
-        {
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                res = mbedtls_ssl_handshake(&_ssl);
-            }
-
-            if (isCancellationRequested())
-            {
-                errMsg = "Cancellation requested";
-                close();
-                return false;
-            }
-        } while (res == MBEDTLS_ERR_SSL_WANT_READ || res == MBEDTLS_ERR_SSL_WANT_WRITE);
-
-        if (res != 0)
-        {
-            char buf[256];
-            mbedtls_strerror(res, buf, sizeof(buf));
-
-            errMsg = "error in handshake : ";
-            errMsg += buf;
 
             close();
             return false;
