@@ -710,7 +710,8 @@ namespace ix
             std::string::value_type c = (*i);
 
             // Keep alphanumeric and other accepted characters intact
-            if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
+            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+                c == '-' || c == '_' || c == '.' || c == '~')
             {
                 escaped << c;
                 continue;
@@ -802,8 +803,7 @@ namespace ix
     {
         std::string str("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 
-        static std::random_device rd;
-        static std::mt19937 generator(rd());
+        static thread_local std::mt19937 generator(std::random_device {}());
 
         std::shuffle(str.begin(), str.end(), generator);
 
