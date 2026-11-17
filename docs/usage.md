@@ -647,6 +647,17 @@ bool ok = httpClient.performRequest(args, [](const HttpResponsePtr& response)
 args->cancel = true;
 ```
 
+`performRequest()` copies the request configuration when it is submitted. After
+it returns, reusing the arguments for another URL, body, or headers does not change
+earlier queued requests. Do not modify the configuration concurrently with the
+submission itself. Callbacks are copied, but objects they capture still need to
+remain valid when the callbacks run.
+
+The original `args->cancel` flag remains the cancellation handle, including while
+following redirects. Reusing an arguments object shares that flag across its
+submitted requests; use separate arguments objects for independently cancellable
+requests. HTTP connection reuse is not provided by this behavior.
+
 See this [issue](https://github.com/machinezone/IXWebSocket/issues/209) for links about uploading files with HTTP multipart.
 
 ## HTTP server API
