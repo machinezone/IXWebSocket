@@ -6,6 +6,7 @@
 #include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXHttpClient.h>
 #include <ixwebsocket/IXSocketServer.h>
+#include <ixwebsocket/IXWebSocket.h>
 #include <mutex>
 
 namespace
@@ -162,6 +163,142 @@ TEST_CASE("307 and 308 redirects preserve the request method and body", "[http][
     REQUIRE(requests.size() == 2);
     CHECK(requests[1]->method == "POST");
     CHECK(requests[1]->body == "body");
+}
+
+TEST_CASE("HTTP redirects keep credentials within the original origin",
+          "[http][redirect_credentials]")
+{
+    const bool crossOrigin = GENERATE(false, true);
+    const int status = GENERATE(301, 302, 303, 307, 308);
+    const std::string ok = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
+    ResponseServer target([&](const ix::HttpRequestPtr&, size_t) { return ok; });
+    target.startServing();
+    std::string location;
+    ResponseServer source(
+        [&](const ix::HttpRequestPtr&, size_t index)
+        {
+            return index == 0
+                       ? "HTTP/1.1 " + std::to_string(status) +
+                             " Redirect\r\nLocation: " + location + "\r\nContent-Length: 0\r\n\r\n"
+                       : ok;
+        });
+    location = crossOrigin ? target.url() : source.url();
+    source.startServing();
+    ix::HttpClient client;
+    auto args = options(client);
+    args->extraHeaders["authorization"] = "Bearer secret";
+    args->extraHeaders["cOoKiE"] = "session=secret";
+    args->extraHeaders["X-Trace"] = "trace";
+    auto response = client.request(source.url(), "POST", "body", args);
+    REQUIRE(response->errorCode == ix::HttpErrorCode::Ok);
+    CHECK(response->statusCode == 200);
+    const auto initial = source.requests();
+    REQUIRE(initial.size() == (crossOrigin ? 1 : 2));
+    CHECK(initial[0]->headers.at("Authorization") == "Bearer secret");
+    CHECK(initial[0]->headers.at("Cookie") == "session=secret");
+    const auto redirected = crossOrigin ? target.requests() : initial;
+    REQUIRE_FALSE(redirected.empty());
+    CHECK(redirected.back()->headers.count("Authorization") == (crossOrigin ? 0 : 1));
+    CHECK(redirected.back()->headers.count("Cookie") == (crossOrigin ? 0 : 1));
+    CHECK(redirected.back()->headers.at("X-Trace") == "trace");
+    CHECK(args->extraHeaders.at("Authorization") == "Bearer secret");
+    CHECK(args->extraHeaders.at("Cookie") == "session=secret");
+}
+
+TEST_CASE("WebSocket redirects keep credentials within the original origin",
+          "[websocket][redirect_credentials]")
+{
+    const bool crossOrigin = GENERATE(false, true);
+    const std::string rejected = "HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\n\r\n";
+    ResponseServer target([&](const ix::HttpRequestPtr&, size_t) { return rejected; });
+    target.startServing();
+    std::string location;
+    ResponseServer source(
+        [&](const ix::HttpRequestPtr&, size_t index)
+        {
+            return index == 0 ? "HTTP/1.1 302 Found\r\nLocation: " + location +
+                                    "\r\nContent-Length: 0\r\n\r\n"
+                              : rejected;
+        });
+    std::string originalUrl = source.url();
+    originalUrl.replace(0, 4, "ws");
+    location = crossOrigin ? target.url() : source.url();
+    location.replace(0, 4, "ws");
+    source.startServing();
+    ix::WebSocket client;
+    client.setUrl(originalUrl);
+    const ix::WebSocketHttpHeaders headers = {
+        {"authorization", "Bearer secret"}, {"cOoKiE", "session=secret"}, {"X-Trace", "trace"}};
+    client.setExtraHeaders(headers);
+    auto result = client.connect(1);
+    CHECK_FALSE(result.success);
+    CHECK(result.http_status == 401);
+    const auto initial = source.requests();
+    REQUIRE(initial.size() == (crossOrigin ? 1 : 2));
+    CHECK(initial[0]->headers.at("Authorization") == "Bearer secret");
+    CHECK(initial[0]->headers.at("Cookie") == "session=secret");
+    const auto redirected = crossOrigin ? target.requests() : initial;
+    REQUIRE_FALSE(redirected.empty());
+    CHECK(redirected.back()->headers.count("Authorization") == (crossOrigin ? 0 : 1));
+    CHECK(redirected.back()->headers.count("Cookie") == (crossOrigin ? 0 : 1));
+    CHECK(redirected.back()->headers.at("X-Trace") == "trace");
+    CHECK(client.connect(1).http_status == 401);
+    const auto retried = source.requests();
+    CHECK(retried.back()->headers.at("Authorization") == "Bearer secret");
+    CHECK(retried.back()->headers.at("Cookie") == "session=secret");
+}
+
+TEST_CASE("Returning to the original origin does not restore redirect credentials",
+          "[http][redirect_credentials]")
+{
+    const bool websocket = GENERATE(false, true);
+    std::string originalUrl;
+    ResponseServer target(
+        [&](const ix::HttpRequestPtr&, size_t)
+        {
+            return "HTTP/1.1 302 Found\r\nLocation: " + originalUrl +
+                   "\r\nContent-Length: 0\r\n\r\n";
+        });
+    REQUIRE(target.listen().first);
+    std::string targetUrl = target.url();
+    if (websocket) targetUrl.replace(0, 4, "ws");
+    ResponseServer source(
+        [&](const ix::HttpRequestPtr&, size_t index)
+        {
+            return index == 0 ? "HTTP/1.1 302 Found\r\nLocation: " + targetUrl +
+                                    "\r\nContent-Length: 0\r\n\r\n"
+                              : "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
+        });
+    originalUrl = source.url();
+    if (websocket) originalUrl.replace(0, 4, "ws");
+    REQUIRE(source.listen().first);
+    target.start();
+    source.start();
+    ix::HttpClient client;
+    auto args = options(client);
+    args->extraHeaders["Authorization"] = "Bearer secret";
+    args->extraHeaders["Cookie"] = "session=secret";
+    if (websocket)
+    {
+        ix::WebSocket webSocket;
+        webSocket.setUrl(originalUrl);
+        webSocket.setExtraHeaders(args->extraHeaders);
+        CHECK(webSocket.connect(1).http_status == 200);
+    }
+    else
+    {
+        REQUIRE(client.get(originalUrl, args)->errorCode == ix::HttpErrorCode::Ok);
+    }
+    const auto requests = source.requests();
+    REQUIRE(requests.size() == 2);
+    CHECK(requests[0]->headers.count("Authorization") == 1);
+    CHECK(requests[0]->headers.count("Cookie") == 1);
+    CHECK(requests[1]->headers.count("Authorization") == 0);
+    CHECK(requests[1]->headers.count("Cookie") == 0);
+    const auto targetRequests = target.requests();
+    REQUIRE(targetRequests.size() == 1);
+    CHECK(targetRequests[0]->headers.count("Authorization") == 0);
+    CHECK(targetRequests[0]->headers.count("Cookie") == 0);
 }
 
 TEST_CASE("Invalid HTTP content lengths are rejected", "[http][response]")

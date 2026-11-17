@@ -453,11 +453,16 @@ namespace ix
                                                       downloadSize);
             }
 
-            // Recurse
-            std::string location = headers["Location"];
+            const std::string& location = headers.at("Location");
+            auto redirected = snapshotRequest(*args);
+            // Credentials are scoped to the same scheme, host and port.
+            if (!UrlParser::isSameOrigin(url, location))
+            {
+                redirected->extraHeaders.erase("Authorization");
+                redirected->extraHeaders.erase("Cookie");
+            }
             if (code == 303 && verb != kHead)
             {
-                auto redirected = snapshotRequest(*args);
                 redirected->extraHeaders.erase("Content-Length");
                 redirected->extraHeaders.erase("Content-Type");
                 redirected->extraHeaders.erase("Content-Encoding");
@@ -466,7 +471,7 @@ namespace ix
                 return requestImpl(
                     location, kGet, std::string(), redirected, cancel, redirects + 1);
             }
-            return requestImpl(location, verb, body, args, cancel, redirects + 1);
+            return requestImpl(location, verb, body, redirected, cancel, redirects + 1);
         }
 
         if (verb == "HEAD")

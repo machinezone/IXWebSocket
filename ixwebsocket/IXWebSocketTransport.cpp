@@ -117,6 +117,7 @@ namespace ix
         std::string protocol, host, path, query;
         int port;
         std::string remoteUrl(url);
+        WebSocketHttpHeaders requestHeaders(headers);
 
         WebSocketInitResult result;
         const int maxRedirections = 10;
@@ -147,7 +148,7 @@ namespace ix
                                                   _enablePerMessageDeflate);
 
             result = webSocketHandshake.clientHandshake(remoteUrl,
-                                                        headers,
+                                                        requestHeaders,
                                                         protocol,
                                                         host,
                                                         path,
@@ -167,6 +168,11 @@ namespace ix
                     break;
                 }
 
+                if (!UrlParser::isSameOrigin(remoteUrl, it->second))
+                {
+                    requestHeaders.erase("Authorization");
+                    requestHeaders.erase("Cookie");
+                }
                 remoteUrl = it->second;
                 continue;
             }

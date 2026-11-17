@@ -675,6 +675,13 @@ following redirects. Reusing an arguments object shares that flag across its
 submitted requests; use separate arguments objects for independently cancellable
 requests. HTTP connection reuse is not provided by this behavior.
 
+Automatic HTTP and WebSocket redirects retain caller-supplied `Authorization` and `Cookie`
+headers only while the scheme, hostname and port stay the same. Once a redirect
+changes origin, these headers remain removed for the rest of that redirect chain.
+The caller's original request arguments are preserved. Other custom headers are
+forwarded; applications should avoid putting credentials in those headers when
+following redirects to untrusted destinations.
+
 See this [issue](https://github.com/machinezone/IXWebSocket/issues/209) for links about uploading files with HTTP multipart.
 
 ## HTTP server API
