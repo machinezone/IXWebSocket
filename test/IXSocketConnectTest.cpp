@@ -33,7 +33,8 @@ TEST_CASE("Refused connections retain the socket error", "[net][connect]")
     Socket::closeSocket(fd);
     close.fd = static_cast<socket_t>(-1);
     std::string error;
-    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    // Windows can take over two seconds to report a refused loopback connection.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
     Socket::setErrno(0);
     const int connected =
         SocketConnect::connect("127.0.0.1",
