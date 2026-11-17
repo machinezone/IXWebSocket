@@ -51,6 +51,7 @@ endif()
 
 if (USE_ZLIB)
   list(APPEND TEST_TARGET_NAMES
+    IXGzipCodecTest
     IXWebSocketPerMessageDeflateCompressorTest
   )
 endif()

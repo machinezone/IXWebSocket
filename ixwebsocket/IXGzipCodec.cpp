@@ -99,14 +99,15 @@ namespace ix
         const int kBufferSize = 1 << 14;
         std::array<unsigned char, kBufferSize> compressBuffer;
 
+        int ret;
         do
         {
             inflateState.avail_out = (uInt) kBufferSize;
             inflateState.next_out = &compressBuffer.front();
 
-            int ret = inflate(&inflateState, Z_SYNC_FLUSH);
+            ret = inflate(&inflateState, Z_NO_FLUSH);
 
-            if (ret == Z_NEED_DICT || ret == Z_DATA_ERROR || ret == Z_MEM_ERROR)
+            if (ret != Z_OK && ret != Z_STREAM_END)
             {
                 inflateEnd(&inflateState);
                 return false;
@@ -114,7 +115,7 @@ namespace ix
 
             out.append(reinterpret_cast<char*>(&compressBuffer.front()),
                        kBufferSize - inflateState.avail_out);
-        } while (inflateState.avail_out == 0);
+        } while (ret != Z_STREAM_END);
 
         inflateEnd(&inflateState);
         return true;
