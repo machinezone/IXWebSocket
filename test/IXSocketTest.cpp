@@ -13,6 +13,7 @@
 #include <ixwebsocket/IXSocket.h>
 #include <ixwebsocket/IXSocketFactory.h>
 #include <string.h>
+#include <thread>
 
 using namespace ix;
 
@@ -105,6 +106,29 @@ TEST_CASE("Empty and cancelled socket reads do not receive data", "[socket][read
     auto cancelled = socket.readBytes(3, nullptr, nullptr, [] { return true; });
     CHECK_FALSE(cancelled.first);
     CHECK(socket.reads == 0);
+}
+
+TEST_CASE("Socket error state remains local when threads are reused", "[socket][errno]")
+{
+    std::atomic<bool> isolated {true};
+    auto churn = [&](int error)
+    {
+        for (int i = 0; i < 16; ++i)
+        {
+            std::thread worker(
+                [&, error]
+                {
+                    Socket::setErrno(error);
+                    if (Socket::getErrno() != error) isolated = false;
+                });
+            worker.join();
+        }
+    };
+    std::thread a(churn, EWOULDBLOCK);
+    std::thread b(churn, EINVAL);
+    a.join();
+    b.join();
+    CHECK(isolated.load());
 }
 
 namespace ix
