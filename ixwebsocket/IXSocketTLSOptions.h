@@ -16,10 +16,10 @@ namespace ix
         // check validity of the object
         bool isValid() const;
 
-        // the certificate presented to peers
+        // PEM certificate chain presented to peers (file path or in-memory contents)
         std::string certFile;
 
-        // the key used for signing/encryption
+        // Unencrypted PEM private key (file path or in-memory contents)
         std::string keyFile;
 
         // Append TLS session secrets in NSS key-log format (OpenSSL 1.1.1+ only).
@@ -44,6 +44,8 @@ namespace ix
         bool isUsingSystemDefaults() const;
 
         bool isUsingInMemoryCAs() const;
+        bool isUsingInMemoryCert() const;
+        bool isUsingInMemoryKey() const;
 
         bool isPeerVerifyDisabled() const;
 

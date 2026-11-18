@@ -21,18 +21,19 @@ namespace ix
     {
         if (!_validated)
         {
-            if (!certFile.empty() && !std::ifstream(certFile))
+            if (!certFile.empty() && !isUsingInMemoryCert() && !std::ifstream(certFile))
             {
                 _errMsg = "certFile not found: " + certFile;
                 return false;
             }
-            if (!keyFile.empty() && !std::ifstream(keyFile))
+            if (!keyFile.empty() && !isUsingInMemoryKey() && !std::ifstream(keyFile))
             {
                 _errMsg = "keyFile not found: " + keyFile;
                 return false;
             }
             if (!caFile.empty() && caFile != kTLSCAFileDisableVerify &&
-                caFile != kTLSCAFileUseSystemDefaults && !std::ifstream(caFile))
+                caFile != kTLSCAFileUseSystemDefaults && !isUsingInMemoryCAs() &&
+                !std::ifstream(caFile))
             {
                 _errMsg = "caFile not found: " + caFile;
                 return false;
@@ -64,6 +65,17 @@ namespace ix
         return caFile.find(kTLSInMemoryMarker) != std::string::npos;
     }
 
+    bool SocketTLSOptions::isUsingInMemoryCert() const
+    {
+        return certFile.find(kTLSInMemoryMarker) != std::string::npos;
+    }
+
+    bool SocketTLSOptions::isUsingInMemoryKey() const
+    {
+        return keyFile.find("-----BEGIN ") != std::string::npos &&
+               keyFile.find("PRIVATE KEY-----") != std::string::npos;
+    }
+
     bool SocketTLSOptions::isPeerVerifyDisabled() const
     {
         return caFile == kTLSCAFileDisableVerify;
@@ -81,14 +93,15 @@ namespace ix
 
     std::string SocketTLSOptions::getDescription() const
     {
-        std::stringstream ss;
-        ss << "TLS Options:" << std::endl;
-        ss << "  certFile = " << certFile << std::endl;
-        ss << "  keyFile  = " << keyFile << std::endl;
-        ss << "  keyLogFile = " << keyLogFile << std::endl;
-        ss << "  caFile   = " << caFile << std::endl;
-        ss << "  ciphers  = " << ciphers << std::endl;
-        ss << "  tls      = " << tls << std::endl;
-        return ss.str();
+        std::ostringstream oss;
+        oss << "TLS Options:" << std::endl;
+        oss << "  certFile = " << (isUsingInMemoryCert() ? "<in-memory PEM>" : certFile)
+            << std::endl;
+        oss << "  keyFile  = " << (isUsingInMemoryKey() ? "<in-memory PEM>" : keyFile) << std::endl;
+        oss << "  keyLogFile = " << keyLogFile << std::endl;
+        oss << "  caFile   = " << (isUsingInMemoryCAs() ? "<in-memory PEM>" : caFile) << std::endl;
+        oss << "  ciphers  = " << ciphers << std::endl;
+        oss << "  tls      = " << tls << std::endl;
+        return oss.str();
     }
 } // namespace ix

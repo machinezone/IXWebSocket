@@ -203,8 +203,14 @@ namespace ix
             sec_identity_t identity = nullptr;
             if (options.hasCertAndKey())
             {
-                CFArrayRef certs = importPEM(readFile(options.certFile), error);
-                CFArrayRef keys = certs ? importPEM(readFile(options.keyFile), error) : nullptr;
+                CFArrayRef certs = importPEM(
+                    options.isUsingInMemoryCert() ? options.certFile : readFile(options.certFile),
+                    error);
+                CFArrayRef keys =
+                    certs ? importPEM(options.isUsingInMemoryKey() ? options.keyFile
+                                                                   : readFile(options.keyFile),
+                                      error)
+                          : nullptr;
                 if (!certs || !keys)
                 {
                     if (certs)

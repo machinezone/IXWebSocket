@@ -210,6 +210,12 @@ namespace ix
                                  std::string& errMsg,
                                  const CancellationRequest& isCancellationRequested)
     {
+        if (_tlsOptions.isUsingInMemoryCert() || _tlsOptions.isUsingInMemoryKey())
+        {
+            errMsg = "SecureTransport does not support in-memory client credentials; use "
+                     "Network.framework";
+            return false;
+        }
         OSStatus status;
         {
             std::lock_guard<std::mutex> lock(_mutex);

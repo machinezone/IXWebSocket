@@ -25,6 +25,8 @@ for name in server wrong client; do
         -CA "$cert_dir/ca.pem" -CAkey "$cert_dir/ca.key" -CAcreateserial \
         -extfile "$cert_dir/extensions" -out "$cert_dir/$name.pem" >/dev/null 2>&1
 done
+"$openssl_bin" pkcs8 -topk8 -in "$cert_dir/client.key" -out "$cert_dir/encrypted-client.key" \
+    -passout pass:test-only -v2 aes-256-cbc >/dev/null 2>&1
 "$openssl_bin" req -x509 -newkey rsa:2048 -nodes -sha256 -days 3650 \
     -subj /CN=Untrusted-Client -keyout "$cert_dir/untrusted.key" -out "$cert_dir/untrusted.pem" >/dev/null 2>&1
 # A chain with an intermediate verifies that certFile sends the full chain.

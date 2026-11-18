@@ -29,6 +29,40 @@ TEST_CASE("TLS key logging rejects unsupported backends", "[socket][keylog]")
 }
 #endif
 
+TEST_CASE("TLS options accept PEM credentials without exposing their contents", "[socket][tls]")
+{
+    const std::string kind =
+        GENERATE("PRIVATE KEY", "RSA PRIVATE KEY", "EC PRIVATE KEY", "ENCRYPTED PRIVATE KEY");
+    ix::SocketTLSOptions options;
+    options.certFile = "-----BEGIN CERTIFICATE-----\ncertificate-data\n-----END CERTIFICATE-----";
+    options.caFile = options.certFile;
+    options.keyFile = "-----BEGIN " + kind + "-----\nprivate-key-data\n-----END " + kind + "-----";
+    CHECK(options.isUsingInMemoryCert());
+    CHECK(options.isUsingInMemoryKey());
+    CHECK(options.isValid()); // Structural validation; the TLS backend parses the PEM.
+    CHECK(options.getDescription().find("private-key-data") == std::string::npos);
+    CHECK(options.getDescription().find("certificate-data") == std::string::npos);
+
+    ix::SocketTLSOptions missingKey;
+    missingKey.certFile = options.certFile;
+    CHECK_FALSE(missingKey.isValid());
+    CHECK(missingKey.getErrorMsg() == "certFile and keyFile must be both present, or both absent");
+}
+
+#ifdef IXWEBSOCKET_USE_SECURE_TRANSPORT
+TEST_CASE("SecureTransport rejects in-memory credentials explicitly", "[socket][tls]")
+{
+    ix::SocketTLSOptions options;
+    options.certFile = "-----BEGIN CERTIFICATE-----\nnot-a-cert";
+    options.keyFile = "-----BEGIN PRIVATE KEY-----\nnot-a-key";
+    std::string error;
+    auto socket = ix::createSocket(true, -1, error, options);
+    REQUIRE(socket);
+    REQUIRE_FALSE(socket->connect("127.0.0.1", 1, error, nullptr));
+    CHECK(error.find("SecureTransport does not support") != std::string::npos);
+}
+#endif
+
 namespace
 {
     // No native descriptor: completed reads and EOF must not poll for more data.
