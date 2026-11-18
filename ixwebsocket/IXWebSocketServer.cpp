@@ -72,6 +72,16 @@ namespace ix
         _enablePerMessageDeflate = false;
     }
 
+    void WebSocketServer::setMaxMessageSize(uint64_t bytes)
+    {
+        _maxMessageSize = bytes;
+    }
+
+    uint64_t WebSocketServer::getMaxMessageSize() const
+    {
+        return _maxMessageSize;
+    }
+
     void WebSocketServer::setOnConnectionCallback(const OnConnectionCallback& callback)
     {
         _onConnectionCallback = callback;
@@ -100,6 +110,7 @@ namespace ix
 
         webSocket->setAutoThreadName(false);
         webSocket->setPingInterval(_pingIntervalSeconds);
+        webSocket->setMaxMessageSize(_maxMessageSize);
 
         if (_onConnectionCallback)
         {

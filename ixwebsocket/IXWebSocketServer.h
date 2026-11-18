@@ -44,6 +44,10 @@ namespace ix
         void disablePong();
         void disablePerMessageDeflate();
 
+        // Default for new connections. Configure before starting; 0 means unlimited.
+        void setMaxMessageSize(uint64_t bytes);
+        uint64_t getMaxMessageSize() const;
+
         void setOnConnectionCallback(const OnConnectionCallback& callback);
         void setOnClientMessageCallback(const OnClientMessageCallback& callback);
 
@@ -66,6 +70,7 @@ namespace ix
         bool _enablePerMessageDeflate;
         int _pingIntervalSeconds;
         int _sendTimeoutSeconds;
+        uint64_t _maxMessageSize = 0;
 
         OnConnectionCallback _onConnectionCallback;
         OnClientMessageCallback _onClientMessageCallback;

@@ -59,6 +59,10 @@ namespace ix
         void setPerMessageDeflateOptions(
             const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
+        // Incoming payload bytes, before and after decompression. 0 means unlimited.
+        // Configure before connecting; applies to subsequent connections.
+        void setMaxMessageSize(uint64_t bytes);
+        uint64_t getMaxMessageSize() const;
         void setProxyOptions(const ProxyOptions& proxyOptions);
         void setPingMessage(const std::string& sendMessage,
                             SendMessageKind pingType = SendMessageKind::Ping);
@@ -178,6 +182,7 @@ namespace ix
         std::condition_variable _sleepCondition;
 
         std::atomic<int> _handshakeTimeoutSecs;
+        uint64_t _maxMessageSize = 0;
         IXWEBSOCKET_EXPORT static const int kDefaultHandShakeTimeoutSecs;
 
         // enable or disable PONG frame response to received PING frame

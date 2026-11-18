@@ -104,6 +104,18 @@ namespace ix
         _socketTLSOptions = socketTLSOptions;
     }
 
+    void WebSocket::setMaxMessageSize(uint64_t bytes)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _maxMessageSize = bytes;
+    }
+
+    uint64_t WebSocket::getMaxMessageSize() const
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        return _maxMessageSize;
+    }
+
     void WebSocket::setProxyOptions(const ProxyOptions& proxyOptions)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
@@ -242,7 +254,8 @@ namespace ix
                           _socketTLSOptions,
                           _enablePong,
                           _pingIntervalSecs,
-                          _proxyOptions);
+                          _proxyOptions,
+                          _maxMessageSize);
             headers = _extraHeaders;
             disabledDefaultHeaders = _disabledDefaultHeaders;
             subProtocols = _subProtocols;
@@ -312,7 +325,8 @@ namespace ix
                           _socketTLSOptions,
                           _enablePong,
                           _pingIntervalSecs,
-                          _proxyOptions);
+                          _proxyOptions,
+                          _maxMessageSize);
         }
 
         WebSocketInitResult status = _ws.connectToSocket(

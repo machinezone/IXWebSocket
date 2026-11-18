@@ -51,7 +51,10 @@ namespace ix
         ~WebSocketPerMessageDeflateDecompressor();
 
         bool init(uint8_t inflateBits, bool clientNoContextTakeOver);
-        bool decompress(const std::string& in, std::string& out);
+        bool decompress(const std::string& in,
+                        std::string& out,
+                        uint64_t maxOutputSize = 0,
+                        bool* limitExceeded = nullptr);
 
     private:
 #ifdef IXWEBSOCKET_USE_ZLIB
