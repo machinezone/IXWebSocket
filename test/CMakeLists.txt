@@ -34,6 +34,7 @@ set (TEST_TARGET_NAMES
   IXExponentialBackoffTest
   IXWebSocketCloseTest
   IXWebSocketDispatchTest
+  IXWebSocketCallbackTest
   IXWebSocketMessageLimitTest
   IXWebSocketHostTest
   IXWebSocketIPv6Test
@@ -142,6 +143,9 @@ if (USE_WS)
     add_test(NAME IXWsProxyTest
       COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/IXWsProxyTest.py" $<TARGET_FILE:ws>)
     set_tests_properties(IXWsProxyTest PROPERTIES TIMEOUT 30)
+    add_test(NAME IXWsBenchTest
+      COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/IXWsBenchTest.py" $<TARGET_FILE:ws>)
+    set_tests_properties(IXWsBenchTest PROPERTIES TIMEOUT 15)
   endif()
 endif()
 

@@ -8,6 +8,7 @@
 // Main driver for websocket utilities
 //
 
+#include "ws_bench.h"
 #include <CLI11.hpp>
 #include <atomic>
 #include <chrono>
@@ -1700,7 +1701,8 @@ namespace ix
                        bool ipv6,
                        bool disablePerMessageDeflate,
                        bool disablePong,
-                       const std::string& sendMsg)
+                       const std::string& sendMsg,
+                       bool keepRunning)
     {
         ix::logInfo("Listening on {}:{}", hostname, port);
 
@@ -1729,9 +1731,9 @@ namespace ix
         std::atomic<bool> stop(false);
 
         server.setOnClientMessageCallback(
-            [&sendMsg, &stop](std::shared_ptr<ConnectionState> connectionState,
-                              WebSocket& webSocket,
-                              const WebSocketMessagePtr& msg)
+            [&sendMsg, &stop, keepRunning](std::shared_ptr<ConnectionState> connectionState,
+                                           WebSocket& webSocket,
+                                           const WebSocketMessagePtr& msg)
             {
                 auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
@@ -1779,7 +1781,10 @@ namespace ix
                                 connectionState->getId(),
                                 msg->closeInfo.code,
                                 msg->closeInfo.reason);
-                    stop = true;
+                    if (!keepRunning)
+                    {
+                        stop = true;
+                    }
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
@@ -2491,6 +2496,8 @@ int main(int argc, char** argv)
 
     CLI::App app {"ws is a websocket tool"};
 
+    ix::WebSocketBenchOptions benchOptions;
+    bool keepPushServerRunning = false;
     std::string url("ws://127.0.0.1:8008");
     std::string path;
     std::string user;
@@ -2649,6 +2656,23 @@ int main(int argc, char** argv)
     echoClientApp->add_option("--msg_count", msgCount, "Total message count to be sent");
     addTLSOptions(echoClientApp);
 
+    CLI::App* benchApp =
+        app.add_subcommand("bench", "Autoroute receive benchmark with callback comparisons");
+    benchApp->fallthrough();
+    benchApp->add_option("url", benchOptions.url, "Push-server base URL; /N is appended")
+        ->required();
+    benchApp->add_option("--messages", benchOptions.messages, "Messages per connection");
+    benchApp->add_option("--runs", benchOptions.runs, "Measured runs per callback mode");
+    benchApp->add_option("--warmup", benchOptions.warmup, "Warmup runs per callback mode");
+    benchApp->add_option("--callback", benchOptions.callback, "legacy, ref, or both (default)");
+    benchApp->add_option("--timeout", benchOptions.timeout, "Maximum seconds per connection");
+    benchApp->add_flag("--json", benchOptions.json, "Print machine-readable results to stdout");
+    benchApp->add_flag("--no-progress", benchOptions.quiet, "Disable progress on stderr");
+    benchApp->add_flag(
+        "--compression", benchOptions.compression, "Enable per-message deflate (off by default)");
+    addTLSOptions(benchApp);
+    addProxyOptions(benchApp);
+
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
     chatApp->fallthrough();
     chatApp->add_option("url", url, "Connection url")->required();
@@ -2673,6 +2697,8 @@ int main(int argc, char** argv)
 
     CLI::App* pushServerApp = app.add_subcommand("push_server", "Push server");
     pushServerApp->fallthrough();
+    pushServerApp->add_flag(
+        "--keep-running", keepPushServerRunning, "Serve repeated benchmark connections");
     pushServerApp->add_option("--port", port, "Port");
     pushServerApp->add_option("--host", hostname, "Hostname");
     pushServerApp->add_flag("-q", quiet, "Quiet / only display warnings and errors");
@@ -2756,7 +2782,8 @@ int main(int argc, char** argv)
 
     CLI11_PARSE(app, argc, argv);
 
-    if (connectApp->count("--proxy") || httpClientApp->count("--proxy"))
+    if (connectApp->count("--proxy") || httpClientApp->count("--proxy") ||
+        benchApp->count("--proxy"))
     {
         std::string protocol, proxyPath, query;
         int proxyPort = -1;
@@ -2782,7 +2809,8 @@ int main(int argc, char** argv)
         proxyOptions.port = proxyPort == -1 ? 1080 : proxyPort;
         proxyOptions.dnsMode = protocol == "socks5h" ? ix::ProxyOptions::DnsMode::Remote
                                                      : ix::ProxyOptions::DnsMode::Local;
-        if (connectApp->count("--proxy-user") || httpClientApp->count("--proxy-user"))
+        if (connectApp->count("--proxy-user") || httpClientApp->count("--proxy-user") ||
+            benchApp->count("--proxy-user"))
         {
             auto separator = proxyUser.find(':');
             if (separator == std::string::npos || separator == 0 || separator > 255 ||
@@ -2873,6 +2901,12 @@ int main(int argc, char** argv)
                                   pingIntervalSecs,
                                   decompressGzipMessages);
     }
+    else if (app.got_subcommand("bench"))
+    {
+        benchOptions.tlsOptions = tlsOptions;
+        benchOptions.proxyOptions = proxyOptions;
+        ret = ix::ws_bench(benchOptions);
+    }
     else if (app.got_subcommand("autoroute"))
     {
         ret = ix::ws_autoroute(
@@ -2892,8 +2926,14 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("push_server"))
     {
-        ret = ix::ws_push_server(
-            port, hostname, tlsOptions, ipv6, disablePerMessageDeflate, disablePong, sendMsg);
+        ret = ix::ws_push_server(port,
+                                 hostname,
+                                 tlsOptions,
+                                 ipv6,
+                                 disablePerMessageDeflate,
+                                 disablePong,
+                                 sendMsg,
+                                 keepPushServerRunning);
     }
     else if (app.got_subcommand("transfer") || app.got_subcommand("broadcast_server"))
     {

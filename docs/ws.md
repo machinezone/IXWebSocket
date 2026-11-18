@@ -11,6 +11,7 @@ Options:
 
 Subcommands:
   send                        Send a file
+  bench                       Autoroute receive benchmark and callback comparison
   receive                     Receive a file
   transfer                    Broadcasting server
   connect                     Connect to a remote server
@@ -330,3 +331,36 @@ Options:
   --connect-timeout INT       Connection timeout
   --transfer-timeout INT      Transfer timeout
 ```
+
+## Receive benchmark
+
+`ws bench` uses the [autoroute protocol](https://github.com/bsergean/autoroute/blob/master/docs/protocol.md):
+it appends `/N` to the server URL, receives N messages, and reports throughput.
+Defaults are a quick 100,000 messages, three measured runs and one warmup per mode.
+Compression is disabled by default, and TCP/TLS setup is excluded from the measured
+Open-to-final-Message interval.
+
+```sh
+# Terminal 1: keep the push server available across warmups and repeated runs.
+./build/ws/ws push_server --keep-running -q -x --send_msg 'hello world'
+
+# Terminal 2: compare both callback APIs, alternating their order each round.
+./build/ws/ws bench ws://127.0.0.1:8008 --messages 1000000 --runs 7 --warmup 1
+
+# Machine-readable per-trial and median/min/max results; progress stays on stderr.
+./build/ws/ws bench ws://127.0.0.1:8008 --messages 1000000 --callback both --json > bench.json
+```
+
+Use `--callback legacy` or `--callback ref` for one mode, `--no-progress` to silence
+progress, and `--timeout SECONDS` to bound each connection. `--compression` requests
+per-message deflate. TLS and SOCKS5 options match `ws connect`. Premature closes,
+connection failures, and timeouts return a nonzero exit status.
+
+Each warmup and measured trial opens a new connection. An older one-shot push server
+can be used with `--runs 1 --warmup 0 --callback legacy` (or `ref`), then restarted.
+`push_server` retains its original exit-on-close behavior unless `--keep-running`
+is supplied.
+
+JSON output uses standard C++ streams; no JSON library or package is required.
+See [performance](performance.md) for build flags, interpretation, and dispatch-only
+measurements.

@@ -12,7 +12,8 @@ include_directories(ws .)
 include_directories(ws ..)
 
 add_executable(ws
-  ws.cpp)
+  ws.cpp
+  ws_bench.cpp)
 
 target_compile_options(ws PRIVATE ${IXWEBSOCKET_WARNING_FLAGS})
 

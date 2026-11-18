@@ -1,0 +1,306 @@
+{
+  "source_baseline": "fc19f0e5",
+  "build": "Release -O3 -DNDEBUG -pedantic-errors, C++11, OpenSSL 3.6",
+  "os": "26.4",
+  "arch": "arm64",
+  "cpu": "Apple M4 Max",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.0.123.102)",
+  "messages_per_trial": 1000000,
+  "payload_bytes_per_message": 11,
+  "compression": false,
+  "protocol": "autoroute, ws push_server --keep-running -q -x, loopback",
+  "warmup_per_variant": 1,
+  "trials": [
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1507.973375,
+      "messages_per_second": 663141.6818,
+      "mib_per_second": 6.956633091,
+      "variant": "master-legacy",
+      "round": 0
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1485.284791,
+      "messages_per_second": 673271.5544,
+      "mib_per_second": 7.062899684,
+      "variant": "candidate-legacy",
+      "round": 0
+    },
+    {
+      "callback": "ref",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1496.720334,
+      "messages_per_second": 668127.49,
+      "mib_per_second": 7.0089363,
+      "variant": "candidate-ref",
+      "round": 0
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1468.124334,
+      "messages_per_second": 681141.22,
+      "mib_per_second": 7.145455761,
+      "variant": "candidate-legacy",
+      "round": 1
+    },
+    {
+      "callback": "ref",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1505.907333,
+      "messages_per_second": 664051.4845,
+      "mib_per_second": 6.966177301,
+      "variant": "candidate-ref",
+      "round": 1
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1473.573792,
+      "messages_per_second": 678622.2756,
+      "mib_per_second": 7.119030983,
+      "variant": "master-legacy",
+      "round": 1
+    },
+    {
+      "callback": "ref",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1508.59025,
+      "messages_per_second": 662870.5177,
+      "mib_per_second": 6.953788466,
+      "variant": "candidate-ref",
+      "round": 2
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1514.892541,
+      "messages_per_second": 660112.8284,
+      "mib_per_second": 6.924859154,
+      "variant": "master-legacy",
+      "round": 2
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1525.291,
+      "messages_per_second": 655612.6011,
+      "mib_per_second": 6.877649891,
+      "variant": "candidate-legacy",
+      "round": 2
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1588.516375,
+      "messages_per_second": 629518.2195,
+      "mib_per_second": 6.603908934,
+      "variant": "master-legacy",
+      "round": 3
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1646.092875,
+      "messages_per_second": 607499.1364,
+      "mib_per_second": 6.37291956,
+      "variant": "candidate-legacy",
+      "round": 3
+    },
+    {
+      "callback": "ref",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1501.748417,
+      "messages_per_second": 665890.4972,
+      "mib_per_second": 6.985469311,
+      "variant": "candidate-ref",
+      "round": 3
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1484.498917,
+      "messages_per_second": 673627.9754,
+      "mib_per_second": 7.066638689,
+      "variant": "candidate-legacy",
+      "round": 4
+    },
+    {
+      "callback": "ref",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1498.239541,
+      "messages_per_second": 667450.0123,
+      "mib_per_second": 7.001829276,
+      "variant": "candidate-ref",
+      "round": 4
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1492.495042,
+      "messages_per_second": 670018.9762,
+      "mib_per_second": 7.02877878,
+      "variant": "master-legacy",
+      "round": 4
+    },
+    {
+      "callback": "ref",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1503.947542,
+      "messages_per_second": 664916.8086,
+      "mib_per_second": 6.975254912,
+      "variant": "candidate-ref",
+      "round": 5
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1485.911125,
+      "messages_per_second": 672987.7603,
+      "mib_per_second": 7.059922565,
+      "variant": "master-legacy",
+      "round": 5
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1479.890292,
+      "messages_per_second": 675725.7652,
+      "mib_per_second": 7.088645379,
+      "variant": "candidate-legacy",
+      "round": 5
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1488.675541,
+      "messages_per_second": 671738.0466,
+      "mib_per_second": 7.046812547,
+      "variant": "master-legacy",
+      "round": 6
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1649.342208,
+      "messages_per_second": 606302.3156,
+      "mib_per_second": 6.36036441,
+      "variant": "candidate-legacy",
+      "round": 6
+    },
+    {
+      "callback": "ref",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1525.047542,
+      "messages_per_second": 655717.2629,
+      "mib_per_second": 6.878747837,
+      "variant": "candidate-ref",
+      "round": 6
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1485.273291,
+      "messages_per_second": 673276.7674,
+      "mib_per_second": 7.062954369,
+      "variant": "candidate-legacy",
+      "round": 7
+    },
+    {
+      "callback": "ref",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1507.305541,
+      "messages_per_second": 663435.4965,
+      "mib_per_second": 6.95971533,
+      "variant": "candidate-ref",
+      "round": 7
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1479.499083,
+      "messages_per_second": 675904.4406,
+      "mib_per_second": 7.090519758,
+      "variant": "master-legacy",
+      "round": 7
+    },
+    {
+      "callback": "ref",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1531.676834,
+      "messages_per_second": 652879.2352,
+      "mib_per_second": 6.848975742,
+      "variant": "candidate-ref",
+      "round": 8
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1458.787583,
+      "messages_per_second": 685500.7622,
+      "mib_per_second": 7.191189178,
+      "variant": "master-legacy",
+      "round": 8
+    },
+    {
+      "callback": "legacy",
+      "messages": 1000000,
+      "payload_bytes": 11000000,
+      "elapsed_ms": 1489.44275,
+      "messages_per_second": 671392.0357,
+      "mib_per_second": 7.043182748,
+      "variant": "candidate-legacy",
+      "round": 8
+    }
+  ],
+  "summary": {
+    "master-legacy": {
+      "median_messages_per_second": 671738.0466,
+      "min_messages_per_second": 629518.2195,
+      "max_messages_per_second": 685500.7622
+    },
+    "candidate-legacy": {
+      "median_messages_per_second": 673271.5544,
+      "min_messages_per_second": 606302.3156,
+      "max_messages_per_second": 681141.22
+    },
+    "candidate-ref": {
+      "median_messages_per_second": 664051.4845,
+      "min_messages_per_second": 652879.2352,
+      "max_messages_per_second": 668127.49
+    }
+  },
+  "reference_vs_candidate_legacy_percent": -1.3694429594930169,
+  "reference_vs_master_percent": -1.1442796993419546,
+  "candidate_legacy_vs_master_percent": 0.22828955539466733,
+  "baseline_method": "Same ws bench driver compiled against unchanged fc19f0e5 library; only --callback legacy is used on that binary."
+}

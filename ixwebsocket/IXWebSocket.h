@@ -27,6 +27,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace ix
@@ -41,6 +42,7 @@ namespace ix
     };
 
     using OnMessageCallback = std::function<void(const WebSocketMessagePtr&)>;
+    using OnMessageCallbackRef = std::function<void(const WebSocketMessage&)>;
 
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
@@ -113,6 +115,8 @@ namespace ix
                    const std::string& reason = WebSocketCloseConstants::kNormalClosureMessage);
 
         void setOnMessageCallback(const OnMessageCallback& callback);
+        // Borrow the event and its payload for the duration of the callback only.
+        void setOnMessageCallbackRef(const OnMessageCallbackRef& callback);
         bool isOnMessageCallbackRegistered() const;
         static void setTrafficTrackerCallback(const OnTrafficTrackerCallback& callback);
         static void resetTrafficTrackerCallback();
@@ -138,6 +142,31 @@ namespace ix
         void setAutoThreadName(bool enabled);
 
     private:
+        friend struct WebSocketCallbackTestAccess;
+        // Stored in the existing std::function so adding the reference API adds no fields.
+        struct ReferenceMessageHandler
+        {
+            OnMessageCallbackRef callback;
+            void operator()(const WebSocketMessagePtr& message) const
+            {
+                callback(*message);
+            }
+        };
+        template<typename... Args>
+        void invokeMessageCallback(Args&&... args)
+        {
+#if defined(__cpp_rtti) || defined(__GXX_RTTI) || defined(_CPPRTTI)
+            if (auto* handler = _onMessageCallback.target<ReferenceMessageHandler>())
+            {
+                WebSocketMessage message(std::forward<Args>(args)...);
+                handler->callback(message);
+                return;
+            }
+#endif
+            // No-RTTI builds use the legacy allocation path for either callback API.
+            _onMessageCallback(
+                WebSocketMessagePtr(new WebSocketMessage(std::forward<Args>(args)...)));
+        }
         WebSocketInitResult connectImpl(int timeoutSecs, HttpClient* httpClient);
         WebSocketSendInfo sendMessage(const IXWebSocketSendData& message,
                                       SendMessageKind sendMessageKind,
