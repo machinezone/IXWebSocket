@@ -2563,6 +2563,11 @@ int main(int argc, char** argv)
             ->add_option("--key-file", tlsOptions.keyFile, "Path to the (PEM format) TLS key file")
             ->check(CLI::ExistingPath);
         subcommand
+            ->add_option("--keylog-file",
+                         tlsOptions.keyLogFile,
+                         "Append TLS session secrets to this file (OpenSSL 1.1.1+)")
+            ->envname("SSLKEYLOGFILE");
+        subcommand
             ->add_option("--ca-file", tlsOptions.caFile, "Path to the (PEM format) ca roots file")
             ->check(CLI::ExistingPath);
         subcommand->add_option("--ciphers",

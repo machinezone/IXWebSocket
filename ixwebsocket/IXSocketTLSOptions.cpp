@@ -85,6 +85,7 @@ namespace ix
         ss << "TLS Options:" << std::endl;
         ss << "  certFile = " << certFile << std::endl;
         ss << "  keyFile  = " << keyFile << std::endl;
+        ss << "  keyLogFile = " << keyLogFile << std::endl;
         ss << "  caFile   = " << caFile << std::endl;
         ss << "  ciphers  = " << ciphers << std::endl;
         ss << "  tls      = " << tls << std::endl;

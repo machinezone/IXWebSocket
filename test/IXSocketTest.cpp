@@ -17,6 +17,18 @@
 
 using namespace ix;
 
+#if !defined(IXWEBSOCKET_USE_OPEN_SSL)
+TEST_CASE("TLS key logging rejects unsupported backends", "[socket][keylog]")
+{
+    ix::SocketTLSOptions options;
+    options.keyLogFile = "unused-keylog.log";
+    std::string error;
+    CHECK_FALSE(ix::createSocket(true, -1, error, options));
+    CHECK(error == "TLS key logging requires OpenSSL 1.1.1 or newer");
+    CHECK(ix::createSocket(false, -1, error, options) != nullptr);
+}
+#endif
+
 namespace
 {
     // No native descriptor: completed reads and EOF must not poll for more data.

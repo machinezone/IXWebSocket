@@ -35,6 +35,14 @@ namespace ix
     {
         (void) tlsOptions;
         errorMsg.clear();
+#if !defined(IXWEBSOCKET_USE_OPEN_SSL) || OPENSSL_VERSION_NUMBER < 0x10101000L ||                  \
+    defined(LIBRESSL_VERSION_NUMBER)
+        if (tls && !tlsOptions.keyLogFile.empty())
+        {
+            errorMsg = "TLS key logging requires OpenSSL 1.1.1 or newer";
+            return nullptr;
+        }
+#endif
         std::unique_ptr<Socket> socket;
 
         if (!tls)
