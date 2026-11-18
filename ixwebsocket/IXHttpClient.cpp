@@ -119,16 +119,23 @@ namespace ix
 
     void HttpClient::setTLSOptions(const SocketTLSOptions& tlsOptions)
     {
+        std::lock_guard<std::recursive_mutex> lock(_mutex);
+        _socket.reset();
+        ++_connectionConfigVersion;
         _tlsOptions = tlsOptions;
     }
 
     void HttpClient::setProxyOptions(const ProxyOptions& proxyOptions)
     {
+        std::lock_guard<std::recursive_mutex> lock(_mutex);
+        _socket.reset();
+        ++_connectionConfigVersion;
         _proxyOptions = proxyOptions;
     }
 
     void HttpClient::setForceBody(bool value)
     {
+        std::lock_guard<std::recursive_mutex> lock(_mutex);
         _forceBody = value;
     }
 
@@ -222,7 +229,8 @@ namespace ix
                                             const std::string& body,
                                             HttpRequestArgsPtr args,
                                             std::atomic<bool>& cancel,
-                                            int redirects)
+                                            int redirects,
+                                            bool allowRetry)
     {
         // We only have one socket connection, so we cannot
         // make multiple requests concurrently.
@@ -269,11 +277,31 @@ namespace ix
                                                   downloadSize);
         }
 
-        bool tls = protocol == "https";
+        if (cancel || _stop)
+        {
+            return std::make_shared<HttpResponse>(
+                0, "", HttpErrorCode::Cancelled, headers, "", "Request cancelled");
+        }
+        // Move the idle connection out: every error/exception then closes the active
+        // socket automatically. Only a fully consumed response returns it to the cache.
+        auto socket = std::move(_socket);
+        bool reused = socket && UrlParser::isSameOrigin(_connectionUrl, url);
+        if (reused)
+        {
+            // Read through the TLS abstraction, including buffered close notifications.
+            // Unsolicited data is also unsafe to interpret as the next response.
+            char byte;
+            reused = socket->recv(&byte, 1) < 0 && Socket::isWaitNeeded();
+        }
+        const uint64_t configVersion = _connectionConfigVersion;
         std::string errorMsg;
-        _socket = createSocket(tls, -1, errorMsg, _tlsOptions, _proxyOptions);
+        if (!reused)
+        {
+            socket.reset();
+            socket = createSocket(protocol == "https", -1, errorMsg, _tlsOptions, _proxyOptions);
+        }
 
-        if (!_socket)
+        if (!socket)
         {
             return std::make_shared<HttpResponse>(code,
                                                   description,
@@ -381,7 +409,7 @@ namespace ix
 
         auto isCancellationRequested = [&]() { return cancelled() || _stop; };
 
-        bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
+        bool success = reused || socket->connect(host, port, errMsg, isCancellationRequested);
         if (!success)
         {
             auto errorCode = cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotConnect;
@@ -413,8 +441,21 @@ namespace ix
             log(oss.str(), args);
         }
 
-        if (!_socket->writeBytes(req, isCancellationRequested))
+        // A stale idle connection may fail after the probe. Retry only bodyless safe
+        // methods, once, before receiving any response bytes. Never replay an upload.
+        const bool canRetry =
+            reused && allowRetry && !hasBody && !streaming && (verb == kGet || verb == kHead);
+        const auto retry = [&]()
         {
+            socket.reset();
+            return requestImpl(url, verb, body, args, cancel, redirects, false);
+        };
+        if (!socket->writeBytes(req, isCancellationRequested))
+        {
+            if (canRetry && !isCancellationRequested())
+            {
+                return retry();
+            }
             auto errorCode = cancel ? HttpErrorCode::Cancelled : HttpErrorCode::SendError;
             std::string msg("Cannot send request");
             return std::make_shared<HttpResponse>(
@@ -426,7 +467,7 @@ namespace ix
         {
             auto uploadFailed = [&](const std::string& message)
             {
-                _socket->close();
+                socket->close();
                 return std::make_shared<HttpResponse>(code,
                                                       description,
                                                       cancel ? HttpErrorCode::Cancelled
@@ -464,7 +505,7 @@ namespace ix
                     return uploadFailed("Upload callback returned an invalid byte count");
                 }
                 chunk.resize(count);
-                if (!_socket->writeBytes(chunk, isCancellationRequested))
+                if (!socket->writeBytes(chunk, isCancellationRequested))
                 {
                     return uploadFailed("Cannot send upload body");
                 }
@@ -473,67 +514,234 @@ namespace ix
             }
         }
 
-        auto lineResult = _socket->readLine(isCancellationRequested);
-        auto lineValid = lineResult.first;
-        auto line = lineResult.second;
-
-        if (!lineValid)
+        std::pair<bool, std::string> lineResult;
+        for (unsigned informational = 0;; ++informational)
         {
-            auto errorCode =
-                cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotReadStatusLine;
-            std::string msg("Cannot retrieve status line");
+            lineResult = socket->readLine(isCancellationRequested);
+            if (!lineResult.first)
+            {
+                if (canRetry && informational == 0 && lineResult.second.empty() &&
+                    !isCancellationRequested())
+                {
+                    return retry();
+                }
+                const auto error =
+                    cancel ? HttpErrorCode::Cancelled : HttpErrorCode::CannotReadStatusLine;
+                return std::make_shared<HttpResponse>(code,
+                                                      description,
+                                                      error,
+                                                      headers,
+                                                      payload,
+                                                      "Cannot retrieve status line",
+                                                      uploadSize,
+                                                      downloadSize);
+            }
+            if (args->verbose)
+            {
+                log("Status line " + lineResult.second, args);
+            }
+            if (sscanf(lineResult.second.c_str(), "HTTP/1.1 %d", &code) != 1 || code < 100 ||
+                code > 599)
+            {
+                return std::make_shared<HttpResponse>(code,
+                                                      description,
+                                                      HttpErrorCode::MissingStatus,
+                                                      headers,
+                                                      payload,
+                                                      "Cannot parse response code from status line",
+                                                      uploadSize,
+                                                      downloadSize);
+            }
+            auto result = parseHttpHeaders(socket, isCancellationRequested);
+            headers = std::move(result.second);
+            if (!result.first)
+            {
+                const auto error =
+                    cancel ? HttpErrorCode::Cancelled : HttpErrorCode::HeaderParsingError;
+                return std::make_shared<HttpResponse>(code,
+                                                      description,
+                                                      error,
+                                                      headers,
+                                                      payload,
+                                                      "Cannot parse http headers",
+                                                      uploadSize,
+                                                      downloadSize);
+            }
+            if (code >= 200)
+            {
+                break;
+            }
+            if (code == 101 || informational == 15)
+            {
+                return std::make_shared<HttpResponse>(
+                    code,
+                    description,
+                    HttpErrorCode::HeaderParsingError,
+                    headers,
+                    payload,
+                    "Unexpected protocol switch or too many informational responses",
+                    uploadSize,
+                    downloadSize);
+            }
+        }
+
+        const bool followRedirect =
+            args->followRedirects &&
+            (code == 301 || code == 302 || code == 303 || code == 307 || code == 308);
+        const auto locationHeader = headers.find("Location");
+        const bool drainRedirect = followRedirect && locationHeader != headers.end() &&
+                                   UrlParser::isSameOrigin(url, locationHeader->second);
+        size_t contentLength = 0;
+        const auto lengthHeader = headers.find("Content-Length");
+        const bool validLength =
+            lengthHeader == headers.end() || parseSize(lengthHeader->second, 10, contentLength);
+        const bool bodyless = verb == kHead || code == 204 || code == 304;
+        const bool framed =
+            bodyless || headers.count("Transfer-Encoding") || headers.count("Content-Length");
+        // Discard intermediate redirect bodies without buffering or exposing them to callbacks.
+        const OnChunkCallback onChunk =
+            followRedirect ? OnChunkCallback([](const std::string&) { }) : args->onChunkCallback;
+        const OnProgressCallback onProgress =
+            followRedirect ? OnProgressCallback() : args->onProgressCallback;
+
+        auto failure = [&](HttpErrorCode error, const std::string& message)
+        {
+            if (cancel)
+            {
+                error = HttpErrorCode::Cancelled;
+            }
             return std::make_shared<HttpResponse>(
-                code, description, errorCode, headers, payload, msg, uploadSize, downloadSize);
+                code, description, error, headers, payload, message, uploadSize, downloadSize);
+        };
+
+        // Transfer-Encoding determines framing in preference to Content-Length.
+        if (bodyless || (followRedirect && (!framed || !drainRedirect)))
+        {
+            // Redirects without an explicit length can still be followed on a fresh socket.
+        }
+        else if (headers.find("Transfer-Encoding") != headers.end())
+        {
+            const auto& coding = headers.at("Transfer-Encoding");
+            if (CaseInsensitiveLess::cmp(coding, "chunked") ||
+                CaseInsensitiveLess::cmp("chunked", coding))
+            {
+                return failure(HttpErrorCode::HeaderParsingError, "Unsupported Transfer-Encoding");
+            }
+            while (true)
+            {
+                lineResult = socket->readLine(isCancellationRequested);
+                if (!lineResult.first)
+                {
+                    return failure(HttpErrorCode::ChunkReadError, "Cannot read chunk size");
+                }
+                size_t chunkSize = 0;
+                const auto sizeText =
+                    lineResult.second.substr(0, lineResult.second.find_first_of(";\r\n"));
+                if (!parseSize(sizeText, 16, chunkSize))
+                {
+                    return failure(HttpErrorCode::ChunkReadError, "Invalid chunk size");
+                }
+                if (chunkSize == 0)
+                {
+                    // Trailers are a separate header block; do not overwrite framing headers.
+                    if (!parseHttpHeaders(socket, isCancellationRequested).first)
+                    {
+                        return failure(HttpErrorCode::ChunkReadError, "Invalid chunk trailers");
+                    }
+                    break;
+                }
+                auto chunk =
+                    socket->readBytes(chunkSize, onProgress, onChunk, isCancellationRequested);
+                if (!chunk.first)
+                {
+                    return failure(HttpErrorCode::ChunkReadError, "Cannot read chunk");
+                }
+                lineResult = socket->readLine(isCancellationRequested);
+                if (!lineResult.first || (lineResult.second != "\r\n" && lineResult.second != "\n"))
+                {
+                    return failure(HttpErrorCode::ChunkReadError, "Invalid chunk terminator");
+                }
+                downloadSize += chunkSize;
+                if (!onChunk)
+                {
+                    payload += chunk.second;
+                }
+            }
+        }
+        else if (headers.find("Content-Length") != headers.end())
+        {
+            if (!validLength)
+            {
+                return failure(HttpErrorCode::HeaderParsingError, "Invalid Content-Length");
+            }
+            auto chunk =
+                socket->readBytes(contentLength, onProgress, onChunk, isCancellationRequested);
+            if (!chunk.first)
+            {
+                return failure(HttpErrorCode::ChunkReadError, "Cannot read body");
+            }
+            downloadSize = contentLength;
+            if (!onChunk)
+            {
+                payload = std::move(chunk.second);
+            }
+        }
+        else
+        {
+            return failure(HttpErrorCode::CannotReadBody, "Cannot read http body");
         }
 
-        if (args->verbose)
+        // If the content was compressed with gzip, decode it
+        if (!bodyless && !followRedirect && headers["Content-Encoding"] == "gzip")
         {
-            std::ostringstream oss;
-            oss << "Status line " << line;
-            log(oss.str(), args);
-        }
-
-        if (sscanf(line.c_str(), "HTTP/1.1 %d", &code) != 1)
-        {
-            std::string msg("Cannot parse response code from status line");
+#ifdef IXWEBSOCKET_USE_ZLIB
+            std::string decompressedPayload;
+            if (!gzipDecompress(payload, decompressedPayload))
+            {
+                std::string msg("Error decompressing payload");
+                return std::make_shared<HttpResponse>(code,
+                                                      description,
+                                                      HttpErrorCode::Gzip,
+                                                      headers,
+                                                      payload,
+                                                      msg,
+                                                      uploadSize,
+                                                      downloadSize);
+            }
+            payload = decompressedPayload;
+#else
+            std::string msg("ixwebsocket was not compiled with gzip support on");
             return std::make_shared<HttpResponse>(code,
                                                   description,
-                                                  HttpErrorCode::MissingStatus,
+                                                  HttpErrorCode::Gzip,
                                                   headers,
                                                   payload,
                                                   msg,
                                                   uploadSize,
                                                   downloadSize);
+#endif
         }
 
-        auto result = parseHttpHeaders(_socket, isCancellationRequested);
-        auto headersValid = result.first;
-        headers = result.second;
-
-        if (!headersValid)
+        const bool reusable =
+            framed && validLength &&
+            !hasHttpHeaderToken(args->extraHeaders, "Connection", "close") &&
+            !hasHttpHeaderToken(headers, "Connection", "close") &&
+            !args->extraHeaders.count("Transfer-Encoding") &&
+            !(hasBody && args->extraHeaders.count("Content-Length")) &&
+            !(headers.count("Transfer-Encoding") && headers.count("Content-Length")) &&
+            !(code == 204 &&
+              (headers.count("Content-Length") || headers.count("Transfer-Encoding"))) &&
+            !(verb == "CONNECT" && code >= 200 && code < 300);
+        if (reusable && (!followRedirect || drainRedirect) && !isCancellationRequested() &&
+            configVersion == _connectionConfigVersion)
         {
-            auto errorCode = cancel ? HttpErrorCode::Cancelled : HttpErrorCode::HeaderParsingError;
-            std::string msg("Cannot parse http headers");
-            return std::make_shared<HttpResponse>(
-                code, description, errorCode, headers, payload, msg, uploadSize, downloadSize);
+            _socket = std::move(socket);
+            _connectionUrl = url;
         }
+        // Close non-reusable redirect connections before opening the next one.
+        socket.reset();
 
-        // These responses never contain a message body, even with representation metadata.
-        if (code == 204 || code == 304)
-        {
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  HttpErrorCode::Ok,
-                                                  headers,
-                                                  payload,
-                                                  std::string(),
-                                                  uploadSize,
-                                                  0);
-        }
-
-        // Only statuses that define an automatic redirect are followed.
-        if ((code == 301 || code == 302 || code == 303 || code == 307 || code == 308) &&
-            args->followRedirects)
+        if (followRedirect)
         {
             if (headers.find("Location") == headers.end())
             {
@@ -577,141 +785,12 @@ namespace ix
                 redirected->extraHeaders.erase("Content-Encoding");
                 redirected->multipartBoundary.clear();
                 redirected->compressRequest = false;
+                redirected->onUploadCallback = nullptr;
+                redirected->bodySize = 0;
                 return requestImpl(
                     location, kGet, std::string(), redirected, cancel, redirects + 1);
             }
             return requestImpl(location, verb, body, redirected, cancel, redirects + 1);
-        }
-
-        if (verb == "HEAD")
-        {
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  HttpErrorCode::Ok,
-                                                  headers,
-                                                  payload,
-                                                  std::string(),
-                                                  uploadSize,
-                                                  downloadSize);
-        }
-
-        auto failure = [&](HttpErrorCode error, const std::string& message)
-        {
-            if (cancel)
-            {
-                error = HttpErrorCode::Cancelled;
-            }
-            return std::make_shared<HttpResponse>(
-                code, description, error, headers, payload, message, uploadSize, downloadSize);
-        };
-
-        // Transfer-Encoding determines framing in preference to Content-Length.
-        if (headers.find("Transfer-Encoding") != headers.end())
-        {
-            const auto& coding = headers.at("Transfer-Encoding");
-            if (CaseInsensitiveLess::cmp(coding, "chunked") ||
-                CaseInsensitiveLess::cmp("chunked", coding))
-            {
-                return failure(HttpErrorCode::HeaderParsingError, "Unsupported Transfer-Encoding");
-            }
-            while (true)
-            {
-                lineResult = _socket->readLine(isCancellationRequested);
-                if (!lineResult.first)
-                {
-                    return failure(HttpErrorCode::ChunkReadError, "Cannot read chunk size");
-                }
-                size_t chunkSize = 0;
-                const auto sizeText =
-                    lineResult.second.substr(0, lineResult.second.find_first_of(";\r\n"));
-                if (!parseSize(sizeText, 16, chunkSize))
-                {
-                    return failure(HttpErrorCode::ChunkReadError, "Invalid chunk size");
-                }
-                if (chunkSize == 0)
-                {
-                    // Trailers are a separate header block; do not overwrite framing headers.
-                    if (!parseHttpHeaders(_socket, isCancellationRequested).first)
-                    {
-                        return failure(HttpErrorCode::ChunkReadError, "Invalid chunk trailers");
-                    }
-                    break;
-                }
-                auto chunk = _socket->readBytes(chunkSize,
-                                                args->onProgressCallback,
-                                                args->onChunkCallback,
-                                                isCancellationRequested);
-                if (!chunk.first)
-                {
-                    return failure(HttpErrorCode::ChunkReadError, "Cannot read chunk");
-                }
-                lineResult = _socket->readLine(isCancellationRequested);
-                if (!lineResult.first || (lineResult.second != "\r\n" && lineResult.second != "\n"))
-                {
-                    return failure(HttpErrorCode::ChunkReadError, "Invalid chunk terminator");
-                }
-                downloadSize += chunkSize;
-                if (!args->onChunkCallback)
-                {
-                    payload += chunk.second;
-                }
-            }
-        }
-        else if (headers.find("Content-Length") != headers.end())
-        {
-            size_t contentLength = 0;
-            if (!parseSize(headers.at("Content-Length"), 10, contentLength))
-            {
-                return failure(HttpErrorCode::HeaderParsingError, "Invalid Content-Length");
-            }
-            auto chunk = _socket->readBytes(contentLength,
-                                            args->onProgressCallback,
-                                            args->onChunkCallback,
-                                            isCancellationRequested);
-            if (!chunk.first)
-            {
-                return failure(HttpErrorCode::ChunkReadError, "Cannot read body");
-            }
-            downloadSize = contentLength;
-            if (!args->onChunkCallback)
-            {
-                payload = std::move(chunk.second);
-            }
-        }
-        else
-        {
-            return failure(HttpErrorCode::CannotReadBody, "Cannot read http body");
-        }
-
-        // If the content was compressed with gzip, decode it
-        if (headers["Content-Encoding"] == "gzip")
-        {
-#ifdef IXWEBSOCKET_USE_ZLIB
-            std::string decompressedPayload;
-            if (!gzipDecompress(payload, decompressedPayload))
-            {
-                std::string msg("Error decompressing payload");
-                return std::make_shared<HttpResponse>(code,
-                                                      description,
-                                                      HttpErrorCode::Gzip,
-                                                      headers,
-                                                      payload,
-                                                      msg,
-                                                      uploadSize,
-                                                      downloadSize);
-            }
-            payload = decompressedPayload;
-#else
-            std::string msg("ixwebsocket was not compiled with gzip support on");
-            return std::make_shared<HttpResponse>(code,
-                                                  description,
-                                                  HttpErrorCode::Gzip,
-                                                  headers,
-                                                  payload,
-                                                  msg,
-                                                  uploadSize,
-                                                  downloadSize);
-#endif
         }
 
         return std::make_shared<HttpResponse>(code,

@@ -592,6 +592,34 @@ server.setLogCallback([](ix::LogLevel level, const std::string& msg) {
 
 ## HTTP client API
 
+### Connection reuse
+
+Keep an `ix::HttpClient` instance alive to reuse its most recent HTTP/1.1 connection
+for sequential requests to the same scheme, hostname, and port. This also applies
+to requests queued through the asynchronous API and avoids repeating TCP/TLS setup.
+Only one idle connection is retained; requests remain serialized rather than pipelined.
+
+The client consumes the complete response before reusing a connection, including
+chunked trailers and same-origin redirect bodies. `Connection: close` in either
+request or response prevents retention. To close the connection after a request:
+
+```cpp
+auto args = client.createRequest();
+args->extraHeaders["Connection"] = "close";
+auto response = client.get(url, args);
+```
+
+Calling `setTLSOptions()` or `setProxyOptions()` discards the cached connection.
+Configure them before issuing requests. Canceled, malformed,
+and incomplete transfers are closed. If an idle connection closes while a new
+request is starting, a bodyless GET or HEAD can be retried once before any response
+bytes arrive. Uploads and other methods are never automatically replayed after a
+transport failure; applications must decide whether retrying is appropriate.
+
+The built-in `HttpServer` still serves one ordinary HTTP request per connection and
+sends `Connection: close`. Reuse needs a server that supports persistent HTTP.
+Transferring a connection to `WebSocket` (#434) remains a separate feature.
+
 ```cpp
 #include <ixwebsocket/IXHttpClient.h>
 

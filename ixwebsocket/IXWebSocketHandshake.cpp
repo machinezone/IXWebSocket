@@ -234,7 +234,7 @@ namespace ix
         //
         // See https://github.com/apache/thrift/commit/7c4bdf9914fcba6c89e0f69ae48b9675578f084a
         //
-        if (!insensitiveStringCompare(headers["connection"], "Upgrade"))
+        if (!hasHttpHeaderToken(headers, "Connection", "Upgrade"))
         {
             std::ostringstream oss;
             oss << "Invalid connection value: " << headers["connection"];

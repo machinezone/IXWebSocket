@@ -132,7 +132,9 @@ namespace ix
     public:
         static std::tuple<bool, std::string, HttpRequestPtr> parseRequest(
             std::unique_ptr<Socket>& socket, int timeoutSecs);
-        static bool sendResponse(HttpResponsePtr response, std::unique_ptr<Socket>& socket);
+        static bool sendResponse(HttpResponsePtr response,
+                                 std::unique_ptr<Socket>& socket,
+                                 bool closeConnection = false);
 
         static std::pair<std::string, int> parseStatusLine(const std::string& line);
         static std::tuple<std::string, std::string, std::string> parseRequestLine(

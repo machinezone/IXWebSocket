@@ -82,7 +82,7 @@ namespace
                         response->headers["Location"] = url() + "target";
                         response->body.clear();
                     }
-                    ix::Http::sendResponse(response, socket);
+                    ix::Http::sendResponse(response, socket, true);
                 }
             }
             state->setTerminated();

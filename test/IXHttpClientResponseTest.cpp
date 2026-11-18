@@ -54,9 +54,15 @@ namespace
                     _requests.push_back(parsed);
                 }
                 const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
-                socket->writeBytes(_script(parsed, index),
-                                   [deadline]
-                                   { return std::chrono::steady_clock::now() >= deadline; });
+                auto response = _script(parsed, index);
+                const auto end = response.find("\r\n");
+                if (end != std::string::npos)
+                {
+                    // This fixture serves one request per connection.
+                    response.insert(end + 2, "Connection: close\r\n");
+                }
+                socket->writeBytes(
+                    response, [deadline] { return std::chrono::steady_clock::now() >= deadline; });
             }
             state->setTerminated();
         }

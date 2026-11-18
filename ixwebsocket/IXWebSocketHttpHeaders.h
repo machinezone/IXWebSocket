@@ -18,6 +18,11 @@ namespace ix
 
     using WebSocketHttpHeaders = std::map<std::string, std::string, CaseInsensitiveLess>;
 
+    // Match a comma-separated header token, ignoring case and surrounding whitespace.
+    bool hasHttpHeaderToken(const WebSocketHttpHeaders& headers,
+                            const std::string& name,
+                            const std::string& token);
+
     std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(
         std::unique_ptr<Socket>& socket, const CancellationRequest& isCancellationRequested);
 } // namespace ix
