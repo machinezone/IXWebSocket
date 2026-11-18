@@ -824,6 +824,25 @@ hostname and certificate verification enabled.</p>
 1. You require clients to present a certificate
 1. It must be signed by one of the trusted roots in the file</p>
 <p>By default, a destination's hostname is always validated against the certificate that it presents. To accept certificates with any hostname, set <code>ix::SocketTLSOptions::disable_hostname_validation</code> to <code>true</code>.</p>
+<h3 id="tls-key-logging-openssl">TLS key logging (OpenSSL)</h3>
+<p>With OpenSSL 1.1.1 or newer, set <code>keyLogFile</code> in your TLS options before connecting
+or starting a TLS server:</p>
+<pre><code class="language-cpp">ix::SocketTLSOptions options;
+options.keyLogFile = &quot;tls.keys&quot;;
+webSocket.setTLSOptions(options);
+</code></pre>
+<p>The file contains TLS session secrets in NSS key-log format, which tools such as
+Wireshark can use to decrypt captured traffic. An empty <code>keyLogFile</code> disables this
+logging. Connections append to the file, including across reconnections; multiple
+connections may share a destination. A connection fails if the file cannot be
+opened. Other TLS backends reject this option explicitly.</p>
+<p>The <code>ws</code> TLS commands accept <code>--keylog-file</code> and the <code>SSLKEYLOGFILE</code> environment
+variable. An explicit command-line option takes precedence:</p>
+<pre><code class="language-sh">ws connect wss://example.com/ws --keylog-file tls.keys
+SSLKEYLOGFILE=tls.keys ws connect wss://example.com/ws
+</code></pre>
+<p>The library API uses <code>keyLogFile</code> explicitly; environment-variable handling is
+provided by the CLI.</p>
 <h3 id="networkframework-backend-on-macos">Network.framework backend on macOS</h3>
 <p>Build with <code>USE_NETWORK_FRAMEWORK=ON</code> to use native TLS for <code>wss://</code> and <code>https://</code>
 clients and TLS-enabled WebSocket/HTTP servers. Network.framework handles connection
