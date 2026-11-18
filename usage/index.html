@@ -219,6 +219,25 @@ auto result = webSocket.sendBinary(data);
 const char* text = &quot;Hello World!&quot;;
 result = webSocket.sendUtf8Text(IXWebSocketSendData(text, strlen(text)));
 </code></pre>
+<h3 id="incoming-message-size-limit">Incoming message size limit</h3>
+<p>Incoming messages are unlimited by default. Set a limit in bytes before connecting
+or starting the server:</p>
+<pre><code class="language-cpp">webSocket.setMaxMessageSize(1024 * 1024); // Client: 1 MiB per incoming message.
+server.setMaxMessageSize(1024 * 1024);    // Server: default for new connections.
+</code></pre>
+<p><code>getMaxMessageSize()</code> returns the configured limit; <code>setMaxMessageSize(0)</code> restores
+unlimited messages. Client settings apply on the next connection, including
+reconnections. Server settings also apply to WebSocket upgrades through <code>HttpServer</code>.</p>
+<p>The limit covers the combined payload of all fragments, both before and after
+per-message decompression. Control frames do not count toward the limit. Oversized
+messages close the connection with code <strong>1009</strong> (Message Too Big), without
+delivering that message. Frame lengths are checked before buffering their payload;
+decompression stops before appending output beyond the limit.</p>
+<p>This is a per-message limit, rather than a total process memory budget. Choose it
+alongside your connection limit and application buffering requirements.</p>
+<p>The echo server exposes the same setting:</p>
+<pre><code class="language-sh">ws echo_server --port 8080 --max-message-size 1048576
+</code></pre>
 <h3 id="readystate">ReadyState</h3>
 <p><code>getReadyState()</code> returns the state of the connection. There are 4 possible states.</p>
 <ol>
