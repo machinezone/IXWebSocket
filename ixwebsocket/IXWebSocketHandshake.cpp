@@ -182,7 +182,9 @@ namespace ix
 
         // Keep the wire line ending out of error messages that include the status line.
         while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+        {
             line.pop_back();
+        }
 
         // Validate status
         auto statusLine = Http::parseStatusLine(line);

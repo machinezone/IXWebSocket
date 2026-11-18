@@ -46,21 +46,34 @@ namespace
     }
     bool parseSize(const std::string& text, unsigned base, size_t& value)
     {
-        if (text.empty()) return false;
+        if (text.empty())
+        {
+            return false;
+        }
         value = 0;
         for (unsigned char c : text)
         {
             unsigned digit;
             if (c >= '0' && c <= '9')
+            {
                 digit = c - '0';
+            }
             else if (c >= 'a' && c <= 'f')
+            {
                 digit = c - 'a' + 10;
+            }
             else if (c >= 'A' && c <= 'F')
+            {
                 digit = c - 'A' + 10;
+            }
             else
+            {
                 return false;
+            }
             if (digit >= base || value > ((std::numeric_limits<size_t>::max)() - digit) / base)
+            {
                 return false;
+            }
             value = value * base + digit;
         }
         return true;
@@ -82,14 +95,20 @@ namespace ix
         , _stop(false)
         , _forceBody(false)
     {
-        if (!_async) return;
+        if (!_async)
+        {
+            return;
+        }
 
         _thread = std::thread(&HttpClient::run, this);
     }
 
     HttpClient::~HttpClient()
     {
-        if (!_thread.joinable()) return;
+        if (!_thread.joinable())
+        {
+            return;
+        }
 
         _stop = true;
         _condition.notify_one();
@@ -124,7 +143,10 @@ namespace ix
     {
         assert(_async && "HttpClient needs its async parameter set to true "
                          "in order to call performRequest");
-        if (!_async || !args) return false;
+        if (!_async || !args)
+        {
+            return false;
+        }
 
         auto snapshot = snapshotRequest(*args);
 
@@ -161,17 +183,26 @@ namespace ix
                     _condition.wait(lock);
                 }
 
-                if (_stop) return;
+                if (_stop)
+                {
+                    return;
+                }
 
                 task = std::move(_queue.front());
                 _queue.pop();
             }
 
-            if (_stop) return;
+            if (_stop)
+            {
+                return;
+            }
 
             task();
 
-            if (_stop) return;
+            if (_stop)
+            {
+                return;
+            }
         }
     }
 
@@ -320,9 +351,7 @@ namespace ix
         // Make a cancellation object dealing with connection timeout
         auto cancelled = makeCancellationRequestWithTimeout(args->connectTimeout, cancel);
 
-        auto isCancellationRequested = [&]() {
-            return cancelled() || _stop;
-        };
+        auto isCancellationRequested = [&]() { return cancelled() || _stop; };
 
         bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
         if (!success)
@@ -413,6 +442,7 @@ namespace ix
 
         // These responses never contain a message body, even with representation metadata.
         if (code == 204 || code == 304)
+        {
             return std::make_shared<HttpResponse>(code,
                                                   description,
                                                   HttpErrorCode::Ok,
@@ -421,6 +451,7 @@ namespace ix
                                                   std::string(),
                                                   uploadSize,
                                                   0);
+        }
 
         // Only statuses that define an automatic redirect are followed.
         if ((code == 301 || code == 302 || code == 303 || code == 307 || code == 308) &&
@@ -488,7 +519,10 @@ namespace ix
 
         auto failure = [&](HttpErrorCode error, const std::string& message)
         {
-            if (cancel) error = HttpErrorCode::Cancelled;
+            if (cancel)
+            {
+                error = HttpErrorCode::Cancelled;
+            }
             return std::make_shared<HttpResponse>(
                 code, description, error, headers, payload, message, uploadSize, downloadSize);
         };
@@ -499,22 +533,30 @@ namespace ix
             const auto& coding = headers.at("Transfer-Encoding");
             if (CaseInsensitiveLess::cmp(coding, "chunked") ||
                 CaseInsensitiveLess::cmp("chunked", coding))
+            {
                 return failure(HttpErrorCode::HeaderParsingError, "Unsupported Transfer-Encoding");
+            }
             while (true)
             {
                 lineResult = _socket->readLine(isCancellationRequested);
                 if (!lineResult.first)
+                {
                     return failure(HttpErrorCode::ChunkReadError, "Cannot read chunk size");
+                }
                 size_t chunkSize = 0;
                 const auto sizeText =
                     lineResult.second.substr(0, lineResult.second.find_first_of(";\r\n"));
                 if (!parseSize(sizeText, 16, chunkSize))
+                {
                     return failure(HttpErrorCode::ChunkReadError, "Invalid chunk size");
+                }
                 if (chunkSize == 0)
                 {
                     // Trailers are a separate header block; do not overwrite framing headers.
                     if (!parseHttpHeaders(_socket, isCancellationRequested).first)
+                    {
                         return failure(HttpErrorCode::ChunkReadError, "Invalid chunk trailers");
+                    }
                     break;
                 }
                 auto chunk = _socket->readBytes(chunkSize,
@@ -522,26 +564,41 @@ namespace ix
                                                 args->onChunkCallback,
                                                 isCancellationRequested);
                 if (!chunk.first)
+                {
                     return failure(HttpErrorCode::ChunkReadError, "Cannot read chunk");
+                }
                 lineResult = _socket->readLine(isCancellationRequested);
                 if (!lineResult.first || (lineResult.second != "\r\n" && lineResult.second != "\n"))
+                {
                     return failure(HttpErrorCode::ChunkReadError, "Invalid chunk terminator");
+                }
                 downloadSize += chunkSize;
-                if (!args->onChunkCallback) payload += chunk.second;
+                if (!args->onChunkCallback)
+                {
+                    payload += chunk.second;
+                }
             }
         }
         else if (headers.find("Content-Length") != headers.end())
         {
             size_t contentLength = 0;
             if (!parseSize(headers.at("Content-Length"), 10, contentLength))
+            {
                 return failure(HttpErrorCode::HeaderParsingError, "Invalid Content-Length");
+            }
             auto chunk = _socket->readBytes(contentLength,
                                             args->onProgressCallback,
                                             args->onChunkCallback,
                                             isCancellationRequested);
-            if (!chunk.first) return failure(HttpErrorCode::ChunkReadError, "Cannot read body");
+            if (!chunk.first)
+            {
+                return failure(HttpErrorCode::ChunkReadError, "Cannot read body");
+            }
             downloadSize = contentLength;
-            if (!args->onChunkCallback) payload = std::move(chunk.second);
+            if (!args->onChunkCallback)
+            {
+                payload = std::move(chunk.second);
+            }
         }
         else
         {

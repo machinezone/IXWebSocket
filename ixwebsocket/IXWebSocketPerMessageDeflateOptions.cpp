@@ -128,8 +128,14 @@ namespace ix
         std::stringstream ss;
         ss << "Sec-WebSocket-Extensions: permessage-deflate";
 
-        if (_clientNoContextTakeover) ss << "; client_no_context_takeover";
-        if (_serverNoContextTakeover) ss << "; server_no_context_takeover";
+        if (_clientNoContextTakeover)
+        {
+            ss << "; client_no_context_takeover";
+        }
+        if (_serverNoContextTakeover)
+        {
+            ss << "; server_no_context_takeover";
+        }
 
         if (_sendClientServerMaxWindowBits)
         {

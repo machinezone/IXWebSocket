@@ -31,7 +31,10 @@ namespace ix
                     return false;
                 }
                 auto ready = Socket::poll(reading, 10, fd, nullptr);
-                if (ready == PollResultType::Timeout) continue;
+                if (ready == PollResultType::Timeout)
+                {
+                    continue;
+                }
                 if (ready == PollResultType::Error)
                 {
                     error = "SOCKS5 socket readiness error";
@@ -42,7 +45,10 @@ namespace ix
                 int flags = 0;
 #ifndef _WIN32
 #ifdef MSG_NOSIGNAL
-                if (!reading) flags = MSG_NOSIGNAL;
+                if (!reading)
+                {
+                    flags = MSG_NOSIGNAL;
+                }
 #endif
 #endif
                 auto result =
@@ -50,7 +56,9 @@ namespace ix
                         ? ::recv(fd, reinterpret_cast<char*>(data + offset), count, 0)
                         : ::send(fd, reinterpret_cast<const char*>(data + offset), count, flags);
                 if (result > 0)
+                {
                     offset += static_cast<size_t>(result);
+                }
                 else if (result == 0)
                 {
                     error = "SOCKS5 proxy closed the connection";
@@ -86,18 +94,29 @@ namespace ix
 
     bool Socks5::validate(const ProxyOptions& options, std::string& error)
     {
-        if (options.host.empty()) return true;
+        if (options.host.empty())
+        {
+            return true;
+        }
         if (options.port < 1 || options.port > 65535)
+        {
             error = "Invalid SOCKS5 proxy port";
+        }
         else if (options.dnsMode != ProxyOptions::DnsMode::Local &&
                  options.dnsMode != ProxyOptions::DnsMode::Remote)
+        {
             error = "Invalid SOCKS5 DNS mode";
+        }
         else if ((!options.username.empty() || !options.password.empty()) &&
                  (options.username.empty() || options.password.empty() ||
                   options.username.size() > 255 || options.password.size() > 255))
+        {
             error = "SOCKS5 username and password must each contain 1 to 255 bytes";
+        }
         else
+        {
             return true;
+        }
         return false;
     }
 
@@ -108,17 +127,26 @@ namespace ix
     {
         auto lookup = std::make_shared<DNSLookup>(host, port);
         auto addresses = lookup->resolve(error, cancelled);
-        if (!addresses) return {};
+        if (!addresses)
+        {
+            return {};
+        }
         for (auto address = addresses.get(); address; address = address->ai_next)
         {
             char result[INET6_ADDRSTRLEN];
             const void* bytes = nullptr;
             if (address->ai_family == AF_INET)
+            {
                 bytes = &reinterpret_cast<const sockaddr_in*>(address->ai_addr)->sin_addr;
+            }
             else if (address->ai_family == AF_INET6)
+            {
                 bytes = &reinterpret_cast<const sockaddr_in6*>(address->ai_addr)->sin6_addr;
+            }
             if (bytes && inet_ntop(address->ai_family, bytes, result, sizeof(result)))
+            {
                 return result;
+            }
         }
         error = "SOCKS5 destination has no IPv4 or IPv6 address";
         return {};
@@ -131,7 +159,10 @@ namespace ix
                          std::string& error,
                          const CancellationRequest& cancelled)
     {
-        if (!validate(options, error)) return false;
+        if (!validate(options, error))
+        {
+            return false;
+        }
         if (port < 1 || port > 65535 || host.empty())
         {
             error = "Invalid SOCKS5 destination";
@@ -143,7 +174,10 @@ namespace ix
             if (options.dnsMode == ProxyOptions::DnsMode::Local)
             {
                 auto resolved = resolveHost(host, port, error, cancelled);
-                if (resolved.empty() || !numericAddress(resolved, address)) return false;
+                if (resolved.empty() || !numericAddress(resolved, address))
+                {
+                    return false;
+                }
             }
             else
             {
@@ -158,11 +192,16 @@ namespace ix
         }
         const bool credentials = !options.username.empty();
         std::vector<uint8_t> greeting = {5, static_cast<uint8_t>(credentials ? 2 : 1), 0};
-        if (credentials) greeting.push_back(2);
+        if (credentials)
+        {
+            greeting.push_back(2);
+        }
         uint8_t response[4];
         if (!transfer(fd, greeting.data(), greeting.size(), false, error, cancelled) ||
             !transfer(fd, response, 2, true, error, cancelled))
+        {
             return false;
+        }
         if (response[0] != 5 || (response[1] != 0 && !(credentials && response[1] == 2)))
         {
             error = "SOCKS5 proxy rejected the offered authentication method";
@@ -180,7 +219,9 @@ namespace ix
             if (!transfer(
                     fd, authentication.data(), authentication.size(), false, error, cancelled) ||
                 !transfer(fd, response, 2, true, error, cancelled))
+            {
                 return false;
+            }
             if (response[0] != 1 || response[1] != 0)
             {
                 error = "SOCKS5 username/password authentication failed";
@@ -193,7 +234,9 @@ namespace ix
         request.push_back(static_cast<uint8_t>(port & 255));
         if (!transfer(fd, request.data(), request.size(), false, error, cancelled) ||
             !transfer(fd, response, 4, true, error, cancelled))
+        {
             return false;
+        }
         if (response[0] != 5 || response[2] != 0)
         {
             error = "Invalid SOCKS5 CONNECT reply";
@@ -206,13 +249,20 @@ namespace ix
         }
         size_t size = 0;
         if (response[3] == 1)
+        {
             size = 4;
+        }
         else if (response[3] == 4)
+        {
             size = 16;
+        }
         else if (response[3] == 3)
         {
             uint8_t length;
-            if (!transfer(fd, &length, 1, true, error, cancelled)) return false;
+            if (!transfer(fd, &length, 1, true, error, cancelled))
+            {
+                return false;
+            }
             size = length;
             if (!size)
             {

@@ -25,7 +25,10 @@ namespace ix
 
     void UdpSocket::close()
     {
-        if (_sockfd == -1) return;
+        if (_sockfd == -1)
+        {
+            return;
+        }
 
         closeSocket(_sockfd);
         _sockfd = -1;
@@ -109,8 +112,12 @@ namespace ix
 
     std::ptrdiff_t UdpSocket::sendto(const std::string& buffer)
     {
-        return (std::ptrdiff_t)::sendto(
-            _sockfd, buffer.data(), static_cast<int>(buffer.size()), 0, (struct sockaddr*) &_server, sizeof(_server));
+        return (std::ptrdiff_t) ::sendto(_sockfd,
+                                         buffer.data(),
+                                         static_cast<int>(buffer.size()),
+                                         0,
+                                         (struct sockaddr*) &_server,
+                                         sizeof(_server));
     }
 
     std::ptrdiff_t UdpSocket::recvfrom(char* buffer, size_t length)
@@ -120,7 +127,7 @@ namespace ix
 #else
         socklen_t addressLen = (socklen_t) sizeof(_server);
 #endif
-        return (std::ptrdiff_t)::recvfrom(
+        return (std::ptrdiff_t) ::recvfrom(
             _sockfd, buffer, static_cast<int>(length), 0, (struct sockaddr*) &_server, &addressLen);
     }
 } // namespace ix

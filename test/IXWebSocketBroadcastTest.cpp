@@ -95,62 +95,66 @@ namespace
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
 
-        _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
-            std::stringstream ss;
-            if (msg->type == ix::WebSocketMessageType::Open)
+        _webSocket.setOnMessageCallback(
+            [this](const ix::WebSocketMessagePtr& msg)
             {
-                ss << "websocket_broadcast_client: " << _user << " Connected !";
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Close)
-            {
-                ss << "websocket_broadcast_client: " << _user << " disconnected !";
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                auto result = decodeMessage(msg->str);
-
-                // Our "chat" / "broacast" node.js server does not send us
-                // the messages we send, so we don't need to have a msg_user != user
-                // as we do for the satori chat example.
-
-                // store text
-                appendMessage(result.second);
-
-                std::string payload = result.second;
-                if (payload.size() > 2000)
+                std::stringstream ss;
+                if (msg->type == ix::WebSocketMessageType::Open)
                 {
-                    payload = "<message too large>";
+                    ss << "websocket_broadcast_client: " << _user << " Connected !";
+                    log(ss.str());
                 }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    ss << "websocket_broadcast_client: " << _user << " disconnected !";
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    auto result = decodeMessage(msg->str);
 
-                ss << std::endl << result.first << " > " << payload << std::endl << _user << " > ";
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error)
-            {
-                ss << "websocket_broadcast_client: " << _user << " Error ! "
-                   << msg->errorInfo.reason;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Ping)
-            {
-                log("websocket_broadcast_client: received ping message");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Pong)
-            {
-                log("websocket_broadcast_client: received pong message");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Fragment)
-            {
-                log("websocket_broadcast_client: received message fragment");
-            }
-            else
-            {
-                ss << "Unexpected ix::WebSocketMessageType";
-                log(ss.str());
-            }
-        });
+                    // Our "chat" / "broacast" node.js server does not send us
+                    // the messages we send, so we don't need to have a msg_user != user
+                    // as we do for the satori chat example.
+
+                    // store text
+                    appendMessage(result.second);
+
+                    std::string payload = result.second;
+                    if (payload.size() > 2000)
+                    {
+                        payload = "<message too large>";
+                    }
+
+                    ss << std::endl
+                       << result.first << " > " << payload << std::endl
+                       << _user << " > ";
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    ss << "websocket_broadcast_client: " << _user << " Error ! "
+                       << msg->errorInfo.reason;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Ping)
+                {
+                    log("websocket_broadcast_client: received ping message");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Pong)
+                {
+                    log("websocket_broadcast_client: received pong message");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Fragment)
+                {
+                    log("websocket_broadcast_client: received message fragment");
+                }
+                else
+                {
+                    ss << "Unexpected ix::WebSocketMessageType";
+                    log(ss.str());
+                }
+            });
 
         _webSocket.start();
     }
@@ -190,7 +194,8 @@ namespace
         server.setOnClientMessageCallback(
             [&server, &connectionId](std::shared_ptr<ConnectionState> connectionState,
                                      WebSocket& webSocket,
-                                     const ix::WebSocketMessagePtr& msg) {
+                                     const ix::WebSocketMessagePtr& msg)
+            {
                 auto remoteIp = connectionState->getRemoteIp();
 
                 if (msg->type == ix::WebSocketMessageType::Open)
@@ -263,7 +268,10 @@ TEST_CASE("Websocket_broadcast_server", "[websocket_server]")
             {
                 allReady &= chatClients[i]->isReady();
             }
-            if (allReady) break;
+            if (allReady)
+            {
+                break;
+            }
             ix::msleep(10);
         }
 

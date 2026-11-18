@@ -1,0 +1,17 @@
+name: ClangFormat
+
+on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  check-format:
+    runs-on: macos-15
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install clang-format
+      run: brew install clang-format
+    - name: Check formatting
+      run: make -f makefile.dev check_format

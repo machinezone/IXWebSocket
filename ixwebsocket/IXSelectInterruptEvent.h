@@ -6,9 +6,9 @@
 
 #include "IXSelectInterrupt.h"
 #include <cstdint>
+#include <deque>
 #include <mutex>
 #include <string>
-#include <deque>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -27,6 +27,7 @@ namespace ix
         bool clear() final;
         uint64_t read() final;
         void* getEvent() const final;
+
     private:
         // contains every value only once, new values are inserted at the begin, nu
         std::deque<uint64_t> _values;

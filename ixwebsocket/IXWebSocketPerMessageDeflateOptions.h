@@ -15,13 +15,12 @@ namespace ix
     class WebSocketPerMessageDeflateOptions
     {
     public:
-        WebSocketPerMessageDeflateOptions(
-            bool enabled = false,
-            bool clientNoContextTakeover = false,
-            bool serverNoContextTakeover = false,
-            uint8_t clientMaxWindowBits = kDefaultClientMaxWindowBits,
-            uint8_t serverMaxWindowBits = kDefaultServerMaxWindowBits,
-            bool sendClientServerMaxWindowBits = true);
+        WebSocketPerMessageDeflateOptions(bool enabled = false,
+                                          bool clientNoContextTakeover = false,
+                                          bool serverNoContextTakeover = false,
+                                          uint8_t clientMaxWindowBits = kDefaultClientMaxWindowBits,
+                                          uint8_t serverMaxWindowBits = kDefaultServerMaxWindowBits,
+                                          bool sendClientServerMaxWindowBits = true);
 
         WebSocketPerMessageDeflateOptions(std::string extension);
 

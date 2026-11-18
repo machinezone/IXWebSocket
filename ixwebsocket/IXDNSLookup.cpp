@@ -66,8 +66,8 @@ namespace ix
     }
 
     DNSLookup::AddrInfoPtr DNSLookup::getAddrInfo(const std::string& hostname,
-                                            int port,
-                                            std::string& errMsg)
+                                                  int port,
+                                                  std::string& errMsg)
     {
         struct addrinfo hints;
         memset(&hints, 0, sizeof(hints));
@@ -112,12 +112,12 @@ namespace ix
             errMsg = gai_strerror(getaddrinfo_result);
             res = nullptr;
         }
-        return AddrInfoPtr{ res, freeaddrinfo };
+        return AddrInfoPtr {res, freeaddrinfo};
     }
 
     DNSLookup::AddrInfoPtr DNSLookup::resolve(std::string& errMsg,
-                                        const CancellationRequest& isCancellationRequested,
-                                        bool cancellable)
+                                              const CancellationRequest& isCancellationRequested,
+                                              bool cancellable)
     {
         // AI_NUMERICHOST | AI_NUMERICSERV performs no name/service lookup, and
         // getAddrInfo deliberately omits the interface-querying AI_ADDRCONFIG here.

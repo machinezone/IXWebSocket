@@ -112,7 +112,8 @@ namespace ix
                 readSelectInterruptRequest(selectInterrupt, &pollResult);
             }
         }
-        else if ((interruptFd != -1 && fds[1].revents & POLLIN) || (interruptEvent != nullptr && event != nullptr))
+        else if ((interruptFd != -1 && fds[1].revents & POLLIN) ||
+                 (interruptEvent != nullptr && event != nullptr))
         {
             // The InterruptEvent was signaled
             readSelectInterruptRequest(selectInterrupt, &pollResult);
@@ -236,7 +237,10 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
-        if (!_selectInterrupt->clear()) return false;
+        if (!_selectInterrupt->clear())
+        {
+            return false;
+        }
 
         _sockfd = connectToHost(host, port, errMsg, isCancellationRequested);
         return _sockfd != -1;
@@ -252,8 +256,14 @@ namespace ix
                               std::string& error,
                               const CancellationRequest& cancelled)
     {
-        if (_proxyOptions.host.empty()) return SocketConnect::connect(host, port, error, cancelled);
-        if (!Socks5::validate(_proxyOptions, error)) return -1;
+        if (_proxyOptions.host.empty())
+        {
+            return SocketConnect::connect(host, port, error, cancelled);
+        }
+        if (!Socks5::validate(_proxyOptions, error))
+        {
+            return -1;
+        }
         int fd = SocketConnect::connect(_proxyOptions.host, _proxyOptions.port, error, cancelled);
         if (fd != -1 && !Socks5::connect(fd, host, port, _proxyOptions, error, cancelled))
         {
@@ -267,7 +277,10 @@ namespace ix
     {
         std::lock_guard<std::mutex> lock(_socketMutex);
 
-        if (_sockfd == -1) return;
+        if (_sockfd == -1)
+        {
+            return;
+        }
 
         closeSocket(_sockfd);
         _sockfd = -1;
@@ -382,7 +395,10 @@ namespace ix
 
         while (true)
         {
-            if (isCancellationRequested && isCancellationRequested()) return false;
+            if (isCancellationRequested && isCancellationRequested())
+            {
+                return false;
+            }
 
             std::ptrdiff_t ret = send((char*) &str[offset], len);
 
@@ -417,7 +433,10 @@ namespace ix
     {
         while (true)
         {
-            if (isCancellationRequested && isCancellationRequested()) return false;
+            if (isCancellationRequested && isCancellationRequested())
+            {
+                return false;
+            }
 
             std::ptrdiff_t ret;
             ret = recv(buffer, 1);
@@ -507,7 +526,10 @@ namespace ix
                 return std::make_pair(false, errorMsg);
             }
 
-            if (onProgressCallback) onProgressCallback((int) bytesRead, (int) length);
+            if (onProgressCallback)
+            {
+                onProgressCallback((int) bytesRead, (int) length);
+            }
 
             // Wait with a 1ms timeout until the socket is ready to read.
             // This way we are not busy looping

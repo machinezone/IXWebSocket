@@ -89,7 +89,8 @@ int main(int argc, const char** argv)
     uint64_t receivedCountTotal(0);
     uint64_t receivedCountPerSecs(0);
 
-    auto timer = [&receivedCountTotal, &receivedCountPerSecs] {
+    auto timer = [&receivedCountTotal, &receivedCountPerSecs]
+    {
         while (!interrupted)
         {
             std::cerr << "messages received: " << receivedCountPerSecs << " per second "
@@ -118,7 +119,10 @@ int main(int argc, const char** argv)
         /* | LLL_DEBUG */;
 
     signal(SIGINT, sigint_handler);
-    if ((p = lws_cmdline_option(argc, argv, "-d"))) logs = atoi(p);
+    if ((p = lws_cmdline_option(argc, argv, "-d")))
+    {
+        logs = atoi(p);
+    }
 
     lws_set_log_level(logs, NULL);
     lwsl_user("LWS minimal ws client rx [-d <logs>] [--h2]\n");
@@ -154,12 +158,17 @@ int main(int argc, const char** argv)
     i.protocol = protocols[0].name; /* "dumb-increment-protocol" */
     i.pwsi = &client_wsi;
 
-    if (lws_cmdline_option(argc, argv, "--h2")) i.alpn = "h2";
+    if (lws_cmdline_option(argc, argv, "--h2"))
+    {
+        i.alpn = "h2";
+    }
 
     lws_client_connect_via_info(&i);
 
     while (n >= 0 && client_wsi && !interrupted)
+    {
         n = lws_service(context, 0);
+    }
 
     lws_context_destroy(context);
 

@@ -154,11 +154,13 @@ TEST_CASE("Active HTTP cancellation survives redirects", "[http][async]")
                                     std::shared_ptr<ix::ConnectionState>)
         {
             if (request->uri == "/redirect")
+            {
                 return std::make_shared<ix::HttpResponse>(
                     302,
                     "Found",
                     ix::HttpErrorCode::Ok,
                     ix::WebSocketHttpHeaders {{"Location", url(server) + "/slow"}});
+            }
             arrived.set_value();
             resume.wait();
             return std::make_shared<ix::HttpResponse>(200, "OK");

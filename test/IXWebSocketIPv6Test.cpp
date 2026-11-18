@@ -62,7 +62,7 @@ TEST_CASE("IPv6")
         server.setOnClientMessageCallback(
             [](std::shared_ptr<ix::ConnectionState> /*connectionState*/,
                ix::WebSocket& /*webSocket*/,
-               const ix::WebSocketMessagePtr& /*msg*/) {});
+               const ix::WebSocketMessagePtr& /*msg*/) { });
 
         auto res = server.listen();
         REQUIRE(res.first);
@@ -73,13 +73,15 @@ TEST_CASE("IPv6")
         ix::WebSocket client;
         client.setUrl(url);
 
-        std::atomic<bool> connected{false};
-        client.setOnMessageCallback([&connected](const ix::WebSocketMessagePtr& msg) {
-            if (msg->type == ix::WebSocketMessageType::Open)
+        std::atomic<bool> connected {false};
+        client.setOnMessageCallback(
+            [&connected](const ix::WebSocketMessagePtr& msg)
             {
-                connected = true;
-            }
-        });
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    connected = true;
+                }
+            });
 
         client.start();
         int retries = 0;

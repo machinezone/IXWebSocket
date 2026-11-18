@@ -234,7 +234,10 @@ namespace ix
         std::lock_guard<std::mutex> lock(_setReadyStateMutex);
 
         // No state change, return
-        if (_readyState == readyState) return;
+        if (_readyState == readyState)
+        {
+            return;
+        }
 
         // Callbacks must observe the new state, including reentrant close() calls.
         _readyState = readyState;
@@ -272,7 +275,10 @@ namespace ix
     // Only consider send PING time points for that computation.
     bool WebSocketTransport::pingIntervalExceeded()
     {
-        if (_pingIntervalSecs <= 0) return false;
+        if (_pingIntervalSecs <= 0)
+        {
+            return false;
+        }
 
         std::lock_guard<std::mutex> lock(_lastSendPingTimePointMutex);
         auto now = std::chrono::steady_clock::now();
@@ -335,7 +341,10 @@ namespace ix
 
     WebSocketTransport::PollResult WebSocketTransport::poll()
     {
-        if (isAbnormalClose()) return PollResult::AbnormalClose;
+        if (isAbnormalClose())
+        {
+            return PollResult::AbnormalClose;
+        }
         if (_readyState == ReadyState::OPEN)
         {
             if (pingIntervalExceeded())
@@ -408,7 +417,10 @@ namespace ix
             return PollResult::AbnormalClose;
         }
 
-        if (isAbnormalClose()) return PollResult::AbnormalClose;
+        if (isAbnormalClose())
+        {
+            return PollResult::AbnormalClose;
+        }
 
         if (_readyState == ReadyState::CLOSING && closingDelayExceeded())
         {
@@ -478,22 +490,37 @@ namespace ix
 
     bool WebSocketTransport::validateFramePayload(const wsheader_type& ws)
     {
-        if (_readyState != ReadyState::OPEN) return true;
+        if (_readyState != ReadyState::OPEN)
+        {
+            return true;
+        }
         const bool text = ws.opcode == wsheader_type::TEXT_FRAME && _chunks.empty() &&
                           !(_enablePerMessageDeflate && ws.rsv1);
         const bool continuation = ws.opcode == wsheader_type::CONTINUATION && !_chunks.empty() &&
                                   _fragmentedMessageKind == MessageKind::MSG_TEXT &&
                                   !_receivedMessageCompressed;
-        if (!text && !continuation) return true;
-        if (text && _validatedBytes == 0) _utf8Validator.reset();
+        if (!text && !continuation)
+        {
+            return true;
+        }
+        if (text && _validatedBytes == 0)
+        {
+            _utf8Validator.reset();
+        }
 
         const auto available =
             (std::min) (static_cast<uint64_t>(_rxbuf.size() - ws.header_size), ws.N);
         for (; _validatedBytes < available; ++_validatedBytes)
         {
             uint8_t byte = _rxbuf[ws.header_size + _validatedBytes];
-            if (ws.mask) byte ^= ws.masking_key[_validatedBytes & 3];
-            if (!_utf8Validator.consume(byte)) return false;
+            if (ws.mask)
+            {
+                byte ^= ws.masking_key[_validatedBytes & 3];
+            }
+            if (!_utf8Validator.consume(byte))
+            {
+                return false;
+            }
         }
         return !ws.fin || available != ws.N || _utf8Validator.complete();
     }
@@ -527,18 +554,24 @@ namespace ix
         while (_readyState != ReadyState::CLOSED)
         {
             wsheader_type ws;
-            if (_rxbuf.size() < 2) break;                /* Need at least 2 */
+            if (_rxbuf.size() < 2)
+            {
+                break; /* Need at least 2 */
+            }
             const uint8_t* data = (uint8_t*) &_rxbuf[0]; // peek, but don't consume
             ws.fin = (data[0] & 0x80) == 0x80;
             ws.rsv1 = (data[0] & 0x40) == 0x40;
             ws.rsv2 = (data[0] & 0x20) == 0x20;
             ws.rsv3 = (data[0] & 0x10) == 0x10;
-            ws.opcode = (wsheader_type::opcode_type)(data[0] & 0x0f);
+            ws.opcode = (wsheader_type::opcode_type) (data[0] & 0x0f);
             ws.mask = (data[1] & 0x80) == 0x80;
             ws.N0 = (data[1] & 0x7f);
             ws.header_size =
                 2 + (ws.N0 == 126 ? 2 : 0) + (ws.N0 == 127 ? 8 : 0) + (ws.mask ? 4 : 0);
-            if (_rxbuf.size() < ws.header_size) break; /* Need: ws.header_size - _rxbuf.size() */
+            if (_rxbuf.size() < ws.header_size)
+            {
+                break; /* Need: ws.header_size - _rxbuf.size() */
+            }
 
             if ((ws.rsv1 && !_enablePerMessageDeflate) || ws.rsv2 || ws.rsv3)
             {
@@ -874,7 +907,10 @@ namespace ix
                                          const OnMessageCallback& onMessageCallback)
     {
         // A previous frame or callback may have started closing the connection.
-        if (_readyState != ReadyState::OPEN) return;
+        if (_readyState != ReadyState::OPEN)
+        {
+            return;
+        }
 
         size_t wireSize = message.size();
 
@@ -1037,7 +1073,7 @@ namespace ix
         masking_key[0] = (x >> 24);
         masking_key[1] = (x >> 16) & 0xff;
         masking_key[2] = (x >> 8) & 0xff;
-        masking_key[3] = (x) &0xff;
+        masking_key[3] = (x) & 0xff;
 
         std::vector<uint8_t> header;
         header.assign(2 + (message_size >= 126 ? 2 : 0) + (message_size >= 65536 ? 6 : 0) +
@@ -1210,10 +1246,16 @@ namespace ix
             //
             // Further, not reading everything from the socket will eventually
             // result in back pressure for the client.
-            if (_rxbufWanted == 0 && _rxbuf.size() >= kChunkSize) break;
+            if (_rxbufWanted == 0 && _rxbuf.size() >= kChunkSize)
+            {
+                break;
+            }
 
             // There's also no point in reading more bytes than needed.
-            if (_rxbufWanted > 0 && _rxbuf.size() >= _rxbufWanted) break;
+            if (_rxbufWanted > 0 && _rxbuf.size() >= _rxbufWanted)
+            {
+                break;
+            }
 
             std::ptrdiff_t ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
 
@@ -1233,7 +1275,10 @@ namespace ix
             else
             {
                 _rxbuf.insert(_rxbuf.end(), _readbuf.begin(), _readbuf.begin() + ret);
-                if (isAbnormalClose()) break;
+                if (isAbnormalClose())
+                {
+                    break;
+                }
             }
         }
 
@@ -1308,7 +1353,10 @@ namespace ix
             // CLOSED back to CLOSING or replace another caller's close request.
             if (_readyState != ReadyState::CLOSING && _readyState != ReadyState::CLOSED)
             {
-                if (closeWireSize == 0) closeWireSize = reason.size();
+                if (closeWireSize == 0)
+                {
+                    closeWireSize = reason.size();
+                }
                 setCloseReason(reason);
                 _closeCode = code;
                 _closeWireSize = closeWireSize;
@@ -1349,8 +1397,8 @@ namespace ix
             // interrupt event to happen.
             bool wakeUpPoll = false;
             {
-              std::lock_guard<std::mutex> lock(_socketMutex);
-              wakeUpPoll = (_socket && _socket->isWakeUpFromPollSupported());
+                std::lock_guard<std::mutex> lock(_socketMutex);
+                wakeUpPoll = (_socket && _socket->isWakeUpFromPollSupported());
             }
             if (wakeUpPoll)
             {

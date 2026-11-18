@@ -296,7 +296,9 @@ TEST_CASE("URL schemes stay ASCII in single byte locales", "[url][components]")
         }
     } restore {saved};
     if (!std::setlocale(LC_CTYPE, "en_US.ISO8859-1"))
+    {
         SKIP("Single-byte test locale is unavailable");
+    }
     std::string protocol, host, path, query;
     int port = 0;
     CHECK_FALSE(ix::UrlParser::parse("h\xe9ttp://example.com/", protocol, host, path, query, port));

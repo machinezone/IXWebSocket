@@ -39,7 +39,7 @@ namespace ix
     Uuid::Uuid()
     {
         static std::random_device rd;
-        static std::uniform_int_distribution<uint64_t> dist(0, (uint64_t)(~0));
+        static std::uniform_int_distribution<uint64_t> dist(0, (uint64_t) (~0));
 
         _ab = dist(rd);
         _cd = dist(rd);

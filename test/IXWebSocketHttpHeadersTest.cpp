@@ -70,7 +70,9 @@ namespace
                               std::shared_ptr<ix::ConnectionState> state) override
         {
             if (std::get<0>(ix::Http::parseRequest(socket, 2)))
+            {
                 ix::Http::sendResponse(_response, socket);
+            }
             state->setTerminated();
         }
 
@@ -198,7 +200,9 @@ TEST_CASE("Rejected WebSocket handshakes expose response headers", "[websocket][
         [&error](const ix::WebSocketMessagePtr& message)
         {
             if (message->type == ix::WebSocketMessageType::Error)
+            {
                 error.set_value(message->errorInfo);
+            }
         });
     client.start();
     const auto ready = result.wait_for(std::chrono::seconds(2));
@@ -233,5 +237,8 @@ TEST_CASE("Handshake error reasons omit status line endings", "[websocket][http]
     CHECK_FALSE(result.success);
     CHECK(result.errorStr.find(statusLine) != std::string::npos);
     CHECK(result.errorStr.find_first_of("\r\n") == std::string::npos);
-    if (result.http_status == 503) CHECK(result.headers.at("Retry-After") == "60");
+    if (result.http_status == 503)
+    {
+        CHECK(result.headers.at("Retry-After") == "60");
+    }
 }

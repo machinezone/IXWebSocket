@@ -93,9 +93,18 @@ namespace
         static int send(void* context, const unsigned char* data, size_t size)
         {
             auto& peer = *static_cast<MemoryPeer*>(context);
-            if (peer.failWrites) return MBEDTLS_ERR_NET_SEND_FAILED;
-            if (peer.writesBeforeBlocking == 0) return peer.blockedResult;
-            if (peer.writesBeforeBlocking > 0) --peer.writesBeforeBlocking;
+            if (peer.failWrites)
+            {
+                return MBEDTLS_ERR_NET_SEND_FAILED;
+            }
+            if (peer.writesBeforeBlocking == 0)
+            {
+                return peer.blockedResult;
+            }
+            if (peer.writesBeforeBlocking > 0)
+            {
+                --peer.writesBeforeBlocking;
+            }
             peer.other->incoming.insert(peer.other->incoming.end(), data, data + size);
             return static_cast<int>(size);
         }
@@ -103,8 +112,14 @@ namespace
         static int receive(void* context, unsigned char* data, size_t size)
         {
             auto& peer = *static_cast<MemoryPeer*>(context);
-            if (peer.failReads) return MBEDTLS_ERR_NET_RECV_FAILED;
-            if (peer.incoming.empty()) return MBEDTLS_ERR_SSL_WANT_READ;
+            if (peer.failReads)
+            {
+                return MBEDTLS_ERR_NET_RECV_FAILED;
+            }
+            if (peer.incoming.empty())
+            {
+                return MBEDTLS_ERR_SSL_WANT_READ;
+            }
             const size_t count = (std::min) (size, peer.incoming.size());
             for (size_t i = 0; i < count; ++i)
             {
@@ -118,8 +133,13 @@ namespace
         {
             const int* supported = mbedtls_ssl_list_ciphersuites();
             while (*supported && *supported != MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256)
+            {
                 ++supported;
-            if (!*supported) SKIP("TLS 1.2 PSK AES-GCM ciphersuite is not enabled");
+            }
+            if (!*supported)
+            {
+                SKIP("TLS 1.2 PSK AES-GCM ciphersuite is not enabled");
+            }
             REQUIRE(psa_crypto_init() == PSA_SUCCESS);
             REQUIRE(
                 mbedtls_ssl_config_defaults(&config,
@@ -165,8 +185,14 @@ namespace
             bool serverReady = false;
             for (int attempt = 0; attempt < 100 && !(clientReady && serverReady); ++attempt)
             {
-                if (!clientReady) clientReady = handshake(client.ssl);
-                if (!serverReady) serverReady = handshake(server.ssl);
+                if (!clientReady)
+                {
+                    clientReady = handshake(client.ssl);
+                }
+                if (!serverReady)
+                {
+                    serverReady = handshake(server.ssl);
+                }
             }
             REQUIRE(clientReady);
             REQUIRE(serverReady);
@@ -194,7 +220,10 @@ namespace
             for (int attempt = 0; attempt < 100; ++attempt)
             {
                 const int count = mbedtls_ssl_read(&server.ssl, buffer, sizeof(buffer));
-                if (count == MBEDTLS_ERR_SSL_WANT_READ) return output;
+                if (count == MBEDTLS_ERR_SSL_WANT_READ)
+                {
+                    return output;
+                }
                 REQUIRE(count > 0);
                 output.insert(output.end(), buffer, buffer + count);
             }
@@ -299,9 +328,13 @@ TEST_CASE("MbedTLS terminal reads clear a previous wait status", "[socket_mbedtl
     REQUIRE(socket.recv(&byte, 1) == -1);
     REQUIRE(ix::Socket::isWaitNeeded());
     if (clean)
+    {
         REQUIRE(mbedtls_ssl_close_notify(&connection.server.ssl) == 0);
+    }
     else
+    {
         connection.client.failReads = true;
+    }
     CHECK(socket.recv(&byte, 1) == (clean ? 0 : -1));
     CHECK_FALSE(ix::Socket::isWaitNeeded());
 }
@@ -325,7 +358,10 @@ TEST_CASE("MbedTLS client handshakes stop on readiness errors", "[socket_mbedtls
     REQUIRE(ix::SocketMbedTLSWriteTestAccess::reset(socket) == 0);
     connection.client.incoming.clear();
     connection.server.incoming.clear();
-    if (blockedWrite) connection.client.writesBeforeBlocking = 0;
+    if (blockedWrite)
+    {
+        connection.client.writesBeforeBlocking = 0;
+    }
     unsigned checks = 0;
     std::string error;
     CHECK_FALSE(

@@ -5,6 +5,7 @@
  */
 
 #include "IXNetSystem.h"
+
 #include <cstdint>
 #include <cstdio>
 #ifdef IXWEBSOCKET_USE_MBED_TLS
@@ -15,10 +16,10 @@
 #endif
 #ifdef _WIN32
 #ifndef EAFNOSUPPORT
-  #define EAFNOSUPPORT 102
+#define EAFNOSUPPORT 102
 #endif
 #ifndef ENOSPC
-  #define ENOSPC 28
+#define ENOSPC 28
 #endif
 #include <vector>
 #endif
@@ -44,7 +45,8 @@ namespace ix
 
     bool uninitNetSystem()
     {
-#if defined(IXWEBSOCKET_USE_MBED_TLS) && (MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6))
+#if defined(IXWEBSOCKET_USE_MBED_TLS) &&                                                           \
+    (MBEDTLS_VERSION_MAJOR >= 4 || (MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 6))
         mbedtls_psa_crypto_free();
 #endif
 #ifdef _WIN32
@@ -78,8 +80,10 @@ namespace ix
             {
                 // We must deselect the networkevents from the socket event. Otherwise the
                 // socket will report states that aren't there.
-                if (_fd != nullptr && (int)_fd->fd != -1)
+                if (_fd != nullptr && (int) _fd->fd != -1)
+                {
                     WSAEventSelect(_fd->fd, _event, 0);
+                }
                 WSACloseEvent(_event);
             }
         }
@@ -149,9 +153,16 @@ namespace ix
 
                     // mapping
                     long networkEvents = 0;
-                    if (fd->events & (POLLIN                               )) networkEvents |= FD_READ  | FD_ACCEPT | FD_CLOSE;
-                    if (fd->events & (POLLOUT /*| POLLWRNORM | POLLWRBAND*/)) networkEvents |= FD_WRITE | FD_CONNECT;
-                    //if (fd->events & (POLLPRI | POLLRDBAND               )) networkEvents |= FD_OOB;
+                    if (fd->events & (POLLIN))
+                    {
+                        networkEvents |= FD_READ | FD_ACCEPT | FD_CLOSE;
+                    }
+                    if (fd->events & (POLLOUT /*| POLLWRNORM | POLLWRBAND*/))
+                    {
+                        networkEvents |= FD_WRITE | FD_CONNECT;
+                    }
+                    // if (fd->events & (POLLPRI | POLLRDBAND               )) networkEvents |=
+                    // FD_OOB;
 
                     if (WSAEventSelect(fd->fd, handle, networkEvents) != 0)
                     {
@@ -162,10 +173,21 @@ namespace ix
                 }
             }
 
-            DWORD n = WSAWaitForMultipleEvents(static_cast<DWORD>(handles.size()), handles.data(), FALSE, timeout != -1 ? static_cast<DWORD>(timeout) : WSA_INFINITE, FALSE);
+            DWORD n =
+                WSAWaitForMultipleEvents(static_cast<DWORD>(handles.size()),
+                                         handles.data(),
+                                         FALSE,
+                                         timeout != -1 ? static_cast<DWORD>(timeout) : WSA_INFINITE,
+                                         FALSE);
 
-            if (n == WSA_WAIT_FAILED) return SOCKET_ERROR;
-            if (n == WSA_WAIT_TIMEOUT) return 0;
+            if (n == WSA_WAIT_FAILED)
+            {
+                return SOCKET_ERROR;
+            }
+            if (n == WSA_WAIT_TIMEOUT)
+            {
+                return 0;
+            }
             if (n == WSA_WAIT_EVENT_0)
             {
                 // the interrupt event was signaled
@@ -178,9 +200,9 @@ namespace ix
 
             WSANETWORKEVENTS netEvents;
             int count = 0;
-            // WSAWaitForMultipleEvents returns the index of the first signaled event. And to emulate WSAPoll()
-            // all the signaled events must be processed.
-            while (socketIndex < (int)socketEvents.size())
+            // WSAWaitForMultipleEvents returns the index of the first signaled event. And to
+            // emulate WSAPoll() all the signaled events must be processed.
+            while (socketIndex < (int) socketEvents.size())
             {
                 struct pollfd* fd = socketEvents[socketIndex];
 
@@ -192,9 +214,18 @@ namespace ix
                 else if (netEvents.lNetworkEvents != 0)
                 {
                     // mapping
-                    if (netEvents.lNetworkEvents & (FD_READ  | FD_ACCEPT | FD_OOB | FD_CLOSE)) fd->revents |= POLLIN;
-                    if (netEvents.lNetworkEvents & (FD_WRITE | FD_CONNECT                   )) fd->revents |= POLLOUT;
-                    if (netEvents.lNetworkEvents & (FD_CLOSE                                )) fd->revents |= POLLHUP;
+                    if (netEvents.lNetworkEvents & (FD_READ | FD_ACCEPT | FD_OOB | FD_CLOSE))
+                    {
+                        fd->revents |= POLLIN;
+                    }
+                    if (netEvents.lNetworkEvents & (FD_WRITE | FD_CONNECT))
+                    {
+                        fd->revents |= POLLOUT;
+                    }
+                    if (netEvents.lNetworkEvents & (FD_CLOSE))
+                    {
+                        fd->revents |= POLLHUP;
+                    }
 
                     for (int i = 0; i < FD_MAX_EVENTS; ++i)
                     {
@@ -218,7 +249,10 @@ namespace ix
         }
         else
         {
-            if (event && *event) *event = nullptr;
+            if (event && *event)
+            {
+                *event = nullptr;
+            }
 
             socket_t maxfd = 0;
             fd_set readfds, writefds, errorfds;
@@ -252,7 +286,11 @@ namespace ix
             tv.tv_sec = timeout / 1000;
             tv.tv_usec = (timeout % 1000) * 1000;
 
-            int ret = select(static_cast<int>(maxfd + 1), &readfds, &writefds, &errorfds, timeout != -1 ? &tv : NULL);
+            int ret = select(static_cast<int>(maxfd + 1),
+                             &readfds,
+                             &writefds,
+                             &errorfds,
+                             timeout != -1 ? &tv : NULL);
 
             if (ret < 0)
             {
@@ -280,7 +318,10 @@ namespace ix
             return ret;
         }
 #else
-        if (event && *event) *event = nullptr;
+        if (event && *event)
+        {
+            *event = nullptr;
+        }
 
         //
         // It was reported that on Android poll can fail and return -1 with
@@ -314,10 +355,14 @@ namespace ix
         switch (af)
         {
             case AF_INET:
-                if (snprintf(s, l, "%d.%d.%d.%d", a[0], a[1], a[2], a[3]) < l) return s;
+                if (snprintf(s, l, "%d.%d.%d.%d", a[0], a[1], a[2], a[3]) < l)
+                {
+                    return s;
+                }
                 break;
             case AF_INET6:
                 if (memcmp(a, "\0\0\0\0\0\0\0\0\0\0\377\377", 12))
+                {
                     snprintf(buf,
                              sizeof buf,
                              "%x:%x:%x:%x:%x:%x:%x:%x",
@@ -329,7 +374,9 @@ namespace ix
                              256 * a[10] + a[11],
                              256 * a[12] + a[13],
                              256 * a[14] + a[15]);
+                }
                 else
+                {
                     snprintf(buf,
                              sizeof buf,
                              "%x:%x:%x:%x:%x:%x:%d.%d.%d.%d",
@@ -343,19 +390,26 @@ namespace ix
                              a[13],
                              a[14],
                              a[15]);
+                }
                 /* Replace longest /(^0|:)[:0]{2,}/ with "::" */
                 for (i = best = 0, max = 2; buf[i]; i++)
                 {
-                    if (i && buf[i] != ':') continue;
+                    if (i && buf[i] != ':')
+                    {
+                        continue;
+                    }
                     j = strspn(buf + i, ":0");
-                    if (j > max) best = i, max = j;
+                    if (j > max)
+                    {
+                        best = i, max = j;
+                    }
                 }
                 if (max > 3)
                 {
                     buf[best] = buf[best + 1] = ':';
                     memmove(buf + best + 2, buf + best + max, i - best - max + 1);
                 }
-                if (strlen(buf) < (size_t)l)
+                if (strlen(buf) < (size_t) l)
                 {
                     strcpy(s, buf);
                     return s;
@@ -373,9 +427,15 @@ namespace ix
 #if defined(_WIN32) && defined(__GNUC__)
     static int hexval(unsigned c)
     {
-        if (c - '0' < 10) return c - '0';
+        if (c - '0' < 10)
+        {
+            return c - '0';
+        }
         c |= 32;
-        if (c - 'a' < 6) return c - 'a' + 10;
+        if (c - 'a' < 6)
+        {
+            return c - 'a' + 10;
+        }
         return -1;
     }
 #endif
@@ -395,11 +455,22 @@ namespace ix
             for (i = 0; i < 4; i++)
             {
                 for (v = j = 0; j < 3 && isdigit(s[j]); j++)
+                {
                     v = 10 * v + s[j] - '0';
-                if (j == 0 || (j > 1 && s[0] == '0') || v > 255) return 0;
+                }
+                if (j == 0 || (j > 1 && s[0] == '0') || v > 255)
+                {
+                    return 0;
+                }
                 a[i] = v;
-                if (s[j] == 0 && i == 3) return 1;
-                if (s[j] != '.') return 0;
+                if (s[j] == 0 && i == 3)
+                {
+                    return 1;
+                }
+                if (s[j] != '.')
+                {
+                    return 0;
+                }
                 s += j + 1;
             }
             return 0;
@@ -410,7 +481,10 @@ namespace ix
             return -1;
         }
 
-        if (*s == ':' && *++s != ':') return 0;
+        if (*s == ':' && *++s != ':')
+        {
+            return 0;
+        }
 
         for (i = 0;; i++)
         {
@@ -418,19 +492,39 @@ namespace ix
             {
                 brk = i;
                 ip[i & 7] = 0;
-                if (!*++s) break;
-                if (i == 7) return 0;
+                if (!*++s)
+                {
+                    break;
+                }
+                if (i == 7)
+                {
+                    return 0;
+                }
                 continue;
             }
             for (v = j = 0; j < 4 && (d = hexval(s[j])) >= 0; j++)
+            {
                 v = 16 * v + d;
-            if (j == 0) return 0;
+            }
+            if (j == 0)
+            {
+                return 0;
+            }
             ip[i & 7] = v;
-            if (!s[j] && (brk >= 0 || i == 7)) break;
-            if (i == 7) return 0;
+            if (!s[j] && (brk >= 0 || i == 7))
+            {
+                break;
+            }
+            if (i == 7)
+            {
+                return 0;
+            }
             if (s[j] != ':')
             {
-                if (s[j] != '.' || (i < 6 && brk < 0)) return 0;
+                if (s[j] != '.' || (i < 6 && brk < 0))
+                {
+                    return 0;
+                }
                 need_v4 = 1;
                 i++;
                 break;
@@ -441,14 +535,19 @@ namespace ix
         {
             memmove(ip + brk + 7 - i, ip + brk, 2 * (i + 1 - brk));
             for (j = 0; j < 7 - i; j++)
+            {
                 ip[brk + j] = 0;
+            }
         }
         for (j = 0; j < 8; j++)
         {
             *a++ = ip[j] >> 8;
             *a++ = ip[j];
         }
-        if (need_v4 && inet_pton(AF_INET, (const char*) s, a - 4) <= 0) return 0;
+        if (need_v4 && inet_pton(AF_INET, (const char*) s, a - 4) <= 0)
+        {
+            return 0;
+        }
         return 1;
 #else
         return ::inet_pton(af, s, a0);
@@ -458,14 +557,14 @@ namespace ix
     // Convert network bytes to host bytes. Copied from the ASIO library
     unsigned short network_to_host_short(unsigned short value)
     {
-        #if defined(_WIN32)
-          unsigned char* value_p = reinterpret_cast<unsigned char*>(&value);
-          unsigned short result = (static_cast<unsigned short>(value_p[0]) << 8)
-            | static_cast<unsigned short>(value_p[1]);
-          return result;
-        #else // defined(_WIN32)
-          return ntohs(value);
-        #endif // defined(_WIN32)
+#if defined(_WIN32)
+        unsigned char* value_p = reinterpret_cast<unsigned char*>(&value);
+        unsigned short result = (static_cast<unsigned short>(value_p[0]) << 8) |
+                                static_cast<unsigned short>(value_p[1]);
+        return result;
+#else  // defined(_WIN32)
+        return ntohs(value);
+#endif // defined(_WIN32)
     }
 
 } // namespace ix

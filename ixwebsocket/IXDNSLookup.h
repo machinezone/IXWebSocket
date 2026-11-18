@@ -31,14 +31,14 @@ namespace ix
         ~DNSLookup() = default;
 
         AddrInfoPtr resolve(std::string& errMsg,
-                                 const CancellationRequest& isCancellationRequested,
-                                 bool cancellable = true);
+                            const CancellationRequest& isCancellationRequested,
+                            bool cancellable = true);
 
     private:
         AddrInfoPtr resolveCancellable(std::string& errMsg,
-                                            const CancellationRequest& isCancellationRequested);
+                                       const CancellationRequest& isCancellationRequested);
         AddrInfoPtr resolveUnCancellable(std::string& errMsg,
-                                              const CancellationRequest& isCancellationRequested);
+                                         const CancellationRequest& isCancellationRequested);
 
         static AddrInfoPtr getAddrInfo(const std::string& hostname, int port, std::string& errMsg);
 

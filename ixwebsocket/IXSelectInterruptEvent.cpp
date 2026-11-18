@@ -8,8 +8,9 @@
 // emulate the interrupt event by using a short timeout with ix::poll() and
 // read from the SelectInterrupt. (see Socket::poll() "Emulation mode")
 //
-#include <algorithm>
 #include "IXSelectInterruptEvent.h"
+
+#include <algorithm>
 
 namespace ix
 {
@@ -38,7 +39,9 @@ namespace ix
 
         // WebSocket implementation detail: We only need one of the values in the queue
         if (std::find(_values.begin(), _values.end(), value) == _values.end())
+        {
             _values.push_back(value);
+        }
 #ifdef _WIN32
         SetEvent(_event); // wake up
 #endif
@@ -56,7 +59,9 @@ namespace ix
 #ifdef _WIN32
             // signal the event if there is still data in the queue
             if (_values.size() == 0)
+            {
                 ResetEvent(_event);
+            }
 #endif
             return value;
         }

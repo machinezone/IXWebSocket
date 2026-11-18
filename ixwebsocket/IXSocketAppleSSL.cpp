@@ -71,7 +71,10 @@ namespace ix
         auto* socket = static_cast<SocketAppleSSL*>(const_cast<void*>(connection));
         int fd = socket->_sockfd;
         socket->_handshakeWantsRead = true;
-        if (fd < 0) return errSSLInternal;
+        if (fd < 0)
+        {
+            return errSSLInternal;
+        }
 
         assert(data != nullptr);
         assert(len != nullptr);
@@ -121,7 +124,10 @@ namespace ix
         auto* socket = static_cast<SocketAppleSSL*>(const_cast<void*>(connection));
         int fd = socket->_sockfd;
         socket->_handshakeWantsRead = false;
-        if (fd < 0) return errSSLInternal;
+        if (fd < 0)
+        {
+            return errSSLInternal;
+        }
 
         assert(data != nullptr);
         assert(len != nullptr);
@@ -209,7 +215,10 @@ namespace ix
             std::lock_guard<std::mutex> lock(_mutex);
 
             _sockfd = connectToHost(host, port, errMsg, isCancellationRequested);
-            if (_sockfd == -1) return false;
+            if (_sockfd == -1)
+            {
+                return false;
+            }
 
             _sslContext = SSLCreateContext(kCFAllocatorDefault, kSSLClientSide, kSSLStreamType);
 
@@ -219,7 +228,9 @@ namespace ix
             SSLSetProtocolVersionMin(_sslContext, kTLSProtocol12);
 
             if (!_tlsOptions.disable_hostname_validation)
+            {
                 SSLSetPeerDomainName(_sslContext, host.c_str(), host.size());
+            }
 
             if (_tlsOptions.isPeerVerifyDisabled())
             {
@@ -273,7 +284,10 @@ namespace ix
             std::lock_guard<std::mutex> lock(_mutex);
             status = SSLWrite(_sslContext, buf, nbyte, &processed);
 
-            if (processed > 0) return (std::ptrdiff_t) processed;
+            if (processed > 0)
+            {
+                return (std::ptrdiff_t) processed;
+            }
 
             // The connection was reset, inform the caller that this
             // Socket should close
@@ -304,7 +318,10 @@ namespace ix
             std::lock_guard<std::mutex> lock(_mutex);
             status = SSLRead(_sslContext, buf, nbyte, &processed);
 
-            if (processed > 0) return (std::ptrdiff_t) processed;
+            if (processed > 0)
+            {
+                return (std::ptrdiff_t) processed;
+            }
 
             // The connection was reset, inform the caller that this
             // Socket should close

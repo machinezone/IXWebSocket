@@ -33,7 +33,9 @@ namespace ix
         } restore;
         if (!std::setlocale(LC_CTYPE, "en_US.ISO8859-1") &&
             !std::setlocale(LC_CTYPE, "tr_TR.ISO8859-9"))
+        {
             SKIP("No single-byte non-ASCII locale installed");
+        }
         CHECK(client.urlEncode("\xc4\xe4") == "%C4%E4");
         CHECK(client.urlEncode("\xc3\xa9") == "%C3%A9");
     }
@@ -43,23 +45,31 @@ namespace ix
         std::vector<std::vector<std::string>> boundaries(4);
         std::vector<std::thread> workers;
         for (size_t i = 0; i < boundaries.size(); ++i)
+        {
             workers.emplace_back(
                 [&, i]
                 {
                     HttpClient client;
                     for (int j = 0; j < 32; ++j)
+                    {
                         boundaries[i].push_back(client.generateMultipartBoundary());
+                    }
                 });
+        }
         for (auto& worker : workers)
+        {
             worker.join();
+        }
         const std::string alphabet =
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         for (auto& group : boundaries)
+        {
             for (auto boundary : group)
             {
                 std::sort(boundary.begin(), boundary.end());
                 CHECK(boundary == alphabet);
             }
+        }
     }
 
     TEST_CASE("http", "[http]")

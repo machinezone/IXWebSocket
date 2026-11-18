@@ -191,7 +191,10 @@ namespace ix
 
     void WebSocket::start()
     {
-        if (_thread.joinable()) return; // we've already been started
+        if (_thread.joinable())
+        {
+            return; // we've already been started
+        }
 
         _thread = std::thread(&WebSocket::run, this);
     }
@@ -200,11 +203,12 @@ namespace ix
     {
         const bool isJoinable = _thread.joinable();
 
-        if(isJoinable)
+        if (isJoinable)
         {
             // we need to set _stop before close()
-            // otherwise automatic reconnection might restart the connection before _stop has a chance to get set
-            // this can happen during high CPU load => _thread.join() below blocks indefinitely
+            // otherwise automatic reconnection might restart the connection before _stop has a
+            // chance to get set this can happen during high CPU load => _thread.join() below blocks
+            // indefinitely
             _stop = true;
             _sleepCondition.notify_one();
         }
@@ -255,7 +259,7 @@ namespace ix
             // 'json,msgpack'
             //
             int i = 0;
-            for (const auto & subProtocol : subProtocols)
+            for (const auto& subProtocol : subProtocols)
             {
                 if (i++ != 0)
                 {
@@ -457,7 +461,10 @@ namespace ix
             }
 
             // We can avoid to poll if we want to stop and are not closing
-            if (_stop && !isClosing()) break;
+            if (_stop && !isClosing())
+            {
+                break;
+            }
 
             // 2. Poll to see if there's any new data available
             WebSocketTransport::PollResult pollResult = _ws.poll();
@@ -592,7 +599,10 @@ namespace ix
     {
         // Standard limit ping message size
         constexpr size_t pingMaxPayloadSize = 125;
-        if (text.size() > pingMaxPayloadSize) return WebSocketSendInfo(false);
+        if (text.size() > pingMaxPayloadSize)
+        {
+            return WebSocketSendInfo(false);
+        }
 
         return sendMessage(text, pingType);
     }
@@ -601,7 +611,10 @@ namespace ix
                                              SendMessageKind sendMessageKind,
                                              const OnProgressCallback& onProgressCallback)
     {
-        if (!isConnected()) return WebSocketSendInfo(false);
+        if (!isConnected())
+        {
+            return WebSocketSendInfo(false);
+        }
 
         //
         // It is OK to read and write on the same socket in 2 different threads.

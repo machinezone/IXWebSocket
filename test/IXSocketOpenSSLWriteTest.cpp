@@ -55,16 +55,26 @@ namespace
         {
             auto& peer = *static_cast<MemoryPeer*>(BIO_get_data(bio));
             BIO_clear_retry_flags(bio);
-            if (peer.failWrites) return -1;
+            if (peer.failWrites)
+            {
+                return -1;
+            }
             if (peer.writesBeforeBlocking == 0)
             {
                 if (peer.wantRead)
+                {
                     BIO_set_retry_read(bio);
+                }
                 else
+                {
                     BIO_set_retry_write(bio);
+                }
                 return -1;
             }
-            if (peer.writesBeforeBlocking > 0) --peer.writesBeforeBlocking;
+            if (peer.writesBeforeBlocking > 0)
+            {
+                --peer.writesBeforeBlocking;
+            }
             peer.other->incoming.insert(peer.other->incoming.end(), data, data + size);
             return size;
         }
@@ -73,8 +83,14 @@ namespace
         {
             auto& peer = *static_cast<MemoryPeer*>(BIO_get_data(bio));
             BIO_clear_retry_flags(bio);
-            if (peer.failReads) return -1;
-            if (peer.eof && peer.incoming.empty()) return 0;
+            if (peer.failReads)
+            {
+                return -1;
+            }
+            if (peer.eof && peer.incoming.empty())
+            {
+                return 0;
+            }
             if (peer.incoming.empty())
             {
                 BIO_set_retry_read(bio);
@@ -91,10 +107,15 @@ namespace
 
         static long control(BIO* bio, int command, long, void*)
         {
-            if (command == BIO_CTRL_FLUSH) return 1;
+            if (command == BIO_CTRL_FLUSH)
+            {
+                return 1;
+            }
             if (command == BIO_CTRL_PENDING)
+            {
                 return static_cast<long>(
                     static_cast<MemoryPeer*>(BIO_get_data(bio))->incoming.size());
+            }
             return 0;
         }
 
@@ -129,7 +150,10 @@ namespace
                                       unsigned int keySize)
         {
             const char name[] = "write-test";
-            if (identitySize < sizeof(name) || keySize < 16) return 0;
+            if (identitySize < sizeof(name) || keySize < 16)
+            {
+                return 0;
+            }
             std::memcpy(identity, name, sizeof(name));
             std::memset(key, 17, 16);
             return 16;
@@ -137,7 +161,10 @@ namespace
 
         static unsigned int pskServer(SSL*, const char*, unsigned char* key, unsigned int keySize)
         {
-            if (keySize < 16) return 0;
+            if (keySize < 16)
+            {
+                return 0;
+            }
             std::memset(key, 17, 16);
             return 16;
         }
@@ -151,7 +178,9 @@ namespace
             REQUIRE(SSL_CTX_set_min_proto_version(context, TLS1_2_VERSION) == 1);
             REQUIRE(SSL_CTX_set_max_proto_version(context, TLS1_2_VERSION) == 1);
             if (SSL_CTX_set_cipher_list(context, "PSK-AES128-GCM-SHA256") != 1)
+            {
                 SKIP("TLS 1.2 PSK AES-GCM ciphersuite is not enabled");
+            }
             SSL_CTX_set_mode(context,
                              SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
             SSL_CTX_set_psk_client_callback(context, pskClient);
@@ -163,9 +192,13 @@ namespace
             BIO_set_data(bio, this);
             SSL_set_bio(ssl, bio, bio);
             if (server)
+            {
                 SSL_set_accept_state(ssl);
+            }
             else
+            {
                 SSL_set_connect_state(ssl);
+            }
         }
     };
 
@@ -187,8 +220,14 @@ namespace
             bool serverReady = false;
             for (int attempt = 0; attempt < 100 && !(clientReady && serverReady); ++attempt)
             {
-                if (!clientReady) clientReady = handshake(client.ssl);
-                if (!serverReady) serverReady = handshake(server.ssl);
+                if (!clientReady)
+                {
+                    clientReady = handshake(client.ssl);
+                }
+                if (!serverReady)
+                {
+                    serverReady = handshake(server.ssl);
+                }
             }
             REQUIRE(clientReady);
             REQUIRE(serverReady);
@@ -218,7 +257,10 @@ namespace
             {
                 ERR_clear_error();
                 const int count = SSL_read(server.ssl, buffer, sizeof(buffer));
-                if (SSL_get_error(server.ssl, count) == SSL_ERROR_WANT_READ) return output;
+                if (SSL_get_error(server.ssl, count) == SSL_ERROR_WANT_READ)
+                {
+                    return output;
+                }
                 REQUIRE(count > 0);
                 output.insert(output.end(), buffer, buffer + count);
             }
@@ -273,13 +315,22 @@ TEST_CASE("OpenSSL terminal reads clear a previous wait status", "[socket_openss
     REQUIRE(socket.recv(&byte, 1) == -1);
     REQUIRE(ix::Socket::isWaitNeeded());
     if (terminal == 0)
+    {
         REQUIRE(SSL_shutdown(connection.server.ssl) == 0);
+    }
     else if (terminal == 1)
+    {
         connection.client.failReads = true;
+    }
     else
+    {
         connection.client.eof = true;
+    }
     CHECK(socket.recv(&byte, 1) == (terminal == 0 ? 0 : -1));
-    if (terminal != 0) CHECK(ix::Socket::getErrno() != 0);
+    if (terminal != 0)
+    {
+        CHECK(ix::Socket::getErrno() != 0);
+    }
     CHECK_FALSE(ix::Socket::isWaitNeeded());
 }
 
@@ -301,7 +352,10 @@ TEST_CASE("OpenSSL client handshakes stop on readiness errors", "[socket_openssl
     REQUIRE(ix::SocketOpenSSLWriteTestAccess::reset(socket) == 1);
     connection.client.incoming.clear();
     connection.server.incoming.clear();
-    if (blockedWrite) connection.client.writesBeforeBlocking = 0;
+    if (blockedWrite)
+    {
+        connection.client.writesBeforeBlocking = 0;
+    }
     unsigned checks = 0;
     std::string error;
     CHECK_FALSE(

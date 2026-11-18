@@ -186,7 +186,10 @@ TEST_CASE("Pending TLS handshakes count toward the connection limit", "[tls][ser
     do
     {
         response = fixture.request();
-        if (response->errorCode == ix::HttpErrorCode::Ok) break;
+        if (response->errorCode == ix::HttpErrorCode::Ok)
+        {
+            break;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     } while (Clock::now() < deadline);
     INFO(response->errorMsg);

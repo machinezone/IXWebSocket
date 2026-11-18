@@ -32,7 +32,10 @@ namespace ix
             NetworkSignal()
             {
                 int fds[2];
-                if (::pipe(fds) != 0) return;
+                if (::pipe(fds) != 0)
+                {
+                    return;
+                }
                 readFd = fds[0];
                 writeFd = fds[1];
                 for (int fd : fds)
@@ -50,8 +53,14 @@ namespace ix
             }
             ~NetworkSignal()
             {
-                if (readFd != -1) ::close(readFd);
-                if (writeFd != -1) ::close(writeFd);
+                if (readFd != -1)
+                {
+                    ::close(readFd);
+                }
+                if (writeFd != -1)
+                {
+                    ::close(writeFd);
+                }
             }
             void notify()
             {
@@ -78,7 +87,10 @@ namespace ix
 
         std::string networkError(nw_error_t error)
         {
-            if (!error) return "Network.framework connection failed";
+            if (!error)
+            {
+                return "Network.framework connection failed";
+            }
             CFErrorRef cfError = nw_error_copy_cf_error(error);
             CFStringRef description = cfError ? CFErrorCopyDescription(cfError) : nullptr;
             char buffer[1024];
@@ -86,9 +98,17 @@ namespace ix
                 "Network.framework error " + std::to_string(nw_error_get_error_code(error));
             if (description &&
                 CFStringGetCString(description, buffer, sizeof(buffer), kCFStringEncodingUTF8))
+            {
                 result += ": " + std::string(buffer);
-            if (description) CFRelease(description);
-            if (cfError) CFRelease(cfError);
+            }
+            if (description)
+            {
+                CFRelease(description);
+            }
+            if (cfError)
+            {
+                CFRelease(cfError);
+            }
             return result;
         }
 
@@ -146,7 +166,10 @@ namespace ix
             CFRelease(data);
             if (status != errSecSuccess || !items || CFArrayGetCount(items) == 0)
             {
-                if (items) CFRelease(items);
+                if (items)
+                {
+                    CFRelease(items);
+                }
                 error = "Cannot import certificate/private key: " + std::to_string(status);
                 return nullptr;
             }
@@ -179,7 +202,10 @@ namespace ix
                 CFArrayRef keys = certs ? importPEM(readFile(options.keyFile), error) : nullptr;
                 if (!certs || !keys)
                 {
-                    if (certs) CFRelease(certs);
+                    if (certs)
+                    {
+                        CFRelease(certs);
+                    }
                     return nullptr;
                 }
                 auto cert = static_cast<SecCertificateRef>(
@@ -189,7 +215,9 @@ namespace ix
                 SecIdentityRef ref = nullptr;
                 if (CFGetTypeID(cert) == SecCertificateGetTypeID() &&
                     CFGetTypeID(key) == SecKeyGetTypeID())
+                {
                     ref = SecIdentityCreate(nullptr, cert, key);
+                }
                 if (ref)
                 {
                     identity = sec_identity_create_with_certificates(ref, certs);
@@ -211,7 +239,10 @@ namespace ix
                                     error);
                 if (!anchors)
                 {
-                    if (identity) sec_release(identity);
+                    if (identity)
+                    {
+                        sec_release(identity);
+                    }
                     return nullptr;
                 }
                 for (CFIndex i = 0; i < CFArrayGetCount(anchors); ++i)
@@ -221,7 +252,10 @@ namespace ix
                     {
                         error = "CA bundle must contain only certificates";
                         CFRelease(anchors);
-                        if (identity) sec_release(identity);
+                        if (identity)
+                        {
+                            sec_release(identity);
+                        }
                         return nullptr;
                     }
                 }
@@ -230,15 +264,24 @@ namespace ix
             auto anchorOwner = std::shared_ptr<const void>(anchors,
                                                            [](const void* p)
                                                            {
-                                                               if (p) CFRelease(p);
+                                                               if (p)
+                                                               {
+                                                                   CFRelease(p);
+                                                               }
                                                            });
             nw_parameters_t parameters = nw_parameters_create_secure_tcp(
                 ^(nw_protocol_options_t tls) {
                     sec_protocol_options_t security = nw_tls_copy_sec_protocol_options(tls);
                     sec_protocol_options_set_min_tls_protocol_version(security,
                                                                       tls_protocol_version_TLSv12);
-                    if (identity) sec_protocol_options_set_local_identity(security, identity);
-                    if (!server) sec_protocol_options_set_tls_server_name(security, host.c_str());
+                    if (identity)
+                    {
+                        sec_protocol_options_set_local_identity(security, identity);
+                    }
+                    if (!server)
+                    {
+                        sec_protocol_options_set_tls_server_name(security, host.c_str());
+                    }
                     sec_protocol_options_set_peer_authentication_required(
                         security, !options.isPeerVerifyDisabled());
                     sec_protocol_options_set_verify_block(
@@ -261,7 +304,10 @@ namespace ix
                             bool valid =
                                 trust && policy &&
                                 (server || options.disable_hostname_validation || hostname);
-                            if (valid) valid = SecTrustSetPolicies(trust, policy) == errSecSuccess;
+                            if (valid)
+                            {
+                                valid = SecTrustSetPolicies(trust, policy) == errSecSuccess;
+                            }
                             if (valid && anchorOwner)
                             {
                                 valid =
@@ -270,10 +316,22 @@ namespace ix
                                         errSecSuccess &&
                                     SecTrustSetAnchorCertificatesOnly(trust, true) == errSecSuccess;
                             }
-                            if (valid) valid = SecTrustEvaluateWithError(trust, nullptr);
-                            if (policy) CFRelease(policy);
-                            if (hostname) CFRelease(hostname);
-                            if (trust) CFRelease(trust);
+                            if (valid)
+                            {
+                                valid = SecTrustEvaluateWithError(trust, nullptr);
+                            }
+                            if (policy)
+                            {
+                                CFRelease(policy);
+                            }
+                            if (hostname)
+                            {
+                                CFRelease(hostname);
+                            }
+                            if (trust)
+                            {
+                                CFRelease(trust);
+                            }
                             complete(valid);
                         },
                         dispatch_get_global_queue(QOS_CLASS_UTILITY, 0));
@@ -282,8 +340,14 @@ namespace ix
                 ^(nw_protocol_options_t tcp) {
                     nw_tcp_options_set_no_delay(tcp, true);
                 });
-            if (identity) sec_release(identity);
-            if (!parameters) error = "Cannot create Network.framework TLS parameters";
+            if (identity)
+            {
+                sec_release(identity);
+            }
+            if (!parameters)
+            {
+                error = "Cannot create Network.framework TLS parameters";
+            }
             return parameters;
         }
     } // namespace
@@ -321,7 +385,9 @@ namespace ix
         {
             if (state->receiving || state->closed || state->eof || !state->error.empty() ||
                 !state->input.empty())
+            {
                 return;
+            }
             state->receiving = true;
             std::weak_ptr<State> weak = state;
             nw_connection_receive(
@@ -330,10 +396,16 @@ namespace ix
                 65536,
                 ^(dispatch_data_t data, nw_content_context_t, bool complete, nw_error_t readError) {
                     auto s = weak.lock();
-                    if (!s) return;
+                    if (!s)
+                    {
+                        return;
+                    }
                     std::lock_guard<std::mutex> lock(s->mutex);
                     s->receiving = false;
-                    if (s->closed) return;
+                    if (s->closed)
+                    {
+                        return;
+                    }
                     if (data)
                     {
                         const void* bytes = nullptr;
@@ -342,18 +414,30 @@ namespace ix
                         if (mapped)
                         {
                             const char* begin = static_cast<const char*>(bytes);
-                            if (size) s->input.assign(begin, begin + size);
+                            if (size)
+                            {
+                                s->input.assign(begin, begin + size);
+                            }
                             dispatch_release(mapped);
                         }
                         else
+                        {
                             s->error = "Cannot map received TLS data";
+                        }
                     }
                     s->eof = complete;
-                    if (readError) s->error = networkError(readError);
+                    if (readError)
+                    {
+                        s->error = networkError(readError);
+                    }
                     if (!s->input.empty() || s->eof || !s->error.empty())
+                    {
                         s->signal.notify();
+                    }
                     else
+                    {
                         receive(s);
+                    }
                     s->changed.notify_all();
                 });
         }
@@ -388,7 +472,10 @@ namespace ix
             return false;
         }
         nw_parameters_t params = makeParameters(_options, false, host, error);
-        if (!params) return false;
+        if (!params)
+        {
+            return false;
+        }
         nw_endpoint_t endpoint =
             nw_endpoint_create_host(host.c_str(), std::to_string(port).c_str());
         if (!endpoint)
@@ -430,9 +517,15 @@ namespace ix
         nw_connection_set_state_changed_handler(
             s->connection, ^(nw_connection_state_t state, nw_error_t err) {
                 auto current = weak.lock();
-                if (!current) return;
+                if (!current)
+                {
+                    return;
+                }
                 std::lock_guard<std::mutex> guard(current->mutex);
-                if (current->closed) return;
+                if (current->closed)
+                {
+                    return;
+                }
                 if (state == nw_connection_state_ready)
                 {
                     current->ready = true;
@@ -463,7 +556,10 @@ namespace ix
             }
             s->changed.wait_for(lock, std::chrono::milliseconds(10));
         }
-        if (s->ready && !s->closed && s->error.empty()) return true;
+        if (s->ready && !s->closed && s->error.empty())
+        {
+            return true;
+        }
         error = s->error.empty() ? "TLS connection closed during handshake" : s->error;
         lock.unlock();
         close();
@@ -485,9 +581,15 @@ namespace ix
         _sockfd = -1;
         auto s = _state;
         std::lock_guard<std::mutex> lock(s->mutex);
-        if (s->closed) return;
+        if (s->closed)
+        {
+            return;
+        }
         s->closed = true;
-        if (s->connection) nw_connection_cancel(s->connection);
+        if (s->connection)
+        {
+            nw_connection_cancel(s->connection);
+        }
         s->signal.notify();
         s->changed.notify_all();
     }
@@ -501,7 +603,10 @@ namespace ix
             setErrno(ECONNRESET);
             return -1;
         }
-        if (!length) return 0;
+        if (!length)
+        {
+            return 0;
+        }
         if (s->sending)
         {
             setErrno(EWOULDBLOCK);
@@ -527,7 +632,10 @@ namespace ix
         nw_connection_send(
             s->connection, data, NW_CONNECTION_DEFAULT_MESSAGE_CONTEXT, true, ^(nw_error_t error) {
                 auto current = weak.lock();
-                if (!current) return;
+                if (!current)
+                {
+                    return;
+                }
                 std::lock_guard<std::mutex> guard(current->mutex);
                 current->sending = false;
                 current->sent = count;
@@ -549,7 +657,10 @@ namespace ix
     {
         auto s = _state;
         std::lock_guard<std::mutex> lock(s->mutex);
-        if (!length) return 0;
+        if (!length)
+        {
+            return 0;
+        }
         size_t count = std::min(length, s->input.size() - s->offset);
         if (count)
         {
@@ -559,7 +670,10 @@ namespace ix
             {
                 s->input.clear();
                 s->offset = 0;
-                if (!s->closed && !s->eof && s->error.empty()) s->signal.clear();
+                if (!s->closed && !s->eof && s->error.empty())
+                {
+                    s->signal.clear();
+                }
                 State::receive(s);
             }
             return static_cast<std::ptrdiff_t>(count);
@@ -584,9 +698,13 @@ namespace ix
         std::unique_lock<std::mutex> lock(s->mutex);
         auto available = [&] { return !s->sending || s->closed || !s->error.empty(); };
         if (timeoutMs < 0)
+        {
             s->changed.wait(lock, available);
+        }
         else if (!s->changed.wait_for(lock, std::chrono::milliseconds(timeoutMs), available))
+        {
             return PollResultType::Timeout;
+        }
         return s->closed || !s->error.empty() ? PollResultType::Error
                                               : PollResultType::ReadyForWrite;
     }
@@ -644,7 +762,10 @@ namespace ix
             return false;
         }
         nw_parameters_t parameters = makeParameters(options, true, "", error);
-        if (!parameters) return false;
+        if (!parameters)
+        {
+            return false;
+        }
         nw_parameters_set_reuse_local_address(parameters, true);
         nw_endpoint_t endpoint =
             nw_endpoint_create_host(host.c_str(), std::to_string(port).c_str());
@@ -670,9 +791,15 @@ namespace ix
         nw_listener_set_state_changed_handler(
             s->listener, ^(nw_listener_state_t state, nw_error_t err) {
                 auto current = weak.lock();
-                if (!current) return;
+                if (!current)
+                {
+                    return;
+                }
                 std::lock_guard<std::mutex> guard(current->mutex);
-                if (state == nw_listener_state_ready) current->ready = true;
+                if (state == nw_listener_state_ready)
+                {
+                    current->ready = true;
+                }
                 if (state == nw_listener_state_failed || state == nw_listener_state_waiting)
                 {
                     current->error = networkError(err);
@@ -724,10 +851,16 @@ namespace ix
                                                                int& remotePort)
     {
         std::lock_guard<std::mutex> lock(_state->mutex);
-        if (_state->pending.empty()) return nullptr;
+        if (_state->pending.empty())
+        {
+            return nullptr;
+        }
         auto connection = _state->pending.front();
         _state->pending.pop_front();
-        if (_state->pending.empty()) _state->signal.clear();
+        if (_state->pending.empty())
+        {
+            _state->signal.clear();
+        }
         nw_endpoint_t endpoint = nw_connection_copy_endpoint(connection);
         const char* hostname = nw_endpoint_get_hostname(endpoint);
         remoteIp = hostname ? hostname : "";
@@ -742,9 +875,15 @@ namespace ix
     void SocketNetworkListener::stop()
     {
         std::lock_guard<std::mutex> lock(_state->mutex);
-        if (_state->stopped) return;
+        if (_state->stopped)
+        {
+            return;
+        }
         _state->stopped = true;
-        if (_state->listener) nw_listener_cancel(_state->listener);
+        if (_state->listener)
+        {
+            nw_listener_cancel(_state->listener);
+        }
         for (auto connection : _state->pending)
         {
             nw_connection_cancel(connection);

@@ -13,4 +13,4 @@ namespace ix
 {
     using OnProgressCallback = std::function<bool(int current, int total)>;
     using OnChunkCallback = std::function<void(const std::string&)>;
-}
+} // namespace ix

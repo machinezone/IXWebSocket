@@ -53,18 +53,18 @@ namespace
 
 TEST_CASE("SocketMbedTLS close does not tear down process-global PSA state", "[socket_mbedtls]")
 {
-    SocketMbedTLS a(SocketTLSOptions{});
+    SocketMbedTLS a(SocketTLSOptions {});
     REQUIRE(psaStateWorks());
 
     {
-        SocketMbedTLS b(SocketTLSOptions{});
+        SocketMbedTLS b(SocketTLSOptions {});
         b.close();
     }
     REQUIRE(psaStateWorks());
 
     a.close();
 
-    SocketMbedTLS c(SocketTLSOptions{});
+    SocketMbedTLS c(SocketTLSOptions {});
     REQUIRE(psaStateWorks());
 }
 
@@ -72,7 +72,7 @@ TEST_CASE("uninitNetSystem releases PSA state and allows re-init", "[socket_mbed
 {
     REQUIRE(initNetSystem());
     {
-        SocketMbedTLS a(SocketTLSOptions{});
+        SocketMbedTLS a(SocketTLSOptions {});
         a.close();
     }
     REQUIRE(uninitNetSystem());

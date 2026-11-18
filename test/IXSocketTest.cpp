@@ -57,7 +57,10 @@ TEST_CASE("Completed socket reads do not wait for more data", "[socket][read]")
     MemorySocket socket("abc");
     std::string streamed;
     OnChunkCallback onChunk;
-    if (streaming) onChunk = [&](const std::string& bytes) { streamed += bytes; };
+    if (streaming)
+    {
+        onChunk = [&](const std::string& bytes) { streamed += bytes; };
+    }
     int progress = 0;
     auto result = socket.readBytes(
         3,
@@ -119,7 +122,10 @@ TEST_CASE("Socket error state remains local when threads are reused", "[socket][
                 [&, error]
                 {
                     Socket::setErrno(error);
-                    if (Socket::getErrno() != error) isolated = false;
+                    if (Socket::getErrno() != error)
+                    {
+                        isolated = false;
+                    }
                 });
             worker.join();
         }
