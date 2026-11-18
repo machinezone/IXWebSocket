@@ -805,6 +805,24 @@ Specifying `certFile` and `keyFile` configures the certificate that will be used
 
 On a client, this is only necessary for connecting to servers that require a client certificate.
 
+With OpenSSL, mbedTLS, and Network.framework, `certFile` and `keyFile` can each
+contain either a file path or the PEM contents directly, just like `caFile`:
+
+```cpp
+ix::SocketTLSOptions options;
+options.certFile = certificateChainPEM; // Leaf certificate first, then intermediates.
+options.keyFile = privateKeyPEM;        // Matching, unencrypted PEM private key.
+options.caFile = trustedRootsPEM;       // Or a CA file path / "SYSTEM".
+webSocket.setTLSOptions(options);
+```
+
+The same options work for TLS servers (`options.tls = true`). File paths and
+in-memory contents can be mixed; no temporary credential files are created.
+Unencrypted PKCS#8, RSA, and EC PEM keys are supported. Encrypted private keys
+have no password API and are not supported. `getDescription()` redacts in-memory
+PEM contents. SecureTransport does not support in-memory local credentials;
+use Network.framework on macOS for this feature.
+
 On a server, this is necessary for TLS support.
 
 Specifying `caFile` configures the trusted roots bundle file (in PEM format) that will be used to verify peer certificates.

@@ -6,6 +6,8 @@
 #include <catch_amalgamated.hpp>
 #include <chrono>
 #include <condition_variable>
+#include <fstream>
+#include <iterator>
 #include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXHttpClient.h>
 #include <ixwebsocket/IXHttpServer.h>
@@ -211,4 +213,85 @@ TEST_CASE("Idle TLS handshakes time out", "[tls][server]")
     CHECK_FALSE(peer.readByte(&byte, [deadline] { return Clock::now() >= deadline; }));
     CHECK(Clock::now() - start < std::chrono::seconds(11));
     CHECK(fixture.waitForTimeout());
+}
+
+TEST_CASE("TLS client and server credentials accept PEM contents or paths", "[tls][memory]")
+{
+    const bool certificateInMemory = GENERATE(false, true);
+    const bool keyInMemory = GENERATE(false, true);
+    const auto contents = [](const std::string& path)
+    {
+        std::ifstream input(path, std::ios::binary);
+        REQUIRE(input.good());
+        return std::string(std::istreambuf_iterator<char>(input), {});
+    };
+    const auto credential = [&](const std::string& name, bool memory)
+    {
+        const std::string path = tlsServerCredential(name);
+        return memory ? contents(path) : path;
+    };
+    TLSAcceptTestServer fixture;
+    ix::SocketTLSOptions serverOptions;
+    serverOptions.tls = true;
+    serverOptions.certFile = credential("chain.pem", certificateInMemory);
+    serverOptions.keyFile = credential("chain.key", keyInMemory);
+    serverOptions.caFile = credential("ca.pem", certificateInMemory);
+    fixture.server.setTLSOptions(serverOptions);
+    fixture.start();
+
+    ix::HttpClient client;
+    ix::SocketTLSOptions clientOptions;
+    clientOptions.certFile = credential("client.pem", certificateInMemory);
+    clientOptions.keyFile = credential("client.key", keyInMemory);
+    clientOptions.caFile = credential("ca.pem", certificateInMemory);
+    client.setTLSOptions(clientOptions);
+    auto args = client.createRequest();
+    args->connectTimeout = 1;
+    args->transferTimeout = 1;
+    args->compress = false;
+    auto response =
+        client.get("https://127.0.0.1:" + std::to_string(fixture.server.getPort()) + "/", args);
+    INFO(response->errorMsg);
+    REQUIRE(response->errorCode == ix::HttpErrorCode::Ok);
+    CHECK(response->statusCode == 200);
+    CHECK(response->body == "ok");
+}
+
+TEST_CASE("Invalid in-memory TLS credentials fail without leaking private keys", "[tls][memory]")
+{
+    const std::string failure = GENERATE("certificate", "key", "encrypted key");
+    TLSAcceptTestServer fixture;
+    fixture.start();
+    ix::HttpClient client;
+    ix::SocketTLSOptions options;
+    std::ifstream certificate(tlsServerCredential("client.pem"));
+    options.certFile.assign(std::istreambuf_iterator<char>(certificate), {});
+    std::ifstream key(tlsServerCredential("client.key"));
+    options.keyFile.assign(std::istreambuf_iterator<char>(key), {});
+    if (failure == "key")
+    {
+        options.keyFile =
+            "-----BEGIN PRIVATE KEY-----\nsecret-invalid-key\n-----END PRIVATE KEY-----";
+    }
+    else if (failure == "encrypted key")
+    {
+        std::ifstream encrypted(tlsServerCredential("encrypted-client.key"));
+        options.keyFile.assign(std::istreambuf_iterator<char>(encrypted), {});
+    }
+    else
+    {
+        options.certFile =
+            "-----BEGIN CERTIFICATE-----\ninvalid-certificate\n-----END CERTIFICATE-----";
+    }
+    options.caFile = tlsServerCredential("ca.pem");
+    client.setTLSOptions(options);
+    auto args = client.createRequest();
+    args->connectTimeout = 1;
+    args->transferTimeout = 1;
+    auto response =
+        client.get("https://127.0.0.1:" + std::to_string(fixture.server.getPort()) + "/", args);
+    CHECK(response->errorCode == ix::HttpErrorCode::CannotConnect);
+    CHECK_FALSE(response->errorMsg.empty());
+    CHECK(response->errorMsg.find("secret-invalid-key") == std::string::npos);
+    CHECK(response->errorMsg.find(options.keyFile) == std::string::npos);
 }

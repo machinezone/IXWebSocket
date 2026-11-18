@@ -148,27 +148,55 @@ namespace ix
         mbedtls_ssl_conf_rng(&_conf, mbedtls_ctr_drbg_random, &_ctr_drbg);
 #endif
 
+        if (_tlsOptions.certFile.empty() != _tlsOptions.keyFile.empty())
+        {
+            errMsg = "certFile and keyFile must be both present, or both absent";
+            return false;
+        }
         if (_tlsOptions.hasCertAndKey())
         {
-            if (mbedtls_x509_crt_parse_file(&_cert, _tlsOptions.certFile.c_str()) < 0)
+            const int certResult =
+                _tlsOptions.isUsingInMemoryCert()
+                    ? mbedtls_x509_crt_parse(
+                          &_cert,
+                          reinterpret_cast<const unsigned char*>(_tlsOptions.certFile.c_str()),
+                          _tlsOptions.certFile.size() + 1)
+                    : mbedtls_x509_crt_parse_file(&_cert, _tlsOptions.certFile.c_str());
+            if (certResult != 0)
             {
-                errMsg = "Cannot parse cert file '" + _tlsOptions.certFile + "'";
+                errMsg = "Cannot parse certificate chain";
                 return false;
             }
-#if MBEDTLS_VERSION_MAJOR == 3
-            if (mbedtls_pk_parse_keyfile(
-                    &_pkey, _tlsOptions.keyFile.c_str(), "", mbedtls_ctr_drbg_random, &_ctr_drbg) <
-                0)
-#else
-            if (mbedtls_pk_parse_keyfile(&_pkey, _tlsOptions.keyFile.c_str(), "") < 0)
-#endif
+            int keyResult;
+            if (_tlsOptions.isUsingInMemoryKey())
             {
-                errMsg = "Cannot parse key file '" + _tlsOptions.keyFile + "'";
+                const auto* key =
+                    reinterpret_cast<const unsigned char*>(_tlsOptions.keyFile.c_str());
+                const size_t size = _tlsOptions.keyFile.size() + 1;
+#if MBEDTLS_VERSION_MAJOR == 3
+                keyResult = mbedtls_pk_parse_key(
+                    &_pkey, key, size, nullptr, 0, mbedtls_ctr_drbg_random, &_ctr_drbg);
+#else
+                keyResult = mbedtls_pk_parse_key(&_pkey, key, size, nullptr, 0);
+#endif
+            }
+            else
+            {
+#if MBEDTLS_VERSION_MAJOR == 3
+                keyResult = mbedtls_pk_parse_keyfile(
+                    &_pkey, _tlsOptions.keyFile.c_str(), "", mbedtls_ctr_drbg_random, &_ctr_drbg);
+#else
+                keyResult = mbedtls_pk_parse_keyfile(&_pkey, _tlsOptions.keyFile.c_str(), "");
+#endif
+            }
+            if (keyResult < 0)
+            {
+                errMsg = "Cannot parse private key";
                 return false;
             }
             if (mbedtls_ssl_conf_own_cert(&_conf, &_cert, &_pkey) < 0)
             {
-                errMsg = "Problem configuring cert '" + _tlsOptions.certFile + "'";
+                errMsg = "Problem configuring certificate/private key";
                 return false;
             }
         }
