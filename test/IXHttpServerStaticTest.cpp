@@ -81,7 +81,10 @@ TEST_CASE("Static files use the configured document root", "[http][static][docum
                                 std::string(IX_TEST_DOCUMENT_ROOT),
                                 std::string(IX_TEST_DOCUMENT_ROOT) + "/");
 #ifdef _WIN32
-    if (GENERATE(false, true)) std::replace(root.begin(), root.end(), '/', '\\');
+    if (GENERATE(false, true))
+    {
+        std::replace(root.begin(), root.end(), '/', '\\');
+    }
 #endif
     auto index = get("", root);
     REQUIRE(index->errorCode == ix::HttpErrorCode::Ok);
