@@ -690,6 +690,7 @@ See this [issue](https://github.com/machinezone/IXWebSocket/issues/209) for link
 #include <ixwebsocket/IXHttpServer.h>
 
 ix::HttpServer server(port, hostname);
+server.setDocumentRoot("www");
 
 auto res = server.listen();
 if (!res.first)
@@ -700,6 +701,19 @@ if (!res.first)
 
 server.start();
 server.wait();
+```
+
+The built-in static file handler serves the current directory by default. Call
+`setDocumentRoot(path)` before starting the server to select a relative or absolute
+directory. An empty path selects the current directory. Relative paths are resolved
+against the process working directory, and requests for `/` serve `index.html`.
+This setting applies to the built-in handler; custom connection callbacks continue
+to handle their own responses.
+
+The command-line server provides the same option:
+
+```sh
+ws httpd --port 8008 --document-root www
 ```
 
 If you want to handle how requests are processed, implement the setOnConnectionCallback callback, which takes an HttpRequestPtr as input, and returns an HttpResponsePtr. You can look at HttpServer::setDefaultConnectionCallback for a slightly more advanced callback example.
