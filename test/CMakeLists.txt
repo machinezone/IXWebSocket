@@ -31,6 +31,7 @@ set (TEST_TARGET_NAMES
   IXExponentialBackoffTest
   IXWebSocketCloseTest
   IXWebSocketDispatchTest
+  IXWebSocketMessageLimitTest
   IXWebSocketHostTest
   IXWebSocketIPv6Test
   IXWebSocketSendTimeoutTest

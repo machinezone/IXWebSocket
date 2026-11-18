@@ -94,7 +94,8 @@ namespace ix
         const SocketTLSOptions& socketTLSOptions,
         bool enablePong,
         int pingIntervalSecs,
-        const ProxyOptions& proxyOptions)
+        const ProxyOptions& proxyOptions,
+        uint64_t maxMessageSize)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
@@ -102,6 +103,7 @@ namespace ix
         _proxyOptions = proxyOptions;
         _enablePong = enablePong;
         _pingIntervalSecs = pingIntervalSecs;
+        _maxMessageSize = maxMessageSize;
     }
 
     // Client
@@ -444,6 +446,7 @@ namespace ix
         _rxbuf.clear();
         _rxbufWanted = 0;
         _chunks.clear();
+        _fragmentedMessageSize = 0;
         _utf8Validator.reset();
         _validatedBytes = 0;
         _fragmentedMessageKind = MessageKind::MSG_TEXT;
@@ -641,6 +644,27 @@ namespace ix
                 break;
             }
 
+            const bool dataFrame = ws.opcode == wsheader_type::TEXT_FRAME ||
+                                   ws.opcode == wsheader_type::BINARY_FRAME ||
+                                   ws.opcode == wsheader_type::CONTINUATION;
+            const bool controlFrame = ws.opcode == wsheader_type::CLOSE ||
+                                      ws.opcode == wsheader_type::PING ||
+                                      ws.opcode == wsheader_type::PONG;
+            if (_readyState == ReadyState::OPEN && controlFrame && ws.N > 125)
+            {
+                close(WebSocketCloseConstants::kProtocolErrorCode,
+                      WebSocketCloseConstants::kProtocolErrorMessage);
+                break;
+            }
+            // Reject declared lengths before waiting for or buffering the frame payload.
+            if (dataFrame && _maxMessageSize &&
+                (ws.N > _maxMessageSize || _fragmentedMessageSize > _maxMessageSize - ws.N))
+            {
+                close(WebSocketCloseConstants::kMessageTooBigCode,
+                      WebSocketCloseConstants::kMessageTooBigMessage);
+                break;
+            }
+
             // Check available text bytes even when TCP has not delivered the whole frame.
             if (!validateFramePayload(ws))
             {
@@ -736,7 +760,18 @@ namespace ix
                     // the internal buffer which is slow and can let the internal OS
                     // receive buffer fill out.
                     //
-                    _chunks.emplace_back(std::move(frameData));
+                    // Coalesce tiny fragments so frame metadata cannot grow without
+                    // bound for empty fragments or dwarf the configured byte limit.
+                    if (!_chunks.empty() && _chunks.back().size() < kChunkSize &&
+                        frameData.size() < kChunkSize)
+                    {
+                        _chunks.back() += frameData;
+                    }
+                    else if (!frameData.empty() || _chunks.empty())
+                    {
+                        _chunks.emplace_back(std::move(frameData));
+                    }
+                    _fragmentedMessageSize += ws.N;
 
                     if (ws.fin)
                     {
@@ -746,6 +781,7 @@ namespace ix
                                     onMessageCallback);
 
                         _chunks.clear();
+                        _fragmentedMessageSize = 0;
                         _receivedMessageCompressed = false;
                     }
                     else
@@ -917,7 +953,15 @@ namespace ix
         // When the RSV1 bit is 1 it means the message is compressed
         if (compressedMessage && messageKind != MessageKind::FRAGMENT)
         {
-            bool success = _perMessageDeflate->decompress(message, _decompressedMessage);
+            bool limitExceeded = false;
+            bool success = _perMessageDeflate->decompress(
+                message, _decompressedMessage, _maxMessageSize, &limitExceeded);
+            if (limitExceeded)
+            {
+                close(WebSocketCloseConstants::kMessageTooBigCode,
+                      WebSocketCloseConstants::kMessageTooBigMessage);
+                return;
+            }
 
             if (messageKind == MessageKind::MSG_TEXT && !validateUtf8(_decompressedMessage))
             {

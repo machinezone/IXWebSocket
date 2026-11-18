@@ -98,9 +98,12 @@ namespace ix
         return _compressor->compress(in, out);
     }
 
-    bool WebSocketPerMessageDeflate::decompress(const std::string& in, std::string& out)
+    bool WebSocketPerMessageDeflate::decompress(const std::string& in,
+                                                std::string& out,
+                                                uint64_t maxOutputSize,
+                                                bool* limitExceeded)
     {
-        return _decompressor->decompress(in, out);
+        return _decompressor->decompress(in, out, maxOutputSize, limitExceeded);
     }
 
 } // namespace ix

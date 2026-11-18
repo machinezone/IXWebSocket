@@ -221,8 +221,15 @@ namespace ix
 #endif
     }
 
-    bool WebSocketPerMessageDeflateDecompressor::decompress(const std::string& in, std::string& out)
+    bool WebSocketPerMessageDeflateDecompressor::decompress(const std::string& in,
+                                                            std::string& out,
+                                                            uint64_t maxOutputSize,
+                                                            bool* limitExceeded)
     {
+        if (limitExceeded)
+        {
+            *limitExceeded = false;
+        }
 #ifdef IXWEBSOCKET_USE_ZLIB
         //
         // 7.2.2.  Decompression
@@ -255,14 +262,24 @@ namespace ix
                 return false; // zlib error
             }
 
-            out.append(reinterpret_cast<char*>(&_compressBuffer.front()),
-                       _compressBuffer.size() - _inflateState.avail_out);
+            const size_t produced = _compressBuffer.size() - _inflateState.avail_out;
+            if (maxOutputSize && produced > maxOutputSize - out.size())
+            {
+                if (limitExceeded)
+                {
+                    *limitExceeded = true;
+                }
+                out.clear();
+                return false;
+            }
+            out.append(reinterpret_cast<char*>(&_compressBuffer.front()), produced);
         } while (_inflateState.avail_out == 0);
 
         return true;
 #else
         (void) in;
         (void) out;
+        (void) maxOutputSize;
         return false;
 #endif
     }

@@ -1184,7 +1184,8 @@ namespace ix
                             bool ipv6,
                             bool disablePerMessageDeflate,
                             bool disablePong,
-                            const std::string& httpHeaderAuthorization)
+                            const std::string& httpHeaderAuthorization,
+                            uint64_t maxMessageSize)
     {
         ix::logInfo("Listening on {}:{}", hostname, port);
 
@@ -1196,6 +1197,7 @@ namespace ix
                                    (ipv6) ? AF_INET6 : AF_INET);
 
         server.setTLSOptions(tlsOptions);
+        server.setMaxMessageSize(maxMessageSize);
 
         if (disablePerMessageDeflate)
         {
@@ -2519,6 +2521,7 @@ int main(int argc, char** argv)
     std::string ciphers;
     std::string redirectUrl;
     std::string documentRoot(".");
+    uint64_t maxMessageSize = 0;
     std::string proxyUrl;
     std::string proxyUser;
     ix::ProxyOptions proxyOptions;
@@ -2655,6 +2658,10 @@ int main(int argc, char** argv)
     echoServerApp->fallthrough();
     echoServerApp->add_option("--port", port, "Port");
     echoServerApp->add_option("--host", hostname, "Hostname");
+    echoServerApp->add_option(
+        "--max-message-size",
+        maxMessageSize,
+        "Maximum incoming payload bytes, including decompressed data (0: unlimited)");
     echoServerApp->add_option("--http_authorization_header", httpHeaderAuthorization, "Hostname");
     echoServerApp->add_flag("-q", quiet, "Quiet / only display warnings and errors");
     echoServerApp->add_flag("-g", greetings, "Greet");
@@ -2880,7 +2887,8 @@ int main(int argc, char** argv)
                                       ipv6,
                                       disablePerMessageDeflate,
                                       disablePong,
-                                      httpHeaderAuthorization);
+                                      httpHeaderAuthorization,
+                                      maxMessageSize);
     }
     else if (app.got_subcommand("push_server"))
     {

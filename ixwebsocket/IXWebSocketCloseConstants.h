@@ -20,6 +20,7 @@ namespace ix
         IXWEBSOCKET_EXPORT static const uint16_t kProtocolErrorCode;
         IXWEBSOCKET_EXPORT static const uint16_t kNoStatusCodeErrorCode;
         IXWEBSOCKET_EXPORT static const uint16_t kInvalidFramePayloadData;
+        IXWEBSOCKET_EXPORT static const uint16_t kMessageTooBigCode;
 
         IXWEBSOCKET_EXPORT static const std::string kNormalClosureMessage;
         IXWEBSOCKET_EXPORT static const std::string kInternalErrorMessage;
@@ -35,6 +36,7 @@ namespace ix
         IXWEBSOCKET_EXPORT static const std::string
             kProtocolErrorCodeContinuationOpCodeOutOfSequence;
         IXWEBSOCKET_EXPORT static const std::string kInvalidFramePayloadDataMessage;
+        IXWEBSOCKET_EXPORT static const std::string kMessageTooBigMessage;
         IXWEBSOCKET_EXPORT static const std::string kInvalidCloseCodeMessage;
     };
 } // namespace ix
