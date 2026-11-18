@@ -8,9 +8,37 @@
 
 #include "IXSocket.h"
 #include <algorithm>
+#include <sstream>
 
 namespace ix
 {
+    bool hasHttpHeaderToken(const WebSocketHttpHeaders& headers,
+                            const std::string& name,
+                            const std::string& token)
+    {
+        const auto header = headers.find(name);
+        if (header == headers.end())
+        {
+            return false;
+        }
+        std::istringstream tokens(header->second);
+        std::string value;
+        while (std::getline(tokens, value, ','))
+        {
+            const auto begin = value.find_first_not_of(" \t");
+            if (begin == std::string::npos)
+            {
+                continue;
+            }
+            value = value.substr(begin, value.find_last_not_of(" \t") - begin + 1);
+            if (!CaseInsensitiveLess::cmp(value, token) && !CaseInsensitiveLess::cmp(token, value))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     std::pair<bool, WebSocketHttpHeaders> parseHttpHeaders(
         std::unique_ptr<Socket>& socket, const CancellationRequest& isCancellationRequested)
     {
@@ -78,7 +106,23 @@ namespace ix
                                 value.end());
                 }
 
-                headers[name] = value;
+                // Preserve all framing/connection values so conflicting lengths cannot
+                // silently become a reusable response and an earlier close is not lost.
+                const auto previous = headers.find(name);
+                if (previous != headers.end() &&
+                    ((!CaseInsensitiveLess::cmp(name, "Content-Length") &&
+                      !CaseInsensitiveLess::cmp("Content-Length", name)) ||
+                     (!CaseInsensitiveLess::cmp(name, "Transfer-Encoding") &&
+                      !CaseInsensitiveLess::cmp("Transfer-Encoding", name)) ||
+                     (!CaseInsensitiveLess::cmp(name, "Connection") &&
+                      !CaseInsensitiveLess::cmp("Connection", name))))
+                {
+                    previous->second += "," + value;
+                }
+                else
+                {
+                    headers[name] = value;
+                }
             }
         }
 

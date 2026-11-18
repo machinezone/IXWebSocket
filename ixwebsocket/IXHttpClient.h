@@ -104,6 +104,7 @@ namespace ix
         IXWEBSOCKET_EXPORT const static std::string kPatch;
 
     private:
+        friend struct HttpClientReuseTestAccess;
         void log(const std::string& msg, HttpRequestArgsPtr args);
 
         HttpResponsePtr requestImpl(const std::string& url,
@@ -111,7 +112,8 @@ namespace ix
                                     const std::string& body,
                                     HttpRequestArgsPtr args,
                                     std::atomic<bool>& cancel,
-                                    int redirects);
+                                    int redirects,
+                                    bool allowRetry = true);
 
 
         // Async API background thread runner
@@ -124,7 +126,10 @@ namespace ix
         std::atomic<bool> _stop;
         std::thread _thread;
 
+        // One idle, fully consumed HTTP connection. Active requests own their socket locally.
         std::unique_ptr<Socket> _socket;
+        std::string _connectionUrl;
+        uint64_t _connectionConfigVersion = 0;
         std::recursive_mutex _mutex; // to protect accessing the _socket (only one socket per
                                      // client) the mutex needs to be recursive as this function
                                      // might be called recursively to follow HTTP redirections

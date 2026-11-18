@@ -176,3 +176,17 @@ TEST_CASE("HTTP responses send exactly one accurate content length", "[http][fra
     const auto& wire = static_cast<HttpMemorySocket&>(*socket).output;
     CHECK(wire == "HTTP/1.1 200 OK\r\nContent-Length: 3\r\nX-Custom: preserved\r\n\r\nabc");
 }
+
+TEST_CASE("One-shot HTTP responses advertise close without mutating shared responses",
+          "[http][framing]")
+{
+    std::unique_ptr<ix::Socket> socket(new HttpMemorySocket());
+    ix::WebSocketHttpHeaders headers;
+    headers["Connection"] = "keep-alive";
+    auto response =
+        std::make_shared<ix::HttpResponse>(200, "OK", ix::HttpErrorCode::Ok, headers, "abc");
+    REQUIRE(ix::Http::sendResponse(response, socket, true));
+    CHECK(static_cast<HttpMemorySocket&>(*socket).output ==
+          "HTTP/1.1 200 OK\r\nContent-Length: 3\r\nConnection: close\r\n\r\nabc");
+    CHECK(response->headers.at("Connection") == "keep-alive");
+}

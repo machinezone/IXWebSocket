@@ -242,3 +242,16 @@ TEST_CASE("Handshake error reasons omit status line endings", "[websocket][http]
         CHECK(result.headers.at("Retry-After") == "60");
     }
 }
+
+TEST_CASE("Repeated connection fields retain all case-insensitive tokens", "[http][headers]")
+{
+    std::unique_ptr<ix::Socket> socket(new HttpHeadersTestSocket(
+        "Connection: close\r\nconnection: keep-alive, \tUpGrAdE\t\r\n\r\n"));
+    const auto result = ix::parseHttpHeaders(socket, nullptr);
+    REQUIRE(result.first);
+    CHECK(ix::hasHttpHeaderToken(result.second, "Connection", "close"));
+    CHECK(ix::hasHttpHeaderToken(result.second, "Connection", "upgrade"));
+    CHECK(ix::hasHttpHeaderToken(result.second, "Connection", "KEEP-ALIVE"));
+    CHECK_FALSE(ix::hasHttpHeaderToken(result.second, "Connection", "up"));
+    CHECK_FALSE(ix::hasHttpHeaderToken(result.second, "Missing", "close"));
+}

@@ -191,7 +191,9 @@ namespace ix
         return std::make_tuple(true, "", httpRequest);
     }
 
-    bool Http::sendResponse(HttpResponsePtr response, std::unique_ptr<Socket>& socket)
+    bool Http::sendResponse(HttpResponsePtr response,
+                            std::unique_ptr<Socket>& socket,
+                            bool closeConnection)
     {
         // Write the response to the socket
         std::stringstream ss;
@@ -209,11 +211,20 @@ namespace ix
         // Write headers
         ss.str("");
         ss << "Content-Length: " << response->body.size() << "\r\n";
+        if (closeConnection)
+        {
+            ss << "Connection: close\r\n";
+        }
         for (auto&& it : response->headers)
         {
             // The generated length must match the actual body and appear only once.
             if (!CaseInsensitiveLess::cmp(it.first, "Content-Length") &&
                 !CaseInsensitiveLess::cmp("Content-Length", it.first))
+            {
+                continue;
+            }
+            if (closeConnection && !CaseInsensitiveLess::cmp(it.first, "Connection") &&
+                !CaseInsensitiveLess::cmp("Connection", it.first))
             {
                 continue;
             }

@@ -198,7 +198,8 @@ namespace ix
             else
             {
                 auto response = _onConnectionCallback(request, connectionState);
-                if (!Http::sendResponse(response, socket))
+                // This server handles one ordinary HTTP request per connection.
+                if (!Http::sendResponse(response, socket, true))
                 {
                     logError("Cannot send response");
                 }
