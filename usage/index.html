@@ -758,6 +758,49 @@ The caller's original request arguments are preserved. Other custom headers are
 forwarded; applications should avoid putting credentials in those headers when
 following redirects to untrusted destinations.</p>
 <p>See this <a href="https://github.com/machinezone/IXWebSocket/issues/209">issue</a> for links about uploading files with HTTP multipart.</p>
+<h3 id="uploading-large-files">Uploading large files</h3>
+<p>Use <code>HttpRequestArgs::onUploadCallback</code> to send a request body without loading the
+whole file into a string. Set <code>bodySize</code> to its known byte length; it is a 64-bit
+value, so uploads larger than 2 GiB are supported. The client sends a standard
+<code>Content-Length</code> request, using a reusable buffer of at most 64 KiB.</p>
+<pre><code class="language-cpp">#include &lt;fstream&gt;
+#include &lt;ixwebsocket/IXHttpClient.h&gt;
+#include &lt;memory&gt;
+#include &lt;stdexcept&gt;
+
+ix::HttpClient client;
+auto args = client.createRequest();
+auto file = std::make_shared&lt;std::ifstream&gt;(&quot;large-file.bin&quot;, std::ios::binary | std::ios::ate);
+if (!*file || file-&gt;tellg() &lt; 0)
+{
+    throw std::runtime_error(&quot;Cannot open upload file&quot;);
+}
+args-&gt;bodySize = static_cast&lt;uint64_t&gt;(static_cast&lt;std::streamoff&gt;(file-&gt;tellg()));
+args-&gt;extraHeaders[&quot;Content-Type&quot;] = &quot;application/octet-stream&quot;;
+args-&gt;onUploadCallback = [file](uint64_t offset, char* buffer, size_t capacity) -&gt; size_t
+{
+    file-&gt;clear();
+    file-&gt;seekg(static_cast&lt;std::streamoff&gt;(offset));
+    file-&gt;read(buffer, static_cast&lt;std::streamsize&gt;(capacity));
+    return static_cast&lt;size_t&gt;(file-&gt;gcount());
+};
+auto response = client.put(&quot;https://example.com/upload&quot;, std::string(), args);
+</code></pre>
+<p>The callback receives an absolute body offset and the available buffer capacity.
+Return the number of bytes written, at most that capacity. Short reads are allowed;
+a zero return before <code>bodySize</code> bytes, an invalid count, or an exception fails the
+request with <code>HttpErrorCode::SendError</code>. Set <code>args-&gt;cancel</code> to cancel an upload.
+Callbacks must return promptly for cancellation and transfer timeouts to take effect.</p>
+<p>Pass an empty string as the body when using the callback. It works with POST, PUT,
+PATCH, and methods enabled through <code>setForceBody(true)</code>, for synchronous requests
+and queued requests through <code>performRequest</code>. Keep the data source alive until
+completion; the shared pointer in this example also works for asynchronous requests.
+Redirects replay the body from offset zero, so the source must support rereading.</p>
+<p>Do not set <code>Content-Length</code> or <code>Transfer-Encoding</code> yourself, or enable
+<code>compressRequest</code> for streamed uploads. To upload a multipart body, the callback
+must supply its complete framing and a matching <code>Content-Type</code>; the existing
+form-data helpers still assemble their bodies in memory. This API streams outgoing
+client data; the built-in HTTP server still buffers incoming request bodies.</p>
 <h2 id="http-server-api">HTTP server API</h2>
 <pre><code class="language-cpp">#include &lt;ixwebsocket/IXHttpServer.h&gt;
 
