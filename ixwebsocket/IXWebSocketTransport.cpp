@@ -111,7 +111,8 @@ namespace ix
         const std::string& url,
         const WebSocketHttpHeaders& headers,
         int timeoutSecs,
-        const std::vector<std::string>& disabledDefaultHeaders)
+        const std::vector<std::string>& disabledDefaultHeaders,
+        std::unique_ptr<Socket> connectedSocket)
     {
         resetConnectionState();
         std::lock_guard<std::mutex> lock(_socketMutex);
@@ -121,6 +122,7 @@ namespace ix
         std::string remoteUrl(url);
         WebSocketHttpHeaders requestHeaders(headers);
 
+        const bool alreadyConnected = static_cast<bool>(connectedSocket);
         WebSocketInitResult result;
         const int maxRedirections = 10;
 
@@ -135,7 +137,9 @@ namespace ix
 
             std::string errorMsg;
             bool tls = protocol == "wss";
-            _socket = createSocket(tls, -1, errorMsg, _socketTLSOptions, _proxyOptions);
+            _socket = alreadyConnected
+                          ? std::move(connectedSocket)
+                          : createSocket(tls, -1, errorMsg, _socketTLSOptions, _proxyOptions);
             _perMessageDeflate = ix::make_unique<WebSocketPerMessageDeflate>();
 
             if (!_socket)
@@ -156,9 +160,10 @@ namespace ix
                                                         path,
                                                         port,
                                                         timeoutSecs,
-                                                        disabledDefaultHeaders);
+                                                        disabledDefaultHeaders,
+                                                        alreadyConnected);
 
-            if (result.http_status >= 300 && result.http_status < 400)
+            if (!alreadyConnected && result.http_status >= 300 && result.http_status < 400)
             {
                 auto it = result.headers.find("Location");
                 if (it == result.headers.end())
@@ -182,6 +187,11 @@ namespace ix
             if (result.success)
             {
                 setReadyState(ReadyState::OPEN);
+            }
+            else if (alreadyConnected)
+            {
+                // An unsuccessful upgrade cannot return to HTTP or reconnect implicitly.
+                _socket.reset();
             }
             return result;
         }

@@ -44,6 +44,8 @@ namespace ix
 
     using OnTrafficTrackerCallback = std::function<void(size_t size, bool incoming)>;
 
+    class HttpClient;
+
     class WebSocket
     {
     public:
@@ -83,6 +85,9 @@ namespace ix
 
         // Run in blocking mode, by connecting first manually, and then calling run.
         WebSocketInitResult connect(int timeoutSecs);
+        // Upgrade a matching idle HTTP connection, preserving TCP/TLS state.
+        // Requires a stopped, closed WebSocket with a callback. Disables automatic reconnection.
+        WebSocketInitResult connect(HttpClient& httpClient, int timeoutSecs);
         void run();
 
         // send is in text mode by default
@@ -133,6 +138,7 @@ namespace ix
         void setAutoThreadName(bool enabled);
 
     private:
+        WebSocketInitResult connectImpl(int timeoutSecs, HttpClient* httpClient);
         WebSocketSendInfo sendMessage(const IXWebSocketSendData& message,
                                       SendMessageKind sendMessageKind,
                                       const OnProgressCallback& callback = nullptr);

@@ -38,7 +38,8 @@ namespace ix
             const std::string& path,
             int port,
             int timeoutSecs,
-            const std::vector<std::string>& disabledDefaultHeaders = {});
+            const std::vector<std::string>& disabledDefaultHeaders = {},
+            bool alreadyConnected = false);
 
         WebSocketInitResult serverHandshake(int timeoutSecs,
                                             bool enablePerMessageDeflate,

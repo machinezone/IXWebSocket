@@ -90,7 +90,8 @@ namespace ix
             const std::string& url,
             const WebSocketHttpHeaders& headers,
             int timeoutSecs,
-            const std::vector<std::string>& disabledDefaultHeaders = {});
+            const std::vector<std::string>& disabledDefaultHeaders = {},
+            std::unique_ptr<Socket> connectedSocket = nullptr);
 
         // Server
         WebSocketInitResult connectToSocket(std::unique_ptr<Socket> socket,

@@ -23,6 +23,7 @@ set (TEST_TARGET_NAMES
   IXHttpTest
   IXHttpClientResponseTest
   IXHttpClientReuseTest
+  IXHttpWebSocketUpgradeTest
   IXHttpClientAsyncTest
   IXHttpClientUploadTest
   IXWebSocketHttpHeadersTest
@@ -152,7 +153,7 @@ add_test(NAME IXWebSocketBuildSettings
 set_tests_properties(IXWebSocketBuildSettings PROPERTIES TIMEOUT 30)
 set_tests_properties(IXHttpClientAsyncTest IXHttpClientUploadTest PROPERTIES TIMEOUT 15)
 set_tests_properties(IXHttpClientResponseTest PROPERTIES TIMEOUT 30)
-set_tests_properties(IXHttpClientReuseTest PROPERTIES TIMEOUT 15)
+set_tests_properties(IXHttpClientReuseTest IXHttpWebSocketUpgradeTest PROPERTIES TIMEOUT 15)
 
 set_tests_properties(IXSocks5Test PROPERTIES TIMEOUT 30)
 set_tests_properties(IXWebSocketProxyServerTest PROPERTIES TIMEOUT 30)
@@ -180,6 +181,8 @@ if (USE_NETWORK_FRAMEWORK OR (UNIX AND USE_TLS AND (USE_OPEN_SSL OR USE_LIBRE_SS
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/generate_network_certs.sh"
     VERBATIM)
   add_custom_target(tls_test_certs DEPENDS "${TLS_TEST_CERTS}/ready")
+  add_dependencies(IXHttpWebSocketUpgradeTest tls_test_certs)
+  target_compile_definitions(IXHttpWebSocketUpgradeTest PRIVATE IX_HTTP_UPGRADE_TEST_CERTS="${TLS_TEST_CERTS}")
   add_dependencies(IXHttpClientReuseTest tls_test_certs)
   target_compile_definitions(IXHttpClientReuseTest PRIVATE IX_HTTP_REUSE_TEST_CERTS="${TLS_TEST_CERTS}")
   add_dependencies(IXHttpClientUploadTest tls_test_certs)
