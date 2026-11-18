@@ -643,6 +643,27 @@ ix::WebSocketServer server(port, host, backlog, maxConnections, handshakeTimeout
 });
 </code></pre>
 <h2 id="http-client-api">HTTP client API</h2>
+<h3 id="connection-reuse">Connection reuse</h3>
+<p>Keep an <code>ix::HttpClient</code> instance alive to reuse its most recent HTTP/1.1 connection
+for sequential requests to the same scheme, hostname, and port. This also applies
+to requests queued through the asynchronous API and avoids repeating TCP/TLS setup.
+Only one idle connection is retained; requests remain serialized rather than pipelined.</p>
+<p>The client consumes the complete response before reusing a connection, including
+chunked trailers and same-origin redirect bodies. <code>Connection: close</code> in either
+request or response prevents retention. To close the connection after a request:</p>
+<pre><code class="language-cpp">auto args = client.createRequest();
+args-&gt;extraHeaders[&quot;Connection&quot;] = &quot;close&quot;;
+auto response = client.get(url, args);
+</code></pre>
+<p>Calling <code>setTLSOptions()</code> or <code>setProxyOptions()</code> discards the cached connection.
+Configure them before issuing requests. Canceled, malformed,
+and incomplete transfers are closed. If an idle connection closes while a new
+request is starting, a bodyless GET or HEAD can be retried once before any response
+bytes arrive. Uploads and other methods are never automatically replayed after a
+transport failure; applications must decide whether retrying is appropriate.</p>
+<p>The built-in <code>HttpServer</code> still serves one ordinary HTTP request per connection and
+sends <code>Connection: close</code>. Reuse needs a server that supports persistent HTTP.
+Transferring a connection to <code>WebSocket</code> (#434) remains a separate feature.</p>
 <pre><code class="language-cpp">#include &lt;ixwebsocket/IXHttpClient.h&gt;
 
 ...
