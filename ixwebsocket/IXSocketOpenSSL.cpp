@@ -14,6 +14,7 @@
 #include "IXUniquePtr.h"
 #include <cassert>
 #include <errno.h>
+#include <fstream>
 #include <vector>
 #ifdef _WIN32
 #include <shlwapi.h>
@@ -230,8 +231,63 @@ namespace ix
             int options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE;
 
             SSL_CTX_set_options(ctx, options);
+            if (!configureKeyLogging(ctx, errMsg))
+            {
+                SSL_CTX_free(ctx);
+                return nullptr;
+            }
         }
         return ctx;
+    }
+
+    bool SocketOpenSSL::configureKeyLogging(SSL_CTX* context, std::string& errMsg)
+    {
+        if (_tlsOptions.keyLogFile.empty())
+        {
+            return true;
+        }
+#if OPENSSL_VERSION_NUMBER >= 0x10101000L && !defined(LIBRESSL_VERSION_NUMBER)
+        std::ofstream file(_tlsOptions.keyLogFile, std::ios::app | std::ios::binary);
+        if (!file)
+        {
+            errMsg = "Cannot open TLS key log file: " + _tlsOptions.keyLogFile;
+            return false;
+        }
+        if (SSL_CTX_set_app_data(context, this) != 1)
+        {
+            errMsg = "Cannot configure TLS key logging";
+            return false;
+        }
+        SSL_CTX_set_keylog_callback(context, keyLogCallback);
+        return true;
+#else
+        (void) context;
+        errMsg = "TLS key logging requires OpenSSL 1.1.1 or newer";
+        return false;
+#endif
+    }
+
+    void SocketOpenSSL::keyLogCallback(const SSL* ssl, const char* line)
+    {
+        auto* socket = static_cast<SocketOpenSSL*>(SSL_CTX_get_app_data(SSL_get_SSL_CTX(ssl)));
+        if (!socket || !line)
+        {
+            return;
+        }
+        const int savedError = Socket::getErrno();
+        try
+        {
+            // Different connections can append to the same file; keep each line intact.
+            static std::mutex mutex;
+            std::lock_guard<std::mutex> lock(mutex);
+            std::ofstream file(socket->_tlsOptions.keyLogFile, std::ios::app | std::ios::binary);
+            file << line << '\n';
+        }
+        catch (...)
+        {
+            // A debugging log must not throw through OpenSSL's C callback.
+        }
+        Socket::setErrno(savedError);
     }
 
     bool SocketOpenSSL::openSSLAddCARootsFromString(const std::string roots)
@@ -648,6 +704,11 @@ namespace ix
             }
 
             if (_ssl_context == nullptr)
+            {
+                return false;
+            }
+
+            if (!configureKeyLogging(_ssl_context, errMsg))
             {
                 return false;
             }

@@ -127,6 +127,11 @@ foreach(TEST_TARGET_NAME ${TEST_TARGET_NAMES})
 
 endforeach()
 
+if (TARGET IXSocketOpenSSLWriteTest)
+  target_compile_definitions(IXSocketOpenSSLWriteTest PRIVATE
+    IX_OPENSSL_TEST_OUTPUT_DIR="${CMAKE_CURRENT_BINARY_DIR}")
+endif()
+
 if (USE_WS)
   find_package(Python3 QUIET COMPONENTS Interpreter)
   if (Python3_Interpreter_FOUND)

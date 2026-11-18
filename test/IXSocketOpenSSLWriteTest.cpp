@@ -3,9 +3,17 @@
  *  Copyright (c) 2026 Machine Zone, Inc. All rights reserved.
  */
 #include "IXWebSocketSendBufferTest.h"
+#include <algorithm>
+#include <atomic>
+#include <cstdio>
 #include <cstring>
 #include <deque>
+#include <fstream>
 #include <ixwebsocket/IXSocketOpenSSL.h>
+#include <ixwebsocket/IXUuid.h>
+#include <set>
+#include <sstream>
+#include <thread>
 
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(OPENSSL_NO_PSK) && !defined(OPENSSL_NO_TLS1_2)
 
@@ -13,6 +21,10 @@ namespace ix
 {
     struct SocketOpenSSLWriteTestAccess
     {
+        static bool configureKeyLogging(SocketOpenSSL& socket, SSL_CTX* context, std::string& error)
+        {
+            return socket.configureKeyLogging(context, error);
+        }
         static bool handshake(SocketOpenSSL& socket,
                               std::string& error,
                               const CancellationRequest& cancelled)
@@ -169,14 +181,14 @@ namespace
             return 16;
         }
 
-        void configure(bool server)
+        void configure(bool server, int version = TLS1_2_VERSION)
         {
             static std::unique_ptr<BIO_METHOD, decltype(&BIO_meth_free)> method(makeMethod(),
                                                                                 BIO_meth_free);
             context = SSL_CTX_new(TLS_method());
             REQUIRE(context != nullptr);
-            REQUIRE(SSL_CTX_set_min_proto_version(context, TLS1_2_VERSION) == 1);
-            REQUIRE(SSL_CTX_set_max_proto_version(context, TLS1_2_VERSION) == 1);
+            REQUIRE(SSL_CTX_set_min_proto_version(context, version) == 1);
+            REQUIRE(SSL_CTX_set_max_proto_version(context, version) == 1);
             if (SSL_CTX_set_cipher_list(context, "PSK-AES128-GCM-SHA256") != 1)
             {
                 SKIP("TLS 1.2 PSK AES-GCM ciphersuite is not enabled");
@@ -209,13 +221,23 @@ namespace
         MemoryPeer server;
         ix::WebSocketTransport transport;
 
-        explicit MemoryConnection(ix::SocketOpenSSL& socket)
+        explicit MemoryConnection(ix::SocketOpenSSL& socket,
+                                  ix::SocketOpenSSL* serverSocket = nullptr,
+                                  int version = TLS1_2_VERSION)
             : socket(socket)
         {
             client.other = &server;
             server.other = &client;
-            client.configure(false);
-            server.configure(true);
+            client.configure(false, version);
+            server.configure(true, version);
+            std::string error;
+            REQUIRE(ix::SocketOpenSSLWriteTestAccess::configureKeyLogging(
+                socket, client.context, error));
+            if (serverSocket)
+            {
+                REQUIRE(ix::SocketOpenSSLWriteTestAccess::configureKeyLogging(
+                    *serverSocket, server.context, error));
+            }
             bool clientReady = false;
             bool serverReady = false;
             for (int attempt = 0; attempt < 100 && !(clientReady && serverReady); ++attempt)
@@ -363,6 +385,158 @@ TEST_CASE("OpenSSL client handshakes stop on readiness errors", "[socket_openssl
     CHECK(checks == 1);
     CHECK(error == "Socket error during TLS handshake");
 }
+
+#if OPENSSL_VERSION_NUMBER >= 0x10101000L && !defined(LIBRESSL_VERSION_NUMBER)
+namespace
+{
+    struct KeyLogFile
+    {
+        std::string name =
+            std::string(IX_OPENSSL_TEST_OUTPUT_DIR) + "/keylog-" + ix::uuid4() + ".log";
+        KeyLogFile()
+        {
+            std::ofstream file(name, std::ios::binary);
+            REQUIRE(file.is_open());
+            file << "# existing content\n";
+        }
+        ~KeyLogFile()
+        {
+            std::remove(name.c_str());
+        }
+        std::vector<std::string> lines() const
+        {
+            std::ifstream file(name, std::ios::binary);
+            REQUIRE(file.is_open());
+            std::string line;
+            REQUIRE(static_cast<bool>(std::getline(file, line)));
+            CHECK(line == "# existing content");
+            std::vector<std::string> result;
+            while (std::getline(file, line))
+            {
+                result.push_back(line);
+            }
+            return result;
+        }
+    };
+
+    std::set<std::string> keyLogRandoms(const std::vector<std::string>& lines)
+    {
+        std::set<std::string> randoms;
+        const auto hex = [](char c)
+        { return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'); };
+        for (const auto& line : lines)
+        {
+            std::string label, random, secret, extra;
+            std::istringstream stream(line);
+            REQUIRE(static_cast<bool>(stream >> label >> random >> secret));
+            CHECK_FALSE(static_cast<bool>(stream >> extra));
+            CHECK(random.size() == 64);
+            CHECK(std::all_of(random.begin(), random.end(), hex));
+            CHECK_FALSE(secret.empty());
+            CHECK(std::all_of(secret.begin(), secret.end(), hex));
+            randoms.insert(random);
+        }
+        return randoms;
+    }
+} // namespace
+
+TEST_CASE("OpenSSL key logs append client and server secrets across connections",
+          "[socket_openssl][keylog]")
+{
+    const bool sharedFile = GENERATE(false, true);
+    int version = TLS1_2_VERSION;
+#ifndef OPENSSL_NO_TLS1_3
+    version = GENERATE(TLS1_2_VERSION, TLS1_3_VERSION);
+#endif
+    KeyLogFile clientFile, serverFile;
+    ix::SocketTLSOptions clientOptions, serverOptions;
+    clientOptions.keyLogFile = clientFile.name;
+    serverOptions.keyLogFile = sharedFile ? clientFile.name : serverFile.name;
+    for (unsigned i = 0; i < 3; ++i)
+    {
+        ix::SocketOpenSSL client(clientOptions), server(serverOptions);
+        MemoryConnection connection(client, &server, version);
+    }
+    const auto clientLines = clientFile.lines();
+    CHECK(keyLogRandoms(clientLines).size() == 3);
+    if (sharedFile)
+    {
+        std::multiset<std::string> lines(clientLines.begin(), clientLines.end());
+        for (const auto& line : clientLines)
+        {
+            CHECK(lines.count(line) == 2);
+        }
+    }
+    else
+    {
+        const auto serverLines = serverFile.lines();
+        CHECK(keyLogRandoms(serverLines).size() == 3);
+        CHECK(std::multiset<std::string>(clientLines.begin(), clientLines.end()) ==
+              std::multiset<std::string>(serverLines.begin(), serverLines.end()));
+    }
+}
+
+TEST_CASE("Concurrent OpenSSL key logs preserve complete lines and socket errors",
+          "[socket_openssl][keylog]")
+{
+    KeyLogFile file;
+    ix::SocketTLSOptions options;
+    options.keyLogFile = file.name;
+    ix::SocketOpenSSL first(options), second(options);
+    MemoryPeer firstPeer, secondPeer;
+    firstPeer.configure(false);
+    secondPeer.configure(false);
+    std::string error;
+    REQUIRE(ix::SocketOpenSSLWriteTestAccess::configureKeyLogging(first, firstPeer.context, error));
+    REQUIRE(
+        ix::SocketOpenSSLWriteTestAccess::configureKeyLogging(second, secondPeer.context, error));
+    auto callback = SSL_CTX_get_keylog_callback(firstPeer.context);
+    REQUIRE(callback != nullptr);
+    const std::string line = "CLIENT_RANDOM " + std::string(64, '0') + " " + std::string(96, '1');
+    std::atomic<bool> errorsPreserved(true);
+    const auto write = [&](const SSL* ssl)
+    {
+        for (unsigned i = 0; i < 32; ++i)
+        {
+            ix::Socket::setErrno(EWOULDBLOCK);
+            callback(ssl, line.c_str());
+            if (ix::Socket::getErrno() != EWOULDBLOCK)
+            {
+                errorsPreserved = false;
+            }
+        }
+    };
+    std::thread a(write, firstPeer.ssl), b(write, secondPeer.ssl);
+    a.join();
+    b.join();
+    CHECK(errorsPreserved.load());
+    const auto lines = file.lines();
+    CHECK(lines.size() == 64);
+    for (const auto& actual : lines)
+    {
+        CHECK(actual == line);
+    }
+}
+
+TEST_CASE("OpenSSL key logging is opt-in and rejects an unwritable destination",
+          "[socket_openssl][keylog]")
+{
+    MemoryPeer peer;
+    peer.configure(false);
+    ix::SocketOpenSSL disabled(ix::SocketTLSOptions {});
+    std::string error;
+    REQUIRE(ix::SocketOpenSSLWriteTestAccess::configureKeyLogging(disabled, peer.context, error));
+    CHECK(SSL_CTX_get_keylog_callback(peer.context) == nullptr);
+    KeyLogFile file;
+    ix::SocketTLSOptions options;
+    options.keyLogFile = file.name + "/cannot-create.log";
+    ix::SocketOpenSSL invalid(options);
+    CHECK_FALSE(
+        ix::SocketOpenSSLWriteTestAccess::configureKeyLogging(invalid, peer.context, error));
+    CHECK(error == "Cannot open TLS key log file: " + options.keyLogFile);
+    CHECK(SSL_CTX_get_keylog_callback(peer.context) == nullptr);
+}
+#endif
 
 #else
 TEST_CASE("OpenSSL memory write tests require TLS 1.2 PSK and OpenSSL 1.1 APIs", "[socket_openssl]")

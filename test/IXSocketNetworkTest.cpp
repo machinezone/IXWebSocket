@@ -180,6 +180,16 @@ TEST_CASE("Network.framework TLS", "[network_tls]")
         CHECK_FALSE(result.first);
         CHECK(result.second.find("cipher") != std::string::npos);
     }
+    SECTION("unsupported key logging fails explicitly")
+    {
+        auto options = serverOptions();
+        options.keyLogFile = "unused-keylog.log";
+        HttpServer server(0);
+        server.setTLSOptions(options);
+        auto result = server.listen();
+        CHECK_FALSE(result.first);
+        CHECK(result.second == "TLS key logging requires OpenSSL 1.1.1 or newer");
+    }
     SECTION("bad identity fails at listen")
     {
         auto options = serverOptions();

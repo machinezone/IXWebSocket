@@ -22,6 +22,9 @@ namespace ix
         // the key used for signing/encryption
         std::string keyFile;
 
+        // Append TLS session secrets in NSS key-log format (OpenSSL 1.1.1+ only).
+        std::string keyLogFile;
+
         // the ca certificate (or certificate bundle) file containing
         // certificates to be trusted by peers; use 'SYSTEM' to
         // leverage the system defaults, use 'NONE' to disable peer verification

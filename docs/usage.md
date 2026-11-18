@@ -798,6 +798,34 @@ For a server, specifying `caFile` implies that:
 
 By default, a destination's hostname is always validated against the certificate that it presents. To accept certificates with any hostname, set `ix::SocketTLSOptions::disable_hostname_validation` to `true`.
 
+### TLS key logging (OpenSSL)
+
+With OpenSSL 1.1.1 or newer, set `keyLogFile` in your TLS options before connecting
+or starting a TLS server:
+
+```cpp
+ix::SocketTLSOptions options;
+options.keyLogFile = "tls.keys";
+webSocket.setTLSOptions(options);
+```
+
+The file contains TLS session secrets in NSS key-log format, which tools such as
+Wireshark can use to decrypt captured traffic. An empty `keyLogFile` disables this
+logging. Connections append to the file, including across reconnections; multiple
+connections may share a destination. A connection fails if the file cannot be
+opened. Other TLS backends reject this option explicitly.
+
+The `ws` TLS commands accept `--keylog-file` and the `SSLKEYLOGFILE` environment
+variable. An explicit command-line option takes precedence:
+
+```sh
+ws connect wss://example.com/ws --keylog-file tls.keys
+SSLKEYLOGFILE=tls.keys ws connect wss://example.com/ws
+```
+
+The library API uses `keyLogFile` explicitly; environment-variable handling is
+provided by the CLI.
+
 ### Network.framework backend on macOS
 
 Build with `USE_NETWORK_FRAMEWORK=ON` to use native TLS for `wss://` and `https://`

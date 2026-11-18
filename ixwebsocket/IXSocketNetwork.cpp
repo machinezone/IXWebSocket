@@ -183,6 +183,11 @@ namespace ix
                                        std::string host,
                                        std::string& error)
         {
+            if (!options.keyLogFile.empty())
+            {
+                error = "TLS key logging requires OpenSSL 1.1.1 or newer";
+                return nullptr;
+            }
             if (!options.isUsingDefaultCiphers())
             {
                 error = "Network.framework backend does not support cipher strings";
