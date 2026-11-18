@@ -9,6 +9,7 @@
 #include "IXProgressCallback.h"
 #include "IXWebSocketHttpHeaders.h"
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <tuple>
 #include <unordered_map>
@@ -74,12 +75,18 @@ namespace ix
     using Logger = std::function<void(const std::string&)>;
     using OnResponseCallback = std::function<void(const HttpResponsePtr&)>;
 
+    // Fill up to capacity bytes at the absolute body offset. Return 0 on read failure.
+    using OnUploadCallback = std::function<size_t(uint64_t offset, char* buffer, size_t capacity)>;
+
     struct HttpRequestArgs
     {
         std::string url;
         std::string verb;
         WebSocketHttpHeaders extraHeaders;
         std::string body;
+        // Optional streamed request body, with a known length (independent of size_t).
+        uint64_t bodySize = 0;
+        OnUploadCallback onUploadCallback;
         std::string multipartBoundary;
         int connectTimeout = 60;
         int transferTimeout = 1800;

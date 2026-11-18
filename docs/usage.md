@@ -713,6 +713,56 @@ following redirects to untrusted destinations.
 
 See this [issue](https://github.com/machinezone/IXWebSocket/issues/209) for links about uploading files with HTTP multipart.
 
+### Uploading large files
+
+Use `HttpRequestArgs::onUploadCallback` to send a request body without loading the
+whole file into a string. Set `bodySize` to its known byte length; it is a 64-bit
+value, so uploads larger than 2 GiB are supported. The client sends a standard
+`Content-Length` request, using a reusable buffer of at most 64 KiB.
+
+```cpp
+#include <fstream>
+#include <ixwebsocket/IXHttpClient.h>
+#include <memory>
+#include <stdexcept>
+
+ix::HttpClient client;
+auto args = client.createRequest();
+auto file = std::make_shared<std::ifstream>("large-file.bin", std::ios::binary | std::ios::ate);
+if (!*file || file->tellg() < 0)
+{
+    throw std::runtime_error("Cannot open upload file");
+}
+args->bodySize = static_cast<uint64_t>(static_cast<std::streamoff>(file->tellg()));
+args->extraHeaders["Content-Type"] = "application/octet-stream";
+args->onUploadCallback = [file](uint64_t offset, char* buffer, size_t capacity) -> size_t
+{
+    file->clear();
+    file->seekg(static_cast<std::streamoff>(offset));
+    file->read(buffer, static_cast<std::streamsize>(capacity));
+    return static_cast<size_t>(file->gcount());
+};
+auto response = client.put("https://example.com/upload", std::string(), args);
+```
+
+The callback receives an absolute body offset and the available buffer capacity.
+Return the number of bytes written, at most that capacity. Short reads are allowed;
+a zero return before `bodySize` bytes, an invalid count, or an exception fails the
+request with `HttpErrorCode::SendError`. Set `args->cancel` to cancel an upload.
+Callbacks must return promptly for cancellation and transfer timeouts to take effect.
+
+Pass an empty string as the body when using the callback. It works with POST, PUT,
+PATCH, and methods enabled through `setForceBody(true)`, for synchronous requests
+and queued requests through `performRequest`. Keep the data source alive until
+completion; the shared pointer in this example also works for asynchronous requests.
+Redirects replay the body from offset zero, so the source must support rereading.
+
+Do not set `Content-Length` or `Transfer-Encoding` yourself, or enable
+`compressRequest` for streamed uploads. To upload a multipart body, the callback
+must supply its complete framing and a matching `Content-Type`; the existing
+form-data helpers still assemble their bodies in memory. This API streams outgoing
+client data; the built-in HTTP server still buffers incoming request bodies.
+
 ## HTTP server API
 
 ```cpp

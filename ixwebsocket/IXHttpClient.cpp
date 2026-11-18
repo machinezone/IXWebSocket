@@ -30,6 +30,8 @@ namespace
         copy->verb = args.verb;
         copy->extraHeaders = args.extraHeaders;
         copy->body = args.body;
+        copy->bodySize = args.bodySize;
+        copy->onUploadCallback = args.onUploadCallback;
         copy->multipartBoundary = args.multipartBoundary;
         copy->connectTimeout = args.connectTimeout;
         copy->transferTimeout = args.transferTimeout;
@@ -233,6 +235,22 @@ namespace ix
         std::string payload;
         std::string description;
 
+        const bool streaming = static_cast<bool>(args->onUploadCallback);
+        const bool hasBody = verb == kPost || verb == kPut || verb == kPatch || _forceBody;
+        if (streaming && (!hasBody || !body.empty() || args->compressRequest ||
+                          args->extraHeaders.count("Content-Length") ||
+                          args->extraHeaders.count("Transfer-Encoding")))
+        {
+            return std::make_shared<HttpResponse>(
+                0,
+                "",
+                HttpErrorCode::Invalid,
+                WebSocketHttpHeaders(),
+                "",
+                "Streamed uploads require a body-capable method, an empty string body, "
+                "no request compression, and no explicit framing headers");
+        }
+
         std::string protocol, host, path, query;
         int port;
         bool isProtocolDefaultPort;
@@ -310,7 +328,7 @@ namespace ix
             ss << "Origin: " << protocol << "://" << host << ":" << port << "\r\n";
         }
 
-        if (verb == kPost || verb == kPut || verb == kPatch || _forceBody)
+        if (hasBody)
         {
             // Set request compression header
 #ifdef IXWEBSOCKET_USE_ZLIB
@@ -321,14 +339,16 @@ namespace ix
             }
 #endif
 
-            ss << "Content-Length: " << body.size() << "\r\n";
+            ss << "Content-Length: " << (streaming ? args->bodySize : body.size()) << "\r\n";
 
             // Set default Content-Type if unspecified
             if (args->extraHeaders.find("Content-Type") == args->extraHeaders.end())
             {
                 if (args->multipartBoundary.empty())
                 {
-                    ss << "Content-Type: application/x-www-form-urlencoded"
+                    ss << "Content-Type: "
+                       << (streaming ? "application/octet-stream"
+                                     : "application/x-www-form-urlencoded")
                        << "\r\n";
                 }
                 else
@@ -338,7 +358,10 @@ namespace ix
                 }
             }
             ss << "\r\n";
-            ss << body;
+            if (!streaming)
+            {
+                ss << body;
+            }
         }
         else
         {
@@ -347,6 +370,11 @@ namespace ix
 
         std::string req(ss.str());
         std::string errMsg;
+        if (streaming && args->bodySize > (std::numeric_limits<uint64_t>::max)() - req.size())
+        {
+            return std::make_shared<HttpResponse>(
+                0, "", HttpErrorCode::Invalid, WebSocketHttpHeaders(), "", "Upload size overflow");
+        }
 
         // Make a cancellation object dealing with connection timeout
         auto cancelled = makeCancellationRequestWithTimeout(args->connectTimeout, cancel);
@@ -394,6 +422,56 @@ namespace ix
         }
 
         uploadSize = req.size();
+        if (streaming)
+        {
+            auto uploadFailed = [&](const std::string& message)
+            {
+                _socket->close();
+                return std::make_shared<HttpResponse>(code,
+                                                      description,
+                                                      cancel ? HttpErrorCode::Cancelled
+                                                             : HttpErrorCode::SendError,
+                                                      headers,
+                                                      payload,
+                                                      message,
+                                                      uploadSize,
+                                                      downloadSize);
+            };
+            // Keep each write small even on platforms where the socket API takes an int.
+            std::string chunk;
+            const size_t capacity = 64 * 1024;
+            uint64_t offset = 0;
+            while (offset < args->bodySize)
+            {
+                if (isCancellationRequested())
+                {
+                    return uploadFailed("Upload cancelled or timed out");
+                }
+                const size_t wanted =
+                    static_cast<size_t>((std::min) (uint64_t(capacity), args->bodySize - offset));
+                chunk.resize(wanted);
+                size_t count;
+                try
+                {
+                    count = args->onUploadCallback(offset, &chunk[0], wanted);
+                }
+                catch (...)
+                {
+                    return uploadFailed("Upload callback threw an exception");
+                }
+                if (!count || count > wanted)
+                {
+                    return uploadFailed("Upload callback returned an invalid byte count");
+                }
+                chunk.resize(count);
+                if (!_socket->writeBytes(chunk, isCancellationRequested))
+                {
+                    return uploadFailed("Cannot send upload body");
+                }
+                offset += count;
+                uploadSize += count;
+            }
+        }
 
         auto lineResult = _socket->readLine(isCancellationRequested);
         auto lineValid = lineResult.first;

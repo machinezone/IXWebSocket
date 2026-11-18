@@ -4,6 +4,7 @@
  */
 #include <catch_amalgamated.hpp>
 #include <chrono>
+#include <cstring>
 #include <future>
 #include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXHttpClient.h>
@@ -54,6 +55,7 @@ namespace
 
 TEST_CASE("Queued HTTP requests retain their submitted configuration", "[http][async]")
 {
+    const bool streaming = GENERATE(false, true);
     ix::HttpServer server(ix::getFreePort(), "127.0.0.1");
     server.setOnConnectionCallback(
         [](ix::HttpRequestPtr request, std::shared_ptr<ix::ConnectionState>)
@@ -87,13 +89,30 @@ TEST_CASE("Queued HTTP requests retain their submitted configuration", "[http][a
     REQUIRE(entered.get_future().wait_for(std::chrono::seconds(2)) == std::future_status::ready);
 
     auto args = client.createRequest(url(server) + "/first", ix::HttpClient::kPost);
-    args->body = "first-body";
+    const auto setBody = [&](const std::string& body)
+    {
+        if (streaming)
+        {
+            args->bodySize = body.size();
+            args->onUploadCallback = [body](uint64_t offset, char* buffer, size_t capacity)
+            {
+                const auto count = (std::min) (capacity, body.size() - static_cast<size_t>(offset));
+                std::memcpy(buffer, body.data() + static_cast<size_t>(offset), count);
+                return count;
+            };
+        }
+        else
+        {
+            args->body = body;
+        }
+    };
+    setBody("first-body");
     args->extraHeaders["X-Request"] = "first-header";
     REQUIRE(client.performRequest(
         args, [&first](const ix::HttpResponsePtr& response) { first.set_value(response); }));
     args->url = url(server) + "/second";
     args->verb = ix::HttpClient::kPut;
-    args->body = "second-body";
+    setBody("second-body");
     args->extraHeaders["X-Request"] = "second-header";
     REQUIRE(client.performRequest(
         args, [&second](const ix::HttpResponsePtr& response) { second.set_value(response); }));
