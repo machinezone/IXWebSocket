@@ -152,8 +152,8 @@ set_tests_properties(IXWebSocketReconnectTest IXWebSocketDispatchTest IXWebSocke
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/static-directory")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/document-root")
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/document-root/index.html" "document root index\n")
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/document-root/asset.txt" "document root asset\n")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/document-root/index.html" "document root index")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/document-root/asset.txt" "document root asset")
 target_compile_definitions(IXHttpServerStaticTest PRIVATE
   IX_TEST_DOCUMENT_ROOT="${CMAKE_CURRENT_BINARY_DIR}/document-root")
 set_tests_properties(IXHttpServerStaticTest PROPERTIES

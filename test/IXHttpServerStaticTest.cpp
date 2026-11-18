@@ -2,6 +2,7 @@
  *  IXHttpServerStaticTest.cpp
  *  Copyright (c) 2026 Machine Zone, Inc. All rights reserved.
  */
+#include <algorithm>
 #include <catch_amalgamated.hpp>
 #include <chrono>
 #include <cstdio>
@@ -75,18 +76,21 @@ TEST_CASE("Directories are not loaded as static files", "[http][static]")
 
 TEST_CASE("Static files use the configured document root", "[http][static][document_root]")
 {
-    const std::string root = GENERATE(std::string("document-root"),
-                                      std::string("document-root/"),
-                                      std::string(IX_TEST_DOCUMENT_ROOT),
-                                      std::string(IX_TEST_DOCUMENT_ROOT) + "/");
+    std::string root = GENERATE(std::string("document-root"),
+                                std::string("document-root/"),
+                                std::string(IX_TEST_DOCUMENT_ROOT),
+                                std::string(IX_TEST_DOCUMENT_ROOT) + "/");
+#ifdef _WIN32
+    if (GENERATE(false, true)) std::replace(root.begin(), root.end(), '/', '\\');
+#endif
     auto index = get("", root);
     REQUIRE(index->errorCode == ix::HttpErrorCode::Ok);
     CHECK(index->statusCode == 200);
-    CHECK(index->body == "document root index\n");
+    CHECK(index->body == "document root index");
     auto asset = get("asset.txt?version=1", root);
     REQUIRE(asset->errorCode == ix::HttpErrorCode::Ok);
     CHECK(asset->statusCode == 200);
-    CHECK(asset->body == "document root asset\n");
+    CHECK(asset->body == "document root asset");
 }
 
 TEST_CASE("An empty document root selects the current directory", "[http][static][document_root]")
