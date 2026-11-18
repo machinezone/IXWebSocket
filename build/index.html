@@ -230,6 +230,18 @@ app@ca2340eb9106:~$ ws --help
 ws is a websocket tool
 ...
 </code></pre>
+<h3 id="code-formatting">Code formatting</h3>
+<p>Use clang-format 23, the current Homebrew version used by CI. On macOS, install
+it with <code>brew install clang-format</code>, then run:</p>
+<pre><code class="language-sh">make -f makefile.dev format
+make -f makefile.dev check_format
+</code></pre>
+<p>Both commands use the same selection of tracked <code>.cpp</code> and <code>.h</code> files, excluding
+vendored code in <code>third_party</code> and untracked build output. To select a formatter
+installed elsewhere, pass <code>CLANG_FORMAT=/path/to/clang-format</code> to make.</p>
+<p>All <code>if</code> bodies use braces, including single statements. Clang-format also adds
+braces to <code>else</code> branches and loops. The <code>ClangFormat</code> workflow checks formatting
+on pull requests targeting <code>master</code> and pushes to <code>master</code>.</p>
 <h3 id="native-macos-tls-with-networkframework">Native macOS TLS with Network.framework</h3>
 <p>The developer makefile builds the library, <code>ws</code>, and tests in <code>build</code>:</p>
 <pre><code class="language-sh">make -f makefile.dev ws_network_framework
