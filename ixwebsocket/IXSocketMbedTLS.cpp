@@ -156,7 +156,9 @@ namespace ix
                 return false;
             }
 #if MBEDTLS_VERSION_MAJOR == 3
-            if (mbedtls_pk_parse_keyfile(&_pkey, _tlsOptions.keyFile.c_str(), "", mbedtls_ctr_drbg_random, &_ctr_drbg) < 0)
+            if (mbedtls_pk_parse_keyfile(
+                    &_pkey, _tlsOptions.keyFile.c_str(), "", mbedtls_ctr_drbg_random, &_ctr_drbg) <
+                0)
 #else
             if (mbedtls_pk_parse_keyfile(&_pkey, _tlsOptions.keyFile.c_str(), "") < 0)
 #endif
@@ -259,7 +261,10 @@ namespace ix
         {
             std::lock_guard<std::mutex> lock(_mutex);
             _sockfd = connectToHost(host, port, errMsg, isCancellationRequested);
-            if (_sockfd == -1) return false;
+            if (_sockfd == -1)
+            {
+                return false;
+            }
         }
 
         bool isClient = true;

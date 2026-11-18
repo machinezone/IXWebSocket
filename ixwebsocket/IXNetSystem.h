@@ -22,12 +22,13 @@
 #define NOMINMAX
 #endif
 
-#include <ws2tcpip.h>
 #include <winsock2.h>
+
 #include <basetsd.h>
+#include <cerrno>
 #include <io.h>
 #include <ws2def.h>
-#include <cerrno>
+#include <ws2tcpip.h>
 
 #undef EWOULDBLOCK
 #undef EAGAIN

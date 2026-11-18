@@ -105,11 +105,16 @@ namespace
 
     static bool IsSchemeValid(const std::string& SchemeName)
     {
-        if (SchemeName.empty() || !IsAsciiAlpha(SchemeName[0])) return false;
+        if (SchemeName.empty() || !IsAsciiAlpha(SchemeName[0]))
+        {
+            return false;
+        }
         for (unsigned char c : SchemeName)
         {
             if (!IsAsciiAlpha(c) && !(c >= '0' && c <= '9') && c != '+' && c != '-' && c != '.')
+            {
                 return false;
+            }
         }
         return true;
     }
@@ -125,9 +130,15 @@ namespace
         for (auto c : m_Port)
         {
             Port = Port * 10 + (c - '0');
-            if (Port > 65535) return false;
+            if (Port > 65535)
+            {
+                return false;
+            }
         }
-        if (Port == 0) return false;
+        if (Port == 0)
+        {
+            return false;
+        }
 
         if (OutPort)
         {
@@ -149,7 +160,9 @@ namespace
     {
         if (std::any_of(
                 URL.begin(), URL.end(), [](unsigned char c) { return c <= 0x20 || c == 0x7f; }))
+        {
             return clParseURL(LUrlParserError_NoUrlCharacter);
+        }
         clParseURL Result;
         const std::size_t npos = std::string::npos;
         std::size_t current = 0;
@@ -452,7 +465,10 @@ namespace ix
         const auto protocolPort = getProtocolPort(protocol);
         if (!res.GetPort(&port))
         {
-            if (!res.m_Port.empty()) return false;
+            if (!res.m_Port.empty())
+            {
+                return false;
+            }
             port = protocolPort;
         }
         isProtocolDefaultPort = port == protocolPort;

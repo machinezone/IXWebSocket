@@ -28,6 +28,7 @@
 #ifdef _WIN32
 // For manipulating the certificate store
 #include <windows.h>
+
 #include <wincrypt.h>
 #endif
 
@@ -51,7 +52,8 @@ namespace
         X509_STORE* opensslStore = SSL_CTX_get_cert_store(ssl);
 
         int certificateCount = 0;
-        while ((certificateIterator = CertEnumCertificatesInStore(systemStore, certificateIterator)))
+        while (
+            (certificateIterator = CertEnumCertificatesInStore(systemStore, certificateIterator)))
         {
             X509* x509 = d2i_X509(NULL,
                                   (const unsigned char**) &certificateIterator->pbCertEncoded,
@@ -115,7 +117,10 @@ namespace ix
     void SocketOpenSSL::openSSLInitialize()
     {
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
-        if (!OPENSSL_init_ssl(OPENSSL_INIT_LOAD_CONFIG, nullptr)) return;
+        if (!OPENSSL_init_ssl(OPENSSL_INIT_LOAD_CONFIG, nullptr))
+        {
+            return;
+        }
 #else
         (void) OPENSSL_config(nullptr);
 
@@ -233,7 +238,10 @@ namespace ix
     {
         // Create certificate store
         X509_STORE* certificate_store = SSL_CTX_get_cert_store(_ssl_context);
-        if (certificate_store == nullptr) return false;
+        if (certificate_store == nullptr)
+        {
+            return false;
+        }
 
         // Configure to allow intermediate certs
         X509_STORE_set_flags(certificate_store,
@@ -241,7 +249,10 @@ namespace ix
 
         // Create a new buffer and populate it with the roots
         BIO* buffer = BIO_new_mem_buf((void*) roots.c_str(), static_cast<int>(roots.length()));
-        if (buffer == nullptr) return false;
+        if (buffer == nullptr)
+        {
+            return false;
+        }
 
         // Read each root in the buffer and add to the certificate store
         bool success = true;
@@ -284,7 +295,10 @@ namespace ix
         BIO_free(buffer);
 
         // Make sure we loaded at least one certificate.
-        if (number_of_roots == 0) success = false;
+        if (number_of_roots == 0)
+        {
+            success = false;
+        }
 
         return success;
     }
@@ -295,8 +309,8 @@ namespace ix
     bool SocketOpenSSL::checkHost(const std::string& host, const char* pattern)
     {
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
-        (void)host;
-        (void)pattern;
+        (void) host;
+        (void) pattern;
         return true;
 #else
 
@@ -421,7 +435,10 @@ namespace ix
             {
                 auto ready = reason == SSL_ERROR_WANT_READ ? isReadyToRead(10) : isReadyToWrite(10);
                 rc = ready != PollResultType::Error;
-                if (!rc) errMsg = "Socket error during TLS handshake";
+                if (!rc)
+                {
+                    errMsg = "Socket error during TLS handshake";
+                }
             }
             else
             {
@@ -464,7 +481,10 @@ namespace ix
             {
                 auto ready = reason == SSL_ERROR_WANT_READ ? isReadyToRead(10) : isReadyToWrite(10);
                 rc = ready != PollResultType::Error;
-                if (!rc) errMsg = "Socket error during TLS handshake";
+                if (!rc)
+                {
+                    errMsg = "Socket error during TLS handshake";
+                }
             }
             else
             {
@@ -763,7 +783,10 @@ namespace ix
             }
 
             _sockfd = connectToHost(host, port, errMsg, isCancellationRequested);
-            if (_sockfd == -1) return false;
+            if (_sockfd == -1)
+            {
+                return false;
+            }
 
             _ssl_context = openSSLCreateContext(errMsg);
             if (_ssl_context == nullptr)
@@ -884,7 +907,10 @@ namespace ix
 
         ERR_clear_error();
         const int result = SSL_read(_ssl_connection, buf, static_cast<int>(nbyte));
-        if (result > 0) return result;
+        if (result > 0)
+        {
+            return result;
+        }
 
         const int reason = SSL_get_error(_ssl_connection, result);
         if (reason == SSL_ERROR_ZERO_RETURN)

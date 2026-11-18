@@ -44,7 +44,10 @@ namespace ix
                     [webSocket](const WebSocketMessagePtr& msg)
                     {
                         auto ws = webSocket.lock();
-                        if (!ws) return;
+                        if (!ws)
+                        {
+                            return;
+                        }
                         if (msg->type == ix::WebSocketMessageType::Close)
                         {
                             ws->close(msg->closeInfo.code, msg->closeInfo.reason);
@@ -69,7 +72,10 @@ namespace ix
                             const WebSocketMessagePtr& msg)
                         {
                             auto downstream = webSocket.lock();
-                            if (!downstream) return;
+                            if (!downstream)
+                            {
+                                return;
+                            }
                             if (msg->type == ix::WebSocketMessageType::Open)
                             {
                                 // Connect to the 'real' server

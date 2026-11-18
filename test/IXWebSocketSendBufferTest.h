@@ -57,9 +57,11 @@ namespace
                 CHECK(buffer == _address);
                 CHECK(length == _pending.size());
                 if (length == _pending.size())
+                {
                     CHECK(std::equal(_pending.begin(),
                                      _pending.end(),
                                      reinterpret_cast<unsigned char*>(buffer)));
+                }
                 ++retries;
             }
             const auto count = _socket.send(buffer, length);
@@ -98,7 +100,9 @@ namespace
     {
         std::vector<unsigned char> data(size);
         for (size_t i = 0; i < data.size(); ++i)
+        {
             data[i] = static_cast<unsigned char>(seed + i * 31 + i / 251);
+        }
         return data;
     }
 

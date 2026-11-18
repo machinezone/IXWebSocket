@@ -28,15 +28,15 @@ namespace ix
 
     bool startServer(ix::WebSocketServer& server, std::string& connectionId)
     {
-        auto factory = []() -> std::shared_ptr<ConnectionState> {
-            return std::make_shared<ConnectionStateCustom>();
-        };
+        auto factory = []() -> std::shared_ptr<ConnectionState>
+        { return std::make_shared<ConnectionStateCustom>(); };
         server.setConnectionStateFactory(factory);
 
         server.setOnClientMessageCallback(
             [&server, &connectionId](std::shared_ptr<ConnectionState> connectionState,
                                      WebSocket& webSocket,
-                                     const ix::WebSocketMessagePtr& msg) {
+                                     const ix::WebSocketMessagePtr& msg)
+            {
                 auto remoteIp = connectionState->getRemoteIp();
 
                 if (msg->type == ix::WebSocketMessageType::Open)
@@ -191,7 +191,10 @@ TEST_CASE("Websocket_server", "[websocket_server]")
         while (true)
         {
             lineResult = socket->readLine(isCancellationRequested);
-            if (!lineResult.first) break;
+            if (!lineResult.first)
+            {
+                break;
+            }
             if (lineResult.second == "\r\n")
             {
                 headersEnded = true;
@@ -259,13 +262,15 @@ TEST_CASE("Websocket_server", "[websocket_server]")
 
         std::mutex logMutex;
         std::vector<std::string> errors;
-        server.setLogCallback([&logMutex, &errors](LogLevel level, const std::string& msg) {
-            std::lock_guard<std::mutex> lock(logMutex);
-            if (level == LogLevel::Error)
+        server.setLogCallback(
+            [&logMutex, &errors](LogLevel level, const std::string& msg)
             {
-                errors.push_back(msg);
-            }
-        });
+                std::lock_guard<std::mutex> lock(logMutex);
+                if (level == LogLevel::Error)
+                {
+                    errors.push_back(msg);
+                }
+            });
 
         std::string connectionId;
         REQUIRE(startServer(server, connectionId));

@@ -34,9 +34,9 @@
 
 #pragma once
 
+#include "IXWebSocketSendData.h"
 #include <memory>
 #include <string>
-#include "IXWebSocketSendData.h"
 
 namespace ix
 {

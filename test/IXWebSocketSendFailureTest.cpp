@@ -111,7 +111,10 @@ TEST_CASE("Send failures finish callbacks on the I/O thread", "[websocket][close
                 callbackThreads.push_back(std::this_thread::get_id());
             }
             // Calling close() from a terminal notification must not deadlock.
-            if (closedInCallback) transport.close();
+            if (closedInCallback)
+            {
+                transport.close();
+            }
         });
     std::thread::id ioThread;
     auto owner = std::async(
@@ -177,7 +180,9 @@ TEST_CASE("Closing cancels a blocked send without waiting for its timeout",
                              [&] { return transport.sendText(std::string("outgoing"), nullptr); });
     const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
     while (socket->polls == 0 && std::chrono::steady_clock::now() < deadline)
+    {
         std::this_thread::yield();
+    }
     const bool blocked = socket->polls != 0;
     const auto start = std::chrono::steady_clock::now();
     transport.close(4000, "cancelled");
@@ -205,7 +210,10 @@ TEST_CASE("A close request keeps its code when a write fails", "[websocket][clos
             ++notifications;
             CHECK_FALSE(transport.sendText(std::string("after close"), nullptr).success);
         });
-    if (!closeFirst) CHECK_FALSE(transport.sendText(std::string("outgoing"), nullptr).success);
+    if (!closeFirst)
+    {
+        CHECK_FALSE(transport.sendText(std::string("outgoing"), nullptr).success);
+    }
     transport.close(4000, "cancelled");
     auto message = [](const std::string&, size_t, bool, Transport::MessageKind) { };
     transport.dispatch(transport.poll(), message);

@@ -111,52 +111,54 @@ namespace
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
 
-        _webSocket.setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
-            std::stringstream ss;
-            if (msg->type == ix::WebSocketMessageType::Open)
-            {
-                log("client connected");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Close)
+        _webSocket.setOnMessageCallback(
+            [this](const ix::WebSocketMessagePtr& msg)
             {
                 std::stringstream ss;
-                ss << "client disconnected(" << msg->closeInfo.code << "," << msg->closeInfo.reason
-                   << ")";
-                log(ss.str());
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    log("client connected");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    std::stringstream ss;
+                    ss << "client disconnected(" << msg->closeInfo.code << ","
+                       << msg->closeInfo.reason << ")";
+                    log(ss.str());
 
-                std::lock_guard<std::mutex> lck(_mutexCloseData);
+                    std::lock_guard<std::mutex> lck(_mutexCloseData);
 
-                _closeCode = msg->closeInfo.code;
-                _closeReason = std::string(msg->closeInfo.reason);
-                _closeRemote = msg->closeInfo.remote;
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error)
-            {
-                _connectionError = true;
-                ss << "Error ! " << msg->errorInfo.reason;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Pong)
-            {
-                ss << "Received pong message " << msg->str;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Ping)
-            {
-                ss << "Received ping message " << msg->str;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                ss << "Received message " << msg->str;
-                log(ss.str());
-            }
-            else
-            {
-                ss << "Invalid ix::WebSocketMessageType";
-                log(ss.str());
-            }
-        });
+                    _closeCode = msg->closeInfo.code;
+                    _closeReason = std::string(msg->closeInfo.reason);
+                    _closeRemote = msg->closeInfo.remote;
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    _connectionError = true;
+                    ss << "Error ! " << msg->errorInfo.reason;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Pong)
+                {
+                    ss << "Received pong message " << msg->str;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Ping)
+                {
+                    ss << "Received ping message " << msg->str;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    ss << "Received message " << msg->str;
+                    log(ss.str());
+                }
+                else
+                {
+                    ss << "Invalid ix::WebSocketMessageType";
+                    log(ss.str());
+                }
+            });
 
         _webSocket.start();
     }
@@ -172,7 +174,8 @@ namespace
             [&receivedCloseCode, &receivedCloseReason, &receivedCloseRemote, &mutexWrite](
                 std::shared_ptr<ConnectionState> connectionState,
                 WebSocket& /*webSocket*/,
-                const ix::WebSocketMessagePtr& msg) {
+                const ix::WebSocketMessagePtr& msg)
+            {
                 auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
@@ -242,7 +245,10 @@ TEST_CASE("Websocket_client_close_default", "[close]")
         while (true)
         {
             REQUIRE(!webSocketClient.hasConnectionError());
-            if (webSocketClient.isReady()) break;
+            if (webSocketClient.isReady())
+            {
+                break;
+            }
             ix::msleep(10);
         }
 
@@ -304,7 +310,10 @@ TEST_CASE("Websocket_client_close_params_given", "[close]")
         // Wait for all chat instance to be ready
         while (true)
         {
-            if (webSocketClient.isReady()) break;
+            if (webSocketClient.isReady())
+            {
+                break;
+            }
             ix::msleep(10);
         }
 
@@ -366,7 +375,10 @@ TEST_CASE("Websocket_server_close", "[close]")
         // Wait for all chat instance to be ready
         while (true)
         {
-            if (webSocketClient.isReady()) break;
+            if (webSocketClient.isReady())
+            {
+                break;
+            }
             ix::msleep(10);
         }
 

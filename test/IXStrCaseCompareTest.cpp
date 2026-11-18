@@ -102,7 +102,10 @@ namespace ix
                 break;
             }
         }
-        if (!available) SKIP("Turkish locale is not installed");
+        if (!available)
+        {
+            SKIP("Turkish locale is not installed");
+        }
         CAPTURE(std::setlocale(LC_CTYPE, nullptr));
 
         CHECK(headers.find("ORIGIN") != headers.end());

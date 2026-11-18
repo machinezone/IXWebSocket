@@ -57,7 +57,10 @@ TEST_CASE("SecureTransport closes the native socket without a TLS context", "[so
     const int fd = ::socket(AF_INET, SOCK_STREAM, 0);
     REQUIRE(fd != -1);
     ix::SocketAppleSSL socket(ix::SocketTLSOptions {}, fd);
-    if (contextCreated) ix::SocketAppleSSLReadTestAccess::install(socket);
+    if (contextCreated)
+    {
+        ix::SocketAppleSSLReadTestAccess::install(socket);
+    }
 
     socket.close();
     errno = 0;

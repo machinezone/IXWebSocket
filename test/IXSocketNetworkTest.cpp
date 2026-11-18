@@ -216,7 +216,10 @@ TEST_CASE("Network.framework WebSocket echo", "[network_tls]")
     server.setOnClientMessageCallback(
         [](std::shared_ptr<ConnectionState>, WebSocket& socket, const WebSocketMessagePtr& message)
         {
-            if (message->type == WebSocketMessageType::Message) socket.sendBinary(message->str);
+            if (message->type == WebSocketMessageType::Message)
+            {
+                socket.sendBinary(message->str);
+            }
         });
     auto listening = server.listen();
     INFO(listening.second);
@@ -232,17 +235,27 @@ TEST_CASE("Network.framework WebSocket echo", "[network_tls]")
     client.setOnMessageCallback(
         [&](const WebSocketMessagePtr& message)
         {
-            if (message->type == WebSocketMessageType::Open) client.sendBinary(body);
+            if (message->type == WebSocketMessageType::Open)
+            {
+                client.sendBinary(body);
+            }
             if (message->type == WebSocketMessageType::Message && !completed.exchange(true))
+            {
                 received.set_value(message->str);
+            }
             if (message->type == WebSocketMessageType::Error && !completed.exchange(true))
+            {
                 received.set_value(message->errorInfo.reason);
+            }
         });
     auto result = received.get_future();
     client.start();
     auto status = result.wait_for(std::chrono::seconds(5));
     CHECK(status == std::future_status::ready);
-    if (status == std::future_status::ready) CHECK(bool(result.get() == body));
+    if (status == std::future_status::ready)
+    {
+        CHECK(bool(result.get() == body));
+    }
     client.stop();
     server.stop();
 }

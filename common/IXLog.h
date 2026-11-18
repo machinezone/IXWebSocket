@@ -117,7 +117,10 @@ namespace ix
                 auto& s = state();
                 std::lock_guard<std::mutex> lock(s.mutex);
 
-                if (level < s.level) return;
+                if (level < s.level)
+                {
+                    return;
+                }
 
                 std::stringstream ss;
                 format(ss, fmt.c_str(), args...);

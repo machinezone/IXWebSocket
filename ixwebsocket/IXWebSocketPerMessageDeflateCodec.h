@@ -9,11 +9,11 @@
 #ifdef IXWEBSOCKET_USE_ZLIB
 #include "zlib.h"
 #endif
+#include "IXWebSocketSendData.h"
 #include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
-#include "IXWebSocketSendData.h"
 
 namespace ix
 {

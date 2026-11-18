@@ -64,7 +64,10 @@ namespace
                 auto result = transport.connectToSocket(std::move(socket), 2, false);
                 const auto deadline = Clock::now() + std::chrono::seconds(5);
                 auto cancelled = [this, deadline] { return _stopping || Clock::now() >= deadline; };
-                if (!result.success || !_script(*rawSocket, index, cancelled)) ++_errors;
+                if (!result.success || !_script(*rawSocket, index, cancelled))
+                {
+                    ++_errors;
+                }
             }
             state->setTerminated();
         }
@@ -97,10 +100,15 @@ TEST_CASE("Automatic reconnect discards old fragments and incomplete frames",
             ix::Socket& socket, unsigned index, const ix::CancellationRequest& cancelled)
         {
             if (index == 0)
+            {
                 return socket.writeBytes(incompleteFrame ? std::string("\x81\x05OL", 4)
                                                          : std::string("\x01\x03OLD", 5),
                                          cancelled);
-            if (!socket.writeBytes(std::string("\x81\x03NEW", 5), cancelled)) return false;
+            }
+            if (!socket.writeBytes(std::string("\x81\x03NEW", 5), cancelled))
+            {
+                return false;
+            }
             char byte;
             socket.readByte(&byte, cancelled); // Keep this connection open until the client stops.
             return true;
@@ -121,7 +129,10 @@ TEST_CASE("Automatic reconnect discards old fragments and incomplete frames",
         [&](const ix::WebSocketMessagePtr& message)
         {
             std::lock_guard<std::mutex> lock(mutex);
-            if (message->type == ix::WebSocketMessageType::Fragment) ++fragments;
+            if (message->type == ix::WebSocketMessageType::Fragment)
+            {
+                ++fragments;
+            }
             if (message->type == ix::WebSocketMessageType::Message)
             {
                 messages.push_back(message->str);
@@ -153,9 +164,14 @@ TEST_CASE("Reconnect discards an incomplete received frame", "[websocket][reconn
         {
             if (index == 0)
             {
-                if (!socket.writeBytes(std::string("\x81\x05OL", 4), cancelled)) return false;
+                if (!socket.writeBytes(std::string("\x81\x05OL", 4), cancelled))
+                {
+                    return false;
+                }
                 while (!releaseFirst && !cancelled())
+                {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
                 return true;
             }
             return socket.writeBytes(std::string("\x81\x03NEW", 5), cancelled);
@@ -169,7 +185,10 @@ TEST_CASE("Reconnect discards an incomplete received frame", "[websocket][reconn
     std::vector<std::string> messages;
     auto onMessage = [&](const std::string& message, size_t, bool, Transport::MessageKind kind)
     {
-        if (kind == Transport::MessageKind::MSG_TEXT) messages.push_back(message);
+        if (kind == Transport::MessageKind::MSG_TEXT)
+        {
+            messages.push_back(message);
+        }
     };
     const auto deadline = Clock::now() + std::chrono::milliseconds(100);
     while (Clock::now() < deadline)
@@ -213,10 +232,15 @@ TEST_CASE("Reconnect discards queued output", "[websocket][reconnect]")
             {
                 // Deliberately do not read, so the client's nonblocking send queues output.
                 while (!releaseFirst && !cancelled())
+                {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
                 return true;
             }
-            if (index != 1) return false;
+            if (index != 1)
+            {
+                return false;
+            }
             auto result = socket.readBytes(9, nullptr, nullptr, cancelled);
             received.set_value(result.second);
             return result.first;
@@ -229,7 +253,9 @@ TEST_CASE("Reconnect discards queued output", "[websocket][reconnect]")
     REQUIRE(client.connectToUrl(server.url(), {}, 2).success);
     const std::string payload(4 * 1024 * 1024, 'x');
     for (int i = 0; i < 4 && client.bufferedAmount() == 0; ++i)
+    {
         REQUIRE(client.sendBinary(payload, nullptr).success);
+    }
     REQUIRE(client.bufferedAmount() > 0);
     client.closeSocket();
     client.setReadyState(Transport::ReadyState::CLOSED);
@@ -249,7 +275,9 @@ TEST_CASE("Reconnect discards queued output", "[websocket][reconnect]")
         CHECK(static_cast<unsigned char>(frame[1]) == 0x83);
         std::string message;
         for (size_t i = 0; i < 3; ++i)
+        {
             message += frame[6 + i] ^ frame[2 + i];
+        }
         CHECK(message == "NEW");
     }
     client.closeSocket();
@@ -266,8 +294,14 @@ TEST_CASE("Reconnect waits for an interrupted send", "[websocket][reconnect]")
     ReconnectTestServer server(
         [&](ix::Socket& socket, unsigned index, const ix::CancellationRequest& cancelled)
         {
-            if (index == 0) return socket.readBytes(32768 + 8, nullptr, nullptr, cancelled).first;
-            if (index != 1) return false;
+            if (index == 0)
+            {
+                return socket.readBytes(32768 + 8, nullptr, nullptr, cancelled).first;
+            }
+            if (index != 1)
+            {
+                return false;
+            }
             auto result = socket.readBytes(9, nullptr, nullptr, cancelled);
             received.set_value(result.second);
             char byte;
@@ -290,8 +324,14 @@ TEST_CASE("Reconnect waits for an interrupted send", "[websocket][reconnect]")
         [&](const ix::WebSocketMessagePtr& message)
         {
             std::lock_guard<std::mutex> lock(mutex);
-            if (message->type == ix::WebSocketMessageType::Open) ++opens;
-            if (message->type == ix::WebSocketMessageType::Close) closed = true;
+            if (message->type == ix::WebSocketMessageType::Open)
+            {
+                ++opens;
+            }
+            if (message->type == ix::WebSocketMessageType::Close)
+            {
+                closed = true;
+            }
             changed.notify_all();
         });
     client.start();
@@ -316,7 +356,10 @@ TEST_CASE("Reconnect waits for an interrupted send", "[websocket][reconnect]")
                 changed.notify_all();
                 changed.wait_for(lock, std::chrono::seconds(5), [&] { return release; });
             }
-            if (stopFromProgressCallback) client.stop();
+            if (stopFromProgressCallback)
+            {
+                client.stop();
+            }
         }
         return true;
     };
@@ -335,7 +378,10 @@ TEST_CASE("Reconnect waits for an interrupted send", "[websocket][reconnect]")
         changed.notify_all();
     }
     sender.join();
-    if (stopFromProgressCallback) client.start();
+    if (stopFromProgressCallback)
+    {
+        client.start();
+    }
     bool reconnected;
     {
         std::unique_lock<std::mutex> lock(mutex);
@@ -358,7 +404,9 @@ TEST_CASE("Reconnect waits for an interrupted send", "[websocket][reconnect]")
     CHECK(static_cast<unsigned char>(frame[1]) == 0x83);
     std::string message;
     for (size_t i = 0; i < 3; ++i)
+    {
         message += frame[6 + i] ^ frame[2 + i];
+    }
     CHECK(message == "NEW");
     CHECK(server.errors() == 0);
 }

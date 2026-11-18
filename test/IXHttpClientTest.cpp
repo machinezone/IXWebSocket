@@ -31,7 +31,8 @@ TEST_CASE("http_client", "[http]")
         args->verbose = true;
         args->compress = true;
         args->logger = [](const std::string& msg) { std::cout << msg; };
-        args->onProgressCallback = [](int current, int total) -> bool {
+        args->onProgressCallback = [](int current, int total) -> bool
+        {
             std::cerr << "\r"
                       << "Downloaded " << current << " bytes out of " << total;
             return true;
@@ -74,7 +75,8 @@ TEST_CASE("http_client", "[http]")
         args->verbose = true;
         args->compress = true;
         args->logger = [](const std::string& msg) { std::cout << msg; };
-        args->onProgressCallback = [](int current, int total) -> bool {
+        args->onProgressCallback = [](int current, int total) -> bool
+        {
             std::cerr << "\r"
                       << "Downloaded " << current << " bytes out of " << total;
             return true;
@@ -164,7 +166,8 @@ TEST_CASE("http_client", "[http]")
         args->verbose = true;
         args->compress = true;
         args->logger = [](const std::string& msg) { std::cout << msg; };
-        args->onProgressCallback = [](int current, int total) -> bool {
+        args->onProgressCallback = [](int current, int total) -> bool
+        {
             std::cerr << "\r"
                       << "Downloaded " << current << " bytes out of " << total;
             return true;
@@ -174,7 +177,9 @@ TEST_CASE("http_client", "[http]")
         std::atomic<int> statusCode(0);
 
         httpClient.performRequest(
-            args, [&requestCompleted, &statusCode](const HttpResponsePtr& response) {
+            args,
+            [&requestCompleted, &statusCode](const HttpResponsePtr& response)
+            {
                 std::cerr << "Upload size: " << response->uploadSize << std::endl;
                 std::cerr << "Download size: " << response->downloadSize << std::endl;
                 std::cerr << "Status: " << response->statusCode << std::endl;
@@ -188,7 +193,10 @@ TEST_CASE("http_client", "[http]")
         int wait = 0;
         while (wait < 5000)
         {
-            if (requestCompleted) break;
+            if (requestCompleted)
+            {
+                break;
+            }
 
             std::chrono::duration<double, std::milli> duration(10);
             std::this_thread::sleep_for(duration);
@@ -216,7 +224,8 @@ TEST_CASE("http_client", "[http]")
         args->verbose = true;
         args->compress = true;
         args->logger = [](const std::string& msg) { std::cout << msg; };
-        args->onProgressCallback = [](int current, int total) -> bool {
+        args->onProgressCallback = [](int current, int total) -> bool
+        {
             std::cerr << "\r"
                       << "Downloaded " << current << " bytes out of " << total;
             return true;
@@ -232,7 +241,8 @@ TEST_CASE("http_client", "[http]")
             httpClient.performRequest(
                 args,
                 [i, &requestCompleted, &statusCode0, &statusCode1, &statusCode2](
-                    const HttpResponsePtr& response) {
+                    const HttpResponsePtr& response)
+                {
                     std::cerr << "Upload size: " << response->uploadSize << std::endl;
                     std::cerr << "Download size: " << response->downloadSize << std::endl;
                     std::cerr << "Status: " << response->statusCode << std::endl;
@@ -258,7 +268,10 @@ TEST_CASE("http_client", "[http]")
         int wait = 0;
         while (wait < 10000)
         {
-            if (requestCompleted) break;
+            if (requestCompleted)
+            {
+                break;
+            }
 
             std::chrono::duration<double, std::milli> duration(10);
             std::this_thread::sleep_for(duration);
@@ -292,7 +305,8 @@ TEST_CASE("http_client", "[http]")
         args->verbose = true;
         args->compress = true;
         args->logger = [](const std::string& msg) { std::cout << msg; };
-        args->onProgressCallback = [](int current, int total) -> bool {
+        args->onProgressCallback = [](int current, int total) -> bool
+        {
             std::cerr << "\r"
                       << "Downloaded " << current << " bytes out of " << total;
             return true;
@@ -301,11 +315,12 @@ TEST_CASE("http_client", "[http]")
         std::atomic<bool> requestCompleted(false);
         std::atomic<HttpErrorCode> errorCode(HttpErrorCode::Invalid);
 
-        httpClient.performRequest(
-            args, [&requestCompleted, &errorCode](const HttpResponsePtr& response) {
-                errorCode = response->errorCode;
-                requestCompleted = true;
-            });
+        httpClient.performRequest(args,
+                                  [&requestCompleted, &errorCode](const HttpResponsePtr& response)
+                                  {
+                                      errorCode = response->errorCode;
+                                      requestCompleted = true;
+                                  });
 
         // cancel immediately
         args->cancel = true;
@@ -313,7 +328,10 @@ TEST_CASE("http_client", "[http]")
         int wait = 0;
         while (wait < 5000)
         {
-            if (requestCompleted) break;
+            if (requestCompleted)
+            {
+                break;
+            }
 
             std::chrono::duration<double, std::milli> duration(10);
             std::this_thread::sleep_for(duration);
@@ -345,7 +363,8 @@ TEST_CASE("http_client", "[http]")
         args->verbose = true;
         args->compress = false;
         args->logger = [](const std::string& msg) { std::cout << msg; };
-        args->onProgressCallback = [](int current, int total) -> bool {
+        args->onProgressCallback = [](int current, int total) -> bool
+        {
             std::cerr << "\r"
                       << "Downloaded " << current << " bytes out of " << total;
             return true;
@@ -353,10 +372,11 @@ TEST_CASE("http_client", "[http]")
 
         // compute Adler-32 checksum of received data
         uint32_t a = 1, b = 0;
-        args->onChunkCallback = [&](const std::string& data) {
-            for (const char c: data)
+        args->onChunkCallback = [&](const std::string& data)
+        {
+            for (const char c : data)
             {
-                a = (a + (unsigned char)c) % 65521;
+                a = (a + (unsigned char) c) % 65521;
                 b = (b + a) % 65521;
             }
         };
@@ -365,17 +385,21 @@ TEST_CASE("http_client", "[http]")
         std::atomic<HttpErrorCode> errorCode(HttpErrorCode::Invalid);
         std::atomic<int> statusCode(0);
 
-        httpClient.performRequest(
-            args, [&](const HttpResponsePtr& response) {
-                errorCode = response->errorCode;
-                statusCode = response->statusCode;
-                requestCompleted = true;
-            });
+        httpClient.performRequest(args,
+                                  [&](const HttpResponsePtr& response)
+                                  {
+                                      errorCode = response->errorCode;
+                                      statusCode = response->statusCode;
+                                      requestCompleted = true;
+                                  });
 
         int wait = 0;
         while (wait < 120000)
         {
-            if (requestCompleted) break;
+            if (requestCompleted)
+            {
+                break;
+            }
 
             std::chrono::duration<double, std::milli> duration(10);
             std::this_thread::sleep_for(duration);

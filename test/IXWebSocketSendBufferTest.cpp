@@ -21,7 +21,10 @@ namespace
                 setErrno(EWOULDBLOCK);
                 return -1;
             }
-            if (writesBeforeBlocking > 0) --writesBeforeBlocking;
+            if (writesBeforeBlocking > 0)
+            {
+                --writesBeforeBlocking;
+            }
             const size_t count = (std::min) (length, size_t(7));
             received.insert(received.end(), buffer, buffer + count);
             return static_cast<std::ptrdiff_t>(count);

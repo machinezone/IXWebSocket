@@ -96,7 +96,9 @@ TEST_CASE("Compression parameters follow the sending endpoint", "[zlib]")
     }
     std::string payload;
     for (unsigned i = 0; i < 32; ++i)
+    {
         payload += block;
+    }
     for (unsigned i = 0; i < 3; ++i)
     {
         std::string compressed, decoded;

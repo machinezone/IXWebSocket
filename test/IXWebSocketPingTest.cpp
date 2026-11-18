@@ -66,41 +66,43 @@ namespace
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
 
-        _webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg) {
-            std::stringstream ss;
-            if (msg->type == ix::WebSocketMessageType::Open)
+        _webSocket.setOnMessageCallback(
+            [](const ix::WebSocketMessagePtr& msg)
             {
-                log("client connected");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Close)
-            {
-                log("client disconnected");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error)
-            {
-                ss << "Error ! " << msg->errorInfo.reason;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Pong)
-            {
-                ss << "Received pong message " << msg->str;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Ping)
-            {
-                ss << "Received ping message " << msg->str;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                // too many messages to log
-            }
-            else
-            {
-                ss << "Invalid ix::WebSocketMessageType";
-                log(ss.str());
-            }
-        });
+                std::stringstream ss;
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    log("client connected");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    log("client disconnected");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    ss << "Error ! " << msg->errorInfo.reason;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Pong)
+                {
+                    ss << "Received pong message " << msg->str;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Ping)
+                {
+                    ss << "Received ping message " << msg->str;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    // too many messages to log
+                }
+                else
+                {
+                    ss << "Invalid ix::WebSocketMessageType";
+                    log(ss.str());
+                }
+            });
 
         _webSocket.start();
     }
@@ -115,10 +117,12 @@ namespace
         // A dev/null server
         server.setOnConnectionCallback(
             [&server, &receivedPingMessages](std::shared_ptr<ix::WebSocket> webSocket,
-                                             std::shared_ptr<ConnectionState> connectionState) {
+                                             std::shared_ptr<ConnectionState> connectionState)
+            {
                 webSocket->setOnMessageCallback(
                     [webSocket, connectionState, &server, &receivedPingMessages](
-                        const ix::WebSocketMessagePtr& msg) {
+                        const ix::WebSocketMessagePtr& msg)
+                    {
                         if (msg->type == ix::WebSocketMessageType::Open)
                         {
                             TLogger() << "New server connection";
@@ -181,7 +185,10 @@ TEST_CASE("Websocket_ping_no_data_sent_setPingInterval", "[setPingInterval]")
         // Wait for all chat instance to be ready
         while (true)
         {
-            if (webSocketClient.isReady()) break;
+            if (webSocketClient.isReady())
+            {
+                break;
+            }
             ix::msleep(10);
         }
 
@@ -223,7 +230,10 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval", "[setPingInterval]")
         // Wait for all chat instance to be ready
         while (true)
         {
-            if (webSocketClient.isReady()) break;
+            if (webSocketClient.isReady())
+            {
+                break;
+            }
             ix::msleep(10);
         }
 
@@ -270,7 +280,10 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval_half_full", "[setPingInterva
         // Wait for all chat instance to be ready
         while (true)
         {
-            if (webSocketClient.isReady()) break;
+            if (webSocketClient.isReady())
+            {
+                break;
+            }
             ix::msleep(10);
         }
 
@@ -323,7 +336,10 @@ TEST_CASE("Websocket_ping_data_sent_setPingInterval_full", "[setPingInterval]")
         // Wait for all chat instance to be ready
         while (true)
         {
-            if (webSocketClient.isReady()) break;
+            if (webSocketClient.isReady())
+            {
+                break;
+            }
             ix::msleep(1);
         }
 
@@ -377,7 +393,10 @@ TEST_CASE("Websocket_ping_no_data_sent_setHeartBeatPeriod", "[setPingInterval]")
         // Wait for all chat instance to be ready
         while (true)
         {
-            if (webSocketClient.isReady()) break;
+            if (webSocketClient.isReady())
+            {
+                break;
+            }
             ix::msleep(1);
         }
 
@@ -419,7 +438,10 @@ TEST_CASE("Websocket_ping_data_sent_setHeartBeatPeriod", "[setPingInterval]")
         // Wait for all chat instance to be ready
         while (true)
         {
-            if (webSocketClient.isReady()) break;
+            if (webSocketClient.isReady())
+            {
+                break;
+            }
             ix::msleep(1);
         }
 

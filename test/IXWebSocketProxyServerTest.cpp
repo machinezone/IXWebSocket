@@ -75,7 +75,9 @@ namespace
     {
         const auto deadline = Clock::now() + std::chrono::seconds(2);
         while (states.released() != expected && Clock::now() < deadline)
+        {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
         return states.released() == expected;
     }
 
@@ -83,7 +85,9 @@ namespace
     {
         const auto deadline = Clock::now() + std::chrono::seconds(2);
         while (value != expected && Clock::now() < deadline)
+        {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
         return value == expected;
     }
 
@@ -106,11 +110,18 @@ namespace
                ix::WebSocket& socket,
                const ix::WebSocketMessagePtr& message)
             {
-                if (message->type != ix::WebSocketMessageType::Message) return;
+                if (message->type != ix::WebSocketMessageType::Message)
+                {
+                    return;
+                }
                 if (message->str == "upstream-close")
+                {
                     socket.close(4002, "upstream done");
+                }
                 else
+                {
                     socket.send(message->str, message->binary);
+                }
             });
         REQUIRE(origin.listen().first);
         origin.start();
@@ -137,8 +148,14 @@ namespace
                 [this](const ix::WebSocketMessagePtr& message)
                 {
                     std::lock_guard<std::mutex> lock(mutex);
-                    if (message->type == ix::WebSocketMessageType::Open) opened = true;
-                    if (message->type == ix::WebSocketMessageType::Error) failed = true;
+                    if (message->type == ix::WebSocketMessageType::Open)
+                    {
+                        opened = true;
+                    }
+                    if (message->type == ix::WebSocketMessageType::Error)
+                    {
+                        failed = true;
+                    }
                     if (message->type == ix::WebSocketMessageType::Message)
                     {
                         received = message->str;
@@ -195,7 +212,9 @@ namespace
         {
             ++accepted;
             while (_idle && !_stopping)
+            {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
             state->setTerminated();
         }
 

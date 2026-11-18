@@ -7,16 +7,16 @@
  *
  *  On macOS
  *  $ mkdir -p build ; cd build ; cmake -DUSE_TLS=1 .. ; make -j ; make install
- *  $ clang++ --std=c++14 --stdlib=libc++ main.cpp -lixwebsocket -lz -framework Security -framework Foundation
- *  $ ./a.out
+ *  $ clang++ --std=c++14 --stdlib=libc++ main.cpp -lixwebsocket -lz -framework Security -framework
+ * Foundation $ ./a.out
  *
  *  Or use cmake -DBUILD_DEMO=ON option for other platform
  */
 
-#include <ixwebsocket/IXNetSystem.h>
-#include <ixwebsocket/IXWebSocket.h>
-#include <ixwebsocket/IXUserAgent.h>
 #include <iostream>
+#include <ixwebsocket/IXNetSystem.h>
+#include <ixwebsocket/IXUserAgent.h>
+#include <ixwebsocket/IXWebSocket.h>
 
 int main()
 {
@@ -36,7 +36,8 @@ int main()
 
     // Setup a callback to be fired (in a background thread, watch out for race conditions !)
     // when a message or an event (open, close, error) is received
-    webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
+    webSocket.setOnMessageCallback(
+        [](const ix::WebSocketMessagePtr& msg)
         {
             if (msg->type == ix::WebSocketMessageType::Message)
             {
@@ -54,8 +55,7 @@ int main()
                 std::cout << "Connection error: " << msg->errorInfo.reason << std::endl;
                 std::cout << "> " << std::flush;
             }
-        }
-    );
+        });
 
     // Now that our callback is setup, we can start our background thread and receive messages
     webSocket.start();

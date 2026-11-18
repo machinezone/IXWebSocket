@@ -30,7 +30,10 @@ namespace ix
                     return std::make_pair(false, headers);
                 }
 
-                if (line[i] == '\n') break;
+                if (line[i] == '\n')
+                {
+                    break;
+                }
 
                 if (line[i] == ':' && colon == -1)
                 {
@@ -38,7 +41,10 @@ namespace ix
                 }
             }
             // Reject oversized lines instead of parsing their remainder as another header.
-            if (i == 1023) return std::make_pair(false, headers);
+            if (i == 1023)
+            {
+                return std::make_pair(false, headers);
+            }
 
             if (i == 0 || (i == 1 && line[0] == '\r'))
             {

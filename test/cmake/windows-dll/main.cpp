@@ -8,7 +8,10 @@
 
 int main()
 {
-    if (!ix::initNetSystem()) return 1;
+    if (!ix::initNetSystem())
+    {
+        return 1;
+    }
     {
         ix::WebSocket client;
         ix::ProxyOptions proxy;
@@ -24,8 +27,11 @@ int main()
             ix::WebSocketCloseConstants::kNormalClosureMessage.empty() ||
             ix::SocketServer::kDefaultHost.empty() || ix::HttpClient::kGet != "GET" ||
             ix::SelectInterrupt::kSendRequest == ix::SelectInterrupt::kCloseRequest ||
-            deflate.getClientMaxWindowBits() != 15 || server.getPort() != ix::SocketServer::kDefaultPort)
+            deflate.getClientMaxWindowBits() != 15 ||
+            server.getPort() != ix::SocketServer::kDefaultPort)
+        {
             return 2;
+        }
     }
     return ix::uninitNetSystem() ? 0 : 3;
 }

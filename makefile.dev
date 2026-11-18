@@ -14,6 +14,7 @@ all: brew
 install: brew
 
 WARNINGS_AS_ERRORS ?= OFF
+CLANG_FORMAT ?= clang-format
 
 MBEDTLS_CMAKE_PREFIX :=
 ifeq ($(shell uname),Darwin)
@@ -123,8 +124,12 @@ deploy: docker docker_push
 run:
 	docker run --cap-add sys_ptrace --entrypoint=sh -it bsergean/ws:build
 
+.PHONY: format check_format
 format:
-	clang-format -i `find test ixwebsocket ws -name '*.cpp' -o -name '*.h'`
+	CLANG_FORMAT="$(CLANG_FORMAT)" bash tools/clang_format.sh format
+
+check_format:
+	CLANG_FORMAT="$(CLANG_FORMAT)" bash tools/clang_format.sh check
 
 # That target is used to start a node server, but isn't required as we have
 # a builtin C++ server started in the unittest now

@@ -30,16 +30,18 @@ namespace ix
 
     void setupWebSocketTrafficTrackerCallback()
     {
-        ix::WebSocket::setTrafficTrackerCallback([](size_t size, bool incoming) {
-            if (incoming)
+        ix::WebSocket::setTrafficTrackerCallback(
+            [](size_t size, bool incoming)
             {
-                incomingBytes += size;
-            }
-            else
-            {
-                outgoingBytes += size;
-            }
-        });
+                if (incoming)
+                {
+                    incomingBytes += size;
+                }
+                else
+                {
+                    outgoingBytes += size;
+                }
+            });
     }
 
     void reportWebSocketTraffic()
@@ -88,7 +90,8 @@ namespace ix
         server.setOnClientMessageCallback(
             [&server](std::shared_ptr<ConnectionState> connectionState,
                       WebSocket& webSocket,
-                      const ix::WebSocketMessagePtr& msg) {
+                      const ix::WebSocketMessagePtr& msg)
+            {
                 auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
                 {
@@ -133,7 +136,10 @@ namespace ix
         std::vector<uint8_t> memblock;
 
         std::ifstream file(path);
-        if (!file.is_open()) return memblock;
+        if (!file.is_open())
+        {
+            return memblock;
+        }
 
         file.seekg(0, file.end);
         std::streamoff size = file.tellg();

@@ -7,22 +7,22 @@
 #pragma once
 
 #include <cstdint>
+#include <iterator>
 #include <string>
 #include <vector>
-#include <iterator>
 
 namespace ix
 {
     /*
-    * IXWebSocketSendData implements a wrapper for std::string, std:vector<char/uint8_t> and char*.
-    * It removes the necessarity to copy the data or string into a std::string 
-    */
-    class IXWebSocketSendData {
+     * IXWebSocketSendData implements a wrapper for std::string, std:vector<char/uint8_t> and char*.
+     * It removes the necessarity to copy the data or string into a std::string
+     */
+    class IXWebSocketSendData
+    {
     public:
-
         template<typename T>
         struct IXWebSocketSendData_const_iterator
-            //: public std::iterator<std::forward_iterator_tag, T>
+        //: public std::iterator<std::forward_iterator_tag, T>
         {
             typedef IXWebSocketSendData_const_iterator<T> const_iterator;
 
@@ -33,22 +33,67 @@ namespace ix
             using reference = const value_type&;
 
             pointer _ptr;
-        public:
-            IXWebSocketSendData_const_iterator() : _ptr(nullptr) {}
-            IXWebSocketSendData_const_iterator(pointer ptr) : _ptr(ptr) {}
-            ~IXWebSocketSendData_const_iterator() {}
 
-            const_iterator  operator++(int) { return const_iterator(_ptr++); }
-            const_iterator& operator++() { ++_ptr; return *this; }
-            reference       operator* () const { return *_ptr; }
-            pointer         operator->() const { return _ptr; }
-            const_iterator  operator+ (const difference_type offset) const { return const_iterator(_ptr + offset); }
-            const_iterator  operator- (const difference_type offset) const { return const_iterator(_ptr - offset); }
-            difference_type operator- (const const_iterator& rhs) const { return _ptr - rhs._ptr; }
-            bool            operator==(const const_iterator& rhs) const { return _ptr == rhs._ptr; }
-            bool            operator!=(const const_iterator& rhs) const { return _ptr != rhs._ptr; }
-            const_iterator& operator+=(const difference_type offset) { _ptr += offset; return *this; }
-            const_iterator& operator-=(const difference_type offset) { _ptr -= offset; return *this; }
+        public:
+            IXWebSocketSendData_const_iterator()
+                : _ptr(nullptr)
+            {
+            }
+            IXWebSocketSendData_const_iterator(pointer ptr)
+                : _ptr(ptr)
+            {
+            }
+            ~IXWebSocketSendData_const_iterator()
+            {
+            }
+
+            const_iterator operator++(int)
+            {
+                return const_iterator(_ptr++);
+            }
+            const_iterator& operator++()
+            {
+                ++_ptr;
+                return *this;
+            }
+            reference operator*() const
+            {
+                return *_ptr;
+            }
+            pointer operator->() const
+            {
+                return _ptr;
+            }
+            const_iterator operator+(const difference_type offset) const
+            {
+                return const_iterator(_ptr + offset);
+            }
+            const_iterator operator-(const difference_type offset) const
+            {
+                return const_iterator(_ptr - offset);
+            }
+            difference_type operator-(const const_iterator& rhs) const
+            {
+                return _ptr - rhs._ptr;
+            }
+            bool operator==(const const_iterator& rhs) const
+            {
+                return _ptr == rhs._ptr;
+            }
+            bool operator!=(const const_iterator& rhs) const
+            {
+                return _ptr != rhs._ptr;
+            }
+            const_iterator& operator+=(const difference_type offset)
+            {
+                _ptr += offset;
+                return *this;
+            }
+            const_iterator& operator-=(const difference_type offset)
+            {
+                _ptr -= offset;
+                return *this;
+            }
         };
 
         using const_iterator = IXWebSocketSendData_const_iterator<char>;
@@ -126,4 +171,4 @@ namespace ix
         const size_t _size;
     };
 
-}
+} // namespace ix

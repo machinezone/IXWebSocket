@@ -19,7 +19,8 @@ bool startServer(ix::WebSocketServer& server, std::string& subProtocols)
     server.setOnClientMessageCallback(
         [&server, &subProtocols](std::shared_ptr<ConnectionState> connectionState,
                                  WebSocket& webSocket,
-                                 const ix::WebSocketMessagePtr& msg) {
+                                 const ix::WebSocketMessagePtr& msg)
+        {
             auto remoteIp = connectionState->getRemoteIp();
             if (msg->type == ix::WebSocketMessageType::Open)
             {
@@ -74,13 +75,15 @@ TEST_CASE("subprotocol", "[websocket_subprotocol]")
 
         std::atomic<bool> connected(false);
         ix::WebSocket webSocket;
-        webSocket.setOnMessageCallback([&connected](const ix::WebSocketMessagePtr& msg) {
-            if (msg->type == ix::WebSocketMessageType::Open)
+        webSocket.setOnMessageCallback(
+            [&connected](const ix::WebSocketMessagePtr& msg)
             {
-                connected = true;
-                log("Client connected");
-            }
-        });
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    connected = true;
+                    log("Client connected");
+                }
+            });
 
         webSocket.addSubProtocol("json");
         webSocket.addSubProtocol("msgpack");

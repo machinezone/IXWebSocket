@@ -112,21 +112,32 @@ namespace
             auto write = [&](const std::string& value)
             {
                 // Fragment unit-test replies; relay integration uses normal writes.
-                if (_tunnel) return socket.writeBytes(value, cancelled);
+                if (_tunnel)
+                {
+                    return socket.writeBytes(value, cancelled);
+                }
                 for (char byte : value)
                 {
-                    if (!socket.writeBytes(std::string(1, byte), cancelled)) return false;
+                    if (!socket.writeBytes(std::string(1, byte), cancelled))
+                    {
+                        return false;
+                    }
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 }
                 return true;
             };
             std::string header, value;
-            if (!read(2, header) || !read(static_cast<uint8_t>(header[1]), value)) return;
+            if (!read(2, header) || !read(static_cast<uint8_t>(header[1]), value))
+            {
+                return;
+            }
             ++greetings;
             if (_reply == Reply::Stall)
             {
                 while (!cancelled())
+                {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
                 return;
             }
             if (_reply == Reply::Version)
@@ -145,36 +156,59 @@ namespace
                 return;
             }
             Request request;
-            if (!write(std::string("\x05", 1) + char(_auth ? 2 : 0))) return;
+            if (!write(std::string("\x05", 1) + char(_auth ? 2 : 0)))
+            {
+                return;
+            }
             if (_auth)
             {
                 if (!read(2, header) || !read(static_cast<uint8_t>(header[1]), request.username) ||
                     !read(1, header) || !read(static_cast<uint8_t>(header[0]), request.password))
+                {
                     return;
+                }
                 if (!write(std::string(_reply == Reply::AuthVersion ? "\x02" : "\x01", 1) +
                            char(_reply == Reply::Auth ? 1 : 0)))
+                {
                     return;
-                if (_reply == Reply::Auth || _reply == Reply::AuthVersion) return;
+                }
+                if (_reply == Reply::Auth || _reply == Reply::AuthVersion)
+                {
+                    return;
+                }
             }
-            if (!read(4, header)) return;
+            if (!read(4, header))
+            {
+                return;
+            }
             request.addressType = static_cast<uint8_t>(header[3]);
             if (request.addressType == 3)
             {
                 if (!read(1, header) || !read(static_cast<uint8_t>(header[0]), request.host))
+                {
                     return;
+                }
             }
             else
             {
-                if (!read(request.addressType == 1 ? 4 : 16, value)) return;
+                if (!read(request.addressType == 1 ? 4 : 16, value))
+                {
+                    return;
+                }
                 char numeric[INET6_ADDRSTRLEN];
                 if (!ix::inet_ntop(request.addressType == 1 ? AF_INET : AF_INET6,
                                    value.data(),
                                    numeric,
                                    sizeof(numeric)))
+                {
                     return;
+                }
                 request.host = numeric;
             }
-            if (!read(2, value)) return;
+            if (!read(2, value))
+            {
+                return;
+            }
             request.port = (static_cast<uint8_t>(value[0]) << 8) | static_cast<uint8_t>(value[1]);
             {
                 std::lock_guard<std::mutex> lock(_mutex);
@@ -212,18 +246,29 @@ namespace
             }
             std::string bound;
             if (_reply == Reply::IPv4)
+            {
                 bound = std::string("\x01\x7f\x00\x00\x01", 5);
+            }
             else if (_reply == Reply::Domain)
+            {
                 bound = std::string("\x03\x09localhost", 11);
+            }
             else
+            {
                 bound = std::string("\x04", 1) + std::string(15, '\0') + '\x01';
+            }
             std::string reply = std::string("\x05\x00\x00", 3) + bound + std::string("\x00\x50", 2);
             std::string error;
             auto upstream = _tunnel ? ix::createSocket(false, -1, error, {}) : nullptr;
             if (_tunnel &&
                 (!upstream || !upstream->connect("127.0.0.1", request.port, error, cancelled)))
+            {
                 return;
-            if (!write(reply)) return;
+            }
+            if (!write(reply))
+            {
+                return;
+            }
             if (!_tunnel)
             {
                 write("payload");
@@ -241,10 +286,14 @@ namespace
                     {
                         if (!to.writeBytes(std::string(buffer, static_cast<size_t>(count)),
                                            cancelled))
+                        {
                             return;
+                        }
                     }
                     else if (count == 0 || !ix::Socket::isWaitNeeded())
+                    {
                         return;
+                    }
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
@@ -281,7 +330,10 @@ TEST_CASE("SOCKS5 consumes exactly the proxy reply", "[socks5]")
     CHECK(request.addressType == 3);
     CHECK(request.host == "destination.invalid");
     CHECK(request.port == 80);
-    if (auth) CHECK(request.username == "test-user");
+    if (auth)
+    {
+        CHECK(request.username == "test-user");
+    }
 }
 
 TEST_CASE("SOCKS5 rejects malformed and incomplete proxy replies", "[socks5]")
@@ -320,7 +372,10 @@ TEST_CASE("SOCKS5 supports local DNS and numeric destinations", "[socks5]")
     REQUIRE(socket->connect(host, 443, error, deadline()));
     auto request = proxy.request();
     CHECK((request.addressType == 1 || request.addressType == 4));
-    if (host != "localhost") CHECK(request.host == host);
+    if (host != "localhost")
+    {
+        CHECK(request.host == host);
+    }
 }
 
 TEST_CASE("SOCKS5 validates options before connecting", "[socks5]")
@@ -369,7 +424,9 @@ TEST_CASE("SOCKS5 connection cancellation remains responsive", "[socks5]")
     client.start();
     auto end = Clock::now() + std::chrono::seconds(2);
     while (!proxy.greetings && Clock::now() < end)
+    {
         std::this_thread::yield();
+    }
     auto stop = std::async(std::launch::async, [&] { client.stop(); });
     auto ready = stop.wait_for(std::chrono::milliseconds(500));
     proxy.stop();
@@ -421,7 +478,10 @@ namespace
 TEST_CASE("HTTP and HTTPS retain the origin identity through SOCKS5", "[socks5][http]")
 {
     bool secure = GENERATE(false, true);
-    if (secure && !secureAvailable()) return;
+    if (secure && !secureAvailable())
+    {
+        return;
+    }
     bool auth = GENERATE(false, true);
     ix::HttpServer origin(ix::getFreePort(), "127.0.0.1");
     configureTLS(origin, secure);
@@ -460,7 +520,10 @@ TEST_CASE("HTTP and HTTPS retain the origin identity through SOCKS5", "[socks5][
 TEST_CASE("WebSocket reconnects through the configured SOCKS5 proxy", "[socks5][websocket]")
 {
     bool secure = GENERATE(false, true);
-    if (secure && !secureAvailable()) return;
+    if (secure && !secureAvailable())
+    {
+        return;
+    }
     bool auth = GENERATE(false, true);
     ix::HttpServer origin(ix::getFreePort(), "127.0.0.1");
     configureTLS(origin, secure);
@@ -493,11 +556,19 @@ TEST_CASE("WebSocket reconnects through the configured SOCKS5 proxy", "[socks5][
     client.setOnMessageCallback(
         [&](const ix::WebSocketMessagePtr& message)
         {
-            if (message->type == ix::WebSocketMessageType::Open) client.sendText("echo");
+            if (message->type == ix::WebSocketMessageType::Open)
+            {
+                client.sendText("echo");
+            }
             if (message->type == ix::WebSocketMessageType::Message && message->str == "echo" &&
                 ++count == 2)
+            {
                 received.set_value();
-            if (message->type == ix::WebSocketMessageType::Error) error = message->errorInfo.reason;
+            }
+            if (message->type == ix::WebSocketMessageType::Error)
+            {
+                error = message->errorInfo.reason;
+            }
         });
     client.start();
     auto ready = result.wait_for(std::chrono::seconds(3));
@@ -512,7 +583,10 @@ TEST_CASE("WebSocket reconnects through the configured SOCKS5 proxy", "[socks5][
 TEST_CASE("Rejected SOCKS5 tunnels never fall back to a direct connection", "[socks5]")
 {
     bool secure = GENERATE(false, true);
-    if (secure && !secureAvailable()) return;
+    if (secure && !secureAvailable())
+    {
+        return;
+    }
     std::atomic<unsigned> requests {0};
     ix::HttpServer origin(ix::getFreePort(), "127.0.0.1");
     configureTLS(origin, secure);
@@ -610,7 +684,9 @@ TEST_CASE("SOCKS5 bounds hostname and credential lengths", "[socks5]")
         CHECK(proxy.request().password == options.password);
     }
     else
+    {
         CHECK_FALSE(error.empty());
+    }
 }
 
 TEST_CASE("SOCKS5 observes the connection deadline", "[socks5]")

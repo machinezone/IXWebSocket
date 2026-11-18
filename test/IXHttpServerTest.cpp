@@ -39,7 +39,8 @@ TEST_CASE("http server", "[httpd]")
         args->verbose = true;
         args->compress = true;
         args->logger = [](const std::string& msg) { std::cout << msg; };
-        args->onProgressCallback = [](int current, int total) -> bool {
+        args->onProgressCallback = [](int current, int total) -> bool
+        {
             std::cerr << "\r"
                       << "Downloaded " << current << " bytes out of " << total;
             return true;
@@ -76,7 +77,8 @@ TEST_CASE("http server", "[httpd]")
         ix::HttpServer server(port, "127.0.0.1");
 
         server.setOnConnectionCallback(
-            [](HttpRequestPtr request, std::shared_ptr<ConnectionState>) -> HttpResponsePtr {
+            [](HttpRequestPtr request, std::shared_ptr<ConnectionState>) -> HttpResponsePtr
+            {
                 if (request->method == "POST")
                 {
                     return std::make_shared<HttpResponse>(
@@ -149,7 +151,8 @@ TEST_CASE("http server redirection", "[httpd_redirect]")
         args->verbose = true;
         args->compress = true;
         args->logger = [](const std::string& msg) { std::cout << msg; };
-        args->onProgressCallback = [](int current, int total) -> bool {
+        args->onProgressCallback = [](int current, int total) -> bool
+        {
             std::cerr << "\r"
                       << "Downloaded " << current << " bytes out of " << total;
             return true;
@@ -179,9 +182,13 @@ TEST_CASE("http server redirection", "[httpd_redirect]")
         ix::HttpServer target(getFreePort(), "127.0.0.1");
         const std::string expectedBody("local redirect target");
         target.setOnConnectionCallback(
-            [expectedBody](HttpRequestPtr request, std::shared_ptr<ConnectionState>) -> HttpResponsePtr {
+            [expectedBody](HttpRequestPtr request,
+                           std::shared_ptr<ConnectionState>) -> HttpResponsePtr
+            {
                 if (request->uri != "/redirect-target")
+                {
                     return std::make_shared<HttpResponse>(404, "NOT FOUND");
+                }
                 return std::make_shared<HttpResponse>(
                     200, "OK", HttpErrorCode::Ok, WebSocketHttpHeaders(), expectedBody);
             });
@@ -213,7 +220,8 @@ TEST_CASE("http server redirection", "[httpd_redirect]")
         args->verbose = true;
         args->compress = true;
         args->logger = [](const std::string& msg) { std::cout << msg; };
-        args->onProgressCallback = [](int current, int total) -> bool {
+        args->onProgressCallback = [](int current, int total) -> bool
+        {
             std::cerr << "\r"
                       << "Downloaded " << current << " bytes out of " << total;
             return true;

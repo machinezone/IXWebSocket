@@ -43,43 +43,45 @@ namespace
         std::stringstream ss;
         log(std::string("Connecting to url: ") + url);
 
-        _webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg) {
-            std::stringstream ss;
-            if (msg->type == ix::WebSocketMessageType::Open)
+        _webSocket.setOnMessageCallback(
+            [](const ix::WebSocketMessagePtr& msg)
             {
-                log("TestConnectionDisconnection: connected !");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Close)
-            {
-                log("TestConnectionDisconnection: disconnected !");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Error)
-            {
-                ss << "TestConnectionDisconnection: Error! ";
-                ss << msg->errorInfo.reason;
-                log(ss.str());
-            }
-            else if (msg->type == ix::WebSocketMessageType::Message)
-            {
-                log("TestConnectionDisconnection: received message.!");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Ping)
-            {
-                log("TestConnectionDisconnection: received ping message.!");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Pong)
-            {
-                log("TestConnectionDisconnection: received pong message.!");
-            }
-            else if (msg->type == ix::WebSocketMessageType::Fragment)
-            {
-                log("TestConnectionDisconnection: received fragment.!");
-            }
-            else
-            {
-                log("Invalid ix::WebSocketMessageType");
-            }
-        });
+                std::stringstream ss;
+                if (msg->type == ix::WebSocketMessageType::Open)
+                {
+                    log("TestConnectionDisconnection: connected !");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Close)
+                {
+                    log("TestConnectionDisconnection: disconnected !");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Error)
+                {
+                    ss << "TestConnectionDisconnection: Error! ";
+                    ss << msg->errorInfo.reason;
+                    log(ss.str());
+                }
+                else if (msg->type == ix::WebSocketMessageType::Message)
+                {
+                    log("TestConnectionDisconnection: received message.!");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Ping)
+                {
+                    log("TestConnectionDisconnection: received ping message.!");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Pong)
+                {
+                    log("TestConnectionDisconnection: received pong message.!");
+                }
+                else if (msg->type == ix::WebSocketMessageType::Fragment)
+                {
+                    log("TestConnectionDisconnection: received fragment.!");
+                }
+                else
+                {
+                    log("Invalid ix::WebSocketMessageType");
+                }
+            });
 
         _webSocket.enableAutomaticReconnection();
         REQUIRE(_webSocket.isAutomaticReconnectionEnabled() == true);

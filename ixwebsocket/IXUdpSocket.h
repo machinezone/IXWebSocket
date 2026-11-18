@@ -6,12 +6,11 @@
 
 #pragma once
 
+#include "IXNetSystem.h"
 #include <atomic>
 #include <cstddef>
 #include <memory>
 #include <string>
-
-#include "IXNetSystem.h"
 
 namespace ix
 {

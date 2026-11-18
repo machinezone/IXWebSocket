@@ -14,7 +14,7 @@ namespace ix
                                             uint32_t maxWaitBetweenReconnectionRetries,
                                             uint32_t minWaitBetweenReconnectionRetries)
     {
-        // It's easy with a power function to go beyond 2^32, and then 
+        // It's easy with a power function to go beyond 2^32, and then
         // have unexpected results, so prepare for that
         const uint32_t maxRetryCountWithoutOverflow = 26;
 

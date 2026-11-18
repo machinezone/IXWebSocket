@@ -21,7 +21,9 @@ namespace
             [&](std::shared_ptr<ConnectionState>, WebSocket&, const WebSocketMessagePtr& msg)
             {
                 if (msg->type == WebSocketMessageType::Open)
+                {
                     receivedHeaders = msg->openInfo.headers;
+                }
             });
         REQUIRE(server.listen().first);
         server.start();
@@ -30,7 +32,10 @@ namespace
         webSocket.setOnMessageCallback(
             [&](const WebSocketMessagePtr& msg)
             {
-                if (msg->type == WebSocketMessageType::Open) connected = true;
+                if (msg->type == WebSocketMessageType::Open)
+                {
+                    connected = true;
+                }
             });
         webSocket.disableAutomaticReconnection();
         if (webSocket.getSubProtocols().empty())
@@ -41,7 +46,9 @@ namespace
         webSocket.setUrl("ws://127.0.0.1:" + std::to_string(port));
         webSocket.start();
         for (int attempt = 0; attempt < 300 && !connected; ++attempt)
+        {
             ix::msleep(10);
+        }
 
         // Join both sides before reading headers captured by the server callback.
         webSocket.stop();
@@ -99,8 +106,14 @@ TEST_CASE("Optional default handshake headers can be disabled individually", "[w
     const bool disableOrigin = GENERATE(false, true);
     CAPTURE(disableUserAgent, disableOrigin);
     std::vector<std::string> disabled;
-    if (disableUserAgent) disabled.push_back("User-Agent");
-    if (disableOrigin) disabled.push_back("Origin");
+    if (disableUserAgent)
+    {
+        disabled.push_back("User-Agent");
+    }
+    if (disableOrigin)
+    {
+        disabled.push_back("Origin");
+    }
     WebSocket client;
     client.setDisabledDefaultHeaders(disabled);
     const auto received = runTest(client, getFreePort());

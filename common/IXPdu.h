@@ -53,7 +53,10 @@ namespace ix
 
     inline bool hexDecode(const std::string& value, std::string& out)
     {
-        if (value.size() % 2 != 0) return false;
+        if (value.size() % 2 != 0)
+        {
+            return false;
+        }
 
         out.clear();
         out.reserve(value.size() / 2);
@@ -112,18 +115,30 @@ namespace ix
         while (start < str.size())
         {
             auto end = str.find('\n', start);
-            if (end == std::string::npos) end = str.size();
+            if (end == std::string::npos)
+            {
+                end = str.size();
+            }
 
             auto line = str.substr(start, end - start);
             start = end + 1;
 
-            if (line.empty()) continue;
+            if (line.empty())
+            {
+                continue;
+            }
 
             auto sep = line.find(' ');
-            if (sep == std::string::npos) return false;
+            if (sep == std::string::npos)
+            {
+                return false;
+            }
 
             std::string value;
-            if (!hexDecode(line.substr(sep + 1), value)) return false;
+            if (!hexDecode(line.substr(sep + 1), value))
+            {
+                return false;
+            }
 
             pdu[line.substr(0, sep)] = value;
         }

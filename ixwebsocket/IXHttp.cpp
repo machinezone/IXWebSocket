@@ -214,7 +214,9 @@ namespace ix
             // The generated length must match the actual body and appear only once.
             if (!CaseInsensitiveLess::cmp(it.first, "Content-Length") &&
                 !CaseInsensitiveLess::cmp("Content-Length", it.first))
+            {
                 continue;
+            }
             ss << it.first << ": " << it.second << "\r\n";
         }
         ss << "\r\n";

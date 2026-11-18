@@ -138,7 +138,10 @@ TEST_CASE("303 redirects retrieve the target without replaying the body", "[http
     REQUIRE(requests.size() == 2);
     CHECK(requests[1]->method == (verb == "HEAD" ? "HEAD" : "GET"));
     CHECK(requests[1]->body.empty());
-    if (verb != "HEAD") CHECK(requests[1]->headers.count("Content-Type") == 0);
+    if (verb != "HEAD")
+    {
+        CHECK(requests[1]->headers.count("Content-Type") == 0);
+    }
     CHECK(args->extraHeaders.at("Content-Type") == "application/custom");
 }
 
@@ -261,7 +264,10 @@ TEST_CASE("Returning to the original origin does not restore redirect credential
         });
     REQUIRE(target.listen().first);
     std::string targetUrl = target.url();
-    if (websocket) targetUrl.replace(0, 4, "ws");
+    if (websocket)
+    {
+        targetUrl.replace(0, 4, "ws");
+    }
     ResponseServer source(
         [&](const ix::HttpRequestPtr&, size_t index)
         {
@@ -270,7 +276,10 @@ TEST_CASE("Returning to the original origin does not restore redirect credential
                               : "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
         });
     originalUrl = source.url();
-    if (websocket) originalUrl.replace(0, 4, "ws");
+    if (websocket)
+    {
+        originalUrl.replace(0, 4, "ws");
+    }
     REQUIRE(source.listen().first);
     target.start();
     source.start();
@@ -334,7 +343,10 @@ TEST_CASE("Chunked responses handle case, extensions, trailers and length preced
     ix::HttpClient client;
     auto args = options(client);
     std::string received;
-    if (streaming) args->onChunkCallback = [&](const std::string& bytes) { received += bytes; };
+    if (streaming)
+    {
+        args->onChunkCallback = [&](const std::string& bytes) { received += bytes; };
+    }
     auto response = client.get(server.url(), args);
     CAPTURE(response->errorMsg);
     CHECK(response->errorCode == ix::HttpErrorCode::Ok);

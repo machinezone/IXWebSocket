@@ -6,16 +6,15 @@
  *  Buid with make httpd
  */
 
+#include <iostream>
 #include <ixwebsocket/IXHttpServer.h>
 #include <sstream>
-#include <iostream>
 
 int main(int argc, char** argv)
 {
     if (argc != 3)
     {
-        std::cerr << "Usage: " << argv[0]
-                  << " <port> <host>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <port> <host>" << std::endl;
         std::cerr << " " << argv[0] << " 9090 127.0.0.1" << std::endl;
         std::cerr << " " << argv[0] << " 9090 0.0.0.0" << std::endl;
         return 1;
@@ -27,8 +26,7 @@ int main(int argc, char** argv)
     ss >> port;
     std::string hostname(argv[2]);
 
-    std::cout << "Listening on " << hostname
-              << ":" << port << std::endl;
+    std::cout << "Listening on " << hostname << ":" << port << std::endl;
 
     ix::HttpServer server(port, hostname);
 

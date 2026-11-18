@@ -104,7 +104,10 @@ namespace ix
             std::string error;
             bool success = _networkListener->listen(
                 _host, _port, _addressFamily, _maxConnections, _socketTLSOptions, error);
-            if (!success) _networkListener.reset();
+            if (!success)
+            {
+                _networkListener.reset();
+            }
             return std::make_pair(success, error);
         }
 #endif
@@ -268,7 +271,10 @@ namespace ix
         }
 
 #ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
-        if (_networkListener) _networkListener->stop();
+        if (_networkListener)
+        {
+            _networkListener->stop();
+        }
 #endif
         // Join all threads and make sure that all connections are terminated
         if (_gcThread.joinable())
@@ -327,7 +333,10 @@ namespace ix
                 continue;
             }
 
-            if (thread.joinable()) thread.join();
+            if (thread.joinable())
+            {
+                thread.join();
+            }
             it = _connectionsThreads.erase(it);
         }
     }
@@ -351,7 +360,10 @@ namespace ix
 
         for (;;)
         {
-            if (_stop) return;
+            if (_stop)
+            {
+                return;
+            }
 
             // Use poll to check whether a new connection is in progress
             int timeoutMs = -1;
@@ -505,7 +517,10 @@ namespace ix
         {
             auto result =
                 Socket::poll(true, 100, _networkListener->getFd(), _acceptSelectInterrupt);
-            if (result != PollResultType::ReadyForRead || _stop) continue;
+            if (result != PollResultType::ReadyForRead || _stop)
+            {
+                continue;
+            }
             auto listenerError = _networkListener->getError();
             if (!listenerError.empty())
             {
@@ -515,7 +530,10 @@ namespace ix
             std::string remoteIp;
             int remotePort = 0;
             auto socket = _networkListener->take(remoteIp, remotePort);
-            if (!socket) continue;
+            if (!socket)
+            {
+                continue;
+            }
             if (getConnectedClientsCount() >= _maxConnections ||
                 getConnectionsThreadsCount() >= _maxConnections)
             {
@@ -539,14 +557,20 @@ namespace ix
                                        const std::string& remoteIp,
                                        int remotePort)
     {
-        if (_stop) return;
+        if (_stop)
+        {
+            return;
+        }
         auto connectionState = _connectionStateFactory();
         connectionState->setOnSetTerminatedCallback([this] { onSetTerminatedCallback(); });
         connectionState->setRemoteIp(remoteIp);
         connectionState->setRemotePort(remotePort);
 
         std::lock_guard<std::mutex> lock(_connectionsThreadsMutex);
-        if (_stop) return;
+        if (_stop)
+        {
+            return;
+        }
         _connectionsThreads.push_back(std::make_pair(
             connectionState,
             std::thread(
@@ -566,7 +590,10 @@ namespace ix
         {
             if (!_stop)
             {
-                if (cancelled()) error = "TLS handshake timed out";
+                if (cancelled())
+                {
+                    error = "TLS handshake timed out";
+                }
                 logError("SocketServer::run() tls accept failed for client " +
                          connectionState->getRemoteIp() + ":" +
                          std::to_string(connectionState->getRemotePort()) + ": " + error);

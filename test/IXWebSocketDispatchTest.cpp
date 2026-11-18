@@ -169,7 +169,10 @@ TEST_CASE("Dispatch suppresses callbacks when already closing or closed",
     unsigned closes = 0;
     client.setOnCloseCallback([&](uint16_t, const std::string&, size_t, bool) { ++closes; });
     client.close(1000, "done");
-    if (closed) client.setReadyState(Transport::ReadyState::CLOSED);
+    if (closed)
+    {
+        client.setReadyState(Transport::ReadyState::CLOSED);
+    }
     client.dispatch(Transport::PollResult::AbnormalClose,
                     [&](const std::string&, size_t, bool, Transport::MessageKind) { ++callbacks; });
     CHECK(callbacks == 0);
@@ -204,8 +207,14 @@ TEST_CASE("Poll errors close the transport after buffered frames are dispatched"
     const int buffered = GENERATE(0, 1, 2);
     CAPTURE(buffered);
     std::string frames;
-    if (buffered != 0) frames = frame(0x81, "before");
-    if (buffered == 2) frames += frame(0x88, std::string("\x03\xe8", 2) + "done");
+    if (buffered != 0)
+    {
+        frames = frame(0x81, "before");
+    }
+    if (buffered == 2)
+    {
+        frames += frame(0x88, std::string("\x03\xe8", 2) + "done");
+    }
     DispatchTestServer server(frames);
     Transport client;
     server.bufferFrames(client);
@@ -417,7 +426,10 @@ TEST_CASE("Fragmented UTF8 is checked before the final fragment", "[websocket][d
     std::vector<std::string> messages;
     const auto callback = [&](const std::string& value, size_t, bool, Transport::MessageKind kind)
     {
-        if (kind == Transport::MessageKind::MSG_TEXT) messages.push_back(value);
+        if (kind == Transport::MessageKind::MSG_TEXT)
+        {
+            messages.push_back(value);
+        }
     };
     dispatchBytes(transport, frame(0x01, std::string("\xf0\x9f", 2)), callback);
     CHECK(transport.getReadyState() == Transport::ReadyState::OPEN);
@@ -462,7 +474,10 @@ TEST_CASE("UTF8 validation handles partial masked and unmasked frames",
     std::vector<std::string> messages;
     const auto callback = [&](const std::string& value, size_t, bool, Transport::MessageKind kind)
     {
-        if (kind == Transport::MessageKind::MSG_TEXT) messages.push_back(value);
+        if (kind == Transport::MessageKind::MSG_TEXT)
+        {
+            messages.push_back(value);
+        }
     };
     const std::string payload =
         invalid ? std::string("\xf4\x90\x80\x80", 4) : std::string("\xf0\x9f\x98\x80", 4);
@@ -473,7 +488,9 @@ TEST_CASE("UTF8 validation handles partial masked and unmasked frames",
         bytes[1] |= static_cast<char>(0x80);
         bytes.insert(2, mask);
         for (size_t i = 0; i < payload.size(); ++i)
+        {
             bytes[6 + i] ^= mask[i & 3];
+        }
     }
     const auto headerSize = masked ? 6 : 2;
     dispatchBytes(transport, bytes.substr(0, headerSize + 1), callback);
@@ -503,7 +520,10 @@ namespace
         const auto deadline = std::chrono::steady_clock::now() + timeout;
         while (ix::WebSocketTransportTestAccess::closeCode(transport) != code)
         {
-            if (std::chrono::steady_clock::now() >= deadline) return false;
+            if (std::chrono::steady_clock::now() >= deadline)
+            {
+                return false;
+            }
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         return true;

@@ -87,7 +87,10 @@ TEST_CASE("SendTimeout")
 
                     // Block the client thread after sending a message
                     // to make the socket buffers run full.
-                    if (r.success) msleep(1000);
+                    if (r.success)
+                    {
+                        msleep(1000);
+                    }
                 }
             });
 

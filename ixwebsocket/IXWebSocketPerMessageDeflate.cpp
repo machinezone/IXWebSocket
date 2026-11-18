@@ -46,13 +46,12 @@
  *
  */
 
-#include <cstdint>
-
 #include "IXWebSocketPerMessageDeflate.h"
 
 #include "IXUniquePtr.h"
 #include "IXWebSocketPerMessageDeflateCodec.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
+#include <cstdint>
 
 namespace ix
 {
