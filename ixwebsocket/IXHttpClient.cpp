@@ -117,6 +117,40 @@ namespace ix
         _thread.join();
     }
 
+    std::unique_ptr<Socket> HttpClient::takeConnection(const std::string& url,
+                                                       SocketTLSOptions& tlsOptions,
+                                                       ProxyOptions& proxyOptions,
+                                                       std::string& error)
+    {
+        std::unique_lock<std::recursive_mutex> lock(_mutex, std::try_to_lock);
+        if (!lock.owns_lock())
+        {
+            error = "HTTP client is busy";
+            return nullptr;
+        }
+        if (!_socket)
+        {
+            error = "HTTP client has no reusable connection";
+            return nullptr;
+        }
+        if (!UrlParser::isSameOrigin(_connectionUrl, url))
+        {
+            error = "HTTP connection and WebSocket destination must have the same host, port and "
+                    "TLS mode";
+            return nullptr;
+        }
+        char byte;
+        if (_socket->recv(&byte, 1) >= 0 || !Socket::isWaitNeeded())
+        {
+            _socket.reset();
+            error = "HTTP connection is closed or has unexpected pending data";
+            return nullptr;
+        }
+        tlsOptions = _tlsOptions;
+        proxyOptions = _proxyOptions;
+        return std::move(_socket);
+    }
+
     void HttpClient::setTLSOptions(const SocketTLSOptions& tlsOptions)
     {
         std::lock_guard<std::recursive_mutex> lock(_mutex);

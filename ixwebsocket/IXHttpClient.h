@@ -24,6 +24,8 @@
 
 namespace ix
 {
+    class WebSocket;
+
     class HttpClient
     {
     public:
@@ -105,6 +107,11 @@ namespace ix
 
     private:
         friend struct HttpClientReuseTestAccess;
+        friend class WebSocket;
+        std::unique_ptr<Socket> takeConnection(const std::string& url,
+                                               SocketTLSOptions& tlsOptions,
+                                               ProxyOptions& proxyOptions,
+                                               std::string& error);
         void log(const std::string& msg, HttpRequestArgsPtr args);
 
         HttpResponsePtr requestImpl(const std::string& url,

@@ -99,7 +99,8 @@ namespace ix
         const std::string& path,
         int port,
         int timeoutSecs,
-        const std::vector<std::string>& disabledDefaultHeaders)
+        const std::vector<std::string>& disabledDefaultHeaders,
+        bool alreadyConnected)
     {
         _requestInitCancellation = false;
 
@@ -107,8 +108,7 @@ namespace ix
             makeCancellationRequestWithTimeout(timeoutSecs, _requestInitCancellation);
 
         std::string errMsg;
-        bool success = _socket->connect(host, port, errMsg, isCancellationRequested);
-        if (!success)
+        if (!alreadyConnected && !_socket->connect(host, port, errMsg, isCancellationRequested))
         {
             std::stringstream ss;
             ss << "Unable to connect to " << host << " on port " << port << ", error: " << errMsg;
