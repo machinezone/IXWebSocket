@@ -662,8 +662,60 @@ request is starting, a bodyless GET or HEAD can be retried once before any respo
 bytes arrive. Uploads and other methods are never automatically replayed after a
 transport failure; applications must decide whether retrying is appropriate.</p>
 <p>The built-in <code>HttpServer</code> still serves one ordinary HTTP request per connection and
-sends <code>Connection: close</code>. Reuse needs a server that supports persistent HTTP.
-Transferring a connection to <code>WebSocket</code> (#434) remains a separate feature.</p>
+sends <code>Connection: close</code>. Reuse needs a server that supports persistent HTTP.</p>
+<h3 id="upgrading-an-authenticated-http-connection-to-websocket">Upgrading an authenticated HTTP connection to WebSocket</h3>
+<p><code>webSocket.connect(httpClient, timeoutSecs)</code> upgrades the HTTP client's idle
+connection in place. This supports servers that require HTTP authentication and
+the WebSocket upgrade on the same TCP/TLS connection:</p>
+<pre><code class="language-cpp">ix::HttpClient httpClient;
+// Configure TLS and proxy options on httpClient before the HTTP requests.
+auto args = httpClient.createRequest();
+auto auth = httpClient.post(&quot;https://example.com/login&quot;, &quot;credentials&quot;, args);
+if (auth-&gt;errorCode != ix::HttpErrorCode::Ok || auth-&gt;statusCode != 200)
+{
+    // Handle authentication failure.
+    return;
+}
+
+ix::WebSocket webSocket;
+webSocket.setUrl(&quot;wss://example.com/events&quot;);
+webSocket.setExtraHeaders({{&quot;Authorization&quot;, &quot;Bearer &quot; + auth-&gt;body}});
+webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr&amp; message)
+{
+    // Open runs on the connecting thread; messages run on the receiving thread.
+});
+
+auto upgraded = webSocket.connect(httpClient, 5);
+if (!upgraded.success)
+{
+    // No replacement connection or redirect is attempted. Authenticate again if needed.
+    return;
+}
+webSocket.start(); // Receive on the connection that was just upgraded.
+// ...
+webSocket.stop();
+</code></pre>
+<p>The WebSocket must be stopped and closed, with a callback registered. Its <code>ws://</code>
+or <code>wss://</code> URL must match the HTTP connection's hostname, effective port, and TLS
+mode (<code>http</code> to <code>ws</code>, <code>https</code> to <code>wss</code>). The server must support persistent HTTP;
+a response with <code>Connection: close</code> leaves no connection available for handoff.
+An active HTTP request makes the upgrade fail immediately. An unavailable, stale,
+or mismatched connection also fails instead of silently opening a new one.</p>
+<p>Ownership moves to <code>WebSocket</code>, including TLS state and buffered input. Destroying
+<code>HttpClient</code> afterward leaves the WebSocket intact; later HTTP requests use a new
+connection. TLS and proxy settings are inherited from the HTTP client. Other
+WebSocket options, including extra headers, compression, subprotocols, and message
+limits, apply normally. Authentication headers and cookies are supplied explicitly
+with <code>setExtraHeaders()</code>; they are not copied automatically from HTTP requests.</p>
+<p>Once the connection is handed off, automatic reconnection is disabled, including
+when the upgrade is rejected. To repeat connection-bound authentication, stop the
+WebSocket, authenticate through HTTP again, and repeat the handoff. Redirects and
+failed handshakes close the handed-off connection. The HTTP client is not retained.
+Call <code>start()</code> only after a successful handoff; on a closed WebSocket, <code>start()</code>
+remains the normal entry point for establishing a connection.
+Normal <code>webSocket.start()</code> continues to establish and upgrade a single connection
+without involving <code>HttpClient</code>.</p>
+<h3 id="making-http-requests">Making HTTP requests</h3>
 <pre><code class="language-cpp">#include &lt;ixwebsocket/IXHttpClient.h&gt;
 
 ...
