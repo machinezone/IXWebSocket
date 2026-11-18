@@ -36,6 +36,9 @@ namespace ix
 
         void setOnConnectionCallback(const OnConnectionCallback& callback);
 
+        // Configure before starting the server. An empty root selects the current directory.
+        void setDocumentRoot(const std::string& documentRoot);
+
         void makeRedirectServer(const std::string& redirectUrl);
 
         void makeDebugServer();
@@ -45,6 +48,7 @@ namespace ix
     private:
         // Member variables
         OnConnectionCallback _onConnectionCallback;
+        std::string _documentRoot = ".";
 
         IXWEBSOCKET_EXPORT const static int kDefaultTimeoutSecs;
         int _timeoutSecs;

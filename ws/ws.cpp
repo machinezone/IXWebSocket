@@ -1477,6 +1477,7 @@ namespace ix
 
     int ws_httpd_main(int port,
                       const std::string& hostname,
+                      const std::string& documentRoot,
                       bool redirect,
                       const std::string& redirectUrl,
                       bool debug,
@@ -1485,6 +1486,7 @@ namespace ix
         ix::logInfo("Listening on {}:{}", hostname, port);
 
         ix::HttpServer server(port, hostname);
+        server.setDocumentRoot(documentRoot);
         server.setTLSOptions(tlsOptions);
 
         if (redirect)
@@ -2477,6 +2479,7 @@ int main(int argc, char** argv)
     ix::SocketTLSOptions tlsOptions;
     std::string ciphers;
     std::string redirectUrl;
+    std::string documentRoot(".");
     std::string proxyUrl;
     std::string proxyUser;
     ix::ProxyOptions proxyOptions;
@@ -2663,6 +2666,9 @@ int main(int argc, char** argv)
     httpServerApp->fallthrough();
     httpServerApp->add_option("--port", port, "Port");
     httpServerApp->add_option("--host", hostname, "Hostname");
+    httpServerApp
+        ->add_option("--document-root", documentRoot, "Directory to serve static files from")
+        ->check(CLI::ExistingDirectory);
     httpServerApp->add_flag("-L", redirect, "Redirect all request to redirect_url");
     httpServerApp->add_option("--redirect_url", redirectUrl, "Url to redirect to");
     httpServerApp->add_flag("-D", debug, "Debug server");
@@ -2885,7 +2891,8 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("httpd"))
     {
-        ret = ix::ws_httpd_main(port, hostname, redirect, redirectUrl, debug, tlsOptions);
+        ret = ix::ws_httpd_main(
+            port, hostname, documentRoot, redirect, redirectUrl, debug, tlsOptions);
     }
     else if (app.got_subcommand("autobahn"))
     {

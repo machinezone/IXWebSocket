@@ -11,6 +11,7 @@
 #include "IXSocketConnect.h"
 #include "IXStrCaseCompare.h"
 #include "IXUserAgent.h"
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
@@ -62,8 +63,11 @@ namespace
     // path never escapes the document root.  Attempts to traverse above /
     // (e.g. GET /../secret) are silently clamped rather than rejected so that
     // the caller receives a predictable 404 instead of a server error.
-    std::string sanitizeUri(const std::string& uri)
+    std::string sanitizeUri(std::string uri)
     {
+#ifdef _WIN32
+        std::replace(uri.begin(), uri.end(), '\\', '/');
+#endif
         std::vector<std::string> parts;
         std::string token;
         std::istringstream stream(uri);
@@ -139,6 +143,11 @@ namespace ix
         _onConnectionCallback = callback;
     }
 
+    void HttpServer::setDocumentRoot(const std::string& documentRoot)
+    {
+        _documentRoot = documentRoot.empty() ? "." : documentRoot;
+    }
+
     void HttpServer::handleConnection(std::unique_ptr<Socket> socket,
                                       std::shared_ptr<ConnectionState> connectionState)
     {
@@ -184,7 +193,14 @@ namespace ix
                 headers["Server"] = userAgent();
                 headers["Content-Type"] = response_head_file(uri);
 
-                std::string path("." + uri);
+                std::string path(_documentRoot);
+                if (path.back() == '/'
+#ifdef _WIN32
+                    || path.back() == '\\'
+#endif
+                )
+                    path.pop_back();
+                path += uri;
                 auto res = readAsString(path);
                 bool found = res.first;
                 if (!found)

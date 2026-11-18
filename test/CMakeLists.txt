@@ -151,6 +151,11 @@ set_tests_properties(IXWebSocketProxyServerTest PROPERTIES TIMEOUT 30)
 set_tests_properties(IXWebSocketReconnectTest IXWebSocketDispatchTest IXWebSocketSendFailureTest PROPERTIES TIMEOUT 30)
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/static-directory")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/document-root")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/document-root/index.html" "document root index\n")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/document-root/asset.txt" "document root asset\n")
+target_compile_definitions(IXHttpServerStaticTest PRIVATE
+  IX_TEST_DOCUMENT_ROOT="${CMAKE_CURRENT_BINARY_DIR}/document-root")
 set_tests_properties(IXHttpServerStaticTest PROPERTIES
   TIMEOUT 15 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
