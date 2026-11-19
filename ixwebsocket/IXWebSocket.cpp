@@ -16,14 +16,11 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
-#include <utility>
 
 
 namespace
 {
     const std::string emptyMsg;
-
-
 } // namespace
 
 
@@ -51,12 +48,13 @@ namespace ix
         _ws.setOnCloseCallback(
             [this](uint16_t code, const std::string& reason, size_t wireSize, bool remote)
             {
-                invokeMessageCallback(WebSocketMessageType::Close,
-                                      emptyMsg,
-                                      wireSize,
-                                      WebSocketErrorInfo(),
-                                      WebSocketOpenInfo(),
-                                      WebSocketCloseInfo(code, reason, remote));
+                _onMessageCallback(
+                    ix::make_unique<WebSocketMessage>(WebSocketMessageType::Close,
+                                                      emptyMsg,
+                                                      wireSize,
+                                                      WebSocketErrorInfo(),
+                                                      WebSocketOpenInfo(),
+                                                      WebSocketCloseInfo(code, reason, remote)));
             });
     }
 
@@ -342,12 +340,13 @@ namespace ix
             return status;
         }
 
-        invokeMessageCallback(WebSocketMessageType::Open,
-                              emptyMsg,
-                              0,
-                              WebSocketErrorInfo(),
-                              WebSocketOpenInfo(status.uri, status.headers, status.protocol),
-                              WebSocketCloseInfo());
+        _onMessageCallback(ix::make_unique<WebSocketMessage>(
+            WebSocketMessageType::Open,
+            emptyMsg,
+            0,
+            WebSocketErrorInfo(),
+            WebSocketOpenInfo(status.uri, status.headers, status.protocol),
+            WebSocketCloseInfo()));
 
         if (_pingIntervalSecs > 0)
         {
@@ -387,12 +386,13 @@ namespace ix
             return status;
         }
 
-        invokeMessageCallback(WebSocketMessageType::Open,
-                              emptyMsg,
-                              0,
-                              WebSocketErrorInfo(),
-                              WebSocketOpenInfo(status.uri, status.headers),
-                              WebSocketCloseInfo());
+        _onMessageCallback(
+            ix::make_unique<WebSocketMessage>(WebSocketMessageType::Open,
+                                              emptyMsg,
+                                              0,
+                                              WebSocketErrorInfo(),
+                                              WebSocketOpenInfo(status.uri, status.headers),
+                                              WebSocketCloseInfo()));
 
         if (_pingIntervalSecs > 0)
         {
@@ -491,12 +491,12 @@ namespace ix
                 connectErr.http_status = status.http_status;
                 connectErr.headers = status.headers;
 
-                invokeMessageCallback(WebSocketMessageType::Error,
-                                      emptyMsg,
-                                      0,
-                                      connectErr,
-                                      WebSocketOpenInfo(),
-                                      WebSocketCloseInfo());
+                _onMessageCallback(ix::make_unique<WebSocketMessage>(WebSocketMessageType::Error,
+                                                                     emptyMsg,
+                                                                     0,
+                                                                     connectErr,
+                                                                     WebSocketOpenInfo(),
+                                                                     WebSocketCloseInfo()));
             }
         }
     }
@@ -574,13 +574,13 @@ namespace ix
 
                     bool binary = messageKind == WebSocketTransport::MessageKind::MSG_BINARY;
 
-                    invokeMessageCallback(webSocketMessageType,
-                                          msg,
-                                          wireSize,
-                                          webSocketErrorInfo,
-                                          WebSocketOpenInfo(),
-                                          WebSocketCloseInfo(),
-                                          binary);
+                    _onMessageCallback(ix::make_unique<WebSocketMessage>(webSocketMessageType,
+                                                                         msg,
+                                                                         wireSize,
+                                                                         webSocketErrorInfo,
+                                                                         WebSocketOpenInfo(),
+                                                                         WebSocketCloseInfo(),
+                                                                         binary));
 
                     WebSocket::invokeTrafficTrackerCallback(wireSize, true);
                 });
@@ -590,18 +590,6 @@ namespace ix
     void WebSocket::setOnMessageCallback(const OnMessageCallback& callback)
     {
         _onMessageCallback = callback;
-    }
-
-    void WebSocket::setOnMessageCallbackRef(const OnMessageCallbackRef& callback)
-    {
-        if (callback)
-        {
-            _onMessageCallback = ReferenceMessageHandler {callback};
-        }
-        else
-        {
-            _onMessageCallback = nullptr;
-        }
     }
 
     bool WebSocket::isOnMessageCallbackRegistered() const

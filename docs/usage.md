@@ -66,36 +66,6 @@ webSocket.sendBinary("some serialized binary data");
 webSocket.stop()
 ```
 
-### Reference message callbacks
-
-`setOnMessageCallbackRef()` is an opt-in alternative to the existing pointer callback:
-
-```cpp
-webSocket.setOnMessageCallbackRef([](const ix::WebSocketMessage& message)
-{
-    if (message.type == ix::WebSocketMessageType::Message)
-    {
-        std::cout << message.str << std::endl;
-    }
-});
-```
-
-The event and `message.str` are borrowed for the duration of the callback. Copy
-any payload or metadata that must outlive it. Configure callbacks before starting
-the connection, following the existing threading rules. The most recent pointer
-or reference setter replaces the previous handler; either setter accepts `nullptr`
-to clear it. Existing pointer callbacks and `OnMessageCallback` remain unchanged.
-
-With RTTI enabled (the default), reference callbacks construct the event on the
-stack and avoid its heap allocation. The existing callback storage and WebSocket
-object layout are retained. Builds without RTTI still support this API through the
-legacy allocation path; they do not get the allocation optimization. No C++17
-features or new dependencies are required.
-
-For servers, register a reference handler on each accepted `WebSocket` through
-`setOnConnectionCallback()`. See [performance measurements](performance.md) for
-`ws bench`, allocation checks, and a separate dispatch benchmark.
-
 ### Sending messages
 
 `WebSocketSendInfo result = websocket.send("foo")` will send a message.

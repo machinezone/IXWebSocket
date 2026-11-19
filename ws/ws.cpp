@@ -8,17 +8,19 @@
 // Main driver for websocket utilities
 //
 
-#include "ws_bench.h"
 #include <CLI11.hpp>
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <common/IXLog.h>
 #include <common/IXPdu.h>
 #include <condition_variable>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <ixwebsocket/IXBench.h>
 #include <ixwebsocket/IXDNSLookup.h>
+#include <ixwebsocket/IXGetFreePort.h>
 #include <ixwebsocket/IXGzipCodec.h>
 #include <ixwebsocket/IXHttpClient.h>
 #include <ixwebsocket/IXHttpServer.h>
@@ -33,6 +35,7 @@
 #include <ixwebsocket/IXWebSocketHttpHeaders.h>
 #include <ixwebsocket/IXWebSocketProxyServer.h>
 #include <ixwebsocket/IXWebSocketServer.h>
+#include <limits>
 #include <mutex>
 #include <queue>
 #include <sstream>
@@ -1051,6 +1054,220 @@ namespace ix
         return 0;
     }
 
+    struct WebSocketBenchOptions
+    {
+        uint64_t messages = 100000;
+        unsigned runs = 3;
+        unsigned warmup = 1;
+        size_t payloadSize = 11;
+        int timeout = 30;
+        bool json = false;
+        bool quiet = false;
+    };
+
+    int ws_bench(const WebSocketBenchOptions& options)
+    {
+        using Clock = std::chrono::steady_clock;
+        if (options.messages == 0 ||
+            options.messages > static_cast<uint64_t>((std::numeric_limits<int>::max)()) ||
+            options.runs == 0 || options.runs > 1000 || options.warmup > 100 ||
+            options.payloadSize > 1024 * 1024 || options.timeout <= 0)
+        {
+            std::cerr << "Invalid benchmark count, runs, payload size, or timeout\n";
+            return 1;
+        }
+
+        std::atomic<bool> cancelled {false};
+        const std::string payload(options.payloadSize, 'x');
+        WebSocketServer server(getFreePort(), "127.0.0.1");
+        server.disablePerMessageDeflate();
+        server.setOnClientMessageCallback(
+            [&](std::shared_ptr<ConnectionState>,
+                WebSocket& socket,
+                const WebSocketMessagePtr& message)
+            {
+                if (message->type != WebSocketMessageType::Open)
+                {
+                    return;
+                }
+                for (uint64_t i = 0; i < options.messages && !cancelled; ++i)
+                {
+                    if (!socket.sendText(payload).success)
+                    {
+                        break;
+                    }
+                }
+            });
+        const auto listening = server.listen();
+        if (!listening.first)
+        {
+            std::cerr << "bench: " << listening.second << '\n';
+            return 1;
+        }
+        server.start(); // Runs the local push server on its background threads.
+        const std::string url = "ws://127.0.0.1:" + std::to_string(server.getPort());
+        std::vector<double> durations;
+        std::vector<double> rates;
+
+        for (unsigned trial = 0; trial < options.warmup + options.runs; ++trial)
+        {
+            std::mutex mutex;
+            std::condition_variable changed;
+            bool done = false;
+            bool success = false;
+            bool opened = false;
+            std::string error;
+            Clock::time_point start;
+            double seconds = 0;
+            uint64_t received = 0;
+            std::atomic<uint64_t> progress {0};
+            WebSocket client; // Destroy before the callback state.
+            client.setUrl(url);
+            client.disableAutomaticReconnection();
+            client.disablePerMessageDeflate();
+            client.setHandshakeTimeout(options.timeout);
+            client.setOnMessageCallback(
+                [&](const WebSocketMessagePtr& message)
+                {
+                    if (message->type == WebSocketMessageType::Message)
+                    {
+                        if (received >= options.messages)
+                        {
+                            return;
+                        }
+                        ++received;
+                        if ((received & 1023) == 0)
+                        {
+                            progress.store(received, std::memory_order_relaxed);
+                        }
+                        if (received == options.messages)
+                        {
+                            const auto end = Clock::now();
+                            std::lock_guard<std::mutex> lock(mutex);
+                            if (!done)
+                            {
+                                seconds = std::chrono::duration<double>(end - start).count();
+                                success = true;
+                                done = true;
+                                changed.notify_one();
+                            }
+                        }
+                    }
+                    else if (message->type == WebSocketMessageType::Open)
+                    {
+                        std::lock_guard<std::mutex> lock(mutex);
+                        start = Clock::now();
+                        opened = true;
+                    }
+                    else if (message->type == WebSocketMessageType::Error ||
+                             message->type == WebSocketMessageType::Close)
+                    {
+                        std::lock_guard<std::mutex> lock(mutex);
+                        if (!done)
+                        {
+                            error = message->type == WebSocketMessageType::Error
+                                        ? message->errorInfo.reason
+                                        : "Connection closed before all messages arrived";
+                            done = true;
+                            changed.notify_one();
+                        }
+                    }
+                });
+            const auto deadline = Clock::now() + std::chrono::seconds(options.timeout);
+            auto nextReport = Clock::now() + std::chrono::seconds(1);
+            auto lastReport = Clock::now();
+            uint64_t previous = 0;
+            if (!options.quiet)
+            {
+                std::cerr << (trial < options.warmup ? "warmup " : "run ")
+                          << (trial < options.warmup ? trial + 1 : trial - options.warmup + 1)
+                          << '/' << (trial < options.warmup ? options.warmup : options.runs)
+                          << '\n';
+            }
+            client.start();
+            std::unique_lock<std::mutex> lock(mutex);
+            while (!done)
+            {
+                if (changed.wait_until(
+                        lock, (std::min) (deadline, nextReport), [&] { return done; }))
+                {
+                    break;
+                }
+                if (Clock::now() >= deadline)
+                {
+                    error = "Benchmark timed out";
+                    done = true;
+                    break;
+                }
+                if (!options.quiet && opened)
+                {
+                    const auto now = Clock::now();
+                    const auto count = progress.load(std::memory_order_relaxed);
+                    const double interval =
+                        std::chrono::duration<double>(now - (std::max) (start, lastReport)).count();
+                    std::cerr << '~' << count << '/' << options.messages << " received, "
+                              << static_cast<uint64_t>((count - previous) / interval)
+                              << " messages/s\n";
+                    previous = count;
+                    lastReport = now;
+                }
+                nextReport += std::chrono::seconds(1);
+            }
+            lock.unlock();
+            if (!success)
+            {
+                cancelled = true;
+            }
+            client.stop();
+            if (!success || seconds <= 0)
+            {
+                server.stop();
+                std::cerr << "bench: " << error << " (received " << received << '/'
+                          << options.messages << ")\n";
+                return 1;
+            }
+            if (trial >= options.warmup)
+            {
+                durations.push_back(seconds);
+                rates.push_back(options.messages / seconds);
+            }
+        }
+        server.stop();
+
+        auto sorted = rates;
+        std::sort(sorted.begin(), sorted.end());
+        const size_t middle = sorted.size() / 2;
+        const double median =
+            sorted.size() % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+        std::cout << std::setprecision(10);
+        if (options.json)
+        {
+            // Fixed labels and numeric values only; no JSON dependency.
+            std::cout << "{\"messages\":" << options.messages
+                      << ",\"payload_size\":" << options.payloadSize << ",\"runs\":" << options.runs
+                      << ",\"warmup\":" << options.warmup << ",\"trials\":[";
+            for (size_t i = 0; i < rates.size(); ++i)
+            {
+                if (i)
+                {
+                    std::cout << ',';
+                }
+                std::cout << "{\"elapsed_ms\":" << durations[i] * 1000
+                          << ",\"messages_per_second\":" << rates[i] << '}';
+            }
+            std::cout << "],\"median_messages_per_second\":" << median
+                      << ",\"min_messages_per_second\":" << sorted.front()
+                      << ",\"max_messages_per_second\":" << sorted.back() << "}\n";
+        }
+        else
+        {
+            std::cout << options.messages << " messages of " << options.payloadSize << " bytes, "
+                      << options.runs << " runs\nMedian: " << median << " messages/s (min "
+                      << sorted.front() << ", max " << sorted.back() << ")\n";
+        }
+        return 0;
+    }
+
     int ws_autoroute(const std::string& url,
                      bool disablePerMessageDeflate,
                      const ix::SocketTLSOptions& tlsOptions,
@@ -1701,8 +1918,7 @@ namespace ix
                        bool ipv6,
                        bool disablePerMessageDeflate,
                        bool disablePong,
-                       const std::string& sendMsg,
-                       bool keepRunning)
+                       const std::string& sendMsg)
     {
         ix::logInfo("Listening on {}:{}", hostname, port);
 
@@ -1731,9 +1947,9 @@ namespace ix
         std::atomic<bool> stop(false);
 
         server.setOnClientMessageCallback(
-            [&sendMsg, &stop, keepRunning](std::shared_ptr<ConnectionState> connectionState,
-                                           WebSocket& webSocket,
-                                           const WebSocketMessagePtr& msg)
+            [&sendMsg, &stop](std::shared_ptr<ConnectionState> connectionState,
+                              WebSocket& webSocket,
+                              const WebSocketMessagePtr& msg)
             {
                 auto remoteIp = connectionState->getRemoteIp();
                 if (msg->type == ix::WebSocketMessageType::Open)
@@ -1781,10 +1997,7 @@ namespace ix
                                 connectionState->getId(),
                                 msg->closeInfo.code,
                                 msg->closeInfo.reason);
-                    if (!keepRunning)
-                    {
-                        stop = true;
-                    }
+                    stop = true;
                 }
                 else if (msg->type == ix::WebSocketMessageType::Error)
                 {
@@ -2497,7 +2710,6 @@ int main(int argc, char** argv)
     CLI::App app {"ws is a websocket tool"};
 
     ix::WebSocketBenchOptions benchOptions;
-    bool keepPushServerRunning = false;
     std::string url("ws://127.0.0.1:8008");
     std::string path;
     std::string user;
@@ -2657,21 +2869,19 @@ int main(int argc, char** argv)
     addTLSOptions(echoClientApp);
 
     CLI::App* benchApp =
-        app.add_subcommand("bench", "Autoroute receive benchmark with callback comparisons");
+        app.add_subcommand("bench", "Benchmark reception using a background local push server");
     benchApp->fallthrough();
-    benchApp->add_option("url", benchOptions.url, "Push-server base URL; /N is appended")
-        ->required();
-    benchApp->add_option("--messages", benchOptions.messages, "Messages per connection");
-    benchApp->add_option("--runs", benchOptions.runs, "Measured runs per callback mode");
-    benchApp->add_option("--warmup", benchOptions.warmup, "Warmup runs per callback mode");
-    benchApp->add_option("--callback", benchOptions.callback, "legacy, ref, or both (default)");
-    benchApp->add_option("--timeout", benchOptions.timeout, "Maximum seconds per connection");
-    benchApp->add_flag("--json", benchOptions.json, "Print machine-readable results to stdout");
-    benchApp->add_flag("--no-progress", benchOptions.quiet, "Disable progress on stderr");
+    benchApp->add_option("--messages", benchOptions.messages, "Messages per run (default: 100000)");
+    benchApp->add_option("--runs", benchOptions.runs, "Measured runs (default: 3)");
+    benchApp->add_option("--warmup", benchOptions.warmup, "Warmup runs (default: 1)");
+    benchApp->add_option("--payload-size",
+                         benchOptions.payloadSize,
+                         "Message size in bytes (default: 11, maximum: 1048576)");
+    benchApp->add_option(
+        "--timeout", benchOptions.timeout, "Maximum seconds per run (default: 30)");
     benchApp->add_flag(
-        "--compression", benchOptions.compression, "Enable per-message deflate (off by default)");
-    addTLSOptions(benchApp);
-    addProxyOptions(benchApp);
+        "--json", benchOptions.json, "Print numeric JSON results using the standard library");
+    benchApp->add_flag("--no-progress", benchOptions.quiet, "Disable progress on stderr");
 
     CLI::App* chatApp = app.add_subcommand("chat", "Group chat");
     chatApp->fallthrough();
@@ -2697,8 +2907,6 @@ int main(int argc, char** argv)
 
     CLI::App* pushServerApp = app.add_subcommand("push_server", "Push server");
     pushServerApp->fallthrough();
-    pushServerApp->add_flag(
-        "--keep-running", keepPushServerRunning, "Serve repeated benchmark connections");
     pushServerApp->add_option("--port", port, "Port");
     pushServerApp->add_option("--host", hostname, "Hostname");
     pushServerApp->add_flag("-q", quiet, "Quiet / only display warnings and errors");
@@ -2782,8 +2990,7 @@ int main(int argc, char** argv)
 
     CLI11_PARSE(app, argc, argv);
 
-    if (connectApp->count("--proxy") || httpClientApp->count("--proxy") ||
-        benchApp->count("--proxy"))
+    if (connectApp->count("--proxy") || httpClientApp->count("--proxy"))
     {
         std::string protocol, proxyPath, query;
         int proxyPort = -1;
@@ -2809,8 +3016,7 @@ int main(int argc, char** argv)
         proxyOptions.port = proxyPort == -1 ? 1080 : proxyPort;
         proxyOptions.dnsMode = protocol == "socks5h" ? ix::ProxyOptions::DnsMode::Remote
                                                      : ix::ProxyOptions::DnsMode::Local;
-        if (connectApp->count("--proxy-user") || httpClientApp->count("--proxy-user") ||
-            benchApp->count("--proxy-user"))
+        if (connectApp->count("--proxy-user") || httpClientApp->count("--proxy-user"))
         {
             auto separator = proxyUser.find(':');
             if (separator == std::string::npos || separator == 0 || separator > 255 ||
@@ -2903,8 +3109,6 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("bench"))
     {
-        benchOptions.tlsOptions = tlsOptions;
-        benchOptions.proxyOptions = proxyOptions;
         ret = ix::ws_bench(benchOptions);
     }
     else if (app.got_subcommand("autoroute"))
@@ -2926,14 +3130,8 @@ int main(int argc, char** argv)
     }
     else if (app.got_subcommand("push_server"))
     {
-        ret = ix::ws_push_server(port,
-                                 hostname,
-                                 tlsOptions,
-                                 ipv6,
-                                 disablePerMessageDeflate,
-                                 disablePong,
-                                 sendMsg,
-                                 keepPushServerRunning);
+        ret = ix::ws_push_server(
+            port, hostname, tlsOptions, ipv6, disablePerMessageDeflate, disablePong, sendMsg);
     }
     else if (app.got_subcommand("transfer") || app.got_subcommand("broadcast_server"))
     {
