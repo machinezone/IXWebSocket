@@ -100,7 +100,7 @@ Starting with the 11.0.8 release, IXWebSocket should be fully C++11 compatible.
 
 If your company or project is using this library, feel free to open an issue or PR to amend this list.
 
-- [Machine Zone](https://www.mz.com)
+- [Machine Zone](https://www.machinezone.com)
 - [Tokio](https://github.com/liz3/tokio), a discord library focused on audio playback with node bindings.
 - [libDiscordBot](https://github.com/tostc/libDiscordBot/tree/master), an easy to use Discord-bot framework.
 - [gwebsocket](https://github.com/norrbotten/gwebsocket), a websocket (lua) module for Garry's Mod
