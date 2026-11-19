@@ -19,7 +19,6 @@
 #include <random>
 #include <sstream>
 #include <utility>
-#include <vector>
 
 namespace
 {
@@ -279,9 +278,20 @@ namespace ix
 
         const bool streaming = static_cast<bool>(args->onUploadCallback);
         const bool hasBody = verb == kPost || verb == kPut || verb == kPatch || _forceBody;
-        if (streaming && (!hasBody || !body.empty() || args->compressRequest ||
-                          args->extraHeaders.count("Content-Length") ||
-                          args->extraHeaders.count("Transfer-Encoding")))
+        const auto transfer = args->extraHeaders.find("Transfer-Encoding");
+        std::string coding = transfer == args->extraHeaders.end() ? "" : transfer->second;
+        const auto begin = coding.find_first_not_of(" \t");
+        coding = begin == std::string::npos
+                     ? ""
+                     : coding.substr(begin, coding.find_last_not_of(" \t") - begin + 1);
+        const bool chunked = transfer != args->extraHeaders.end() &&
+                             !CaseInsensitiveLess::cmp(coding, "chunked") &&
+                             !CaseInsensitiveLess::cmp("chunked", coding);
+        if ((transfer != args->extraHeaders.end() &&
+             (!chunked || !hasBody || args->extraHeaders.count("Content-Length") ||
+              args->compressRequest)) ||
+            (streaming && (!hasBody || !body.empty() || args->compressRequest ||
+                           args->extraHeaders.count("Content-Length"))))
         {
             return std::make_shared<HttpResponse>(
                 0,
@@ -289,8 +299,9 @@ namespace ix
                 HttpErrorCode::Invalid,
                 WebSocketHttpHeaders(),
                 "",
-                "Streamed uploads require a body-capable method, an empty string body, "
-                "no request compression, and no explicit framing headers");
+                "Uploads require a body-capable method and unambiguous framing; "
+                "streamed bodies require an empty string body and no compression; "
+                "Transfer-Encoding supports only chunked without Content-Length or compression");
         }
 
         std::string protocol, host, path, query;
@@ -401,7 +412,10 @@ namespace ix
             }
 #endif
 
-            ss << "Content-Length: " << (streaming ? args->bodySize : body.size()) << "\r\n";
+            if (!chunked)
+            {
+                ss << "Content-Length: " << (streaming ? args->bodySize : body.size()) << "\r\n";
+            }
 
             // Set default Content-Type if unspecified
             if (args->extraHeaders.find("Content-Type") == args->extraHeaders.end())
@@ -420,7 +434,7 @@ namespace ix
                 }
             }
             ss << "\r\n";
-            if (!streaming)
+            if (!streaming && !chunked)
             {
                 ss << body;
             }
@@ -432,7 +446,8 @@ namespace ix
 
         std::string req(ss.str());
         std::string errMsg;
-        if (streaming && args->bodySize > (std::numeric_limits<uint64_t>::max)() - req.size())
+        if (streaming && !chunked &&
+            args->bodySize > (std::numeric_limits<uint64_t>::max)() - req.size())
         {
             return std::make_shared<HttpResponse>(
                 0, "", HttpErrorCode::Invalid, WebSocketHttpHeaders(), "", "Upload size overflow");
@@ -497,7 +512,7 @@ namespace ix
         }
 
         uploadSize = req.size();
-        if (streaming)
+        if (streaming || chunked)
         {
             auto uploadFailed = [&](const std::string& message)
             {
@@ -516,35 +531,78 @@ namespace ix
             std::string chunk;
             const size_t capacity = 64 * 1024;
             uint64_t offset = 0;
-            while (offset < args->bodySize)
+            const uint64_t size = streaming ? args->bodySize : body.size();
+            while (chunked || offset < size)
             {
                 if (isCancellationRequested())
                 {
                     return uploadFailed("Upload cancelled or timed out");
                 }
                 const size_t wanted =
-                    static_cast<size_t>((std::min) (uint64_t(capacity), args->bodySize - offset));
+                    chunked && streaming
+                        ? capacity
+                        : static_cast<size_t>((std::min) (uint64_t(capacity), size - offset));
                 chunk.resize(wanted);
                 size_t count;
                 try
                 {
-                    count = args->onUploadCallback(offset, &chunk[0], wanted);
+                    if (streaming)
+                    {
+                        count = args->onUploadCallback(offset, &chunk[0], wanted);
+                    }
+                    else
+                    {
+                        count = wanted;
+                        if (count)
+                        {
+                            std::memcpy(&chunk[0], body.data() + offset, count);
+                        }
+                    }
                 }
                 catch (...)
                 {
                     return uploadFailed("Upload callback threw an exception");
                 }
-                if (!count || count > wanted)
+                if (count > wanted || (!count && !chunked))
                 {
                     return uploadFailed("Upload callback returned an invalid byte count");
                 }
+                if (!count)
+                {
+                    // EOF for a chunked source.
+                    break;
+                }
+                if (count > (std::numeric_limits<uint64_t>::max)() - offset)
+                {
+                    return uploadFailed("Upload size overflow");
+                }
                 chunk.resize(count);
+                if (chunked)
+                {
+                    std::ostringstream header;
+                    header << std::hex << count << "\r\n";
+                    chunk.insert(0, header.str());
+                    chunk += "\r\n";
+                }
+                if (chunk.size() > (std::numeric_limits<uint64_t>::max)() - uploadSize)
+                {
+                    return uploadFailed("Upload size overflow");
+                }
                 if (!socket->writeBytes(chunk, isCancellationRequested))
                 {
                     return uploadFailed("Cannot send upload body");
                 }
                 offset += count;
-                uploadSize += count;
+                uploadSize += chunk.size();
+            }
+            if (chunked)
+            {
+                if (uploadSize > (std::numeric_limits<uint64_t>::max)() - 5 ||
+                    !socket->writeBytes("0\r\n\r\n", isCancellationRequested))
+                {
+                    return uploadFailed("Cannot finish chunked upload");
+                }
+                uploadSize += 5;
             }
         }
 
@@ -655,9 +713,9 @@ namespace ix
         }
         else if (headers.find("Transfer-Encoding") != headers.end())
         {
-            const auto& coding = headers.at("Transfer-Encoding");
-            if (CaseInsensitiveLess::cmp(coding, "chunked") ||
-                CaseInsensitiveLess::cmp("chunked", coding))
+            const auto& transferEncoding = headers.at("Transfer-Encoding");
+            if (CaseInsensitiveLess::cmp(transferEncoding, "chunked") ||
+                CaseInsensitiveLess::cmp("chunked", transferEncoding))
             {
                 return failure(HttpErrorCode::HeaderParsingError, "Unsupported Transfer-Encoding");
             }
@@ -760,7 +818,7 @@ namespace ix
             framed && validLength &&
             !hasHttpHeaderToken(args->extraHeaders, "Connection", "close") &&
             !hasHttpHeaderToken(headers, "Connection", "close") &&
-            !args->extraHeaders.count("Transfer-Encoding") &&
+            (!args->extraHeaders.count("Transfer-Encoding") || chunked) &&
             !(hasBody && args->extraHeaders.count("Content-Length")) &&
             !(headers.count("Transfer-Encoding") && headers.count("Content-Length")) &&
             !(code == 204 &&
@@ -815,6 +873,7 @@ namespace ix
             if (code == 303 && verb != kHead)
             {
                 redirected->extraHeaders.erase("Content-Length");
+                redirected->extraHeaders.erase("Transfer-Encoding");
                 redirected->extraHeaders.erase("Content-Type");
                 redirected->extraHeaders.erase("Content-Encoding");
                 redirected->multipartBoundary.clear();
