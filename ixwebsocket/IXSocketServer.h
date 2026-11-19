@@ -84,6 +84,13 @@ namespace ix
             _closeOnExec = true;
         }
 
+        // Configure before listen(), after a failed listen(), or after stop().
+        // Return false without changing the configuration while listening/running.
+        // Port must be in [0, 65535]; 0 lets the OS choose a free port.
+        bool setPort(int port);
+        bool setHost(const std::string& host);
+
+        // For port 0, returns the assigned port after a successful listen().
         int getPort();
         std::string getHost();
         int getBacklog();
@@ -121,6 +128,7 @@ namespace ix
         // background thread to wait for incoming connections
         std::thread _thread;
         void run();
+        bool isListening() const;
         void startConnection(std::unique_ptr<Socket> socket,
                              const std::string& remoteIp,
                              int remotePort);

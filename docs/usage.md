@@ -393,6 +393,37 @@ setHandshakeTimeout(handshakeTimeoutSecs);
 
 TLS handshakes run in individual connection workers, so an idle peer does not block other clients from connecting. Server TLS handshakes have a 10-second timeout and are cancelled when the server stops. The maximum connection limit includes clients whose TLS handshake is still pending.
 
+### Configuring a server address after construction
+
+`WebSocketServer` and `HttpServer` also accept `setHost()` and `setPort()` before
+`listen()`. Construction does not bind a socket. Existing constructor arguments
+continue to work.
+
+```cpp
+ix::HttpServer server;
+server.setHost("0.0.0.0");
+for (int port = 8080; port <= 8100; ++port)
+{
+    server.setPort(port);
+    auto result = server.listen();
+    if (result.first)
+    {
+        server.start();
+        break;
+    }
+}
+```
+
+A failed `listen()` leaves the instance available for another attempt. Once it
+succeeds, the setters and a second `listen()` return failure without changing the
+listener. Call `stop()` before reconfiguring and listening again. Invoke these
+configuration and lifecycle methods serially from the owning application thread.
+`setHost()` accepts the same numeric IPv4/IPv6 addresses as the constructor;
+the address is validated by `listen()` using the configured address family.
+`setPort()` rejects values outside 0–65535. To let the OS choose a free port,
+call `setPort(0)`; after a successful `listen()`, `getPort()` returns the assigned
+port. Constructors also accept port zero.
+
 ### Connection setup callback
 
 `setOnConnectionCallback()` provides a `std::weak_ptr<ix::WebSocket>` and a
@@ -844,11 +875,58 @@ and queued requests through `performRequest`. Keep the data source alive until
 completion; the shared pointer in this example also works for asynchronous requests.
 Redirects replay the body from offset zero, so the source must support rereading.
 
-Do not set `Content-Length` or `Transfer-Encoding` yourself, or enable
-`compressRequest` for streamed uploads. To upload a multipart body, the callback
-must supply its complete framing and a matching `Content-Type`; the existing
+Do not set `Content-Length` yourself or enable `compressRequest` for streamed
+uploads. To use `Transfer-Encoding: chunked`, see below. To upload a multipart
+body, the callback must supply its complete framing and a matching `Content-Type`; the existing
 form-data helpers still assemble their bodies in memory. This API streams outgoing
 client data; the built-in HTTP server still buffers incoming request bodies.
+
+### Chunked request uploads
+
+Set `Transfer-Encoding: chunked` to upload a body whose length is unknown, or when
+an endpoint requires chunked requests. With `onUploadCallback`, `bodySize` is
+ignored and returning zero finishes the body. Throw an exception on a source read
+error; it fails the request with `HttpErrorCode::SendError`.
+
+```cpp
+ix::HttpClient client;
+auto args = client.createRequest();
+auto file = std::make_shared<std::ifstream>("upload.bin", std::ios::binary);
+if (!*file)
+{
+    throw std::runtime_error("Cannot open upload file");
+}
+args->extraHeaders["Transfer-Encoding"] = "chunked";
+args->extraHeaders["Content-Type"] = "application/octet-stream";
+args->onUploadCallback = [file](uint64_t offset, char* buffer, size_t capacity) -> size_t
+{
+    file->clear();
+    file->seekg(static_cast<std::streamoff>(offset));
+    file->read(buffer, static_cast<std::streamsize>(capacity));
+    if (file->bad() || (file->fail() && !file->eof()))
+    {
+        throw std::runtime_error("Cannot read upload file");
+    }
+    return static_cast<size_t>(file->gcount());
+};
+auto response = client.put("https://example.com/upload", std::string(), args);
+```
+
+Include the same C++ headers as the file upload example above. The client supplies
+chunk framing and the terminating chunk, using data chunks of at most 64 KiB.
+You can also set this header with a regular string body. Do not combine it with
+`Content-Length`, request compression, or other transfer codings. Existing uploads
+continue to use `Content-Length` by default. Cancellation and redirect replay work
+as for fixed-length uploads; a 303 redirect switches to GET and drops the body.
+
+For asynchronous uploads, use `HttpClient(true)` and `performRequest` as usual.
+`onChunkCallback` receives **response** data; `onResponseCallback` runs once when
+the request completes. Each request finishes sending its body before reading its
+response; simultaneous request and response streaming is not supported.
+
+The built-in `HttpServer` currently accepts `Content-Length` request bodies and
+buffers them in memory; it does not decode chunked request bodies. Use a server
+that supports chunked requests as the upload endpoint.
 
 ## HTTP server API
 

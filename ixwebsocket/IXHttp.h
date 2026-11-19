@@ -75,7 +75,8 @@ namespace ix
     using Logger = std::function<void(const std::string&)>;
     using OnResponseCallback = std::function<void(const HttpResponsePtr&)>;
 
-    // Fill up to capacity bytes at the absolute body offset. Return 0 on read failure.
+    // Fill up to capacity bytes at the absolute body offset.
+    // Return 0 at EOF in chunked mode; before bodySize in fixed-length mode it is an error.
     using OnUploadCallback = std::function<size_t(uint64_t offset, char* buffer, size_t capacity)>;
 
     struct HttpRequestArgs
@@ -84,7 +85,8 @@ namespace ix
         std::string verb;
         WebSocketHttpHeaders extraHeaders;
         std::string body;
-        // Optional streamed request body, with a known length (independent of size_t).
+        // Optional streamed request body. Fixed-length uploads use bodySize;
+        // Transfer-Encoding: chunked ignores it and reads until the callback returns 0.
         uint64_t bodySize = 0;
         OnUploadCallback onUploadCallback;
         std::string multipartBoundary;

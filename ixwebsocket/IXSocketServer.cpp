@@ -78,8 +78,47 @@ namespace ix
         fprintf(stdout, "%s\n", str.c_str());
     }
 
+    bool SocketServer::isListening() const
+    {
+#ifdef IXWEBSOCKET_USE_NETWORK_FRAMEWORK
+        if (_networkListener)
+        {
+            return true;
+        }
+#endif
+        return _serverFd != -1 || _thread.joinable();
+    }
+
+    bool SocketServer::setPort(int port)
+    {
+        if (isListening() || port < 0 || port > 65535)
+        {
+            return false;
+        }
+        _port = port;
+        return true;
+    }
+
+    bool SocketServer::setHost(const std::string& host)
+    {
+        if (isListening())
+        {
+            return false;
+        }
+        _host = host;
+        return true;
+    }
+
     std::pair<bool, std::string> SocketServer::listen()
     {
+        if (isListening())
+        {
+            return std::make_pair(false, "SocketServer is already listening; call stop() first");
+        }
+
+        // A failed listen or a previous stop may leave an initialized/signaled
+        // interrupt. Each new listener needs its own clean interrupt.
+        _acceptSelectInterrupt = createSelectInterrupt();
         std::string acceptSelectInterruptInitErrorMsg;
         if (!_acceptSelectInterrupt->init(acceptSelectInterruptInitErrorMsg))
         {
@@ -226,6 +265,24 @@ namespace ix
             return std::make_pair(false, ss.str());
         }
 
+        if (_port == 0)
+        {
+            struct sockaddr_storage address;
+            socklen_t length = sizeof(address);
+            if (getsockname(_serverFd, reinterpret_cast<struct sockaddr*>(&address), &length) < 0)
+            {
+                const std::string error = "SocketServer::listen() error calling getsockname: " +
+                                          std::string(strerror(Socket::getErrno()));
+                Socket::closeSocket(_serverFd);
+                _serverFd = -1;
+                return std::make_pair(false, error);
+            }
+            _port = ix::network_to_host_short(
+                _addressFamily == AF_INET
+                    ? reinterpret_cast<struct sockaddr_in*>(&address)->sin_port
+                    : reinterpret_cast<struct sockaddr_in6*>(&address)->sin6_port);
+        }
+
         return std::make_pair(true, "");
     }
 
@@ -274,6 +331,7 @@ namespace ix
         if (_networkListener)
         {
             _networkListener->stop();
+            _networkListener.reset();
         }
 #endif
         // Join all threads and make sure that all connections are terminated
