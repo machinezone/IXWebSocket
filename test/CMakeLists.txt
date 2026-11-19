@@ -10,6 +10,7 @@ option(USE_TLS "Add TLS support" ON)
 # Shared sources
 set (TEST_TARGET_NAMES
   IXSocketTest
+  IXSocketServerBindTest
   IXSocks5Test
   IXSocketConnectTest
   IXWebSocketServerTest
@@ -151,7 +152,7 @@ add_test(NAME IXWebSocketBuildSettings
     -B ${CMAKE_CURRENT_BINARY_DIR}/cmake-build-settings
     -G "${CMAKE_GENERATOR}")
 set_tests_properties(IXWebSocketBuildSettings PROPERTIES TIMEOUT 30)
-set_tests_properties(IXHttpClientAsyncTest IXHttpClientUploadTest PROPERTIES TIMEOUT 15)
+set_tests_properties(IXSocketServerBindTest IXHttpClientAsyncTest IXHttpClientUploadTest PROPERTIES TIMEOUT 15)
 set_tests_properties(IXHttpClientResponseTest PROPERTIES TIMEOUT 30)
 set_tests_properties(IXHttpClientReuseTest IXHttpWebSocketUpgradeTest PROPERTIES TIMEOUT 15)
 
@@ -181,6 +182,8 @@ if (USE_NETWORK_FRAMEWORK OR (UNIX AND USE_TLS AND (USE_OPEN_SSL OR USE_LIBRE_SS
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/generate_network_certs.sh"
     VERBATIM)
   add_custom_target(tls_test_certs DEPENDS "${TLS_TEST_CERTS}/ready")
+  add_dependencies(IXSocketServerBindTest tls_test_certs)
+  target_compile_definitions(IXSocketServerBindTest PRIVATE IX_SERVER_BIND_TEST_CERTS="${TLS_TEST_CERTS}")
   add_dependencies(IXHttpWebSocketUpgradeTest tls_test_certs)
   target_compile_definitions(IXHttpWebSocketUpgradeTest PRIVATE IX_HTTP_UPGRADE_TEST_CERTS="${TLS_TEST_CERTS}")
   add_dependencies(IXHttpClientReuseTest tls_test_certs)

@@ -393,6 +393,37 @@ setHandshakeTimeout(handshakeTimeoutSecs);
 
 TLS handshakes run in individual connection workers, so an idle peer does not block other clients from connecting. Server TLS handshakes have a 10-second timeout and are cancelled when the server stops. The maximum connection limit includes clients whose TLS handshake is still pending.
 
+### Configuring a server address after construction
+
+`WebSocketServer` and `HttpServer` also accept `setHost()` and `setPort()` before
+`listen()`. Construction does not bind a socket. Existing constructor arguments
+continue to work.
+
+```cpp
+ix::HttpServer server;
+server.setHost("0.0.0.0");
+for (int port = 8080; port <= 8100; ++port)
+{
+    server.setPort(port);
+    auto result = server.listen();
+    if (result.first)
+    {
+        server.start();
+        break;
+    }
+}
+```
+
+A failed `listen()` leaves the instance available for another attempt. Once it
+succeeds, the setters and a second `listen()` return failure without changing the
+listener. Call `stop()` before reconfiguring and listening again. Invoke these
+configuration and lifecycle methods serially from the owning application thread.
+`setHost()` accepts the same numeric IPv4/IPv6 addresses as the constructor;
+the address is validated by `listen()` using the configured address family.
+`setPort()` rejects values outside 0–65535. To let the OS choose a free port,
+call `setPort(0)`; after a successful `listen()`, `getPort()` returns the assigned
+port. Constructors also accept port zero.
+
 ### Connection setup callback
 
 `setOnConnectionCallback()` provides a `std::weak_ptr<ix::WebSocket>` and a
