@@ -19,7 +19,6 @@
 #include <random>
 #include <sstream>
 #include <utility>
-#include <vector>
 
 namespace
 {
@@ -714,9 +713,9 @@ namespace ix
         }
         else if (headers.find("Transfer-Encoding") != headers.end())
         {
-            const auto& coding = headers.at("Transfer-Encoding");
-            if (CaseInsensitiveLess::cmp(coding, "chunked") ||
-                CaseInsensitiveLess::cmp("chunked", coding))
+            const auto& transferEncoding = headers.at("Transfer-Encoding");
+            if (CaseInsensitiveLess::cmp(transferEncoding, "chunked") ||
+                CaseInsensitiveLess::cmp("chunked", transferEncoding))
             {
                 return failure(HttpErrorCode::HeaderParsingError, "Unsupported Transfer-Encoding");
             }
