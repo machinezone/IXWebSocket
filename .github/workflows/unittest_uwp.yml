@@ -17,7 +17,7 @@ jobs:
     - run: |
         mkdir build
         cd build
-        cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION="10.0" -DCMAKE_CXX_COMPILER=cl.exe -DCMAKE_C_COMPILER=cl.exe -DUSE_TEST=1 -DUSE_ZLIB=0 ..
+        cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION="10.0" -DCMAKE_CXX_COMPILER=cl.exe -DCMAKE_C_COMPILER=cl.exe -DUSE_TEST=1 -DUSE_ZLIB=0 -DCMAKE_UNITY_BUILD=ON ..
     - run: |
         cd build
         ninja
