@@ -869,11 +869,51 @@ PATCH, and methods enabled through <code>setForceBody(true)</code>, for synchron
 and queued requests through <code>performRequest</code>. Keep the data source alive until
 completion; the shared pointer in this example also works for asynchronous requests.
 Redirects replay the body from offset zero, so the source must support rereading.</p>
-<p>Do not set <code>Content-Length</code> or <code>Transfer-Encoding</code> yourself, or enable
-<code>compressRequest</code> for streamed uploads. To upload a multipart body, the callback
-must supply its complete framing and a matching <code>Content-Type</code>; the existing
+<p>Do not set <code>Content-Length</code> yourself or enable <code>compressRequest</code> for streamed
+uploads. To use <code>Transfer-Encoding: chunked</code>, see below. To upload a multipart
+body, the callback must supply its complete framing and a matching <code>Content-Type</code>; the existing
 form-data helpers still assemble their bodies in memory. This API streams outgoing
 client data; the built-in HTTP server still buffers incoming request bodies.</p>
+<h3 id="chunked-request-uploads">Chunked request uploads</h3>
+<p>Set <code>Transfer-Encoding: chunked</code> to upload a body whose length is unknown, or when
+an endpoint requires chunked requests. With <code>onUploadCallback</code>, <code>bodySize</code> is
+ignored and returning zero finishes the body. Throw an exception on a source read
+error; it fails the request with <code>HttpErrorCode::SendError</code>.</p>
+<pre><code class="language-cpp">ix::HttpClient client;
+auto args = client.createRequest();
+auto file = std::make_shared&lt;std::ifstream&gt;(&quot;upload.bin&quot;, std::ios::binary);
+if (!*file)
+{
+    throw std::runtime_error(&quot;Cannot open upload file&quot;);
+}
+args-&gt;extraHeaders[&quot;Transfer-Encoding&quot;] = &quot;chunked&quot;;
+args-&gt;extraHeaders[&quot;Content-Type&quot;] = &quot;application/octet-stream&quot;;
+args-&gt;onUploadCallback = [file](uint64_t offset, char* buffer, size_t capacity) -&gt; size_t
+{
+    file-&gt;clear();
+    file-&gt;seekg(static_cast&lt;std::streamoff&gt;(offset));
+    file-&gt;read(buffer, static_cast&lt;std::streamsize&gt;(capacity));
+    if (file-&gt;bad() || (file-&gt;fail() &amp;&amp; !file-&gt;eof()))
+    {
+        throw std::runtime_error(&quot;Cannot read upload file&quot;);
+    }
+    return static_cast&lt;size_t&gt;(file-&gt;gcount());
+};
+auto response = client.put(&quot;https://example.com/upload&quot;, std::string(), args);
+</code></pre>
+<p>Include the same C++ headers as the file upload example above. The client supplies
+chunk framing and the terminating chunk, using data chunks of at most 64 KiB.
+You can also set this header with a regular string body. Do not combine it with
+<code>Content-Length</code>, request compression, or other transfer codings. Existing uploads
+continue to use <code>Content-Length</code> by default. Cancellation and redirect replay work
+as for fixed-length uploads; a 303 redirect switches to GET and drops the body.</p>
+<p>For asynchronous uploads, use <code>HttpClient(true)</code> and <code>performRequest</code> as usual.
+<code>onChunkCallback</code> receives <strong>response</strong> data; <code>onResponseCallback</code> runs once when
+the request completes. Each request finishes sending its body before reading its
+response; simultaneous request and response streaming is not supported.</p>
+<p>The built-in <code>HttpServer</code> currently accepts <code>Content-Length</code> request bodies and
+buffers them in memory; it does not decode chunked request bodies. Use a server
+that supports chunked requests as the upload endpoint.</p>
 <h2 id="http-server-api">HTTP server API</h2>
 <pre><code class="language-cpp">#include &lt;ixwebsocket/IXHttpServer.h&gt;
 
