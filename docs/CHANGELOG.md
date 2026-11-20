@@ -2,6 +2,168 @@
 
 All changes to this project will be documented in this file.
 
+## [13.0.0] - 2026-11-20 — Enguerrand de Marigny
+
+This major release collects 53 merged pull requests since v12.1.0, with improvements to WebSocket closure and reconnection, TLS backends, HTTP streaming and connection reuse, proxy support, packaging, and compliance testing.
+
+### Highlights and upgrade notes
+
+- HTTP uploads can stream known-length bodies through `onUploadCallback`, or unknown-length bodies using `Transfer-Encoding: chunked`. HTTP clients reuse eligible persistent connections, and an authenticated idle HTTP connection can be explicitly handed to WebSocket. Normal WebSocket `start()` keeps its existing connection model.
+- HTTP and WebSocket servers support host/port configuration after construction, retries after failed binds, and OS-assigned ports. The HTTP server has a configurable document root.
+- Add an opt-in incoming WebSocket message limit; the default remains unlimited. Add TLS certificate/key loading from memory and optional OpenSSL TLS key logging.
+- Harden close/reconnect ordering, send queues, DNS worker lifetime, redirect credential handling, HTTP framing, gzip completeness checks, and TLS error reporting. Add shared SOCKS5 support to HTTP/WebSocket clients and proxy options to `ws`.
+- Fix installed-package integration for compression: generated public codec configuration makes direct-include and pkg-config consumers use the library's layout; CMake discovers Threads; static pkg-config metadata includes zlib only when compression is enabled. Install the generated `IXWebSocketCodecConfig.h` with the other public headers.
+- Add Autobahn compliance CI, local interactive progress reporting, and a standalone `ws bench` command. The proposed reference-callback API from #536 is not included.
+- C++11 remains the library minimum. Rebuild applications and dependent libraries against this major release; the CMake project/runtime version is 13.0.0 and shared-library SOVERSION is 13.
+
+### Complete change list
+
+#### WebSocket and connection handling
+
+- Add shared SOCKS5 support to WebSocket and HTTP clients ([PR #580](https://github.com/machinezone/IXWebSocket/pull/580)).
+- Accept LF-only HTTP headers with simpler bounded parsing ([PR #616](https://github.com/machinezone/IXWebSocket/pull/616)).
+- Discard stale WebSocket state when reconnecting ([PR #617](https://github.com/machinezone/IXWebSocket/pull/617); resolves [#610](https://github.com/machinezone/IXWebSocket/issues/610), [#611](https://github.com/machinezone/IXWebSocket/issues/611)).
+- Stop WebSocket message callbacks after closing begins ([PR #620](https://github.com/machinezone/IXWebSocket/pull/620)).
+- End server handshake error responses and answer 426 for other versions ([PR #624](https://github.com/machinezone/IXWebSocket/pull/624)).
+- Prevent WebSocket busy loops after socket poll failures ([PR #626](https://github.com/machinezone/IXWebSocket/pull/626); resolves [#623](https://github.com/machinezone/IXWebSocket/issues/623)).
+- Add setDisabledDefaultHeaders for optional handshake headers ([PR #627](https://github.com/machinezone/IXWebSocket/pull/627)).
+- Fix Autobahn compliance while preserving close lifecycle guarantees ([PR #629](https://github.com/machinezone/IXWebSocket/pull/629)).
+- Prevent concurrent close from reopening a closed transport ([PR #633](https://github.com/machinezone/IXWebSocket/pull/633); resolves [#632](https://github.com/machinezone/IXWebSocket/issues/632)).
+- Fix send-failure callbacks racing message delivery ([PR #635](https://github.com/machinezone/IXWebSocket/pull/635); resolves [#551](https://github.com/machinezone/IXWebSocket/issues/551)).
+- Expose rejected handshake response headers in Error events ([PR #637](https://github.com/machinezone/IXWebSocket/pull/637); resolves [#636](https://github.com/machinezone/IXWebSocket/issues/636)).
+- Make protocol case comparisons independent of locale ([PR #640](https://github.com/machinezone/IXWebSocket/pull/640); resolves [#398](https://github.com/machinezone/IXWebSocket/issues/398)).
+- Remove trailing newlines from WebSocket handshake errors ([PR #641](https://github.com/machinezone/IXWebSocket/pull/641); resolves [#463](https://github.com/machinezone/IXWebSocket/issues/463)).
+- Fix proxy connection-state leak and upstream cleanup ([PR #642](https://github.com/machinezone/IXWebSocket/pull/642); resolves [#490](https://github.com/machinezone/IXWebSocket/issues/490)).
+- Preserve socket errors in connection failure diagnostics ([PR #645](https://github.com/machinezone/IXWebSocket/pull/645)).
+- Stop socket reads at EOF or the requested byte count ([PR #649](https://github.com/machinezone/IXWebSocket/pull/649)).
+- Fix DNS worker lifetime and add a synchronous resolver fallback ([PR #656](https://github.com/machinezone/IXWebSocket/pull/656); resolves [#364](https://github.com/machinezone/IXWebSocket/issues/364)).
+- Keep HTTP and WebSocket redirect credentials within the same origin ([PR #658](https://github.com/machinezone/IXWebSocket/pull/658)).
+- Add opt-in incoming WebSocket message size limits ([PR #662](https://github.com/machinezone/IXWebSocket/pull/662)).
+
+#### HTTP and server APIs
+
+- Preserve asynchronous HTTP request configuration when queued ([PR #643](https://github.com/machinezone/IXWebSocket/pull/643)).
+- Fix URL encoding and concurrent multipart boundary generation ([PR #646](https://github.com/machinezone/IXWebSocket/pull/646)).
+- Fix HTTP response framing, redirects and streamed byte counts ([PR #647](https://github.com/machinezone/IXWebSocket/pull/647)).
+- Preserve static file bytes and ignore URI queries ([PR #648](https://github.com/machinezone/IXWebSocket/pull/648)).
+- Fix URL fragments, empty queries and locale-dependent validation ([PR #651](https://github.com/machinezone/IXWebSocket/pull/651)).
+- Reject truncated gzip streams instead of returning partial success ([PR #652](https://github.com/machinezone/IXWebSocket/pull/652)).
+- Validate HTTP request lengths and emit one response length ([PR #653](https://github.com/machinezone/IXWebSocket/pull/653)).
+- Add a configurable document root to the HTTP server ([PR #659](https://github.com/machinezone/IXWebSocket/pull/659); resolves [#447](https://github.com/machinezone/IXWebSocket/issues/447)).
+- Stream HTTP request bodies for large file uploads ([PR #663](https://github.com/machinezone/IXWebSocket/pull/663); resolves [#556](https://github.com/machinezone/IXWebSocket/issues/556)).
+- Reuse persistent HTTP client connections ([PR #665](https://github.com/machinezone/IXWebSocket/pull/665); resolves [#484](https://github.com/machinezone/IXWebSocket/issues/484)).
+- Upgrade authenticated HTTP connections to WebSocket ([PR #666](https://github.com/machinezone/IXWebSocket/pull/666); resolves [#434](https://github.com/machinezone/IXWebSocket/issues/434)).
+- Support chunked HTTP request uploads ([PR #668](https://github.com/machinezone/IXWebSocket/pull/668); resolves [#381](https://github.com/machinezone/IXWebSocket/issues/381)).
+- Allow configuring server host and port before listening ([PR #669](https://github.com/machinezone/IXWebSocket/pull/669); resolves [#470](https://github.com/machinezone/IXWebSocket/issues/470)).
+
+#### TLS and security backends
+
+- Keep server TLS handshakes off the accept loop ([PR #618](https://github.com/machinezone/IXWebSocket/pull/618)).
+- fix(tls): preserve pending writes in the shared send queue ([PR #619](https://github.com/machinezone/IXWebSocket/pull/619)).
+- Fix OpenSSL builds with deprecated APIs disabled ([PR #634](https://github.com/machinezone/IXWebSocket/pull/634); resolves [#518](https://github.com/machinezone/IXWebSocket/issues/518)).
+- Explain unsupported system CA loading with Mbed TLS ([PR #644](https://github.com/machinezone/IXWebSocket/pull/644); resolves [#526](https://github.com/machinezone/IXWebSocket/issues/526)).
+- Report TLS EOF and terminal errors consistently across backends ([PR #650](https://github.com/machinezone/IXWebSocket/pull/650)).
+- Avoid busy-spinning during TLS client handshakes ([PR #655](https://github.com/machinezone/IXWebSocket/pull/655); resolves [#525](https://github.com/machinezone/IXWebSocket/issues/525)).
+- Close SecureTransport native sockets without a TLS context ([PR #657](https://github.com/machinezone/IXWebSocket/pull/657)).
+- Add opt-in OpenSSL TLS key logging for clients and servers ([PR #661](https://github.com/machinezone/IXWebSocket/pull/661); resolves [#499](https://github.com/machinezone/IXWebSocket/issues/499)).
+- Load TLS certificate chains and private keys from memory ([PR #664](https://github.com/machinezone/IXWebSocket/pull/664); resolves [#533](https://github.com/machinezone/IXWebSocket/issues/533)).
+
+#### Build, packaging, and portability
+
+- Respect caller CMake settings while retaining the C++11 minimum ([PR #465](https://github.com/machinezone/IXWebSocket/pull/465)).
+- Enable shadow warnings and optional warnings-as-errors (#531) ([PR #535](https://github.com/machinezone/IXWebSocket/pull/535); resolves [#531](https://github.com/machinezone/IXWebSocket/issues/531)).
+- Link libatomic when required for 64-bit atomics ([PR #621](https://github.com/machinezone/IXWebSocket/pull/621); resolves [#513](https://github.com/machinezone/IXWebSocket/issues/513)).
+- Fix Windows DLL imports without breaking static MinGW builds ([PR #631](https://github.com/machinezone/IXWebSocket/pull/631); resolves [#602](https://github.com/machinezone/IXWebSocket/issues/602)).
+- Require braces and enforce clang-format in CI ([PR #660](https://github.com/machinezone/IXWebSocket/pull/660)).
+- Fix installed compression layout and package dependencies ([PR #670](https://github.com/machinezone/IXWebSocket/pull/670)).
+
+#### Tools, compliance, and documentation
+
+- Add opt-in Docker Autobahn compliance check ([PR #628](https://github.com/machinezone/IXWebSocket/pull/628)).
+- Add interactive reporting for local Autobahn runs ([PR #630](https://github.com/machinezone/IXWebSocket/pull/630)).
+- Document WebSocket callback threads and shutdown ownership ([PR #638](https://github.com/machinezone/IXWebSocket/pull/638); resolves [#457](https://github.com/machinezone/IXWebSocket/issues/457)).
+- Add SOCKS5 proxy options to ws connect and curl ([PR #639](https://github.com/machinezone/IXWebSocket/pull/639)).
+- Clarify connection handles, parallel starts and TLS listener setup ([PR #654](https://github.com/machinezone/IXWebSocket/pull/654)).
+- Add a self-contained ws bench command ([PR #667](https://github.com/machinezone/IXWebSocket/pull/667)).
+
+### Tickets closed during this release cycle
+
+The following 69 reports were closed during this cycle. This includes code fixes, delivered features, documentation/support resolutions, duplicate reports, and triage. Entries marked “closed after investigation” were closed as not planned. The callback API proposal (#536) was evaluated and withdrawn; only the standalone benchmark was retained. The vcpkg compression feature (#496) is being delivered separately in [vcpkg PR #55138](https://github.com/microsoft/vcpkg/pull/55138).
+
+- [#364](https://github.com/machinezone/IXWebSocket/issues/364) — Segmentation fault when using static binaries on unix..
+- [#373](https://github.com/machinezone/IXWebSocket/issues/373) — HTTP(S) and WS(S) on the same port.
+- [#381](https://github.com/machinezone/IXWebSocket/issues/381) — HTTP Chunked Transfer-Encoding support.
+- [#392](https://github.com/machinezone/IXWebSocket/issues/392) — TLS chunking on Windows/mbedTLS crashes server.
+- [#396](https://github.com/machinezone/IXWebSocket/issues/396) — No Close event for IXWebSocket client (11.4.2) when server disconnects.
+- [#397](https://github.com/machinezone/IXWebSocket/issues/397) — Unable to connect to gateway.webpubsub.azure.com on port 443, error: no error. (on Linux).
+- [#398](https://github.com/machinezone/IXWebSocket/issues/398) — Insensitive strcmp code should not check locale.
+- [#406](https://github.com/machinezone/IXWebSocket/issues/406) — IXWebSocket client creates a lot of threads when connecting to some urls — closed after investigation.
+- [#416](https://github.com/machinezone/IXWebSocket/issues/416) — IXHttpClient "Cannot retrieve status line" error with http status code 0 — closed after investigation.
+- [#418](https://github.com/machinezone/IXWebSocket/issues/418) — IXWebSocketServer Timeout Problems.....
+- [#424](https://github.com/machinezone/IXWebSocket/issues/424) — Is WebSocketServer::stop sound? — closed after investigation.
+- [#425](https://github.com/machinezone/IXWebSocket/issues/425) — Can't connect to wss endpoint.
+- [#430](https://github.com/machinezone/IXWebSocket/issues/430) — No close event in crypted mode (TLS).
+- [#434](https://github.com/machinezone/IXWebSocket/issues/434) — Use of common socket between ix::WebSocket and ix::HttpClient.
+- [#436](https://github.com/machinezone/IXWebSocket/issues/436) — 403 forbidden wenn connecting to golang.org/x/net/websocket.
+- [#441](https://github.com/machinezone/IXWebSocket/issues/441) — I try to update IXSocketOpenSSL.cpp to have wss client connect to an IP address.
+- [#442](https://github.com/machinezone/IXWebSocket/issues/442) — ZLib not set in Visual Studio linker settings.
+- [#446](https://github.com/machinezone/IXWebSocket/issues/446) — websocketserver works in listening 127.0.0.1, failed in localhost.
+- [#447](https://github.com/machinezone/IXWebSocket/issues/447) — Configurable "doc root" for IXHttpServer.
+- [#448](https://github.com/machinezone/IXWebSocket/issues/448) — Issue compiling (please help!).
+- [#451](https://github.com/machinezone/IXWebSocket/issues/451) — 'Normal closure' on stop() string confuses golang.org/x/net/websocket.
+- [#457](https://github.com/machinezone/IXWebSocket/issues/457) — Threading concerns.
+- [#461](https://github.com/machinezone/IXWebSocket/issues/461) — Result sending data OK even the client was not connected.
+- [#463](https://github.com/machinezone/IXWebSocket/issues/463) — msg->errorInfo.reason contains unwanted newline.
+- [#469](https://github.com/machinezone/IXWebSocket/issues/469) — No Close event when server TCP socket closed.
+- [#470](https://github.com/machinezone/IXWebSocket/issues/470) — Allow to bind after construction of ix::WebSocketServer and ix::HttpServer.
+- [#472](https://github.com/machinezone/IXWebSocket/issues/472) — Need a way to identify the clients of a WebsocketServer.
+- [#473](https://github.com/machinezone/IXWebSocket/issues/473) — How to build project that includes IXWebSocket without using vcpkg.
+- [#474](https://github.com/machinezone/IXWebSocket/issues/474) — the client did not receive the close event.
+- [#475](https://github.com/machinezone/IXWebSocket/issues/475) — Cannot link against IXWebsocket.
+- [#477](https://github.com/machinezone/IXWebSocket/issues/477) — Question about weak_ptr in API.
+- [#480](https://github.com/machinezone/IXWebSocket/issues/480) — Can I use IXHttpClient to upload files to server?.
+- [#484](https://github.com/machinezone/IXWebSocket/issues/484) — Support HTTP client connection reuse.
+- [#486](https://github.com/machinezone/IXWebSocket/issues/486) — [BUG] Does not receive a close or error message. and the mapping configured in the host file does not take effect.
+- [#490](https://github.com/machinezone/IXWebSocket/issues/490) — Memory leak in proxy code.
+- [#495](https://github.com/machinezone/IXWebSocket/issues/495) — Client connection closed immediately on re-connection after ping timeout.
+- [#496](https://github.com/machinezone/IXWebSocket/issues/496) — Disable ZLIB when install as vcpkg package?.
+- [#498](https://github.com/machinezone/IXWebSocket/issues/498) — Build error. (mbedtls).
+- [#499](https://github.com/machinezone/IXWebSocket/issues/499) — [Feature Request] Add support for OpenSSL SSLKEYLOGFILE.
+- [#504](https://github.com/machinezone/IXWebSocket/issues/504) — CMake packaging doesn't support example usage.
+- [#511](https://github.com/machinezone/IXWebSocket/issues/511) — [enhancement] add ability to remove default headers.
+- [#513](https://github.com/machinezone/IXWebSocket/issues/513) — A check for 8-byte atomics is needed, as 32-bit platforms may require libatomic linking.
+- [#518](https://github.com/machinezone/IXWebSocket/issues/518) — Migration from OpenSSL 1.1.0g to 3.1.5.
+- [#519](https://github.com/machinezone/IXWebSocket/issues/519) — To support encrypted key file.
+- [#520](https://github.com/machinezone/IXWebSocket/issues/520) — WebSocket Client with Proxy Support in ixwebsocket.
+- [#521](https://github.com/machinezone/IXWebSocket/issues/521) — Adding port to host in WebSocketHandshake::clientHandshake causes HTTP/1.1 404 Not Found.
+- [#522](https://github.com/machinezone/IXWebSocket/issues/522) — Multiple clients connection be slow.
+- [#525](https://github.com/machinezone/IXWebSocket/issues/525) — Initial Handshake and Websocket Connection.
+- [#526](https://github.com/machinezone/IXWebSocket/issues/526) — Connection error: Unable to connect to echo.websocket.org on port 443, error: no error.
+- [#531](https://github.com/machinezone/IXWebSocket/issues/531) — Add -Werror -Wshadow compiler flag.
+- [#533](https://github.com/machinezone/IXWebSocket/issues/533) — No Support for loading Client Server Certs from memory.
+- [#536](https://github.com/machinezone/IXWebSocket/issues/536) — Get rid of double indirection.
+- [#541](https://github.com/machinezone/IXWebSocket/issues/541) — setting up the helloworld example for cmake build; building with ixwebsocket library.
+- [#543](https://github.com/machinezone/IXWebSocket/issues/543) — "Unable to connect to localhost on port 1702, error: Connect error: No error" when trying to connect to localhost:1702 and other IP addresses NO MATTER WHAT.
+- [#544](https://github.com/machinezone/IXWebSocket/issues/544) — Error connecting with TLS.
+- [#551](https://github.com/machinezone/IXWebSocket/issues/551) — Callbacks for Message after Close if sending fails.
+- [#555](https://github.com/machinezone/IXWebSocket/issues/555) — SSL - Internal error trying to connect to a secure websocket — closed after investigation.
+- [#556](https://github.com/machinezone/IXWebSocket/issues/556) — How to upload large file?.
+- [#559](https://github.com/machinezone/IXWebSocket/issues/559) — using appropriate *.pem file for server cert by client.
+- [#576](https://github.com/machinezone/IXWebSocket/issues/576) — Proxy support.
+- [#587](https://github.com/machinezone/IXWebSocket/issues/587) — library now officially supports CORS out of the box.
+- [#600](https://github.com/machinezone/IXWebSocket/issues/600) — Ability for client applications to set additional OpenSSL CTX options — closed after investigation.
+- [#602](https://github.com/machinezone/IXWebSocket/issues/602) — Unresolved external symbols on Windows when integrating with ixwebsocket.dll created via cmake -DBUILD_SHARED_LIBS=ON.
+- [#610](https://github.com/machinezone/IXWebSocket/issues/610) — Should the outgoing buffer be reset on a reconnect?.
+- [#611](https://github.com/machinezone/IXWebSocket/issues/611) — Should the outgoing buffer be reset on a reconnect?.
+- [#623](https://github.com/machinezone/IXWebSocket/issues/623) — There is a bug in IXWebSocket that spikes CPU usage to 98%..
+- [#625](https://github.com/machinezone/IXWebSocket/issues/625) — issues with HttpRequestArgsPtr and HttpResponsePtr caused by WebSocketHttpHeaders.
+- [#632](https://github.com/machinezone/IXWebSocket/issues/632) — WebSocketTransport::close() race: CLOSED -> CLOSING again, second close callback calls a cleared std::function (terminate).
+- [#636](https://github.com/machinezone/IXWebSocket/issues/636) — Expose failed WebSocket handshake response headers in WebSocketErrorInfo.
+
+[Full comparison: v12.1.0...v13.0.0](https://github.com/machinezone/IXWebSocket/compare/v12.1.0...v13.0.0)
+
+[Release notes](https://github.com/machinezone/IXWebSocket/releases/tag/v13.0.0)
+
 ## [12.1.0] - 2026-10-14 — Philippe V le Long
 
 - Add an opt-in native macOS Network.framework TLS backend for HTTP/WebSocket clients and servers, including TLS 1.3, mutual TLS, and Apple certificate trust evaluation, without linking OpenSSL (#615).
