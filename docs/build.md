@@ -66,6 +66,18 @@ Caller-provided `CMAKE_CXX_STANDARD_REQUIRED`, `CMAKE_CXX_EXTENSIONS`, and
 `CMAKE_EXPORT_COMPILE_COMMANDS` settings are respected, including values inherited
 from a parent project using `add_subdirectory`.
 
+Installed headers include the CMake-generated `IXWebSocketCodecConfig.h`, which
+records whether the library was built with zlib. Install this header alongside
+the other public headers; consumers do not need to define a compression macro
+to get the correct codec layout. CMake consumers should link
+`ixwebsocket::ixwebsocket`; pkg-config consumers can use
+`pkg-config --cflags --libs --static ixwebsocket` for a static build.
+
+On Unix, `make -f makefile.dev test_install` checks installed static packages with
+compression enabled and disabled, using CMake, pkg-config, and direct includes.
+It requires Python 3.8+, a C++ compiler, CMake, pkg-config, and zlib development
+files. It runs separately from the unit suite.
+
 Options for building:
 
 * `-DBUILD_SHARED_LIBS=ON` will build the unittest as a shared libary instead of a static library, which is the default

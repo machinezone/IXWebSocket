@@ -15,3 +15,5 @@ jobs:
     - uses: seanmiddleditch/gha-setup-ninja@master
     - name: make test
       run: make -f makefile.dev test WARNINGS_AS_ERRORS=ON
+    - name: test installed packages
+      run: make -f makefile.dev test_install

@@ -152,6 +152,10 @@ test_atomic_32:
 	$(CXX) -std=c++11 -m32 -march=i486 test/cmake/atomic/main.cpp -o build/atomic-pkg-consumer $$(PKG_CONFIG_PATH="$(CURDIR)/build/atomic-install/lib/pkgconfig" pkg-config --cflags --libs --static ixwebsocket)
 	./build/atomic-pkg-consumer
 
+.PHONY: test_install
+test_install:
+	python3 tools/test_installed_package.py
+
 test_asan:
 	mkdir -p build && (cd build ; cmake -GNinja -DCMAKE_INSTALL_MESSAGE=LAZY -DCMAKE_UNITY_BUILD=ON -DCMAKE_BUILD_TYPE=Debug -DUSE_TLS=1 -DUSE_TEST=1 .. -DCMAKE_C_FLAGS="-fsanitize=address -fno-omit-frame-pointer" -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer")
 	(cd build ; ninja)

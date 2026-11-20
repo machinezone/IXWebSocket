@@ -313,9 +313,19 @@ endif()
 
 option(USE_ZLIB "Enable zlib support" TRUE)
 
+# Record the installed codec layout independently of consumer compile definitions.
+set(IXWEBSOCKET_CODEC_USE_ZLIB "${USE_ZLIB}")
+configure_file(ixwebsocket/IXWebSocketCodecConfig.h.in
+               ixwebsocket/IXWebSocketCodecConfig.h)
+list(APPEND IXWEBSOCKET_HEADERS
+     "${CMAKE_CURRENT_BINARY_DIR}/ixwebsocket/IXWebSocketCodecConfig.h")
+
+set(IXWEBSOCKET_PC_REQUIRES_PRIVATE "")
 if (USE_ZLIB)
   find_package(ZLIB REQUIRED)
-  target_link_libraries(ixwebsocket PRIVATE ZLIB::ZLIB)
+  # The public codec header contains z_stream and includes zlib.h.
+  target_link_libraries(ixwebsocket PUBLIC ZLIB::ZLIB)
+  set(IXWEBSOCKET_PC_REQUIRES_PRIVATE zlib)
 
   target_compile_definitions(ixwebsocket PUBLIC IXWEBSOCKET_USE_ZLIB)
 endif()
@@ -329,10 +339,12 @@ if (WIN32)
   endif()
 endif()
 
+set(IXWEBSOCKET_FIND_THREADS OFF)
 if (UNIX AND NOT APPLE)
   set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-  find_package(Threads)
+  find_package(Threads REQUIRED)
   target_link_libraries(ixwebsocket PRIVATE Threads::Threads)
+  set(IXWEBSOCKET_FIND_THREADS ON)
 endif()
 
 
@@ -349,6 +361,7 @@ include(GNUInstallDirs)
 
 target_include_directories(ixwebsocket PUBLIC
   $<BUILD_INTERFACE:${IXWEBSOCKET_INCLUDE_DIRS}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
