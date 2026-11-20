@@ -10,3 +10,4 @@ Libs: -L${libdir} -lixwebsocket
 Libs.private: @IXWEBSOCKET_PRIVATE_LIBS@
 Cflags: -I${includedir} @IXWEBSOCKET_PUBLIC_CFLAGS@
 Requires: @requires@
+Requires.private: @IXWEBSOCKET_PC_REQUIRES_PRIVATE@

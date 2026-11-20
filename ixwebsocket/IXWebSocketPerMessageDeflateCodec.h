@@ -6,7 +6,9 @@
 
 #pragma once
 
-#ifdef IXWEBSOCKET_USE_ZLIB
+#include <ixwebsocket/IXWebSocketCodecConfig.h>
+
+#if IXWEBSOCKET_CODEC_USE_ZLIB
 #include "zlib.h"
 #endif
 #include "IXWebSocketSendData.h"
@@ -36,7 +38,7 @@ namespace ix
         template<typename T>
         bool endsWithEmptyUnCompressedBlock(const T& value);
 
-#ifdef IXWEBSOCKET_USE_ZLIB
+#if IXWEBSOCKET_CODEC_USE_ZLIB
         int _flush;
         std::array<unsigned char, 1 << 14> _compressBuffer;
 
@@ -57,7 +59,7 @@ namespace ix
                         bool* limitExceeded = nullptr);
 
     private:
-#ifdef IXWEBSOCKET_USE_ZLIB
+#if IXWEBSOCKET_CODEC_USE_ZLIB
         int _flush;
         std::array<unsigned char, 1 << 14> _compressBuffer;
 
