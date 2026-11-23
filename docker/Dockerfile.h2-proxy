@@ -1,0 +1,21 @@
+FROM debian:bookworm-slim AS build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    g++ cmake ninja-build zlib1g-dev && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+COPY CMakeLists.txt ixwebsocket-config.cmake.in ixwebsocket.pc.in ./
+COPY CMake/ CMake/
+COPY ixwebsocket/ ixwebsocket/
+COPY test/h2_proxy/ test/h2_proxy/
+RUN cmake -S test/h2_proxy -B build -GNinja -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_UNITY_BUILD=ON && cmake --build build --parallel 2
+
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nghttp2-proxy openssl python3 python3-venv libstdc++6 zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+COPY test/h2_proxy/requirements.txt /requirements.txt
+RUN python3 -m venv /venv && /venv/bin/pip install --no-cache-dir -r /requirements.txt
+COPY test/h2_proxy/ /app/test/h2_proxy/
+COPY --from=build /src/build/h2_proxy_server /app/build/h2-proxy/h2_proxy_server
+WORKDIR /app
+ENTRYPOINT ["/venv/bin/python", "/app/test/h2_proxy/run.py"]

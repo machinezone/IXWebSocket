@@ -1,0 +1,30 @@
+name: h2-proxy
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+    types: [ opened, reopened, synchronize, labeled, unlabeled ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  h2-proxy:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'h2-proxy')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - name: make test_h2_proxy
+      run: make -f makefile.dev test_h2_proxy
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: h2-proxy-reports
+        path: |
+          build/h2-proxy/runs/**/report.json
+          build/h2-proxy/runs/**/*.log
+          build/h2-proxy/build.log
+        retention-days: 14

@@ -279,3 +279,16 @@ test_openssl_no_deprecated:
 	cmake -S . -B build -GNinja -UOPENSSL_CRYPTO_LIBRARY -UOPENSSL_SSL_LIBRARY -UOPENSSL_INCLUDE_DIR -DCMAKE_BUILD_TYPE=Debug -DCMAKE_UNITY_BUILD=ON -DUSE_TLS=ON -DUSE_OPEN_SSL=ON -DUSE_LIBRE_SSL=OFF -DUSE_MBED_TLS=OFF -DUSE_NETWORK_FRAMEWORK=OFF -DUSE_SECURE_TRANSPORT=OFF -DUSE_ZLIB=ON -DUSE_TEST=ON -DUSE_WS=ON -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_CXX_FLAGS="-DOPENSSL_NO_DEPRECATED -DOPENSSL_API_COMPAT=$(OPENSSL_API_COMPAT) -Werror=deprecated-declarations"
 	cmake --build build --parallel 2
 	ctest --test-dir build --output-on-failure
+
+# Standalone external integration test; does not extend the unit suite.
+H2_PROXY_ARGS ?=
+.PHONY: test_h2_proxy test_h2_proxy_native
+test_h2_proxy:
+	python3 tools/run_h2_proxy.py $(H2_PROXY_ARGS)
+
+test_h2_proxy_native:
+	cmake -S test/h2_proxy -B build/h2-proxy -DCMAKE_UNITY_BUILD=ON
+	cmake --build build/h2-proxy --target h2_proxy_server --parallel
+	python3 -m venv build/h2-proxy/venv
+	build/h2-proxy/venv/bin/python -m pip install --disable-pip-version-check -r test/h2_proxy/requirements.txt
+	build/h2-proxy/venv/bin/python test/h2_proxy/run.py $(H2_PROXY_ARGS)
