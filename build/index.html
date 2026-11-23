@@ -50,6 +50,9 @@
                                 <a href="../design/" class="nav-link">Design</a>
                             </li>
                             <li class="nav-item">
+                                <a href="../h2-proxy/" class="nav-link">WebSockets behind an HTTP/2 reverse proxy</a>
+                            </li>
+                            <li class="nav-item">
                                 <a href="../packages/" class="nav-link">Packages</a>
                             </li>
                             <li class="nav-item">
@@ -152,6 +155,10 @@ multilib installed, <code>make -f makefile.dev test_atomic_32</code> builds and 
 <code>make -f makefile.dev test_autobahn</code>. Add the <code>autobahn</code> label to a PR to opt into
 the CI check; it also runs on <code>master</code> and manually. See the
 <a href="../autobahn/">Autobahn instructions</a> for reports and local debugging.</p>
+<p>HTTP/2 reverse-proxy compatibility can be tested separately with
+<code>make -f makefile.dev test_h2_proxy</code>. It checks a TLS/H2 Extended CONNECT client
+through nghttpx to an HTTP/1.1 IXWebSocket backend. See the
+<a href="../h2-proxy/">H2 proxy test</a> for coverage, native runs, and the Envoy reproduction.</p>
 <p>The library defaults to C++11 and requires C++11 or later. To build with a newer
 standard, pass <code>-DCMAKE_CXX_STANDARD=17</code> (or another supported standard). The CLI
 and tests inherit this choice; the test framework requires at least C++14.
