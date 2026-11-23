@@ -8,6 +8,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import time
 import uuid
 
 from check_autobahn import check_report
@@ -21,6 +22,18 @@ TARGET = "ixwebsocket-autobahn:local"
 
 def command(args, **kwargs):
     return subprocess.run(args, check=True, text=True, **kwargs)
+
+
+def case_batches(roles, expected):
+    # The fuzzing client retains state across cases. Restart it between bounded
+    # batches so a full server run does not exhaust a small CI runner's memory.
+    # Every selected case still runs exactly once, and every report is checked.
+    for role in roles:
+        batches = ([expected] if role == "client" else
+                   [expected[i:i + 64] for i in range(0, len(expected), 64)])
+        for i, batch in enumerate(batches):
+            name = role if len(batches) == 1 else role + "-" + str(i + 1)
+            yield role, name, batch
 
 
 class Runner:
@@ -49,9 +62,9 @@ class Runner:
         command(options + [image] + args, stdout=subprocess.DEVNULL)
         return container
 
-    def wait(self, container):
+    def wait(self, container, timeout):
         result = command(["docker", "wait", container], capture_output=True,
-                         timeout=self.timeout + 30)
+                         timeout=timeout + 30)
         return int(result.stdout.strip())
 
     def ready(self, peer, port):
@@ -64,7 +77,7 @@ class Runner:
             " except OSError:\n"
             "  if time.monotonic()>deadline: raise\n"
             "  time.sleep(0.2)\n" % (peer, port))
-        container = self.start("probe-" + str(port), self.image, ["python3", "-c", probe])
+        container = self.start("probe-" + str(port) + "-" + str(len(self.containers)), self.image, ["python3", "-c", probe])
         status = command(["docker", "wait", container], capture_output=True, timeout=45)
         if int(status.stdout.strip()):
             raise RuntimeError("Server did not become ready: " + peer)
@@ -72,11 +85,11 @@ class Runner:
     def collect_logs(self):
         for name in self.containers:
             # Retain the reason for exit 137 (OOM kill versus timeout/signal).
-            with (self.output / "logs" / (name + "-state.json")).open("w") as state:
-                subprocess.run(["docker", "inspect", "--format", "{{json .State}}", name],
-                               stdout=state, stderr=subprocess.STDOUT, text=True, timeout=30)
             with (self.output / "logs" / (name + ".log")).open("w") as log:
                 try:
+                    with (self.output / "logs" / (name + "-state.json")).open("w") as state:
+                        subprocess.run(["docker", "inspect", "--format", "{{json .State}}", name],
+                                       stdout=state, stderr=subprocess.STDOUT, text=True, timeout=30)
                     subprocess.run(["docker", "logs", name], stdout=log,
                                    stderr=subprocess.STDOUT, text=True, timeout=30)
                 except (OSError, subprocess.SubprocessError) as error:
@@ -133,54 +146,64 @@ class Runner:
         command(["docker", "network", "create", self.network], stdout=subprocess.DEVNULL)
         failed = False
         results = []
+        deadlines = {}
         try:
-            for role in roles:
-                print("Running {} compliance: {} cases".format(role, len(expected)), flush=True)
+            for role, name, batch in case_batches(roles, expected):
+                deadline = deadlines.setdefault(role, time.monotonic() + self.timeout)
+                remaining = int(deadline - time.monotonic())
+                if remaining <= 0:
+                    raise RuntimeError(role + " compliance timed out")
+                print("Running {} compliance: {} cases".format(name, len(batch)), flush=True)
                 if role == "client":
                     peer = self.start("fuzzer", SUITE, [
                         "wstest", "-m", "fuzzingserver", "-s", "/config/fuzzingserver.json"],
                         suite=True, alias="autobahn")
                     self.ready("autobahn", 9001)
                     test = self.start("client", self.image, [
-                        "timeout", "--kill-after=10s", str(self.timeout),
+                        "timeout", "--kill-after=10s", str(remaining),
                         "ws", "autobahn", "-q", "--url", "ws://autobahn:9001"])
                 else:
-                    peer = self.start("echo", self.image, [
+                    spec = json.loads((self.output / "config/fuzzingclient.json").read_text())
+                    spec["cases"] = batch
+                    spec["outdir"] = "/reports/" + name
+                    config_name = name + ".json"
+                    (self.output / "config" / config_name).write_text(json.dumps(spec) + "\n")
+                    peer = self.start("echo-" + name, self.image, [
                         "ws", "echo_server", "--host", "0.0.0.0", "--port", "9002", "-q"],
                         alias="ixwebsocket")
                     self.ready("ixwebsocket", 9002)
-                    test = self.start("server", SUITE, [
-                        "timeout", "--kill-after=10s", str(self.timeout),
-                        "wstest", "-m", "fuzzingclient", "-s", "/config/fuzzingclient.json"],
+                    test = self.start(name, SUITE, [
+                        "timeout", "--kill-after=10s", str(remaining),
+                        "wstest", "-m", "fuzzingclient", "-s", "/config/" + config_name],
                         suite=True)
                 if self.interactive:
                     status = wait_with_progress(test, peer if role == "client" else test,
-                                                role, expected, self.timeout + 30)
+                                                name, batch, remaining + 30)
                 else:
-                    status = self.wait(test)
+                    status = self.wait(test, remaining)
                 if status:
-                    print("{} runner failed with exit {}".format(role, status), flush=True)
+                    print("{} runner failed with exit {}".format(name, status), flush=True)
                     failed = True
-                report_file = self.output / "reports" / role / "index.json"
+                report_file = self.output / "reports" / name / "index.json"
                 try:
-                    errors = check_report(json.loads(report_file.read_text()), expected)
+                    errors = check_report(json.loads(report_file.read_text()), batch)
                 except (OSError, ValueError, TypeError) as error:
                     errors = [str(error)]
                 for error in errors:
-                    print("{}: {}".format(role, error), flush=True)
+                    print("{}: {}".format(name, error), flush=True)
                 failed = failed or bool(errors)
-                results.append((role, status == 0 and not errors))
+                results.append((name, status == 0 and not errors, len(batch)))
                 print("{}: {} expected cases, {} report failures".format(
-                    role, len(expected), len(errors)), flush=True)
+                    name, len(batch), len(errors)), flush=True)
                 self.collect_logs()
                 command(["docker", "stop", "--time", "5", peer], stdout=subprocess.DEVNULL)
         finally:
             self.cleanup()
         if self.interactive:
             print("\nAutobahn summary", flush=True)
-            for role, passed in results:
+            for name, passed, count in results:
                 print("  {}: {} ({} expected cases)".format(
-                    role, "PASS" if passed else "FAIL", len(expected)), flush=True)
+                    name, "PASS" if passed else "FAIL", count), flush=True)
             print("Reports: " + str(self.output / "reports"), flush=True)
         return int(failed)
 

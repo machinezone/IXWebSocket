@@ -43,7 +43,11 @@ missing cases, malformed reports, unknown statuses, non-strict results, and
 closing failures fail the check. Process success alone is insufficient.
 
 Reports are recreated under `build/autobahn/reports/client` and
-`build/autobahn/reports/server`. Open each `index.html` for detailed results.
+`build/autobahn/reports/server` (or `server-1`, `server-2`, etc. for large runs).
+Open each `index.html` for detailed results. Server cases run in batches of at
+most 64 with a fresh test runner, avoiding memory accumulation in the Python
+suite. Every selected case still runs and every batch's complete report is checked;
+the per-role timeout applies across all batches.
 Container logs and the selected suite/image IDs are also saved under
 `build/autobahn`. CI uploads these as the `autobahn-reports` artifact even when
 tests fail. Each role has a 30-minute limit; the whole CI job has a 75-minute
