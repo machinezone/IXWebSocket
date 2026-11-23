@@ -204,6 +204,13 @@ call `start()` on each instance. Each connection attempt runs on its own backgro
 thread, so starting another client does not wait for the first handshake.
 `connect()` is the synchronous connection API.
 
+### HTTP/2 client (experimental)
+
+Call `websocket.setHttp2(true)` before connecting to opt into RFC 8441 over
+`wss://`. HTTP/1.1 remains the default. This self-contained client opens one H2
+stream per connection; it does not share connections between WebSocket objects.
+See [HTTP/2 client support](http2.md) for negotiation requirements and testing.
+
 ### Threading and callbacks
 
 `setOnMessageCallback()` handles Open, Message, Close, Error, Ping, Pong, and Fragment

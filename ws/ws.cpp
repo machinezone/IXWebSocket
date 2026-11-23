@@ -647,7 +647,8 @@ namespace ix
                          const ix::ProxyOptions& proxyOptions,
                          const std::string& subprotocol,
                          int pingIntervalSecs,
-                         bool decompressGzipMessages);
+                         bool decompressGzipMessages,
+                         bool http2);
 
         void subscribe(const std::string& channel);
         void start();
@@ -688,7 +689,8 @@ namespace ix
                                        const ix::ProxyOptions& proxyOptions,
                                        const std::string& subprotocol,
                                        int pingIntervalSecs,
-                                       bool decompressGzipMessages)
+                                       bool decompressGzipMessages,
+                                       bool http2)
         : _url(url)
         , _disablePerMessageDeflate(disablePerMessageDeflate)
         , _binaryMode(binaryMode)
@@ -702,6 +704,7 @@ namespace ix
         }
         _webSocket.setMaxWaitBetweenReconnectionRetries(maxWaitBetweenReconnectionRetries);
         _webSocket.setTLSOptions(tlsOptions);
+        _webSocket.setHttp2(http2);
         _webSocket.setProxyOptions(proxyOptions);
         _webSocket.setPingInterval(pingIntervalSecs);
 
@@ -879,7 +882,8 @@ namespace ix
                         const ix::ProxyOptions& proxyOptions,
                         const std::string& subprotocol,
                         int pingIntervalSecs,
-                        bool decompressGzipMessages)
+                        bool decompressGzipMessages,
+                        bool http2)
     {
         std::cout << "Type Ctrl-D to exit prompt..." << std::endl;
         WebSocketConnect webSocketChat(url,
@@ -892,7 +896,8 @@ namespace ix
                                        proxyOptions,
                                        subprotocol,
                                        pingIntervalSecs,
-                                       decompressGzipMessages);
+                                       decompressGzipMessages,
+                                       http2);
         webSocketChat.start();
 
         while (true)
@@ -2771,6 +2776,7 @@ int main(int argc, char** argv)
     int pingIntervalSecs = 30;
     int runCount = 1;
     bool decompressGzipMessages = false;
+    bool http2 = false;
 
     auto addGenericOptions = [&pidfile](CLI::App* subcommand)
     { subcommand->add_option("--pidfile", pidfile, "Pid file"); };
@@ -2848,6 +2854,7 @@ int main(int argc, char** argv)
     connectApp->add_flag("-d", disableAutomaticReconnection, "Disable Automatic Reconnection");
     connectApp->add_flag("-x", disablePerMessageDeflate, "Disable per message deflate");
     connectApp->add_flag("-b", binaryMode, "Send in binary mode");
+    connectApp->add_flag("--http2", http2, "Experimental RFC 8441 over wss (requires ALPN h2)");
     connectApp->add_option("--max_wait",
                            maxWaitBetweenReconnectionRetries,
                            "Max Wait Time between reconnection retries");
@@ -3105,7 +3112,8 @@ int main(int argc, char** argv)
                                   proxyOptions,
                                   subprotocol,
                                   pingIntervalSecs,
-                                  decompressGzipMessages);
+                                  decompressGzipMessages,
+                                  http2);
     }
     else if (app.got_subcommand("bench"))
     {

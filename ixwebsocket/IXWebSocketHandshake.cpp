@@ -9,11 +9,14 @@
 #include "IXBase64.h"
 #include "IXHttp.h"
 #include "IXSocketConnect.h"
+#include "IXSocketHttp2.h"
 #include "IXStrCaseCompare.h"
+#include "IXUniquePtr.h"
 #include "IXUrlParser.h"
 #include "IXUserAgent.h"
 #include "IXWebSocketHandshakeKeyGen.h"
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <random>
 #include <set>
@@ -100,19 +103,129 @@ namespace ix
         int port,
         int timeoutSecs,
         const std::vector<std::string>& disabledDefaultHeaders,
-        bool alreadyConnected)
+        bool alreadyConnected,
+        bool http2)
     {
         _requestInitCancellation = false;
 
         auto isCancellationRequested =
             makeCancellationRequestWithTimeout(timeoutSecs, _requestInitCancellation);
 
+        if (http2 && (protocol != "wss" || alreadyConnected))
+        {
+            return WebSocketInitResult(false, 0, "HTTP/2 requires a new wss:// connection");
+        }
         std::string errMsg;
         if (!alreadyConnected && !_socket->connect(host, port, errMsg, isCancellationRequested))
         {
             std::stringstream ss;
             ss << "Unable to connect to " << host << " on port " << port << ", error: " << errMsg;
             return WebSocketInitResult(false, 0, ss.str());
+        }
+
+        if (http2)
+        {
+            if (protocol != "wss" || _socket->getNegotiatedProtocol() != "h2" || alreadyConnected)
+            {
+                return WebSocketInitResult(
+                    false,
+                    0,
+                    "HTTP/2 requires wss:// and negotiated ALPN h2 (selected: " +
+                        _socket->getNegotiatedProtocol() + ")");
+            }
+            const std::string authority =
+                (host.find(':') != std::string::npos ? "[" + host + "]" : host) + ":" +
+                std::to_string(port);
+            const std::set<std::string, CaseInsensitiveLess> disabled(
+                disabledDefaultHeaders.begin(), disabledDefaultHeaders.end());
+            WebSocketHttpHeaders regular(extraHeaders);
+            if (!regular.count("User-Agent") && !disabled.count("User-Agent"))
+            {
+                regular["User-Agent"] = userAgent();
+            }
+            if (!regular.count("Origin") && !disabled.count("Origin"))
+            {
+                regular["Origin"] = "https://" + authority;
+            }
+            regular["Sec-WebSocket-Version"] = "13";
+            if (_enablePerMessageDeflate)
+            {
+                regular["Sec-WebSocket-Extensions"] = _perMessageDeflateOptions.generateHeader();
+            }
+            Hpack::Headers fields {{":method", "CONNECT"},
+                                   {":protocol", "websocket"},
+                                   {":scheme", "https"},
+                                   {":authority", authority},
+                                   {":path", path}};
+            for (const auto& field : regular)
+            {
+                std::string name = field.first;
+                for (auto& c : name)
+                {
+                    if (c >= 'A' && c <= 'Z')
+                    {
+                        c += 'a' - 'A';
+                    }
+                }
+                if (name.empty() || name[0] == ':' || name == "connection" || name == "upgrade" ||
+                    name == "keep-alive" || name == "proxy-connection" ||
+                    name == "content-length" || name == "transfer-encoding" ||
+                    name == "sec-websocket-key" || name == "sec-websocket-accept")
+                {
+                    return WebSocketInitResult(false, 0, "Header is not valid for HTTP/2: " + name);
+                }
+                for (unsigned char c : name)
+                {
+                    if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+                          (c && std::strchr("!#$%&'*+-.^_`|~", c))))
+                    {
+                        return WebSocketInitResult(false, 0, "Invalid HTTP/2 header name");
+                    }
+                }
+                if (field.second.find_first_of(std::string("\0\r\n", 3)) != std::string::npos)
+                {
+                    return WebSocketInitResult(false, 0, "Invalid HTTP/2 header value");
+                }
+                if (!field.second.empty() &&
+                    (field.second.front() == ' ' || field.second.front() == '\t' ||
+                     field.second.back() == ' ' || field.second.back() == '\t'))
+                {
+                    return WebSocketInitResult(false, 0, "Invalid whitespace in HTTP/2 header");
+                }
+                if (name == "te" && field.second != "trailers")
+                {
+                    return WebSocketInitResult(false, 0, "HTTP/2 TE only supports trailers");
+                }
+                if (name == "host")
+                {
+                    fields[3].second = field.second;
+                    continue;
+                }
+                fields.emplace_back(name, field.second);
+            }
+            auto socket = ix::make_unique<SocketHttp2>(std::move(_socket));
+            auto result = socket->handshake(fields, isCancellationRequested);
+            _socket = std::move(socket);
+            result.uri = path;
+            if (!result.success)
+            {
+                return result;
+            }
+            if (_enablePerMessageDeflate)
+            {
+                WebSocketPerMessageDeflateOptions options(
+                    result.headers["sec-websocket-extensions"]);
+                if (!options.enabled())
+                {
+                    _enablePerMessageDeflate = false;
+                }
+                else if (!_perMessageDeflate->init(options))
+                {
+                    return WebSocketInitResult(
+                        false, 0, "Failed to initialize per message deflate engine");
+                }
+            }
+            return result;
         }
 
         // Generate a random 16 bytes string and base64 encode it.

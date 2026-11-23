@@ -83,7 +83,8 @@ namespace ix
                        bool enablePong,
                        int pingIntervalSecs,
                        const ProxyOptions& proxyOptions = {},
-                       uint64_t maxMessageSize = 0);
+                       uint64_t maxMessageSize = 0,
+                       bool http2 = false);
 
         // Client
         WebSocketInitResult connectToUrl(
@@ -235,6 +236,7 @@ namespace ix
 
         // Used to control TLS connection behavior
         SocketTLSOptions _socketTLSOptions;
+        bool _http2 = false;
         ProxyOptions _proxyOptions;
 
         // Used to cancel dns lookup + socket connect + http upgrade

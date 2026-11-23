@@ -34,6 +34,7 @@ normally and checks that it joins its workers and exits successfully.
 
 Coverage includes:
 
+- Native IXWebSocket H2 client with compression on/off and both close directions.
 - TLS certificate validation, ALPN, Extended CONNECT, and HTTP/2 success status.
 - Forwarded Origin/custom headers, paths, and query strings.
 - Empty, Unicode and binary messages, fragmentation, and ping/pong.
@@ -49,9 +50,13 @@ After the WebSocket Close exchange, nghttpx can retire a stream with
 when both WebSocket Close frames have been exchanged. Premature resets and other
 reset codes fail the test.
 
-This is a protocol integration test using Python `h2` and `wsproto`, not browser
-automation, an Autobahn run, or a performance benchmark. It adds no native HTTP/2
-support to IXWebSocket. It runs separately from the regular unit suite.
+The native C++ client runs through the proxy in four compression/close modes;
+it also runs against an independent Python TLS/H2 peer for simultaneous large
+transfers, blocked-send cancellation and ALPN rejection. The Python
+`h2`/`wsproto` client then checks the proxy/backend flow,
+including multiplexing. The C++ client currently uses one stream per connection.
+This is protocol integration coverage, not browser automation, an Autobahn run,
+or a performance benchmark. It runs separately from the regular unit suite.
 
 ## Native run and Envoy reproduction
 

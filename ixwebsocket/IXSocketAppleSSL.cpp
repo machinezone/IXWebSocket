@@ -202,6 +202,27 @@ namespace ix
             }
         } while (status == errSSLWouldBlock || status == errSSLServerAuthCompleted);
 
+        if (status == noErr && !_tlsOptions.alpnProtocols.empty())
+        {
+            if (__builtin_available(macOS 10.13, iOS 11.0, *))
+            {
+                CFArrayRef protocols = nullptr;
+                if (SSLCopyALPNProtocols(_sslContext, &protocols) == noErr && protocols)
+                {
+                    if (CFArrayGetCount(protocols))
+                    {
+                        char selected[256] = {};
+                        auto value = static_cast<CFStringRef>(CFArrayGetValueAtIndex(protocols, 0));
+                        if (CFStringGetCString(
+                                value, selected, sizeof(selected), kCFStringEncodingUTF8))
+                        {
+                            _negotiatedProtocol = selected;
+                        }
+                    }
+                    CFRelease(protocols);
+                }
+            }
+        }
         return status;
     }
 
@@ -210,6 +231,7 @@ namespace ix
                                  std::string& errMsg,
                                  const CancellationRequest& isCancellationRequested)
     {
+        _negotiatedProtocol.clear();
         if (_tlsOptions.isUsingInMemoryCert() || _tlsOptions.isUsingInMemoryKey())
         {
             errMsg = "SecureTransport does not support in-memory client credentials; use "
@@ -232,6 +254,34 @@ namespace ix
                 _sslContext, SocketAppleSSL::readFromSocket, SocketAppleSSL::writeToSocket);
             SSLSetConnection(_sslContext, this);
             SSLSetProtocolVersionMin(_sslContext, kTLSProtocol12);
+            if (!_tlsOptions.alpnProtocols.empty())
+            {
+                if (__builtin_available(macOS 10.13, iOS 11.0, *))
+                {
+                    auto protocols =
+                        CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+                    for (const auto& protocol : _tlsOptions.alpnProtocols)
+                    {
+                        auto value = CFStringCreateWithCString(
+                            kCFAllocatorDefault, protocol.c_str(), kCFStringEncodingUTF8);
+                        CFArrayAppendValue(protocols, value);
+                        CFRelease(value);
+                    }
+                    const auto result = SSLSetALPNProtocols(_sslContext, protocols);
+                    CFRelease(protocols);
+                    if (result != noErr)
+                    {
+                        errMsg = "Cannot configure ALPN";
+                        return false;
+                    }
+                }
+                else
+                {
+                    errMsg = "ALPN requires macOS 10.13 / iOS 11 or newer";
+                    return false;
+                }
+            }
+
 
             if (!_tlsOptions.disable_hostname_validation)
             {

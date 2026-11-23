@@ -24,7 +24,8 @@ def main():
                    "--user", "{}:{}".format(os.getuid(), os.getgid()),
                    "--env", "PYTHONUNBUFFERED=1", "--volume",
                    str(runs) + ":/app/build/h2-proxy/runs",
-                   image_id.read_text().strip()] + sys.argv[1:]
+                   image_id.read_text().strip(), "--native-client",
+                   "/app/build/h2-proxy/h2_proxy_client"] + sys.argv[1:]
         return subprocess.run(command).returncode
     except (OSError, subprocess.CalledProcessError) as error:
         print("H2 proxy test failed: {}. Build log: {}".format(error, output / "build.log"),

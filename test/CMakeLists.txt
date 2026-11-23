@@ -22,6 +22,7 @@ set (TEST_TARGET_NAMES
   IXHttpServerStaticTest
   IXUnityBuildsTest
   IXHttpTest
+  IXHttp2Test
   IXHttpClientResponseTest
   IXHttpClientReuseTest
   IXHttpWebSocketUpgradeTest
@@ -208,3 +209,5 @@ if (USE_NETWORK_FRAMEWORK)
   add_test(NAME IXSocketNetworkTest COMMAND IXSocketNetworkTest)
   set_tests_properties(IXSocketNetworkTest PROPERTIES TIMEOUT 45)
 endif()
+
+set_tests_properties(IXHttp2Test PROPERTIES TIMEOUT 10)

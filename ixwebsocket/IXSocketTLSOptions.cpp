@@ -19,6 +19,17 @@ namespace ix
 
     bool SocketTLSOptions::isValid() const
     {
+        size_t alpnSize = 0;
+        for (const auto& protocol : alpnProtocols)
+        {
+            alpnSize += protocol.size() + 1;
+            if (protocol.empty() || protocol.size() > 255 ||
+                protocol.find('\0') != std::string::npos || alpnSize > 65535)
+            {
+                _errMsg = "Invalid ALPN protocol list";
+                return false;
+            }
+        }
         if (!_validated)
         {
             if (!certFile.empty() && !isUsingInMemoryCert() && !std::ifstream(certFile))

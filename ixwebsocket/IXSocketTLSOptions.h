@@ -7,6 +7,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace ix
 {
@@ -29,6 +30,9 @@ namespace ix
         // certificates to be trusted by peers; use 'SYSTEM' to
         // leverage the system defaults, use 'NONE' to disable peer verification
         std::string caFile = "SYSTEM";
+
+        // Client ALPN offers. Empty preserves the backend's default behavior.
+        std::vector<std::string> alpnProtocols;
 
         // list of ciphers (rsa, etc...)
         std::string ciphers = "DEFAULT";

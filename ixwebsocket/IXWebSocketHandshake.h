@@ -39,7 +39,8 @@ namespace ix
             int port,
             int timeoutSecs,
             const std::vector<std::string>& disabledDefaultHeaders = {},
-            bool alreadyConnected = false);
+            bool alreadyConnected = false,
+            bool http2 = false);
 
         WebSocketInitResult serverHandshake(int timeoutSecs,
                                             bool enablePerMessageDeflate,

@@ -95,11 +95,17 @@ namespace ix
         bool enablePong,
         int pingIntervalSecs,
         const ProxyOptions& proxyOptions,
-        uint64_t maxMessageSize)
+        uint64_t maxMessageSize,
+        bool http2)
     {
         _perMessageDeflateOptions = perMessageDeflateOptions;
         _enablePerMessageDeflate = _perMessageDeflateOptions.enabled();
         _socketTLSOptions = socketTLSOptions;
+        _http2 = http2;
+        if (http2)
+        {
+            _socketTLSOptions.alpnProtocols = {"h2"};
+        }
         _proxyOptions = proxyOptions;
         _enablePong = enablePong;
         _pingIntervalSecs = pingIntervalSecs;
@@ -115,6 +121,10 @@ namespace ix
         std::unique_ptr<Socket> connectedSocket)
     {
         resetConnectionState();
+        if (_http2)
+        {
+            _blockingSend = false;
+        }
         std::lock_guard<std::mutex> lock(_socketMutex);
 
         std::string protocol, host, path, query;
@@ -161,7 +171,8 @@ namespace ix
                                                         port,
                                                         timeoutSecs,
                                                         disabledDefaultHeaders,
-                                                        alreadyConnected);
+                                                        alreadyConnected,
+                                                        _http2);
 
             if (!alreadyConnected && result.http_status >= 300 && result.http_status < 400)
             {
@@ -1503,6 +1514,18 @@ namespace ix
                 close(WebSocketCloseConstants::kAbnormalCloseCode,
                       WebSocketCloseConstants::kAbnormalCloseMessage);
                 return false;
+            }
+            else if (_http2 && result == PollResultType::ReadyForRead)
+            {
+                // H2 DATA in the other direction must be consumed before more
+                // receive-window credit is issued. Yield to WebSocket dispatch
+                // rather than blocking both ends on their send windows.
+                const bool received = receiveFromSocket();
+                if (!isSendBufferEmpty())
+                {
+                    wakeUpFromPoll(SelectInterrupt::kSendRequest);
+                }
+                return received;
             }
             else if (result == PollResultType::ReadyForWrite)
             {

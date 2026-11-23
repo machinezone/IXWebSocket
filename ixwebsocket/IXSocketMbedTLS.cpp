@@ -242,6 +242,34 @@ namespace ix
             mbedtls_ssl_conf_ca_chain(&_conf, &_cacert, NULL);
         }
 
+        if (isClient && !_tlsOptions.alpnProtocols.empty())
+        {
+#ifdef MBEDTLS_SSL_ALPN
+            _alpnProtocols.clear();
+            for (const auto& protocol : _tlsOptions.alpnProtocols)
+            {
+                _alpnProtocols.push_back(protocol.c_str());
+                if (protocol == "h2")
+                {
+#if MBEDTLS_VERSION_NUMBER >= 0x03020000
+                    mbedtls_ssl_conf_min_tls_version(&_conf, MBEDTLS_SSL_VERSION_TLS1_2);
+#else
+                    mbedtls_ssl_conf_min_version(
+                        &_conf, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3);
+#endif
+                }
+            }
+            _alpnProtocols.push_back(nullptr);
+            if (mbedtls_ssl_conf_alpn_protocols(&_conf, _alpnProtocols.data()) != 0)
+            {
+                errMsg = "Cannot configure ALPN";
+                return false;
+            }
+#else
+            errMsg = "This MbedTLS build does not support ALPN";
+            return false;
+#endif
+        }
         if (mbedtls_ssl_setup(&_ssl, &_conf) != 0)
         {
             errMsg = "SSL setup failed";
@@ -286,6 +314,7 @@ namespace ix
                                 std::string& errMsg,
                                 const CancellationRequest& isCancellationRequested)
     {
+        _negotiatedProtocol.clear();
         {
             std::lock_guard<std::mutex> lock(_mutex);
             _sockfd = connectToHost(host, port, errMsg, isCancellationRequested);
@@ -305,7 +334,15 @@ namespace ix
 
         mbedtls_ssl_set_bio(&_ssl, &_sockfd, mbedtls_net_send, mbedtls_net_recv, NULL);
 
-        return handshake(errMsg, isCancellationRequested);
+        const bool connected = handshake(errMsg, isCancellationRequested);
+#ifdef MBEDTLS_SSL_ALPN
+        if (connected)
+        {
+            const char* selected = mbedtls_ssl_get_alpn_protocol(&_ssl);
+            _negotiatedProtocol = selected ? selected : "";
+        }
+#endif
+        return connected;
     }
 
     bool SocketMbedTLS::handshake(std::string& errMsg,

@@ -100,6 +100,12 @@ namespace ix
         _perMessageDeflateOptions = perMessageDeflateOptions;
     }
 
+    void WebSocket::setHttp2(bool enabled)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _http2 = enabled;
+    }
+
     void WebSocket::setTLSOptions(const SocketTLSOptions& socketTLSOptions)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
@@ -280,6 +286,11 @@ namespace ix
             url = _url;
             if (httpClient)
             {
+                if (_http2)
+                {
+                    return WebSocketInitResult(
+                        false, 0, "HTTP/2 cannot adopt an HTTP/1.1 connection");
+                }
                 std::string protocol, host, path, query;
                 int port;
                 if (!UrlParser::parse(url, protocol, host, path, query, port) ||
@@ -305,7 +316,8 @@ namespace ix
                           _enablePong,
                           _pingIntervalSecs,
                           _proxyOptions,
-                          _maxMessageSize);
+                          _maxMessageSize,
+                          _http2);
             headers = _extraHeaders;
             disabledDefaultHeaders = _disabledDefaultHeaders;
             subProtocols = _subProtocols;
