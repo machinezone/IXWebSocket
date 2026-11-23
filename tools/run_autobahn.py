@@ -71,6 +71,10 @@ class Runner:
 
     def collect_logs(self):
         for name in self.containers:
+            # Retain the reason for exit 137 (OOM kill versus timeout/signal).
+            with (self.output / "logs" / (name + "-state.json")).open("w") as state:
+                subprocess.run(["docker", "inspect", "--format", "{{json .State}}", name],
+                               stdout=state, stderr=subprocess.STDOUT, text=True, timeout=30)
             with (self.output / "logs" / (name + ".log")).open("w") as log:
                 try:
                     subprocess.run(["docker", "logs", name], stdout=log,
