@@ -264,6 +264,12 @@ namespace ix
                     {
                         auto value = CFStringCreateWithCString(
                             kCFAllocatorDefault, protocol.c_str(), kCFStringEncodingUTF8);
+                        if (!value)
+                        {
+                            CFRelease(protocols);
+                            errMsg = "SecureTransport ALPN protocols must be valid UTF-8";
+                            return false;
+                        }
                         CFArrayAppendValue(protocols, value);
                         CFRelease(value);
                     }
