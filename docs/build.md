@@ -59,6 +59,11 @@ Autobahn protocol compliance checks run in Docker with
 the CI check; it also runs on `master` and manually. See the
 [Autobahn instructions](autobahn.md) for reports and local debugging.
 
+HTTP/2 reverse-proxy compatibility can be tested separately with
+`make -f makefile.dev test_h2_proxy`. It checks a TLS/H2 Extended CONNECT client
+through nghttpx to an HTTP/1.1 IXWebSocket backend. See the
+[H2 proxy test](h2-proxy.md) for coverage, native runs, and the Envoy reproduction.
+
 The library defaults to C++11 and requires C++11 or later. To build with a newer
 standard, pass `-DCMAKE_CXX_STANDARD=17` (or another supported standard). The CLI
 and tests inherit this choice; the test framework requires at least C++14.

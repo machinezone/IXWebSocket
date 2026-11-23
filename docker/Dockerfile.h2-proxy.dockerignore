@@ -1,0 +1,11 @@
+**
+!CMakeLists.txt
+!ixwebsocket-config.cmake.in
+!ixwebsocket.pc.in
+!CMake/
+!CMake/**
+!ixwebsocket/
+!ixwebsocket/**
+!test/
+!test/h2_proxy/
+!test/h2_proxy/**

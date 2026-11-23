@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.14)
+project(ixwebsocket_h2_proxy_test LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# This fixture is an HTTP/1.1 backend. Envoy terminates downstream TLS/H2.
+set(USE_TLS OFF CACHE BOOL "" FORCE)
+set(USE_NETWORK_FRAMEWORK OFF CACHE BOOL "" FORCE)
+set(USE_ZLIB ON CACHE BOOL "" FORCE)
+set(USE_TEST OFF CACHE BOOL "" FORCE)
+set(USE_WS OFF CACHE BOOL "" FORCE)
+set(IXWEBSOCKET_INSTALL OFF CACHE BOOL "" FORCE)
+add_subdirectory(../.. ixwebsocket)
+add_executable(h2_proxy_server server.cpp)
+target_link_libraries(h2_proxy_server PRIVATE ixwebsocket::ixwebsocket)
