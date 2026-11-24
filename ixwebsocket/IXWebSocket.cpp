@@ -535,11 +535,9 @@ namespace ix
                 break;
             }
 
-            // We can avoid to poll if we want to stop and are not closing
-            if (_stop && !isClosing())
-            {
-                break;
-            }
+            // stop() sets _stop before starting close() to prevent reconnection.
+            // The connection may still be OPEN at this point. Keep polling and
+            // dispatching until CLOSED so its terminal callback is not skipped.
 
             // 2. Poll to see if there's any new data available
             WebSocketTransport::PollResult pollResult = _ws.poll();

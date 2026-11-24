@@ -131,6 +131,7 @@ namespace ix
 
     private:
         friend struct WebSocketTransportTestAccess;
+        friend struct WebSocketStopTestAccess;
         std::string _url;
         Utf8Validator _utf8Validator;
         size_t _validatedBytes = 0;

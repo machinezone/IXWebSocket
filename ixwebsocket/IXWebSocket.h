@@ -213,5 +213,6 @@ namespace ix
         bool _autoThreadName;
 
         friend class WebSocketServer;
+        friend struct WebSocketStopTestAccess;
     };
 } // namespace ix

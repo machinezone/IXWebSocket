@@ -10,6 +10,22 @@
 #include <ixwebsocket/IXWebSocket.h>
 #include <mutex>
 
+namespace ix
+{
+    struct WebSocketStopTestAccess
+    {
+        static void runWithStopRequested(WebSocket& client, std::unique_ptr<WebSocketStream> stream)
+        {
+            client._ws._stream = std::move(stream);
+            client._ws.setReadyState(WebSocketTransport::ReadyState::OPEN);
+            // The valid interleaving inside stop(): _stop is set before close()
+            // transitions OPEN to CLOSING. Run the worker at that exact point.
+            client._stop = true;
+            client.run();
+        }
+    };
+} // namespace ix
+
 namespace
 {
     class UpgradeServer final : public ix::SocketServer
@@ -520,4 +536,68 @@ TEST_CASE("Closing cancels an HTTP-to-WebSocket handshake without reconnecting",
     CHECK(client.ws.getReadyState() == ix::ReadyState::Closed);
     CHECK(client.opens == 0);
     CHECK(server.connections() == 1);
+}
+
+TEST_CASE("A stop request cannot bypass terminal WebSocket dispatch", "[websocket][close]")
+{
+    class ClosingStream final : public ix::WebSocketStream
+    {
+    public:
+        unsigned polls = 0;
+        bool closed = false;
+
+        std::ptrdiff_t send(char*, size_t count) override
+        {
+            return static_cast<std::ptrdiff_t>(count);
+        }
+
+        std::ptrdiff_t recv(void*, size_t) override
+        {
+            return 0;
+        }
+
+        ix::PollResultType isReadyToRead(int) override
+        {
+            ++polls;
+            return ix::PollResultType::CloseRequest;
+        }
+
+        ix::PollResultType isReadyToWrite(int) override
+        {
+            return ix::PollResultType::ReadyForWrite;
+        }
+
+        bool wakeUpFromPoll(uint64_t) override
+        {
+            return true;
+        }
+
+        bool isWakeUpFromPollSupported() override
+        {
+            return true;
+        }
+
+        void close() override
+        {
+            closed = true;
+        }
+    };
+
+    unsigned closes = 0;
+    ix::WebSocket client;
+    client.setOnMessageCallback(
+        [&](const ix::WebSocketMessagePtr& message)
+        {
+            if (message->type == ix::WebSocketMessageType::Close)
+            {
+                ++closes;
+            }
+        });
+    auto stream = new ClosingStream;
+    ix::WebSocketStopTestAccess::runWithStopRequested(client,
+                                                      std::unique_ptr<ix::WebSocketStream>(stream));
+    CHECK(stream->polls == 1);
+    CHECK(stream->closed);
+    CHECK(client.getReadyState() == ix::ReadyState::Closed);
+    CHECK(closes == 1);
 }
