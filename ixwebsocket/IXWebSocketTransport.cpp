@@ -124,7 +124,7 @@ namespace ix
         {
             _blockingSend = false;
         }
-        std::lock_guard<std::mutex> lock(_socketMutex);
+        std::lock_guard<std::mutex> lock(_streamMutex);
 
         std::string protocol, host, path, query;
         int port;
@@ -146,18 +146,19 @@ namespace ix
 
             std::string errorMsg;
             bool tls = protocol == "wss";
-            _socket = alreadyConnected
-                          ? std::move(connectedSocket)
-                          : createSocket(tls, -1, errorMsg, _socketTLSOptions, _proxyOptions);
+            _stream.reset();
+            auto socket = alreadyConnected
+                              ? std::move(connectedSocket)
+                              : createSocket(tls, -1, errorMsg, _socketTLSOptions, _proxyOptions);
             _perMessageDeflate = ix::make_unique<WebSocketPerMessageDeflate>();
 
-            if (!_socket)
+            if (!socket)
             {
                 return WebSocketInitResult(false, 0, errorMsg);
             }
 
             WebSocketHandshake webSocketHandshake(_requestInitCancellation,
-                                                  _socket,
+                                                  socket,
                                                   _perMessageDeflate,
                                                   _perMessageDeflateOptions,
                                                   _enablePerMessageDeflate);
@@ -172,6 +173,7 @@ namespace ix
                                                         disabledDefaultHeaders,
                                                         alreadyConnected,
                                                         _http2);
+            _stream = webSocketHandshake.takeStream();
 
             if (!alreadyConnected && result.http_status >= 300 && result.http_status < 400)
             {
@@ -201,7 +203,7 @@ namespace ix
             else if (alreadyConnected)
             {
                 // An unsuccessful upgrade cannot return to HTTP or reconnect implicitly.
-                _socket.reset();
+                _stream.reset();
             }
             return result;
         }
@@ -217,24 +219,25 @@ namespace ix
                                                             int sendTimeoutSecs)
     {
         resetConnectionState();
-        std::lock_guard<std::mutex> lock(_socketMutex);
+        std::lock_guard<std::mutex> lock(_streamMutex);
 
         // Server should not mask the data it sends to the client
         _useMask = false;
         _blockingSend = true;
         _sendTimeoutSecs = sendTimeoutSecs;
 
-        _socket = std::move(socket);
+        _stream.reset();
         _perMessageDeflate = ix::make_unique<WebSocketPerMessageDeflate>();
 
         WebSocketHandshake webSocketHandshake(_requestInitCancellation,
-                                              _socket,
+                                              socket,
                                               _perMessageDeflate,
                                               _perMessageDeflateOptions,
                                               _enablePerMessageDeflate);
 
         auto result =
             webSocketHandshake.serverHandshake(timeoutSecs, enablePerMessageDeflate, request);
+        _stream = webSocketHandshake.takeStream();
         if (result.success)
         {
             setReadyState(ReadyState::OPEN);
@@ -401,7 +404,7 @@ namespace ix
         }
 
         // The platform may not have select interrupt capabilities, so wait with a small timeout
-        if (lastingTimeoutDelayInMs <= 0 && !_socket->isWakeUpFromPollSupported())
+        if (lastingTimeoutDelayInMs <= 0 && !_stream->isWakeUpFromPollSupported())
         {
             lastingTimeoutDelayInMs = 20;
         }
@@ -413,8 +416,8 @@ namespace ix
             lastingTimeoutDelayInMs = 100;
         }
 
-        // poll the socket
-        PollResultType pollResult = _socket->isReadyToRead(lastingTimeoutDelayInMs);
+        // Poll the WebSocket byte stream.
+        PollResultType pollResult = _stream->isReadyToRead(lastingTimeoutDelayInMs);
 
         // Make sure we send all the buffered data
         // there can be a lot of it for large messages.
@@ -427,7 +430,7 @@ namespace ix
         }
         else if (pollResult == PollResultType::ReadyForRead)
         {
-            if (!receiveFromSocket())
+            if (!receiveFromStream())
             {
                 return PollResult::AbnormalClose;
             }
@@ -458,7 +461,7 @@ namespace ix
     void WebSocketTransport::resetConnectionState()
     {
         // Frames and fragments belong to one connection and cannot be replayed on another.
-        // Take this lock before _socketMutex, matching sendOnSocket()'s lock order.
+        // Take this lock before _streamMutex, matching sendOnStream()'s lock order.
         std::lock_guard<std::mutex> lock(_txbufMutex);
         _txbuf.clear();
         _txbufPending.clear();
@@ -892,13 +895,13 @@ namespace ix
                     wakeUpFromPoll(SelectInterrupt::kCloseRequest);
 
                     bool remote = true;
-                    closeSocketAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
+                    closeStreamAndSwitchToClosedState(code, reason, _rxbuf.size(), remote);
                 }
                 else
                 {
                     // A peer may reply with a different status/reason. Receiving its Close
                     // completes the handshake; retain our original local close notification.
-                    closeSocketAndSwitchToClosedState(
+                    closeStreamAndSwitchToClosedState(
                         _closeCode, getCloseReason(), _rxbuf.size(), false);
                 }
             }
@@ -930,7 +933,7 @@ namespace ix
             // if we weren't closing, then close using abnormal close code and message
             else if (_readyState != ReadyState::CLOSED)
             {
-                closeSocketAndSwitchToClosedState(WebSocketCloseConstants::kAbnormalCloseCode,
+                closeStreamAndSwitchToClosedState(WebSocketCloseConstants::kAbnormalCloseCode,
                                                   WebSocketCloseConstants::kAbnormalCloseMessage,
                                                   0,
                                                   false);
@@ -1209,7 +1212,7 @@ namespace ix
         appendToSendBuffer(header, message_begin, message_end, message_size, masking_key);
 
         // Now actually send this data
-        return sendOnSocket();
+        return sendOnStream();
     }
 
     WebSocketSendInfo WebSocketTransport::sendPing(const IXWebSocketSendData& message)
@@ -1248,7 +1251,7 @@ namespace ix
                _closeCode == WebSocketCloseConstants::kAbnormalCloseCode;
     }
 
-    bool WebSocketTransport::sendOnSocket()
+    bool WebSocketTransport::sendOnStream()
     {
         std::unique_lock<std::mutex> lock(_txbufMutex);
         if (isAbnormalClose() || _readyState == ReadyState::CLOSED)
@@ -1268,8 +1271,8 @@ namespace ix
             }
             std::ptrdiff_t ret = 0;
             {
-                std::lock_guard<std::mutex> socketLock(_socketMutex);
-                ret = _socket->send((char*) _txbufPending.data() + _txbufPendingOffset,
+                std::lock_guard<std::mutex> streamLock(_streamMutex);
+                ret = _stream->send((char*) _txbufPending.data() + _txbufPendingOffset,
                                     _txbufPending.size() - _txbufPendingOffset);
             }
 
@@ -1299,7 +1302,7 @@ namespace ix
         return true;
     }
 
-    bool WebSocketTransport::receiveFromSocket()
+    bool WebSocketTransport::receiveFromStream()
     {
         while (true)
         {
@@ -1321,7 +1324,7 @@ namespace ix
                 break;
             }
 
-            std::ptrdiff_t ret = _socket->recv((char*) &_readbuf[0], _readbuf.size());
+            std::ptrdiff_t ret = _stream->recv((char*) &_readbuf[0], _readbuf.size());
 
             if (ret < 0 && Socket::isWaitNeeded())
             {
@@ -1374,17 +1377,20 @@ namespace ix
 
     void WebSocketTransport::closeSocket()
     {
-        std::lock_guard<std::mutex> lock(_socketMutex);
-        _socket->close();
+        std::lock_guard<std::mutex> lock(_streamMutex);
+        if (_stream)
+        {
+            _stream->close();
+        }
     }
 
     bool WebSocketTransport::wakeUpFromPoll(uint64_t wakeUpCode)
     {
-        std::lock_guard<std::mutex> lock(_socketMutex);
-        return _socket->wakeUpFromPoll(wakeUpCode);
+        std::lock_guard<std::mutex> lock(_streamMutex);
+        return _stream && _stream->wakeUpFromPoll(wakeUpCode);
     }
 
-    void WebSocketTransport::closeSocketAndSwitchToClosedState(uint16_t code,
+    void WebSocketTransport::closeStreamAndSwitchToClosedState(uint16_t code,
                                                                const std::string& reason,
                                                                size_t closeWireSize,
                                                                bool remote)
@@ -1461,8 +1467,8 @@ namespace ix
             // interrupt event to happen.
             bool wakeUpPoll = false;
             {
-                std::lock_guard<std::mutex> lock(_socketMutex);
-                wakeUpPoll = (_socket && _socket->isWakeUpFromPollSupported());
+                std::lock_guard<std::mutex> lock(_streamMutex);
+                wakeUpPoll = (_stream && _stream->isWakeUpFromPollSupported());
             }
             if (wakeUpPoll)
             {
@@ -1504,9 +1510,9 @@ namespace ix
 
         while (!isSendBufferEmpty() && !_requestInitCancellation)
         {
-            // Wait with a 10ms timeout until the socket is ready to write.
+            // Wait with a 10ms timeout until the stream is ready to write.
             // This way we are not busy looping
-            PollResultType result = _socket->isReadyToWrite(10);
+            PollResultType result = _stream->isReadyToWrite(10);
 
             if (result == PollResultType::Error)
             {
@@ -1514,12 +1520,12 @@ namespace ix
                       WebSocketCloseConstants::kAbnormalCloseMessage);
                 return false;
             }
-            else if (_http2 && result == PollResultType::ReadyForRead)
+            else if (result == PollResultType::ReadyForRead)
             {
-                // H2 DATA in the other direction must be consumed before more
-                // receive-window credit is issued. Yield to WebSocket dispatch
-                // rather than blocking both ends on their send windows.
-                const bool received = receiveFromSocket();
+                // A stream may need incoming bytes consumed before writes can
+                // proceed. Yield to WebSocket dispatch so bidirectional
+                // backpressure cannot block both ends indefinitely.
+                const bool received = receiveFromStream();
                 if (!isSendBufferEmpty())
                 {
                     wakeUpFromPoll(SelectInterrupt::kSendRequest);
@@ -1528,7 +1534,7 @@ namespace ix
             }
             else if (result == PollResultType::ReadyForWrite)
             {
-                if (!sendOnSocket())
+                if (!sendOnStream())
                 {
                     return false;
                 }

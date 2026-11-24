@@ -21,7 +21,8 @@ namespace ix
                             std::unique_ptr<Socket> socket,
                             bool blocking)
         {
-            transport._socket = std::move(socket);
+            transport._stream =
+                std::unique_ptr<ix::WebSocketStream>(new ix::SocketStream(std::move(socket)));
             transport._useMask = false;
             transport._blockingSend = blocking;
             transport._sendTimeoutSecs = 1;

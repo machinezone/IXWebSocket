@@ -13,6 +13,7 @@
 #include "IXWebSocketInitResult.h"
 #include "IXWebSocketPerMessageDeflate.h"
 #include "IXWebSocketPerMessageDeflateOptions.h"
+#include "IXWebSocketStream.h"
 #include <atomic>
 #include <chrono>
 #include <memory>
@@ -46,6 +47,9 @@ namespace ix
                                             bool enablePerMessageDeflate,
                                             HttpRequestPtr request = nullptr);
 
+        // Transfer the TCP/TLS or HTTP/2 byte stream after the handshake.
+        std::unique_ptr<WebSocketStream> takeStream();
+
     private:
         std::string genRandomString(const int len);
 
@@ -58,6 +62,7 @@ namespace ix
 
         std::atomic<bool>& _requestInitCancellation;
         std::unique_ptr<Socket>& _socket;
+        std::unique_ptr<WebSocketStream> _stream;
         WebSocketPerMessageDeflatePtr& _perMessageDeflate;
         WebSocketPerMessageDeflateOptions& _perMessageDeflateOptions;
         std::atomic<bool>& _enablePerMessageDeflate;

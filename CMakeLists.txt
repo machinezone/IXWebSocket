@@ -67,7 +67,9 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSelectInterruptPipe.cpp
     ixwebsocket/IXSelectInterruptEvent.cpp
     ixwebsocket/IXSetThreadName.cpp
-    ixwebsocket/IXSocketHttp2.cpp
+    ixwebsocket/IXHttp2Connection.cpp
+    ixwebsocket/IXHttp2Stream.cpp
+    ixwebsocket/IXWebSocketStream.cpp
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketConnect.cpp
     ixwebsocket/IXSocketFactory.cpp
@@ -112,7 +114,9 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSelectInterruptPipe.h
     ixwebsocket/IXSelectInterruptEvent.h
     ixwebsocket/IXSetThreadName.h
-    ixwebsocket/IXSocketHttp2.h
+    ixwebsocket/IXHttp2Connection.h
+    ixwebsocket/IXHttp2Stream.h
+    ixwebsocket/IXWebSocketStream.h
     ixwebsocket/IXSocket.h
     ixwebsocket/IXSocketConnect.h
     ixwebsocket/IXSocketFactory.h

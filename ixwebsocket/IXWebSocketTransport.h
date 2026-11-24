@@ -113,6 +113,7 @@ namespace ix
                    size_t closeWireSize = 0,
                    bool remote = false);
 
+        // Historical name: closes the complete WebSocket byte stream.
         void closeSocket();
 
         ReadyState getReadyState() const;
@@ -213,8 +214,8 @@ namespace ix
         static constexpr size_t kChunkSize = 1 << 15;
 
         // Underlying TCP socket
-        std::unique_ptr<Socket> _socket;
-        std::mutex _socketMutex;
+        std::unique_ptr<WebSocketStream> _stream;
+        std::mutex _streamMutex;
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)
         std::atomic<ReadyState> _readyState;
@@ -277,7 +278,7 @@ namespace ix
 
         void sendCloseFrame(uint16_t code, const std::string& reason);
 
-        void closeSocketAndSwitchToClosedState(uint16_t code,
+        void closeStreamAndSwitchToClosedState(uint16_t code,
                                                const std::string& reason,
                                                size_t closeWireSize,
                                                bool remote);
@@ -286,8 +287,8 @@ namespace ix
 
         bool isAbnormalClose() const;
         bool flushSendBuffer();
-        bool sendOnSocket();
-        bool receiveFromSocket();
+        bool sendOnStream();
+        bool receiveFromStream();
 
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
                                    const IXWebSocketSendData& message,

@@ -338,7 +338,8 @@ namespace ix
     {
         static void install(WebSocketTransport& transport, std::unique_ptr<Socket> socket)
         {
-            transport._socket = std::move(socket);
+            transport._stream =
+                std::unique_ptr<ix::WebSocketStream>(new ix::SocketStream(std::move(socket)));
             transport._useMask = false;
             transport.setReadyState(WebSocketTransport::ReadyState::OPEN);
         }

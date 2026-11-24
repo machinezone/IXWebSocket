@@ -1,5 +1,5 @@
 /* Copyright (c) 2026 Machine Zone, Inc. All rights reserved. */
-#include "IXSocketHttp2.h"
+#include "IXHttp2Connection.h"
 
 #include <algorithm>
 #include <cstring>
@@ -62,17 +62,17 @@ namespace
 
 namespace ix
 {
-    SocketHttp2::SocketHttp2(std::unique_ptr<Socket> socket)
+    Http2Connection::Http2Connection(std::unique_ptr<Socket> socket)
         : _inner(std::move(socket))
     {
     }
 
-    SocketHttp2::~SocketHttp2()
+    Http2Connection::~Http2Connection()
     {
         close();
     }
 
-    bool SocketHttp2::fail(const std::string& message, uint32_t code)
+    bool Http2Connection::fail(const std::string& message, uint32_t code)
     {
         if (_error.empty())
         {
@@ -88,7 +88,7 @@ namespace ix
         return false;
     }
 
-    bool SocketHttp2::queue(
+    bool Http2Connection::queue(
         unsigned type, unsigned flags, uint32_t stream, const std::string& payload, size_t accepted)
     {
         // Bound pending control traffic even if a malicious peer floods PING/SETTINGS.
@@ -110,7 +110,7 @@ namespace ix
         return true;
     }
 
-    bool SocketHttp2::flush()
+    bool Http2Connection::flush()
     {
         while (!_output.empty())
         {
@@ -140,7 +140,7 @@ namespace ix
         return true;
     }
 
-    bool SocketHttp2::headers()
+    bool Http2Connection::headers()
     {
         Hpack::Headers fields;
         if (!_hpack.decode(_headerBlock, fields))
@@ -223,7 +223,7 @@ namespace ix
         return true;
     }
 
-    void SocketHttp2::credit(size_t count)
+    void Http2Connection::credit(size_t count)
     {
         if (!count || _ended)
         {
@@ -235,10 +235,10 @@ namespace ix
         queue(8, 0, 1, number(static_cast<uint32_t>(count)));
     }
 
-    bool SocketHttp2::frame(unsigned type,
-                            unsigned flags,
-                            uint32_t stream,
-                            const std::string& payload)
+    bool Http2Connection::frame(unsigned type,
+                                unsigned flags,
+                                uint32_t stream,
+                                const std::string& payload)
     {
         if (_firstFrame && (type != 4 || (flags & 1)))
         {
@@ -450,7 +450,7 @@ namespace ix
         return true;
     }
 
-    bool SocketHttp2::read()
+    bool Http2Connection::read()
     {
         char buffer[16384];
         const auto count = _inner->recv(buffer, sizeof(buffer));
@@ -492,8 +492,8 @@ namespace ix
         return flush();
     }
 
-    WebSocketInitResult SocketHttp2::handshake(const Hpack::Headers& fields,
-                                               const CancellationRequest& cancelled)
+    WebSocketInitResult Http2Connection::handshake(const Hpack::Headers& fields,
+                                                   const CancellationRequest& cancelled)
     {
         std::lock_guard<std::mutex> lock(_mutex);
         const std::string preface = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n";
@@ -574,7 +574,7 @@ namespace ix
                                    _headers);
     }
 
-    std::ptrdiff_t SocketHttp2::send(char* buffer, size_t length)
+    std::ptrdiff_t Http2Connection::send(char* buffer, size_t length)
     {
         std::lock_guard<std::mutex> lock(_mutex);
         if (_closed || !_error.empty() || _reset)
@@ -622,7 +622,7 @@ namespace ix
         return -1;
     }
 
-    std::ptrdiff_t SocketHttp2::recv(void* buffer, size_t length)
+    std::ptrdiff_t Http2Connection::recv(void* buffer, size_t length)
     {
         std::lock_guard<std::mutex> lock(_mutex);
         if (_dataOffset == _data.size() && !_closed && _error.empty() && !_ended)
@@ -663,7 +663,7 @@ namespace ix
         return -1;
     }
 
-    PollResultType SocketHttp2::isReadyToRead(int timeoutMs)
+    PollResultType Http2Connection::isReadyToRead(int timeoutMs)
     {
         bool writing, buffered;
         {
@@ -701,7 +701,7 @@ namespace ix
         return _inner->isReadyToRead(timeoutMs);
     }
 
-    PollResultType SocketHttp2::isReadyToWrite(int timeoutMs)
+    PollResultType Http2Connection::isReadyToWrite(int timeoutMs)
     {
         bool blocked, buffered, writing;
         {
@@ -761,17 +761,17 @@ namespace ix
         return ready;
     }
 
-    bool SocketHttp2::wakeUpFromPoll(uint64_t code)
+    bool Http2Connection::wakeUpFromPoll(uint64_t code)
     {
         return _inner->wakeUpFromPoll(code);
     }
 
-    bool SocketHttp2::isWakeUpFromPollSupported()
+    bool Http2Connection::isWakeUpFromPollSupported()
     {
         return _inner->isWakeUpFromPollSupported();
     }
 
-    void SocketHttp2::close()
+    void Http2Connection::close()
     {
         std::lock_guard<std::mutex> lock(_mutex);
         if (!_closed)

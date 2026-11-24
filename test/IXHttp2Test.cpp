@@ -3,9 +3,11 @@
 #include <cstring>
 #include <deque>
 #include <ixwebsocket/IXHpack.h>
+#include <ixwebsocket/IXHttp2Connection.h>
+#include <ixwebsocket/IXHttp2Stream.h>
 #include <ixwebsocket/IXHttpClient.h>
-#include <ixwebsocket/IXSocketHttp2.h>
 #include <ixwebsocket/IXWebSocket.h>
+#include <type_traits>
 
 namespace
 {
@@ -177,7 +179,7 @@ TEST_CASE("HTTP2 handshake validates settings, response headers and frame orderi
         peer->incoming.back() =
             frame(1, 4, 1, ix::Hpack::encode({{":status", "200"}, {"content-length", "0"}}));
     }
-    ix::SocketHttp2 stream {std::unique_ptr<ix::Socket>(peer)};
+    ix::Http2Connection stream {std::unique_ptr<ix::Socket>(peer)};
     const auto result = stream.handshake(request, [] { return false; });
     CHECK_FALSE(result.success);
     CHECK_FALSE(result.errorStr.empty());
@@ -189,7 +191,7 @@ TEST_CASE("HTTP2 preserves byte streams through fragmented reads and partial wri
     auto peer = new Peer;
     peer->partial = fragmented;
     peer->fragment = fragmented ? 1 : 16384;
-    ix::SocketHttp2 stream {std::unique_ptr<ix::Socket>(peer)};
+    ix::Http2Connection stream {std::unique_ptr<ix::Socket>(peer)};
     REQUIRE(stream.handshake(request, [] { return false; }).success);
     std::string body = "websocket bytes";
     std::ptrdiff_t sent;
@@ -288,7 +290,7 @@ TEST_CASE("HTTP2 validates stream control and receive windows", "[http2]")
 {
     const int failure = GENERATE(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
     auto peer = new Peer;
-    ix::SocketHttp2 stream {std::unique_ptr<ix::Socket>(peer)};
+    ix::Http2Connection stream {std::unique_ptr<ix::Socket>(peer)};
     REQUIRE(stream.handshake(request, [] { return false; }).success);
     if (failure == 0)
     {
@@ -342,7 +344,7 @@ TEST_CASE("HTTP2 supports continuation, extension frames and a remote half close
     const auto block = ix::Hpack::encode({{":status", "200"}, {"x-test", "present"}});
     peer->incoming.back() = frame(1, 0, 1, block.substr(0, 1));
     peer->incoming.push_back(frame(9, 4, 1, block.substr(1)));
-    ix::SocketHttp2 stream {std::unique_ptr<ix::Socket>(peer)};
+    ix::Http2Connection stream {std::unique_ptr<ix::Socket>(peer)};
     auto result = stream.handshake(request, [] { return false; });
     REQUIRE(result.success);
     CHECK(result.headers["x-test"] == "present");
@@ -362,7 +364,7 @@ TEST_CASE("HTTP2 handles zero flow-control windows without losing bytes", "[http
 {
     auto peer = new Peer;
     peer->incoming.front() = frame(4, 0, 0, hex("000800000001000400000000"));
-    ix::SocketHttp2 stream {std::unique_ptr<ix::Socket>(peer)};
+    ix::Http2Connection stream {std::unique_ptr<ix::Socket>(peer)};
     REQUIRE(stream.handshake(request, [] { return false; }).success);
     std::string body = "payload";
     CHECK(stream.send(&body[0], body.size()) == -1);
@@ -377,7 +379,7 @@ TEST_CASE("HTTP2 handshake cancellation is bounded without sleeping", "[http2]")
 {
     auto peer = new Peer;
     peer->incoming.clear();
-    ix::SocketHttp2 stream {std::unique_ptr<ix::Socket>(peer)};
+    ix::Http2Connection stream {std::unique_ptr<ix::Socket>(peer)};
     unsigned checks = 0;
     const auto result = stream.handshake(request, [&] { return ++checks > 30; });
     CHECK_FALSE(result.success);
@@ -391,7 +393,7 @@ TEST_CASE("HTTP2 unsuccessful CONNECT preserves the HTTP status and headers", "[
     peer->incoming.back() =
         frame(1, 4, 1, ix::Hpack::encode({{":status", "403"}, {"x-error", "denied"}})) +
         frame(0, 1, 1, "error body");
-    ix::SocketHttp2 stream {std::unique_ptr<ix::Socket>(peer)};
+    ix::Http2Connection stream {std::unique_ptr<ix::Socket>(peer)};
     const auto result = stream.handshake(request, [] { return false; });
     CHECK_FALSE(result.success);
     CHECK(result.http_status == 403);
@@ -414,7 +416,7 @@ TEST_CASE("HTTP2 enforces its receive window while an application is sending", "
 {
     auto peer = new Peer;
     peer->incoming.front() = frame(4, 0, 0, hex("000800000001000400000000"));
-    ix::SocketHttp2 stream {std::unique_ptr<ix::Socket>(peer)};
+    ix::Http2Connection stream {std::unique_ptr<ix::Socket>(peer)};
     REQUIRE(stream.handshake(request, [] { return false; }).success);
     for (unsigned i = 0; i < 4; ++i)
     {
@@ -439,7 +441,7 @@ TEST_CASE("HTTP2 flushes partial control writes while its DATA window is blocked
 {
     auto peer = new Peer;
     peer->incoming.front() = frame(4, 0, 0, hex("000800000001000400000000"));
-    ix::SocketHttp2 stream {std::unique_ptr<ix::Socket>(peer)};
+    ix::Http2Connection stream {std::unique_ptr<ix::Socket>(peer)};
     REQUIRE(stream.handshake(request, [] { return false; }).success);
     peer->sent.clear();
     peer->partial = true;
@@ -459,11 +461,62 @@ TEST_CASE("HTTP2 exposes EOF while a send is blocked on flow control", "[http2]"
 {
     auto peer = new Peer;
     peer->incoming.front() = frame(4, 0, 0, hex("000800000001000400000000"));
-    ix::SocketHttp2 stream {std::unique_ptr<ix::Socket>(peer)};
+    ix::Http2Connection stream {std::unique_ptr<ix::Socket>(peer)};
     REQUIRE(stream.handshake(request, [] { return false; }).success);
     peer->incoming.push_back(frame(0, 1, 1, ""));
     stream.isReadyToWrite(0);
     CHECK(stream.isReadyToWrite(0) == ix::PollResultType::ReadyForRead);
     char byte;
     CHECK(stream.recv(&byte, 1) == 0);
+}
+
+TEST_CASE("WebSocket stream implementations preserve I/O and own no socket descriptor",
+          "[http2][stream]")
+{
+    STATIC_REQUIRE_FALSE(std::is_base_of<ix::Socket, ix::Http2Connection>::value);
+    STATIC_REQUIRE_FALSE(std::is_base_of<ix::Socket, ix::Http2Stream>::value);
+    STATIC_REQUIRE_FALSE(std::is_base_of<ix::Socket, ix::SocketStream>::value);
+    const bool http2 = GENERATE(false, true);
+    auto peer = new Peer;
+    std::unique_ptr<ix::WebSocketStream> stream;
+    if (http2)
+    {
+        std::unique_ptr<ix::Http2Connection> connection(
+            new ix::Http2Connection(std::unique_ptr<ix::Socket>(peer)));
+        REQUIRE(connection->handshake(request, [] { return false; }).success);
+        stream.reset(new ix::Http2Stream(std::move(connection)));
+    }
+    else
+    {
+        peer->incoming.clear();
+        stream.reset(new ix::SocketStream(std::unique_ptr<ix::Socket>(peer)));
+    }
+    peer->sent.clear();
+    std::string body("hello\0world", 11);
+    REQUIRE(stream->send(&body[0], body.size()) == body.size());
+    CHECK(peer->sent == (http2 ? frame(0, 0, 1, body) : body));
+    peer->incoming.push_back(http2 ? frame(0, 0, 1, body) : body);
+    CHECK(stream->isReadyToRead(0) == ix::PollResultType::ReadyForRead);
+    char buffer[32];
+    std::ptrdiff_t count;
+    do
+    {
+        count = stream->recv(buffer, sizeof(buffer));
+    } while (count < 0 && ix::Socket::isWaitNeeded());
+    REQUIRE(count == body.size());
+    CHECK(std::string(buffer, static_cast<size_t>(count)) == body);
+    CHECK(stream->isReadyToWrite(0) == ix::PollResultType::ReadyForWrite);
+    CHECK(stream->wakeUpFromPoll(ix::SelectInterrupt::kSendRequest));
+    CHECK(stream->isWakeUpFromPollSupported() == peer->isWakeUpFromPollSupported());
+    if (http2)
+    {
+        peer->sent.clear();
+        stream->close();
+        CHECK(peer->sent == frame(0, 1, 1, ""));
+        CHECK(stream->recv(buffer, sizeof(buffer)) == 0);
+    }
+    else
+    {
+        stream->close();
+    }
 }

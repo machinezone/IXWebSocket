@@ -40,8 +40,22 @@ SecureTransport. Existing backend certificate/trust limitations still apply.
 Normal certificate and hostname verification remain enabled by default.
 
 Existing WebSocket framing, masking, fragmentation, compression, message limits,
-callbacks, ping/pong and close handling are reused through an H2 stream adapter.
-The adapter handles SETTINGS, HEADERS/CONTINUATION, flow control, PING,
+callbacks, ping/pong and close handling consume a `WebSocketStream` byte stream:
+
+```text
+WebSocketTransport
+    -> SocketStream -> Socket (TCP/TLS, after HTTP/1.1 Upgrade)
+    -> Http2Stream -> Http2Connection -> Socket (TCP/TLS)
+```
+
+The handshake transfers ownership of the appropriate stream to the transport.
+`Socket` and its TLS subclasses keep their Unix socket responsibilities; neither
+HTTP/2 class inherits from `Socket` or owns a placeholder descriptor.
+`Http2Connection` owns HTTP/2 framing and flow control, while `Http2Stream`
+exposes the WebSocket bytes through the same interface as `SocketStream`.
+This keeps the existing one-connection-per-WebSocket behavior in both modes.
+
+The connection handles SETTINGS, HEADERS/CONTINUATION, flow control, PING,
 WINDOW_UPDATE, GOAWAY, RST_STREAM and stream termination. Server push is disabled.
 HPACK responses support the static/dynamic tables and Huffman coding. Outgoing
 fields are literal and never indexed, including credentials. Compressed and

@@ -7,22 +7,22 @@
 
 namespace ix
 {
-    // One RFC 8441 stream (1) on an exclusively owned HTTP/2 connection.
-    // The TLS socket owns the descriptor and its poll interruption mechanism.
-    class SocketHttp2 final : public Socket
+    // HTTP/2 framing, HPACK and flow control for one RFC 8441 stream (1).
+    // Owns the real TLS socket; this connection is not itself a socket.
+    class Http2Connection final
     {
     public:
-        explicit SocketHttp2(std::unique_ptr<Socket> socket);
-        ~SocketHttp2() override;
+        explicit Http2Connection(std::unique_ptr<Socket> socket);
+        ~Http2Connection();
         WebSocketInitResult handshake(const Hpack::Headers& headers,
                                       const CancellationRequest& cancelled);
-        std::ptrdiff_t send(char* buffer, size_t length) override;
-        std::ptrdiff_t recv(void* buffer, size_t length) override;
-        PollResultType isReadyToRead(int timeoutMs) override;
-        PollResultType isReadyToWrite(int timeoutMs) override;
-        bool wakeUpFromPoll(uint64_t code) override;
-        bool isWakeUpFromPollSupported() override;
-        void close() override;
+        std::ptrdiff_t send(char* buffer, size_t length);
+        std::ptrdiff_t recv(void* buffer, size_t length);
+        PollResultType isReadyToRead(int timeoutMs);
+        PollResultType isReadyToWrite(int timeoutMs);
+        bool wakeUpFromPoll(uint64_t code);
+        bool isWakeUpFromPollSupported();
+        void close();
 
     private:
         struct Output

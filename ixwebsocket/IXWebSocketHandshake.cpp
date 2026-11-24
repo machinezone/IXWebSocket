@@ -8,8 +8,8 @@
 
 #include "IXBase64.h"
 #include "IXHttp.h"
+#include "IXHttp2Stream.h"
 #include "IXSocketConnect.h"
-#include "IXSocketHttp2.h"
 #include "IXStrCaseCompare.h"
 #include "IXUniquePtr.h"
 #include "IXUrlParser.h"
@@ -92,6 +92,15 @@ namespace ix
         }
 
         return WebSocketInitResult(false, code, reason);
+    }
+
+    std::unique_ptr<WebSocketStream> WebSocketHandshake::takeStream()
+    {
+        if (!_stream && _socket)
+        {
+            _stream = ix::make_unique<SocketStream>(std::move(_socket));
+        }
+        return std::move(_stream);
     }
 
     WebSocketInitResult WebSocketHandshake::clientHandshake(
@@ -203,9 +212,9 @@ namespace ix
                 }
                 fields.emplace_back(name, field.second);
             }
-            auto socket = ix::make_unique<SocketHttp2>(std::move(_socket));
-            auto result = socket->handshake(fields, isCancellationRequested);
-            _socket = std::move(socket);
+            auto connection = ix::make_unique<Http2Connection>(std::move(_socket));
+            auto result = connection->handshake(fields, isCancellationRequested);
+            _stream = ix::make_unique<Http2Stream>(std::move(connection));
             result.uri = path;
             if (!result.success)
             {
