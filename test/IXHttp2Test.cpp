@@ -18,6 +18,7 @@ namespace
         }
         return result;
     }
+
     std::string frame(unsigned type, unsigned flags, unsigned stream, const std::string& payload)
     {
         std::string result(9, '\0');
@@ -29,6 +30,7 @@ namespace
         result[8] = char(stream);
         return result + payload;
     }
+
     class Peer final : public ix::Socket
     {
     public:
@@ -37,12 +39,14 @@ namespace
         size_t fragment = 16384;
         bool partial = false;
         unsigned writes = 0;
+
         Peer()
         {
             incoming.push_back(frame(4, 0, 0, hex("000800000001")));
             incoming.push_back(frame(4, 1, 0, ""));
             incoming.push_back(frame(1, 4, 1, hex("88")));
         }
+
         std::ptrdiff_t send(char* data, size_t size) override
         {
             if (partial && ++writes % 2 == 0)
@@ -54,6 +58,7 @@ namespace
             sent.append(data, size);
             return static_cast<std::ptrdiff_t>(size);
         }
+
         std::ptrdiff_t recv(void* data, size_t size) override
         {
             if (incoming.empty())
@@ -71,20 +76,24 @@ namespace
             }
             return static_cast<std::ptrdiff_t>(size);
         }
+
         ix::PollResultType isReadyToRead(int) override
         {
             return incoming.empty() ? ix::PollResultType::Timeout
                                     : ix::PollResultType::ReadyForRead;
         }
+
         ix::PollResultType isReadyToWrite(int) override
         {
             return ix::PollResultType::ReadyForWrite;
         }
+
         bool wakeUpFromPoll(uint64_t) override
         {
             return true;
         }
     };
+
     ix::Hpack::Headers request {{":method", "CONNECT"},
                                 {":protocol", "websocket"},
                                 {":scheme", "https"},

@@ -39,10 +39,12 @@ namespace ix
                 : _ptr(nullptr)
             {
             }
+
             IXWebSocketSendData_const_iterator(pointer ptr)
                 : _ptr(ptr)
             {
             }
+
             ~IXWebSocketSendData_const_iterator()
             {
             }
@@ -51,44 +53,54 @@ namespace ix
             {
                 return const_iterator(_ptr++);
             }
+
             const_iterator& operator++()
             {
                 ++_ptr;
                 return *this;
             }
+
             reference operator*() const
             {
                 return *_ptr;
             }
+
             pointer operator->() const
             {
                 return _ptr;
             }
+
             const_iterator operator+(const difference_type offset) const
             {
                 return const_iterator(_ptr + offset);
             }
+
             const_iterator operator-(const difference_type offset) const
             {
                 return const_iterator(_ptr - offset);
             }
+
             difference_type operator-(const const_iterator& rhs) const
             {
                 return _ptr - rhs._ptr;
             }
+
             bool operator==(const const_iterator& rhs) const
             {
                 return _ptr == rhs._ptr;
             }
+
             bool operator!=(const const_iterator& rhs) const
             {
                 return _ptr != rhs._ptr;
             }
+
             const_iterator& operator+=(const difference_type offset)
             {
                 _ptr += offset;
                 return *this;
             }
+
             const_iterator& operator-=(const difference_type offset)
             {
                 _ptr -= offset;

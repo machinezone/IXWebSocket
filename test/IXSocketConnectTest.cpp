@@ -21,7 +21,6 @@ TEST_CASE("Write polling reports invalid socket errors", "[net][connect]")
     CHECK(Socket::getErrno() != 0);
 }
 
-
 TEST_CASE("socket_connect", "[net]")
 {
     SECTION("Test connecting to a known hostname")

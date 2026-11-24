@@ -16,6 +16,7 @@ namespace
         }
         return value;
     }
+
     std::string number(uint32_t value)
     {
         std::string data(4, '\0');
@@ -26,6 +27,7 @@ namespace
         }
         return data;
     }
+
     bool validName(const std::string& name)
     {
         if (name.empty())
@@ -43,6 +45,7 @@ namespace
         }
         return true;
     }
+
     bool validValue(const std::string& value)
     {
         for (unsigned char c : value)
@@ -56,12 +59,14 @@ namespace
                                  value.back() != ' ' && value.back() != '\t');
     }
 } // namespace
+
 namespace ix
 {
     SocketHttp2::SocketHttp2(std::unique_ptr<Socket> socket)
         : _inner(std::move(socket))
     {
     }
+
     SocketHttp2::~SocketHttp2()
     {
         close();
@@ -82,6 +87,7 @@ namespace ix
         }
         return false;
     }
+
     bool SocketHttp2::queue(
         unsigned type, unsigned flags, uint32_t stream, const std::string& payload, size_t accepted)
     {
@@ -103,6 +109,7 @@ namespace ix
         _output.push_back(std::move(output));
         return true;
     }
+
     bool SocketHttp2::flush()
     {
         while (!_output.empty())
@@ -132,6 +139,7 @@ namespace ix
         }
         return true;
     }
+
     bool SocketHttp2::headers()
     {
         Hpack::Headers fields;
@@ -214,6 +222,7 @@ namespace ix
         _ended = _headerEndStream;
         return true;
     }
+
     void SocketHttp2::credit(size_t count)
     {
         if (!count || _ended)
@@ -225,6 +234,7 @@ namespace ix
         queue(8, 0, 0, number(static_cast<uint32_t>(count)));
         queue(8, 0, 1, number(static_cast<uint32_t>(count)));
     }
+
     bool SocketHttp2::frame(unsigned type,
                             unsigned flags,
                             uint32_t stream,
@@ -439,6 +449,7 @@ namespace ix
         }
         return true;
     }
+
     bool SocketHttp2::read()
     {
         char buffer[16384];
@@ -480,6 +491,7 @@ namespace ix
         _input.erase(0, offset);
         return flush();
     }
+
     WebSocketInitResult SocketHttp2::handshake(const Hpack::Headers& fields,
                                                const CancellationRequest& cancelled)
     {
@@ -561,6 +573,7 @@ namespace ix
                                                              : _error),
                                    _headers);
     }
+
     std::ptrdiff_t SocketHttp2::send(char* buffer, size_t length)
     {
         std::lock_guard<std::mutex> lock(_mutex);
@@ -608,6 +621,7 @@ namespace ix
         Socket::setErrno(EWOULDBLOCK);
         return -1;
     }
+
     std::ptrdiff_t SocketHttp2::recv(void* buffer, size_t length)
     {
         std::lock_guard<std::mutex> lock(_mutex);
@@ -648,6 +662,7 @@ namespace ix
         Socket::setErrno(_error.empty() ? EWOULDBLOCK : EINVAL);
         return -1;
     }
+
     PollResultType SocketHttp2::isReadyToRead(int timeoutMs)
     {
         bool writing, buffered;
@@ -685,6 +700,7 @@ namespace ix
         }
         return _inner->isReadyToRead(timeoutMs);
     }
+
     PollResultType SocketHttp2::isReadyToWrite(int timeoutMs)
     {
         bool blocked, buffered, writing;
@@ -744,14 +760,17 @@ namespace ix
         }
         return ready;
     }
+
     bool SocketHttp2::wakeUpFromPoll(uint64_t code)
     {
         return _inner->wakeUpFromPoll(code);
     }
+
     bool SocketHttp2::isWakeUpFromPollSupported()
     {
         return _inner->isWakeUpFromPollSupported();
     }
+
     void SocketHttp2::close()
     {
         std::lock_guard<std::mutex> lock(_mutex);

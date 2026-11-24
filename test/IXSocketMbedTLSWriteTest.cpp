@@ -40,10 +40,12 @@ namespace ix
         {
             return socket.handshake(error, cancelled);
         }
+
         static int reset(SocketMbedTLS& socket)
         {
             return mbedtls_ssl_session_reset(&socket._ssl);
         }
+
         static void install(SocketMbedTLS& socket, mbedtls_ssl_context& session)
         {
             socket.initMBedTLS();

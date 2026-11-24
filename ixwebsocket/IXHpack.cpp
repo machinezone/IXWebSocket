@@ -145,6 +145,7 @@ namespace
         28, 27, 27, 27, 20, 24, 20, 21, 22, 21, 21, 23, 22, 22, 25, 25, 24, 24, 26, 23, 26, 27,
         26, 26, 27, 27, 27, 27, 27, 28, 27, 27, 27, 27, 27, 26, 30,
     };
+
     struct HuffmanTree
     {
         struct Node
@@ -152,7 +153,9 @@ namespace
             int child[2] = {-1, -1};
             int symbol = -1;
         };
+
         std::array<Node, 513> nodes;
+
         HuffmanTree()
         {
             int count = 1;
@@ -172,6 +175,7 @@ namespace
             }
         }
     };
+
     bool integer(const std::string& data, size_t& offset, unsigned prefix, size_t& value)
     {
         if (offset == data.size())
@@ -201,6 +205,7 @@ namespace
         }
         return false;
     }
+
     void integer(std::string& data, size_t value, unsigned prefix, unsigned flags)
     {
         const unsigned mask = (1u << prefix) - 1;
@@ -218,6 +223,7 @@ namespace
         }
         data += char(value);
     }
+
     bool string(const std::string& data, size_t& offset, std::string& value)
     {
         if (offset == data.size())
@@ -288,6 +294,7 @@ namespace ix
         }
         return block;
     }
+
     Hpack::Headers::value_type Hpack::indexed(size_t index) const
     {
         if (index && index <= 61)
@@ -300,6 +307,7 @@ namespace ix
         }
         return {};
     }
+
     void Hpack::evict()
     {
         while (_size > _capacity)
@@ -309,6 +317,7 @@ namespace ix
             _dynamic.pop_back();
         }
     }
+
     bool Hpack::decode(const std::string& block, Headers& headers)
     {
         headers.clear();

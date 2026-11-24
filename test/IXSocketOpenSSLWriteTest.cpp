@@ -25,16 +25,19 @@ namespace ix
         {
             return socket.configureKeyLogging(context, error);
         }
+
         static bool handshake(SocketOpenSSL& socket,
                               std::string& error,
                               const CancellationRequest& cancelled)
         {
             return socket.openSSLClientHandshake("memory.invalid", error, cancelled);
         }
+
         static int reset(SocketOpenSSL& socket)
         {
             return SSL_clear(socket._ssl_connection);
         }
+
         static void install(SocketOpenSSL& socket, SSL*& session, SSL_CTX*& context)
         {
             std::swap(socket._ssl_connection, session);
@@ -393,16 +396,19 @@ namespace
     {
         std::string name =
             std::string(IX_OPENSSL_TEST_OUTPUT_DIR) + "/keylog-" + ix::uuid4() + ".log";
+
         KeyLogFile()
         {
             std::ofstream file(name, std::ios::binary);
             REQUIRE(file.is_open());
             file << "# existing content\n";
         }
+
         ~KeyLogFile()
         {
             std::remove(name.c_str());
         }
+
         std::vector<std::string> lines() const
         {
             std::ifstream file(name, std::ios::binary);

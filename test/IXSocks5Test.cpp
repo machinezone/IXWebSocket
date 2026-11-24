@@ -46,6 +46,7 @@ namespace
             std::string username;
             std::string password;
         };
+
         explicit SocksProxy(Reply reply = Reply::IPv4, bool auth = false, bool tunnel = false)
             : SocketServer(ix::getFreePort(), "127.0.0.1")
             , _reply(reply)
@@ -53,20 +54,24 @@ namespace
             , _tunnel(tunnel)
         {
         }
+
         ~SocksProxy() override
         {
             stop();
         }
+
         void stop() override
         {
             _stopping = true;
             SocketServer::stop();
         }
+
         void listenAndStart()
         {
             REQUIRE(listen().first);
             start();
         }
+
         ix::ProxyOptions options()
         {
             ix::ProxyOptions result;
@@ -79,11 +84,13 @@ namespace
             }
             return result;
         }
+
         Request request()
         {
             std::lock_guard<std::mutex> lock(_mutex);
             return _request;
         }
+
         std::atomic<unsigned> connections {0};
         std::atomic<unsigned> greetings {0};
 
@@ -92,6 +99,7 @@ namespace
         {
             return 0;
         }
+
         void handleConnection(std::unique_ptr<ix::Socket> socket,
                               std::shared_ptr<ix::ConnectionState> state) override
         {
@@ -99,6 +107,7 @@ namespace
             serve(*socket);
             state->setTerminated();
         }
+
         void serve(ix::Socket& socket)
         {
             const auto deadline = Clock::now() + std::chrono::seconds(5);
@@ -298,6 +307,7 @@ namespace
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
+
         Reply _reply;
         bool _auth;
         bool _tunnel;

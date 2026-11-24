@@ -31,6 +31,7 @@ namespace ix
             size_t offset = 0;
             size_t accepted = 0;
         };
+
         std::unique_ptr<Socket> _inner;
         std::mutex _mutex;
         Hpack _hpack;

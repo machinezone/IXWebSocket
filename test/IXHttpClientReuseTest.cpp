@@ -31,6 +31,7 @@ namespace
     {
         std::string bytes;
         bool close = false;
+
         explicit Reply(std::string wire, bool closeConnection = false)
             : bytes(std::move(wire))
             , close(closeConnection)
@@ -48,6 +49,7 @@ namespace
     {
     public:
         using Script = std::function<Reply(const ix::HttpRequestPtr&, size_t)>;
+
         struct Request
         {
             ix::HttpRequestPtr http;
@@ -73,15 +75,18 @@ namespace
             REQUIRE(listen().first);
             start();
         }
+
         ~PersistentServer() override
         {
             stop();
         }
+
         std::string url()
         {
             return std::string(_tls ? "https" : "http") +
                    "://127.0.0.1:" + std::to_string(getPort()) + "/";
         }
+
         std::vector<Request> requests()
         {
             std::lock_guard<std::mutex> lock(_mutex);
@@ -119,10 +124,12 @@ namespace
             }
             state->setTerminated();
         }
+
         size_t getConnectedClientsCount() override
         {
             return 0;
         }
+
         Script _script;
         bool _tls;
         std::atomic<unsigned> _connections {0};
@@ -140,6 +147,7 @@ namespace
         (void) client;
 #endif
     }
+
     ix::HttpRequestArgsPtr options(ix::HttpClient& client)
     {
         auto args = client.createRequest();
@@ -157,6 +165,7 @@ namespace
             : _failure(std::move(failure))
         {
         }
+
         std::ptrdiff_t recv(void* data, size_t) override
         {
             if (!_probed)
@@ -185,6 +194,7 @@ namespace
             }
             return 0;
         }
+
         std::ptrdiff_t send(char*, size_t size) override
         {
             return _failure == "send" ? 0 : static_cast<std::ptrdiff_t>(size);

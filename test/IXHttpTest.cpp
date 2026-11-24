@@ -23,14 +23,17 @@ namespace ix
         HttpClient client;
         CHECK(client.urlEncode("AZaz09-._~ /+") == "AZaz09-._~%20%2F%2B");
         CHECK(client.urlEncode(std::string("\0\x7f\x80\xc4\xe4\xff", 6)) == "%00%7F%80%C4%E4%FF");
+
         struct RestoreLocale
         {
             std::string name = std::setlocale(LC_CTYPE, nullptr);
+
             ~RestoreLocale()
             {
                 std::setlocale(LC_CTYPE, name.c_str());
             }
         } restore;
+
         if (!std::setlocale(LC_CTYPE, "en_US.ISO8859-1") &&
             !std::setlocale(LC_CTYPE, "tr_TR.ISO8859-9"))
         {
@@ -122,6 +125,7 @@ namespace
             : _input(input)
         {
         }
+
         std::ptrdiff_t recv(void* buffer, size_t length) override
         {
             const size_t size = (std::min) (length, _input.size() - _offset);
@@ -129,11 +133,13 @@ namespace
             _offset += size;
             return static_cast<std::ptrdiff_t>(size);
         }
+
         std::ptrdiff_t send(char* buffer, size_t length) override
         {
             output.append(buffer, length);
             return static_cast<std::ptrdiff_t>(length);
         }
+
         std::string output;
 
     private:

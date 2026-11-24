@@ -20,7 +20,6 @@
 #include <string>
 #include <thread>
 
-
 namespace ix
 {
     std::atomic<size_t> incomingBytes(0);

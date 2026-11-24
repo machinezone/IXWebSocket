@@ -17,12 +17,10 @@
 #include <cmath>
 #include <cstdint>
 
-
 namespace
 {
     const std::string emptyMsg;
 } // namespace
-
 
 namespace ix
 {
@@ -142,11 +140,13 @@ namespace ix
         _pingMessage = sendMessage;
         _ws.setPingMessage(_pingMessage, pingType);
     }
+
     const std::string WebSocket::getPingMessage() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         return _pingMessage;
     }
+
     void WebSocket::setPingInterval(int pingIntervalSecs)
     {
         std::lock_guard<std::mutex> lock(_configMutex);

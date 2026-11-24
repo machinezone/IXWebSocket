@@ -51,7 +51,6 @@
 #include <thread>
 #include <vector>
 
-
 namespace ix
 {
     const int WebSocketTransport::kDefaultPingIntervalSecs(-1);

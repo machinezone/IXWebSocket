@@ -374,6 +374,7 @@ namespace
         void close() override
         {
         }
+
         std::string sent;
     };
 

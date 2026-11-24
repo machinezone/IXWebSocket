@@ -658,6 +658,7 @@ namespace ix
         {
             return _sentBytes;
         }
+
         int getReceivedBytes()
         {
             return _receivedBytes;

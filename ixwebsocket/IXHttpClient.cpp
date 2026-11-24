@@ -45,6 +45,7 @@ namespace
         copy->cancel = args.cancel.load();
         return copy;
     }
+
     bool parseSize(const std::string& text, unsigned base, size_t& value)
     {
         if (text.empty())

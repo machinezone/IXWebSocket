@@ -287,14 +287,17 @@ TEST_CASE("URL schemes stay ASCII in single byte locales", "[url][components]")
 {
     const char* current = std::setlocale(LC_CTYPE, nullptr);
     const std::string saved = current ? current : "C";
+
     struct RestoreLocale
     {
         std::string name;
+
         ~RestoreLocale()
         {
             std::setlocale(LC_CTYPE, name.c_str());
         }
     } restore {saved};
+
     if (!std::setlocale(LC_CTYPE, "en_US.ISO8859-1"))
     {
         SKIP("Single-byte test locale is unavailable");
@@ -327,6 +330,7 @@ TEST_CASE("URL origins compare scheme, hostname and effective port", "[url][orig
         const char* second;
         bool same;
     };
+
     const Example examples[] = {
         {"HTTP://EXAMPLE.com/a", "http://example.COM:80/b?query#fragment", true},
         {"https://example.com/a", "https://example.com:443/b", true},

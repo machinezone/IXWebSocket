@@ -41,15 +41,18 @@ namespace
             REQUIRE(listen().first);
             start();
         }
+
         ~UploadServer() override
         {
             stop();
         }
+
         std::string url()
         {
             return std::string(_tls ? "https://127.0.0.1:" : "http://127.0.0.1:") +
                    std::to_string(getPort()) + "/";
         }
+
         std::future<ix::WebSocketHttpHeaders> headers = _headers.get_future();
 
     private:
@@ -57,6 +60,7 @@ namespace
         {
             return 0;
         }
+
         void handleConnection(std::unique_ptr<ix::Socket> socket,
                               std::shared_ptr<ix::ConnectionState> state) override
         {
@@ -91,6 +95,7 @@ namespace
             }
             state->setTerminated();
         }
+
         const bool _headersOnly;
         const bool _redirect;
         const bool _tls;
@@ -104,6 +109,7 @@ namespace
             std::string method, body, wire, connection;
             ix::WebSocketHttpHeaders headers;
         };
+
         explicit ChunkedUploadServer(bool tls = false, int redirect = 0)
             : SocketServer(ix::getFreePort(), "127.0.0.1")
             , _tls(tls)
@@ -123,20 +129,24 @@ namespace
             REQUIRE(listen().first);
             start();
         }
+
         ~ChunkedUploadServer() override
         {
             stop();
         }
+
         std::string url()
         {
             return std::string(_tls ? "https" : "http") +
                    "://127.0.0.1:" + std::to_string(getPort()) + "/";
         }
+
         std::vector<Request> requests()
         {
             std::lock_guard<std::mutex> lock(_mutex);
             return _requests;
         }
+
         std::atomic<unsigned> connections {0};
 
     private:
@@ -144,6 +154,7 @@ namespace
         {
             return 0;
         }
+
         void handleConnection(std::unique_ptr<ix::Socket> socket,
                               std::shared_ptr<ix::ConnectionState> state) override
         {
@@ -234,6 +245,7 @@ namespace
             }
             state->setTerminated();
         }
+
         bool _tls;
         int _redirect;
         std::mutex _mutex;

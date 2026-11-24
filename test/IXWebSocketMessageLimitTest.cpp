@@ -27,18 +27,22 @@ namespace ix
             }
             transport.setReadyState(WebSocketTransport::ReadyState::OPEN);
         }
+
         static void append(WebSocketTransport& transport, const std::string& data)
         {
             transport._rxbuf.insert(transport._rxbuf.end(), data.begin(), data.end());
         }
+
         static uint64_t wanted(const WebSocketTransport& transport)
         {
             return transport._rxbufWanted;
         }
+
         static size_t chunks(const WebSocketTransport& transport)
         {
             return transport._chunks.size();
         }
+
         static size_t decodedCapacity(const WebSocketTransport& transport)
         {
             return transport._decompressedMessage.capacity();
@@ -83,6 +87,7 @@ namespace
             sent.append(data, size);
             return static_cast<std::ptrdiff_t>(size);
         }
+
         std::string sent;
     };
 
@@ -101,6 +106,7 @@ namespace
             socket = capture.get();
             Access::install(transport, std::move(capture), compression);
         }
+
         void receive(const std::string& bytes)
         {
             Access::append(transport, bytes);
@@ -120,6 +126,7 @@ namespace
                     }
                 });
         }
+
         uint16_t closeCode() const
         {
             const auto& bytes = socket->sent;

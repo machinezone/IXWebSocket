@@ -52,6 +52,7 @@ namespace ix
             int readFd = -1;
             int writeFd = -1;
             bool signalled = false; // guarded by the owning state's mutex
+
             NetworkSignal()
             {
                 int fds[2];
@@ -74,6 +75,7 @@ namespace ix
                     }
                 }
             }
+
             ~NetworkSignal()
             {
                 if (readFd != -1)
@@ -85,6 +87,7 @@ namespace ix
                     ::close(writeFd);
                 }
             }
+
             void notify()
             {
                 if (!signalled && writeFd != -1)
@@ -98,6 +101,7 @@ namespace ix
                     signalled = written == 1;
                 }
             }
+
             void clear()
             {
                 char byte;
@@ -411,6 +415,7 @@ namespace ix
         bool server = false;
         std::string error;
         std::string negotiatedProtocol;
+
         ~State()
         {
             if (connection)
@@ -420,6 +425,7 @@ namespace ix
             }
             dispatch_release(queue);
         }
+
         // Called under mutex. At most 64 KiB is outstanding or buffered.
         static void receive(const std::shared_ptr<State>& state)
         {
@@ -631,6 +637,7 @@ namespace ix
     {
         return accept(error, CancellationRequest());
     }
+
     bool SocketNetwork::accept(std::string& error, const CancellationRequest& cancelled)
     {
         return start(error, cancelled);
@@ -783,6 +790,7 @@ namespace ix
         bool stopped = false;
         std::string error;
         std::string negotiatedProtocol;
+
         ~State()
         {
             if (listener)
@@ -803,6 +811,7 @@ namespace ix
         : _state(std::make_shared<State>())
     {
     }
+
     SocketNetworkListener::~SocketNetworkListener()
     {
         stop();

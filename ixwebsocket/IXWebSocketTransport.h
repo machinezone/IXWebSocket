@@ -142,6 +142,7 @@ namespace ix
             bool rsv2;
             bool rsv3;
             bool mask;
+
             enum opcode_type
             {
                 CONTINUATION = 0x0,
@@ -151,6 +152,7 @@ namespace ix
                 PING = 9,
                 PONG = 0xa,
             } opcode;
+
             int N0;
             uint64_t N;
             uint8_t masking_key[4];

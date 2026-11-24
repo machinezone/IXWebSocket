@@ -169,7 +169,6 @@ namespace ix
         }
     }
 
-
     bool SocketAppleSSL::accept(std::string& errMsg)
     {
         errMsg = "TLS not supported yet in server mode with apple ssl backend";

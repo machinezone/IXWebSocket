@@ -17,6 +17,7 @@ int main(int argc, char** argv)
     {
         return 1;
     }
+
     struct Cleanup
     {
         ~Cleanup()
@@ -24,6 +25,7 @@ int main(int argc, char** argv)
             ix::uninitNetSystem();
         }
     } cleanup;
+
     const bool compression = std::string(argv[3]) == "on";
     const bool serverClose = std::string(argv[4]) == "server";
     std::string large(256 * 1024, '\0');

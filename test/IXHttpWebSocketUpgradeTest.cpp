@@ -21,6 +21,7 @@ namespace
             std::string uri;
             ix::WebSocketHttpHeaders headers;
         };
+
         explicit UpgradeServer(bool tls = false,
                                std::string mode = "normal",
                                std::function<void()> beforeAuthReply = {},
@@ -45,23 +46,28 @@ namespace
             REQUIRE(listen().first);
             start();
         }
+
         ~UpgradeServer() override
         {
             stop();
         }
+
         std::string httpUrl()
         {
             return std::string(_tls ? "https" : "http") +
                    "://127.0.0.1:" + std::to_string(getPort());
         }
+
         std::string wsUrl()
         {
             return std::string(_tls ? "wss" : "ws") + "://127.0.0.1:" + std::to_string(getPort());
         }
+
         unsigned connections() const
         {
             return _connections;
         }
+
         std::vector<Request> requests()
         {
             std::lock_guard<std::mutex> lock(_mutex);
@@ -172,10 +178,12 @@ namespace
             }
             state->setTerminated();
         }
+
         size_t getConnectedClientsCount() override
         {
             return 0;
         }
+
         bool _tls;
         std::string _mode;
         std::function<void()> _beforeAuthReply;
@@ -193,6 +201,7 @@ namespace
         args->compress = false;
         return args;
     }
+
     void configure(ix::HttpClient& client)
     {
 #ifdef IX_HTTP_UPGRADE_TEST_CERTS
@@ -217,6 +226,7 @@ namespace
         std::atomic<unsigned> opens {0}, welcomes {0}, echoes {0}, closes {0};
         std::thread::id openThread;
         ix::WebSocket ws;
+
         Client()
         {
             ws.setExtraHeaders({{"Authorization", "Bearer token"}});
@@ -248,10 +258,12 @@ namespace
                     }
                 });
         }
+
         ~Client()
         {
             ws.stop();
         }
+
         void checkEcho()
         {
             ws.start();
