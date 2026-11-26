@@ -899,6 +899,7 @@ namespace ix
                                 std::string& errMsg,
                                 const CancellationRequest& isCancellationRequested)
     {
+        _negotiatedProtocol.clear();
         bool handshakeSuccessful = false;
         {
             std::lock_guard<std::mutex> lock(_mutex);
@@ -936,6 +937,41 @@ namespace ix
             }
             SSL_set_fd(_ssl_connection, _sockfd);
 
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+            std::string alpn;
+            for (const auto& protocol : _tlsOptions.alpnProtocols)
+            {
+                alpn += static_cast<char>(protocol.size());
+                alpn += protocol;
+                if (protocol == "h2")
+                {
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+                    if (SSL_set_min_proto_version(_ssl_connection, TLS1_2_VERSION) != 1)
+                    {
+                        errMsg = "HTTP/2 requires TLS 1.2 or newer";
+                        return false;
+                    }
+#else
+                    SSL_set_options(_ssl_connection, SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
+#endif
+                }
+            }
+            if (!alpn.empty() &&
+                SSL_set_alpn_protos(_ssl_connection,
+                                    reinterpret_cast<const unsigned char*>(alpn.data()),
+                                    static_cast<unsigned>(alpn.size())) != 0)
+            {
+                errMsg = "Cannot configure ALPN";
+                return false;
+            }
+#else
+            if (!_tlsOptions.alpnProtocols.empty())
+            {
+                errMsg = "ALPN requires OpenSSL 1.0.2 or newer";
+                return false;
+            }
+#endif
+
             // SNI support
             SSL_set_tlsext_host_name(_ssl_connection, host.c_str());
 
@@ -965,6 +1001,16 @@ namespace ix
             }
 #endif
             handshakeSuccessful = openSSLClientHandshake(host, errMsg, isCancellationRequested);
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+            if (handshakeSuccessful)
+            {
+                const unsigned char* selected = nullptr;
+                unsigned length = 0;
+                SSL_get0_alpn_selected(_ssl_connection, &selected, &length);
+                _negotiatedProtocol =
+                    length ? std::string(reinterpret_cast<const char*>(selected), length) : "";
+            }
+#endif
         }
 
         if (!handshakeSuccessful)

@@ -17,27 +17,32 @@ namespace ix
             *size = 0;
             return errSecIO;
         }
+
         static OSStatus write(SSLConnectionRef, const void*, size_t* size)
         {
             *size = 0;
             return errSecIO;
         }
+
         static OSStatus readBlocked(SSLConnectionRef, void*, size_t* size)
         {
             *size = 0;
             return errSSLWouldBlock;
         }
+
         static OSStatus writeBlocked(SSLConnectionRef, const void*, size_t* size)
         {
             *size = 0;
             return errSSLWouldBlock;
         }
+
         static OSStatus handshake(SocketAppleSSL& socket,
                                   std::string& error,
                                   const CancellationRequest& cancelled)
         {
             return socket.tlsHandShake(error, cancelled);
         }
+
         static void install(SocketAppleSSL& socket, bool blocked = false, bool reading = true)
         {
             socket._sslContext =

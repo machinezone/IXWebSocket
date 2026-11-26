@@ -61,6 +61,8 @@ namespace ix
         void setPerMessageDeflateOptions(
             const WebSocketPerMessageDeflateOptions& perMessageDeflateOptions);
         void setTLSOptions(const SocketTLSOptions& socketTLSOptions);
+        // Opt-in RFC 8441 client, one stream per connection. Requires wss:// and ALPN h2.
+        void setHttp2(bool enabled);
         // Incoming payload bytes, before and after decompression. 0 means unlimited.
         // Configure before connecting; applies to subsequent connections.
         void setMaxMessageSize(uint64_t bytes);
@@ -166,6 +168,7 @@ namespace ix
 
         SocketTLSOptions _socketTLSOptions;
         ProxyOptions _proxyOptions;
+        bool _http2 = false;
 
         mutable std::mutex _configMutex; // protect all config variables access
 
@@ -210,5 +213,6 @@ namespace ix
         bool _autoThreadName;
 
         friend class WebSocketServer;
+        friend struct WebSocketStopTestAccess;
     };
 } // namespace ix

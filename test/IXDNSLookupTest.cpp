@@ -11,7 +11,6 @@
 
 using namespace ix;
 
-
 TEST_CASE("dns", "[net]")
 {
     SECTION("Test resolving a loopback address")

@@ -9,12 +9,14 @@
 #include <ixwebsocket/IXSocketNetwork.h>
 
 using namespace ix;
+
 namespace
 {
     std::string credential(const std::string& name)
     {
         return std::string(IX_NETWORK_TEST_CERTS) + "/" + name;
     }
+
     SocketTLSOptions serverOptions(const std::string& name = "server")
     {
         SocketTLSOptions options;
@@ -24,12 +26,14 @@ namespace
         options.caFile = "NONE";
         return options;
     }
+
     SocketTLSOptions clientOptions()
     {
         SocketTLSOptions options;
         options.caFile = credential("ca.pem");
         return options;
     }
+
     void checkRequest(SocketTLSOptions serverTLS,
                       SocketTLSOptions clientTLS,
                       bool expected,

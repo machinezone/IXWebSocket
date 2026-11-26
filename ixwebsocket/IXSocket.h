@@ -43,10 +43,15 @@ namespace ix
 
         // Functions to check whether there is activity on the socket
         PollResultType poll(int timeoutMs = kDefaultPollTimeout);
-        bool wakeUpFromPoll(uint64_t wakeUpCode);
-        bool isWakeUpFromPollSupported();
+        virtual bool wakeUpFromPoll(uint64_t wakeUpCode);
+        virtual bool isWakeUpFromPollSupported();
 
-        PollResultType isReadyToRead(int timeoutMs);
+        virtual PollResultType isReadyToRead(int timeoutMs);
+
+        std::string getNegotiatedProtocol() const
+        {
+            return _negotiatedProtocol;
+        }
 
         // Virtual methods
         virtual bool accept(std::string& errMsg);
@@ -93,6 +98,7 @@ namespace ix
                           int port,
                           std::string& error,
                           const CancellationRequest& cancelled);
+        std::string _negotiatedProtocol;
         ProxyOptions _proxyOptions;
         std::atomic<int> _sockfd;
         std::mutex _socketMutex;

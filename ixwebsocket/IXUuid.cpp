@@ -22,7 +22,6 @@
 #include <sstream>
 #include <string>
 
-
 namespace ix
 {
     class Uuid

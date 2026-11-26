@@ -83,7 +83,8 @@ namespace ix
                        bool enablePong,
                        int pingIntervalSecs,
                        const ProxyOptions& proxyOptions = {},
-                       uint64_t maxMessageSize = 0);
+                       uint64_t maxMessageSize = 0,
+                       bool http2 = false);
 
         // Client
         WebSocketInitResult connectToUrl(
@@ -112,6 +113,7 @@ namespace ix
                    size_t closeWireSize = 0,
                    bool remote = false);
 
+        // Historical name: closes the complete WebSocket byte stream.
         void closeSocket();
 
         ReadyState getReadyState() const;
@@ -129,6 +131,7 @@ namespace ix
 
     private:
         friend struct WebSocketTransportTestAccess;
+        friend struct WebSocketStopTestAccess;
         std::string _url;
         Utf8Validator _utf8Validator;
         size_t _validatedBytes = 0;
@@ -141,6 +144,7 @@ namespace ix
             bool rsv2;
             bool rsv3;
             bool mask;
+
             enum opcode_type
             {
                 CONTINUATION = 0x0,
@@ -150,6 +154,7 @@ namespace ix
                 PING = 9,
                 PONG = 0xa,
             } opcode;
+
             int N0;
             uint64_t N;
             uint8_t masking_key[4];
@@ -210,8 +215,8 @@ namespace ix
         static constexpr size_t kChunkSize = 1 << 15;
 
         // Underlying TCP socket
-        std::unique_ptr<Socket> _socket;
-        std::mutex _socketMutex;
+        std::unique_ptr<WebSocketStream> _stream;
+        std::mutex _streamMutex;
 
         // Hold the state of the connection (OPEN, CLOSED, etc...)
         std::atomic<ReadyState> _readyState;
@@ -235,6 +240,7 @@ namespace ix
 
         // Used to control TLS connection behavior
         SocketTLSOptions _socketTLSOptions;
+        bool _http2 = false;
         ProxyOptions _proxyOptions;
 
         // Used to cancel dns lookup + socket connect + http upgrade
@@ -273,7 +279,7 @@ namespace ix
 
         void sendCloseFrame(uint16_t code, const std::string& reason);
 
-        void closeSocketAndSwitchToClosedState(uint16_t code,
+        void closeStreamAndSwitchToClosedState(uint16_t code,
                                                const std::string& reason,
                                                size_t closeWireSize,
                                                bool remote);
@@ -282,8 +288,8 @@ namespace ix
 
         bool isAbnormalClose() const;
         bool flushSendBuffer();
-        bool sendOnSocket();
-        bool receiveFromSocket();
+        bool sendOnStream();
+        bool receiveFromStream();
 
         WebSocketSendInfo sendData(wsheader_type::opcode_type type,
                                    const IXWebSocketSendData& message,

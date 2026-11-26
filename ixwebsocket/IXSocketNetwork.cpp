@@ -22,6 +22,29 @@ namespace ix
 {
     namespace
     {
+        std::string negotiatedApplicationProtocol(sec_protocol_metadata_t metadata)
+        {
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 150500
+            if (__builtin_available(macOS 15.5, *))
+            {
+                const char* value = sec_protocol_metadata_copy_negotiated_protocol(metadata);
+                if (value)
+                {
+                    const std::string protocol(value);
+                    free(const_cast<char*>(value));
+                    return protocol;
+                }
+            }
+#endif
+            // Some macOS versions return null from the copy API while the
+            // legacy getter correctly exposes the negotiated protocol.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            const char* value = sec_protocol_metadata_get_negotiated_protocol(metadata);
+#pragma clang diagnostic pop
+            return value ? value : "";
+        }
+
         // Level-triggered notification: one byte remains until all buffered input
         // is consumed. The descriptor carries notifications, never TLS payloads.
         struct NetworkSignal
@@ -29,6 +52,7 @@ namespace ix
             int readFd = -1;
             int writeFd = -1;
             bool signalled = false; // guarded by the owning state's mutex
+
             NetworkSignal()
             {
                 int fds[2];
@@ -51,6 +75,7 @@ namespace ix
                     }
                 }
             }
+
             ~NetworkSignal()
             {
                 if (readFd != -1)
@@ -62,6 +87,7 @@ namespace ix
                     ::close(writeFd);
                 }
             }
+
             void notify()
             {
                 if (!signalled && writeFd != -1)
@@ -75,6 +101,7 @@ namespace ix
                     signalled = written == 1;
                 }
             }
+
             void clear()
             {
                 char byte;
@@ -292,6 +319,11 @@ namespace ix
                     if (!server)
                     {
                         sec_protocol_options_set_tls_server_name(security, host.c_str());
+                        for (const auto& protocol : options.alpnProtocols)
+                        {
+                            sec_protocol_options_add_tls_application_protocol(security,
+                                                                              protocol.c_str());
+                        }
                     }
                     sec_protocol_options_set_peer_authentication_required(
                         security, !options.isPeerVerifyDisabled());
@@ -382,6 +414,8 @@ namespace ix
         bool started = false;
         bool server = false;
         std::string error;
+        std::string negotiatedProtocol;
+
         ~State()
         {
             if (connection)
@@ -391,6 +425,7 @@ namespace ix
             }
             dispatch_release(queue);
         }
+
         // Called under mutex. At most 64 KiB is outstanding or buffered.
         static void receive(const std::shared_ptr<State>& state)
         {
@@ -472,6 +507,7 @@ namespace ix
                                 std::string& error,
                                 const CancellationRequest& cancelled)
     {
+        _negotiatedProtocol.clear();
         if (port < 1 || port > 65535)
         {
             error = "Invalid TLS port";
@@ -525,6 +561,7 @@ namespace ix
         s->started = true;
         std::weak_ptr<State> weak = s;
         nw_connection_set_queue(s->connection, s->queue);
+        const bool useAlpn = !_options.alpnProtocols.empty();
         nw_connection_set_state_changed_handler(
             s->connection, ^(nw_connection_state_t state, nw_error_t err) {
                 auto current = weak.lock();
@@ -539,6 +576,24 @@ namespace ix
                 }
                 if (state == nw_connection_state_ready)
                 {
+                    if (useAlpn)
+                    {
+                        auto definition = nw_protocol_copy_tls_definition();
+                        auto metadata =
+                            nw_connection_copy_protocol_metadata(current->connection, definition);
+                        nw_release(definition);
+                        if (metadata)
+                        {
+                            auto security = nw_tls_copy_sec_protocol_metadata(metadata);
+                            if (security)
+                            {
+                                current->negotiatedProtocol =
+                                    negotiatedApplicationProtocol(security);
+                                sec_release(security);
+                            }
+                            nw_release(metadata);
+                        }
+                    }
                     current->ready = true;
                     State::receive(current);
                 }
@@ -569,6 +624,7 @@ namespace ix
         }
         if (s->ready && !s->closed && s->error.empty())
         {
+            _negotiatedProtocol = s->negotiatedProtocol;
             return true;
         }
         error = s->error.empty() ? "TLS connection closed during handshake" : s->error;
@@ -581,6 +637,7 @@ namespace ix
     {
         return accept(error, CancellationRequest());
     }
+
     bool SocketNetwork::accept(std::string& error, const CancellationRequest& cancelled)
     {
         return start(error, cancelled);
@@ -732,6 +789,8 @@ namespace ix
         bool ready = false;
         bool stopped = false;
         std::string error;
+        std::string negotiatedProtocol;
+
         ~State()
         {
             if (listener)
@@ -752,6 +811,7 @@ namespace ix
         : _state(std::make_shared<State>())
     {
     }
+
     SocketNetworkListener::~SocketNetworkListener()
     {
         stop();

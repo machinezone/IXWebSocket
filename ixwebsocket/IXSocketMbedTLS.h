@@ -57,6 +57,7 @@ namespace ix
 
         std::mutex _mutex;
         SocketTLSOptions _tlsOptions;
+        std::vector<const char*> _alpnProtocols;
         bool _mbedtlsInitialized = false;
 
         bool init(const std::string& host, bool isClient, std::string& errMsg);

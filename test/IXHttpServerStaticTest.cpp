@@ -18,6 +18,7 @@ namespace
         std::string name =
             "static-test-" +
             std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".bin";
+
         explicit File(const std::string& bytes)
         {
             std::ofstream file(name, std::ios::binary);
@@ -25,6 +26,7 @@ namespace
             file.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
             REQUIRE(file.good());
         }
+
         ~File()
         {
             std::remove(name.c_str());

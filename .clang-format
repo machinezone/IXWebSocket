@@ -41,6 +41,7 @@ IndentWidth: 4
 InsertBraces: true
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 2
+SeparateDefinitionBlocks: Always
 NamespaceIndentation: All
 PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left

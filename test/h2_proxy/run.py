@@ -102,14 +102,15 @@ def run(args):
                 if line.startswith("READY "):
                     return int(line.split()[1])
         port = wait_for(backend_port, processes)
-        certificate, key = output / "cert.pem", output / "key.pem"
+        ca, ca_key = output / "ca.pem", output / "ca.key"
+        certificate, key = output / "server.pem", output / "server.key"
         config = output / "openssl.cnf"
         config.write_text("""[req]
         distinguished_name = dn
         x509_extensions = extensions
         prompt = no
         [dn]
-        CN = localhost
+        CN = IXWebSocket-H2-Test-CA
         [extensions]
         subjectAltName = DNS:localhost,IP:127.0.0.1
         basicConstraints = critical,CA:TRUE
@@ -119,16 +120,59 @@ def run(args):
         """)
         with (output / "certificate.log").open("w") as log:
             subprocess.run([args.openssl, "req", "-x509", "-newkey", "rsa:2048", "-nodes",
-                            "-days", "1", "-config", str(config), "-keyout", str(key),
+                            "-days", "1", "-config", str(config), "-keyout", str(ca_key),
+                            "-out", str(ca)], check=True, stdout=log,
+                           stderr=subprocess.STDOUT, timeout=15)
+        leaf_config = output / "server.cnf"
+        leaf_config.write_text("""[req]
+        distinguished_name = dn
+        prompt = no
+        [dn]
+        CN = localhost
+        [extensions]
+        basicConstraints = critical,CA:FALSE
+        keyUsage = critical,digitalSignature,keyEncipherment
+        extendedKeyUsage = serverAuth
+        subjectAltName = DNS:localhost,IP:127.0.0.1
+        subjectKeyIdentifier = hash
+        authorityKeyIdentifier = keyid:always
+        """)
+        with (output / "certificate.log").open("a") as log:
+            subprocess.run([args.openssl, "req", "-new", "-newkey", "rsa:2048", "-nodes",
+                            "-config", str(leaf_config), "-keyout", str(key),
+                            "-out", str(output / "server.csr")], check=True,
+                           stdout=log, stderr=subprocess.STDOUT, timeout=15)
+            subprocess.run([args.openssl, "x509", "-req", "-days", "1", "-CA", str(ca),
+                            "-CAkey", str(ca_key), "-CAcreateserial", "-extfile", str(leaf_config),
+                            "-extensions", "extensions", "-in", str(output / "server.csr"),
                             "-out", str(certificate)], check=True, stdout=log,
                            stderr=subprocess.STDOUT, timeout=15)
         if args.proxy == "envoy":
             port = start_envoy(args, output, certificate, key, port, processes, logs)
         else:
             port = start_nghttpx(args, output, certificate, key, port, processes, logs)
-        client = wait_for(lambda: Client(port, certificate), processes)
+        client = wait_for(lambda: Client(port, ca), processes)
+        if args.native_client:
+            for compression in ("off", "on"):
+                for close in ("client", "server"):
+                    with (output / ("native-" + compression + "-" + close + ".log")).open("w") as log:
+                        subprocess.run([str(args.native_client), "wss://127.0.0.1:" + str(port) + "/native",
+                                        str(ca), compression, close], stdout=log,
+                                       stderr=subprocess.STDOUT, timeout=15, check=True)
+                    print("PASS native IXWebSocket H2 compression=" + compression + " close=" + close, flush=True)
+            report["native_client"] = "4 combinations passed"
+            for reject in (False, True):
+                with (output / ("native-peer-reject.log" if reject else "native-peer.log")).open("w") as log:
+                    command = [sys.executable, str(ROOT / "test/h2_proxy/native_peer.py"),
+                               str(args.native_client), str(certificate), str(key), str(ca)]
+                    if reject:
+                        command.append("--reject-alpn")
+                    subprocess.run(command, check=True, stdout=log, stderr=subprocess.STDOUT, timeout=45)
+            report["independent_native_peer"] = "6 exchange combinations, blocked-send cancellation, and ALPN rejection passed"
+            print("PASS native H2 client: independent peer, bidirectional backpressure and ALPN rejection", flush=True)
         report["alpn"] = "h2"
-        report["downstream_connections"] = 1
+        report["python_downstream_connections"] = 1
+        report["downstream_connections"] = 5 if args.native_client else 1
 
         def passed(name):
             print("PASS " + name, flush=True)
@@ -215,6 +259,17 @@ def run(args):
             if processes[0].returncode != 0:
                 report["success"] = False
                 report.setdefault("error", "Backend did not stop cleanly")
+        if report.get("success") and args.native_client:
+            access = (output / "access.log").read_text().splitlines()
+            native_h2 = [line for line in access if "HTTP/2" in line and
+                         ("ixwebsocket/" in line if args.proxy == "nghttpx" else "/native" in line)]
+            if len(native_h2) != 4:
+                report["success"] = False
+                report["error"] = "Proxy did not log four native HTTP/2 connections"
+                print("FAIL " + report["error"], file=sys.stderr)
+            else:
+                report["native_h2_connections_verified"] = 4
+                print("PASS proxy access log confirms all native clients used HTTP/2", flush=True)
         report["elapsed_seconds"] = round(time.monotonic() - started, 3)
         (output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     return 0 if report.get("success") else 1
@@ -223,6 +278,7 @@ def run(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--server", type=Path, default=ROOT / "build/h2-proxy/h2_proxy_server")
+    parser.add_argument("--native-client", type=Path)
     parser.add_argument("--proxy", choices=("nghttpx", "envoy"), default="nghttpx")
     parser.add_argument("--nghttpx", default="nghttpx")
     parser.add_argument("--envoy", default="envoy")

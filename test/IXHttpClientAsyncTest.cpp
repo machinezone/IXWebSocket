@@ -189,14 +189,17 @@ TEST_CASE("Active HTTP cancellation survives redirects", "[http][async]")
     std::promise<ix::HttpResponsePtr> completed;
     auto result = completed.get_future();
     ix::HttpClient client(true);
+
     struct OpenOnExit
     {
         ReleaseGate& gate;
+
         ~OpenOnExit()
         {
             gate.open();
         }
     } release {responseGate};
+
     auto args = client.createRequest(url(server) + (redirect ? "/redirect" : "/slow"),
                                      ix::HttpClient::kGet);
     REQUIRE(client.performRequest(args,

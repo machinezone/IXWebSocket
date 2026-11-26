@@ -15,24 +15,29 @@ namespace
     {
     public:
         using Script = std::function<std::string(const ix::HttpRequestPtr&, size_t)>;
+
         explicit ResponseServer(Script script)
             : SocketServer(ix::getFreePort(), "127.0.0.1")
             , _script(std::move(script))
         {
         }
+
         ~ResponseServer() override
         {
             stop();
         }
+
         void startServing()
         {
             REQUIRE(listen().first);
             start();
         }
+
         std::string url()
         {
             return "http://127.0.0.1:" + std::to_string(getPort()) + "/";
         }
+
         std::vector<ix::HttpRequestPtr> requests()
         {
             std::lock_guard<std::mutex> lock(_mutex);
@@ -66,10 +71,12 @@ namespace
             }
             state->setTerminated();
         }
+
         size_t getConnectedClientsCount() override
         {
             return 0;
         }
+
         Script _script;
         std::mutex _mutex;
         std::vector<ix::HttpRequestPtr> _requests;

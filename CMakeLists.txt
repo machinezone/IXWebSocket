@@ -58,6 +58,7 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXGetFreePort.cpp
     ixwebsocket/IXGzipCodec.cpp
     ixwebsocket/IXHttp.cpp
+    ixwebsocket/IXHpack.cpp
     ixwebsocket/IXHttpClient.cpp
     ixwebsocket/IXHttpServer.cpp
     ixwebsocket/IXNetSystem.cpp
@@ -66,6 +67,9 @@ set( IXWEBSOCKET_SOURCES
     ixwebsocket/IXSelectInterruptPipe.cpp
     ixwebsocket/IXSelectInterruptEvent.cpp
     ixwebsocket/IXSetThreadName.cpp
+    ixwebsocket/IXHttp2Connection.cpp
+    ixwebsocket/IXHttp2Stream.cpp
+    ixwebsocket/IXWebSocketStream.cpp
     ixwebsocket/IXSocket.cpp
     ixwebsocket/IXSocketConnect.cpp
     ixwebsocket/IXSocketFactory.cpp
@@ -98,6 +102,7 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXExponentialBackoff.h
     ixwebsocket/IXGetFreePort.h
     ixwebsocket/IXGzipCodec.h
+    ixwebsocket/IXHpack.h
     ixwebsocket/IXHttp.h
     ixwebsocket/IXHttpClient.h
     ixwebsocket/IXHttpServer.h
@@ -109,6 +114,9 @@ set( IXWEBSOCKET_HEADERS
     ixwebsocket/IXSelectInterruptPipe.h
     ixwebsocket/IXSelectInterruptEvent.h
     ixwebsocket/IXSetThreadName.h
+    ixwebsocket/IXHttp2Connection.h
+    ixwebsocket/IXHttp2Stream.h
+    ixwebsocket/IXWebSocketStream.h
     ixwebsocket/IXSocket.h
     ixwebsocket/IXSocketConnect.h
     ixwebsocket/IXSocketFactory.h

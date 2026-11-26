@@ -50,6 +50,7 @@ class WebSocketHandshakeKeyGen
         {
             return (value << bits) | (value >> (32 - bits));
         }
+
         static inline uint32_t blk(uint32_t b[16], size_t i)
         {
             return rol(b[(i + 13) & 15] ^ b[(i + 8) & 15] ^ b[(i + 2) & 15] ^ b[i], 1);

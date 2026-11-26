@@ -35,6 +35,11 @@ namespace ix
     {
         (void) tlsOptions;
         errorMsg.clear();
+        if (tls && !tlsOptions.alpnProtocols.empty() && !tlsOptions.isValid())
+        {
+            errorMsg = tlsOptions.getErrorMsg();
+            return nullptr;
+        }
 #if !defined(IXWEBSOCKET_USE_OPEN_SSL) || OPENSSL_VERSION_NUMBER < 0x10101000L ||                  \
     defined(LIBRESSL_VERSION_NUMBER)
         if (tls && !tlsOptions.keyLogFile.empty())

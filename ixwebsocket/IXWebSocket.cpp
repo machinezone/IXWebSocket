@@ -17,12 +17,10 @@
 #include <cmath>
 #include <cstdint>
 
-
 namespace
 {
     const std::string emptyMsg;
 } // namespace
-
 
 namespace ix
 {
@@ -100,6 +98,12 @@ namespace ix
         _perMessageDeflateOptions = perMessageDeflateOptions;
     }
 
+    void WebSocket::setHttp2(bool enabled)
+    {
+        std::lock_guard<std::mutex> lock(_configMutex);
+        _http2 = enabled;
+    }
+
     void WebSocket::setTLSOptions(const SocketTLSOptions& socketTLSOptions)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
@@ -136,11 +140,13 @@ namespace ix
         _pingMessage = sendMessage;
         _ws.setPingMessage(_pingMessage, pingType);
     }
+
     const std::string WebSocket::getPingMessage() const
     {
         std::lock_guard<std::mutex> lock(_configMutex);
         return _pingMessage;
     }
+
     void WebSocket::setPingInterval(int pingIntervalSecs)
     {
         std::lock_guard<std::mutex> lock(_configMutex);
@@ -280,6 +286,11 @@ namespace ix
             url = _url;
             if (httpClient)
             {
+                if (_http2)
+                {
+                    return WebSocketInitResult(
+                        false, 0, "HTTP/2 cannot adopt an HTTP/1.1 connection");
+                }
                 std::string protocol, host, path, query;
                 int port;
                 if (!UrlParser::parse(url, protocol, host, path, query, port) ||
@@ -305,7 +316,8 @@ namespace ix
                           _enablePong,
                           _pingIntervalSecs,
                           _proxyOptions,
-                          _maxMessageSize);
+                          _maxMessageSize,
+                          _http2);
             headers = _extraHeaders;
             disabledDefaultHeaders = _disabledDefaultHeaders;
             subProtocols = _subProtocols;
@@ -523,11 +535,9 @@ namespace ix
                 break;
             }
 
-            // We can avoid to poll if we want to stop and are not closing
-            if (_stop && !isClosing())
-            {
-                break;
-            }
+            // stop() sets _stop before starting close() to prevent reconnection.
+            // The connection may still be OPEN at this point. Keep polling and
+            // dispatching until CLOSED so its terminal callback is not skipped.
 
             // 2. Poll to see if there's any new data available
             WebSocketTransport::PollResult pollResult = _ws.poll();
