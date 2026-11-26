@@ -1,6 +1,6 @@
 ## Hello world
 
-(note from the main developer, sadly I don't have too much time to devote to this library anymore, maybe it's time to pass the maintenance to someone else more motivated ?)
+(note from the main developer, sadly I don't have too much time to devote to this library anymore, maybe it's time to pass the maintenance to someone else more motivated ? ... but now that we have AI Coding agents it is much easier to keep this going)
 
 IXWebSocket is a C++ library for WebSocket client and server development. It has minimal dependencies (no boost), is very simple to use and support everything you'll likely need for websocket dev (SSL, deflate compression, compiles on most platforms, etc...). HTTP client and server code is also available, but it hasn't received as much testing. CORS is supported: custom headers such as `Access-Control-Allow-Origin` can be set on responses through the extra headers mechanism (see [#587](https://github.com/machinezone/IXWebSocket/issues/587)).
 
